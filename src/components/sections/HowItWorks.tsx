@@ -11,7 +11,7 @@ const steps = [
     icon: Radar,
     title: "We Track Everything",
     description:
-      "Our engine monitors state warehouses every 15 minutes, tracks shipments to local distribution boards, and watches store-level inventory. We see bottles enter the system days before they hit shelves.",
+      "Our engine monitors the NC ABC warehouse every 15 minutes, tracks shipments to local county boards, and watches store-level inventory. We see bottles enter the system days before they hit shelves.",
   },
   {
     icon: Zap,
@@ -67,7 +67,7 @@ export default function HowItWorks() {
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "16px",
-                    lineHeight: 1.6,
+                    lineHeight: 1.7,
                     color: "var(--color-text-secondary)",
                   }}
                 >

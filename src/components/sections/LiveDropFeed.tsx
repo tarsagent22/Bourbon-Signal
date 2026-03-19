@@ -18,7 +18,7 @@ const drops = [
   {
     bottle: "Weller 12Y",
     event: "Shipped to Board",
-    location: "Downtown Liquor Store #12, Raleigh",
+    location: "Wake County ABC Board",
     time: "47 min ago",
     quantity: "6 cases",
     rarity: "allocated" as const,
@@ -26,7 +26,7 @@ const drops = [
   {
     bottle: "Woodford Reserve Double Double Oaked",
     event: "Warehouse Received",
-    location: "State Distribution Center, Nashville",
+    location: "NC ABC Warehouse, Raleigh",
     time: "2 hr ago",
     quantity: "537 cases",
     rarity: "allocated" as const,
@@ -34,7 +34,7 @@ const drops = [
   {
     bottle: "King of Kentucky SB1",
     event: "Warehouse Depleted",
-    location: "State Warehouse, Columbus",
+    location: "NC ABC Warehouse, Raleigh",
     time: "3 hr ago",
     quantity: "0 cases (was 54)",
     rarity: "allocated" as const,
@@ -42,7 +42,7 @@ const drops = [
   {
     bottle: "Blanton's Single Barrel",
     event: "In Store",
-    location: "State Store #47, Nashville",
+    location: "ABC Store #12, Raleigh",
     time: "5 hr ago",
     quantity: "3 bottles",
     rarity: "allocated" as const,
@@ -50,7 +50,7 @@ const drops = [
   {
     bottle: "E.H. Taylor Small Batch",
     event: "Shipped to Board",
-    location: "State Store #103, Portland",
+    location: "Mecklenburg County ABC Board",
     time: "Yesterday",
     quantity: "4 cases",
     rarity: "limited" as const,
@@ -66,7 +66,7 @@ export default function LiveDropFeed() {
       <div className="mx-auto max-w-2xl">
         <SectionHeading
           heading="What's Dropping Right Now"
-          subheading="A live look at recent allocated bourbon activity across the country."
+          subheading="A live look at recent allocated bourbon activity across North Carolina."
         />
 
         <motion.div
@@ -105,7 +105,8 @@ export default function LiveDropFeed() {
                       <span
                         style={{
                           fontFamily: "var(--font-dm-sans)",
-                          fontSize: "14px",
+                          fontSize: "15px",
+                          lineHeight: 1.6,
                           color: "var(--color-text-secondary)",
                         }}
                       >

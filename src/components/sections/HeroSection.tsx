@@ -34,7 +34,7 @@ export default function HeroSection() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'url("https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=1920&q=80&auto=format&fit=crop")',
+              'url("https://images.unsplash.com/photo-1614313511387-1436a4480ebb?w=1920&q=80&auto=format&fit=crop")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -77,7 +77,7 @@ export default function HeroSection() {
               fontWeight: 500,
             }}
           >
-            ALLOCATED BOURBON INTELLIGENCE
+            BOURBON INTELLIGENCE FOR NORTH CAROLINA
           </p>
         </ScrollReveal>
 
@@ -106,9 +106,9 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Know when allocated bourbon hits store shelves — before the crowds.
+            Know when allocated bourbon hits NC ABC shelves — before the crowds.
             Real-time warehouse tracking, shipment alerts, and store-level
-            intelligence.
+            intelligence for North Carolina.
           </p>
         </ScrollReveal>
 

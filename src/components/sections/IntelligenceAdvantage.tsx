@@ -30,7 +30,7 @@ const pipelineSteps = [
     icon: Store,
     label: "Store Shelf",
     note: "Community confirms it",
-    glow: true,
+    glow: false,
   },
 ];
 
@@ -38,7 +38,7 @@ const features = [
   {
     title: "Days of Advance Notice",
     description:
-      "Our warehouse monitor catches bottles entering the state distribution system days before they reach stores. Plan your hunt instead of scrambling.",
+      "Our warehouse monitor catches bottles entering the NC ABC distribution system days before they reach stores. Plan your hunt instead of scrambling.",
   },
   {
     title: "Board-Level Tracking",
@@ -70,8 +70,8 @@ export default function IntelligenceAdvantage() {
             <div className="flex items-start justify-between min-w-[600px] px-4 relative">
               {/* Connecting line */}
               <motion.div
-                className="absolute top-[28px] left-[60px] right-[60px] h-[2px]"
-                style={{ backgroundColor: "rgba(212, 146, 11, 0.2)" }}
+                className="absolute top-[34px] left-[60px] right-[60px] h-[3px]"
+                style={{ backgroundColor: "rgba(212, 146, 11, 0.25)", borderRadius: "2px" }}
                 initial={{ scaleX: 0, transformOrigin: "left" }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
@@ -91,21 +91,21 @@ export default function IntelligenceAdvantage() {
                   <div
                     className="flex items-center justify-center rounded-full mb-3"
                     style={{
-                      width: "56px",
-                      height: "56px",
+                      width: "68px",
+                      height: "68px",
                       backgroundColor: step.glow
-                        ? "rgba(212, 146, 11, 0.15)"
+                        ? "rgba(212, 146, 11, 0.18)"
                         : "var(--color-bg-tertiary)",
                       border: step.glow
-                        ? "2px solid var(--color-accent-amber)"
+                        ? "2.5px solid var(--color-accent-amber)"
                         : "2px solid var(--color-card-border)",
                       boxShadow: step.glow
-                        ? "0 0 20px rgba(212, 146, 11, 0.2)"
+                        ? "0 0 30px rgba(212, 146, 11, 0.35), 0 0 60px rgba(212, 146, 11, 0.15)"
                         : "none",
                     }}
                   >
                     <step.icon
-                      size={24}
+                      size={30}
                       style={{
                         color: step.glow
                           ? "var(--color-accent-amber)"
@@ -170,7 +170,7 @@ export default function IntelligenceAdvantage() {
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "16px",
-                    lineHeight: 1.6,
+                    lineHeight: 1.7,
                     color: "var(--color-text-secondary)",
                   }}
                 >

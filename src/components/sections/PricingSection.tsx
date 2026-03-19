@@ -16,12 +16,11 @@ const founderFeatures = [
   "Secondary market pricing",
   "Historical drop patterns",
   "Community store intel",
-  "Priority support",
+  "2x entries in all future drawings",
   "The Inner Circle (private founding Telegram group)",
-  "Numbered Glencairn topper (#001-100)",
+  "Numbered Glencairn Topper (#001-100)",
   "Permanent Founder badge on your profile",
   "Exclusive sticker pack",
-  "Bonus entries in all future drawings",
 ];
 
 const standardFeatures = [
@@ -34,12 +33,6 @@ const standardFeatures = [
   "Community store intel",
 ];
 
-const freeFeatures = [
-  "Public drop feed (delayed 24-48hr)",
-  "Bottle reference cards",
-  "Basic store locator",
-];
-
 export default function PricingSection() {
   return (
     <section
@@ -47,83 +40,19 @@ export default function PricingSection() {
       className="py-24 px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
-      <div className="mx-auto max-w-[1200px]">
+      <div className="mx-auto max-w-[900px]">
         <SectionHeading heading="Choose Your Level" />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Free Tier */}
-          <motion.div variants={fadeUpVariant} className="order-2 md:order-1">
-            <GlassCard className="h-full">
-              <h3
-                className="mb-4"
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                Free
-              </h3>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span
-                  style={{
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: "36px",
-                    fontWeight: 700,
-                    color: "var(--color-text-primary)",
-                  }}
-                >
-                  Free
-                </span>
-              </div>
-              <p
-                className="mb-6"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                No account required
-              </p>
-
-              <ul className="space-y-3 mb-8">
-                {freeFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check
-                      size={18}
-                      className="shrink-0 mt-0.5"
-                      style={{ color: "var(--color-text-tertiary)" }}
-                    />
-                    <span
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "15px",
-                        color: "var(--color-text-tertiary)",
-                      }}
-                    >
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button variant="ghost" className="w-full opacity-70">
-                Browse the Feed
-              </Button>
-            </GlassCard>
-          </motion.div>
-
           {/* Standard Proof Monthly */}
-          <motion.div variants={fadeUpVariant} className="order-3 md:order-2">
-            <GlassCard className="h-full">
+          <motion.div variants={fadeUpVariant}>
+            <GlassCard className="h-full p-6">
               <h3
                 className="mb-4"
                 style={{
@@ -160,7 +89,8 @@ export default function PricingSection() {
                 className="mb-6"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
+                  fontSize: "15px",
+                  lineHeight: 1.65,
                   color: "var(--color-text-tertiary)",
                 }}
               >
@@ -179,6 +109,7 @@ export default function PricingSection() {
                       style={{
                         fontFamily: "var(--font-dm-sans)",
                         fontSize: "15px",
+                        lineHeight: 1.65,
                         color: "var(--color-text-secondary)",
                       }}
                     >
@@ -195,18 +126,21 @@ export default function PricingSection() {
           </motion.div>
 
           {/* Bottled-In-Bond Founding Member */}
-          <motion.div variants={fadeUpVariant} className="order-1 md:order-3">
-            <div className="relative">
+          <motion.div variants={fadeUpVariant}>
+            <div className="relative" style={{ transform: "scale(1.04)" }}>
               {/* Ambient glow behind card */}
               <div
-                className="absolute inset-0 -m-4 pointer-events-none"
+                className="absolute inset-0 -m-6 pointer-events-none"
                 style={{
                   background:
-                    "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.15) 0%, transparent 70%)",
-                  borderRadius: "20px",
+                    "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.25) 0%, transparent 70%)",
+                  borderRadius: "24px",
                 }}
               />
-              <GlassCard accent className="relative h-full p-8">
+              <GlassCard accent className="relative h-full !p-10" style={{
+                borderTop: "4px solid var(--color-accent-amber)",
+                boxShadow: "0 0 40px rgba(212, 146, 11, 0.15), 0 0 80px rgba(212, 146, 11, 0.08)",
+              }}>
                 <div className="mb-4">
                   <Badge variant="allocated">FOUNDING MEMBER</Badge>
                 </div>
@@ -247,6 +181,7 @@ export default function PricingSection() {
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "15px",
+                    lineHeight: 1.65,
                     fontWeight: 500,
                     color: "var(--color-text-primary)",
                   }}
@@ -257,7 +192,7 @@ export default function PricingSection() {
                   className="mb-6"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "13px",
+                    fontSize: "14px",
                     fontStyle: "italic",
                     color: "var(--color-accent-copper)",
                   }}
@@ -313,6 +248,7 @@ export default function PricingSection() {
                         style={{
                           fontFamily: "var(--font-dm-sans)",
                           fontSize: "15px",
+                          lineHeight: 1.65,
                           color: "var(--color-text-primary)",
                         }}
                       >
@@ -340,6 +276,18 @@ export default function PricingSection() {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* Note below pricing cards */}
+        <p
+          className="text-center mt-8"
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "14px",
+            color: "var(--color-text-tertiary)",
+          }}
+        >
+          No account needed to browse the public drop feed.
+        </p>
       </div>
     </section>
   );

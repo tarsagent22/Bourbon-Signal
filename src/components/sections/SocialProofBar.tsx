@@ -16,7 +16,7 @@ export default function SocialProofBar() {
       <div className="mx-auto max-w-5xl px-8 md:px-16 lg:px-24">
         <ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <StatCard value={847} label="stores monitored nationwide" />
+            <StatCard value={847} label="stores monitored across North Carolina" />
             <StatCard value={2340} label="drops detected this month" />
             <StatCard value={100} label="founding spots available" />
           </div>

@@ -8,6 +8,7 @@ interface GlassCardProps {
   className?: string;
   hoverable?: boolean;
   accent?: boolean;
+  style?: React.CSSProperties;
 }
 
 export default function GlassCard({
@@ -15,6 +16,7 @@ export default function GlassCard({
   className = "",
   hoverable = true,
   accent = false,
+  style: extraStyle,
 }: GlassCardProps) {
   return (
     <motion.div
@@ -27,6 +29,7 @@ export default function GlassCard({
         borderTop: accent
           ? "2px solid var(--color-accent-amber)"
           : "1px solid var(--color-card-border)",
+        ...extraStyle,
       }}
       whileHover={
         hoverable

@@ -220,7 +220,7 @@ export default function Footer() {
               color: "var(--color-text-tertiary)",
             }}
           >
-            Data sourced from state liquor control board public records
+            Data sourced from NC ABC Commission public records
           </p>
         </div>
       </div>
