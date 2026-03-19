@@ -11,7 +11,7 @@ export default function FinalCTA() {
 
   return (
     <section
-      className="py-24 px-6 relative overflow-hidden"
+      className="py-24 px-8 md:px-16 lg:px-24 relative overflow-hidden"
       style={{
         background:
           "linear-gradient(to bottom, var(--color-bg-secondary), var(--color-bg-primary))",
@@ -50,7 +50,7 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Join 312 founding members already getting alerts.
+            Be one of the first 100. Lock in lifetime access for $69.
           </p>
         </ScrollReveal>
 
@@ -89,7 +89,7 @@ export default function FinalCTA() {
                   }
                 />
                 <Button variant="primary" type="submit">
-                  Get Started
+                  Claim Your Spot
                 </Button>
               </motion.form>
             ) : (
@@ -126,8 +126,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              7-day free trial. Cancel anytime. No credit card required to
-              start.
+              100 founding member spots at $69 lifetime. This offer will never return.
             </p>
           )}
         </ScrollReveal>

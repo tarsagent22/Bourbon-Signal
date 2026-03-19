@@ -15,6 +15,10 @@ export default function HeroSection() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const chevronOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
+  const scrollToHowItWorks = () => {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section
       ref={ref}
@@ -30,7 +34,7 @@ export default function HeroSection() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'url("https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1920&q=80&auto=format&fit=crop")',
+              'url("https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=1920&q=80&auto=format&fit=crop")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -61,7 +65,7 @@ export default function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative z-[3] text-center px-6 max-w-[800px] mx-auto">
+      <div className="relative z-[3] text-center px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto">
         <ScrollReveal delay={0}>
           <p
             className="uppercase mb-6"
@@ -73,7 +77,7 @@ export default function HeroSection() {
               fontWeight: 500,
             }}
           >
-            BOURBON INTELLIGENCE FOR NORTH CAROLINA
+            ALLOCATED BOURBON INTELLIGENCE
           </p>
         </ScrollReveal>
 
@@ -102,7 +106,7 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Know when allocated bourbon hits NC ABC shelves — before the crowds.
+            Know when allocated bourbon hits store shelves — before the crowds.
             Real-time warehouse tracking, shipment alerts, and store-level
             intelligence.
           </p>
@@ -110,8 +114,8 @@ export default function HeroSection() {
 
         <ScrollReveal delay={300}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="primary">Start Hunting — $7.99/mo</Button>
-            <Button variant="ghost">Try Free for 7 Days</Button>
+            <Button variant="primary">Become a Founder — $69</Button>
+            <Button variant="ghost" onClick={scrollToHowItWorks}>See How It Works</Button>
           </div>
         </ScrollReveal>
       </div>

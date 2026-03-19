@@ -34,7 +34,7 @@ export default function Footer() {
         borderTop: "1px solid var(--color-card-border)",
       }}
     >
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="mx-auto max-w-6xl px-8 md:px-16 lg:px-24 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Col 1: Logo + description + social */}
           <div>
@@ -200,7 +200,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div
-        className="border-t px-6 py-5"
+        className="border-t px-8 md:px-16 lg:px-24 py-5"
         style={{ borderColor: "var(--color-card-border)" }}
       >
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-3">
@@ -220,16 +220,7 @@ export default function Footer() {
               color: "var(--color-text-tertiary)",
             }}
           >
-            Tracking{" "}
-            <span
-              style={{
-                fontFamily: "var(--font-jetbrains)",
-                color: "var(--color-accent-amber)",
-              }}
-            >
-              847
-            </span>{" "}
-            stores across North Carolina
+            Data sourced from state liquor control board public records
           </p>
         </div>
       </div>

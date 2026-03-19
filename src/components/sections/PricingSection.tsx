@@ -8,14 +8,7 @@ import Badge from "../Badge";
 import Button from "../Button";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 
-const freeFeatures = [
-  "Delayed drop alerts (24-48 hr)",
-  "Public drop feed access",
-  "3-bottle watchlist",
-  "Basic dashboard",
-];
-
-const proFeatures = [
+const founderFeatures = [
   "Instant drop alerts — email + SMS",
   "Unlimited watchlist",
   "Full hunt map with store-level data",
@@ -24,27 +17,48 @@ const proFeatures = [
   "Historical drop patterns",
   "Community store intel",
   "Priority support",
+  "The Inner Circle (private founding Telegram group)",
+  "Numbered Glencairn topper (#001-100)",
+  "Permanent Founder badge on your profile",
+  "Exclusive sticker pack",
+  "Bonus entries in all future drawings",
+];
+
+const standardFeatures = [
+  "Instant drop alerts — email + SMS",
+  "Unlimited watchlist",
+  "Full hunt map with store-level data",
+  "Warehouse & shipment tracking",
+  "Secondary market pricing",
+  "Historical drop patterns",
+  "Community store intel",
+];
+
+const freeFeatures = [
+  "Public drop feed (delayed 24-48hr)",
+  "Bottle reference cards",
+  "Basic store locator",
 ];
 
 export default function PricingSection() {
   return (
     <section
       id="pricing"
-      className="py-24 px-6"
+      className="py-24 px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
-      <div className="mx-auto max-w-[900px]">
+      <div className="mx-auto max-w-[1200px]">
         <SectionHeading heading="Choose Your Level" />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Free Trial */}
-          <motion.div variants={fadeUpVariant}>
+          {/* Free Tier */}
+          <motion.div variants={fadeUpVariant} className="order-2 md:order-1">
             <GlassCard className="h-full">
               <h3
                 className="mb-4"
@@ -55,18 +69,18 @@ export default function PricingSection() {
                   color: "var(--color-text-primary)",
                 }}
               >
-                Free Trial
+                Free
               </h3>
               <div className="flex items-baseline gap-1 mb-1">
                 <span
                   style={{
                     fontFamily: "var(--font-jetbrains)",
-                    fontSize: "48px",
+                    fontSize: "36px",
                     fontWeight: 700,
                     color: "var(--color-text-primary)",
                   }}
                 >
-                  $0
+                  Free
                 </span>
               </div>
               <p
@@ -77,11 +91,84 @@ export default function PricingSection() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                for 7 days
+                No account required
               </p>
 
               <ul className="space-y-3 mb-8">
                 {freeFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check
+                      size={18}
+                      className="shrink-0 mt-0.5"
+                      style={{ color: "var(--color-text-tertiary)" }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "15px",
+                        color: "var(--color-text-tertiary)",
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button variant="ghost" className="w-full opacity-70">
+                Browse the Feed
+              </Button>
+            </GlassCard>
+          </motion.div>
+
+          {/* Standard Proof Monthly */}
+          <motion.div variants={fadeUpVariant} className="order-3 md:order-2">
+            <GlassCard className="h-full">
+              <h3
+                className="mb-4"
+                style={{
+                  fontFamily: "var(--font-playfair)",
+                  fontSize: "24px",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                Standard Proof
+              </h3>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span
+                  style={{
+                    fontFamily: "var(--font-jetbrains)",
+                    fontSize: "48px",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  $10
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  /mo
+                </span>
+              </div>
+              <p
+                className="mb-6"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "14px",
+                  color: "var(--color-text-tertiary)",
+                }}
+              >
+                $80/year (save 33%)
+              </p>
+
+              <ul className="space-y-3 mb-8">
+                {standardFeatures.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
                     <Check
                       size={18}
@@ -102,26 +189,26 @@ export default function PricingSection() {
               </ul>
 
               <Button variant="ghost" className="w-full">
-                Start Free Trial
+                Start Hunting — $10/mo
               </Button>
             </GlassCard>
           </motion.div>
 
-          {/* High Proof */}
-          <motion.div variants={fadeUpVariant}>
+          {/* Bottled-In-Bond Founding Member */}
+          <motion.div variants={fadeUpVariant} className="order-1 md:order-3">
             <div className="relative">
               {/* Ambient glow behind card */}
               <div
                 className="absolute inset-0 -m-4 pointer-events-none"
                 style={{
                   background:
-                    "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.1) 0%, transparent 70%)",
+                    "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.15) 0%, transparent 70%)",
                   borderRadius: "20px",
                 }}
               />
               <GlassCard accent className="relative h-full p-8">
                 <div className="mb-4">
-                  <Badge variant="allocated">FOUNDING RATE</Badge>
+                  <Badge variant="allocated">FOUNDING MEMBER</Badge>
                 </div>
                 <h3
                   className="mb-4"
@@ -132,9 +219,9 @@ export default function PricingSection() {
                     color: "var(--color-text-primary)",
                   }}
                 >
-                  High Proof
+                  Bottled-In-Bond
                 </h3>
-                <div className="flex items-baseline gap-1 mb-1">
+                <div className="flex items-baseline gap-2 mb-1">
                   <span
                     style={{
                       fontFamily: "var(--font-jetbrains)",
@@ -143,7 +230,7 @@ export default function PricingSection() {
                       color: "var(--color-accent-amber)",
                     }}
                   >
-                    $7.99
+                    $69
                   </span>
                   <span
                     style={{
@@ -152,25 +239,70 @@ export default function PricingSection() {
                       color: "var(--color-text-secondary)",
                     }}
                   >
-                    /mo
+                    one-time
                   </span>
                 </div>
+                <p
+                  className="mb-2"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "15px",
+                    fontWeight: 500,
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  Lifetime access. No monthly fees. Ever.
+                </p>
                 <p
                   className="mb-6"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "14px",
-                    color: "var(--color-text-tertiary)",
+                    fontSize: "13px",
+                    fontStyle: "italic",
+                    color: "var(--color-accent-copper)",
                   }}
                 >
-                  <span style={{ textDecoration: "line-through" }}>
-                    $14.99/mo
-                  </span>{" "}
-                  after founding period
+                  Exactly 100 spots. When they&apos;re gone, they&apos;re gone.
                 </p>
 
+                {/* Live counter */}
+                <div
+                  className="flex items-center justify-center gap-2 mb-6 rounded-lg py-2 px-4"
+                  style={{
+                    backgroundColor: "rgba(212, 146, 11, 0.08)",
+                    border: "1px solid rgba(212, 146, 11, 0.15)",
+                  }}
+                >
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: "var(--color-accent-amber)",
+                      animation: "pulseDot 2s ease-in-out infinite",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "var(--color-accent-amber)",
+                    }}
+                  >
+                    100 of 100
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "14px",
+                      color: "var(--color-text-secondary)",
+                    }}
+                  >
+                    remaining
+                  </span>
+                </div>
+
                 <ul className="space-y-3 mb-8">
-                  {proFeatures.map((feature) => (
+                  {founderFeatures.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check
                         size={18}
@@ -191,7 +323,7 @@ export default function PricingSection() {
                 </ul>
 
                 <Button variant="primary" className="w-full">
-                  Join the Hunt — $7.99/mo
+                  Claim Your Spot — $69
                 </Button>
                 <p
                   className="mt-4 text-center"
@@ -202,7 +334,7 @@ export default function PricingSection() {
                     color: "var(--color-text-secondary)",
                   }}
                 >
-                  First 100 members lock this rate forever.
+                  100 lifetime spots. This offer will never return.
                 </p>
               </GlassCard>
             </div>

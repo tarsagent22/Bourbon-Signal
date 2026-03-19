@@ -38,24 +38,24 @@ const features = [
   {
     title: "Days of Advance Notice",
     description:
-      "Our warehouse monitor catches bottles entering the NC system days before they reach stores. Plan your hunt instead of scrambling.",
+      "Our warehouse monitor catches bottles entering the state distribution system days before they reach stores. Plan your hunt instead of scrambling.",
   },
   {
     title: "Board-Level Tracking",
     description:
-      "Know which specific county board is receiving a shipment. Durham? Wake? Mecklenburg? We tell you where to focus.",
+      "Know which specific distribution board is receiving a shipment. We tell you exactly where to focus your hunt.",
   },
   {
     title: "Store-Level Intel",
     description:
-      "Where available, we track inventory at the store level. No more driving to every ABC in the county.",
+      "Where available, we track inventory at the store level. No more driving to every liquor store in the county.",
   },
 ];
 
 export default function IntelligenceAdvantage() {
   return (
     <section
-      className="py-24 px-6"
+      className="py-24 px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-primary)" }}
     >
       <div className="mx-auto max-w-6xl">

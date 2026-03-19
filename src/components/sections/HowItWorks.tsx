@@ -11,7 +11,7 @@ const steps = [
     icon: Radar,
     title: "We Track Everything",
     description:
-      "Our engine monitors the NC ABC warehouse every 15 minutes, tracks shipments to local boards, and watches store-level inventory. We see bottles enter the system days before they hit shelves.",
+      "Our engine monitors state warehouses every 15 minutes, tracks shipments to local distribution boards, and watches store-level inventory. We see bottles enter the system days before they hit shelves.",
   },
   {
     icon: Zap,
@@ -29,7 +29,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-6" style={{ backgroundColor: "var(--color-bg-primary)" }}>
+    <section id="how-it-works" className="py-24 px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           heading="How Proof Works"

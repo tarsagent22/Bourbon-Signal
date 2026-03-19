@@ -18,7 +18,7 @@ const drops = [
   {
     bottle: "Weller 12Y",
     event: "Shipped to Board",
-    location: "Wake County ABC Board",
+    location: "Downtown Liquor Store #12, Raleigh",
     time: "47 min ago",
     quantity: "6 cases",
     rarity: "allocated" as const,
@@ -26,7 +26,7 @@ const drops = [
   {
     bottle: "Woodford Reserve Double Double Oaked",
     event: "Warehouse Received",
-    location: "NC ABC Warehouse",
+    location: "State Distribution Center, Nashville",
     time: "2 hr ago",
     quantity: "537 cases",
     rarity: "allocated" as const,
@@ -34,7 +34,7 @@ const drops = [
   {
     bottle: "King of Kentucky SB1",
     event: "Warehouse Depleted",
-    location: "NC ABC Warehouse",
+    location: "State Warehouse, Columbus",
     time: "3 hr ago",
     quantity: "0 cases (was 54)",
     rarity: "allocated" as const,
@@ -42,7 +42,7 @@ const drops = [
   {
     bottle: "Blanton's Single Barrel",
     event: "In Store",
-    location: "ABC Store #12, Raleigh",
+    location: "State Store #47, Nashville",
     time: "5 hr ago",
     quantity: "3 bottles",
     rarity: "allocated" as const,
@@ -50,7 +50,7 @@ const drops = [
   {
     bottle: "E.H. Taylor Small Batch",
     event: "Shipped to Board",
-    location: "Durham County ABC Board",
+    location: "State Store #103, Portland",
     time: "Yesterday",
     quantity: "4 cases",
     rarity: "limited" as const,
@@ -60,13 +60,13 @@ const drops = [
 export default function LiveDropFeed() {
   return (
     <section
-      className="py-24 px-6"
+      className="py-24 px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
       <div className="mx-auto max-w-2xl">
         <SectionHeading
           heading="What's Dropping Right Now"
-          subheading="A live look at recent allocated bourbon activity in North Carolina."
+          subheading="A live look at recent allocated bourbon activity across the country."
         />
 
         <motion.div
