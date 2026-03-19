@@ -1,0 +1,45 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
+
+interface GlassCardProps {
+  children: ReactNode;
+  className?: string;
+  hoverable?: boolean;
+  accent?: boolean;
+}
+
+export default function GlassCard({
+  children,
+  className = "",
+  hoverable = true,
+  accent = false,
+}: GlassCardProps) {
+  return (
+    <motion.div
+      className={`relative rounded-xl p-6 ${className}`}
+      style={{
+        background: "var(--color-card-bg)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid var(--color-card-border)",
+        borderTop: accent
+          ? "2px solid var(--color-accent-amber)"
+          : "1px solid var(--color-card-border)",
+      }}
+      whileHover={
+        hoverable
+          ? {
+              scale: 1.02,
+              borderColor: "rgba(212, 146, 11, 0.3)",
+              boxShadow: "0 8px 32px rgba(212, 146, 11, 0.08)",
+              transition: { duration: 0.3 },
+            }
+          : undefined
+      }
+    >
+      {children}
+    </motion.div>
+  );
+}
