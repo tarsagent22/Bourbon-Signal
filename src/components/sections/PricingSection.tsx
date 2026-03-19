@@ -8,19 +8,12 @@ import Badge from "../Badge";
 import Button from "../Button";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 
-const founderFeatures = [
-  "Instant drop alerts — email + SMS",
-  "Unlimited watchlist",
-  "Full hunt map with store-level data",
-  "Warehouse & shipment tracking",
-  "Secondary market pricing",
-  "Historical drop patterns",
-  "Community store intel",
-  "2x entries in all future drawings",
+const founderExclusives = [
   "The Inner Circle (private founding Telegram group)",
   "Numbered Glencairn Topper (#001-100)",
   "Permanent Founder badge on your profile",
   "Exclusive sticker pack",
+  "2x entries in all future drawings",
 ];
 
 const standardFeatures = [
@@ -236,8 +229,41 @@ export default function PricingSection() {
                   </span>
                 </div>
 
+                <div className="mb-4 pb-4" style={{ borderBottom: "1px solid var(--color-card-border)" }}>
+                  <div className="flex items-start gap-3">
+                    <Check
+                      size={18}
+                      className="shrink-0 mt-0.5"
+                      style={{ color: "var(--color-accent-amber)" }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "15px",
+                        lineHeight: 1.65,
+                        fontWeight: 600,
+                        color: "var(--color-accent-amber)",
+                      }}
+                    >
+                      All Standard Proof features, forever
+                    </span>
+                  </div>
+                </div>
+
+                <p
+                  className="mb-3 uppercase tracking-wider"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    letterSpacing: "0.1em",
+                    color: "var(--color-text-tertiary)",
+                  }}
+                >
+                  Founding member exclusives
+                </p>
                 <ul className="space-y-3 mb-8">
-                  {founderFeatures.map((feature) => (
+                  {founderExclusives.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check
                         size={18}

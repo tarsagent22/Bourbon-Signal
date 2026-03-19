@@ -77,7 +77,7 @@ export default function HeroSection() {
               fontWeight: 500,
             }}
           >
-            BOURBON INTELLIGENCE FOR NORTH CAROLINA
+            ALLOCATED BOURBON INTELLIGENCE
           </p>
         </ScrollReveal>
 
@@ -106,9 +106,9 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Know when allocated bourbon hits NC ABC shelves — before the crowds.
+            Know when allocated bourbon hits shelves — before the crowds.
             Real-time warehouse tracking, shipment alerts, and store-level
-            intelligence for North Carolina.
+            intelligence.
           </p>
         </ScrollReveal>
 

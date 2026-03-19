@@ -38,7 +38,7 @@ const features = [
   {
     title: "Days of Advance Notice",
     description:
-      "Our warehouse monitor catches bottles entering the NC ABC distribution system days before they reach stores. Plan your hunt instead of scrambling.",
+      "Our warehouse monitors catch bottles entering state distribution systems days before they reach stores. Plan your hunt instead of scrambling.",
   },
   {
     title: "Board-Level Tracking",

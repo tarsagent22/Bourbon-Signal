@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Proof — Never Miss a Bourbon Drop",
   description:
-    "Real-time allocated bourbon alerts for North Carolina. Track NC ABC warehouse arrivals, board shipments, and store inventory. Know before the crowds.",
+    "Real-time allocated bourbon alerts. Track warehouse arrivals, board shipments, and store inventory. Know before the crowds.",
 };
 
 export default function RootLayout({

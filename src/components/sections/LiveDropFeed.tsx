@@ -18,7 +18,7 @@ const drops = [
   {
     bottle: "Weller 12Y",
     event: "Shipped to Board",
-    location: "Wake County ABC Board",
+    location: "State Store #34, Raleigh, NC",
     time: "47 min ago",
     quantity: "6 cases",
     rarity: "allocated" as const,
@@ -26,7 +26,7 @@ const drops = [
   {
     bottle: "Woodford Reserve Double Double Oaked",
     event: "Warehouse Received",
-    location: "NC ABC Warehouse, Raleigh",
+    location: "State Distribution Center, Columbus, OH",
     time: "2 hr ago",
     quantity: "537 cases",
     rarity: "allocated" as const,
@@ -34,7 +34,7 @@ const drops = [
   {
     bottle: "King of Kentucky SB1",
     event: "Warehouse Depleted",
-    location: "NC ABC Warehouse, Raleigh",
+    location: "State Warehouse, Nashville, TN",
     time: "3 hr ago",
     quantity: "0 cases (was 54)",
     rarity: "allocated" as const,
@@ -42,7 +42,7 @@ const drops = [
   {
     bottle: "Blanton's Single Barrel",
     event: "In Store",
-    location: "ABC Store #12, Raleigh",
+    location: "State Liquor Store #12, Portland, OR",
     time: "5 hr ago",
     quantity: "3 bottles",
     rarity: "allocated" as const,
@@ -50,7 +50,7 @@ const drops = [
   {
     bottle: "E.H. Taylor Small Batch",
     event: "Shipped to Board",
-    location: "Mecklenburg County ABC Board",
+    location: "Montgomery County Board, MD",
     time: "Yesterday",
     quantity: "4 cases",
     rarity: "limited" as const,
@@ -66,7 +66,7 @@ export default function LiveDropFeed() {
       <div className="mx-auto max-w-2xl">
         <SectionHeading
           heading="What's Dropping Right Now"
-          subheading="A live look at recent allocated bourbon activity across North Carolina."
+          subheading="A live look at recent allocated bourbon activity across the country."
         />
 
         <motion.div
