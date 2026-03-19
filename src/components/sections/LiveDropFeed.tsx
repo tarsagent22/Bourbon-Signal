@@ -80,7 +80,7 @@ export default function LiveDropFeed() {
             const EventIcon = eventIcons[drop.event] || Warehouse;
             return (
               <motion.div key={drop.bottle} variants={fadeUpVariant}>
-                <GlassCard className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <GlassCard className="flex flex-col sm:flex-row sm:items-center gap-4 !p-5">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <h3
@@ -106,7 +106,7 @@ export default function LiveDropFeed() {
                         style={{
                           fontFamily: "var(--font-dm-sans)",
                           fontSize: "15px",
-                          lineHeight: 1.6,
+                          lineHeight: 1.65,
                           color: "var(--color-text-secondary)",
                         }}
                       >

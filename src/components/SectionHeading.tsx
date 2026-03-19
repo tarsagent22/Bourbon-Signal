@@ -20,11 +20,10 @@ export default function SectionHeading({
           style={{
             fontFamily: "var(--font-playfair)",
             fontWeight: 700,
-            fontSize: "48px",
             lineHeight: 1.15,
             color: "var(--color-text-primary)",
           }}
-          className="max-md:!text-[32px]"
+          className="!text-[48px] max-md:!text-[32px]"
         >
           {heading}
         </h2>

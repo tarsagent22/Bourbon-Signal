@@ -153,7 +153,7 @@ export default function IntelligenceAdvantage() {
         >
           {features.map((feature) => (
             <motion.div key={feature.title} variants={fadeUpVariant}>
-              <GlassCard className="h-full">
+              <GlassCard className="h-full !p-8">
                 <h3
                   className="mb-3"
                   style={{
@@ -169,8 +169,8 @@ export default function IntelligenceAdvantage() {
                 <p
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "16px",
-                    lineHeight: 1.7,
+                    fontSize: "15px",
+                    lineHeight: 1.65,
                     color: "var(--color-text-secondary)",
                   }}
                 >

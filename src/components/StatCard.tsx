@@ -55,7 +55,7 @@ export default function StatCard({ value, label, prefix = "", suffix = "" }: Sta
         {suffix}
       </div>
       <div
-        className="mt-1"
+        className="mt-3"
         style={{
           fontFamily: "var(--font-dm-sans)",
           fontSize: "14px",

@@ -20,11 +20,12 @@ export default function GlassCard({
 }: GlassCardProps) {
   return (
     <motion.div
-      className={`relative rounded-xl p-6 ${className}`}
+      className={`relative p-6 ${className}`}
       style={{
         background: "var(--color-card-bg)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
+        borderRadius: "12px",
         border: "1px solid var(--color-card-border)",
         borderTop: accent
           ? "2px solid var(--color-accent-amber)"
