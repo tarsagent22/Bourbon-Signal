@@ -33,11 +33,12 @@ export default function HeroSection() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1574713600544-ca13b5d573d5?w=1920&q=80&auto=format&fit=crop")',
+            backgroundImage: 'url("/hero-bg.jpg")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            filter: "blur(3px)",
+            transform: "scale(1.05)",
           }}
         />
       </motion.div>
