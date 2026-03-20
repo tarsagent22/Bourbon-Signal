@@ -37,7 +37,7 @@ export default function HeroSection() {
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            filter: "blur(3px)",
+            filter: "blur(1.5px)",
             transform: "scale(1.05)",
           }}
         />
