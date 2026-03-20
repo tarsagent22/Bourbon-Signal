@@ -34,8 +34,8 @@ export default function Footer() {
         borderTop: "1px solid var(--color-card-border)",
       }}
     >
-      <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-16 lg:px-24 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
+      <div className="mx-auto max-w-6xl px-8 md:px-16 lg:px-24 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* Col 1: Logo + description + social */}
           <div>
             <div className="flex items-baseline gap-0 mb-4">

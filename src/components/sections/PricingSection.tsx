@@ -45,7 +45,7 @@ export default function PricingSection() {
         >
           {/* Standard Proof Monthly */}
           <motion.div variants={fadeUpVariant}>
-            <GlassCard className="h-full p-6" hoverable={false} style={{ border: "1px solid rgba(255, 255, 255, 0.06)", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
+            <GlassCard className="h-full !p-8" hoverable={false}>
               <h3
                 className="mb-4"
                 style={{

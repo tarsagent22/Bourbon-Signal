@@ -46,11 +46,12 @@ export default function HowItWorks() {
           {steps.map((step) => (
             <motion.div key={step.title} variants={fadeUpVariant}>
               <GlassCard className="h-full text-center !p-8">
-                <step.icon
-                  size={40}
-                  style={{ color: "var(--color-accent-amber)" }}
-                  className="block mx-auto mb-6"
-                />
+                <div className="flex justify-center mb-6">
+                  <step.icon
+                    size={40}
+                    style={{ color: "var(--color-accent-amber)" }}
+                  />
+                </div>
                 <h3
                   className="mb-4"
                   style={{
