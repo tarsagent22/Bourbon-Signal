@@ -6,7 +6,7 @@ import StatCard from "../StatCard";
 export default function SocialProofBar() {
   return (
     <section
-      className="py-10 sm:py-16"
+      className="py-16 sm:py-20"
       style={{
         backgroundColor: "var(--color-bg-secondary)",
         borderTop: "1px solid var(--color-card-border)",

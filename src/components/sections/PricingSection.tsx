@@ -30,14 +30,14 @@ export default function PricingSection() {
   return (
     <section
       id="pricing"
-      className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
+      className="py-28 sm:py-32 px-6 sm:px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
       <div className="mx-auto max-w-[900px]">
         <SectionHeading heading="Choose Your Level" />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-start"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"

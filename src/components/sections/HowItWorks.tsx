@@ -29,7 +29,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="pt-28 pb-24 px-6 sm:px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
+    <section id="how-it-works" className="py-28 sm:py-32 px-6 sm:px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           heading="How Proof Works"
@@ -37,7 +37,7 @@ export default function HowItWorks() {
         />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-4"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"

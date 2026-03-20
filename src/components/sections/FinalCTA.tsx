@@ -11,7 +11,7 @@ export default function FinalCTA() {
 
   return (
     <section
-      className="py-24 px-6 sm:px-8 md:px-16 lg:px-24 relative overflow-hidden"
+      className="py-28 sm:py-32 px-6 sm:px-8 md:px-16 lg:px-24 relative overflow-hidden"
       style={{
         background:
           "linear-gradient(to bottom, var(--color-bg-secondary), var(--color-bg-primary))",

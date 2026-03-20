@@ -14,7 +14,7 @@ export default function SectionHeading({
   centered = true,
 }: SectionHeadingProps) {
   return (
-    <div className={`mb-12 ${centered ? "text-center" : ""}`}>
+    <div className={`mb-14 ${centered ? "text-center" : ""}`}>
       <ScrollReveal>
         <h2
           style={{
