@@ -55,7 +55,7 @@ const features = [
 export default function IntelligenceAdvantage() {
   return (
     <section
-      className="py-24 px-8 md:px-16 lg:px-24"
+      className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-primary)" }}
     >
       <div className="mx-auto max-w-6xl">
@@ -67,7 +67,7 @@ export default function IntelligenceAdvantage() {
         {/* Pipeline timeline */}
         <ScrollReveal>
           <div className="relative mb-20 overflow-x-auto">
-            <div className="flex items-start justify-between min-w-[600px] px-4 relative">
+            <div className="flex items-start justify-between min-w-[500px] px-4 relative">
               {/* Connecting line */}
               <motion.div
                 className="absolute top-[34px] left-[60px] right-[60px] h-[3px]"
@@ -114,10 +114,9 @@ export default function IntelligenceAdvantage() {
                     />
                   </div>
                   <span
-                    className="mb-2"
+                    className="mb-2 text-[12px] sm:text-[14px]"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
-                      fontSize: "14px",
                       fontWeight: 500,
                       color: "var(--color-text-primary)",
                     }}
@@ -126,9 +125,9 @@ export default function IntelligenceAdvantage() {
                   </span>
                   {step.note && (
                     <span
+                      className="text-[11px] sm:text-[12px]"
                       style={{
                         fontFamily: "var(--font-dm-sans)",
-                        fontSize: "12px",
                         fontStyle: "italic",
                         color: "var(--color-accent-copper)",
                         maxWidth: "140px",

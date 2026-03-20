@@ -43,10 +43,9 @@ export default function StatCard({ value, label, prefix = "", suffix = "" }: Sta
   return (
     <div ref={ref} className="text-center">
       <div
-        className="font-bold"
+        className="font-bold text-[28px] sm:text-[32px]"
         style={{
-          fontFamily: "var(--font-jetbrains)",
-          fontSize: "32px",
+          fontFamily: "var(--font-playfair)",
           color: "var(--color-accent-amber)",
         }}
       >

@@ -29,7 +29,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
+    <section id="how-it-works" className="pt-28 pb-24 px-6 sm:px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           heading="How Proof Works"
@@ -49,7 +49,7 @@ export default function HowItWorks() {
                 <step.icon
                   size={40}
                   style={{ color: "var(--color-accent-amber)" }}
-                  className="mx-auto mb-6"
+                  className="block mx-auto mb-6"
                 />
                 <h3
                   className="mb-4"

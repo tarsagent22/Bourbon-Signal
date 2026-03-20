@@ -65,7 +65,7 @@ export default function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative z-[3] text-center px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto">
+      <div className="relative z-[3] text-center px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto">
         <ScrollReveal delay={0}>
           <p
             className="uppercase mb-6"

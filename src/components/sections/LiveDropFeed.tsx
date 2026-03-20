@@ -60,7 +60,7 @@ const drops = [
 export default function LiveDropFeed() {
   return (
     <section
-      className="py-24 px-8 md:px-16 lg:px-24"
+      className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: "var(--color-bg-secondary)" }}
     >
       <div className="mx-auto max-w-2xl">
@@ -80,16 +80,17 @@ export default function LiveDropFeed() {
             const EventIcon = eventIcons[drop.event] || Warehouse;
             return (
               <motion.div key={drop.bottle} variants={fadeUpVariant}>
-                <GlassCard className="flex flex-col sm:flex-row sm:items-center gap-4 !p-5">
+                <GlassCard className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 !p-4 sm:!p-5">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <h3
                         style={{
                           fontFamily: "var(--font-playfair)",
-                          fontSize: "18px",
+                          fontSize: "16px",
                           fontWeight: 700,
                           color: "var(--color-text-primary)",
                         }}
+                        className="sm:text-[18px]"
                       >
                         {drop.bottle}
                       </h3>
@@ -97,16 +98,17 @@ export default function LiveDropFeed() {
                         {drop.rarity === "allocated" ? "Allocated" : "Limited"}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2">
                       <EventIcon
                         size={14}
+                        className="shrink-0"
                         style={{ color: "var(--color-text-secondary)" }}
                       />
                       <span
+                        className="text-[13px] sm:text-[15px]"
                         style={{
                           fontFamily: "var(--font-dm-sans)",
-                          fontSize: "15px",
-                          lineHeight: 1.65,
+                          lineHeight: 1.5,
                           color: "var(--color-text-secondary)",
                         }}
                       >
@@ -114,7 +116,7 @@ export default function LiveDropFeed() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 sm:text-right shrink-0">
+                  <div className="flex items-center gap-4 shrink-0">
                     <span
                       style={{
                         fontFamily: "var(--font-jetbrains)",
