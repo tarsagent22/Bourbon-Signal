@@ -37,7 +37,7 @@ export default function Navigation() {
         }}
       >
         {/* Logo */}
-        <a href="/" className="flex items-baseline gap-0 ml-2 sm:ml-0">
+        <a href="/" className="flex items-baseline gap-0">
           <span
             style={{
               fontFamily: "var(--font-playfair)",

@@ -23,7 +23,7 @@ export default function SectionHeading({
             lineHeight: 1.15,
             color: "var(--color-text-primary)",
           }}
-          className="!text-[48px] max-md:!text-[28px]"
+          className="!text-[48px] max-md:!text-[32px]"
         >
           {heading}
         </h2>

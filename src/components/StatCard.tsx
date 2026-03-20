@@ -57,7 +57,7 @@ export default function StatCard({ value, label, prefix = "", suffix = "" }: Sta
         className="mt-3"
         style={{
           fontFamily: "var(--font-dm-sans)",
-          fontSize: "14px",
+          fontSize: "15px",
           color: "var(--color-text-secondary)",
         }}
       >

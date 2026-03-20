@@ -1,20 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
 import Button from "../Button";
 
 export default function FinalCTA() {
-  const [submitted, setSubmitted] = useState(false);
-
   return (
     <section
       className="py-28 sm:py-32 px-6 sm:px-8 md:px-16 lg:px-24 relative overflow-hidden"
       style={{
-        background:
-          "linear-gradient(to bottom, var(--color-bg-secondary), var(--color-bg-primary))",
+        backgroundColor: "var(--color-bg-primary)",
       }}
     >
       {/* Subtle warm glow in center */}
@@ -36,7 +30,7 @@ export default function FinalCTA() {
               color: "var(--color-text-primary)",
             }}
           >
-            The Next Drop Won&apos;t Wait.
+            The hunt starts now.
           </h2>
         </ScrollReveal>
 
@@ -49,75 +43,13 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Be one of the first 100. Lock in lifetime access for $69.
+            100 founding spots. $69. Lifetime.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <AnimatePresence mode="wait">
-            {!submitted ? (
-              <motion.form
-                key="form"
-                className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSubmitted(true);
-                }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  required
-                  className="w-full sm:w-[400px] px-5 py-3.5 rounded-lg outline-none transition-all duration-300"
-                  style={{
-                    backgroundColor: "var(--color-bg-tertiary)",
-                    border: "1px solid var(--color-card-border)",
-                    color: "var(--color-text-primary)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "16px",
-                  }}
-                  onFocus={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      "var(--color-accent-amber)")
-                  }
-                  onBlur={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      "var(--color-card-border)")
-                  }
-                />
-                <Button variant="primary" type="submit">
-                  Claim Your Spot
-                </Button>
-              </motion.form>
-            ) : (
-              <motion.div
-                key="success"
-                className="flex items-center justify-center gap-3 py-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <CheckCircle
-                  size={24}
-                  style={{ color: "var(--color-success)" }}
-                />
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    color: "var(--color-text-primary)",
-                  }}
-                >
-                  You&apos;re in. Check your email.
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {!submitted && (
+          <div className="flex flex-col items-center gap-4">
+            <Button variant="primary">Claim Your Spot — $69</Button>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -125,9 +57,9 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              100 founding member spots at $69 lifetime. This offer will never return.
+              7-day money-back guarantee. Cancel anytime.
             </p>
-          )}
+          </div>
         </ScrollReveal>
       </div>
     </section>

@@ -37,7 +37,7 @@ export default function PricingSection() {
         <SectionHeading heading="Choose Your Level" />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-start"
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-start mt-4"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -45,7 +45,7 @@ export default function PricingSection() {
         >
           {/* Standard Proof Monthly */}
           <motion.div variants={fadeUpVariant}>
-            <GlassCard className="h-full p-6">
+            <GlassCard className="h-full p-6" hoverable={false} style={{ border: "1px solid rgba(255, 255, 255, 0.06)", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
               <h3
                 className="mb-4"
                 style={{
@@ -118,7 +118,7 @@ export default function PricingSection() {
             </GlassCard>
           </motion.div>
 
-          {/* Bottled-In-Bond Founding Member */}
+          {/* Barrel Proof Founding Member */}
           <motion.div variants={fadeUpVariant}>
             <div className="relative" style={{ transform: "scale(1.04)" }}>
               {/* Ambient glow behind card */}
@@ -146,7 +146,7 @@ export default function PricingSection() {
                     color: "var(--color-text-primary)",
                   }}
                 >
-                  Bottled-In-Bond
+                  Barrel Proof
                 </h3>
                 <div className="flex items-baseline gap-2 mb-1">
                   <span
@@ -254,10 +254,12 @@ export default function PricingSection() {
                   className="mb-3 uppercase tracking-wider"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "11px",
+                    fontSize: "12px",
                     fontWeight: 600,
                     letterSpacing: "0.1em",
                     color: "var(--color-text-tertiary)",
+                    borderLeft: "3px solid var(--color-accent-amber)",
+                    paddingLeft: "12px",
                   }}
                 >
                   Founding member exclusives
@@ -304,16 +306,20 @@ export default function PricingSection() {
         </motion.div>
 
         {/* Note below pricing cards */}
-        <p
-          className="text-center mt-8"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "14px",
-            color: "var(--color-text-tertiary)",
-          }}
-        >
-          No account needed to browse the public drop feed.
-        </p>
+        <div className="flex justify-center mt-12">
+          <p
+            className="inline-block rounded-full px-5 py-2"
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              color: "var(--color-text-tertiary)",
+              backgroundColor: "var(--color-bg-tertiary)",
+              border: "1px solid var(--color-card-border)",
+            }}
+          >
+            No account needed to browse the public drop feed.
+          </p>
+        </div>
       </div>
     </section>
   );
