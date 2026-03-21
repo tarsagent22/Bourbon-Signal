@@ -3,8 +3,11 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { Bell, MapPin } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
 import Button from "../Button";
+import GlassCard from "../GlassCard";
+import Badge from "../Badge";
 
 export default function HeroSection() {
   const ref = useRef(null);
@@ -84,10 +87,10 @@ export default function HeroSection() {
 
         <ScrollReveal delay={100}>
           <h1
-            className="mb-6 max-md:!text-[40px]"
+            className="mb-6"
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: "64px",
+              fontSize: "clamp(36px, 6vw, 64px)",
               lineHeight: 1.1,
               fontWeight: 700,
               color: "var(--color-text-primary)",
@@ -117,6 +120,63 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="primary">Become a Founder — $69</Button>
             <Button variant="ghost" onClick={scrollToHowItWorks}>See How It Works</Button>
+          </div>
+        </ScrollReveal>
+
+        {/* Product preview — sample alert card */}
+        <ScrollReveal delay={500}>
+          <div className="mt-12 max-w-[420px] mx-auto">
+            <GlassCard hoverable={false} className="!p-4">
+              <div className="flex items-start gap-3">
+                <div
+                  className="flex items-center justify-center rounded-lg shrink-0"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    backgroundColor: "rgba(212, 146, 11, 0.12)",
+                    border: "1px solid var(--color-card-border)",
+                  }}
+                >
+                  <Bell size={18} style={{ color: "var(--color-accent-amber)" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "var(--color-text-primary)",
+                      }}
+                    >
+                      Weller 12 Year — Allocated Drop
+                    </span>
+                    <Badge variant="allocated">New</Badge>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={12} style={{ color: "var(--color-text-tertiary)" }} />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "12px",
+                        color: "var(--color-text-tertiary)",
+                      }}
+                    >
+                      Shipped to Board — Raleigh, NC
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      color: "var(--color-text-tertiary)",
+                    }}
+                  >
+                    Just now
+                  </span>
+                </div>
+              </div>
+            </GlassCard>
           </div>
         </ScrollReveal>
       </div>

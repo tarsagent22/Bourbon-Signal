@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { label: "Dashboard", href: "#" },
-  { label: "Hunt Map", href: "#" },
-  { label: "Bottles", href: "#" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "Live Drops", href: "#live-drops" },
   { label: "Pricing", href: "#pricing" },
 ];
 
@@ -31,7 +30,7 @@ export default function Navigation() {
           backdropFilter: scrolled ? "blur(16px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
           borderBottom: scrolled
-            ? "1px solid rgba(212, 146, 11, 0.08)"
+            ? "1px solid var(--color-accent-amber-08)"
             : "1px solid transparent",
           transition: "all 300ms ease",
         }}
@@ -92,52 +91,32 @@ export default function Navigation() {
           ))}
         </div>
 
-        {/* Right side */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* Bell */}
-          <div className="relative cursor-pointer">
-            <Bell
-              size={20}
-              style={{ color: "var(--color-text-secondary)" }}
-            />
-            <span
-              className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white text-[10px] font-bold"
-              style={{
-                width: "16px",
-                height: "16px",
-                backgroundColor: "var(--color-alert)",
-              }}
-            >
-              3
-            </span>
-          </div>
-
-          {/* User avatar */}
-          <div
-            className="flex items-center justify-center rounded-full text-xs font-bold"
+        {/* Right side — CTA */}
+        <div className="hidden md:flex items-center">
+          <a
+            href="#pricing"
+            className="inline-flex items-center rounded-full cursor-pointer"
             style={{
-              width: "32px",
-              height: "32px",
-              backgroundColor: "var(--color-bg-tertiary)",
-              color: "var(--color-text-secondary)",
-              border: "1px solid var(--color-card-border)",
               fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "var(--color-bg-primary)",
+              backgroundColor: "var(--color-accent-amber)",
+              padding: "8px 20px",
+              textDecoration: "none",
+              transition: "background-color 300ms ease, transform 150ms ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-accent-gold)";
+              e.currentTarget.style.transform = "scale(1.02)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--color-accent-amber)";
+              e.currentTarget.style.transform = "scale(1)";
             }}
           >
-            BH
-          </div>
-
-          {/* Tier badge */}
-          <span
-            className="rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider"
-            style={{
-              backgroundColor: "rgba(212, 146, 11, 0.15)",
-              color: "var(--color-accent-amber)",
-              fontFamily: "var(--font-dm-sans)",
-            }}
-          >
-            FOUNDING
-          </span>
+            Get Started
+          </a>
         </div>
 
         {/* Mobile hamburger */}

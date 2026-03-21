@@ -60,8 +60,9 @@ const drops = [
 export default function LiveDropFeed() {
   return (
     <section
+      id="live-drops"
       className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
-      style={{ backgroundColor: "var(--color-bg-secondary)" }}
+      style={{ backgroundColor: "var(--color-bg-primary)" }}
     >
       <div className="mx-auto max-w-2xl">
         <SectionHeading

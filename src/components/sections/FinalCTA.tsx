@@ -23,9 +23,10 @@ export default function FinalCTA() {
       <div className="relative mx-auto max-w-2xl text-center">
         <ScrollReveal>
           <h2
-            className="mb-4 !text-[40px] max-md:!text-[32px]"
+            className="mb-4"
             style={{
               fontFamily: "var(--font-playfair)",
+              fontSize: "clamp(32px, 5vw, 40px)",
               fontWeight: 700,
               color: "var(--color-text-primary)",
             }}

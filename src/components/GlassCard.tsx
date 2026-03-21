@@ -36,8 +36,8 @@ export default function GlassCard({
         hoverable
           ? {
               scale: 1.02,
-              borderColor: "rgba(212, 146, 11, 0.3)",
-              boxShadow: "0 8px 32px rgba(212, 146, 11, 0.08)",
+              borderColor: "var(--color-accent-amber-30)",
+              boxShadow: "0 8px 32px var(--color-accent-amber-08)",
               transition: { duration: 0.3 },
             }
           : undefined
