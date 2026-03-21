@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Dashboard", href: "#" },
@@ -36,14 +36,14 @@ export default function Navigation() {
           transition: "all 300ms ease",
         }}
       >
-        <div className="flex items-center justify-between px-8 md:px-16 lg:px-24 h-full">
+        <div className="flex items-center justify-between px-6 sm:px-10 md:px-16 lg:px-24 h-full">
         {/* Logo */}
         <a href="/" className="flex items-baseline gap-0">
           <span
             style={{
               fontFamily: "var(--font-playfair)",
               fontWeight: 700,
-              fontSize: "22px",
+              fontSize: "26px",
               color: "var(--color-text-primary)",
               letterSpacing: "0.02em",
             }}
@@ -94,51 +94,49 @@ export default function Navigation() {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* Bell */}
-          <div className="relative cursor-pointer">
-            <Bell
-              size={20}
-              style={{ color: "var(--color-text-secondary)" }}
-            />
-            <span
-              className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white text-[10px] font-bold"
-              style={{
-                width: "16px",
-                height: "16px",
-                backgroundColor: "var(--color-alert)",
-              }}
-            >
-              3
-            </span>
-          </div>
-
-          {/* User avatar */}
-          <div
-            className="flex items-center justify-center rounded-full text-xs font-bold"
+        <div className="hidden md:flex items-center gap-5">
+          <a
+            href="#"
             style={{
-              width: "32px",
-              height: "32px",
-              backgroundColor: "var(--color-bg-tertiary)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 500,
               color: "var(--color-text-secondary)",
-              border: "1px solid var(--color-card-border)",
-              fontFamily: "var(--font-dm-sans)",
+              textDecoration: "none",
+              transition: "color 300ms ease",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--color-text-primary)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--color-text-secondary)")
+            }
           >
-            BH
-          </div>
-
-          {/* Tier badge */}
-          <span
-            className="rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider"
+            Sign In
+          </a>
+          <a
+            href="#"
             style={{
-              backgroundColor: "rgba(212, 146, 11, 0.15)",
-              color: "var(--color-accent-amber)",
               fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "var(--color-accent-amber)",
+              textDecoration: "none",
+              border: "1px solid var(--color-accent-amber)",
+              padding: "10px 20px",
+              borderRadius: "6px",
+              backgroundColor: "transparent",
+              transition: "background-color 300ms ease",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "rgba(212, 146, 11, 0.1)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
           >
-            FOUNDING
-          </span>
+            Get Access
+          </a>
         </div>
 
         {/* Mobile hamburger */}
