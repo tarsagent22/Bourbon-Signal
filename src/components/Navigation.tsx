@@ -36,7 +36,7 @@ export default function Navigation() {
           transition: "all 300ms ease",
         }}
       >
-        <div className="flex items-center justify-between px-6 sm:px-10 md:px-16 lg:px-24 h-full">
+        <div className="flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
         {/* Logo */}
         <a href="/" className="flex items-baseline gap-0">
           <span

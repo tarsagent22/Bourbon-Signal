@@ -89,14 +89,13 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Know the moment allocated bourbon moves — before the crowds, before
-            the Facebook groups, before anyone else.
+            Know the moment allocated bourbon moves — before the crowds.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-3">
-            <Button variant="primary">Claim Founding Access — $69</Button>
+            <Button variant="primary">Become a Founding Member</Button>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -106,24 +105,7 @@ export default function HeroSection() {
             >
               100 founding spots. Lifetime access. No monthly fees.
             </p>
-            <p
-              className="flex items-center justify-center gap-1.5"
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "12px",
-                color: "var(--color-text-tertiary)",
-                marginTop: "16px",
-              }}
-            >
-              <span
-                className="inline-block w-[6px] h-[6px] rounded-full"
-                style={{
-                  backgroundColor: "var(--color-accent-amber)",
-                  animation: "pulseDot 2s ease-in-out infinite",
-                }}
-              />
-              Live · 847 stores monitored · 2,340 drops detected this month
-            </p>
+
           </div>
         </ScrollReveal>
 
