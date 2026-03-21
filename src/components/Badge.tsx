@@ -9,11 +9,11 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<string, { bg: string; text: string }> = {
-  allocated: { bg: "var(--color-badge-allocated-bg)", text: "var(--color-bg-primary)" },
-  limited: { bg: "var(--color-badge-limited-bg)", text: "var(--color-text-primary)" },
-  common: { bg: "var(--color-badge-common-bg)", text: "var(--color-text-secondary)" },
-  live: { bg: "var(--color-badge-live-bg)", text: "var(--color-text-primary)" },
-  alert: { bg: "var(--color-badge-alert-bg)", text: "var(--color-text-primary)" },
+  allocated: { bg: "rgba(212, 146, 11, 0.9)", text: "#0D0B0E" },
+  limited: { bg: "rgba(184, 115, 51, 0.9)", text: "#F5F0E8" },
+  common: { bg: "rgba(107, 101, 96, 0.4)", text: "#9B9590" },
+  live: { bg: "rgba(45, 106, 79, 0.9)", text: "#F5F0E8" },
+  alert: { bg: "rgba(232, 93, 38, 0.9)", text: "#F5F0E8" },
 };
 
 export default function Badge({ variant, children, pulse = false }: BadgeProps) {
@@ -34,7 +34,7 @@ export default function Badge({ variant, children, pulse = false }: BadgeProps) 
         <span
           className="inline-block h-1.5 w-1.5 rounded-full"
           style={{
-            backgroundColor: "var(--color-badge-live-dot)",
+            backgroundColor: "#4ade80",
             animation: "pulseDot 2s ease-in-out infinite",
           }}
         />

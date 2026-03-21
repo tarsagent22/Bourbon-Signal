@@ -56,7 +56,7 @@ export default function IntelligenceAdvantage() {
   return (
     <section
       className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
-      style={{ backgroundColor: "var(--color-bg-secondary)" }}
+      style={{ backgroundColor: "var(--color-bg-primary)" }}
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading
@@ -66,13 +66,12 @@ export default function IntelligenceAdvantage() {
 
         {/* Pipeline timeline */}
         <ScrollReveal>
-          <div className="relative mb-20">
-            {/* Desktop: horizontal layout */}
-            <div className="hidden md:flex items-start justify-between px-4 relative">
-              {/* Connecting line — horizontal */}
+          <div className="relative mb-20 overflow-x-auto">
+            <div className="flex items-start justify-between min-w-[500px] px-4 relative">
+              {/* Connecting line */}
               <motion.div
                 className="absolute top-[34px] left-[60px] right-[60px] h-[3px]"
-                style={{ backgroundColor: "var(--color-accent-amber-30)", borderRadius: "2px" }}
+                style={{ backgroundColor: "rgba(212, 146, 11, 0.25)", borderRadius: "2px" }}
                 initial={{ scaleX: 0, transformOrigin: "left" }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
@@ -95,13 +94,13 @@ export default function IntelligenceAdvantage() {
                       width: "68px",
                       height: "68px",
                       backgroundColor: step.glow
-                        ? "var(--color-accent-amber-15)"
+                        ? "rgba(212, 146, 11, 0.18)"
                         : "var(--color-bg-tertiary)",
                       border: step.glow
                         ? "2.5px solid var(--color-accent-amber)"
                         : "2px solid var(--color-card-border)",
                       boxShadow: step.glow
-                        ? "0 0 30px var(--color-accent-amber-30), 0 0 60px var(--color-accent-amber-15)"
+                        ? "0 0 30px rgba(212, 146, 11, 0.35), 0 0 60px rgba(212, 146, 11, 0.15)"
                         : "none",
                     }}
                   >
@@ -115,7 +114,7 @@ export default function IntelligenceAdvantage() {
                     />
                   </div>
                   <span
-                    className="mb-2 text-[14px]"
+                    className="mb-2 text-[12px] sm:text-[14px]"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
                       fontWeight: 500,
@@ -126,86 +125,12 @@ export default function IntelligenceAdvantage() {
                   </span>
                   {step.note && (
                     <span
-                      className="text-[12px]"
+                      className="text-[11px] sm:text-[12px]"
                       style={{
                         fontFamily: "var(--font-dm-sans)",
                         fontStyle: "italic",
                         color: "var(--color-accent-copper)",
                         maxWidth: "140px",
-                      }}
-                    >
-                      &ldquo;{step.note}&rdquo;
-                    </span>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Mobile: vertical layout */}
-            <div className="flex md:hidden flex-col items-center relative">
-              {/* Connecting line — vertical */}
-              <motion.div
-                className="absolute left-1/2 -translate-x-1/2 top-[34px] bottom-[34px] w-[3px]"
-                style={{ backgroundColor: "var(--color-accent-amber-30)", borderRadius: "2px" }}
-                initial={{ scaleY: 0, transformOrigin: "top" }}
-                whileInView={{ scaleY: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-
-              {pipelineSteps.map((step, i) => (
-                <motion.div
-                  key={step.label}
-                  className="flex flex-col items-center text-center relative z-10"
-                  style={{ marginBottom: i < pipelineSteps.length - 1 ? "32px" : 0 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.2, duration: 0.5 }}
-                >
-                  <div
-                    className="flex items-center justify-center rounded-full mb-2"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: step.glow
-                        ? "var(--color-accent-amber-15)"
-                        : "var(--color-bg-tertiary)",
-                      border: step.glow
-                        ? "2.5px solid var(--color-accent-amber)"
-                        : "2px solid var(--color-card-border)",
-                      boxShadow: step.glow
-                        ? "0 0 30px var(--color-accent-amber-30), 0 0 60px var(--color-accent-amber-15)"
-                        : "none",
-                    }}
-                  >
-                    <step.icon
-                      size={26}
-                      style={{
-                        color: step.glow
-                          ? "var(--color-accent-amber)"
-                          : "var(--color-text-tertiary)",
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="mb-1 text-[13px]"
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontWeight: 500,
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
-                    {step.label}
-                  </span>
-                  {step.note && (
-                    <span
-                      className="text-[11px]"
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontStyle: "italic",
-                        color: "var(--color-accent-copper)",
-                        maxWidth: "180px",
                       }}
                     >
                       &ldquo;{step.note}&rdquo;
