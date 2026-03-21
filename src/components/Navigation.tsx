@@ -38,7 +38,7 @@ export default function Navigation() {
       >
         <div className="flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
         {/* Logo */}
-        <a href="/" className="flex items-baseline gap-0">
+        <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "100px" }}>
           <span
             style={{
               fontFamily: "var(--font-playfair)",
