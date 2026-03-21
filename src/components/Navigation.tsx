@@ -38,7 +38,7 @@ export default function Navigation() {
       >
         <div className="flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
         {/* Logo */}
-        <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "60px" }}>
+        <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "clamp(30px, 4vw, 60px)" }}>
           <span
             style={{
               fontFamily: "var(--font-playfair)",
@@ -94,7 +94,7 @@ export default function Navigation() {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-5">
+        <div className="hidden md:flex items-center gap-5" style={{ marginRight: "10px" }}>
           <a
             href="#"
             style={{
@@ -143,7 +143,7 @@ export default function Navigation() {
         <button
           className="md:hidden cursor-pointer"
           onClick={() => setMobileOpen(true)}
-          style={{ color: "var(--color-text-primary)" }}
+          style={{ color: "var(--color-text-primary)", marginRight: "5px" }}
         >
           <Menu size={24} />
         </button>
