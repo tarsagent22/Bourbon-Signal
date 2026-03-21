@@ -29,7 +29,7 @@ All colors and fonts are defined as CSS custom properties in `globals.css`. **Ne
 - **Cards:** `--color-card-bg`, `--color-card-border`, `--color-card-border-hover`, `--color-glass`
 - **Fonts:** `--font-playfair` for headings, `--font-dm-sans` for body/buttons/labels, `--font-jetbrains` for code/data
 
-Eyebrow text is always uppercase DM Sans, 12px, `letterSpacing: "0.15em"`, amber.
+Eyebrow text is **typically** uppercase DM Sans, 12px, `letterSpacing: "0.15em"`, amber — but this is a default, not a rule. Feel free to vary eyebrow style by section for visual differentiation (e.g. no eyebrow, a different weight, a muted color, or no uppercase). Not every section needs the same treatment.
 
 Open `globals.css` to see exact values.
 
@@ -50,10 +50,10 @@ Open `globals.css` to see exact values.
 
 ## Existing Components
 
-Use these before creating new ones:
+Use these before creating new ones — but don't feel constrained by them. If a design calls for something new (e.g. a plain `<div>` card without glassmorphism, a full-bleed section with no card, a timeline element), build it inline rather than forcing everything into `GlassCard`. The goal is great design, not component reuse for its own sake.
 
 - `<Button variant="primary" | "ghost">` — All CTAs
-- `<GlassCard hoverable accent>` — Elevated content cards. `accent` adds amber top border
+- `<GlassCard hoverable accent>` — Elevated content cards. `accent` adds amber top border. Not every card needs to be a GlassCard — use plain styled divs when a lighter treatment fits better.
 - `<ScrollReveal delay={N}>` — Scroll-triggered fade-up. Stagger with delay (ms)
 - `<SectionHeading>` — Consistent section titles
 - `<StatCard>` — Metric/number displays
@@ -83,6 +83,16 @@ Hover: cards get `scale: 1.02` + border glow, buttons get `scale: 1.02` hover / 
 2. Import `Navigation`, `Footer`, and section components
 3. Export metadata for SEO
 
+## Design Philosophy
+
+The goal is **Linear/Vercel/Stripe-tier design** — not a bourbon fan site. That means:
+- Restraint over decoration. If an element isn't earning its place, cut it.
+- Amber is a premium accent, not a neon highlight. Use it sparingly — 1-2 key moments per section at most.
+- Glassmorphism is one tool, not the only tool. Sections can breathe without cards.
+- Simplicity on landing pages. Don't add sections or features to feel comprehensive — each element must earn its pixel.
+- Mobile-first. Every section must look intentional on a 375px screen.
+- Copy should sound like a confident intelligence platform, not a bourbon community newsletter.
+
 ## Anti-Patterns
 
 - Don't use `<Image>` from `next/image` for backgrounds — use CSS `backgroundImage`
@@ -92,3 +102,6 @@ Hover: cards get `scale: 1.02` + border glow, buttons get `scale: 1.02` hover / 
 - Don't skip TypeScript types
 - Don't create server components unless asked
 - Don't remove the grain overlay or ambient glow effects
+- Don't apply amber glow/neon effects to every element — it cheapens the design
+- Don't make every section look the same — vary the visual treatment (some sections can be sparse, others dense)
+- Don't use gradient text on headlines — flat `var(--color-text-primary)` reads more premium

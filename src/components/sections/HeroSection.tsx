@@ -64,28 +64,14 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-[3] text-center px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto pt-24">
         <ScrollReveal delay={0}>
-          <p
-            className="uppercase mb-6"
+          <h1
+            className="mb-6 max-md:!text-[44px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              letterSpacing: "0.15em",
-              color: "var(--color-accent-amber)",
-              fontWeight: 500,
-            }}
-          >
-            BOURBON DROP INTELLIGENCE
-          </p>
-        </ScrollReveal>
-
-        <ScrollReveal delay={100}>
-          <h1
-            className="mb-6 max-md:!text-[40px]"
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "64px",
-              lineHeight: 1.1,
-              fontWeight: 700,
+              fontSize: "72px",
+              lineHeight: 1.0,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
               color: "var(--color-text-primary)",
             }}
           >
@@ -93,9 +79,9 @@ export default function HeroSection() {
           </h1>
         </ScrollReveal>
 
-        <ScrollReveal delay={200}>
+        <ScrollReveal delay={100}>
           <p
-            className="mx-auto mb-10 max-w-[600px]"
+            className="mx-auto mb-10 max-w-[560px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "18px",
@@ -103,15 +89,14 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Real-time alerts the moment allocated bourbon moves through the
-            system. Warehouse arrivals. Shipment tracking. Store-level intel.
-            Before the crowds know.
+            Know the moment allocated bourbon moves — before the crowds, before
+            the Facebook groups, before anyone else.
           </p>
         </ScrollReveal>
 
-        <ScrollReveal delay={300}>
+        <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-3">
-            <Button variant="primary">Get Early Access — $69</Button>
+            <Button variant="primary">Claim Founding Access — $69</Button>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -120,6 +105,24 @@ export default function HeroSection() {
               }}
             >
               100 founding spots. Lifetime access. No monthly fees.
+            </p>
+            <p
+              className="flex items-center justify-center gap-1.5"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                color: "var(--color-text-tertiary)",
+                marginTop: "16px",
+              }}
+            >
+              <span
+                className="inline-block w-[6px] h-[6px] rounded-full"
+                style={{
+                  backgroundColor: "var(--color-accent-amber)",
+                  animation: "pulseDot 2s ease-in-out infinite",
+                }}
+              />
+              Live · 847 stores monitored · 2,340 drops detected this month
             </p>
           </div>
         </ScrollReveal>
