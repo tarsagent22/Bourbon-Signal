@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 interface GlassCardProps {
   children: ReactNode;
@@ -18,32 +18,47 @@ export default function GlassCard({
   accent = false,
   style: extraStyle,
 }: GlassCardProps) {
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <motion.div
-      className={`relative p-6 ${className}`}
+    <div
+      className="relative"
       style={{
-        background: "var(--color-card-bg)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: "12px",
-        border: "1px solid var(--color-card-border)",
-        borderTop: accent
-          ? "2px solid var(--color-accent-amber)"
-          : "1px solid var(--color-card-border)",
-        ...extraStyle,
+        borderRadius: "13px",
+        padding: "1px",
+        background: hovered && hoverable
+          ? "linear-gradient(135deg, rgba(212, 146, 11, 0.4), rgba(212, 146, 11, 0.05))"
+          : "transparent",
+        transition: "background 0.3s ease",
       }}
-      whileHover={
-        hoverable
-          ? {
-              scale: 1.02,
-              borderColor: "rgba(212, 146, 11, 0.3)",
-              boxShadow: "0 8px 32px rgba(212, 146, 11, 0.08)",
-              transition: { duration: 0.3 },
-            }
-          : undefined
-      }
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {children}
-    </motion.div>
+      <motion.div
+        className={`relative p-6 ${className}`}
+        style={{
+          background: "var(--color-card-bg)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderRadius: "12px",
+          border: hovered && hoverable ? "1px solid transparent" : "1px solid var(--color-card-border)",
+          borderTop: accent
+            ? "2px solid var(--color-accent-amber)"
+            : hovered && hoverable ? "1px solid transparent" : "1px solid var(--color-card-border)",
+          ...extraStyle,
+        }}
+        whileHover={
+          hoverable
+            ? {
+                scale: 1.02,
+                boxShadow: "0 8px 32px rgba(212, 146, 11, 0.08)",
+                transition: { duration: 0.3 },
+              }
+            : undefined
+        }
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 }
