@@ -5,10 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import SectionDivider from "@/components/SectionDivider";
 import HeroSection from "@/components/sections/HeroSection";
-import SocialProofBar from "@/components/sections/SocialProofBar";
-import HowItWorks from "@/components/sections/HowItWorks";
+import DropFeed from "@/components/sections/DropFeed";
 import PricingSection from "@/components/sections/PricingSection";
 import FinalCTA from "@/components/sections/FinalCTA";
 
@@ -56,13 +54,8 @@ export default function Home() {
       <Navigation />
       <main className="overflow-x-hidden">
         <HeroSection />
-        <SectionDivider />
-        <SocialProofBar />
-        <SectionDivider />
-        <HowItWorks />
-        <SectionDivider />
+        <DropFeed />
         <PricingSection />
-        <SectionDivider />
         <FinalCTA />
       </main>
       <Footer />
