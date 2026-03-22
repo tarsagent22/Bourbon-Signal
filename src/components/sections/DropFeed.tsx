@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import GlassCard from "@/components/GlassCard";
 import ScrollReveal from "@/components/ScrollReveal";
 
 interface DropEvent {
@@ -158,31 +157,29 @@ function groupDrops(drops: DropEvent[]): GroupedDrop[] {
 
   return Array.from(groups.values())
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 12);
+    .slice(0, 10);
 }
 
 // --- Rarity shape config ---
 
 const RARITY_SHAPE: Record<string, { symbol: string; color: string; size: string; glow?: string }> = {
   unicorn: {
-    symbol: "◆",
+    symbol: "\u25C6",
     color: "var(--color-accent-amber)",
     size: "14px",
     glow: "0 0 8px rgba(212,146,11,0.6)",
   },
   allocated: {
-    symbol: "●",
+    symbol: "\u25CF",
     color: "var(--color-accent-copper)",
     size: "12px",
   },
   limited: {
-    symbol: "○",
+    symbol: "\u25CB",
     color: "var(--color-info)",
     size: "12px",
   },
 };
-
-// --- State options (dropdown) ---
 
 // --- Components ---
 
@@ -190,9 +187,9 @@ function SkeletonRow() {
   return (
     <div
       className="flex items-center"
-      style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)", height: "70px" }}
+      style={{ padding: "16px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
     >
-      <div className="flex items-center justify-center" style={{ width: "32px" }}>
+      <div className="flex items-center justify-center shrink-0" style={{ width: "32px" }}>
         <div
           className="rounded-full"
           style={{
@@ -229,7 +226,7 @@ function SkeletonRow() {
           }}
         />
       </div>
-      <div className="flex flex-col items-end justify-center" style={{ width: "100px" }}>
+      <div className="flex flex-col items-end justify-center shrink-0" style={{ width: "100px" }}>
         <div
           className="rounded"
           style={{
@@ -250,20 +247,20 @@ function getEventDescription(drop: GroupedDrop): string {
   switch (drop.event_type) {
     case "new_shipment": {
       if (drop.counties.length > 1) {
-        return `→ ${drop.counties.length} NC counties`;
+        return `\u2192 ${drop.counties.length} NC counties`;
       }
       if (drop.counties.length === 1) {
-        return `→ ${drop.counties[0]}`;
+        return `\u2192 ${drop.counties[0]}`;
       }
-      return "→ Shipped";
+      return "\u2192 Shipped";
     }
     case "in_store": {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
-      return `In store${loc ? ` · ${loc}` : ""}`;
+      return `In store${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "store_stock_increase": {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
-      return `In store${loc ? ` · ${loc}` : ""}`;
+      return `In store${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "allocation_assigned": {
       return "Allocation assigned";
@@ -273,9 +270,67 @@ function getEventDescription(drop: GroupedDrop): string {
   }
 }
 
+interface DetailRowProps {
+  label: string;
+  value: string;
+  valueColor?: string;
+  isLast?: boolean;
+}
+
+function DetailRow({ label, value, valueColor, isLast }: DetailRowProps) {
+  return (
+    <div
+      className="flex items-center justify-between"
+      style={{
+        padding: "4px 0",
+        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.04)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "var(--color-text-tertiary)",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "13px",
+          color: valueColor || "var(--color-text-secondary)",
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
 function FeedRow({ drop, isNew }: { drop: GroupedDrop; isNew: boolean }) {
+  const [expanded, setExpanded] = useState(false);
   const rarity = RARITY_SHAPE[drop.rarity_tier] || RARITY_SHAPE.limited;
   const description = getEventDescription(drop);
+  const [hovered, setHovered] = useState(false);
+
+  // Build detail fields
+  const details: { label: string; value: string; valueColor?: string }[] = [];
+  if (drop.counties.length > 1) {
+    details.push({ label: "Counties", value: drop.counties.join(", ") });
+  } else if (drop.counties.length === 1) {
+    details.push({ label: "Location", value: drop.counties[0] });
+  }
+  if (drop.retail_price && drop.retail_price > 0) {
+    details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}`, valueColor: "var(--color-accent-amber)" });
+  }
+  if (drop.quantity_shipped && drop.quantity_shipped > 0) {
+    details.push({ label: "Quantity", value: `${drop.quantity_shipped} cases` });
+  }
+
+  const hasDetails = details.length > 0;
 
   return (
     <motion.div
@@ -292,91 +347,148 @@ function FeedRow({ drop, isNew }: { drop: GroupedDrop; isNew: boolean }) {
         duration: isNew ? 1.8 : 0.3,
         backgroundColor: { duration: 2, times: [0, 0.3, 1] },
       }}
-      className="flex items-center cursor-default group"
       style={{
-        padding: "14px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        height: "70px",
-        transition: "background-color 200ms",
-      }}
-      whileHover={{
-        backgroundColor: "rgba(212,146,11,0.03)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      {/* Left: shape indicator */}
+      {/* Main row */}
       <div
-        className="flex items-center justify-center shrink-0"
-        style={{ width: "32px" }}
+        className="flex items-center"
+        style={{
+          padding: "16px 0",
+          cursor: hasDetails ? "pointer" : "default",
+        }}
+        onClick={() => hasDetails && setExpanded(!expanded)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
-        <span
-          style={{
-            fontSize: rarity.size,
-            color: rarity.color,
-            textShadow: rarity.glow || "none",
-            lineHeight: 1,
-          }}
-        >
-          {rarity.symbol}
-        </span>
-      </div>
-
-      {/* Center: name + description */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "12px" }}>
+        {/* Left: shape indicator */}
         <div
-          className="truncate"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "15px",
-            fontWeight: 600,
-            color: "var(--color-text-primary)",
-            lineHeight: 1.3,
-          }}
+          className="flex items-center justify-center shrink-0"
+          style={{ width: "32px" }}
         >
-          {drop.displayName}
+          <span
+            style={{
+              fontSize: rarity.size,
+              color: rarity.color,
+              textShadow: rarity.glow || "none",
+              lineHeight: 1,
+            }}
+          >
+            {rarity.symbol}
+          </span>
         </div>
-        <div
-          className="truncate"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "13px",
-            color: "var(--color-text-secondary)",
-            marginTop: "2px",
-            lineHeight: 1.3,
-          }}
-        >
-          {description}
-        </div>
-      </div>
 
-      {/* Right: timestamp + MSRP */}
-      <div
-        className="flex flex-col items-end justify-center shrink-0"
-        style={{ width: "100px" }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-jetbrains)",
-            fontSize: "11px",
-            color: "var(--color-text-tertiary)",
-            whiteSpace: "nowrap",
-          }}
+        {/* Center: name + description */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "12px" }}>
+          <div
+            className="truncate"
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "15px",
+              fontWeight: 600,
+              color: hovered ? "var(--color-accent-amber)" : "var(--color-text-primary)",
+              lineHeight: 1.3,
+              transition: "color 200ms",
+            }}
+          >
+            {drop.displayName}
+          </div>
+          <div
+            className="truncate"
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "var(--color-text-secondary)",
+              marginTop: "2px",
+              lineHeight: 1.3,
+            }}
+          >
+            {description}
+          </div>
+        </div>
+
+        {/* Right: timestamp + MSRP */}
+        <div
+          className="flex flex-col items-end justify-center shrink-0"
+          style={{ width: "100px" }}
         >
-          {formatRelativeTime(drop.timestamp)}
-        </span>
-        {drop.retail_price && drop.retail_price > 0 && (
           <span
             style={{
               fontFamily: "var(--font-jetbrains)",
-              fontSize: "10px",
-              color: "var(--color-accent-amber)",
-              marginTop: "2px",
+              fontSize: "11px",
+              color: "var(--color-text-tertiary)",
               whiteSpace: "nowrap",
             }}
           >
-            ${Math.round(drop.retail_price)} MSRP
+            {formatRelativeTime(drop.timestamp)}
           </span>
-        )}
+          {drop.retail_price && drop.retail_price > 0 && (
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "10px",
+                color: "var(--color-accent-amber)",
+                marginTop: "2px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              ${Math.round(drop.retail_price)} MSRP
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Expandable detail panel */}
+      <AnimatePresence>
+        {expanded && hasDetails && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: "8px",
+                padding: "12px 16px",
+                margin: "8px 0 8px 44px",
+              }}
+            >
+              {details.map((detail, i) => (
+                <DetailRow
+                  key={detail.label}
+                  label={detail.label}
+                  value={detail.value}
+                  valueColor={detail.valueColor}
+                  isLast={i === details.length - 1}
+                />
+              ))}
+              <div
+                className="flex justify-end"
+                style={{ marginTop: "8px" }}
+              >
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(false);
+                  }}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "11px",
+                    color: "var(--color-text-tertiary)",
+                    cursor: "pointer",
+                  }}
+                >
+                  &#9650; Collapse
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -439,8 +551,11 @@ export default function DropFeed() {
 
   return (
     <section
-      className="w-full py-20 px-4 sm:px-6"
-      style={{ backgroundColor: "var(--color-bg-secondary)" }}
+      className="w-full"
+      style={{
+        backgroundColor: "var(--color-bg-primary)",
+        padding: "96px 16px",
+      }}
     >
       <style>{`
         @keyframes shimmer {
@@ -450,146 +565,125 @@ export default function DropFeed() {
       `}</style>
 
       <ScrollReveal delay={0}>
-        <div className="mx-auto" style={{ maxWidth: "56rem" }}>
-          {/* Feed GlassCard */}
-          <GlassCard
-            accent={false}
-            hoverable={false}
+        <div className="mx-auto" style={{ maxWidth: "720px" }}>
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <h2
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "28px",
+                fontWeight: 800,
+                color: "var(--color-text-primary)",
+                lineHeight: 1.1,
+                margin: 0,
+              }}
+            >
+              Live Drop Feed
+            </h2>
+
+            {/* State dropdown */}
+            <select
+              defaultValue="nc"
+              style={{
+                background: "transparent",
+                border: "1px solid var(--color-card-border)",
+                color: "var(--color-text-secondary)",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-accent-amber)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-card-border)";
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-accent-amber)";
+              }}
+              onMouseLeave={(e) => {
+                if (document.activeElement !== e.currentTarget) {
+                  e.currentTarget.style.borderColor = "var(--color-card-border)";
+                }
+              }}
+            >
+              <option value="nc">North Carolina</option>
+              <option value="va" disabled>Virginia — Coming Soon</option>
+              <option value="pa" disabled>Pennsylvania — Coming Soon</option>
+            </select>
+          </div>
+
+          {/* Divider */}
+          <div style={{ marginTop: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }} />
+
+          {/* Legend row */}
+          <div
+            className="flex items-center justify-end"
             style={{
-              padding: 0,
-              background: "rgba(255, 255, 255, 0.04)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              padding: "10px 0",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+              letterSpacing: "0.05em",
             }}
           >
-            {/* Card header */}
-            <div
-              className="flex items-center justify-between"
-              style={{
-                padding: "16px 20px",
-                borderBottom: "1px solid var(--color-card-border)",
-              }}
-            >
-              <h2
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "24px",
-                  fontWeight: 800,
-                  color: "var(--color-text-primary)",
-                  lineHeight: 1.1,
-                  margin: 0,
-                }}
-              >
-                Live Drop Feed
-              </h2>
+            <span style={{ color: "var(--color-accent-amber)", textShadow: "0 0 8px rgba(212,146,11,0.6)" }}>{"\u25C6"}</span>
+            <span style={{ marginLeft: "4px", marginRight: "12px" }}>Unicorn</span>
+            <span style={{ color: "var(--color-accent-copper)" }}>{"\u25CF"}</span>
+            <span style={{ marginLeft: "4px", marginRight: "12px" }}>Allocated</span>
+            <span style={{ color: "var(--color-info)" }}>{"\u25CB"}</span>
+            <span style={{ marginLeft: "4px" }}>Limited</span>
+          </div>
 
-              {/* State dropdown */}
-              <select
-                defaultValue="nc"
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--color-card-border)",
-                  color: "var(--color-text-secondary)",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-accent-amber)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-card-border)";
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-accent-amber)";
-                }}
-                onMouseLeave={(e) => {
-                  if (document.activeElement !== e.currentTarget) {
-                    e.currentTarget.style.borderColor = "var(--color-card-border)";
-                  }
-                }}
-              >
-                <option value="nc">North Carolina</option>
-                <option value="va" disabled>Virginia — Coming Soon</option>
-                <option value="pa" disabled>Pennsylvania — Coming Soon</option>
-              </select>
-            </div>
-
-            {/* Legend row */}
+          {/* Feed rows — open list */}
+          {error && !data ? (
             <div
-              className="flex items-center justify-end"
+              className="flex items-center justify-center"
               style={{
-                padding: "8px 16px",
-                borderBottom: "1px solid rgba(255,255,255,0.04)",
+                padding: "80px 0",
                 fontFamily: "var(--font-dm-sans)",
-                fontSize: "10px",
+                fontSize: "15px",
                 color: "var(--color-text-tertiary)",
-                letterSpacing: "0.05em",
               }}
             >
-              <span style={{ color: "var(--color-accent-amber)", textShadow: "0 0 8px rgba(212,146,11,0.6)" }}>◆</span>
-              <span style={{ marginLeft: "4px", marginRight: "12px" }}>Unicorn</span>
-              <span style={{ color: "var(--color-accent-copper)" }}>●</span>
-              <span style={{ marginLeft: "4px", marginRight: "12px" }}>Allocated</span>
-              <span style={{ color: "var(--color-info)" }}>○</span>
-              <span style={{ marginLeft: "4px" }}>Limited</span>
+              Feed temporarily unavailable
             </div>
+          ) : !data ? (
+            <>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonRow key={i} />
+              ))}
+            </>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {grouped.map((drop) => (
+                <FeedRow
+                  key={drop.id}
+                  drop={drop}
+                  isNew={newIds.has(drop.id)}
+                />
+              ))}
+            </AnimatePresence>
+          )}
 
-            {/* Scrollable feed rows */}
-            <div
-              className="drop-feed-scroll"
-              style={{
-                maxHeight: "504px",
-                overflowY: "auto",
-              }}
-            >
-              {error && !data ? (
-                <div
-                  className="flex items-center justify-center"
-                  style={{
-                    padding: "80px 20px",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "15px",
-                    color: "var(--color-text-tertiary)",
-                  }}
-                >
-                  Feed temporarily unavailable
-                </div>
-              ) : !data ? (
-                <>
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <SkeletonRow key={i} />
-                  ))}
-                </>
-              ) : (
-                <AnimatePresence mode="popLayout">
-                  {grouped.map((drop) => (
-                    <FeedRow
-                      key={drop.id}
-                      drop={drop}
-                      isNew={newIds.has(drop.id)}
-                    />
-                  ))}
-                </AnimatePresence>
-              )}
-            </div>
-          </GlassCard>
+          {/* Bottom separator */}
+          <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", marginTop: "4px" }} />
 
-          {/* Locked teaser — below the card */}
+          {/* Member teaser */}
           {data && hiddenCount > 0 && (
             <div
               className="text-center"
               style={{
-                marginTop: "12px",
+                marginTop: "16px",
                 fontFamily: "var(--font-dm-sans)",
                 fontSize: "13px",
                 color: "var(--color-text-tertiary)",
               }}
             >
-              🔒 {hiddenCount} more drops available to members
+              Members receive instant alerts. {hiddenCount} additional drops available.
             </div>
           )}
 
