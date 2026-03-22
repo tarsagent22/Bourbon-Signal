@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg-primary: #0D0B0E;
-  --color-bg-secondary: #1A1512;
-  --color-bg-tertiary: #241E19;
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #0A0A0A;
+  --color-bg-tertiary: #111111;
 
   --color-accent-amber: #C4870A;
   --color-accent-copper: #B87333;
@@ -72,6 +72,12 @@ body::after {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(8px); }
 }
+
+/* Drop feed scrollbar */
+.drop-feed-scroll::-webkit-scrollbar { width: 4px; }
+.drop-feed-scroll::-webkit-scrollbar-track { background: transparent; }
+.drop-feed-scroll::-webkit-scrollbar-thumb { background: rgba(212,146,11,0.3); border-radius: 2px; }
+.drop-feed-scroll::-webkit-scrollbar-thumb:hover { background: rgba(212,146,11,0.5); }
 
 /* Selection color */
 ::selection {
