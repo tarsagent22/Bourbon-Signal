@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "@/components/GlassCard";
+import ScrollReveal from "@/components/ScrollReveal";
 
 interface DropEvent {
   timestamp: string;
@@ -181,13 +182,7 @@ const RARITY_SHAPE: Record<string, { symbol: string; color: string; size: string
   },
 };
 
-// --- State tabs ---
-
-const STATE_TABS = [
-  { label: "North Carolina", active: true },
-  { label: "Virginia", active: false },
-  { label: "Pennsylvania", active: false },
-];
+// --- State options (dropdown) ---
 
 // --- Components ---
 
@@ -454,68 +449,75 @@ export default function DropFeed() {
         }
       `}</style>
 
-      <div className="mx-auto" style={{ maxWidth: "900px" }}>
-        {/* Header — centered */}
-        <div className="flex flex-col items-center">
-          <h2
-            className="flex items-center gap-2"
+      <ScrollReveal delay={0}>
+        <div className="mx-auto" style={{ maxWidth: "56rem" }}>
+          {/* Feed GlassCard */}
+          <GlassCard
+            accent={false}
+            hoverable={false}
             style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "36px",
-              fontWeight: 800,
-              color: "var(--color-text-primary)",
-              lineHeight: 1.1,
+              padding: 0,
+              background: "rgba(255, 255, 255, 0.04)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
             }}
           >
-            <span
+            {/* Card header */}
+            <div
+              className="flex items-center justify-between"
               style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: "var(--color-success)",
-                display: "inline-block",
-                animation: "pulseDot 2s ease-in-out infinite",
-                flexShrink: 0,
+                padding: "16px 20px",
+                borderBottom: "1px solid var(--color-card-border)",
               }}
-            />
-            Live Drop Feed
-          </h2>
-
-          {/* State selector tabs */}
-          <div className="flex items-center gap-2" style={{ marginTop: "16px" }}>
-            {STATE_TABS.map((tab) => (
-              <button
-                key={tab.label}
-                disabled={!tab.active}
+            >
+              <h2
                 style={{
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  padding: "6px 16px",
-                  borderRadius: "20px",
-                  border: tab.active
-                    ? "1px solid var(--color-accent-amber)"
-                    : "1px solid rgba(255,255,255,0.08)",
-                  backgroundColor: tab.active
-                    ? "rgba(212,146,11,0.15)"
-                    : "transparent",
-                  color: tab.active
-                    ? "var(--color-accent-amber)"
-                    : "var(--color-text-tertiary)",
-                  cursor: tab.active ? "default" : "not-allowed",
-                  opacity: tab.active ? 1 : 0.4,
-                  transition: "all 200ms",
+                  fontSize: "24px",
+                  fontWeight: 800,
+                  color: "var(--color-text-primary)",
+                  lineHeight: 1.1,
+                  margin: 0,
                 }}
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+                Live Drop Feed
+              </h2>
 
-        {/* Feed GlassCard */}
-        <div style={{ marginTop: "28px" }}>
-          <GlassCard accent={false} hoverable={false} style={{ padding: 0 }}>
+              {/* State dropdown */}
+              <select
+                defaultValue="nc"
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--color-card-border)",
+                  color: "var(--color-text-secondary)",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-accent-amber)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-card-border)";
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-accent-amber)";
+                }}
+                onMouseLeave={(e) => {
+                  if (document.activeElement !== e.currentTarget) {
+                    e.currentTarget.style.borderColor = "var(--color-card-border)";
+                  }
+                }}
+              >
+                <option value="nc">North Carolina</option>
+                <option value="va" disabled>Virginia — Coming Soon</option>
+                <option value="pa" disabled>Pennsylvania — Coming Soon</option>
+              </select>
+            </div>
+
             {/* Legend row */}
             <div
               className="flex items-center justify-end"
@@ -575,42 +577,42 @@ export default function DropFeed() {
               )}
             </div>
           </GlassCard>
-        </div>
 
-        {/* Locked teaser — below the card */}
-        {data && hiddenCount > 0 && (
-          <div
-            className="text-center"
-            style={{
-              marginTop: "12px",
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "13px",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
-            🔒 {hiddenCount} more drops available to members
-          </div>
-        )}
-
-        {/* Last updated */}
-        {lastFetch && (
-          <div className="text-center" style={{ marginTop: "8px" }}>
-            <span
+          {/* Locked teaser — below the card */}
+          {data && hiddenCount > 0 && (
+            <div
+              className="text-center"
               style={{
-                fontFamily: "var(--font-jetbrains)",
-                fontSize: "11px",
+                marginTop: "12px",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
                 color: "var(--color-text-tertiary)",
               }}
             >
-              Last updated:{" "}
-              {new Date(lastFetch).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
-        )}
-      </div>
+              🔒 {hiddenCount} more drops available to members
+            </div>
+          )}
+
+          {/* Last updated */}
+          {lastFetch && (
+            <div className="text-center" style={{ marginTop: "8px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "11px",
+                  color: "var(--color-text-tertiary)",
+                }}
+              >
+                Last updated:{" "}
+                {new Date(lastFetch).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          )}
+        </div>
+      </ScrollReveal>
     </section>
   );
 }

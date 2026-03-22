@@ -44,7 +44,7 @@ export default function HeroSection() {
         className="absolute inset-0 z-[1]"
         style={{
           background:
-            "linear-gradient(to top, var(--color-bg-primary) 0%, rgba(13, 11, 14, 0.85) 40%, rgba(13, 11, 14, 0.6) 100%)",
+            "linear-gradient(to top, #000000 0%, rgba(0, 0, 0, 0.85) 40%, rgba(0, 0, 0, 0.5) 100%)",
         }}
       />
 
