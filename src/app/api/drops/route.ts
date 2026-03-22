@@ -1,19 +1,25 @@
 import { NextResponse } from "next/server";
-import { join } from "path";
-import { readFileSync } from "fs";
+
+const ENGINE_URL = "https://engine.proofhunt.co/drops";
 
 export async function GET() {
   try {
-    // Data is bundled at deploy time from proof-engine/data/events.jsonl
-    // See scripts/deploy.sh for the pre-build copy step
-    const dataPath = join(process.cwd(), "src", "data", "drops.json");
-    const raw = readFileSync(dataPath, "utf-8");
-    const data = JSON.parse(raw);
+    const res = await fetch(ENGINE_URL, {
+      cache: "no-store",
+      headers: { "User-Agent": "proofhunt-web/1.0" },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Engine returned ${res.status}`);
+    }
+
+    const data = await res.json();
 
     return NextResponse.json(data, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch {
+  } catch (err) {
+    console.error("[api/drops] Error fetching from engine:", err);
     return NextResponse.json(
       {
         drops: [],
