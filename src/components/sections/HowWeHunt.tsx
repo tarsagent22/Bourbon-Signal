@@ -205,41 +205,42 @@ function StillCap() {
           Segment 3: level out then rise, exit right off-screen
         */}
 
-        {/* Pipe walls — outer */}
+        {/* Lyne arm pipe — wide, runs off right edge of screen */}
         <path
           d={`
             M ${lx0} ${ly0}
             L ${lx1} ${ly1}
             C ${lx1} ${ly1 - 10}, ${lx1 + 22} ${ly1 - 10}, ${lx1 + 22} ${ly1 + 6}
-            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, ${VIEWBOX_W + 20} ${ly1 + 18}
+            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, 600 ${ly1 + 18}
           `}
           stroke={S}
-          strokeWidth={PW}
+          strokeWidth="10"
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity="0.35"
+          opacity="0.3"
           fill="none"
         />
-        {/* Inner highlight — slightly thinner, lighter, offset inward */}
+        {/* Inner highlight */}
         <path
           d={`
             M ${lx0} ${ly0}
             L ${lx1} ${ly1}
             C ${lx1} ${ly1 - 10}, ${lx1 + 22} ${ly1 - 10}, ${lx1 + 22} ${ly1 + 6}
-            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, ${VIEWBOX_W + 20} ${ly1 + 18}
+            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, 600 ${ly1 + 18}
           `}
           stroke={S}
-          strokeWidth={1.2}
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity="0.15"
+          opacity="0.18"
           fill="none"
         />
 
-        {/* Small valve wheel on the horizontal run */}
-        <circle cx={lx1 + 38} cy={ly1 + 18} r="4" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-        <line x1={lx1 + 34} y1={ly1 + 18} x2={lx1 + 42} y2={ly1 + 18} stroke={S} strokeWidth="0.8" opacity="0.25" />
-        <line x1={lx1 + 38} y1={ly1 + 14} x2={lx1 + 38} y2={ly1 + 22} stroke={S} strokeWidth="0.8" opacity="0.25" />
+        {/* Valve wheel — bigger, more visible */}
+        <circle cx={lx1 + 38} cy={ly1 + 18} r="8" stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
+        <line x1={lx1 + 30} y1={ly1 + 18} x2={lx1 + 46} y2={ly1 + 18} stroke={S} strokeWidth="1.2" opacity="0.35" />
+        <line x1={lx1 + 38} y1={ly1 + 10} x2={lx1 + 38} y2={ly1 + 26} stroke={S} strokeWidth="1.2" opacity="0.35" />
+        <circle cx={lx1 + 38} cy={ly1 + 18} r="2.5" fill={S} opacity="0.2" />
       </svg>
     </div>
   );
@@ -380,18 +381,19 @@ function StillSpout() {
           Product pipe: exits spout bottom, drops slightly,
           curves left, levels out, exits off left edge
         */}
+        {/* Product pipe — wide, runs off left edge of screen */}
         <path
           d={`
             M ${spoutOutX} ${spoutOutY}
             L ${spoutOutX} ${spoutOutY + 10}
             C ${spoutOutX} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 14}
-            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, ${-20} ${spoutOutY + 6}
+            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, -500 ${spoutOutY + 6}
           `}
           stroke={S}
-          strokeWidth={PW}
+          strokeWidth="10"
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity="0.35"
+          opacity="0.3"
           fill="none"
         />
         {/* Inner highlight */}
@@ -400,20 +402,21 @@ function StillSpout() {
             M ${spoutOutX} ${spoutOutY}
             L ${spoutOutX} ${spoutOutY + 10}
             C ${spoutOutX} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 14}
-            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, ${-20} ${spoutOutY + 6}
+            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, -500 ${spoutOutY + 6}
           `}
           stroke={S}
-          strokeWidth={1.2}
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity="0.15"
+          opacity="0.18"
           fill="none"
         />
 
-        {/* Valve on the horizontal run */}
-        <circle cx={spoutOutX - 28} cy={spoutOutY + 6} r="4" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-        <line x1={spoutOutX - 32} y1={spoutOutY + 6} x2={spoutOutX - 24} y2={spoutOutY + 6} stroke={S} strokeWidth="0.8" opacity="0.25" />
-        <line x1={spoutOutX - 28} y1={spoutOutY + 2} x2={spoutOutX - 28} y2={spoutOutY + 10} stroke={S} strokeWidth="0.8" opacity="0.25" />
+        {/* Valve wheel — bigger, more visible */}
+        <circle cx={spoutOutX - 28} cy={spoutOutY + 6} r="8" stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
+        <line x1={spoutOutX - 36} y1={spoutOutY + 6} x2={spoutOutX - 20} y2={spoutOutY + 6} stroke={S} strokeWidth="1.2" opacity="0.35" />
+        <line x1={spoutOutX - 28} y1={spoutOutY - 2} x2={spoutOutX - 28} y2={spoutOutY + 14} stroke={S} strokeWidth="1.2" opacity="0.35" />
+        <circle cx={spoutOutX - 28} cy={spoutOutY + 6} r="2.5" fill={S} opacity="0.2" />
       </svg>
     </div>
   );
@@ -516,7 +519,7 @@ export default function HowWeHunt() {
               marginBottom: "16px",
             }}
           >
-            How we hunt
+            The Process
           </h2>
           <p
             className="text-center mx-auto"
