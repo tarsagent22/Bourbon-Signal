@@ -3,7 +3,7 @@
 const footerLinks = [
   { label: "Features", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#" },
+  { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#" },
 ];
 
@@ -78,9 +78,22 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Data disclaimer */}
+        {/* Tagline */}
         <p
           className="text-center mt-4"
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            fontStyle: "italic",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          Built by bourbon hunters, for bourbon hunters.
+        </p>
+
+        {/* Data disclaimer */}
+        <p
+          className="text-center mt-2"
           style={{
             fontFamily: "var(--font-dm-sans)",
             fontSize: "12px",

@@ -479,18 +479,6 @@ export default function PricingSection() {
           </motion.div>
         </motion.div>
 
-        {/* Bottom note */}
-        <p
-          className="text-center"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "13px",
-            color: "rgba(245,237,214,0.3)",
-            marginTop: "32px",
-          }}
-        >
-          No account needed to browse the public drop feed.
-        </p>
       </div>
     </section>
   );

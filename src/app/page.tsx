@@ -8,7 +8,8 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
 import PricingSection from "@/components/sections/PricingSection";
-import FinalCTA from "@/components/sections/FinalCTA";
+import HowWeHunt from "@/components/sections/HowWeHunt";
+import FAQ from "@/components/sections/FAQ";
 
 function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
@@ -56,7 +57,8 @@ export default function Home() {
         <HeroSection />
         <DropFeed />
         <PricingSection />
-        <FinalCTA />
+        <HowWeHunt />
+        <FAQ />
       </main>
       <Footer />
       <ScrollToTopButton />

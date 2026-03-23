@@ -709,6 +709,19 @@ export default function DropFeed() {
               </span>
             </div>
           )}
+
+          {/* Public note */}
+          <p
+            className="text-center"
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "rgba(245,237,214,0.3)",
+              marginTop: "20px",
+            }}
+          >
+            No account needed to browse the public drop feed.
+          </p>
         </ScrollReveal>
       </div>
     </section>
