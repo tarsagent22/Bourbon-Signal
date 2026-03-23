@@ -31,6 +31,89 @@ interface GroupedDrop {
   id: string;
 }
 
+// --- Bottle pricing lookup (MSRP + secondary market) ---
+
+interface BottlePricing {
+  msrp: number;
+  secondary?: string; // e.g. "$340+" or "$300–$400"
+  secondaryLow?: number; // numeric low for multiplier calc
+}
+
+const BOTTLE_PRICING: Record<string, BottlePricing> = {
+  "pappy van winkle 23": { msrp: 299, secondary: "$3,000–$4,500", secondaryLow: 3000 },
+  "pappy van winkle 20": { msrp: 199, secondary: "$2,200–$3,000", secondaryLow: 2200 },
+  "pappy van winkle 15": { msrp: 119, secondary: "$1,800–$2,500", secondaryLow: 1800 },
+  "old rip van winkle 10": { msrp: 79, secondary: "$1,200+", secondaryLow: 1200 },
+  "van winkle special reserve 12": { msrp: 79, secondary: "$1,000+", secondaryLow: 1000 },
+  "george t stagg": { msrp: 99, secondary: "$800–$1,200", secondaryLow: 800 },
+  "william larue weller": { msrp: 99, secondary: "$700–$1,000", secondaryLow: 700 },
+  "thomas h handy": { msrp: 99, secondary: "$500–$800", secondaryLow: 500 },
+  "eagle rare 17": { msrp: 99, secondary: "$500–$700", secondaryLow: 500 },
+  "sazerac 18": { msrp: 99, secondary: "$600–$900", secondaryLow: 600 },
+  "weller 12": { msrp: 35, secondary: "$120–$180", secondaryLow: 120 },
+  "weller full proof": { msrp: 50, secondary: "$200–$300", secondaryLow: 200 },
+  "weller single barrel": { msrp: 50, secondary: "$250–$350", secondaryLow: 250 },
+  "weller antique 107": { msrp: 50, secondary: "$100–$150", secondaryLow: 100 },
+  "weller special reserve": { msrp: 22, secondary: "$60–$80", secondaryLow: 60 },
+  "weller cypb": { msrp: 50, secondary: "$250+", secondaryLow: 250 },
+  "blanton's": { msrp: 65, secondary: "$120–$180", secondaryLow: 120 },
+  "blanton's gold": { msrp: 120, secondary: "$250–$400", secondaryLow: 250 },
+  "blanton's straight from the barrel": { msrp: 150, secondary: "$400–$600", secondaryLow: 400 },
+  "e.h. taylor single barrel": { msrp: 40, secondary: "$100–$150", secondaryLow: 100 },
+  "e.h. taylor small batch": { msrp: 40, secondary: "$80–$120", secondaryLow: 80 },
+  "e.h. taylor barrel proof": { msrp: 70, secondary: "$400–$600", secondaryLow: 400 },
+  "buffalo trace": { msrp: 25, secondary: "$40–$50", secondaryLow: 40 },
+  "eagle rare": { msrp: 35, secondary: "$50–$70", secondaryLow: 50 },
+  "old fitzgerald": { msrp: 110, secondary: "$300–$500", secondaryLow: 300 },
+  "old fitzgerald 8": { msrp: 90, secondary: "$200–$350", secondaryLow: 200 },
+  "elijah craig barrel proof": { msrp: 70, secondary: "$120–$180", secondaryLow: 120 },
+  "elijah craig 18": { msrp: 130, secondary: "$400–$600", secondaryLow: 400 },
+  "elijah craig toasted barrel": { msrp: 50, secondary: "$100–$150", secondaryLow: 100 },
+  "stagg jr": { msrp: 55, secondary: "$120–$180", secondaryLow: 120 },
+  "stagg": { msrp: 55, secondary: "$120–$180", secondaryLow: 120 },
+  "booker's": { msrp: 90, secondary: "$120–$160", secondaryLow: 120 },
+  "four roses limited edition": { msrp: 150, secondary: "$300–$500", secondaryLow: 300 },
+  "kentucky owl": { msrp: 200, secondary: "$350–$500", secondaryLow: 350 },
+  "willett family estate": { msrp: 80, secondary: "$200–$400", secondaryLow: 200 },
+  "michter's 10": { msrp: 130, secondary: "$250–$350", secondaryLow: 250 },
+  "michter's 20": { msrp: 700, secondary: "$3,000–$5,000", secondaryLow: 3000 },
+  "michter's toasted barrel": { msrp: 85, secondary: "$200–$300", secondaryLow: 200 },
+  "maker's mark wood finishing": { msrp: 60, secondary: "$80–$120", secondaryLow: 80 },
+  "maker's mark fae-02": { msrp: 60, secondary: "$90–$130", secondaryLow: 90 },
+  "woodford reserve batch proof": { msrp: 130, secondary: "$200–$300", secondaryLow: 200 },
+  "henry mckenna 10": { msrp: 35, secondary: "$60–$80", secondaryLow: 60 },
+  "russell's reserve 13": { msrp: 70, secondary: "$140–$200", secondaryLow: 140 },
+  "wild turkey master's keep": { msrp: 175, secondary: "$300–$500", secondaryLow: 300 },
+};
+
+function lookupPricing(displayName: string, apiRetailPrice?: number): { msrp?: number; secondary?: string; multiplier?: number } {
+  const normalized = displayName.toLowerCase().trim();
+
+  // Try exact match first, then partial
+  let match: BottlePricing | undefined;
+  if (BOTTLE_PRICING[normalized]) {
+    match = BOTTLE_PRICING[normalized];
+  } else {
+    for (const [key, value] of Object.entries(BOTTLE_PRICING)) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        match = value;
+        break;
+      }
+    }
+  }
+
+  const msrp = match?.msrp || (apiRetailPrice && apiRetailPrice > 0 ? apiRetailPrice : undefined);
+  const secondary = match?.secondary;
+  let multiplier: number | undefined;
+
+  if (match?.secondaryLow && msrp && msrp > 0) {
+    const mult = Math.round(match.secondaryLow / msrp);
+    if (mult >= 2) multiplier = mult;
+  }
+
+  return { msrp, secondary, multiplier };
+}
+
 interface DropsResponse {
   drops: DropEvent[];
   total: number;
@@ -322,12 +405,22 @@ interface FeedRowProps {
   index: number;
 }
 
+// Multiplier badge colors per tier
+const MULTIPLIER_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  unicorn: { bg: "rgba(196,148,58,0.2)", color: "#C4943A", border: "rgba(196,148,58,0.4)" },
+  allocated: { bg: "rgba(184,115,51,0.2)", color: "#B87333", border: "rgba(184,115,51,0.4)" },
+  limited: { bg: "rgba(138,138,138,0.15)", color: "#8A8A8A", border: "rgba(138,138,138,0.3)" },
+};
+
 function FeedRow({ drop, isNew, index }: FeedRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [glowing, setGlowing] = useState(isNew);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
   const description = getEventDescription(drop);
+  const pricing = lookupPricing(drop.displayName, drop.retail_price);
+  const hasPricing = pricing.msrp !== undefined;
+  const multColors = MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
 
   // Glow timer for newest drop
   useEffect(() => {
@@ -404,30 +497,141 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
           >
             {drop.displayName}
           </div>
-          <div
-            className="truncate"
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              color: "rgba(245,237,214,0.5)",
-              marginTop: "2px",
-              lineHeight: 1.3,
-            }}
-          >
-            {description}
+          <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
+            <span
+              className="truncate"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                color: "rgba(245,237,214,0.5)",
+                lineHeight: 1.3,
+              }}
+            >
+              {description}
+            </span>
+            {/* Mobile pricing inline — visible only on small screens */}
+            {hasPricing && (
+              <span
+                className="flex md:hidden shrink-0"
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "10px",
+                  color: "rgba(245,237,214,0.4)",
+                }}
+              >
+                ${pricing.msrp}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Right: timestamp */}
+        {/* Right: pricing + timestamp — desktop */}
         <div
-          className="flex flex-col items-end justify-center shrink-0"
-          style={{ width: "90px" }}
+          className="hidden md:flex flex-col items-end justify-center shrink-0"
+          style={{ marginLeft: "8px", minWidth: "130px" }}
+        >
+          {hasPricing ? (
+            <>
+              {/* MSRP — always visible */}
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "11px",
+                  color: "rgba(245,237,214,0.45)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                MSRP ${pricing.msrp}
+              </span>
+              {/* Secondary price — blurred for free users */}
+              {pricing.secondary && (
+                <div className="flex items-center gap-1.5" style={{ marginTop: "2px" }}>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: "var(--color-accent-amber)",
+                      whiteSpace: "nowrap",
+                      filter: "blur(4px)",
+                      userSelect: "none",
+                    }}
+                  >
+                    {pricing.secondary}
+                  </span>
+                  {/* Lock icon */}
+                  <span
+                    title="Unlock with Standard Proof"
+                    style={{
+                      fontSize: "10px",
+                      color: "rgba(245,237,214,0.3)",
+                      cursor: "help",
+                    }}
+                  >
+                    🔒
+                  </span>
+                  {/* Multiplier badge — blurred */}
+                  {pricing.multiplier && (
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        color: multColors.color,
+                        background: multColors.bg,
+                        border: `1px solid ${multColors.border}`,
+                        borderRadius: "8px",
+                        padding: "1px 6px",
+                        whiteSpace: "nowrap",
+                        filter: "blur(3px)",
+                        userSelect: "none",
+                      }}
+                    >
+                      {pricing.multiplier}x
+                    </span>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            /* No pricing — just timestamp */
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "11px",
+                color: "rgba(245,237,214,0.35)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatRelativeTime(drop.timestamp)}
+            </span>
+          )}
+          {/* Timestamp below pricing */}
+          {hasPricing && (
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "10px",
+                color: "rgba(245,237,214,0.25)",
+                whiteSpace: "nowrap",
+                marginTop: "3px",
+              }}
+            >
+              {formatRelativeTime(drop.timestamp)}
+            </span>
+          )}
+        </div>
+
+        {/* Mobile timestamp — when no pricing inline */}
+        <div
+          className="flex md:hidden flex-col items-end justify-center shrink-0"
+          style={{ width: "50px" }}
         >
           <span
             style={{
               fontFamily: "var(--font-jetbrains)",
-              fontSize: "11px",
-              color: "rgba(245,237,214,0.35)",
+              fontSize: "10px",
+              color: "rgba(245,237,214,0.3)",
               whiteSpace: "nowrap",
             }}
           >
@@ -461,6 +665,41 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
                     <span>{detail.value}</span>
                   </div>
                 ))}
+                {/* Secondary market info in expanded panel */}
+                {pricing.secondary && (
+                  <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>Secondary:</span>
+                    <span
+                      style={{
+                        filter: "blur(4px)",
+                        userSelect: "none",
+                        color: "var(--color-accent-amber)",
+                      }}
+                    >
+                      {pricing.secondary}
+                    </span>
+                    <span
+                      style={{
+                        marginLeft: "6px",
+                        fontSize: "10px",
+                        color: "rgba(245,237,214,0.3)",
+                        cursor: "help",
+                      }}
+                      title="Average resale price based on recent auction and market data"
+                    >
+                      ℹ
+                    </span>
+                    <span
+                      style={{
+                        marginLeft: "4px",
+                        fontSize: "10px",
+                        color: "rgba(245,237,214,0.3)",
+                      }}
+                    >
+                      🔒
+                    </span>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
