@@ -80,6 +80,11 @@ body::after {
   50% { transform: translateY(8px); }
 }
 
+@keyframes barPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(196,148,58,0.4); }
+  50% { box-shadow: 0 0 14px rgba(196,148,58,0.8); }
+}
+
 /* Drop feed scrollbar */
 .drop-feed-scroll::-webkit-scrollbar { width: 4px; }
 .drop-feed-scroll::-webkit-scrollbar-track { background: transparent; }

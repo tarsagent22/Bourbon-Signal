@@ -56,16 +56,7 @@ export default function PricingSection() {
         >
           Choose Your Proof
         </h2>
-        <p
-          className="text-center mb-12"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "16px",
-            color: "rgba(245,237,214,0.5)",
-          }}
-        >
-          Two ways to hunt. One clear choice.
-        </p>
+        <div className="mb-12" />
 
         {/* Cards */}
         <motion.div
@@ -163,15 +154,14 @@ export default function PricingSection() {
                     }}
                   >
                     <span
-                      className="shrink-0 flex items-center justify-center"
+                      className="shrink-0"
                       style={{
-                        width: "20px",
-                        color: "rgba(245,237,214,0.4)",
-                        fontSize: "20px",
-                        lineHeight: 1,
+                        color: "#5A5550",
+                        fontSize: "16px",
+                        width: "16px",
                       }}
                     >
-                      ·
+                      ✓
                     </span>
                     <span
                       style={{
@@ -193,14 +183,14 @@ export default function PricingSection() {
                     width: "100%",
                     cursor: "pointer",
                     background: "transparent",
-                    border: "1px solid rgba(196,148,58,0.5)",
-                    color: "var(--color-amber-rich)",
+                    border: "1px solid rgba(196,148,58,0.35)",
+                    color: "rgba(196,148,58,0.8)",
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "15px",
-                    fontWeight: 600,
-                    padding: "14px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    padding: "13px",
                     borderRadius: "10px",
-                    transition: "border-color 200ms, background 200ms",
+                    transition: "border-color 200ms, background 200ms, color 200ms",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "var(--color-amber-rich)";
@@ -221,13 +211,13 @@ export default function PricingSection() {
           <motion.div
             variants={fadeUpVariant}
             className="order-1 md:order-2"
-            style={{ flex: 1, display: "flex", position: "relative" as const, paddingTop: "20px" }}
+            style={{ flex: 1, display: "flex", position: "relative" as const, paddingTop: "28px" }}
           >
             {/* Founding Member badge — centered, overlapping top edge */}
             <div
               style={{
                 position: "absolute",
-                top: 0,
+                top: "-14px",
                 left: "50%",
                 transform: "translateX(-50%)",
                 backgroundColor: "var(--color-amber-rich)",
@@ -325,7 +315,7 @@ export default function PricingSection() {
                   color: "rgba(196,148,58,0.8)",
                 }}
               >
-                Exactly 100 spots. When they are gone, they are gone.
+                Exactly 100 spots. When they're gone, they're gone.
               </p>
 
               {/* Scarcity progress bar */}
@@ -336,7 +326,14 @@ export default function PricingSection() {
                 </div>
                 <div style={{ width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
                   <motion.div
-                    style={{ height: "4px", backgroundColor: "var(--color-amber-rich)", borderRadius: "2px", originX: 0 }}
+                    style={{
+                      height: "4px",
+                      backgroundColor: "var(--color-amber-rich)",
+                      borderRadius: "2px",
+                      originX: 0,
+                      boxShadow: "0 0 8px rgba(196,148,58,0.6)",
+                      animation: "barPulse 2s ease infinite",
+                    }}
                     initial={{ width: "0%" }}
                     whileInView={{ width: "100%" }}
                     viewport={{ once: true }}
@@ -421,22 +418,22 @@ export default function PricingSection() {
                 ))}
               </div>
 
-              {/* Social proof */}
-              <p
-                className="text-center"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  fontStyle: "italic",
-                  color: "rgba(245,237,214,0.4)",
-                  marginTop: "16px",
-                }}
-              >
-                Become the first founding member.
-              </p>
-
               {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                {/* Social proof — sits right above button */}
+                <p
+                  className="text-center"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    fontStyle: "italic",
+                    color: "rgba(245,237,214,0.55)",
+                    marginBottom: "14px",
+                  }}
+                >
+                  Become the first founding member.
+                </p>
                 <button
                   style={{
                     width: "100%",
