@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { staggerContainer, fadeUpVariant, fadeRightVariant } from "@/lib/animations";
+import { useRef } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
 
 interface Step {
@@ -37,154 +37,187 @@ const steps: Step[] = [
   },
 ];
 
-/*
- * Vendome-style copper column still — tall, prominent, vertical.
- * ViewBox: 280 x 560. Column body 70px wide (x=130–200).
- * Main body stroke: 2px. Detail strokes: 1–1.5px.
- * 3 circular sight glasses (12-16px dia) spaced on the column body.
- * 4 sections, connector lines aligned to step titles.
- *
- * Section zones:
- *   S1 (01 The Mash):         y  40–160, title-line y=70
- *   S2 (02 The Distillation): y 160–280, title-line y=190
- *   S3 (03 The Barrel):       y 280–400, title-line y=310
- *   S4 (04 The Pour):         y 400–520, title-line y=430
- */
-function ColumnStillIllustration() {
-  const S = "#C4943A";
-  const SL = "rgba(196,148,58,0.15)"; // lighter amber fill for sight glasses
+/* Sight glass marker — circular porthole with step number */
+function SightGlass({ number, index }: { number: string; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-20% 0px -20% 0px" });
 
   return (
-    <svg
-      viewBox="0 0 280 560"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid meet"
-      style={{ width: "100%", height: "100%" }}
+    <motion.div
+      ref={ref}
+      className="shrink-0 flex items-center justify-center"
+      style={{
+        width: "44px",
+        height: "44px",
+        borderRadius: "50%",
+        border: "2.5px solid #C4943A",
+        background: isInView
+          ? "radial-gradient(circle, rgba(196,148,58,0.2) 0%, rgba(196,148,58,0.08) 70%)"
+          : "var(--color-bg-primary)",
+        boxShadow: isInView
+          ? "0 0 20px rgba(196,148,58,0.25), inset 0 0 12px rgba(196,148,58,0.15)"
+          : "inset 0 2px 4px rgba(0,0,0,0.3)",
+        fontFamily: "var(--font-jetbrains)",
+        fontSize: "13px",
+        fontWeight: 700,
+        color: isInView ? "#C4943A" : "rgba(196,148,58,0.4)",
+        position: "relative",
+        zIndex: 2,
+        transition: "all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+        transitionDelay: `${index * 0.05}s`,
+      }}
     >
-      <defs>
-        <filter id="copperGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
+      {/* Inner ring — porthole glass effect */}
+      <div
+        style={{
+          position: "absolute",
+          inset: "4px",
+          borderRadius: "50%",
+          border: "1px solid rgba(196,148,58,0.2)",
+          pointerEvents: "none",
+        }}
+      />
+      {number}
+    </motion.div>
+  );
+}
 
-      {/* ===== DASHED CONNECTOR LINES — aligned to step titles ===== */}
-      <line x1="0" y1="70" x2="127" y2="70" stroke={S} strokeWidth="1.2" strokeDasharray="6 5" opacity="0.35" />
-      <circle cx="130" cy="70" r="3" fill={S} opacity="0.3" />
-      <line x1="0" y1="190" x2="127" y2="190" stroke={S} strokeWidth="1.2" strokeDasharray="6 5" opacity="0.35" />
-      <circle cx="130" cy="190" r="3" fill={S} opacity="0.3" />
-      <line x1="0" y1="310" x2="127" y2="310" stroke={S} strokeWidth="1.2" strokeDasharray="6 5" opacity="0.35" />
-      <circle cx="130" cy="310" r="3" fill={S} opacity="0.3" />
-      <line x1="0" y1="430" x2="127" y2="430" stroke={S} strokeWidth="1.2" strokeDasharray="6 5" opacity="0.35" />
-      <circle cx="130" cy="430" r="3" fill={S} opacity="0.3" />
+/* Riveted band crossing the pipe */
+function RivetedBand() {
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{
+        width: "44px",
+        height: "12px",
+        position: "relative",
+        zIndex: 3,
+      }}
+    >
+      {/* Horizontal band */}
+      <div
+        style={{
+          width: "28px",
+          height: "4px",
+          borderRadius: "1px",
+          border: "1px solid rgba(196,148,58,0.3)",
+          background: "rgba(196,148,58,0.08)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          padding: "0 3px",
+        }}
+      >
+        {/* Rivet dots */}
+        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
+        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
+        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
+      </div>
+    </div>
+  );
+}
 
-      {/* ===== MAIN COLUMN BODY — 2px stroke for presence ===== */}
-      <line x1="130" y1="525" x2="130" y2="38" stroke={S} strokeWidth="2" opacity="0.6" />
-      <line x1="200" y1="525" x2="200" y2="38" stroke={S} strokeWidth="2" opacity="0.6" />
+/* Step text content with slide-in animation */
+function StepContent({ step, index }: { step: Step; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-15% 0px -15% 0px" });
 
-      {/* ===== TOP — flat domed cap + straight vapor pipe ===== */}
-      <path d="M130 38 Q130 26 165 22 Q200 26 200 38" stroke={S} strokeWidth="2" opacity="0.6" fill="none" />
-      <line x1="126" y1="38" x2="204" y2="38" stroke={S} strokeWidth="1.5" opacity="0.45" />
-      {/* Straight vapor pipe */}
-      <line x1="200" y1="30" x2="248" y2="30" stroke={S} strokeWidth="1.5" opacity="0.45" />
-      <line x1="200" y1="26" x2="248" y2="26" stroke={S} strokeWidth="1" opacity="0.3" />
-      <line x1="200" y1="34" x2="248" y2="34" stroke={S} strokeWidth="1" opacity="0.3" />
-      <line x1="248" y1="24" x2="248" y2="36" stroke={S} strokeWidth="1.2" opacity="0.4" />
-      <path d="M250 28 L258 24" stroke={S} strokeWidth="0.8" opacity="0.2" />
-      <path d="M250 32 L256 36" stroke={S} strokeWidth="0.6" opacity="0.15" />
+  return (
+    <motion.div
+      ref={ref}
+      style={{
+        flex: 1,
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? "translateX(0)" : "translateX(20px)",
+        transition: `opacity 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s, transform 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s`,
+      }}
+    >
+      <h3
+        style={{
+          fontFamily: "var(--font-playfair)",
+          fontSize: "20px",
+          fontWeight: 600,
+          color: "var(--color-text-primary)",
+          marginBottom: "8px",
+        }}
+      >
+        {step.title}
+      </h3>
+      <p
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "14px",
+          color: "var(--color-text-secondary)",
+          lineHeight: 1.6,
+        }}
+      >
+        {step.description}
+      </p>
+    </motion.div>
+  );
+}
 
-      {/* ===== BASE / PLATFORM ===== */}
-      <path d="M130 525 Q130 538 165 544 Q200 538 200 525" stroke={S} strokeWidth="2" opacity="0.55" fill="none" />
-      <rect x="115" y="544" width="100" height="5" rx="1.5" stroke={S} strokeWidth="1.2" opacity="0.45" fill="none" />
-      <line x1="125" y1="549" x2="125" y2="556" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1="205" y1="549" x2="205" y2="556" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1="119" y1="556" x2="131" y2="556" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1="199" y1="556" x2="211" y2="556" stroke={S} strokeWidth="1.2" opacity="0.35" />
+/* Still cap — small dome at top of pipe */
+function StillCap() {
+  return (
+    <div
+      className="flex justify-center"
+      style={{ width: "44px", height: "28px", position: "relative", zIndex: 3 }}
+    >
+      <svg width="44" height="28" viewBox="0 0 44 28" fill="none">
+        {/* Dome */}
+        <path
+          d="M16 28 L16 16 Q16 4 22 2 Q28 4 28 16 L28 28"
+          stroke="#C4943A"
+          strokeWidth="2"
+          opacity="0.55"
+          fill="none"
+        />
+        {/* Cap ring */}
+        <line x1="13" y1="28" x2="31" y2="28" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
+        {/* Small vent pipe */}
+        <line x1="28" y1="10" x2="38" y2="10" stroke="#C4943A" strokeWidth="1.2" opacity="0.35" />
+        <line x1="38" y1="7" x2="38" y2="13" stroke="#C4943A" strokeWidth="1" opacity="0.3" />
+      </svg>
+    </div>
+  );
+}
 
-      {/* ===== RIVETED BANDS ===== */}
-      {/* y=160 */}
-      <rect x="126" y="156" width="78" height="8" rx="2" stroke={S} strokeWidth="1.2" opacity="0.45" fill="none" />
-      <circle cx="140" cy="160" r="2" fill={S} opacity="0.35" />
-      <circle cx="155" cy="160" r="2" fill={S} opacity="0.35" />
-      <circle cx="170" cy="160" r="2" fill={S} opacity="0.35" />
-      <circle cx="185" cy="160" r="2" fill={S} opacity="0.35" />
-      <circle cx="200" cy="160" r="2" fill={S} opacity="0.3" />
-      {/* y=280 */}
-      <rect x="126" y="276" width="78" height="8" rx="2" stroke={S} strokeWidth="1.2" opacity="0.45" fill="none" />
-      <circle cx="140" cy="280" r="2" fill={S} opacity="0.35" />
-      <circle cx="155" cy="280" r="2" fill={S} opacity="0.35" />
-      <circle cx="170" cy="280" r="2" fill={S} opacity="0.35" />
-      <circle cx="185" cy="280" r="2" fill={S} opacity="0.35" />
-      <circle cx="200" cy="280" r="2" fill={S} opacity="0.3" />
-      {/* y=400 */}
-      <rect x="126" y="396" width="78" height="8" rx="2" stroke={S} strokeWidth="1.2" opacity="0.45" fill="none" />
-      <circle cx="140" cy="400" r="2" fill={S} opacity="0.35" />
-      <circle cx="155" cy="400" r="2" fill={S} opacity="0.35" />
-      <circle cx="170" cy="400" r="2" fill={S} opacity="0.35" />
-      <circle cx="185" cy="400" r="2" fill={S} opacity="0.35" />
-      <circle cx="200" cy="400" r="2" fill={S} opacity="0.3" />
-
-      {/* ===== CIRCULAR SIGHT GLASSES on column body ===== */}
-      {/* Sight glass 1 — Section 1, y=115 */}
-      <circle cx="165" cy="115" r="8" stroke={S} strokeWidth="1.2" opacity="0.4" fill={SL} />
-      <circle cx="165" cy="115" r="4" stroke={S} strokeWidth="0.6" opacity="0.2" fill="none" />
-      {/* Sight glass 2 — Section 2, y=240 */}
-      <circle cx="165" cy="240" r="7" stroke={S} strokeWidth="1.2" opacity="0.4" fill={SL} />
-      <circle cx="165" cy="240" r="3.5" stroke={S} strokeWidth="0.6" opacity="0.2" fill="none" />
-      {/* Sight glass 3 — Section 4, y=475 */}
-      <circle cx="165" cy="475" r="8" stroke={S} strokeWidth="1.2" opacity="0.4" fill={SL} />
-      <circle cx="165" cy="475" r="4" stroke={S} strokeWidth="0.6" opacity="0.2" fill="none" />
-
-      {/* ===== SECTION 1 DETAILS (The Mash) y=40–160 ===== */}
-      <line x1="130" y1="100" x2="108" y2="100" stroke={S} strokeWidth="1.2" opacity="0.4" />
-      <circle cx="100" cy="100" r="8" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-      <line x1="100" y1="95" x2="100" y2="100" stroke={S} strokeWidth="0.8" opacity="0.25" />
-      {/* Rect sight glass on right */}
-      <rect x="202" y="60" width="18" height="40" rx="4" stroke={S} strokeWidth="1.2" opacity="0.35" fill="none" />
-      <line x1="211" y1="64" x2="211" y2="96" stroke={S} strokeWidth="0.8" opacity="0.2" />
-      <line x1="134" y1="130" x2="196" y2="130" stroke={S} strokeWidth="0.6" opacity="0.15" strokeDasharray="3 4" />
-
-      {/* ===== SECTION 2 DETAILS (The Distillation) y=160–280 ===== */}
-      <line x1="130" y1="220" x2="110" y2="220" stroke={S} strokeWidth="1.2" opacity="0.4" />
-      <circle cx="104" cy="220" r="6" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-      <line x1="98" y1="220" x2="110" y2="220" stroke={S} strokeWidth="0.8" opacity="0.25" />
-      <line x1="200" y1="200" x2="222" y2="200" stroke={S} strokeWidth="1.2" opacity="0.4" />
-      <circle cx="230" cy="200" r="9" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-      <line x1="230" y1="194" x2="230" y2="200" stroke={S} strokeWidth="0.8" opacity="0.25" />
-      <line x1="227" y1="197" x2="230" y2="194" stroke={S} strokeWidth="0.6" opacity="0.2" />
-      <line x1="134" y1="255" x2="196" y2="255" stroke={S} strokeWidth="0.6" opacity="0.15" strokeDasharray="3 4" />
-
-      {/* ===== SECTION 3 DETAILS (The Barrel) y=280–400 ===== */}
-      <rect x="104" y="320" width="24" height="36" rx="5" stroke={S} strokeWidth="1.2" opacity="0.35" fill="none" />
-      <line x1="116" y1="324" x2="116" y2="352" stroke={S} strokeWidth="0.8" opacity="0.2" />
-      <line x1="128" y1="338" x2="130" y2="338" stroke={S} strokeWidth="1" opacity="0.3" />
-      <line x1="200" y1="350" x2="218" y2="350" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1="218" y1="344" x2="218" y2="356" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1="134" y1="375" x2="196" y2="375" stroke={S} strokeWidth="0.6" opacity="0.15" strokeDasharray="3 4" />
-
-      {/* ===== SECTION 4 DETAILS (The Pour) y=400–520 ===== */}
-      <line x1="130" y1="450" x2="112" y2="450" stroke={S} strokeWidth="1.2" opacity="0.4" />
-      <circle cx="105" cy="450" r="7" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-      <line x1="200" y1="470" x2="230" y2="470" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <line x1="230" y1="470" x2="230" y2="500" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <path d="M230 500 L225 500 L225 510 M230 500 L235 500 L235 510" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
-      <line x1="230" y1="512" x2="230" y2="518" stroke={S} strokeWidth="0.8" opacity="0.2" strokeDasharray="2 3" />
-      <rect x="202" y="430" width="16" height="28" rx="4" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
-      <line x1="210" y1="434" x2="210" y2="454" stroke={S} strokeWidth="0.7" opacity="0.18" />
-      <line x1="134" y1="495" x2="196" y2="495" stroke={S} strokeWidth="0.6" opacity="0.15" strokeDasharray="3 4" />
-
-      {/* ===== SUBTLE GLOW on column edges ===== */}
-      <line x1="130" y1="525" x2="130" y2="38" stroke={S} strokeWidth="5" opacity="0.05" filter="url(#copperGlow)" />
-      <line x1="200" y1="525" x2="200" y2="38" stroke={S} strokeWidth="5" opacity="0.05" filter="url(#copperGlow)" />
-    </svg>
+/* Spout / collection vessel at bottom of pipe */
+function StillSpout() {
+  return (
+    <div
+      className="flex justify-center"
+      style={{ width: "44px", height: "32px", position: "relative", zIndex: 3 }}
+    >
+      <svg width="44" height="32" viewBox="0 0 44 32" fill="none">
+        {/* Pipe narrowing to spout */}
+        <line x1="18" y1="0" x2="18" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
+        <line x1="26" y1="0" x2="26" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
+        {/* Valve */}
+        <line x1="14" y1="12" x2="30" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
+        {/* Drip lines */}
+        <line x1="22" y1="14" x2="22" y2="20" stroke="#C4943A" strokeWidth="1" opacity="0.3" strokeDasharray="2 2" />
+        <line x1="22" y1="23" x2="22" y2="27" stroke="#C4943A" strokeWidth="1" opacity="0.2" strokeDasharray="1 3" />
+        {/* Collection drop */}
+        <circle cx="22" cy="30" r="1.5" fill="#C4943A" opacity="0.25" />
+      </svg>
+    </div>
   );
 }
 
 export default function HowWeHunt() {
+  const pipeRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: pipeRef,
+    offset: ["start 0.8", "end 0.3"],
+  });
+
+  // Map scroll progress to pipe fill (0 to 1)
+  const fillScaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  // Glow intensity tied to progress
+  const fillOpacity = useTransform(scrollYProgress, [0, 0.2, 1], [0, 0.6, 0.8]);
+
   return (
     <section
       id="how-we-hunt"
@@ -203,7 +236,7 @@ export default function HowWeHunt() {
           paddingRight: "clamp(24px, 5vw, 56px)",
         }}
       >
-        {/* Section header — centered over full width */}
+        {/* Section header */}
         <ScrollReveal>
           <p
             className="text-center"
@@ -244,166 +277,92 @@ export default function HowWeHunt() {
           </p>
         </ScrollReveal>
 
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+        {/* Steps with integrated pipe */}
+        <div
+          ref={pipeRef}
+          className="mx-auto"
+          style={{
+            maxWidth: "580px",
+            position: "relative",
+          }}
         >
-          {/* ===== DESKTOP: CSS grid 55%/45%, centered ===== */}
+          {/* ===== COPPER PIPE — runs full height of steps area ===== */}
           <div
-            className="hidden lg:grid mx-auto"
             style={{
-              gridTemplateColumns: "55% 45%",
-              maxWidth: "1000px",
-              minHeight: "500px",
+              position: "absolute",
+              left: "21px",
+              top: "28px",
+              bottom: "32px",
+              width: "4px",
+              zIndex: 1,
             }}
           >
-            {/* Left — Steps */}
-            <motion.div
-              variants={fadeUpVariant}
-              className="flex flex-col"
-              style={{ justifyContent: "stretch" }}
-            >
-              {steps.map((step, i) => (
-                <motion.div
-                  key={step.number}
-                  variants={fadeUpVariant}
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "flex-start",
-                    paddingTop: "20px",
-                    paddingRight: "24px",
-                    borderBottom:
-                      i < steps.length - 1
-                        ? "1px solid rgba(255,255,255,0.06)"
-                        : "none",
-                  }}
-                >
-                  <span
-                    className="shrink-0"
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "var(--color-accent-amber)",
-                      width: "32px",
-                      paddingTop: "4px",
-                    }}
-                  >
-                    {step.number}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "20px",
-                        fontWeight: 600,
-                        color: "var(--color-text-primary)",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {step.title}
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "14px",
-                        color: "var(--color-text-secondary)",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {step.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Right — Column still */}
-            <motion.div
-              variants={fadeRightVariant}
-              className="flex items-stretch justify-center"
-            >
-              <div style={{ width: "100%", maxWidth: "260px" }}>
-                <ColumnStillIllustration />
-              </div>
-            </motion.div>
-          </div>
-
-          {/* ===== MOBILE: timeline, NO still ===== */}
-          <div
-            className="flex lg:hidden"
-            style={{ position: "relative" }}
-          >
+            {/* Outer pipe — darker edge */}
             <div
               style={{
                 position: "absolute",
-                left: "13px",
-                top: "32px",
-                bottom: "32px",
-                width: "1px",
-                background: "linear-gradient(to bottom, var(--color-accent-amber), rgba(196,148,58,0.15))",
+                inset: 0,
+                borderRadius: "2px",
+                background: "rgba(196,148,58,0.15)",
+                boxShadow: "0 0 0 1px rgba(196,148,58,0.1)",
               }}
             />
-            <div className="flex flex-col w-full">
-              {steps.map((step, i) => (
-                <motion.div
-                  key={step.number}
-                  variants={fadeUpVariant}
-                  className="flex items-start"
-                  style={{
-                    paddingTop: i === 0 ? "0px" : "60px",
-                  }}
-                >
-                  <div
-                    className="shrink-0 flex items-center justify-center"
-                    style={{
-                      width: "28px",
-                      height: "28px",
-                      borderRadius: "50%",
-                      border: "1px solid rgba(196,148,58,0.4)",
-                      background: "var(--color-bg-primary)",
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      color: "var(--color-accent-amber)",
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    {step.number}
-                  </div>
-                  <div style={{ marginLeft: "16px", flex: 1 }}>
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "19px",
-                        fontWeight: 600,
-                        color: "var(--color-text-primary)",
-                        marginBottom: "6px",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {step.title}
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "14px",
-                        color: "var(--color-text-secondary)",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {step.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {/* Inner pipe — lighter center line for 3D tube effect */}
+            <div
+              style={{
+                position: "absolute",
+                left: "1px",
+                right: "1px",
+                top: 0,
+                bottom: 0,
+                borderRadius: "1px",
+                background: "rgba(196,148,58,0.25)",
+              }}
+            />
+            {/* Scroll-driven fill overlay */}
+            <motion.div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "2px",
+                background: "linear-gradient(to bottom, #C4943A, #D4A44A)",
+                transformOrigin: "top",
+                scaleY: fillScaleY,
+                opacity: fillOpacity,
+                boxShadow: "0 0 8px rgba(196,148,58,0.4), 0 0 20px rgba(196,148,58,0.15)",
+              }}
+            />
           </div>
-        </motion.div>
+
+          {/* Still cap at top */}
+          <StillCap />
+
+          {/* Steps */}
+          {steps.map((step, i) => (
+            <div key={step.number}>
+              {/* Step row */}
+              <div
+                className="flex items-center"
+                style={{
+                  gap: "32px",
+                  padding: "36px 0",
+                }}
+              >
+                {/* Sight glass on pipe */}
+                <SightGlass number={step.number} index={i} />
+
+                {/* Step text */}
+                <StepContent step={step} index={i} />
+              </div>
+
+              {/* Riveted band between steps (not after last) */}
+              {i < steps.length - 1 && <RivetedBand />}
+            </div>
+          ))}
+
+          {/* Still spout at bottom */}
+          <StillSpout />
+        </div>
       </div>
     </section>
   );
