@@ -13,139 +13,45 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    description:
-      "We monitor state liquor control boards, warehouse shipments, and distributor networks daily",
+    description: "We monitor state liquor control boards, warehouse shipments, and distributor networks daily",
     flavor: "Proprietary sourcing across every major channel",
   },
   {
     number: "02",
-    description:
-      "Our system filters thousands of data points to surface only confirmed allocations and verified drops",
+    description: "Our system filters thousands of data points to surface only confirmed allocations and verified drops",
     flavor: "A special formulation — tuned to catch what others miss",
   },
   {
     number: "03",
-    description:
-      "Every drop is tagged by bottle, tier, store location, and county before it reaches you",
+    description: "Every drop is tagged by bottle, tier, store location, and county before it reaches you",
     flavor: "Organized, searchable, and mapped to your watchlist",
   },
   {
     number: "04",
-    description:
-      "Instant alerts hit your phone the moment a bottle you're watching lands on a shelf",
+    description: "Instant alerts hit your phone the moment a bottle you're watching lands on a shelf",
     flavor: "Seconds matter — you'll know before the crowd",
   },
 ];
 
-// Column geometry constants — single source of truth
-const COL_X = 20;        // left edge of column rect
-const COL_W = 54;        // width of column body (fix #6: 50-56px)
-const COL_CX = COL_X + COL_W / 2; // center X = 47
-const VIEWBOX_W = 90;    // svg viewBox width
+// ── Column geometry ──
+const COL_X  = 20;
+const COL_W  = 50;
+const COL_CX = COL_X + COL_W / 2; // = 45
+const VB_W   = 86;
 
-/* ── Sight glass — lights up amber on scroll ── */
-function SightGlass({ number, index }: { number: string; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-18% 0px -18% 0px" });
+// ── Pipe geometry ──
+// Each pipe segment is drawn as two parallel lines + fill rect.
+// PH = pipe half-width. Pipe walls sit at centerline ± PH.
+// Elbows are filled squares at corners — guaranteed connected, no arc math.
+const PH = 4; // pipe half-width → pipe OD = 8px
 
-  return (
-    <div
-      ref={ref}
-      className="flex items-center justify-center"
-      style={{
-        width: "46px",
-        height: "46px",
-        borderRadius: "50%",
-        border: `2px solid ${isInView ? "#C4943A" : "#3A3530"}`,
-        background: "var(--color-bg-primary)",
-        position: "relative",
-        zIndex: 2,
-        boxShadow: isInView
-          ? "0 0 20px rgba(196,148,58,0.25), 0 0 4px rgba(196,148,58,0.1)"
-          : "none",
-        transition: "all 0.5s ease",
-      }}
-    >
-      {/* Inner ring with glass gradient */}
-      <div
-        style={{
-          position: "absolute",
-          inset: "3px",
-          borderRadius: "50%",
-          border: `1px solid ${isInView ? "rgba(196,148,58,0.45)" : "rgba(58,53,48,0.6)"}`,
-          background: isInView
-            ? "radial-gradient(circle, rgba(13,11,7,0.65) 25%, rgba(196,148,58,0.15) 100%)"
-            : "radial-gradient(circle, rgba(13,11,7,0.85) 25%, rgba(58,53,48,0.1) 100%)",
-          boxShadow: "inset 0 1px 4px rgba(0,0,0,0.4)",
-          transition: "all 0.5s ease",
-        }}
-      />
-      {/* Fix #5: page font, 12px/600, no space between digits */}
-      <span
-        style={{
-          position: "relative",
-          zIndex: 1,
-          fontFamily: "var(--font-plus-jakarta)",
-          fontSize: "12px",
-          fontWeight: 600,
-          color: isInView ? "#F5EDD6" : "rgba(245,237,214,0.25)",
-          transition: "color 0.5s ease",
-        }}
-      >
-        {number}
-      </span>
-    </div>
-  );
-}
+const S = "#C4943A"; // amber color
 
-/* ── Step text — slides in from right ── */
-function StepText({ step, index }: { step: StepData; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-12% 0px -12% 0px" });
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: isInView ? 1 : 0,
-        transform: isInView ? "translateX(0)" : "translateX(24px)",
-        transition: `all 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s`,
-      }}
-    >
-      {/* Fix #3: NO step-num div — number is already in the sight glass */}
-      <p
-        style={{
-          fontFamily: "var(--font-plus-jakarta)",
-          fontSize: "17px",
-          fontWeight: 500,
-          color: "var(--color-text-primary)",
-          lineHeight: 1.55,
-          marginBottom: "14px",
-        }}
-      >
-        {step.description}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-plus-jakarta)",
-          fontSize: "15px",
-          fontStyle: "italic",
-          color: "rgba(196,148,58,0.45)",
-          lineHeight: 1.5,
-        }}
-      >
-        {step.flavor}
-      </p>
-    </div>
-  );
-}
-
-/* ── SVG defs — shared gradient, defined once ── */
+// ── SVG gradient def ──
 function SvgDefs() {
   return (
     <svg width="0" height="0" style={{ position: "absolute" }}>
       <defs>
-        {/* Fix #6: cylindrical 3-stop copper gradient */}
         <linearGradient id="hwh-copper" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="rgba(196,148,58,0.08)" />
           <stop offset="50%"  stopColor="rgba(196,148,58,0.15)" />
@@ -156,507 +62,352 @@ function SvgDefs() {
   );
 }
 
-/* ── Still cap + lyne arm curving off to the right ── */
-// ── Pipe constants ──
-const PR = 5; // half pipe width — pipe walls are at centerline ± PR
-
-// ── Straight vertical pipe: cx=centerline X, y1/y2=extents ──
-function VPipe({ cx, y1, y2, s }: { cx: number; y1: number; y2: number; s: string }) {
-  return <>
-    <rect x={cx-PR} y={y1} width={PR*2} height={y2-y1} fill={s} fillOpacity="0.05" />
-    <line x1={cx-PR} y1={y1} x2={cx-PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.5" />
-    <line x1={cx+PR} y1={y1} x2={cx+PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.5" />
-  </>;
+// ── Straight vertical pipe segment ──
+// cx = centerline X, y1 = top, y2 = bottom
+function VPipe({ cx, y1, y2 }: { cx: number; y1: number; y2: number }) {
+  return (
+    <>
+      <rect x={cx - PH} y={y1} width={PH * 2} height={y2 - y1} fill={S} fillOpacity={0.07} />
+      <line x1={cx - PH} y1={y1} x2={cx - PH} y2={y2} stroke={S} strokeWidth="1.3" opacity="0.55" />
+      <line x1={cx + PH} y1={y1} x2={cx + PH} y2={y2} stroke={S} strokeWidth="1.3" opacity="0.55" />
+    </>
+  );
 }
 
-// ── Straight horizontal pipe: cy=centerline Y, x1/x2=extents ──
-function HPipe({ x1, x2, cy, s }: { x1: number; x2: number; cy: number; s: string }) {
-  const lx = Math.min(x1,x2); const rx = Math.max(x1,x2);
-  return <>
-    <rect x={lx} y={cy-PR} width={rx-lx} height={PR*2} fill={s} fillOpacity="0.05" />
-    <line x1={lx} y1={cy-PR} x2={rx} y2={cy-PR} stroke={s} strokeWidth="1.2" opacity="0.5" />
-    <line x1={lx} y1={cy+PR} x2={rx} y2={cy+PR} stroke={s} strokeWidth="1.2" opacity="0.5" />
-  </>;
+// ── Straight horizontal pipe segment ──
+// cy = centerline Y, x1 = left end, x2 = right end
+function HPipe({ x1, x2, cy }: { x1: number; x2: number; cy: number }) {
+  const lx = Math.min(x1, x2); const rx = Math.max(x1, x2);
+  return (
+    <>
+      <rect x={lx} y={cy - PH} width={rx - lx} height={PH * 2} fill={S} fillOpacity={0.07} />
+      <line x1={lx} y1={cy - PH} x2={rx} y2={cy - PH} stroke={S} strokeWidth="1.3" opacity="0.55" />
+      <line x1={lx} y1={cy + PH} x2={rx} y2={cy + PH} stroke={S} strokeWidth="1.3" opacity="0.55" />
+    </>
+  );
 }
 
-/*
-  ── 90° Elbow fitting ──
+// ── Square elbow fitting ──
+// cx, cy = centerline corner point
+// Fills a PH*2 × PH*2 square at the corner — connects any two perpendicular pipe ends
+function Elbow({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <rect
+      x={cx - PH} y={cy - PH}
+      width={PH * 2} height={PH * 2}
+      fill={S} fillOpacity={0.15}
+      stroke={S} strokeWidth="1.3" opacity="0.55"
+    />
+  );
+}
 
-  The elbow connects a vertical pipe to a horizontal pipe.
-  `corner` is the point where the two pipe CENTERLINES would intersect.
-  The elbow arc's center is offset from that corner by `ER` in the direction of the turn.
-
-  Turns (from pipe travel direction → new direction):
-    "up-to-right":   pipe going up, turns right  → arc center is (corner.x + ER, corner.y)
-    "down-to-right": pipe going down, turns right → arc center is (corner.x + ER, corner.y)
-    "down-to-left":  pipe going down, turns left  → arc center is (corner.x - ER, corner.y)
-    "up-to-left":    pipe going up, turns left    → arc center is (corner.x - ER, corner.y)
-
-  Each elbow draws TWO concentric arcs: outer (r=ER+PR) and inner (r=ER-PR).
-  The straight pipe segments must stop exactly at the elbow arc endpoints.
-*/
-const ER = 10; // elbow bend radius (centerline)
-
-function Elbow({ corner, turn, s }: {
-  corner: { x: number; y: number };
-  turn: "up-to-right" | "down-to-right" | "down-to-left" | "up-to-left";
-  s: string;
-}) {
-  const { x: cx, y: cy } = corner;
-  let outerD = ""; let innerD = "";
-
-  /*
-    Arc endpoints and sweep direction per turn:
-
-    "up-to-right":
-      Vertical pipe comes from below going up → centerline at x=cx, arrives at y=cy+ER... wait.
-      Actually: pipe center is at x=cx going upward. It stops at corner.y.
-      Arc center = (cx+ER, cy).
-      Outer arc (r=ER+PR): starts at (cx+ER-(ER+PR), cy) = (cx-PR, cy) [left of arc center]
-                            ends at   (cx+ER, cy-(ER+PR))              [above arc center]
-      Inner arc (r=ER-PR): starts at (cx+ER-(ER-PR), cy) = (cx+PR, cy)
-                            ends at   (cx+ER, cy-(ER-PR))
-      Sweep: counterclockwise (sweep=0)
-  */
-  switch(turn) {
-    case "up-to-right": {
-      // Vertical pipe going UP meets horizontal going RIGHT
-      // Arc center: (cx+ER, cy)
-      const acx = cx+ER;
-      outerD = `M ${acx-(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 1 ${acx} ${cy-(ER+PR)}`;
-      innerD = `M ${acx-(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 1 ${acx} ${cy-(ER-PR)}`;
-      break;
-    }
-    case "down-to-right": {
-      // Vertical pipe going DOWN meets horizontal going RIGHT
-      // Arc center: (cx+ER, cy)
-      const acx = cx+ER;
-      outerD = `M ${acx-(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 0 ${acx} ${cy+(ER+PR)}`;
-      innerD = `M ${acx-(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 0 ${acx} ${cy+(ER-PR)}`;
-      break;
-    }
-    case "down-to-left": {
-      // Vertical pipe going DOWN meets horizontal going LEFT
-      // Arc center: (cx-ER, cy)
-      const acx = cx-ER;
-      outerD = `M ${acx+(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 1 ${acx} ${cy+(ER+PR)}`;
-      innerD = `M ${acx+(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 1 ${acx} ${cy+(ER-PR)}`;
-      break;
-    }
-    case "up-to-left": {
-      // Vertical pipe going UP meets horizontal going LEFT
-      // Arc center: (cx-ER, cy)
-      const acx = cx-ER;
-      outerD = `M ${acx+(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 0 ${acx} ${cy-(ER+PR)}`;
-      innerD = `M ${acx+(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 0 ${acx} ${cy-(ER-PR)}`;
-      break;
-    }
+// ── Pipe flange (bolted joint) ──
+// dir: "h" = horizontal pipe (flange lines are vertical)
+//      "v" = vertical pipe (flange lines are horizontal)
+function PipeFlange({ cx, cy, dir }: { cx: number; cy: number; dir: "h" | "v" }) {
+  if (dir === "v") {
+    return (
+      <>
+        <line x1={cx - PH - 5} y1={cy - 2} x2={cx + PH + 5} y2={cy - 2} stroke={S} strokeWidth="1.5" opacity="0.5" />
+        <line x1={cx - PH - 5} y1={cy + 2} x2={cx + PH + 5} y2={cy + 2} stroke={S} strokeWidth="1.5" opacity="0.5" />
+        <circle cx={cx - PH - 3} cy={cy} r="1.5" fill={S} opacity="0.4" />
+        <circle cx={cx + PH + 3} cy={cy} r="1.5" fill={S} opacity="0.4" />
+      </>
+    );
   }
-  return <>
-    <path d={outerD} stroke={s} strokeWidth="1.2" opacity="0.5" fill="none" />
-    <path d={innerD} stroke={s} strokeWidth="1.2" opacity="0.4" fill="none" />
-  </>;
-}
-
-// ── Flange ring (bolted joint between segments) ──
-function PipeFlange({ cx, cy, dir, s }: { cx: number; cy: number; dir: "h"|"v"; s: string }) {
-  if (dir === "v") return <>
-    <line x1={cx-PR-5} y1={cy-2} x2={cx+PR+5} y2={cy-2} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <line x1={cx-PR-5} y1={cy+2} x2={cx+PR+5} y2={cy+2} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <circle cx={cx-PR-3} cy={cy} r="1.5" fill={s} opacity="0.35" />
-    <circle cx={cx+PR+3} cy={cy} r="1.5" fill={s} opacity="0.35" />
-  </>;
-  return <>
-    <line x1={cx-2} y1={cy-PR-5} x2={cx-2} y2={cy+PR+5} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <line x1={cx+2} y1={cy-PR-5} x2={cx+2} y2={cy+PR+5} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <circle cx={cx} cy={cy-PR-3} r="1.5" fill={s} opacity="0.35" />
-    <circle cx={cx} cy={cy+PR+3} r="1.5" fill={s} opacity="0.35" />
-  </>;
+  return (
+    <>
+      <line x1={cx - 2} y1={cy - PH - 5} x2={cx - 2} y2={cy + PH + 5} stroke={S} strokeWidth="1.5" opacity="0.5" />
+      <line x1={cx + 2} y1={cy - PH - 5} x2={cx + 2} y2={cy + PH + 5} stroke={S} strokeWidth="1.5" opacity="0.5" />
+      <circle cx={cx} cy={cy - PH - 3} r="1.5" fill={S} opacity="0.4" />
+      <circle cx={cx} cy={cy + PH + 3} r="1.5" fill={S} opacity="0.4" />
+    </>
+  );
 }
 
 // ── Valve handwheel ──
-function ValveWheel({ cx, cy, s }: { cx: number; cy: number; s: string }) {
-  return <>
-    <circle cx={cx} cy={cy} r="9" stroke={s} strokeWidth="1.5" opacity="0.5" fill="none" />
-    <line x1={cx-9} y1={cy} x2={cx+9} y2={cy} stroke={s} strokeWidth="1" opacity="0.4" />
-    <line x1={cx} y1={cy-9} x2={cx} y2={cy+9} stroke={s} strokeWidth="1" opacity="0.4" />
-    <line x1={cx-6} y1={cy-6} x2={cx+6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.3" />
-    <line x1={cx+6} y1={cy-6} x2={cx-6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.3" />
-    <circle cx={cx} cy={cy} r="2.5" fill={s} opacity="0.35" />
-  </>;
-}
-
-/* ── Still cap + lyne arm: up → right → down → right → off screen ──
-   
-   Pipe centerline route:
-     Start: (COL_CX, lidY) — exits top of lid
-     Segment A: goes UP to corner1
-     Corner1: (COL_CX, lidY - riseH)  → turn "up-to-right"
-       arc center: (COL_CX + ER, lidY - riseH)
-       A ends at: y = corner1.y  (pipe stops at corner y)
-       B starts at: x = COL_CX + ER + ER = COL_CX + 2*ER  (arc center x + ER)
-     Segment B: goes RIGHT from x=(COL_CX+2*ER) to corner2.x
-     Corner2: (COL_CX + 2*ER + runB, corner1.y) → turn "right-to-down" (horizontal→vertical down)
-       arc center: (corner2.x, corner1.y + ER)
-       B ends at: x = corner2.x
-       C starts at: y = corner1.y + 2*ER
-     Segment C: goes DOWN from y=(corner1.y+2*ER) to corner3.y
-     Corner3: (corner2.x, corner1.y + 2*ER + dropC) → turn "down-to-right"
-       arc center: (corner2.x + ER, corner3.y)
-       C ends at: y = corner3.y
-       D starts at: x = corner2.x + 2*ER
-     Segment D: goes RIGHT from x=(corner2.x+2*ER) off screen
-*/
-function StillCap() {
-  const S = "#C4943A";
-  const lidX = COL_X - 10; const lidW = COL_W + 20;
-  const lidY = 46; const lidH = 5;
-
-  const riseH = 24;   // how far up segment A goes
-  const runB  = 20;   // length of horizontal segment B
-  const dropC = 16;   // how far down segment C goes
-
-  // Corner positions (where centerlines intersect)
-  const c1 = { x: COL_CX, y: lidY - riseH };
-  const c2 = { x: c1.x + 2*ER + runB, y: c1.y };
-  const c3 = { x: c2.x, y: c1.y + 2*ER + dropC };
-
-  // Segment endpoints (stop before elbow arc starts)
-  const A_y2 = c1.y;           // segment A: from lidY going up to c1.y
-  const B_x1 = c1.x + 2*ER;   // segment B: from here going right
-  const B_x2 = c2.x;
-  const C_y1 = c1.y + 2*ER;   // segment C: from here going down
-  const C_y2 = c3.y;
-  const D_x1 = c2.x + 2*ER;   // segment D: from here going right off screen
-
-  const valveX = D_x1 + 26;
-  const svgH = lidY + lidH + 4;
-
+function ValveWheel({ cx, cy }: { cx: number; cy: number }) {
   return (
-    <svg viewBox={`0 0 ${VIEWBOX_W} ${svgH}`} fill="none" overflow="visible"
-      style={{ width: VIEWBOX_W, height: svgH, display: "block", overflow: "visible" }}>
-
-      {/* Lid */}
-      <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
-      <line x1={lidX} y1={lidY} x2={lidX+lidW} y2={lidY} stroke={S} strokeWidth="1.8" opacity="0.4" />
-      <line x1={lidX} y1={lidY+lidH} x2={lidX+lidW} y2={lidY+lidH} stroke={S} strokeWidth="1" opacity="0.2" />
-      <line x1={lidX} y1={lidY} x2={lidX} y2={lidY+lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <line x1={lidX+lidW} y1={lidY} x2={lidX+lidW} y2={lidY+lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <line x1={COL_X} y1={lidY+lidH} x2={COL_X} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <line x1={COL_X+COL_W} y1={lidY+lidH} x2={COL_X+COL_W} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <rect x={COL_X} y={lidY+lidH} width={COL_W} height={svgH-lidY-lidH} fill="url(#hwh-copper)" />
-
-      {/* Segment A: vertical rise from lid top */}
-      <VPipe cx={COL_CX} y1={A_y2} y2={lidY} s={S} />
-      <PipeFlange cx={COL_CX} cy={lidY-4} dir="v" s={S} />
-
-      {/* Elbow 1: up-to-right — corner at c1 */}
-      <Elbow corner={c1} turn="up-to-right" s={S} />
-
-      {/* Segment B: horizontal right */}
-      <HPipe x1={B_x1} x2={B_x2} cy={c1.y} s={S} />
-      <PipeFlange cx={B_x1 + (B_x2-B_x1)/2} cy={c1.y} dir="h" s={S} />
-
-      {/* Elbow 2: right-to-down — pipe going right turns down
-          For "right-to-down": arc center is (c2.x, c2.y+ER), same as "down-to-right" mirrored
-          Outer arc: M(c2.x, c2.y-PR) → A(ER+PR) → (c2.x+ER+PR, c2.y+ER) ... 
-          Actually this is "horizontal→down" = pipe was going right, now goes down.
-          Arc center = (c2.x, c2.y+ER).
-          Outer: starts at (c2.x, c2.y-(ER+PR)) ... no.
-          
-          Think of it: coming FROM LEFT going RIGHT, hitting corner c2, turning DOWN.
-          The pipe was horizontal (going right), now vertical (going down).
-          Arc center offset: below c2 → (c2.x, c2.y + ER)... but we need pipe walls to connect.
-          
-          Horizontal pipe right wall is at cy+PR. Arc must start there.
-          Arc center = (c2.x, c2.y+ER).
-          Outer arc (ER+PR): starts at (c2.x-(ER+PR), c2.y+ER) — no that's wrong too.
-          
-          Correct: for a right→down elbow, arc center = (c2.x, c2.y+ER).
-          Top of arc (where horiz pipe ends): (c2.x - (ER+PR) ... 
-          
-          Let me use a path-based approach for this elbow instead:
-      */}
-      {/* Elbow 2: right→down via path (more reliable) */}
-      {(() => {
-        const acx = c2.x; const acy = c2.y + ER;
-        // Outer wall (ER+PR radius): from (acx-(ER+PR), acy) clockwise to (acx, acy-(ER+PR))... 
-        // wait, going right→down means:
-        // horiz pipe: top wall at cy-PR, bottom wall at cy+PR, both ending at x=c2.x
-        // vert pipe below: left wall at cx-PR, right wall at cx+PR, starting at y=c2.y+2*ER (= C_y1)
-        // Arc center for outer corner (outside of bend) = (c2.x - PR, c2.y + PR) ... 
-        // 
-        // Simplest correct approach: use two separate arcs for the two walls.
-        // For right→down: 
-        //   OUTER wall of bend (top-right corner): arc center=(c2.x, c2.y), r=PR, 90° CW
-        //     from (c2.x, c2.y-PR) to (c2.x+PR, c2.y) — this is WRONG direction
-        // 
-        // Let me think in terms of which wall is on the outside of the curve:
-        // Pipe going RIGHT then turning DOWN: the outside of the curve is the TOP-RIGHT.
-        // Outer wall arc: large radius = ER+PR, center = (c2.x, c2.y+ER)
-        //   starts at (c2.x-(ER+PR), c2.y+ER)... no.
-        //
-        // OK I'll use a single-stroke approach with two path lines closing around the bend:
-        const ro = ER + PR; // outer radius
-        const ri = ER - PR; // inner radius
-        // Arc center at (c2.x, c2.y + ER) — below corner
-        // Outer arc: from top (c2.x, c2.y+ER - ro) = (c2.x, c2.y+ER-ER-PR) = (c2.x, c2.y-PR)
-        //            sweeps CW to right: (c2.x + ro, c2.y+ER) = (c2.x+ER+PR, c2.y+ER)
-        // Inner arc: from (c2.x, c2.y-PR+2PR) = (c2.x, c2.y+PR)  
-        //            sweeps CW to (c2.x+ER-PR, c2.y+ER)
-        const outerD = `M ${c2.x} ${c2.y-PR} A ${ro} ${ro} 0 0 1 ${c2.x+ro} ${c2.y+ER}`;
-        const innerD = `M ${c2.x} ${c2.y+PR} A ${ri} ${ri} 0 0 1 ${c2.x+ri} ${c2.y+ER}`;
-        return <>
-          <path d={outerD} stroke={S} strokeWidth="1.2" opacity="0.5" fill="none" />
-          <path d={innerD} stroke={S} strokeWidth="1.2" opacity="0.4" fill="none" />
-        </>;
-      })()}
-
-      {/* Segment C: vertical drop */}
-      <VPipe cx={c2.x} y1={C_y1} y2={C_y2} s={S} />
-      <PipeFlange cx={c2.x} cy={C_y1 + (C_y2-C_y1)/2} dir="v" s={S} />
-
-      {/* Elbow 3: down-to-right — corner at c3 */}
-      <Elbow corner={c3} turn="down-to-right" s={S} />
-
-      {/* Segment D: horizontal right off screen */}
-      <HPipe x1={D_x1} x2={600} cy={c3.y} s={S} />
-      <PipeFlange cx={D_x1+8} cy={c3.y} dir="h" s={S} />
-
-      {/* Valve */}
-      <ValveWheel cx={valveX} cy={c3.y} s={S} />
-    </svg>
+    <>
+      <circle cx={cx} cy={cy} r="9" stroke={S} strokeWidth="1.5" opacity="0.55" fill="none" />
+      <line x1={cx - 9} y1={cy} x2={cx + 9} y2={cy} stroke={S} strokeWidth="1.1" opacity="0.45" />
+      <line x1={cx} y1={cy - 9} x2={cx} y2={cy + 9} stroke={S} strokeWidth="1.1" opacity="0.45" />
+      <line x1={cx - 6} y1={cy - 6} x2={cx + 6} y2={cy + 6} stroke={S} strokeWidth="0.8" opacity="0.3" />
+      <line x1={cx + 6} y1={cy - 6} x2={cx - 6} y2={cy + 6} stroke={S} strokeWidth="0.8" opacity="0.3" />
+      <circle cx={cx} cy={cy} r="2.5" fill={S} opacity="0.4" />
+    </>
   );
 }
 
-/* ── Cylinder body — stretches to fill row height ── */
-function CylinderBody({ plateCount }: { plateCount: number }) {
-  const S = "#C4943A";
-  const plates = Array.from({ length: plateCount });
-  const spacing = 100 / (plateCount + 1);
+/*
+  ── Still cap + lyne arm ──
+
+  Route (all in px, viewBox coords = DOM coords since width=VB_W):
+    Start  : (COL_CX, lidY)           — exit top of lid
+    Up     : (COL_CX, lidY) → (COL_CX, y1)        segment A (vertical, going UP)
+    Elbow  : corner at (COL_CX, y1)                square elbow
+    Right  : (COL_CX, y1) → (x2, y1)              segment B (horizontal, going RIGHT)
+    Elbow  : corner at (x2, y1)                    square elbow
+    Down   : (x2, y1) → (x2, y3)                  segment C (vertical, going DOWN)
+    Elbow  : corner at (x2, y3)                    square elbow
+    Right  : (x2, y3) → (far right off screen)     segment D (horizontal, going RIGHT)
+
+  Key y coords:
+    lidY = 44  (top of lid)
+    y1   = lidY - 22  = 22  (top of rise)
+    y3   = y1 + 16   = 38  (bottom of drop, same level as segment D)
+
+  Key x coords:
+    COL_CX = 45 (pipe exits center of column)
+    x2     = COL_CX + 28 = 73 (right turn then drop then final right run)
+*/
+function StillCap() {
+  const lidX = COL_X - 8; const lidW = COL_W + 16;
+  const lidY = 44; const lidH = 5;
+
+  // Pipe centerline waypoints
+  const pX  = COL_CX;      // vertical pipe X (centerline)
+  const y1  = lidY - 22;   // top of vertical rise (corner A)
+  const x2  = pX + 28;     // horizontal run end / top of drop (corner B)
+  const y3  = y1 + 16;     // bottom of drop (corner C) — exit goes right from here
+
+  // Valve sits 28px into segment D
+  const valveX = x2 + 28;
+
+  const svgH = lidY + lidH + 2;
 
   return (
     <svg
-      viewBox={`0 0 ${VIEWBOX_W} 100`}
-      preserveAspectRatio="none"
+      viewBox={`0 0 ${VB_W} ${svgH}`}
       fill="none"
-      style={{ width: `${VIEWBOX_W}px`, height: "100%", display: "block" }}
+      overflow="visible"
+      style={{ width: VB_W, height: svgH, display: "block", overflow: "visible" }}
     >
-      {/* Fix #6: wider body with cylindrical copper gradient */}
-      <rect x={COL_X} y="0" width={COL_W} height="100" fill="url(#hwh-copper)" />
-      {/* Left wall */}
-      <line x1={COL_X} y1="0" x2={COL_X} y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      {/* Right wall */}
-      <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      {/* Bubble plate dashed lines */}
-      {plates.map((_, j) => {
-        const y = spacing * (j + 1);
-        return (
-          <line
-            key={j}
-            x1={COL_X + 4}
-            y1={y}
-            x2={COL_X + COL_W - 4}
-            y2={y}
-            stroke={S}
-            strokeWidth="0.6"
-            strokeDasharray="4 3"
-            opacity="0.18"
-          />
-        );
-      })}
-      {/* Fix #7: dashed connector from RIGHT edge of column to step text */}
-      {/* This line is drawn in the step row layout instead — see below */}
+      {/* Flat lid */}
+      <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
+      <line x1={lidX}       y1={lidY}       x2={lidX + lidW} y2={lidY}       stroke={S} strokeWidth="1.8" opacity="0.45" />
+      <line x1={lidX}       y1={lidY + lidH} x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1"   opacity="0.2"  />
+      <line x1={lidX}       y1={lidY}       x2={lidX}        y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={lidX + lidW} y1={lidY}       x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.45" />
+
+      {/* Column walls below lid (to bottom of viewbox) */}
+      <line x1={COL_X}       y1={lidY + lidH} x2={COL_X}       y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X+COL_W} y1={lidY + lidH} x2={COL_X+COL_W} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <rect x={COL_X} y={lidY + lidH} width={COL_W} height={svgH - lidY - lidH} fill="url(#hwh-copper)" />
+
+      {/* Segment A: vertical rise — from y1 up to lidY */}
+      <VPipe cx={pX} y1={y1} y2={lidY} />
+      <PipeFlange cx={pX} cy={lidY - 5} dir="v" />
+
+      {/* Corner A: up→right */}
+      <Elbow cx={pX} cy={y1} />
+
+      {/* Segment B: horizontal right — from pX to x2 */}
+      <HPipe x1={pX} x2={x2} cy={y1} />
+      <PipeFlange cx={pX + (x2 - pX) / 2} cy={y1} dir="h" />
+
+      {/* Corner B: right→down */}
+      <Elbow cx={x2} cy={y1} />
+
+      {/* Segment C: vertical drop — from y1 to y3 */}
+      <VPipe cx={x2} y1={y1} y2={y3} />
+
+      {/* Corner C: down→right */}
+      <Elbow cx={x2} cy={y3} />
+
+      {/* Segment D: horizontal right — off screen */}
+      <HPipe x1={x2} x2={600} cy={y3} />
+      <PipeFlange cx={valveX - 14} cy={y3} dir="h" />
+
+      {/* Valve handwheel */}
+      <ValveWheel cx={valveX} cy={y3} />
     </svg>
   );
 }
 
-/* ── Connector line from right edge of column to step text ── */
-function ConnectorLine({ isInView }: { isInView: boolean }) {
+// ── Column body ──
+function CylinderBody({ plateCount }: { plateCount: number }) {
+  const plates = Array.from({ length: plateCount });
+  const spacing = 100 / (plateCount + 1);
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        // starts at right edge of column, extends to step text
-        left: `${VIEWBOX_W}px`,
-        width: "32px",
-        height: "1px",
-        borderTop: "1px dashed #3A3530",
-        borderTopStyle: "dashed",
-        opacity: isInView ? 0.6 : 0.2,
-        transition: "opacity 0.5s ease",
-        // dash pattern via backgroundImage trick since border-dash isn't reliable cross-browser
-        background: "none",
-      }}
-    >
-      <svg
-        width="32"
-        height="1"
-        style={{ position: "absolute", top: "-0.5px", left: 0 }}
-      >
-        <line
-          x1="0"
-          y1="0.5"
-          x2="32"
-          y2="0.5"
-          stroke="#3A3530"
-          strokeWidth="1"
-          strokeDasharray="4 2"
-        />
-      </svg>
-    </div>
+    <svg viewBox={`0 0 ${VB_W} 100`} preserveAspectRatio="none" fill="none"
+      style={{ width: VB_W, height: "100%", display: "block" }}>
+      <rect x={COL_X} y="0" width={COL_W} height="100" fill="url(#hwh-copper)" />
+      <line x1={COL_X}       y1="0" x2={COL_X}       y2="100" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X+COL_W} y1="0" x2={COL_X+COL_W} y2="100" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      {plates.map((_, j) => (
+        <line key={j}
+          x1={COL_X + 4} y1={spacing * (j + 1)}
+          x2={COL_X + COL_W - 4} y2={spacing * (j + 1)}
+          stroke={S} strokeWidth="0.6" strokeDasharray="4 3" opacity="0.18" />
+      ))}
+    </svg>
   );
 }
 
-/* ── Riveted flange between sections ── */
+// ── Flange between column sections ──
 function Flange() {
-  const S = "#C4943A";
   return (
-    <div style={{ width: `${VIEWBOX_W}px`, height: "14px" }}>
-      <svg viewBox={`0 0 ${VIEWBOX_W} 14`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "14px" }}>
-        <rect x={COL_X} y="0" width={COL_W} height="14" fill={S} opacity="0.04" />
-        {/* Flange lines extend past walls */}
-        <line x1={COL_X - 10} y1="3" x2={COL_X + COL_W + 10} y2="3" stroke={S} strokeWidth="1.2" opacity="0.3" />
-        <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={S} strokeWidth="1.2" opacity="0.3" />
-        {/* Bolt circles */}
-        <circle cx={COL_X - 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
-        <circle cx={COL_X + COL_W + 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
-        {/* Center bolts */}
-        <circle cx={COL_CX - 12} cy="7" r="1.5" fill={S} opacity="0.15" />
-        <circle cx={COL_CX} cy="7" r="1.5" fill={S} opacity="0.15" />
-        <circle cx={COL_CX + 12} cy="7" r="1.5" fill={S} opacity="0.15" />
-      </svg>
-    </div>
+    <svg viewBox={`0 0 ${VB_W} 14`} fill="none" style={{ width: VB_W, height: 14, display: "block" }}>
+      <rect x={COL_X} y="0" width={COL_W} height="14" fill={S} opacity="0.04" />
+      <line x1={COL_X - 10} y1="3"  x2={COL_X + COL_W + 10} y2="3"  stroke={S} strokeWidth="1.2" opacity="0.35" />
+      <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={S} strokeWidth="1.2" opacity="0.35" />
+      <circle cx={COL_X - 7}       cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
+      <circle cx={COL_X+COL_W + 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
+      <circle cx={COL_CX - 12} cy="7" r="1.5" fill={S} opacity="0.2" />
+      <circle cx={COL_CX}      cy="7" r="1.5" fill={S} opacity="0.2" />
+      <circle cx={COL_CX + 12} cy="7" r="1.5" fill={S} opacity="0.2" />
+    </svg>
   );
 }
 
-/* ── Spout + product pipe: down → elbow left → off left edge ──
-   
-   Pipe going DOWN turns LEFT:
-   Corner c = (COL_CX, spoutOutY + dropA)
-   Arc center = (c.x - ER, c.y)
-   Outer arc (ER+PR): from (c.x, c.y-(ER+PR))... 
-   
-   Actually for down→left:
-   Vertical pipe going down, left wall at cx-PR, right wall at cx+PR.
-   It meets corner c. Now turns left (horizontal going LEFT).
-   Arc center = (c.x - ER, c.y).
-   Outer wall of bend (right side of vert pipe / top of horiz pipe):
-     arc center offset: the outer wall is at cx+PR going down, and cy-PR going left.
-     Use ER+PR for outside arc, ER-PR for inside arc.
-   Outside arc (ER+PR): from (c.x+PR, c.y) going to (c.x-ER, c.y+PR+ER)... 
-   
-   Correct:
-   Arc center = (c.x-ER, c.y).
-   Outer arc r=(ER+PR): starts at (c.x-ER+(ER+PR), c.y) = (c.x+PR, c.y)
-                         ends at   (c.x-ER, c.y+(ER+PR))
-   Sweep: clockwise (1) going from right side down
-   Inner arc r=(ER-PR): starts at (c.x-ER+(ER-PR), c.y) = (c.x-PR, c.y)
-                         ends at   (c.x-ER, c.y+(ER-PR))
-   Sweep: clockwise (1)
+/*
+  ── Spout + product pipe ──
+
+  Route:
+    Start  : (COL_CX, spoutOutY)      — bottom of converging spout
+    Down   : → (COL_CX, y1)           segment A (short vertical drop)
+    Elbow  : corner at (COL_CX, y1)   square elbow
+    Left   : → off left edge          segment B (horizontal, going LEFT)
+
+  Key coords:
+    spoutOutY = 50
+    y1 = spoutOutY + 18  (drop before turning left)
+    Pipe exits left at y = y1
+    Valve sits 26px left of elbow corner
 */
 function StillSpout() {
-  const S = "#C4943A";
-  const spoutOutY = 52;
-  const dropA = 18; // vertical drop before elbow
-
-  const c = { x: COL_CX, y: spoutOutY + dropA }; // corner
-  // Elbow arc center
-  const acx = c.x - ER; const acy = c.y;
-  const ro = ER + PR; const ri = ER - PR;
-  // Outer arc: from (c.x+PR, c.y) CW to (acx, c.y+ro) = (c.x-ER, c.y+ER+PR)
-  const outerArc = `M ${c.x+PR} ${acy} A ${ro} ${ro} 0 0 1 ${acx} ${acy+ro}`;
-  // Inner arc: from (c.x-PR, c.y) CW to (acx, c.y+ri) = (c.x-ER, c.y+ER-PR)
-  const innerArc = `M ${c.x-PR} ${acy} A ${ri} ${ri} 0 0 1 ${acx} ${acy+ri}`;
-
-  // Horizontal segment B exits elbow going left at y = c.y + ER (centerline)
-  const hCY = c.y + ER;
-  const B_x2 = c.x - 2*ER; // segment B ends here (elbow fills the rest)
-
-  const valveX = B_x2 - 22;
-  const svgH = c.y + ER + PR + 10;
+  const spoutOutY = 50;
+  const y1 = spoutOutY + 18;      // corner: down→left
+  const valveX = COL_CX - 26;
+  const svgH = y1 + PH + 10;
 
   return (
-    <svg viewBox={`0 0 ${VIEWBOX_W} ${svgH}`} fill="none" overflow="visible"
-      style={{ width: VIEWBOX_W, height: svgH, display: "block", overflow: "visible" }}>
+    <svg viewBox={`0 0 ${VB_W} ${svgH}`} fill="none" overflow="visible"
+      style={{ width: VB_W, height: svgH, display: "block", overflow: "visible" }}>
 
-      {/* Column walls */}
-      <line x1={COL_X} y1="0" x2={COL_X} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <line x1={COL_X+COL_W} y1="0" x2={COL_X+COL_W} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
-      <rect x={COL_X} y="0" width={COL_W} height="22" fill="url(#hwh-copper)" />
+      {/* Column walls at top */}
+      <line x1={COL_X}       y1="0" x2={COL_X}       y2="20" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X+COL_W} y1="0" x2={COL_X+COL_W} y2="20" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <rect x={COL_X} y="0" width={COL_W} height="20" fill="url(#hwh-copper)" />
 
-      {/* Converging spout walls */}
-      <path d={`M${COL_X} 22 L${COL_CX-5} 44 L${COL_CX-5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-      <path d={`M${COL_X+COL_W} 22 L${COL_CX+5} 44 L${COL_CX+5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-      <path d={`M${COL_X} 22 L${COL_CX-5} 44 L${COL_CX-5} ${spoutOutY} L${COL_CX+5} ${spoutOutY} L${COL_CX+5} 44 L${COL_X+COL_W} 22 Z`} fill={S} opacity="0.04" />
+      {/* Converging spout */}
+      <path d={`M${COL_X} 20 L${COL_CX-5} 42 L${COL_CX-5} ${spoutOutY}`}
+        stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d={`M${COL_X+COL_W} 20 L${COL_CX+5} 42 L${COL_CX+5} ${spoutOutY}`}
+        stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d={`M${COL_X} 20 L${COL_CX-5} 42 L${COL_CX-5} ${spoutOutY} L${COL_CX+5} ${spoutOutY} L${COL_CX+5} 42 L${COL_X+COL_W} 20 Z`}
+        fill={S} opacity="0.04" />
 
-      {/* Outlet flange */}
-      <line x1={COL_CX-PR-4} y1={spoutOutY} x2={COL_CX+PR+4} y2={spoutOutY} stroke={S} strokeWidth="1.5" opacity="0.4" />
+      {/* Outlet flange at spout bottom */}
+      <line x1={COL_CX - PH - 5} y1={spoutOutY} x2={COL_CX + PH + 5} y2={spoutOutY}
+        stroke={S} strokeWidth="1.5" opacity="0.45" />
 
-      {/* Segment A: vertical drop to corner */}
-      <VPipe cx={COL_CX} y1={spoutOutY} y2={c.y} s={S} />
-      <PipeFlange cx={COL_CX} cy={spoutOutY+8} dir="v" s={S} />
+      {/* Segment A: vertical drop */}
+      <VPipe cx={COL_CX} y1={spoutOutY} y2={y1} />
+      <PipeFlange cx={COL_CX} cy={spoutOutY + 8} dir="v" />
 
-      {/* Elbow: down→left */}
-      <path d={outerArc} stroke={S} strokeWidth="1.2" opacity="0.5" fill="none" />
-      <path d={innerArc} stroke={S} strokeWidth="1.2" opacity="0.4" fill="none" />
+      {/* Corner: down→left */}
+      <Elbow cx={COL_CX} cy={y1} />
 
-      {/* Segment B: horizontal left off screen */}
-      <HPipe x1={-600} x2={B_x2} cy={hCY} s={S} />
-      <PipeFlange cx={B_x2 - 10} cy={hCY} dir="h" s={S} />
+      {/* Segment B: horizontal left — off screen */}
+      <HPipe x1={-600} x2={COL_CX} cy={y1} />
+      <PipeFlange cx={valveX + 14} cy={y1} dir="h" />
 
-      {/* Valve */}
-      <ValveWheel cx={valveX} cy={hCY} s={S} />
+      {/* Valve handwheel */}
+      <ValveWheel cx={valveX} cy={y1} />
     </svg>
   );
 }
 
-/* ── Step row — manages sight glass centering + connector ── */
+// ── Sight glass ──
+function SightGlass({ number, index }: { number: string; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-15% 0px -15% 0px" });
+  return (
+    <div ref={ref} style={{
+      width: 44, height: 44, borderRadius: "50%",
+      border: `2px solid ${isInView ? "#C4943A" : "#3A3530"}`,
+      background: "var(--color-bg-primary)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      position: "relative", zIndex: 2,
+      boxShadow: isInView ? "0 0 18px rgba(196,148,58,0.22)" : "none",
+      transition: "all 0.5s ease",
+    }}>
+      <div style={{
+        position: "absolute", inset: 3, borderRadius: "50%",
+        border: `1px solid ${isInView ? "rgba(196,148,58,0.4)" : "rgba(58,53,48,0.5)"}`,
+        background: isInView
+          ? "radial-gradient(circle, rgba(13,11,7,0.65) 25%, rgba(196,148,58,0.12) 100%)"
+          : "radial-gradient(circle, rgba(13,11,7,0.85) 25%, rgba(58,53,48,0.08) 100%)",
+        transition: "all 0.5s ease",
+      }} />
+      <span style={{
+        position: "relative", zIndex: 1,
+        fontFamily: "var(--font-plus-jakarta)",
+        fontSize: 11, fontWeight: 600,
+        color: isInView ? "#F5EDD6" : "rgba(245,237,214,0.2)",
+        transition: "color 0.5s ease",
+      }}>
+        {number}
+      </span>
+    </div>
+  );
+}
+
+// ── Step text ──
+function StepText({ step, index }: { step: StepData; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
+  return (
+    <div ref={ref} style={{
+      opacity: isInView ? 1 : 0,
+      transform: isInView ? "translateX(0)" : "translateX(20px)",
+      transition: `all 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s`,
+    }}>
+      <p style={{
+        fontFamily: "var(--font-plus-jakarta)", fontSize: 16, fontWeight: 500,
+        color: "var(--color-text-primary)", lineHeight: 1.55, marginBottom: 10,
+      }}>
+        {step.description}
+      </p>
+      <p style={{
+        fontFamily: "var(--font-plus-jakarta)", fontSize: 14, fontStyle: "italic",
+        color: "rgba(196,148,58,0.4)", lineHeight: 1.5,
+      }}>
+        {step.flavor}
+      </p>
+    </div>
+  );
+}
+
+// ── Step row ──
 function StepRow({ step, index }: { step: StepData; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-12% 0px -12% 0px" });
-
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        minHeight: "200px",
-      }}
-    >
-      {/* Left: cylinder body + sight glass centered on column */}
-      <div
-        ref={ref}
-        style={{
-          width: `${VIEWBOX_W}px`,
-          flexShrink: 0,
-          alignSelf: "stretch",
-          position: "relative",
-        }}
-      >
+    <div style={{ display: "flex", alignItems: "center", minHeight: 190 }}>
+      {/* Still column slice */}
+      <div ref={ref} style={{ width: VB_W, flexShrink: 0, alignSelf: "stretch", position: "relative" }}>
         <CylinderBody plateCount={index === 0 ? 2 : 3} />
-
-        {/* Fix #2: sight glass centered ON the column body — center X = COL_CX */}
-        {/* COL_CX in viewBox coords maps to (COL_CX / VIEWBOX_W * 90px) in DOM */}
-        {/* Since viewBox width = VIEWBOX_W and rendered width = VIEWBOX_W px, it's 1:1 */}
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: `${COL_CX}px`,          // center of column
-            transform: "translate(-50%, -50%)",
-          }}
-        >
+        {/* Sight glass centered on column body */}
+        <div style={{
+          position: "absolute", top: "50%", left: COL_CX,
+          transform: "translate(-50%, -50%)",
+        }}>
           <SightGlass number={step.number} index={index} />
         </div>
-
-        {/* Fix #7: dashed connector from right edge of column */}
-        <ConnectorLine isInView={isInView} />
+        {/* Solid connector line from right edge of column to step text */}
+        <div style={{
+          position: "absolute", top: "50%", left: VB_W,
+          width: 32, height: 1,
+          background: isInView ? "rgba(196,148,58,0.35)" : "rgba(58,53,48,0.2)",
+          transition: "background 0.5s ease",
+          transform: "translateY(-50%)",
+        }} />
       </div>
-
-      {/* Right: step text */}
-      <div style={{ flex: 1, paddingLeft: "40px" }}>
+      {/* Step text */}
+      <div style={{ flex: 1, paddingLeft: 32 }}>
         <StepText step={step} index={index} />
       </div>
     </div>
@@ -665,77 +416,49 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
 
 export default function HowWeHunt() {
   return (
-    <section
-      id="how-we-hunt"
-      style={{
-        backgroundColor: "var(--color-bg-primary)",
-        paddingTop: "96px",
-        paddingBottom: "96px",
-        width: "100%",
-      }}
-    >
+    <section id="how-we-hunt" style={{
+      backgroundColor: "var(--color-bg-primary)",
+      paddingTop: 80, paddingBottom: 80, width: "100%",
+    }}>
       <SvgDefs />
 
-      {/* Fix #1: center entire section with max-width 800px */}
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto",
-          padding: "0 40px",
-        }}
-      >
-        {/* Section header — centered over same max-width */}
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px" }}>
+        {/* Header */}
         <ScrollReveal>
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "var(--font-plus-jakarta)",
-              fontSize: "12px",
-              textTransform: "uppercase",
-              letterSpacing: "0.2em",
-              color: "var(--color-accent-amber)",
-              marginBottom: "16px",
-            }}
-          >
+          <p style={{
+            fontFamily: "var(--font-plus-jakarta)", fontSize: 11,
+            textTransform: "uppercase", letterSpacing: "0.2em",
+            color: "var(--color-accent-amber)", marginBottom: 14,
+            textAlign: "center",
+          }}>
             THE PROCESS
           </p>
-          <h2
-            className="text-center"
-            style={{
-              fontFamily: "var(--font-fraunces)",
-              fontSize: "44px",
-              fontWeight: 700,
-              color: "var(--color-text-primary)",
-              marginBottom: "16px",
-            }}
-          >
+          <h2 style={{
+            fontFamily: "var(--font-fraunces)", fontSize: "clamp(32px,6vw,44px)",
+            fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 14,
+            textAlign: "center",
+          }}>
             The Process
           </h2>
-          <p
-            className="text-center mx-auto"
-            style={{
-              fontFamily: "var(--font-plus-jakarta)",
-              fontSize: "17px",
-              color: "var(--color-text-secondary)",
-              maxWidth: "520px",
-              marginBottom: "72px",
-            }}
-          >
+          <p style={{
+            fontFamily: "var(--font-plus-jakarta)", fontSize: 16,
+            color: "var(--color-text-secondary)", lineHeight: 1.6,
+            maxWidth: 480, margin: "0 auto 52px",
+            textAlign: "center",
+          }}>
             From raw data to your phone in minutes. Same process, distilled for speed.
           </p>
         </ScrollReveal>
 
-        {/* Still + Steps — same max-width container */}
+        {/* Still + Steps */}
         <div>
           <StillCap />
-
           {steps.map((step, i) => (
             <div key={step.number}>
               <StepRow step={step} index={i} />
               {i < steps.length - 1 && <Flange />}
             </div>
           ))}
-
           <StillSpout />
         </div>
       </div>
