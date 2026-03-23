@@ -156,46 +156,90 @@ function SvgDefs() {
   );
 }
 
-/* ── Fix #4: flat-lid cap + thin pipe + valve arm ── */
+/* ── Still cap + lyne arm curving off to the right ── */
 function StillCap() {
   const S = "#C4943A";
-  // Lid is COL_W + 10px each side => from COL_X-10 to COL_X+COL_W+10
+  const PW = 5;          // pipe stroke width
   const lidX = COL_X - 10;
   const lidW = COL_W + 20;
-  const lidY = 36; // top of the lid rect
-  const lidH = 6;  // lid height
-  // Pipe: 4px wide, 20px tall, centered at COL_CX, sits above the lid
-  const pipeX = COL_CX - 2;
-  const pipeTop = lidY - 20;
-  // Valve arm: extends right from center of pipe, 20px, ending in circle
-  const armY = pipeTop + 8;
-  const armEndX = COL_CX + 22;
+  const lidY = 46;
+  const lidH = 6;
+
+  // Lyne arm: rises from center of lid, makes a gentle S-curve right, exits off screen
+  // Start: top-center of lid
+  const lx0 = COL_CX;
+  const ly0 = lidY;
+  // Rise up a bit
+  const lx1 = COL_CX;
+  const ly1 = lidY - 14;
+  // Sweep right and down into a curve, then back up and off-screen right
+  // Using two cubic bezier segments for the multi-turn look
 
   return (
-    <div style={{ width: `${VIEWBOX_W}px`, height: "52px", position: "relative" }}>
-      <svg viewBox={`0 0 ${VIEWBOX_W} 52`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "52px" }}>
-        {/* Thin vertical pipe above lid */}
-        <rect x={pipeX} y={pipeTop} width="4" height="20" fill={S} opacity="0.2" />
-        <line x1={pipeX} y1={pipeTop} x2={pipeX} y2={lidY} stroke={S} strokeWidth="0.8" opacity="0.35" />
-        <line x1={pipeX + 4} y1={pipeTop} x2={pipeX + 4} y2={lidY} stroke={S} strokeWidth="0.8" opacity="0.35" />
-
-        {/* Horizontal valve arm extending right */}
-        <line x1={COL_CX} y1={armY} x2={armEndX} y2={armY} stroke={S} strokeWidth="1.5" opacity="0.4" />
-        {/* Valve circle at end */}
-        <circle cx={armEndX + 3} cy={armY} r="3" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
-
-        {/* Flat lid rect */}
+    <div style={{ width: "100%", height: "80px", position: "relative", overflow: "visible" }}>
+      <svg
+        viewBox={`0 0 ${VIEWBOX_W} 80`}
+        fill="none"
+        overflow="visible"
+        style={{ width: `${VIEWBOX_W}px`, height: "80px", overflow: "visible" }}
+      >
+        {/* Flat lid */}
         <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
         <line x1={lidX} y1={lidY} x2={lidX + lidW} y2={lidY} stroke={S} strokeWidth="1.8" opacity="0.4" />
         <line x1={lidX} y1={lidY + lidH} x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1.2" opacity="0.25" />
-        {/* Two small vertical lines on each end going down from top of lid */}
-        <line x1={lidX} y1={lidY} x2={lidX} y2={lidY + 6} stroke={S} strokeWidth="1.5" opacity="0.4" />
-        <line x1={lidX + lidW} y1={lidY} x2={lidX + lidW} y2={lidY + 6} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={lidX} y1={lidY} x2={lidX} y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={lidX + lidW} y1={lidY} x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
 
-        {/* Column walls connecting to cap */}
-        <line x1={COL_X} y1={lidY + lidH} x2={COL_X} y2={52} stroke={S} strokeWidth="1.5" opacity="0.4" />
-        <line x1={COL_X + COL_W} y1={lidY + lidH} x2={COL_X + COL_W} y2={52} stroke={S} strokeWidth="1.5" opacity="0.4" />
-        <rect x={COL_X} y={lidY + lidH} width={COL_W} height={52 - lidY - lidH} fill="url(#hwh-copper)" />
+        {/* Column walls below lid */}
+        <line x1={COL_X} y1={lidY + lidH} x2={COL_X} y2={80} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={COL_X + COL_W} y1={lidY + lidH} x2={COL_X + COL_W} y2={80} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <rect x={COL_X} y={lidY + lidH} width={COL_W} height={80 - lidY - lidH} fill="url(#hwh-copper)" />
+
+        {/*
+          Lyne arm path (pipe centerline):
+          Start at lid center-top, rise up, turn right, dip down in an arc,
+          turn right again and exit off the right edge.
+
+          Segment 1: vertical rise from lid top → first elbow
+          Segment 2: sweep right and slightly down (first arc)
+          Segment 3: level out then rise, exit right off-screen
+        */}
+
+        {/* Pipe walls — outer */}
+        <path
+          d={`
+            M ${lx0} ${ly0}
+            L ${lx1} ${ly1}
+            C ${lx1} ${ly1 - 10}, ${lx1 + 22} ${ly1 - 10}, ${lx1 + 22} ${ly1 + 6}
+            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, ${VIEWBOX_W + 20} ${ly1 + 18}
+          `}
+          stroke={S}
+          strokeWidth={PW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.35"
+          fill="none"
+        />
+        {/* Inner highlight — slightly thinner, lighter, offset inward */}
+        <path
+          d={`
+            M ${lx0} ${ly0}
+            L ${lx1} ${ly1}
+            C ${lx1} ${ly1 - 10}, ${lx1 + 22} ${ly1 - 10}, ${lx1 + 22} ${ly1 + 6}
+            C ${lx1 + 22} ${ly1 + 18}, ${lx1 + 42} ${ly1 + 18}, ${VIEWBOX_W + 20} ${ly1 + 18}
+          `}
+          stroke={S}
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.15"
+          fill="none"
+        />
+
+        {/* Small valve wheel on the horizontal run */}
+        <circle cx={lx1 + 38} cy={ly1 + 18} r="4" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
+        <line x1={lx1 + 34} y1={ly1 + 18} x2={lx1 + 42} y2={ly1 + 18} stroke={S} strokeWidth="0.8" opacity="0.25" />
+        <line x1={lx1 + 38} y1={ly1 + 14} x2={lx1 + 38} y2={ly1 + 22} stroke={S} strokeWidth="0.8" opacity="0.25" />
       </svg>
     </div>
   );
@@ -303,25 +347,73 @@ function Flange() {
   );
 }
 
-/* ── Spout at bottom — clean termination, no bottle ── */
+/* ── Spout + product pipe flowing off left edge ── */
 function StillSpout() {
   const S = "#C4943A";
+  const PW = 5;
   const bCX = COL_CX;
+
+  // Spout narrows from column base down to a small outlet, then a pipe
+  // curves left and exits off the left edge of the screen
+  const spoutOutY = 52;   // Y where spout outlet is
+  const spoutOutX = bCX;  // center of spout outlet
+
   return (
-    <div style={{ width: `${VIEWBOX_W}px`, height: "70px" }}>
-      <svg viewBox={`0 0 ${VIEWBOX_W} 70`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "70px" }}>
+    <div style={{ width: "100%", height: "90px", position: "relative", overflow: "visible" }}>
+      <svg
+        viewBox={`0 0 ${VIEWBOX_W} 90`}
+        fill="none"
+        overflow="visible"
+        style={{ width: `${VIEWBOX_W}px`, height: "90px", overflow: "visible" }}
+      >
         {/* Continuing column walls */}
         <line x1={COL_X} y1="0" x2={COL_X} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
         <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
         <rect x={COL_X} y="0" width={COL_W} height="22" fill="url(#hwh-copper)" />
-        {/* Narrowing to spout */}
-        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 56`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        <path d={`M${COL_X + COL_W} 22 L${bCX + 6} 42 L${bCX + 6} 56`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 56 L${bCX + 6} 56 L${bCX + 6} 42 L${COL_X + COL_W} 22 Z`} fill={S} opacity="0.04" />
-        {/* Spout valve */}
-        <line x1={bCX - 12} y1="56" x2={bCX + 12} y2="56" stroke={S} strokeWidth="1.5" opacity="0.3" />
-        {/* Single drip drop */}
-        <ellipse cx={bCX} cy="64" rx="2.5" ry="3.5" fill={S} opacity="0.25" />
+
+        {/* Converging spout walls */}
+        <path d={`M${COL_X} 22 L${spoutOutX - 5} 44 L${spoutOutX - 5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        <path d={`M${COL_X + COL_W} 22 L${spoutOutX + 5} 44 L${spoutOutX + 5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        <path d={`M${COL_X} 22 L${spoutOutX - 5} 44 L${spoutOutX - 5} ${spoutOutY} L${spoutOutX + 5} ${spoutOutY} L${spoutOutX + 5} 44 L${COL_X + COL_W} 22 Z`} fill={S} opacity="0.04" />
+
+        {/*
+          Product pipe: exits spout bottom, drops slightly,
+          curves left, levels out, exits off left edge
+        */}
+        <path
+          d={`
+            M ${spoutOutX} ${spoutOutY}
+            L ${spoutOutX} ${spoutOutY + 10}
+            C ${spoutOutX} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 14}
+            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, ${-20} ${spoutOutY + 6}
+          `}
+          stroke={S}
+          strokeWidth={PW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.35"
+          fill="none"
+        />
+        {/* Inner highlight */}
+        <path
+          d={`
+            M ${spoutOutX} ${spoutOutY}
+            L ${spoutOutX} ${spoutOutY + 10}
+            C ${spoutOutX} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 24}, ${spoutOutX - 16} ${spoutOutY + 14}
+            C ${spoutOutX - 16} ${spoutOutY + 6}, ${spoutOutX - 36} ${spoutOutY + 6}, ${-20} ${spoutOutY + 6}
+          `}
+          stroke={S}
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.15"
+          fill="none"
+        />
+
+        {/* Valve on the horizontal run */}
+        <circle cx={spoutOutX - 28} cy={spoutOutY + 6} r="4" stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
+        <line x1={spoutOutX - 32} y1={spoutOutY + 6} x2={spoutOutX - 24} y2={spoutOutY + 6} stroke={S} strokeWidth="0.8" opacity="0.25" />
+        <line x1={spoutOutX - 28} y1={spoutOutY + 2} x2={spoutOutX - 28} y2={spoutOutY + 10} stroke={S} strokeWidth="0.8" opacity="0.25" />
       </svg>
     </div>
   );
