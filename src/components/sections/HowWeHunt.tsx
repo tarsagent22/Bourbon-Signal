@@ -157,178 +157,274 @@ function SvgDefs() {
 }
 
 /* ── Still cap + lyne arm curving off to the right ── */
-// ── Pipe drawing helpers ──
-// PW = half-width of pipe interior, so outer walls are at cx±(PW+1), inner fill cx±PW
-const PIPE_R = 5;   // inner half-width (total pipe OD = 12px, ID = 10px)
-const PR = PIPE_R;
+// ── Pipe constants ──
+const PR = 5; // half pipe width — pipe walls are at centerline ± PR
 
-// Flange: a pair of lines perpendicular to pipe direction, with bolt dots
-// dir: "h" = horizontal pipe, "v" = vertical pipe
-// cx,cy = center of flange
-function PipeFlange({ cx, cy, dir, s }: { cx: number; cy: number; dir: "h"|"v"; s: string }) {
-  if (dir === "v") {
-    // Flanges are horizontal lines across a vertical pipe
-    return <>
-      <line x1={cx - PR - 4} y1={cy - 2} x2={cx + PR + 4} y2={cy - 2} stroke={s} strokeWidth="1.5" opacity="0.45" />
-      <line x1={cx - PR - 4} y1={cy + 2} x2={cx + PR + 4} y2={cy + 2} stroke={s} strokeWidth="1.5" opacity="0.45" />
-      <circle cx={cx - PR - 2} cy={cy} r="1.5" fill={s} opacity="0.3" />
-      <circle cx={cx + PR + 2} cy={cy} r="1.5" fill={s} opacity="0.3" />
-    </>;
-  }
-  // dir === "h": flanges are vertical lines across a horizontal pipe
-  return <>
-    <line x1={cx - 2} y1={cy - PR - 4} x2={cx - 2} y2={cy + PR + 4} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <line x1={cx + 2} y1={cy - PR - 4} x2={cx + 2} y2={cy + PR + 4} stroke={s} strokeWidth="1.5" opacity="0.45" />
-    <circle cx={cx} cy={cy - PR - 2} r="1.5" fill={s} opacity="0.3" />
-    <circle cx={cx} cy={cy + PR + 2} r="1.5" fill={s} opacity="0.3" />
-  </>;
-}
-
-// Straight vertical pipe segment: x=center, y1=top, y2=bottom
+// ── Straight vertical pipe: cx=centerline X, y1/y2=extents ──
 function VPipe({ cx, y1, y2, s }: { cx: number; y1: number; y2: number; s: string }) {
   return <>
-    <rect x={cx - PR} y={y1} width={PR * 2} height={y2 - y1} fill={s} fillOpacity="0.06" />
-    <line x1={cx - PR} y1={y1} x2={cx - PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.45" />
-    <line x1={cx + PR} y1={y1} x2={cx + PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.45" />
+    <rect x={cx-PR} y={y1} width={PR*2} height={y2-y1} fill={s} fillOpacity="0.05" />
+    <line x1={cx-PR} y1={y1} x2={cx-PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.5" />
+    <line x1={cx+PR} y1={y1} x2={cx+PR} y2={y2} stroke={s} strokeWidth="1.2" opacity="0.5" />
   </>;
 }
 
-// Straight horizontal pipe segment: y=center, x1=left, x2=right
+// ── Straight horizontal pipe: cy=centerline Y, x1/x2=extents ──
 function HPipe({ x1, x2, cy, s }: { x1: number; x2: number; cy: number; s: string }) {
-  const lx = Math.min(x1, x2); const rx = Math.max(x1, x2);
+  const lx = Math.min(x1,x2); const rx = Math.max(x1,x2);
   return <>
-    <rect x={lx} y={cy - PR} width={rx - lx} height={PR * 2} fill={s} fillOpacity="0.06" />
-    <line x1={lx} y1={cy - PR} x2={rx} y2={cy - PR} stroke={s} strokeWidth="1.2" opacity="0.45" />
-    <line x1={lx} y1={cy + PR} x2={rx} y2={cy + PR} stroke={s} strokeWidth="1.2" opacity="0.45" />
+    <rect x={lx} y={cy-PR} width={rx-lx} height={PR*2} fill={s} fillOpacity="0.05" />
+    <line x1={lx} y1={cy-PR} x2={rx} y2={cy-PR} stroke={s} strokeWidth="1.2" opacity="0.5" />
+    <line x1={lx} y1={cy+PR} x2={rx} y2={cy+PR} stroke={s} strokeWidth="1.2" opacity="0.5" />
   </>;
 }
 
-// 90° elbow fitting: quarter-circle arc
-// turn: "right-down" | "right-up" | "left-down" | "left-up"
-// cx,cy = center of the arc's circular origin
-function Elbow({ cx, cy, turn, s }: { cx: number; cy: number; turn: "right-down"|"right-up"|"left-down"|"left-up"; s: string }) {
-  const r = 10; // elbow radius (centerline)
-  // Outer arc = r+PR, inner arc = r-PR
+/*
+  ── 90° Elbow fitting ──
+
+  The elbow connects a vertical pipe to a horizontal pipe.
+  `corner` is the point where the two pipe CENTERLINES would intersect.
+  The elbow arc's center is offset from that corner by `ER` in the direction of the turn.
+
+  Turns (from pipe travel direction → new direction):
+    "up-to-right":   pipe going up, turns right  → arc center is (corner.x + ER, corner.y)
+    "down-to-right": pipe going down, turns right → arc center is (corner.x + ER, corner.y)
+    "down-to-left":  pipe going down, turns left  → arc center is (corner.x - ER, corner.y)
+    "up-to-left":    pipe going up, turns left    → arc center is (corner.x - ER, corner.y)
+
+  Each elbow draws TWO concentric arcs: outer (r=ER+PR) and inner (r=ER-PR).
+  The straight pipe segments must stop exactly at the elbow arc endpoints.
+*/
+const ER = 10; // elbow bend radius (centerline)
+
+function Elbow({ corner, turn, s }: {
+  corner: { x: number; y: number };
+  turn: "up-to-right" | "down-to-right" | "down-to-left" | "up-to-left";
+  s: string;
+}) {
+  const { x: cx, y: cy } = corner;
   let outerD = ""; let innerD = "";
-  // SVG arc: A rx ry x-rot large-arc sweep ex ey
+
+  /*
+    Arc endpoints and sweep direction per turn:
+
+    "up-to-right":
+      Vertical pipe comes from below going up → centerline at x=cx, arrives at y=cy+ER... wait.
+      Actually: pipe center is at x=cx going upward. It stops at corner.y.
+      Arc center = (cx+ER, cy).
+      Outer arc (r=ER+PR): starts at (cx+ER-(ER+PR), cy) = (cx-PR, cy) [left of arc center]
+                            ends at   (cx+ER, cy-(ER+PR))              [above arc center]
+      Inner arc (r=ER-PR): starts at (cx+ER-(ER-PR), cy) = (cx+PR, cy)
+                            ends at   (cx+ER, cy-(ER-PR))
+      Sweep: counterclockwise (sweep=0)
+  */
   switch(turn) {
-    case "right-down": // coming down, turning right → arc from top to right
-      outerD = `M ${cx - (r+PR)} ${cy} A ${r+PR} ${r+PR} 0 0 1 ${cx} ${cy + (r+PR)}`;
-      innerD = `M ${cx - (r-PR)} ${cy} A ${r-PR} ${r-PR} 0 0 1 ${cx} ${cy + (r-PR)}`;
+    case "up-to-right": {
+      // Vertical pipe going UP meets horizontal going RIGHT
+      // Arc center: (cx+ER, cy)
+      const acx = cx+ER;
+      outerD = `M ${acx-(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 1 ${acx} ${cy-(ER+PR)}`;
+      innerD = `M ${acx-(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 1 ${acx} ${cy-(ER-PR)}`;
       break;
-    case "right-up": // coming up, turning right → arc from bottom to right
-      outerD = `M ${cx - (r+PR)} ${cy} A ${r+PR} ${r+PR} 0 0 0 ${cx} ${cy - (r+PR)}`;
-      innerD = `M ${cx - (r-PR)} ${cy} A ${r-PR} ${r-PR} 0 0 0 ${cx} ${cy - (r-PR)}`;
+    }
+    case "down-to-right": {
+      // Vertical pipe going DOWN meets horizontal going RIGHT
+      // Arc center: (cx+ER, cy)
+      const acx = cx+ER;
+      outerD = `M ${acx-(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 0 ${acx} ${cy+(ER+PR)}`;
+      innerD = `M ${acx-(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 0 ${acx} ${cy+(ER-PR)}`;
       break;
-    case "left-down": // coming down, turning left
-      outerD = `M ${cx + (r+PR)} ${cy} A ${r+PR} ${r+PR} 0 0 0 ${cx} ${cy + (r+PR)}`;
-      innerD = `M ${cx + (r-PR)} ${cy} A ${r-PR} ${r-PR} 0 0 0 ${cx} ${cy + (r-PR)}`;
+    }
+    case "down-to-left": {
+      // Vertical pipe going DOWN meets horizontal going LEFT
+      // Arc center: (cx-ER, cy)
+      const acx = cx-ER;
+      outerD = `M ${acx+(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 1 ${acx} ${cy+(ER+PR)}`;
+      innerD = `M ${acx+(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 1 ${acx} ${cy+(ER-PR)}`;
       break;
-    case "left-up": // coming up, turning left
-      outerD = `M ${cx + (r+PR)} ${cy} A ${r+PR} ${r+PR} 0 0 1 ${cx} ${cy - (r+PR)}`;
-      innerD = `M ${cx + (r-PR)} ${cy} A ${r-PR} ${r-PR} 0 0 1 ${cx} ${cy - (r-PR)}`;
+    }
+    case "up-to-left": {
+      // Vertical pipe going UP meets horizontal going LEFT
+      // Arc center: (cx-ER, cy)
+      const acx = cx-ER;
+      outerD = `M ${acx+(ER+PR)} ${cy} A ${ER+PR} ${ER+PR} 0 0 0 ${acx} ${cy-(ER+PR)}`;
+      innerD = `M ${acx+(ER-PR)} ${cy} A ${ER-PR} ${ER-PR} 0 0 0 ${acx} ${cy-(ER-PR)}`;
       break;
+    }
   }
   return <>
-    <path d={outerD} stroke={s} strokeWidth="1.2" opacity="0.45" fill="none" />
-    <path d={innerD} stroke={s} strokeWidth="1.2" opacity="0.35" fill="none" />
+    <path d={outerD} stroke={s} strokeWidth="1.2" opacity="0.5" fill="none" />
+    <path d={innerD} stroke={s} strokeWidth="1.2" opacity="0.4" fill="none" />
   </>;
 }
 
-// Valve handwheel on a horizontal pipe
+// ── Flange ring (bolted joint between segments) ──
+function PipeFlange({ cx, cy, dir, s }: { cx: number; cy: number; dir: "h"|"v"; s: string }) {
+  if (dir === "v") return <>
+    <line x1={cx-PR-5} y1={cy-2} x2={cx+PR+5} y2={cy-2} stroke={s} strokeWidth="1.5" opacity="0.45" />
+    <line x1={cx-PR-5} y1={cy+2} x2={cx+PR+5} y2={cy+2} stroke={s} strokeWidth="1.5" opacity="0.45" />
+    <circle cx={cx-PR-3} cy={cy} r="1.5" fill={s} opacity="0.35" />
+    <circle cx={cx+PR+3} cy={cy} r="1.5" fill={s} opacity="0.35" />
+  </>;
+  return <>
+    <line x1={cx-2} y1={cy-PR-5} x2={cx-2} y2={cy+PR+5} stroke={s} strokeWidth="1.5" opacity="0.45" />
+    <line x1={cx+2} y1={cy-PR-5} x2={cx+2} y2={cy+PR+5} stroke={s} strokeWidth="1.5" opacity="0.45" />
+    <circle cx={cx} cy={cy-PR-3} r="1.5" fill={s} opacity="0.35" />
+    <circle cx={cx} cy={cy+PR+3} r="1.5" fill={s} opacity="0.35" />
+  </>;
+}
+
+// ── Valve handwheel ──
 function ValveWheel({ cx, cy, s }: { cx: number; cy: number; s: string }) {
   return <>
-    {/* Wheel rim */}
-    <circle cx={cx} cy={cy} r="9" stroke={s} strokeWidth="1.4" opacity="0.45" fill="none" />
-    {/* Spokes */}
-    <line x1={cx-9} y1={cy} x2={cx+9} y2={cy} stroke={s} strokeWidth="1" opacity="0.35" />
-    <line x1={cx} y1={cy-9} x2={cx} y2={cy+9} stroke={s} strokeWidth="1" opacity="0.35" />
-    <line x1={cx-6} y1={cy-6} x2={cx+6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.25" />
-    <line x1={cx+6} y1={cy-6} x2={cx-6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.25" />
-    {/* Hub */}
-    <circle cx={cx} cy={cy} r="2.5" fill={s} opacity="0.3" />
+    <circle cx={cx} cy={cy} r="9" stroke={s} strokeWidth="1.5" opacity="0.5" fill="none" />
+    <line x1={cx-9} y1={cy} x2={cx+9} y2={cy} stroke={s} strokeWidth="1" opacity="0.4" />
+    <line x1={cx} y1={cy-9} x2={cx} y2={cy+9} stroke={s} strokeWidth="1" opacity="0.4" />
+    <line x1={cx-6} y1={cy-6} x2={cx+6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.3" />
+    <line x1={cx+6} y1={cy-6} x2={cx-6} y2={cy+6} stroke={s} strokeWidth="0.8" opacity="0.3" />
+    <circle cx={cx} cy={cy} r="2.5" fill={s} opacity="0.35" />
   </>;
 }
 
-/* ── Still cap + lyne arm: up → right → down → right → off screen ── */
+/* ── Still cap + lyne arm: up → right → down → right → off screen ──
+   
+   Pipe centerline route:
+     Start: (COL_CX, lidY) — exits top of lid
+     Segment A: goes UP to corner1
+     Corner1: (COL_CX, lidY - riseH)  → turn "up-to-right"
+       arc center: (COL_CX + ER, lidY - riseH)
+       A ends at: y = corner1.y  (pipe stops at corner y)
+       B starts at: x = COL_CX + ER + ER = COL_CX + 2*ER  (arc center x + ER)
+     Segment B: goes RIGHT from x=(COL_CX+2*ER) to corner2.x
+     Corner2: (COL_CX + 2*ER + runB, corner1.y) → turn "right-to-down" (horizontal→vertical down)
+       arc center: (corner2.x, corner1.y + ER)
+       B ends at: x = corner2.x
+       C starts at: y = corner1.y + 2*ER
+     Segment C: goes DOWN from y=(corner1.y+2*ER) to corner3.y
+     Corner3: (corner2.x, corner1.y + 2*ER + dropC) → turn "down-to-right"
+       arc center: (corner2.x + ER, corner3.y)
+       C ends at: y = corner3.y
+       D starts at: x = corner2.x + 2*ER
+     Segment D: goes RIGHT from x=(corner2.x+2*ER) off screen
+*/
 function StillCap() {
   const S = "#C4943A";
   const lidX = COL_X - 10; const lidW = COL_W + 20;
   const lidY = 46; const lidH = 5;
 
-  // Pipe route (centerline):
-  // A: rises from lid top at COL_CX, up 22px
-  // Elbow 1 (right-up): turns right at top of vertical rise
-  // B: goes right 28px
-  // Elbow 2 (right-down): turns down
-  // C: drops 18px
-  // Elbow 3 (right-down → right): turns right at bottom of drop
-  // D: goes right off screen
-  const elbow = 10; // elbow centerline radius
-  const pipeStartX = COL_CX;
-  const pipeStartY = lidY;
-  const riseH = 22;
+  const riseH = 24;   // how far up segment A goes
+  const runB  = 20;   // length of horizontal segment B
+  const dropC = 16;   // how far down segment C goes
 
-  // A: vertical rise — from lidY up to (lidY - riseH)
-  const A_top = lidY - riseH;
-  // Elbow1 center: pipe goes up then turns right → elbow center is (pipeStartX + elbow, A_top)
-  const E1x = pipeStartX + elbow; const E1y = A_top;
-  // B: horizontal right from E1 — from (E1x) to (E1x + 28)
-  const B_right = E1x + 28;
-  // Elbow2 center: pipe goes right then turns down → (B_right, E1y + elbow)
-  const E2x = B_right; const E2y = E1y + elbow;
-  // C: vertical drop from E2y down 18px
-  const C_bot = E2y + 18;
-  // Elbow3 center: pipe goes down then turns right → (E2x + elbow, C_bot)
-  const E3x = E2x + elbow; const E3y = C_bot;
-  // D: horizontal from E3x right off screen
-  // Valve sits 24px into the horizontal run
-  const valveX = E3x + 24; const valveY = E3y;
+  // Corner positions (where centerlines intersect)
+  const c1 = { x: COL_CX, y: lidY - riseH };
+  const c2 = { x: c1.x + 2*ER + runB, y: c1.y };
+  const c3 = { x: c2.x, y: c1.y + 2*ER + dropC };
 
+  // Segment endpoints (stop before elbow arc starts)
+  const A_y2 = c1.y;           // segment A: from lidY going up to c1.y
+  const B_x1 = c1.x + 2*ER;   // segment B: from here going right
+  const B_x2 = c2.x;
+  const C_y1 = c1.y + 2*ER;   // segment C: from here going down
+  const C_y2 = c3.y;
+  const D_x1 = c2.x + 2*ER;   // segment D: from here going right off screen
+
+  const valveX = D_x1 + 26;
   const svgH = lidY + lidH + 4;
 
   return (
     <svg viewBox={`0 0 ${VIEWBOX_W} ${svgH}`} fill="none" overflow="visible"
       style={{ width: VIEWBOX_W, height: svgH, display: "block", overflow: "visible" }}>
 
-      {/* ── Lid ── */}
+      {/* Lid */}
       <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
       <line x1={lidX} y1={lidY} x2={lidX+lidW} y2={lidY} stroke={S} strokeWidth="1.8" opacity="0.4" />
       <line x1={lidX} y1={lidY+lidH} x2={lidX+lidW} y2={lidY+lidH} stroke={S} strokeWidth="1" opacity="0.2" />
       <line x1={lidX} y1={lidY} x2={lidX} y2={lidY+lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
       <line x1={lidX+lidW} y1={lidY} x2={lidX+lidW} y2={lidY+lidH} stroke={S} strokeWidth="1.5" opacity="0.4" />
-      {/* Column walls below lid */}
       <line x1={COL_X} y1={lidY+lidH} x2={COL_X} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.4" />
       <line x1={COL_X+COL_W} y1={lidY+lidH} x2={COL_X+COL_W} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.4" />
       <rect x={COL_X} y={lidY+lidH} width={COL_W} height={svgH-lidY-lidH} fill="url(#hwh-copper)" />
 
-      {/* ── Segment A: vertical rise ── */}
-      <VPipe cx={pipeStartX} y1={A_top} y2={lidY} s={S} />
-      <PipeFlange cx={pipeStartX} cy={lidY - 4} dir="v" s={S} />
+      {/* Segment A: vertical rise from lid top */}
+      <VPipe cx={COL_CX} y1={A_y2} y2={lidY} s={S} />
+      <PipeFlange cx={COL_CX} cy={lidY-4} dir="v" s={S} />
 
-      {/* ── Elbow 1: up → right ── */}
-      <Elbow cx={E1x} cy={E1y} turn="right-up" s={S} />
+      {/* Elbow 1: up-to-right — corner at c1 */}
+      <Elbow corner={c1} turn="up-to-right" s={S} />
 
-      {/* ── Segment B: horizontal right ── */}
-      <HPipe x1={E1x} x2={B_right} cy={E1y} s={S} />
-      <PipeFlange cx={E1x + 8} cy={E1y} dir="h" s={S} />
+      {/* Segment B: horizontal right */}
+      <HPipe x1={B_x1} x2={B_x2} cy={c1.y} s={S} />
+      <PipeFlange cx={B_x1 + (B_x2-B_x1)/2} cy={c1.y} dir="h" s={S} />
 
-      {/* ── Elbow 2: right → down ── */}
-      <Elbow cx={E2x} cy={E2y} turn="right-down" s={S} />
+      {/* Elbow 2: right-to-down — pipe going right turns down
+          For "right-to-down": arc center is (c2.x, c2.y+ER), same as "down-to-right" mirrored
+          Outer arc: M(c2.x, c2.y-PR) → A(ER+PR) → (c2.x+ER+PR, c2.y+ER) ... 
+          Actually this is "horizontal→down" = pipe was going right, now goes down.
+          Arc center = (c2.x, c2.y+ER).
+          Outer: starts at (c2.x, c2.y-(ER+PR)) ... no.
+          
+          Think of it: coming FROM LEFT going RIGHT, hitting corner c2, turning DOWN.
+          The pipe was horizontal (going right), now vertical (going down).
+          Arc center offset: below c2 → (c2.x, c2.y + ER)... but we need pipe walls to connect.
+          
+          Horizontal pipe right wall is at cy+PR. Arc must start there.
+          Arc center = (c2.x, c2.y+ER).
+          Outer arc (ER+PR): starts at (c2.x-(ER+PR), c2.y+ER) — no that's wrong too.
+          
+          Correct: for a right→down elbow, arc center = (c2.x, c2.y+ER).
+          Top of arc (where horiz pipe ends): (c2.x - (ER+PR) ... 
+          
+          Let me use a path-based approach for this elbow instead:
+      */}
+      {/* Elbow 2: right→down via path (more reliable) */}
+      {(() => {
+        const acx = c2.x; const acy = c2.y + ER;
+        // Outer wall (ER+PR radius): from (acx-(ER+PR), acy) clockwise to (acx, acy-(ER+PR))... 
+        // wait, going right→down means:
+        // horiz pipe: top wall at cy-PR, bottom wall at cy+PR, both ending at x=c2.x
+        // vert pipe below: left wall at cx-PR, right wall at cx+PR, starting at y=c2.y+2*ER (= C_y1)
+        // Arc center for outer corner (outside of bend) = (c2.x - PR, c2.y + PR) ... 
+        // 
+        // Simplest correct approach: use two separate arcs for the two walls.
+        // For right→down: 
+        //   OUTER wall of bend (top-right corner): arc center=(c2.x, c2.y), r=PR, 90° CW
+        //     from (c2.x, c2.y-PR) to (c2.x+PR, c2.y) — this is WRONG direction
+        // 
+        // Let me think in terms of which wall is on the outside of the curve:
+        // Pipe going RIGHT then turning DOWN: the outside of the curve is the TOP-RIGHT.
+        // Outer wall arc: large radius = ER+PR, center = (c2.x, c2.y+ER)
+        //   starts at (c2.x-(ER+PR), c2.y+ER)... no.
+        //
+        // OK I'll use a single-stroke approach with two path lines closing around the bend:
+        const ro = ER + PR; // outer radius
+        const ri = ER - PR; // inner radius
+        // Arc center at (c2.x, c2.y + ER) — below corner
+        // Outer arc: from top (c2.x, c2.y+ER - ro) = (c2.x, c2.y+ER-ER-PR) = (c2.x, c2.y-PR)
+        //            sweeps CW to right: (c2.x + ro, c2.y+ER) = (c2.x+ER+PR, c2.y+ER)
+        // Inner arc: from (c2.x, c2.y-PR+2PR) = (c2.x, c2.y+PR)  
+        //            sweeps CW to (c2.x+ER-PR, c2.y+ER)
+        const outerD = `M ${c2.x} ${c2.y-PR} A ${ro} ${ro} 0 0 1 ${c2.x+ro} ${c2.y+ER}`;
+        const innerD = `M ${c2.x} ${c2.y+PR} A ${ri} ${ri} 0 0 1 ${c2.x+ri} ${c2.y+ER}`;
+        return <>
+          <path d={outerD} stroke={S} strokeWidth="1.2" opacity="0.5" fill="none" />
+          <path d={innerD} stroke={S} strokeWidth="1.2" opacity="0.4" fill="none" />
+        </>;
+      })()}
 
-      {/* ── Segment C: vertical drop ── */}
-      <VPipe cx={E2x} y1={E2y} y2={C_bot} s={S} />
-      <PipeFlange cx={E2x} cy={E2y + 10} dir="v" s={S} />
+      {/* Segment C: vertical drop */}
+      <VPipe cx={c2.x} y1={C_y1} y2={C_y2} s={S} />
+      <PipeFlange cx={c2.x} cy={C_y1 + (C_y2-C_y1)/2} dir="v" s={S} />
 
-      {/* ── Elbow 3: down → right ── */}
-      <Elbow cx={E3x} cy={E3y} turn="right-down" s={S} />
+      {/* Elbow 3: down-to-right — corner at c3 */}
+      <Elbow corner={c3} turn="down-to-right" s={S} />
 
-      {/* ── Segment D: horizontal off right edge ── */}
-      <HPipe x1={E3x} x2={600} cy={E3y} s={S} />
-      <PipeFlange cx={E3x + 10} cy={E3y} dir="h" s={S} />
+      {/* Segment D: horizontal right off screen */}
+      <HPipe x1={D_x1} x2={600} cy={c3.y} s={S} />
+      <PipeFlange cx={D_x1+8} cy={c3.y} dir="h" s={S} />
 
-      {/* ── Valve handwheel ── */}
-      <ValveWheel cx={valveX} cy={valveY} s={S} />
+      {/* Valve */}
+      <ValveWheel cx={valveX} cy={c3.y} s={S} />
     </svg>
   );
 }
@@ -435,22 +531,51 @@ function Flange() {
   );
 }
 
-/* ── Spout + product pipe: down → elbow left → off left edge ── */
+/* ── Spout + product pipe: down → elbow left → off left edge ──
+   
+   Pipe going DOWN turns LEFT:
+   Corner c = (COL_CX, spoutOutY + dropA)
+   Arc center = (c.x - ER, c.y)
+   Outer arc (ER+PR): from (c.x, c.y-(ER+PR))... 
+   
+   Actually for down→left:
+   Vertical pipe going down, left wall at cx-PR, right wall at cx+PR.
+   It meets corner c. Now turns left (horizontal going LEFT).
+   Arc center = (c.x - ER, c.y).
+   Outer wall of bend (right side of vert pipe / top of horiz pipe):
+     arc center offset: the outer wall is at cx+PR going down, and cy-PR going left.
+     Use ER+PR for outside arc, ER-PR for inside arc.
+   Outside arc (ER+PR): from (c.x+PR, c.y) going to (c.x-ER, c.y+PR+ER)... 
+   
+   Correct:
+   Arc center = (c.x-ER, c.y).
+   Outer arc r=(ER+PR): starts at (c.x-ER+(ER+PR), c.y) = (c.x+PR, c.y)
+                         ends at   (c.x-ER, c.y+(ER+PR))
+   Sweep: clockwise (1) going from right side down
+   Inner arc r=(ER-PR): starts at (c.x-ER+(ER-PR), c.y) = (c.x-PR, c.y)
+                         ends at   (c.x-ER, c.y+(ER-PR))
+   Sweep: clockwise (1)
+*/
 function StillSpout() {
   const S = "#C4943A";
-  const elbow = 10;
   const spoutOutY = 52;
-  const spoutOutX = COL_CX;
+  const dropA = 18; // vertical drop before elbow
 
-  // Pipe route:
-  // A: short vertical drop from spout outlet
-  const A_bot = spoutOutY + 16;
-  // Elbow: down → left, center at (spoutOutX - elbow, A_bot)
-  const Ex = spoutOutX - elbow; const Ey = A_bot;
-  // B: horizontal left off screen, valve 24px in
-  const valveX = Ex - 24; const valveY = Ey;
+  const c = { x: COL_CX, y: spoutOutY + dropA }; // corner
+  // Elbow arc center
+  const acx = c.x - ER; const acy = c.y;
+  const ro = ER + PR; const ri = ER - PR;
+  // Outer arc: from (c.x+PR, c.y) CW to (acx, c.y+ro) = (c.x-ER, c.y+ER+PR)
+  const outerArc = `M ${c.x+PR} ${acy} A ${ro} ${ro} 0 0 1 ${acx} ${acy+ro}`;
+  // Inner arc: from (c.x-PR, c.y) CW to (acx, c.y+ri) = (c.x-ER, c.y+ER-PR)
+  const innerArc = `M ${c.x-PR} ${acy} A ${ri} ${ri} 0 0 1 ${acx} ${acy+ri}`;
 
-  const svgH = A_bot + elbow + PR + 8;
+  // Horizontal segment B exits elbow going left at y = c.y + ER (centerline)
+  const hCY = c.y + ER;
+  const B_x2 = c.x - 2*ER; // segment B ends here (elbow fills the rest)
+
+  const valveX = B_x2 - 22;
+  const svgH = c.y + ER + PR + 10;
 
   return (
     <svg viewBox={`0 0 ${VIEWBOX_W} ${svgH}`} fill="none" overflow="visible"
@@ -462,26 +587,27 @@ function StillSpout() {
       <rect x={COL_X} y="0" width={COL_W} height="22" fill="url(#hwh-copper)" />
 
       {/* Converging spout walls */}
-      <path d={`M${COL_X} 22 L${spoutOutX-5} 44 L${spoutOutX-5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-      <path d={`M${COL_X+COL_W} 22 L${spoutOutX+5} 44 L${spoutOutX+5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-      <path d={`M${COL_X} 22 L${spoutOutX-5} 44 L${spoutOutX-5} ${spoutOutY} L${spoutOutX+5} ${spoutOutY} L${spoutOutX+5} 44 L${COL_X+COL_W} 22 Z`} fill={S} opacity="0.04" />
+      <path d={`M${COL_X} 22 L${COL_CX-5} 44 L${COL_CX-5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+      <path d={`M${COL_X+COL_W} 22 L${COL_CX+5} 44 L${COL_CX+5} ${spoutOutY}`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+      <path d={`M${COL_X} 22 L${COL_CX-5} 44 L${COL_CX-5} ${spoutOutY} L${COL_CX+5} ${spoutOutY} L${COL_CX+5} 44 L${COL_X+COL_W} 22 Z`} fill={S} opacity="0.04" />
 
       {/* Outlet flange */}
-      <line x1={spoutOutX-PR-4} y1={spoutOutY} x2={spoutOutX+PR+4} y2={spoutOutY} stroke={S} strokeWidth="1.5" opacity="0.4" />
+      <line x1={COL_CX-PR-4} y1={spoutOutY} x2={COL_CX+PR+4} y2={spoutOutY} stroke={S} strokeWidth="1.5" opacity="0.4" />
 
-      {/* ── Segment A: short vertical drop ── */}
-      <VPipe cx={spoutOutX} y1={spoutOutY} y2={A_bot} s={S} />
-      <PipeFlange cx={spoutOutX} cy={spoutOutY + 8} dir="v" s={S} />
+      {/* Segment A: vertical drop to corner */}
+      <VPipe cx={COL_CX} y1={spoutOutY} y2={c.y} s={S} />
+      <PipeFlange cx={COL_CX} cy={spoutOutY+8} dir="v" s={S} />
 
-      {/* ── Elbow: down → left ── */}
-      <Elbow cx={Ex} cy={Ey} turn="left-down" s={S} />
+      {/* Elbow: down→left */}
+      <path d={outerArc} stroke={S} strokeWidth="1.2" opacity="0.5" fill="none" />
+      <path d={innerArc} stroke={S} strokeWidth="1.2" opacity="0.4" fill="none" />
 
-      {/* ── Segment B: horizontal left off screen ── */}
-      <HPipe x1={-600} x2={Ex} cy={Ey} s={S} />
-      <PipeFlange cx={Ex - 10} cy={Ey} dir="h" s={S} />
+      {/* Segment B: horizontal left off screen */}
+      <HPipe x1={-600} x2={B_x2} cy={hCY} s={S} />
+      <PipeFlange cx={B_x2 - 10} cy={hCY} dir="h" s={S} />
 
-      {/* ── Valve handwheel ── */}
-      <ValveWheel cx={valveX} cy={valveY} s={S} />
+      {/* Valve */}
+      <ValveWheel cx={valveX} cy={hCY} s={S} />
     </svg>
   );
 }
