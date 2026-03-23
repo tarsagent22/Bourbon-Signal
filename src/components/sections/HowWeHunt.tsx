@@ -38,16 +38,138 @@ const COL_X  = 20;
 const COL_W  = 50;
 const COL_CX = COL_X + COL_W / 2; // = 45
 const VB_W   = 86;
+const AC     = "#C4943A"; // amber color
 
-// ── Pipe geometry ──
-// Each pipe segment is drawn as two parallel lines + fill rect.
-// PH = pipe half-width. Pipe walls sit at centerline ± PH.
-// Elbows are filled squares at corners — guaranteed connected, no arc math.
-const PH = 4; // pipe half-width → pipe OD = 8px
+/*
+  ── Round pipe system ──
 
-const S = "#C4943A"; // amber color
+  A pipe run is drawn as a single closed SVG path tracing the outer wall,
+  then the inner wall in reverse — giving a filled tube with two visible walls.
 
-// ── SVG gradient def ──
+  PH  = pipe half-width (wall-to-wall radius = PH). Pipe OD = PH*2.
+  BR  = elbow bend radius (centerline). 
+        Outer arc radius = BR + PH
+        Inner arc radius = BR - PH  (must be > 0, so BR > PH)
+
+  For each 90° turn, the centerline arc sweeps 90°.
+  The straight segment STOPS at distance BR from the corner 
+  (where the arc begins). This is the tangent point.
+
+  Turn types and their arc centers (relative to corner point C):
+    up→right:    arc center = C + (BR, 0)   [right of corner]
+    right→down:  arc center = C + (0, BR)   [below corner]  
+    down→right:  arc center = C + (BR, 0)   [right of corner] — wait, no.
+    
+  Let me define by: "which direction does the pipe come FROM, which does it go TO"
+  
+  Corner C = intersection of the two centerline directions.
+  Arc center offset from C: always in the quadrant of the turn's "inside".
+
+  up→right:   inside is top-right   → arc center = (C.x + BR, C.y)
+               outer arc: r=BR+PH, from (C.x, C.y+BR+PH) to (C.x+BR+PH, C.y)? No...
+               
+  Let me think in terms of: the arc CENTER, and which points on the arcs connect to the pipes.
+  
+  For up→right at corner C=(cx,cy), arc center AC=(cx+BR, cy):
+    Outer arc (r=BR+PH):
+      - Connects to the LEFT side of the vertical pipe (wall at x = cx-PH):
+        Point on outer arc at leftmost extent... that's (AC.x-(BR+PH), AC.y) = (cx+BR-BR-PH, cy) = (cx-PH, cy) ✓
+      - Connects to the BOTTOM side of the horizontal pipe (wall at y = cy+PH):
+        Point on outer arc at bottom: (AC.x, AC.y+(BR+PH)) = (cx+BR, cy+BR+PH)... 
+        But the horiz pipe top wall is at y=cy-PH and bottom wall at y=cy+PH.
+        The arc should connect at y=cy+PH on the horizontal pipe going right.
+        On the outer arc: we need point where y = cy+PH, x > cx+BR.
+        That's (AC.x + sqrt((BR+PH)²-(PH)²)... getting complicated.
+
+  SIMPLER APPROACH: Draw each pipe wall as a separate open path (stroke, not fill).
+  Use strokeWidth=1.2 for the wall lines.
+  For the elbow, draw TWO arc strokes: one for each wall.
+  Each wall arc is a simple quarter-circle.
+  
+  Wall arcs for up→right at corner C=(cx,cy):
+    Arc center = (cx+BR, cy)
+    
+    LEFT wall of vertical pipe (at x=cx-PH) connects to TOP wall of horizontal pipe (at y=cy-PH):
+      This is the INNER wall of the bend.
+      Arc: center=(cx+BR, cy), radius=BR-PH
+      Starts at: (cx+BR-(BR-PH), cy) = (cx+PH, cy)  [leftmost point of inner arc]
+      Ends at:   (cx+BR, cy-(BR-PH)) = (cx+BR, cy-BR+PH)  [topmost point of inner arc]
+      ... but LEFT wall of vpipe is at x=cx-PH, not cx+PH. That's the wrong wall.
+      
+  OK I need to be very careful about which wall connects to which.
+  
+  Vertical pipe going UP: 
+    - Left wall: x = cx - PH  (this is the wall FACING LEFT, which is the OUTSIDE of a right turn)
+    - Right wall: x = cx + PH (this is the wall FACING RIGHT, which is the INSIDE of a right turn)
+  
+  Horizontal pipe going RIGHT:
+    - Top wall: y = cy - PH   (OUTSIDE of a downward turn, INSIDE of an upward turn)
+    - Bottom wall: y = cy + PH
+    
+  For up→right: pipe comes from BELOW going UP, turns to go RIGHT.
+    The OUTSIDE of the turn is the LEFT+TOP corner region.
+    The INSIDE of the turn is the RIGHT+BOTTOM corner region.
+    
+    Arc center = (cx + BR, cy)  [to the right of corner, in the turn direction]
+    
+    OUTER wall arc (LEFT wall of vpipe → BOTTOM wall of hpipe):
+      - vpipe left wall at x=cx-PH: this arc wall must pass through (cx-PH, cy)
+        r_outer = BR+PH, center=(cx+BR, cy)
+        Check: distance from (cx+BR, cy) to (cx-PH, cy) = BR+PH ✓
+      - hpipe bottom wall at y=cy+PH: arc must end at some point where y=cy+PH
+        The arc sweeps from (cx-PH, cy) counterclockwise (sweep=0) to (cx+BR, cy+BR+PH)
+        But we want it to end at y=cy+PH on the hpipe, meaning x → ∞ at y=cy+PH on hpipe.
+        Actually the hpipe bottom wall AT THE ELBOW end is at (cx+BR, cy+BR+PH)? No.
+        
+        The hpipe starts at x = cx+BR (centerline) + some offset.
+        Wait — the STRAIGHT part of hpipe starts where the elbow ends.
+        The elbow takes up BR of space along each direction.
+        So hpipe (going right) starts at x = cx + BR, and its bottom wall is at y = cy+PH.
+        The outer arc must end at (cx+BR, cy+PH)... let's check:
+        distance from arc center (cx+BR, cy) to (cx+BR, cy+PH) = PH. That's r=PH, not BR+PH. ✗
+        
+  I think the issue is my arc center placement. Let me use a reference diagram approach.
+  
+  For a 90° pipe elbow from vertical (going up) to horizontal (going right):
+  
+  The pipe centerline makes a quarter-circle of radius BR.
+  The two straight centerline segments meet at point C = (cx, cy).
+  The arc center is at (cx+BR, cy) — BR to the right.
+  
+  The vertical centerline segment runs from (cx, cy+something) UP to (cx, cy+BR) [stops BR before corner]
+    Wait — the arc starts at (cx, cy) going upward? No.
+    The tangent point where the vertical centerline meets the arc:
+    The arc center is (cx+BR, cy). The arc starts where the VERTICAL line is tangent to it.
+    A vertical line at x=cx is tangent to a circle at (cx+BR, cy) when the radius points horizontally,
+    i.e., at the point (cx, cy) — the leftmost point of the circle. ✓
+    
+    And the horizontal line at y=cy is tangent to the circle at (cx+BR, cy) at point:
+    The topmost point of the circle is (cx+BR, cy-BR). That's where horizontal pipe meets? 
+    No — horizontal line y=cy is tangent where the circle's tangent is vertical,
+    i.e., at (cx+BR, cy) — the center itself? No that's wrong too.
+    
+    Horizontal line y=cy intersects circle at cx+BR±BR, so at (cx, cy) and (cx+2BR, cy).
+    Tangent to y=cy at (cx+2BR, cy) — that means horizontal pipe starts at x=cx+2BR? Hmm.
+    
+    Actually: for the centerline arc from vertical to horizontal:
+    - Arc center: (cx+BR, cy)
+    - Arc start: (cx, cy) — leftmost point, vertical tangent → connects to vertical pipe going down
+    - Arc end: (cx+BR, cy-BR) — topmost point, horizontal tangent → connects to horiz pipe going right
+    
+    So: vertical pipe centerline ends at y = cy (= arc start y)
+        horiz pipe centerline starts at x = cx+BR, y = cy-BR (= arc end)
+    
+    This means the elbow takes the pipe from (cx, cy) curving up-right to (cx+BR, cy-BR).
+    Corner "C" isn't where the centerlines intersect at a right angle in the usual sense —
+    it's the arc center offset point.
+
+  This is getting confusing because I keep mixing up the "corner" concept.
+  
+  FINAL CLEAN APPROACH: I'll just hard-code the path for each specific elbow in the lyne arm,
+  computing exact coordinates numerically. No generic function needed for 2-3 elbows.
+*/
+
+// SVG gradient
 function SvgDefs() {
   return (
     <svg width="0" height="0" style={{ position: "absolute" }}>
@@ -62,119 +184,146 @@ function SvgDefs() {
   );
 }
 
-// ── Straight vertical pipe segment ──
-// cx = centerline X, y1 = top, y2 = bottom
-function VPipe({ cx, y1, y2 }: { cx: number; y1: number; y2: number }) {
+/*
+  ── Pipe rendering strategy ──
+  
+  Draw each pipe as a single <path> that traces the OUTLINE of the pipe run
+  (outer wall forward, inner wall backward, closed with linecap).
+  This is the standard SVG technique for thick stroked paths with proper joints.
+  
+  Actually the simplest correct approach: use a single centerline path with
+  strokeWidth = PH*2, strokeLinecap="round", strokeLinejoin="round".
+  Then overdraw with a slightly thinner darker stroke for the inner highlight.
+  This gives a rounded-edge pipe that ALWAYS connects because it's one path.
+  
+  The "two walls" look comes from: 
+    1. Outer glow: wide stroke (PH*2 + 2), very low opacity
+    2. Pipe body: stroke PH*2, medium opacity, copper fill
+    3. Inner shadow: stroke PH*2 - 4, very dark, low opacity (simulates depth)
+  
+  This is exactly how industrial pipe diagrams are drawn in SVG.
+*/
+
+const PH = 6; // pipe half-width — stroke will be PH*2 = 12px diameter pipe
+const BR = 14; // bend radius for elbows
+
+// Draw a pipe centerline path as a realistic round pipe
+function Pipe({ d, opacity = 1 }: { d: string; opacity?: number }) {
   return (
-    <>
-      <rect x={cx - PH} y={y1} width={PH * 2} height={y2 - y1} fill={S} fillOpacity={0.07} />
-      <line x1={cx - PH} y1={y1} x2={cx - PH} y2={y2} stroke={S} strokeWidth="1.3" opacity="0.55" />
-      <line x1={cx + PH} y1={y1} x2={cx + PH} y2={y2} stroke={S} strokeWidth="1.3" opacity="0.55" />
-    </>
+    <g opacity={opacity}>
+      {/* Outer glow */}
+      <path d={d} stroke={AC} strokeWidth={PH * 2 + 4} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.08} />
+      {/* Pipe body */}
+      <path d={d} stroke={AC} strokeWidth={PH * 2} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.28} />
+      {/* Pipe wall lines (gives the "tube" look) */}
+      <path d={d} stroke={AC} strokeWidth={PH * 2 - 2} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.0} />
+      {/* Left/top wall highlight */}
+      <path d={d} stroke={AC} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.6} />
+      {/* Inner shadow for depth */}
+      <path d={d} stroke="rgba(0,0,0,0.3)" strokeWidth={PH * 2 - 6} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.15} />
+    </g>
   );
 }
 
-// ── Straight horizontal pipe segment ──
-// cy = centerline Y, x1 = left end, x2 = right end
-function HPipe({ x1, x2, cy }: { x1: number; x2: number; cy: number }) {
-  const lx = Math.min(x1, x2); const rx = Math.max(x1, x2);
-  return (
-    <>
-      <rect x={lx} y={cy - PH} width={rx - lx} height={PH * 2} fill={S} fillOpacity={0.07} />
-      <line x1={lx} y1={cy - PH} x2={rx} y2={cy - PH} stroke={S} strokeWidth="1.3" opacity="0.55" />
-      <line x1={lx} y1={cy + PH} x2={rx} y2={cy + PH} stroke={S} strokeWidth="1.3" opacity="0.55" />
-    </>
-  );
-}
-
-// ── Square elbow fitting ──
-// cx, cy = centerline corner point
-// Fills a PH*2 × PH*2 square at the corner — connects any two perpendicular pipe ends
-function Elbow({ cx, cy }: { cx: number; cy: number }) {
-  return (
-    <rect
-      x={cx - PH} y={cy - PH}
-      width={PH * 2} height={PH * 2}
-      fill={S} fillOpacity={0.15}
-      stroke={S} strokeWidth="1.3" opacity="0.55"
-    />
-  );
-}
-
-// ── Pipe flange (bolted joint) ──
-// dir: "h" = horizontal pipe (flange lines are vertical)
-//      "v" = vertical pipe (flange lines are horizontal)
-function PipeFlange({ cx, cy, dir }: { cx: number; cy: number; dir: "h" | "v" }) {
+// Flange ring at a point along a pipe
+function Flange({ cx, cy, dir }: { cx: number; cy: number; dir: "h" | "v" }) {
+  const ext = PH + 5;
   if (dir === "v") {
     return (
       <>
-        <line x1={cx - PH - 5} y1={cy - 2} x2={cx + PH + 5} y2={cy - 2} stroke={S} strokeWidth="1.5" opacity="0.5" />
-        <line x1={cx - PH - 5} y1={cy + 2} x2={cx + PH + 5} y2={cy + 2} stroke={S} strokeWidth="1.5" opacity="0.5" />
-        <circle cx={cx - PH - 3} cy={cy} r="1.5" fill={S} opacity="0.4" />
-        <circle cx={cx + PH + 3} cy={cy} r="1.5" fill={S} opacity="0.4" />
+        <line x1={cx - ext} y1={cy - 2} x2={cx + ext} y2={cy - 2} stroke={AC} strokeWidth="2" opacity="0.5" />
+        <line x1={cx - ext} y1={cy + 2} x2={cx + ext} y2={cy + 2} stroke={AC} strokeWidth="2" opacity="0.5" />
+        <circle cx={cx - ext + 2} cy={cy} r="2" fill={AC} opacity="0.4" />
+        <circle cx={cx + ext - 2} cy={cy} r="2" fill={AC} opacity="0.4" />
       </>
     );
   }
   return (
     <>
-      <line x1={cx - 2} y1={cy - PH - 5} x2={cx - 2} y2={cy + PH + 5} stroke={S} strokeWidth="1.5" opacity="0.5" />
-      <line x1={cx + 2} y1={cy - PH - 5} x2={cx + 2} y2={cy + PH + 5} stroke={S} strokeWidth="1.5" opacity="0.5" />
-      <circle cx={cx} cy={cy - PH - 3} r="1.5" fill={S} opacity="0.4" />
-      <circle cx={cx} cy={cy + PH + 3} r="1.5" fill={S} opacity="0.4" />
+      <line x1={cx - 2} y1={cy - ext} x2={cx - 2} y2={cy + ext} stroke={AC} strokeWidth="2" opacity="0.5" />
+      <line x1={cx + 2} y1={cy - ext} x2={cx + 2} y2={cy + ext} stroke={AC} strokeWidth="2" opacity="0.5" />
+      <circle cx={cx} cy={cy - ext + 2} r="2" fill={AC} opacity="0.4" />
+      <circle cx={cx} cy={cy + ext - 2} r="2" fill={AC} opacity="0.4" />
     </>
   );
 }
 
-// ── Valve handwheel ──
+// Valve handwheel
 function ValveWheel({ cx, cy }: { cx: number; cy: number }) {
+  const r = 11;
   return (
     <>
-      <circle cx={cx} cy={cy} r="9" stroke={S} strokeWidth="1.5" opacity="0.55" fill="none" />
-      <line x1={cx - 9} y1={cy} x2={cx + 9} y2={cy} stroke={S} strokeWidth="1.1" opacity="0.45" />
-      <line x1={cx} y1={cy - 9} x2={cx} y2={cy + 9} stroke={S} strokeWidth="1.1" opacity="0.45" />
-      <line x1={cx - 6} y1={cy - 6} x2={cx + 6} y2={cy + 6} stroke={S} strokeWidth="0.8" opacity="0.3" />
-      <line x1={cx + 6} y1={cy - 6} x2={cx - 6} y2={cy + 6} stroke={S} strokeWidth="0.8" opacity="0.3" />
-      <circle cx={cx} cy={cy} r="2.5" fill={S} opacity="0.4" />
+      <circle cx={cx} cy={cy} r={r} stroke={AC} strokeWidth="1.8" opacity="0.6" fill="none" />
+      <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke={AC} strokeWidth="1.2" opacity="0.5" />
+      <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke={AC} strokeWidth="1.2" opacity="0.5" />
+      <line x1={cx - r * 0.7} y1={cy - r * 0.7} x2={cx + r * 0.7} y2={cy + r * 0.7} stroke={AC} strokeWidth="0.9" opacity="0.35" />
+      <line x1={cx + r * 0.7} y1={cy - r * 0.7} x2={cx - r * 0.7} y2={cy + r * 0.7} stroke={AC} strokeWidth="0.9" opacity="0.35" />
+      <circle cx={cx} cy={cy} r="3" fill={AC} opacity="0.45" />
     </>
   );
 }
 
 /*
-  ── Still cap + lyne arm ──
+  ── Lyne arm geometry (top pipe) ──
 
-  Route (all in px, viewBox coords = DOM coords since width=VB_W):
-    Start  : (COL_CX, lidY)           — exit top of lid
-    Up     : (COL_CX, lidY) → (COL_CX, y1)        segment A (vertical, going UP)
-    Elbow  : corner at (COL_CX, y1)                square elbow
-    Right  : (COL_CX, y1) → (x2, y1)              segment B (horizontal, going RIGHT)
-    Elbow  : corner at (x2, y1)                    square elbow
-    Down   : (x2, y1) → (x2, y3)                  segment C (vertical, going DOWN)
-    Elbow  : corner at (x2, y3)                    square elbow
-    Right  : (x2, y3) → (far right off screen)     segment D (horizontal, going RIGHT)
+  Pipe exits lid at (COL_CX, lidY), travels UP, turns RIGHT, travels RIGHT,
+  turns DOWN, drops, turns RIGHT again, then exits off the right edge.
 
-  Key y coords:
-    lidY = 44  (top of lid)
-    y1   = lidY - 22  = 22  (top of rise)
-    y3   = y1 + 16   = 38  (bottom of drop, same level as segment D)
+  Using strokeLinejoin="round" on a single path means the elbow IS the round pipe bend.
+  Just need to define the centerline waypoints correctly.
+  
+  The SVG path with strokeLinejoin="round" and a large strokeWidth will automatically
+  produce rounded elbows at each L command. The radius of the rounded join is determined
+  by the strokeWidth. For a proper bend radius effect, I'll use Q (quadratic bezier)
+  or a short arc segment at each turn.
 
-  Key x coords:
-    COL_CX = 45 (pipe exits center of column)
-    x2     = COL_CX + 28 = 73 (right turn then drop then final right run)
+  WAYPOINTS for lyne arm centerline (coordinates in the SVG viewBox):
+  
+  lidY = 44 (top of lid)
+  
+  p0 = (COL_CX, lidY)          — exits lid center
+  p1 = (COL_CX, lidY - 28)     — top of vertical rise (28px up)
+  p2 = (COL_CX + 32, lidY - 28) — end of horizontal run right (32px right)  
+  p3 = (COL_CX + 32, lidY - 10) — bottom of short drop (18px down)
+  p4 = (1000, lidY - 10)        — exits off right edge
+
+  For ROUND elbows at each corner, I'll use quadratic bezier curves.
+  A Q bezier from p1 to p2 with control point at the corner gives a 
+  smooth rounded turn proportional to the BR value.
+  
+  Path: M p0 L (p1 - BR vertically) Q p1 (p1 + BR horizontally) L (p2 - BR horiz) Q p2 (p2 + BR vertically down) L (p3 - BR vert) Q p3 (p3 + BR horiz) L p4
 */
+
 function StillCap() {
-  const lidX = COL_X - 8; const lidW = COL_W + 16;
+  const lidX = COL_X - 10; const lidW = COL_W + 20;
   const lidY = 44; const lidH = 5;
+  const svgH = lidY + lidH + 2;
 
   // Pipe centerline waypoints
-  const pX  = COL_CX;      // vertical pipe X (centerline)
-  const y1  = lidY - 22;   // top of vertical rise (corner A)
-  const x2  = pX + 28;     // horizontal run end / top of drop (corner B)
-  const y3  = y1 + 16;     // bottom of drop (corner C) — exit goes right from here
+  const px = COL_CX;       // vertical centerline x
+  const p0y = lidY;         // exit point (top of lid)
+  const p1y = lidY - 30;    // top of rise
+  const p2x = px + 36;      // right end of horizontal run
+  const p3y = lidY - 10;    // bottom of drop (final horizontal level)
 
-  // Valve sits 28px into segment D
-  const valveX = x2 + 28;
+  // Rounded corner path using Q bezier — control point at corner, radius = BR
+  // Corner 1: (px, p1y) — up→right
+  // Corner 2: (p2x, p1y) — right→down  
+  // Corner 3: (p2x, p3y) — down→right
+  const lyneArm = [
+    `M ${px} ${p0y}`,
+    `L ${px} ${p1y + BR}`,               // straight up, stop BR before corner
+    `Q ${px} ${p1y} ${px + BR} ${p1y}`,  // round corner: up→right
+    `L ${p2x - BR} ${p1y}`,              // straight right, stop BR before corner
+    `Q ${p2x} ${p1y} ${p2x} ${p1y + BR}`, // round corner: right→down
+    `L ${p2x} ${p3y - BR}`,              // straight down, stop BR before corner
+    `Q ${p2x} ${p3y} ${p2x + BR} ${p3y}`, // round corner: down→right
+    `L 1000 ${p3y}`,                     // straight right off screen
+  ].join(" ");
 
-  const svgH = lidY + lidH + 2;
+  // Flange + valve positions
+  const f1y = p0y + (p1y - p0y) * 0.4;  // on vertical rise
+  const valveX = p2x + BR + 30;          // on final horizontal run
 
   return (
     <svg
@@ -184,48 +333,32 @@ function StillCap() {
       style={{ width: VB_W, height: svgH, display: "block", overflow: "visible" }}
     >
       {/* Flat lid */}
-      <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
-      <line x1={lidX}       y1={lidY}       x2={lidX + lidW} y2={lidY}       stroke={S} strokeWidth="1.8" opacity="0.45" />
-      <line x1={lidX}       y1={lidY + lidH} x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1"   opacity="0.2"  />
-      <line x1={lidX}       y1={lidY}       x2={lidX}        y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.45" />
-      <line x1={lidX + lidW} y1={lidY}       x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1.5" opacity="0.45" />
-
-      {/* Column walls below lid (to bottom of viewbox) */}
-      <line x1={COL_X}       y1={lidY + lidH} x2={COL_X}       y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.45" />
-      <line x1={COL_X+COL_W} y1={lidY + lidH} x2={COL_X+COL_W} y2={svgH} stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={AC} opacity="0.08" />
+      <line x1={lidX} y1={lidY} x2={lidX + lidW} y2={lidY} stroke={AC} strokeWidth="1.8" opacity="0.45" />
+      <line x1={lidX} y1={lidY + lidH} x2={lidX + lidW} y2={lidY + lidH} stroke={AC} strokeWidth="1" opacity="0.2" />
+      <line x1={lidX} y1={lidY} x2={lidX} y2={lidY + lidH} stroke={AC} strokeWidth="1.5" opacity="0.45" />
+      <line x1={lidX + lidW} y1={lidY} x2={lidX + lidW} y2={lidY + lidH} stroke={AC} strokeWidth="1.5" opacity="0.45" />
+      {/* Column walls below lid */}
+      <line x1={COL_X} y1={lidY + lidH} x2={COL_X} y2={svgH} stroke={AC} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X + COL_W} y1={lidY + lidH} x2={COL_X + COL_W} y2={svgH} stroke={AC} strokeWidth="1.5" opacity="0.45" />
       <rect x={COL_X} y={lidY + lidH} width={COL_W} height={svgH - lidY - lidH} fill="url(#hwh-copper)" />
 
-      {/* Segment A: vertical rise — from y1 up to lidY */}
-      <VPipe cx={pX} y1={y1} y2={lidY} />
-      <PipeFlange cx={pX} cy={lidY - 5} dir="v" />
+      {/* Lyne arm pipe */}
+      <Pipe d={lyneArm} />
 
-      {/* Corner A: up→right */}
-      <Elbow cx={pX} cy={y1} />
+      {/* Flange on vertical rise */}
+      <Flange cx={px} cy={f1y} dir="v" />
 
-      {/* Segment B: horizontal right — from pX to x2 */}
-      <HPipe x1={pX} x2={x2} cy={y1} />
-      <PipeFlange cx={pX + (x2 - pX) / 2} cy={y1} dir="h" />
-
-      {/* Corner B: right→down */}
-      <Elbow cx={x2} cy={y1} />
-
-      {/* Segment C: vertical drop — from y1 to y3 */}
-      <VPipe cx={x2} y1={y1} y2={y3} />
-
-      {/* Corner C: down→right */}
-      <Elbow cx={x2} cy={y3} />
-
-      {/* Segment D: horizontal right — off screen */}
-      <HPipe x1={x2} x2={600} cy={y3} />
-      <PipeFlange cx={valveX - 14} cy={y3} dir="h" />
+      {/* Flange on final horizontal run */}
+      <Flange cx={valveX - 16} cy={p3y} dir="h" />
 
       {/* Valve handwheel */}
-      <ValveWheel cx={valveX} cy={y3} />
+      <ValveWheel cx={valveX} cy={p3y} />
     </svg>
   );
 }
 
-// ── Column body ──
+// Column body
 function CylinderBody({ plateCount }: { plateCount: number }) {
   const plates = Array.from({ length: plateCount });
   const spacing = 100 / (plateCount + 1);
@@ -233,94 +366,97 @@ function CylinderBody({ plateCount }: { plateCount: number }) {
     <svg viewBox={`0 0 ${VB_W} 100`} preserveAspectRatio="none" fill="none"
       style={{ width: VB_W, height: "100%", display: "block" }}>
       <rect x={COL_X} y="0" width={COL_W} height="100" fill="url(#hwh-copper)" />
-      <line x1={COL_X}       y1="0" x2={COL_X}       y2="100" stroke={S} strokeWidth="1.5" opacity="0.45" />
-      <line x1={COL_X+COL_W} y1="0" x2={COL_X+COL_W} y2="100" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X} y1="0" x2={COL_X} y2="100" stroke={AC} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="100" stroke={AC} strokeWidth="1.5" opacity="0.45" />
       {plates.map((_, j) => (
         <line key={j}
           x1={COL_X + 4} y1={spacing * (j + 1)}
           x2={COL_X + COL_W - 4} y2={spacing * (j + 1)}
-          stroke={S} strokeWidth="0.6" strokeDasharray="4 3" opacity="0.18" />
+          stroke={AC} strokeWidth="0.6" strokeDasharray="4 3" opacity="0.18" />
       ))}
     </svg>
   );
 }
 
-// ── Flange between column sections ──
-function Flange() {
+// Riveted flange between sections
+function SectionFlange() {
   return (
     <svg viewBox={`0 0 ${VB_W} 14`} fill="none" style={{ width: VB_W, height: 14, display: "block" }}>
-      <rect x={COL_X} y="0" width={COL_W} height="14" fill={S} opacity="0.04" />
-      <line x1={COL_X - 10} y1="3"  x2={COL_X + COL_W + 10} y2="3"  stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={S} strokeWidth="1.2" opacity="0.35" />
-      <circle cx={COL_X - 7}       cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
-      <circle cx={COL_X+COL_W + 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
-      <circle cx={COL_CX - 12} cy="7" r="1.5" fill={S} opacity="0.2" />
-      <circle cx={COL_CX}      cy="7" r="1.5" fill={S} opacity="0.2" />
-      <circle cx={COL_CX + 12} cy="7" r="1.5" fill={S} opacity="0.2" />
+      <rect x={COL_X} y="0" width={COL_W} height="14" fill={AC} opacity="0.04" />
+      <line x1={COL_X - 10} y1="3" x2={COL_X + COL_W + 10} y2="3" stroke={AC} strokeWidth="1.2" opacity="0.35" />
+      <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={AC} strokeWidth="1.2" opacity="0.35" />
+      <circle cx={COL_X - 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
+      <circle cx={COL_X + COL_W + 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
+      <circle cx={COL_CX - 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
+      <circle cx={COL_CX} cy="7" r="1.5" fill={AC} opacity="0.2" />
+      <circle cx={COL_CX + 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
     </svg>
   );
 }
 
 /*
-  ── Spout + product pipe ──
+  ── Product pipe geometry (bottom) ──
 
-  Route:
-    Start  : (COL_CX, spoutOutY)      — bottom of converging spout
-    Down   : → (COL_CX, y1)           segment A (short vertical drop)
-    Elbow  : corner at (COL_CX, y1)   square elbow
-    Left   : → off left edge          segment B (horizontal, going LEFT)
+  Exits bottom of spout at (COL_CX, spoutOutY), drops straight down,
+  rounds a left turn, exits off the left edge.
 
-  Key coords:
-    spoutOutY = 50
-    y1 = spoutOutY + 18  (drop before turning left)
-    Pipe exits left at y = y1
-    Valve sits 26px left of elbow corner
+  Waypoints:
+  p0 = (COL_CX, spoutOutY)       — exits spout
+  p1 = (COL_CX, spoutOutY + 24)  — bottom of drop, before left turn
+  p2 = (-1000, spoutOutY + 24)   — exits off left edge
+
+  Rounded corner at (COL_CX, p1y) turning left:
+  Path:
+    M p0
+    L (COL_CX, p1y - BR)              straight down
+    Q (COL_CX, p1y) (COL_CX - BR, p1y)  round corner: down→left
+    L (-1000, p1y)                     off left edge
 */
 function StillSpout() {
   const spoutOutY = 50;
-  const y1 = spoutOutY + 18;      // corner: down→left
-  const valveX = COL_CX - 26;
-  const svgH = y1 + PH + 10;
+  const p1y = spoutOutY + 26;
+  const svgH = p1y + PH + 10;
+
+  const productPipe = [
+    `M ${COL_CX} ${spoutOutY}`,
+    `L ${COL_CX} ${p1y - BR}`,
+    `Q ${COL_CX} ${p1y} ${COL_CX - BR} ${p1y}`,
+    `L -1000 ${p1y}`,
+  ].join(" ");
+
+  const valveX = COL_CX - BR - 28;
+  const flangeX = COL_CX - BR - 10;
 
   return (
     <svg viewBox={`0 0 ${VB_W} ${svgH}`} fill="none" overflow="visible"
       style={{ width: VB_W, height: svgH, display: "block", overflow: "visible" }}>
 
       {/* Column walls at top */}
-      <line x1={COL_X}       y1="0" x2={COL_X}       y2="20" stroke={S} strokeWidth="1.5" opacity="0.45" />
-      <line x1={COL_X+COL_W} y1="0" x2={COL_X+COL_W} y2="20" stroke={S} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X} y1="0" x2={COL_X} y2="20" stroke={AC} strokeWidth="1.5" opacity="0.45" />
+      <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="20" stroke={AC} strokeWidth="1.5" opacity="0.45" />
       <rect x={COL_X} y="0" width={COL_W} height="20" fill="url(#hwh-copper)" />
 
       {/* Converging spout */}
-      <path d={`M${COL_X} 20 L${COL_CX-5} 42 L${COL_CX-5} ${spoutOutY}`}
-        stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
-      <path d={`M${COL_X+COL_W} 20 L${COL_CX+5} 42 L${COL_CX+5} ${spoutOutY}`}
-        stroke={S} strokeWidth="1.5" opacity="0.4" fill="none" />
-      <path d={`M${COL_X} 20 L${COL_CX-5} 42 L${COL_CX-5} ${spoutOutY} L${COL_CX+5} ${spoutOutY} L${COL_CX+5} 42 L${COL_X+COL_W} 20 Z`}
-        fill={S} opacity="0.04" />
+      <path d={`M${COL_X} 20 L${COL_CX - 5} 42 L${COL_CX - 5} ${spoutOutY}`}
+        stroke={AC} strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d={`M${COL_X + COL_W} 20 L${COL_CX + 5} 42 L${COL_CX + 5} ${spoutOutY}`}
+        stroke={AC} strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d={`M${COL_X} 20 L${COL_CX - 5} 42 L${COL_CX - 5} ${spoutOutY} L${COL_CX + 5} ${spoutOutY} L${COL_CX + 5} 42 L${COL_X + COL_W} 20 Z`}
+        fill={AC} opacity="0.04" />
 
-      {/* Outlet flange at spout bottom */}
-      <line x1={COL_CX - PH - 5} y1={spoutOutY} x2={COL_CX + PH + 5} y2={spoutOutY}
-        stroke={S} strokeWidth="1.5" opacity="0.45" />
+      {/* Product pipe */}
+      <Pipe d={productPipe} />
 
-      {/* Segment A: vertical drop */}
-      <VPipe cx={COL_CX} y1={spoutOutY} y2={y1} />
-      <PipeFlange cx={COL_CX} cy={spoutOutY + 8} dir="v" />
+      {/* Flange on horizontal run */}
+      <Flange cx={flangeX} cy={p1y} dir="h" />
 
-      {/* Corner: down→left */}
-      <Elbow cx={COL_CX} cy={y1} />
-
-      {/* Segment B: horizontal left — off screen */}
-      <HPipe x1={-600} x2={COL_CX} cy={y1} />
-      <PipeFlange cx={valveX + 14} cy={y1} dir="h" />
-
-      {/* Valve handwheel */}
-      <ValveWheel cx={valveX} cy={y1} />
+      {/* Valve */}
+      <ValveWheel cx={valveX} cy={p1y} />
     </svg>
   );
 }
 
-// ── Sight glass ──
+// Sight glass
 function SightGlass({ number, index }: { number: string; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-15% 0px -15% 0px" });
@@ -355,7 +491,7 @@ function SightGlass({ number, index }: { number: string; index: number }) {
   );
 }
 
-// ── Step text ──
+// Step text
 function StepText({ step, index }: { step: StepData; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
@@ -381,33 +517,30 @@ function StepText({ step, index }: { step: StepData; index: number }) {
   );
 }
 
-// ── Step row ──
+// Step row
 function StepRow({ step, index }: { step: StepData; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
   return (
     <div style={{ display: "flex", alignItems: "center", minHeight: 190 }}>
-      {/* Still column slice */}
       <div ref={ref} style={{ width: VB_W, flexShrink: 0, alignSelf: "stretch", position: "relative" }}>
         <CylinderBody plateCount={index === 0 ? 2 : 3} />
-        {/* Sight glass centered on column body */}
         <div style={{
           position: "absolute", top: "50%", left: COL_CX,
           transform: "translate(-50%, -50%)",
         }}>
           <SightGlass number={step.number} index={index} />
         </div>
-        {/* Solid connector line from right edge of column to step text */}
+        {/* Solid connector to step text */}
         <div style={{
           position: "absolute", top: "50%", left: VB_W,
-          width: 32, height: 1,
-          background: isInView ? "rgba(196,148,58,0.35)" : "rgba(58,53,48,0.2)",
+          width: 28, height: 1,
+          background: isInView ? "rgba(196,148,58,0.4)" : "rgba(58,53,48,0.15)",
           transition: "background 0.5s ease",
           transform: "translateY(-50%)",
         }} />
       </div>
-      {/* Step text */}
-      <div style={{ flex: 1, paddingLeft: 32 }}>
+      <div style={{ flex: 1, paddingLeft: 28 }}>
         <StepText step={step} index={index} />
       </div>
     </div>
@@ -421,9 +554,7 @@ export default function HowWeHunt() {
       paddingTop: 80, paddingBottom: 80, width: "100%",
     }}>
       <SvgDefs />
-
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px" }}>
-        {/* Header */}
         <ScrollReveal>
           <p style={{
             fontFamily: "var(--font-plus-jakarta)", fontSize: 11,
@@ -450,13 +581,12 @@ export default function HowWeHunt() {
           </p>
         </ScrollReveal>
 
-        {/* Still + Steps */}
         <div>
           <StillCap />
           {steps.map((step, i) => (
             <div key={step.number}>
               <StepRow step={step} index={i} />
-              {i < steps.length - 1 && <Flange />}
+              {i < steps.length - 1 && <SectionFlange />}
             </div>
           ))}
           <StillSpout />
