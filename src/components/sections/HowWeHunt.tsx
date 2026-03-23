@@ -6,7 +6,6 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 interface StepData {
   number: string;
-  label: string;
   description: string;
   flavor: string;
 }
@@ -14,35 +13,37 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    label: "0 1",
     description:
       "We monitor state liquor control boards, warehouse shipments, and distributor networks daily",
     flavor: "Proprietary sourcing across every major channel",
   },
   {
     number: "02",
-    label: "0 2",
     description:
       "Our system filters thousands of data points to surface only confirmed allocations and verified drops",
     flavor: "A special formulation — tuned to catch what others miss",
   },
   {
     number: "03",
-    label: "0 3",
     description:
       "Every drop is tagged by bottle, tier, store location, and county before it reaches you",
     flavor: "Organized, searchable, and mapped to your watchlist",
   },
   {
     number: "04",
-    label: "0 4",
     description:
       "Instant alerts hit your phone the moment a bottle you're watching lands on a shelf",
     flavor: "Seconds matter — you'll know before the crowd",
   },
 ];
 
-/* ── Sight glass porthole — lights up amber on scroll ── */
+// Column geometry constants — single source of truth
+const COL_X = 20;        // left edge of column rect
+const COL_W = 54;        // width of column body (fix #6: 50-56px)
+const COL_CX = COL_X + COL_W / 2; // center X = 47
+const VIEWBOX_W = 90;    // svg viewBox width
+
+/* ── Sight glass — lights up amber on scroll ── */
 function SightGlass({ number, index }: { number: string; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-18% 0px -18% 0px" });
@@ -79,13 +80,14 @@ function SightGlass({ number, index }: { number: string; index: number }) {
           transition: "all 0.5s ease",
         }}
       />
+      {/* Fix #5: page font, 12px/600, no space between digits */}
       <span
         style={{
           position: "relative",
           zIndex: 1,
-          fontFamily: "var(--font-jetbrains)",
+          fontFamily: "var(--font-plus-jakarta)",
           fontSize: "12px",
-          fontWeight: 700,
+          fontWeight: 600,
           color: isInView ? "#F5EDD6" : "rgba(245,237,214,0.25)",
           transition: "color 0.5s ease",
         }}
@@ -110,21 +112,10 @@ function StepText({ step, index }: { step: StepData; index: number }) {
         transition: `all 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s`,
       }}
     >
+      {/* Fix #3: NO step-num div — number is already in the sight glass */}
       <p
         style={{
-          fontFamily: "var(--font-jetbrains)",
-          fontSize: "13px",
-          fontWeight: 600,
-          color: "#C4943A",
-          letterSpacing: "0.15em",
-          marginBottom: "12px",
-        }}
-      >
-        {step.label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-dm-sans)",
+          fontFamily: "var(--font-plus-jakarta)",
           fontSize: "17px",
           fontWeight: 500,
           color: "var(--color-text-primary)",
@@ -136,7 +127,7 @@ function StepText({ step, index }: { step: StepData; index: number }) {
       </p>
       <p
         style={{
-          fontFamily: "var(--font-dm-sans)",
+          fontFamily: "var(--font-plus-jakarta)",
           fontSize: "15px",
           fontStyle: "italic",
           color: "rgba(196,148,58,0.45)",
@@ -154,52 +145,63 @@ function SvgDefs() {
   return (
     <svg width="0" height="0" style={{ position: "absolute" }}>
       <defs>
+        {/* Fix #6: cylindrical 3-stop copper gradient */}
         <linearGradient id="hwh-copper" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#C4943A" stopOpacity="0.12" />
-          <stop offset="40%" stopColor="#C4943A" stopOpacity="0.04" />
-          <stop offset="60%" stopColor="#C4943A" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="#C4943A" stopOpacity="0.12" />
+          <stop offset="0%"   stopColor="rgba(196,148,58,0.08)" />
+          <stop offset="50%"  stopColor="rgba(196,148,58,0.15)" />
+          <stop offset="100%" stopColor="rgba(196,148,58,0.08)" />
         </linearGradient>
       </defs>
     </svg>
   );
 }
 
-/* ── Still cap — dome + lyne arm ── */
+/* ── Fix #4: flat-lid cap + thin pipe + valve arm ── */
 function StillCap() {
   const S = "#C4943A";
+  // Lid is COL_W + 10px each side => from COL_X-10 to COL_X+COL_W+10
+  const lidX = COL_X - 10;
+  const lidW = COL_W + 20;
+  const lidY = 36; // top of the lid rect
+  const lidH = 6;  // lid height
+  // Pipe: 4px wide, 20px tall, centered at COL_CX, sits above the lid
+  const pipeX = COL_CX - 2;
+  const pipeTop = lidY - 20;
+  // Valve arm: extends right from center of pipe, 20px, ending in circle
+  const armY = pipeTop + 8;
+  const armEndX = COL_CX + 22;
+
   return (
-    <div style={{ width: "80px", height: "52px", position: "relative" }}>
-      <svg viewBox="0 0 90 52" fill="none" style={{ width: "90px", height: "52px" }}>
-        {/* Dome rising from cylinder top */}
-        <path
-          d="M22 52 L22 28 Q22 6 40 2 Q58 6 58 28 L58 52"
-          stroke={S}
-          strokeWidth="1.5"
-          opacity="0.4"
-          fill="none"
-        />
-        {/* Dome fill */}
-        <path
-          d="M22 52 L22 28 Q22 6 40 2 Q58 6 58 28 L58 52 Z"
-          fill={S}
-          opacity="0.04"
-        />
-        {/* Flange ring at base of dome */}
-        <line x1="14" y1="52" x2="66" y2="52" stroke={S} strokeWidth="1.8" opacity="0.35" />
-        {/* Lyne arm — horizontal pipe extending right */}
-        <line x1="58" y1="18" x2="82" y2="18" stroke={S} strokeWidth="1.5" opacity="0.4" />
-        {/* Arm pipe walls */}
-        <line x1="58" y1="14" x2="82" y2="14" stroke={S} strokeWidth="0.7" opacity="0.2" />
-        <line x1="58" y1="22" x2="82" y2="22" stroke={S} strokeWidth="0.7" opacity="0.2" />
-        {/* End cap ball */}
-        <circle cx="84" cy="18" r="3" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
+    <div style={{ width: `${VIEWBOX_W}px`, height: "52px", position: "relative" }}>
+      <svg viewBox={`0 0 ${VIEWBOX_W} 52`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "52px" }}>
+        {/* Thin vertical pipe above lid */}
+        <rect x={pipeX} y={pipeTop} width="4" height="20" fill={S} opacity="0.2" />
+        <line x1={pipeX} y1={pipeTop} x2={pipeX} y2={lidY} stroke={S} strokeWidth="0.8" opacity="0.35" />
+        <line x1={pipeX + 4} y1={pipeTop} x2={pipeX + 4} y2={lidY} stroke={S} strokeWidth="0.8" opacity="0.35" />
+
+        {/* Horizontal valve arm extending right */}
+        <line x1={COL_CX} y1={armY} x2={armEndX} y2={armY} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        {/* Valve circle at end */}
+        <circle cx={armEndX + 3} cy={armY} r="3" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
+
+        {/* Flat lid rect */}
+        <rect x={lidX} y={lidY} width={lidW} height={lidH} fill={S} opacity="0.08" />
+        <line x1={lidX} y1={lidY} x2={lidX + lidW} y2={lidY} stroke={S} strokeWidth="1.8" opacity="0.4" />
+        <line x1={lidX} y1={lidY + lidH} x2={lidX + lidW} y2={lidY + lidH} stroke={S} strokeWidth="1.2" opacity="0.25" />
+        {/* Two small vertical lines on each end going down from top of lid */}
+        <line x1={lidX} y1={lidY} x2={lidX} y2={lidY + 6} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={lidX + lidW} y1={lidY} x2={lidX + lidW} y2={lidY + 6} stroke={S} strokeWidth="1.5" opacity="0.4" />
+
+        {/* Column walls connecting to cap */}
+        <line x1={COL_X} y1={lidY + lidH} x2={COL_X} y2={52} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={COL_X + COL_W} y1={lidY + lidH} x2={COL_X + COL_W} y2={52} stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <rect x={COL_X} y={lidY + lidH} width={COL_W} height={52 - lidY - lidH} fill="url(#hwh-copper)" />
       </svg>
     </div>
   );
 }
 
-/* ── Cylinder body section — stretches to fill row height ── */
+/* ── Cylinder body — stretches to fill row height ── */
 function CylinderBody({ plateCount }: { plateCount: number }) {
   const S = "#C4943A";
   const plates = Array.from({ length: plateCount });
@@ -207,26 +209,26 @@ function CylinderBody({ plateCount }: { plateCount: number }) {
 
   return (
     <svg
-      viewBox="0 0 80 100"
+      viewBox={`0 0 ${VIEWBOX_W} 100`}
       preserveAspectRatio="none"
       fill="none"
-      style={{ width: "80px", height: "100%", display: "block" }}
+      style={{ width: `${VIEWBOX_W}px`, height: "100%", display: "block" }}
     >
-      {/* Body fill */}
-      <rect x="14" y="0" width="52" height="100" fill="url(#hwh-copper)" />
+      {/* Fix #6: wider body with cylindrical copper gradient */}
+      <rect x={COL_X} y="0" width={COL_W} height="100" fill="url(#hwh-copper)" />
       {/* Left wall */}
-      <line x1="14" y1="0" x2="14" y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
+      <line x1={COL_X} y1="0" x2={COL_X} y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
       {/* Right wall */}
-      <line x1="66" y1="0" x2="66" y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
+      <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="100" stroke={S} strokeWidth="1.5" opacity="0.4" />
       {/* Bubble plate dashed lines */}
       {plates.map((_, j) => {
         const y = spacing * (j + 1);
         return (
           <line
             key={j}
-            x1="18"
+            x1={COL_X + 4}
             y1={y}
-            x2="62"
+            x2={COL_X + COL_W - 4}
             y2={y}
             stroke={S}
             strokeWidth="0.6"
@@ -235,7 +237,47 @@ function CylinderBody({ plateCount }: { plateCount: number }) {
           />
         );
       })}
+      {/* Fix #7: dashed connector from RIGHT edge of column to step text */}
+      {/* This line is drawn in the step row layout instead — see below */}
     </svg>
+  );
+}
+
+/* ── Connector line from right edge of column to step text ── */
+function ConnectorLine({ isInView }: { isInView: boolean }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        // starts at right edge of column, extends to step text
+        left: `${VIEWBOX_W}px`,
+        width: "32px",
+        height: "1px",
+        borderTop: "1px dashed #3A3530",
+        borderTopStyle: "dashed",
+        opacity: isInView ? 0.6 : 0.2,
+        transition: "opacity 0.5s ease",
+        // dash pattern via backgroundImage trick since border-dash isn't reliable cross-browser
+        background: "none",
+      }}
+    >
+      <svg
+        width="32"
+        height="1"
+        style={{ position: "absolute", top: "-0.5px", left: 0 }}
+      >
+        <line
+          x1="0"
+          y1="0.5"
+          x2="32"
+          y2="0.5"
+          stroke="#3A3530"
+          strokeWidth="1"
+          strokeDasharray="4 2"
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -243,45 +285,117 @@ function CylinderBody({ plateCount }: { plateCount: number }) {
 function Flange() {
   const S = "#C4943A";
   return (
-    <div style={{ width: "80px", height: "14px" }}>
-      <svg viewBox="0 0 80 14" fill="none" style={{ width: "80px", height: "14px" }}>
-        {/* Fill between flanges */}
-        <rect x="14" y="0" width="52" height="14" fill={S} opacity="0.04" />
-        {/* Top flange line — extends past walls */}
-        <line x1="4" y1="3" x2="76" y2="3" stroke={S} strokeWidth="1.2" opacity="0.3" />
-        {/* Bottom flange line */}
-        <line x1="4" y1="11" x2="76" y2="11" stroke={S} strokeWidth="1.2" opacity="0.3" />
-        {/* Bolt circles at ends */}
-        <circle cx="7" cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
-        <circle cx="73" cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
+    <div style={{ width: `${VIEWBOX_W}px`, height: "14px" }}>
+      <svg viewBox={`0 0 ${VIEWBOX_W} 14`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "14px" }}>
+        <rect x={COL_X} y="0" width={COL_W} height="14" fill={S} opacity="0.04" />
+        {/* Flange lines extend past walls */}
+        <line x1={COL_X - 10} y1="3" x2={COL_X + COL_W + 10} y2="3" stroke={S} strokeWidth="1.2" opacity="0.3" />
+        <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={S} strokeWidth="1.2" opacity="0.3" />
+        {/* Bolt circles */}
+        <circle cx={COL_X - 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
+        <circle cx={COL_X + COL_W + 7} cy="7" r="3" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
         {/* Center bolts */}
-        <circle cx="28" cy="7" r="1.5" fill={S} opacity="0.15" />
-        <circle cx="40" cy="7" r="1.5" fill={S} opacity="0.15" />
-        <circle cx="52" cy="7" r="1.5" fill={S} opacity="0.15" />
+        <circle cx={COL_CX - 12} cy="7" r="1.5" fill={S} opacity="0.15" />
+        <circle cx={COL_CX} cy="7" r="1.5" fill={S} opacity="0.15" />
+        <circle cx={COL_CX + 12} cy="7" r="1.5" fill={S} opacity="0.15" />
       </svg>
     </div>
   );
 }
 
-/* ── Collection vessel / spout at bottom ── */
+/* ── Fix #8: spout + drip + bourbon bottle at bottom ── */
 function StillSpout() {
   const S = "#C4943A";
+  // Bottle shape: simple outline
+  const bottleX = COL_CX - 14;
+  const bottleY = 72;
   return (
-    <div style={{ width: "80px", height: "80px" }}>
-      <svg viewBox="0 0 80 80" fill="none" style={{ width: "80px", height: "80px" }}>
+    <div style={{ width: `${VIEWBOX_W}px`, height: "120px" }}>
+      <svg viewBox={`0 0 ${VIEWBOX_W} 120`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "120px" }}>
         {/* Continuing walls */}
-        <line x1="14" y1="0" x2="14" y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
-        <line x1="66" y1="0" x2="66" y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
-        <rect x="14" y="0" width="52" height="22" fill={S} opacity="0.04" />
-        {/* Narrowing to spout */}
-        <path d="M14 22 L24 40 L24 58" stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        <path d="M66 22 L56 40 L56 58" stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        {/* Spout valve */}
-        <line x1="20" y1="58" x2="60" y2="58" stroke={S} strokeWidth="1.5" opacity="0.3" />
-        {/* Drip */}
-        <line x1="40" y1="60" x2="40" y2="68" stroke={S} strokeWidth="0.8" opacity="0.2" strokeDasharray="2 2" />
-        <circle cx="40" cy="72" r="2" fill={S} opacity="0.2" />
+        <line x1={COL_X} y1="0" x2={COL_X} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
+        <rect x={COL_X} y="0" width={COL_W} height="22" fill="url(#hwh-copper)" />
+
+        {/* Narrowing to spout — converges to center */}
+        <path d={`M${COL_X} 22 L${COL_CX - 6} 42 L${COL_CX - 6} 58`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        <path d={`M${COL_X + COL_W} 22 L${COL_CX + 6} 42 L${COL_CX + 6} 58`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        {/* Spout fill */}
+        <path d={`M${COL_X} 22 L${COL_CX - 6} 42 L${COL_CX - 6} 58 L${COL_CX + 6} 58 L${COL_CX + 6} 42 L${COL_X + COL_W} 22 Z`} fill={S} opacity="0.04" />
+
+        {/* Spout valve line */}
+        <line x1={COL_CX - 12} y1="58" x2={COL_CX + 12} y2="58" stroke={S} strokeWidth="1.5" opacity="0.3" />
+
+        {/* Drip line from spout to bottle */}
+        <line x1={COL_CX} y1="60" x2={COL_CX} y2={bottleY + 4} stroke={S} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.3" />
+        {/* Drip drop */}
+        <ellipse cx={COL_CX} cy={bottleY + 2} rx="2" ry="2.5" fill={S} opacity="0.35" />
+
+        {/* Bottle outline */}
+        {/* Neck */}
+        <rect x={bottleX + 9} y={bottleY + 4} width="10" height="14" rx="1" stroke={S} strokeWidth="1" opacity="0.3" fill={S} fillOpacity="0.04" />
+        {/* Shoulder curve */}
+        <path d={`M${bottleX + 9} ${bottleY + 18} Q${bottleX + 4} ${bottleY + 22} ${bottleX + 2} ${bottleY + 28}`} stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
+        <path d={`M${bottleX + 19} ${bottleY + 18} Q${bottleX + 24} ${bottleY + 22} ${bottleX + 26} ${bottleY + 28}`} stroke={S} strokeWidth="1" opacity="0.3" fill="none" />
+        {/* Body */}
+        <rect x={bottleX + 2} y={bottleY + 28} width="24" height="30" rx="2" stroke={S} strokeWidth="1" opacity="0.3" fill={S} fillOpacity="0.06" />
+        {/* Bottom */}
+        <line x1={bottleX + 2} y1={bottleY + 58} x2={bottleX + 26} y2={bottleY + 58} stroke={S} strokeWidth="1.2" opacity="0.3" />
+        {/* Label line detail */}
+        <line x1={bottleX + 5} y1={bottleY + 38} x2={bottleX + 23} y2={bottleY + 38} stroke={S} strokeWidth="0.6" opacity="0.2" />
+        <line x1={bottleX + 5} y1={bottleY + 48} x2={bottleX + 23} y2={bottleY + 48} stroke={S} strokeWidth="0.6" opacity="0.2" />
       </svg>
+    </div>
+  );
+}
+
+/* ── Step row — manages sight glass centering + connector ── */
+function StepRow({ step, index }: { step: StepData; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-12% 0px -12% 0px" });
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        minHeight: "200px",
+      }}
+    >
+      {/* Left: cylinder body + sight glass centered on column */}
+      <div
+        ref={ref}
+        style={{
+          width: `${VIEWBOX_W}px`,
+          flexShrink: 0,
+          alignSelf: "stretch",
+          position: "relative",
+        }}
+      >
+        <CylinderBody plateCount={index === 0 ? 2 : 3} />
+
+        {/* Fix #2: sight glass centered ON the column body — center X = COL_CX */}
+        {/* COL_CX in viewBox coords maps to (COL_CX / VIEWBOX_W * 90px) in DOM */}
+        {/* Since viewBox width = VIEWBOX_W and rendered width = VIEWBOX_W px, it's 1:1 */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: `${COL_CX}px`,          // center of column
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <SightGlass number={step.number} index={index} />
+        </div>
+
+        {/* Fix #7: dashed connector from right edge of column */}
+        <ConnectorLine isInView={isInView} />
+      </div>
+
+      {/* Right: step text */}
+      <div style={{ flex: 1, paddingLeft: "40px" }}>
+        <StepText step={step} index={index} />
+      </div>
     </div>
   );
 }
@@ -297,23 +411,22 @@ export default function HowWeHunt() {
         width: "100%",
       }}
     >
-      {/* Shared SVG defs */}
       <SvgDefs />
 
+      {/* Fix #1: center entire section with max-width 800px */}
       <div
-        className="mx-auto"
         style={{
-          maxWidth: "900px",
-          paddingLeft: "clamp(24px, 5vw, 56px)",
-          paddingRight: "clamp(24px, 5vw, 56px)",
+          maxWidth: "800px",
+          margin: "0 auto",
+          padding: "0 40px",
         }}
       >
-        {/* Section header */}
+        {/* Section header — centered over same max-width */}
         <ScrollReveal>
           <p
             className="text-center"
             style={{
-              fontFamily: "var(--font-dm-sans)",
+              fontFamily: "var(--font-plus-jakarta)",
               fontSize: "12px",
               textTransform: "uppercase",
               letterSpacing: "0.2em",
@@ -326,7 +439,7 @@ export default function HowWeHunt() {
           <h2
             className="text-center"
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-fraunces)",
               fontSize: "44px",
               fontWeight: 700,
               color: "var(--color-text-primary)",
@@ -338,7 +451,7 @@ export default function HowWeHunt() {
           <p
             className="text-center mx-auto"
             style={{
-              fontFamily: "var(--font-dm-sans)",
+              fontFamily: "var(--font-plus-jakarta)",
               fontSize: "17px",
               color: "var(--color-text-secondary)",
               maxWidth: "520px",
@@ -349,56 +462,17 @@ export default function HowWeHunt() {
           </p>
         </ScrollReveal>
 
-        {/* Still + Steps layout */}
-        <div className="mx-auto" style={{ maxWidth: "720px" }}>
-          {/* Still cap */}
+        {/* Still + Steps — same max-width container */}
+        <div>
           <StillCap />
 
           {steps.map((step, i) => (
             <div key={step.number}>
-              {/* Step row */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  minHeight: "200px",
-                }}
-              >
-                {/* Left: cylinder body + sight glass */}
-                <div
-                  style={{
-                    width: "80px",
-                    flexShrink: 0,
-                    alignSelf: "stretch",
-                    position: "relative",
-                  }}
-                >
-                  <CylinderBody plateCount={i === 0 ? 2 : 3} />
-                  {/* Sight glass centered on left wall */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "14px",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <SightGlass number={step.number} index={i} />
-                  </div>
-                </div>
-
-                {/* Right: step text */}
-                <div style={{ flex: 1, paddingLeft: "40px" }}>
-                  <StepText step={step} index={i} />
-                </div>
-              </div>
-
-              {/* Flange between sections */}
+              <StepRow step={step} index={i} />
               {i < steps.length - 1 && <Flange />}
             </div>
           ))}
 
-          {/* Still spout */}
           <StillSpout />
         </div>
       </div>
