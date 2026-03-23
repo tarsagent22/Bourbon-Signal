@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg-primary: #000000;
-  --color-bg-secondary: #0A0A0A;
-  --color-bg-tertiary: #111111;
+  --color-bg-primary: #0D0B07;
+  --color-bg-secondary: #0A0806;
+  --color-bg-tertiary: #141209;
 
   --color-accent-amber: #C4870A;
   --color-accent-copper: #B87333;
@@ -85,6 +85,12 @@ body::after {
 .drop-feed-scroll::-webkit-scrollbar-track { background: transparent; }
 .drop-feed-scroll::-webkit-scrollbar-thumb { background: rgba(212,146,11,0.3); border-radius: 2px; }
 .drop-feed-scroll::-webkit-scrollbar-thumb:hover { background: rgba(212,146,11,0.5); }
+
+/* Border pulse for Barrel Proof card */
+@keyframes borderPulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(196,148,58,0.1); }
+  50% { box-shadow: 0 0 80px rgba(196,148,58,0.2); }
+}
 
 /* Selection color */
 ::selection {
