@@ -211,31 +211,8 @@ export default function PricingSection() {
           <motion.div
             variants={fadeUpVariant}
             className="order-1 md:order-2"
-            style={{ flex: 1, display: "flex", position: "relative" as const, paddingTop: "28px" }}
+            style={{ flex: 1, display: "flex" }}
           >
-            {/* Founding Member badge — centered, overlapping top edge */}
-            <div
-              style={{
-                position: "absolute",
-                top: "-14px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                backgroundColor: "var(--color-amber-rich)",
-                color: "#0D0B07",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "10px",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                padding: "6px 20px",
-                borderRadius: "0 0 10px 10px",
-                whiteSpace: "nowrap",
-                zIndex: 2,
-              }}
-            >
-              Founding Member
-            </div>
-
             <motion.div
               style={{
                 display: "flex",
@@ -244,7 +221,8 @@ export default function PricingSection() {
                 background: "rgba(196,148,58,0.06)",
                 border: "2px solid var(--color-amber-rich)",
                 borderRadius: "16px",
-                padding: "36px",
+                overflow: "hidden",
+                padding: 0,
                 boxShadow:
                   "0 0 60px rgba(196,148,58,0.12), 0 0 120px rgba(196,148,58,0.06)",
                 animation: "borderPulse 3s ease infinite",
@@ -256,6 +234,27 @@ export default function PricingSection() {
                 transition: { duration: 0.3 },
               }}
             >
+              {/* Founding Member ribbon — full width strip inside card */}
+              <div
+                style={{
+                  width: "100%",
+                  backgroundColor: "var(--color-amber-rich)",
+                  color: "#0D0B07",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "8px 0",
+                  textAlign: "center",
+                }}
+              >
+                Founding Member
+              </div>
+
+              {/* Card content */}
+              <div style={{ padding: "36px", display: "flex", flexDirection: "column" as const, flex: 1 }}>
+
               {/* Tier label */}
               <p
                 style={{
@@ -474,6 +473,7 @@ export default function PricingSection() {
               >
                 Secure checkout · Lifetime access · Never pay again
               </p>
+              </div>{/* end card content */}
             </motion.div>
           </motion.div>
         </motion.div>
