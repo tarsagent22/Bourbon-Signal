@@ -554,7 +554,10 @@ export default function DropFeed() {
       className="w-full"
       style={{
         backgroundColor: "var(--color-bg-primary)",
-        padding: "96px 16px",
+        paddingTop: "96px",
+        paddingBottom: "96px",
+        paddingLeft: "clamp(16px, 5vw, 48px)",
+        paddingRight: "clamp(16px, 5vw, 48px)",
       }}
     >
       <style>{`
@@ -565,7 +568,7 @@ export default function DropFeed() {
       `}</style>
 
       <ScrollReveal delay={0}>
-        <div className="mx-auto" style={{ maxWidth: "720px" }}>
+        <div className="mx-auto w-full" style={{ maxWidth: "720px" }}>
           {/* Header row */}
           <div className="flex items-center justify-between">
             <h2

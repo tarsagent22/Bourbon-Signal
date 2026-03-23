@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { playfair, dmSans, jetbrainsMono } from "@/lib/fonts";
+import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
     >
       <body style={{ fontFamily: "var(--font-dm-sans)" }}>{children}</body>
     </html>
