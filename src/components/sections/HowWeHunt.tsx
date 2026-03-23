@@ -204,23 +204,28 @@ function SvgDefs() {
   This is exactly how industrial pipe diagrams are drawn in SVG.
 */
 
-const PH = 6; // pipe half-width — stroke will be PH*2 = 12px diameter pipe
+const PH = 5; // pipe half-width — visible tube width = PH*2 = 10px
 const BR = 14; // bend radius for elbows
 
-// Draw a pipe centerline path as a realistic round pipe
-function Pipe({ d, opacity = 1 }: { d: string; opacity?: number }) {
+// Draw a pipe as two visible walls with a gap — looks like a real tube.
+// Uses the same centerline path `d` for both strokes.
+// Outer stroke = PH*2 draws the full tube.
+// Inner "eraser" stroke = PH*2 - 2.5 in bg color cuts out the middle, leaving walls.
+function Pipe({ d }: { d: string }) {
   return (
-    <g opacity={opacity}>
-      {/* Outer glow */}
-      <path d={d} stroke={AC} strokeWidth={PH * 2 + 4} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.08} />
-      {/* Pipe body */}
-      <path d={d} stroke={AC} strokeWidth={PH * 2} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.28} />
-      {/* Pipe wall lines (gives the "tube" look) */}
-      <path d={d} stroke={AC} strokeWidth={PH * 2 - 2} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.0} />
-      {/* Left/top wall highlight */}
-      <path d={d} stroke={AC} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.6} />
-      {/* Inner shadow for depth */}
-      <path d={d} stroke="rgba(0,0,0,0.3)" strokeWidth={PH * 2 - 6} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.15} />
+    <g>
+      {/* Tube body — copper fill, slightly transparent */}
+      <path d={d} stroke={AC} strokeWidth={PH * 2}
+        strokeLinecap="round" strokeLinejoin="round"
+        fill="none" opacity={0.45} />
+      {/* Inner cutout — dark background color to hollow out the tube */}
+      <path d={d} stroke="var(--color-bg-primary, #0D0B07)" strokeWidth={PH * 2 - 2.5}
+        strokeLinecap="round" strokeLinejoin="round"
+        fill="none" opacity={1} />
+      {/* Faint interior fill — subtle copper glow inside the tube */}
+      <path d={d} stroke={AC} strokeWidth={PH * 2 - 4}
+        strokeLinecap="round" strokeLinejoin="round"
+        fill="none" opacity={0.06} />
     </g>
   );
 }
@@ -318,7 +323,7 @@ function StillCap() {
     `Q ${p2x} ${p1y} ${p2x} ${p1y + BR}`, // round corner: right→down
     `L ${p2x} ${p3y - BR}`,              // straight down, stop BR before corner
     `Q ${p2x} ${p3y} ${p2x + BR} ${p3y}`, // round corner: down→right
-    `L 1000 ${p3y}`,                     // straight right off screen
+    `L 3000 ${p3y}`,                     // straight right — well past right edge of any viewport
   ].join(" ");
 
   // Flange + valve positions
@@ -421,7 +426,7 @@ function StillSpout() {
     `M ${COL_CX} ${spoutOutY}`,
     `L ${COL_CX} ${p1y - BR}`,
     `Q ${COL_CX} ${p1y} ${COL_CX - BR} ${p1y}`,
-    `L -1000 ${p1y}`,
+    `L -3000 ${p1y}`,
   ].join(" ");
 
   const valveX = COL_CX - BR - 28;
@@ -552,9 +557,10 @@ export default function HowWeHunt() {
     <section id="how-we-hunt" style={{
       backgroundColor: "var(--color-bg-primary)",
       paddingTop: 80, paddingBottom: 80, width: "100%",
+      overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>
       <SvgDefs />
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
         <ScrollReveal>
           <p style={{
             fontFamily: "var(--font-plus-jakarta)", fontSize: 11,
