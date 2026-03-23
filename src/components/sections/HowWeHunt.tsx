@@ -303,110 +303,25 @@ function Flange() {
   );
 }
 
-/* ── Spout + drip + Weller-style bottle at bottom ── */
+/* ── Spout at bottom — clean termination, no bottle ── */
 function StillSpout() {
   const S = "#C4943A";
-
-  // Weller silhouette: tall, lean, slight waist, pronounced square shoulders, long neck
-  // All coords relative to bottleOriginX / bottleOriginY
-  const bCX = COL_CX;          // bottle center X
-  const bTop = 72;             // top of bottle (mouth)
-
-  // Proportions (scaled to ~28px wide, ~88px tall — tall & lean like Weller)
-  const bHalfW  = 14;          // half-width of body
-  const bNeckHW = 4;           // half-width of neck
-  const bCapH   = 6;           // aluminum cap height
-  const bNeckH  = 18;          // neck height
-  const bShoulderH = 10;       // shoulder transition height
-  const bBodyH  = 52;          // body height
-  const bBaseY  = bTop + bCapH + bNeckH + bShoulderH + bBodyH;
-
-  // Key Y coords
-  const capTop      = bTop;
-  const neckTop     = bTop + bCapH;
-  const shoulderTop = neckTop + bNeckH;
-  const bodyTop     = shoulderTop + bShoulderH;
-  const bodyBot     = bodyTop + bBodyH;
-
+  const bCX = COL_CX;
   return (
-    <div style={{ width: `${VIEWBOX_W}px`, height: "190px" }}>
-      <svg viewBox={`0 0 ${VIEWBOX_W} 190`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "190px" }}>
+    <div style={{ width: `${VIEWBOX_W}px`, height: "70px" }}>
+      <svg viewBox={`0 0 ${VIEWBOX_W} 70`} fill="none" style={{ width: `${VIEWBOX_W}px`, height: "70px" }}>
         {/* Continuing column walls */}
         <line x1={COL_X} y1="0" x2={COL_X} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
         <line x1={COL_X + COL_W} y1="0" x2={COL_X + COL_W} y2="22" stroke={S} strokeWidth="1.5" opacity="0.4" />
         <rect x={COL_X} y="0" width={COL_W} height="22" fill="url(#hwh-copper)" />
-
         {/* Narrowing to spout */}
-        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 58`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        <path d={`M${COL_X + COL_W} 22 L${bCX + 6} 42 L${bCX + 6} 58`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
-        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 58 L${bCX + 6} 58 L${bCX + 6} 42 L${COL_X + COL_W} 22 Z`} fill={S} opacity="0.04" />
-
+        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 56`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        <path d={`M${COL_X + COL_W} 22 L${bCX + 6} 42 L${bCX + 6} 56`} stroke={S} strokeWidth="1.5" opacity="0.35" fill="none" />
+        <path d={`M${COL_X} 22 L${bCX - 6} 42 L${bCX - 6} 56 L${bCX + 6} 56 L${bCX + 6} 42 L${COL_X + COL_W} 22 Z`} fill={S} opacity="0.04" />
         {/* Spout valve */}
-        <line x1={bCX - 12} y1="58" x2={bCX + 12} y2="58" stroke={S} strokeWidth="1.5" opacity="0.3" />
-
-        {/* Dashed drip line */}
-        <line x1={bCX} y1="60" x2={bCX} y2={capTop - 1} stroke={S} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.25" />
-        {/* Drip teardrop just above bottle mouth */}
-        <ellipse cx={bCX} cy={capTop - 3} rx="2" ry="3" fill={S} opacity="0.4" />
-
-        {/* ── Weller bottle silhouette ── */}
-
-        {/* Aluminum cap — flat rectangular top, slightly wider than neck */}
-        <rect
-          x={bCX - bNeckHW - 1} y={capTop}
-          width={(bNeckHW + 1) * 2} height={bCapH}
-          rx="1"
-          stroke={S} strokeWidth="1" opacity="0.5"
-          fill={S} fillOpacity="0.1"
-        />
-        {/* Cap rim line at bottom */}
-        <line x1={bCX - bNeckHW - 2} y1={capTop + bCapH} x2={bCX + bNeckHW + 2} y2={capTop + bCapH} stroke={S} strokeWidth="1" opacity="0.4" />
-
-        {/* Long straight neck */}
-        <line x1={bCX - bNeckHW} y1={neckTop} x2={bCX - bNeckHW} y2={shoulderTop} stroke={S} strokeWidth="1" opacity="0.4" />
-        <line x1={bCX + bNeckHW} y1={neckTop} x2={bCX + bNeckHW} y2={shoulderTop} stroke={S} strokeWidth="1" opacity="0.4" />
-
-        {/* Weller-style pronounced square-ish shoulders — sharp then straight down */}
-        {/* Left shoulder: curves sharply outward */}
-        <path
-          d={`M${bCX - bNeckHW} ${shoulderTop} C${bCX - bNeckHW} ${shoulderTop + 6} ${bCX - bHalfW} ${shoulderTop + 4} ${bCX - bHalfW} ${bodyTop}`}
-          stroke={S} strokeWidth="1" opacity="0.4" fill="none"
-        />
-        {/* Right shoulder */}
-        <path
-          d={`M${bCX + bNeckHW} ${shoulderTop} C${bCX + bNeckHW} ${shoulderTop + 6} ${bCX + bHalfW} ${shoulderTop + 4} ${bCX + bHalfW} ${bodyTop}`}
-          stroke={S} strokeWidth="1" opacity="0.4" fill="none"
-        />
-
-        {/* Body — tall straight sides with very subtle waist */}
-        {/* Left wall — very slight inward curve at center (Weller has mild waist) */}
-        <path
-          d={`M${bCX - bHalfW} ${bodyTop} C${bCX - bHalfW + 1} ${bodyTop + bBodyH * 0.45} ${bCX - bHalfW + 1} ${bodyTop + bBodyH * 0.55} ${bCX - bHalfW} ${bodyBot}`}
-          stroke={S} strokeWidth="1" opacity="0.4" fill="none"
-        />
-        {/* Right wall */}
-        <path
-          d={`M${bCX + bHalfW} ${bodyTop} C${bCX + bHalfW - 1} ${bodyTop + bBodyH * 0.45} ${bCX + bHalfW - 1} ${bodyTop + bBodyH * 0.55} ${bCX + bHalfW} ${bodyBot}`}
-          stroke={S} strokeWidth="1" opacity="0.4" fill="none"
-        />
-
-        {/* Body fill */}
-        <path
-          d={`M${bCX - bHalfW} ${bodyTop} C${bCX - bHalfW + 1} ${bodyTop + bBodyH * 0.45} ${bCX - bHalfW + 1} ${bodyTop + bBodyH * 0.55} ${bCX - bHalfW} ${bodyBot} L${bCX + bHalfW} ${bodyBot} C${bCX + bHalfW - 1} ${bodyTop + bBodyH * 0.55} ${bCX + bHalfW - 1} ${bodyTop + bBodyH * 0.45} ${bCX + bHalfW} ${bodyTop} Z`}
-          fill={S} opacity="0.05"
-        />
-
-        {/* Flat base */}
-        <line x1={bCX - bHalfW} y1={bodyBot} x2={bCX + bHalfW} y2={bodyBot} stroke={S} strokeWidth="1.2" opacity="0.4" />
-
-        {/* Label area — two fine horizontal lines suggesting a label */}
-        <line x1={bCX - bHalfW + 3} y1={bodyTop + 14} x2={bCX + bHalfW - 3} y2={bodyTop + 14} stroke={S} strokeWidth="0.5" opacity="0.2" />
-        <line x1={bCX - bHalfW + 3} y1={bodyTop + 34} x2={bCX + bHalfW - 3} y2={bodyTop + 34} stroke={S} strokeWidth="0.5" opacity="0.2" />
-        {/* "W" hint — a tiny subtle mark center label */}
-        <path
-          d={`M${bCX - 5} ${bodyTop + 18} L${bCX - 3} ${bodyTop + 26} L${bCX} ${bodyTop + 21} L${bCX + 3} ${bodyTop + 26} L${bCX + 5} ${bodyTop + 18}`}
-          stroke={S} strokeWidth="0.7" opacity="0.2" fill="none"
-        />
+        <line x1={bCX - 12} y1="56" x2={bCX + 12} y2="56" stroke={S} strokeWidth="1.5" opacity="0.3" />
+        {/* Single drip drop */}
+        <ellipse cx={bCX} cy="64" rx="2.5" ry="3.5" fill={S} opacity="0.25" />
       </svg>
     </div>
   );
