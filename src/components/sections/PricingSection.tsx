@@ -25,10 +25,24 @@ export default function PricingSection() {
   return (
     <section
       id="pricing"
-      className="py-24 px-6"
-      style={{ backgroundColor: "var(--color-bg-secondary)" }}
+      style={{
+        backgroundColor: "var(--color-bg-secondary)",
+        paddingTop: "96px",
+        paddingBottom: "96px",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "center",
+      }}
     >
-      <div className="mx-auto" style={{ maxWidth: "860px" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "860px",
+          paddingLeft: "clamp(16px, 4vw, 48px)",
+          paddingRight: "clamp(16px, 4vw, 48px)",
+        }}
+      >
         {/* Heading */}
         <h2
           className="text-center mb-3"
@@ -55,19 +69,26 @@ export default function PricingSection() {
 
         {/* Cards */}
         <motion.div
-          className="flex flex-col md:flex-row gap-6 items-stretch"
+          className="flex flex-col md:flex-row gap-6"
+          style={{ alignItems: "stretch" }}
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
           {/* Standard Proof */}
-          <motion.div variants={fadeUpVariant} className="flex-1 order-2 md:order-1">
+          <motion.div
+            variants={fadeUpVariant}
+            className="order-2 md:order-1"
+            style={{ flex: 1, display: "flex" }}
+          >
             <motion.div
-              className="h-full"
               style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                flex: 1,
                 background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                border: "1px solid #2A2520",
                 borderRadius: "16px",
                 padding: "36px",
               }}
@@ -127,9 +148,20 @@ export default function PricingSection() {
               </p>
 
               {/* Features */}
-              <ul className="mb-8" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {standardFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start" style={{ gap: "10px" }}>
+              <div style={{ display: "flex", flexDirection: "column" as const }}>
+                {standardFeatures.map((feature, i) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom:
+                        i < standardFeatures.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                    }}
+                  >
                     <span
                       className="shrink-0 flex items-center justify-center"
                       style={{
@@ -150,43 +182,75 @@ export default function PricingSection() {
                     >
                       {feature}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
 
-              {/* CTA */}
-              <button
-                className="w-full cursor-pointer"
-                style={{
-                  background: "transparent",
-                  border: "1px solid rgba(196,148,58,0.4)",
-                  color: "var(--color-amber-rich)",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  padding: "14px",
-                  borderRadius: "10px",
-                  transition: "border-color 200ms, background 200ms",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-amber-rich)";
-                  e.currentTarget.style.background = "rgba(196,148,58,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
-                Start Hunting — $10/mo
-              </button>
+              {/* CTA — pushed to bottom */}
+              <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                <button
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: "1px solid rgba(196,148,58,0.5)",
+                    color: "var(--color-amber-rich)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    padding: "14px",
+                    borderRadius: "10px",
+                    transition: "border-color 200ms, background 200ms",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--color-amber-rich)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.5)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  Start Hunting — $10/mo
+                </button>
+              </div>
             </motion.div>
           </motion.div>
 
           {/* Barrel Proof (hero card) */}
-          <motion.div variants={fadeUpVariant} className="flex-1 order-1 md:order-2">
-            <motion.div
-              className="h-full relative overflow-visible"
+          <motion.div
+            variants={fadeUpVariant}
+            className="order-1 md:order-2"
+            style={{ flex: 1, display: "flex", position: "relative" as const, paddingTop: "20px" }}
+          >
+            {/* Founding Member badge — centered, overlapping top edge */}
+            <div
               style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "var(--color-amber-rich)",
+                color: "#0D0B07",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "10px",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                padding: "6px 20px",
+                borderRadius: "0 0 10px 10px",
+                whiteSpace: "nowrap",
+                zIndex: 2,
+              }}
+            >
+              Founding Member
+            </div>
+
+            <motion.div
+              style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                flex: 1,
                 background: "rgba(196,148,58,0.06)",
                 border: "2px solid var(--color-amber-rich)",
                 borderRadius: "16px",
@@ -202,26 +266,6 @@ export default function PricingSection() {
                 transition: { duration: 0.3 },
               }}
             >
-              {/* Ribbon badge */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-1px",
-                  right: "24px",
-                  background: "var(--color-amber-rich)",
-                  color: "#0D0B07",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  padding: "6px 14px",
-                  borderRadius: "0 0 8px 8px",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                FOUNDING MEMBER
-              </div>
-
               {/* Tier label */}
               <p
                 style={{
@@ -285,43 +329,14 @@ export default function PricingSection() {
               </p>
 
               {/* Scarcity progress bar */}
-              <div style={{ marginTop: "16px" }}>
-                <div className="flex justify-between">
-                  <span
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "11px",
-                      color: "rgba(245,237,214,0.5)",
-                    }}
-                  >
-                    Founding spots remaining
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "11px",
-                      color: "var(--color-amber-rich)",
-                    }}
-                  >
-                    100 of 100
-                  </span>
+              <div style={{ marginTop: "16px", marginBottom: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "rgba(245,237,214,0.5)" }}>Founding spots remaining</span>
+                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>100 / 100</span>
                 </div>
-                <div
-                  style={{
-                    width: "100%",
-                    height: "4px",
-                    background: "rgba(255,255,255,0.08)",
-                    borderRadius: "2px",
-                    marginTop: "6px",
-                    overflow: "hidden",
-                  }}
-                >
+                <div style={{ width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
                   <motion.div
-                    style={{
-                      height: "100%",
-                      background: "var(--color-amber-rich)",
-                      borderRadius: "2px",
-                    }}
+                    style={{ height: "4px", backgroundColor: "var(--color-amber-rich)", borderRadius: "2px", originX: 0 }}
                     initial={{ width: "0%" }}
                     whileInView={{ width: "100%" }}
                     viewport={{ once: true }}
@@ -330,62 +345,13 @@ export default function PricingSection() {
                 </div>
               </div>
 
-              {/* Feature divider: ALL STANDARD PROOF FEATURES + */}
-              <div
-                className="relative flex items-center justify-center"
-                style={{ margin: "24px 0" }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "1px",
-                    background: "rgba(196,148,58,0.15)",
-                  }}
-                />
-                <span
-                  style={{
-                    position: "relative",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "10px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.15em",
-                    color: "rgba(196,148,58,0.5)",
-                    background: "var(--color-bg-secondary)",
-                    padding: "0 12px",
-                  }}
-                >
-                  ALL STANDARD PROOF FEATURES +
+              {/* Collapsed standard features — single line */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", marginTop: "16px" }}>
+                <span style={{ color: "var(--color-amber-rich)", fontSize: "16px" }}>✓</span>
+                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-cream)", fontWeight: 500 }}>
+                  All Standard Proof features, forever
                 </span>
               </div>
-
-              {/* All standard features */}
-              <ul style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {standardFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start" style={{ gap: "10px" }}>
-                    <span
-                      className="shrink-0"
-                      style={{
-                        color: "var(--color-amber-rich)",
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "16px",
-                        width: "16px",
-                      }}
-                    >
-                      ✓
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "14px",
-                        color: "var(--color-cream)",
-                      }}
-                    >
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
 
               {/* Founding exclusives divider */}
               <div
@@ -417,9 +383,20 @@ export default function PricingSection() {
               </div>
 
               {/* Founder exclusives */}
-              <ul style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {founderExclusives.map((feature) => (
-                  <li key={feature} className="flex items-start" style={{ gap: "10px" }}>
+              <div style={{ display: "flex", flexDirection: "column" as const }}>
+                {founderExclusives.map((feature, i) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom:
+                        i < founderExclusives.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                    }}
+                  >
                     <span
                       className="shrink-0"
                       style={{
@@ -440,9 +417,9 @@ export default function PricingSection() {
                     >
                       {feature}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
 
               {/* Social proof */}
               <p
@@ -458,37 +435,35 @@ export default function PricingSection() {
                 Become the first founding member.
               </p>
 
-              {/* CTA */}
-              <button
-                className="w-full cursor-pointer"
-                style={{
-                  marginTop: "16px",
-                  background:
-                    "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)",
-                  backgroundSize: "200%",
-                  backgroundPosition: "left center",
-                  color: "#0D0B07",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  padding: "16px",
-                  borderRadius: "10px",
-                  border: "none",
-                  transition: "background-position 300ms, box-shadow 300ms, transform 300ms",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundPosition = "right center";
-                  e.currentTarget.style.boxShadow = "0 0 24px rgba(196,148,58,0.4)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundPosition = "left center";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Claim Your Spot — $69
-              </button>
+              {/* CTA — pushed to bottom */}
+              <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                <button
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                    background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: "#1A1510",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    padding: "16px",
+                    border: "none",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
+                    transition: "box-shadow 300ms, transform 300ms",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  Claim Your Spot — $69
+                </button>
+              </div>
 
               {/* Note below button */}
               <p
