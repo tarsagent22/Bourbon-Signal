@@ -15,203 +15,143 @@ const steps: Step[] = [
     number: "01",
     title: "The Mash",
     description:
-      "We monitor state liquor control boards, warehouse shipments, and distributor data daily.",
+      "Monitoring state liquor boards, warehouse movements, and distributor data daily.",
   },
   {
     number: "02",
     title: "The Distillation",
     description:
-      "AI filters noise and identifies confirmed allocations, limited releases, and unicorn drops.",
+      "AI filters noise to surface confirmed allocations and verified drops.",
   },
   {
     number: "03",
     title: "The Barrel",
     description:
-      "Every drop is tagged by bottle, tier, store location, and county.",
+      "Every drop tagged by bottle, tier, store, and county.",
   },
   {
     number: "04",
     title: "The Pour",
     description:
-      "Instant alerts hit your phone the moment a bottle you're watching lands on a shelf.",
+      "Instant alerts the moment a bottle you're watching hits a shelf.",
   },
 ];
 
-function StillIllustration() {
+/*
+ * Vendome-style copper column still — tall, slender, vertical.
+ * 4 sections separated by riveted bands, each aligned with a step.
+ * Thin amber line art, no fill. ~1:6 aspect ratio.
+ *
+ * ViewBox: 120 x 700. Column centered at x=60.
+ * Section vertical zones (each ~130px tall):
+ *   Section 1 (bottom / The Mash):  y 530 → 400
+ *   Section 2 (The Distillation):   y 400 → 270
+ *   Section 3 (The Barrel):         y 270 → 140
+ *   Section 4 (top / The Pour):     y 140 → 50, then vapor pipe
+ */
+function ColumnStillIllustration() {
+  const S = "#C4943A"; // amber stroke color
   return (
     <svg
-      viewBox="0 0 400 520"
+      viewBox="0 0 120 700"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "100%", maxHeight: "520px" }}
+      style={{ width: "100%", height: "100%" }}
     >
-      {/* Pot still body — large onion-shaped vessel */}
-      <ellipse
-        cx="160"
-        cy="380"
-        rx="100"
-        ry="70"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
+      {/* Glow filter for edges */}
+      <defs>
+        <filter id="copperGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* ===== BASE / PLATFORM ===== */}
+      <rect x="20" y="570" width="80" height="6" rx="1" stroke={S} strokeWidth="1.2" opacity="0.5" />
+      {/* Base feet */}
+      <line x1="30" y1="576" x2="30" y2="584" stroke={S} strokeWidth="1" opacity="0.35" />
+      <line x1="90" y1="576" x2="90" y2="584" stroke={S} strokeWidth="1" opacity="0.35" />
+      <line x1="25" y1="584" x2="35" y2="584" stroke={S} strokeWidth="1" opacity="0.35" />
+      <line x1="85" y1="584" x2="95" y2="584" stroke={S} strokeWidth="1" opacity="0.35" />
+
+      {/* ===== MAIN COLUMN BODY — continuous outline ===== */}
+      {/* Left wall */}
+      <line x1="35" y1="570" x2="35" y2="68" stroke={S} strokeWidth="1.3" opacity="0.55" />
+      {/* Right wall */}
+      <line x1="85" y1="570" x2="85" y2="68" stroke={S} strokeWidth="1.3" opacity="0.55" />
+
+      {/* ===== SECTION 1 (bottom) — The Mash: y 530–400 ===== */}
+      {/* Bottom cap */}
+      <path d="M35 570 Q35 555 60 550 Q85 555 85 570" stroke={S} strokeWidth="1.2" opacity="0.45" fill="none" />
+      {/* Riveted band at y=530 */}
+      <rect x="32" y="397" width="56" height="6" rx="1" stroke={S} strokeWidth="1" opacity="0.45" fill="none" />
+      {/* Rivet dots */}
+      <circle cx="40" cy="400" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="52" cy="400" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="64" cy="400" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="76" cy="400" r="1.2" fill={S} opacity="0.35" />
+      {/* Sight glass */}
+      <rect x="86" y="460" width="14" height="30" rx="3" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
+      <line x1="93" y1="463" x2="93" y2="487" stroke={S} strokeWidth="0.6" opacity="0.25" />
+      {/* Small inlet pipe */}
+      <line x1="85" y1="520" x2="102" y2="520" stroke={S} strokeWidth="1" opacity="0.35" />
+      <line x1="102" y1="515" x2="102" y2="525" stroke={S} strokeWidth="1" opacity="0.35" />
+
+      {/* ===== SECTION 2 — The Distillation: y 400–270 ===== */}
+      {/* Riveted band at y=270 */}
+      <rect x="32" y="267" width="56" height="6" rx="1" stroke={S} strokeWidth="1" opacity="0.45" fill="none" />
+      <circle cx="40" cy="270" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="52" cy="270" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="64" cy="270" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="76" cy="270" r="1.2" fill={S} opacity="0.35" />
+      {/* Small valve on left */}
+      <line x1="35" y1="340" x2="18" y2="340" stroke={S} strokeWidth="1" opacity="0.35" />
+      <circle cx="14" cy="340" r="4" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
+      {/* Thermometer / gauge on right */}
+      <line x1="85" y1="330" x2="100" y2="330" stroke={S} strokeWidth="1" opacity="0.35" />
+      <circle cx="105" cy="330" r="6" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
+      <line x1="105" y1="326" x2="105" y2="330" stroke={S} strokeWidth="0.6" opacity="0.25" />
+
+      {/* ===== SECTION 3 — The Barrel: y 270–140 ===== */}
+      {/* Riveted band at y=140 */}
+      <rect x="32" y="137" width="56" height="6" rx="1" stroke={S} strokeWidth="1" opacity="0.45" fill="none" />
+      <circle cx="40" cy="140" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="52" cy="140" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="64" cy="140" r="1.2" fill={S} opacity="0.35" />
+      <circle cx="76" cy="140" r="1.2" fill={S} opacity="0.35" />
+      {/* Sight glass on left */}
+      <rect x="16" y="190" width="18" height="26" rx="3" stroke={S} strokeWidth="1" opacity="0.35" fill="none" />
+      <line x1="25" y1="193" x2="25" y2="213" stroke={S} strokeWidth="0.6" opacity="0.25" />
+      {/* Small pipe from column to sight glass */}
+      <line x1="35" y1="203" x2="34" y2="203" stroke={S} strokeWidth="1" opacity="0.35" />
+      {/* Small valve on right */}
+      <line x1="85" y1="200" x2="100" y2="200" stroke={S} strokeWidth="1" opacity="0.35" />
+      <line x1="100" y1="195" x2="100" y2="205" stroke={S} strokeWidth="1" opacity="0.35" />
+
+      {/* ===== SECTION 4 (top) — The Pour: y 140–50 ===== */}
+      {/* Top dome / cap */}
+      <path d="M35 68 Q35 48 60 40 Q85 48 85 68" stroke={S} strokeWidth="1.3" opacity="0.5" fill="none" />
+      {/* Small gauge on left */}
+      <line x1="35" y1="100" x2="20" y2="100" stroke={S} strokeWidth="1" opacity="0.35" />
+      <circle cx="15" cy="100" r="5" stroke={S} strokeWidth="0.8" opacity="0.3" fill="none" />
+      {/* Vapor pipe curving off from top right */}
+      <path
+        d="M75 48 Q82 30 90 25 Q100 20 110 22"
+        stroke={S}
+        strokeWidth="1.3"
         opacity="0.5"
-      />
-      {/* Pot still bottom curve */}
-      <path
-        d="M60 380 Q60 440 110 460 Q160 475 210 460 Q260 440 260 380"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.5"
         fill="none"
       />
-      {/* Pot still neck — rising from the pot */}
-      <path
-        d="M130 312 Q130 280 140 250 Q150 220 155 200"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.5"
-        fill="none"
-      />
-      <path
-        d="M190 312 Q190 280 180 250 Q170 220 165 200"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.5"
-        fill="none"
-      />
-      {/* Swan neck — curving over to the right */}
-      <path
-        d="M155 200 Q155 160 170 140 Q190 115 220 110 Q260 105 290 115"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.55"
-        fill="none"
-      />
-      <path
-        d="M165 200 Q165 165 178 147 Q195 125 225 120 Q260 115 290 123"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.55"
-        fill="none"
-      />
-      {/* Lyne arm — horizontal pipe to condenser */}
-      <line
-        x1="290"
-        y1="115"
-        x2="320"
-        y2="130"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      <line
-        x1="290"
-        y1="123"
-        x2="320"
-        y2="138"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      {/* Condenser coil — zigzag/spiral going down */}
-      <path
-        d="M320 130 Q340 140 325 160 Q310 180 330 195 Q350 210 335 230 Q320 250 340 265 Q360 280 345 300 Q330 320 350 335 Q365 345 350 365"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.4"
-        fill="none"
-      />
-      {/* Condenser water jacket outline */}
-      <rect
-        x="305"
-        y="140"
-        width="60"
-        height="230"
-        rx="4"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1"
-        opacity="0.2"
-        fill="none"
-      />
-      {/* Collection vessel — small barrel at bottom right */}
-      <ellipse
-        cx="350"
-        cy="400"
-        rx="30"
-        ry="15"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      <line
-        x1="320"
-        y1="400"
-        x2="320"
-        y2="440"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      <line
-        x1="380"
-        y1="400"
-        x2="380"
-        y2="440"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      <ellipse
-        cx="350"
-        cy="440"
-        rx="30"
-        ry="15"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1.5"
-        opacity="0.45"
-      />
-      {/* Drip from condenser to collection */}
-      <path
-        d="M350 370 L350 385"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1"
-        opacity="0.3"
-        strokeDasharray="3 4"
-      />
-      {/* Furnace glow under pot */}
-      <path
-        d="M100 470 Q130 485 160 470 Q190 485 220 470"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="1"
-        opacity="0.25"
-      />
-      {/* Heat lines */}
-      <line
-        x1="130"
-        y1="480"
-        x2="130"
-        y2="495"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="0.75"
-        opacity="0.15"
-      />
-      <line
-        x1="160"
-        y1="482"
-        x2="160"
-        y2="500"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="0.75"
-        opacity="0.15"
-      />
-      <line
-        x1="190"
-        y1="480"
-        x2="190"
-        y2="495"
-        stroke="var(--color-amber-rich)"
-        strokeWidth="0.75"
-        opacity="0.15"
-      />
+      {/* Small steam wisps */}
+      <path d="M110 22 Q112 15 108 8" stroke={S} strokeWidth="0.8" opacity="0.25" fill="none" />
+      <path d="M112 20 Q116 12 113 5" stroke={S} strokeWidth="0.6" opacity="0.2" fill="none" />
+
+      {/* ===== Subtle glow overlay on column edges ===== */}
+      <line x1="35" y1="570" x2="35" y2="68" stroke={S} strokeWidth="3" opacity="0.06" filter="url(#copperGlow)" />
+      <line x1="85" y1="570" x2="85" y2="68" stroke={S} strokeWidth="3" opacity="0.06" filter="url(#copperGlow)" />
     </svg>
   );
 }
@@ -269,34 +209,36 @@ export default function HowWeHunt() {
               fontSize: "17px",
               color: "var(--color-text-secondary)",
               maxWidth: "520px",
-              marginBottom: "64px",
+              marginBottom: "72px",
             }}
           >
             From raw data to your phone in minutes. Same process, distilled for speed.
           </p>
         </ScrollReveal>
 
-        {/* Two-column layout: steps left, illustration right */}
+        {/* Two-column layout: steps left (55%), still right (45%) */}
         <motion.div
-          className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-20"
+          className="flex flex-col lg:flex-row gap-8 lg:gap-0"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Left — Steps */}
+          {/* Left — Steps (55%) */}
           <motion.div
-            className="flex-1 w-full"
+            className="w-full"
+            style={{ flex: "0 0 55%" }}
             variants={fadeUpVariant}
           >
-            <div className="flex flex-col" style={{ gap: "0" }}>
+            <div className="flex flex-col" style={{ height: "100%" }}>
               {steps.map((step, i) => (
                 <motion.div
                   key={step.number}
                   variants={fadeUpVariant}
-                  className="flex gap-5"
+                  className="flex items-start gap-5"
                   style={{
-                    padding: "24px 0",
+                    flex: 1,
+                    padding: "28px 0",
                     borderBottom:
                       i < steps.length - 1
                         ? "1px solid rgba(255,255,255,0.06)"
@@ -312,14 +254,14 @@ export default function HowWeHunt() {
                       fontWeight: 700,
                       color: "var(--color-accent-amber)",
                       width: "28px",
-                      paddingTop: "2px",
+                      paddingTop: "3px",
                     }}
                   >
                     {step.number}
                   </span>
 
                   {/* Step content */}
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <h3
                       style={{
                         fontFamily: "var(--font-playfair)",
@@ -342,21 +284,50 @@ export default function HowWeHunt() {
                       {step.description}
                     </p>
                   </div>
+
+                  {/* Dashed connector line — hidden on mobile, visible on lg */}
+                  <div
+                    className="hidden lg:flex items-center shrink-0"
+                    style={{ width: "60px", height: "100%", paddingTop: "10px" }}
+                  >
+                    <svg width="60" height="2" viewBox="0 0 60 2" fill="none">
+                      <line
+                        x1="0"
+                        y1="1"
+                        x2="60"
+                        y2="1"
+                        stroke="#C4943A"
+                        strokeWidth="1"
+                        strokeDasharray="4 4"
+                        opacity="0.35"
+                      />
+                    </svg>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
-          {/* Right — Still illustration */}
+          {/* Right — Column still (45%) — desktop only inline, mobile below */}
           <motion.div
-            className="flex-1 w-full flex items-center justify-center"
+            className="hidden lg:flex items-stretch justify-center"
+            style={{ flex: "0 0 45%", paddingLeft: "0px" }}
             variants={fadeRightVariant}
-            style={{
-              maxWidth: "400px",
-              opacity: 0.85,
-            }}
           >
-            <StillIllustration />
+            <div style={{ width: "90px", height: "100%" }}>
+              <ColumnStillIllustration />
+            </div>
+          </motion.div>
+
+          {/* Mobile still — centered, smaller */}
+          <motion.div
+            className="flex lg:hidden justify-center"
+            style={{ marginTop: "40px" }}
+            variants={fadeUpVariant}
+          >
+            <div style={{ width: "60px", height: "360px" }}>
+              <ColumnStillIllustration />
+            </div>
           </motion.div>
         </motion.div>
       </div>
