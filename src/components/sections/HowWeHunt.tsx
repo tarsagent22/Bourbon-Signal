@@ -37,7 +37,7 @@ const steps: Step[] = [
   },
 ];
 
-/* Sight glass marker — circular porthole with step number */
+/* ── Sight glass — circular porthole with double-ring effect ── */
 function SightGlass({ number, index }: { number: string; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-20% 0px -20% 0px" });
@@ -47,77 +47,82 @@ function SightGlass({ number, index }: { number: string; index: number }) {
       ref={ref}
       className="shrink-0 flex items-center justify-center"
       style={{
-        width: "44px",
-        height: "44px",
+        width: "48px",
+        height: "48px",
         borderRadius: "50%",
-        border: "2.5px solid #C4943A",
-        background: isInView
-          ? "radial-gradient(circle, rgba(196,148,58,0.2) 0%, rgba(196,148,58,0.08) 70%)"
-          : "var(--color-bg-primary)",
-        boxShadow: isInView
-          ? "0 0 20px rgba(196,148,58,0.25), inset 0 0 12px rgba(196,148,58,0.15)"
-          : "inset 0 2px 4px rgba(0,0,0,0.3)",
-        fontFamily: "var(--font-jetbrains)",
-        fontSize: "13px",
-        fontWeight: 700,
-        color: isInView ? "#C4943A" : "rgba(196,148,58,0.4)",
+        /* Opaque background covers the pipe behind it */
+        background: "var(--color-bg-primary)",
+        border: "2px solid #C4943A",
         position: "relative",
         zIndex: 2,
-        transition: "all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+        boxShadow: isInView
+          ? "0 0 24px rgba(196,148,58,0.3), 0 0 6px rgba(196,148,58,0.15)"
+          : "none",
+        transition: "box-shadow 0.6s cubic-bezier(0.25,0.1,0.25,1)",
         transitionDelay: `${index * 0.05}s`,
       }}
     >
-      {/* Inner ring — porthole glass effect */}
+      {/* Inner glass area with radial gradient */}
       <div
         style={{
           position: "absolute",
           inset: "4px",
           borderRadius: "50%",
-          border: "1px solid rgba(196,148,58,0.2)",
-          pointerEvents: "none",
+          border: "1px solid rgba(196,148,58,0.35)",
+          background: isInView
+            ? "radial-gradient(circle at center, rgba(13,11,7,0.8) 0%, rgba(196,148,58,0.18) 80%, rgba(196,148,58,0.25) 100%)"
+            : "radial-gradient(circle at center, rgba(13,11,7,0.9) 0%, rgba(196,148,58,0.06) 80%, rgba(196,148,58,0.1) 100%)",
+          boxShadow: "inset 0 2px 6px rgba(0,0,0,0.4)",
+          transition: "background 0.6s cubic-bezier(0.25,0.1,0.25,1)",
+          transitionDelay: `${index * 0.05}s`,
         }}
       />
-      {number}
+      {/* Step number — cream colored for readability */}
+      <span
+        style={{
+          position: "relative",
+          zIndex: 1,
+          fontFamily: "var(--font-jetbrains)",
+          fontSize: "13px",
+          fontWeight: 700,
+          color: isInView ? "var(--color-cream)" : "rgba(245,237,214,0.35)",
+          transition: "color 0.6s cubic-bezier(0.25,0.1,0.25,1)",
+          transitionDelay: `${index * 0.05}s`,
+        }}
+      >
+        {number}
+      </span>
     </motion.div>
   );
 }
 
-/* Riveted band crossing the pipe */
-function RivetedBand() {
+/* ── Bolted flange — two parallel lines crossing the pipe ── */
+function BoltedFlange() {
   return (
     <div
       className="flex items-center justify-center"
       style={{
-        width: "44px",
-        height: "12px",
+        width: "48px",
+        height: "16px",
         position: "relative",
         zIndex: 3,
       }}
     >
-      {/* Horizontal band */}
-      <div
-        style={{
-          width: "28px",
-          height: "4px",
-          borderRadius: "1px",
-          border: "1px solid rgba(196,148,58,0.3)",
-          background: "rgba(196,148,58,0.08)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-evenly",
-          padding: "0 3px",
-        }}
-      >
-        {/* Rivet dots */}
-        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
-        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
-        <div style={{ width: "2px", height: "2px", borderRadius: "50%", background: "#C4943A", opacity: 0.4 }} />
-      </div>
+      <svg width="28" height="12" viewBox="0 0 28 12" fill="none">
+        {/* Top flange line */}
+        <line x1="2" y1="2" x2="26" y2="2" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
+        {/* Bottom flange line */}
+        <line x1="2" y1="10" x2="26" y2="10" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
+        {/* Bolt dots */}
+        <circle cx="5" cy="6" r="1.5" fill="#C4943A" opacity="0.35" />
+        <circle cx="14" cy="6" r="1.5" fill="#C4943A" opacity="0.35" />
+        <circle cx="23" cy="6" r="1.5" fill="#C4943A" opacity="0.35" />
+      </svg>
     </div>
   );
 }
 
-/* Step text content with slide-in animation */
+/* ── Step text with slide-in animation ── */
 function StepContent({ step, index }: { step: Step; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-15% 0px -15% 0px" });
@@ -157,51 +162,113 @@ function StepContent({ step, index }: { step: Step; index: number }) {
   );
 }
 
-/* Still cap — small dome at top of pipe */
+/* ── Still cap — dome with lyne arm ── */
 function StillCap() {
   return (
     <div
       className="flex justify-center"
-      style={{ width: "44px", height: "28px", position: "relative", zIndex: 3 }}
+      style={{ width: "48px", height: "34px", position: "relative", zIndex: 3 }}
     >
-      <svg width="44" height="28" viewBox="0 0 44 28" fill="none">
-        {/* Dome */}
+      <svg width="60" height="34" viewBox="0 0 60 34" fill="none" style={{ marginLeft: "-6px" }}>
+        {/* Dome / half-circle cap */}
         <path
-          d="M16 28 L16 16 Q16 4 22 2 Q28 4 28 16 L28 28"
+          d="M14 34 L14 18 Q14 4 24 2 Q34 4 34 18 L34 34"
           stroke="#C4943A"
           strokeWidth="2"
           opacity="0.55"
           fill="none"
         />
-        {/* Cap ring */}
-        <line x1="13" y1="28" x2="31" y2="28" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
-        {/* Small vent pipe */}
-        <line x1="28" y1="10" x2="38" y2="10" stroke="#C4943A" strokeWidth="1.2" opacity="0.35" />
-        <line x1="38" y1="7" x2="38" y2="13" stroke="#C4943A" strokeWidth="1" opacity="0.3" />
+        {/* Cap flange ring */}
+        <line x1="10" y1="34" x2="38" y2="34" stroke="#C4943A" strokeWidth="2" opacity="0.45" />
+        {/* Lyne arm extending right */}
+        <line x1="34" y1="12" x2="54" y2="12" stroke="#C4943A" strokeWidth="1.8" opacity="0.4" />
+        {/* Lyne arm pipe walls */}
+        <line x1="34" y1="9" x2="54" y2="9" stroke="#C4943A" strokeWidth="0.8" opacity="0.25" />
+        <line x1="34" y1="15" x2="54" y2="15" stroke="#C4943A" strokeWidth="0.8" opacity="0.25" />
+        {/* Lyne arm end cap */}
+        <line x1="54" y1="8" x2="54" y2="16" stroke="#C4943A" strokeWidth="1.2" opacity="0.35" />
+        {/* Steam wisps */}
+        <path d="M56 11 L59 8" stroke="#C4943A" strokeWidth="0.6" opacity="0.2" />
+        <path d="M56 13 L58 16" stroke="#C4943A" strokeWidth="0.5" opacity="0.15" />
       </svg>
     </div>
   );
 }
 
-/* Spout / collection vessel at bottom of pipe */
-function StillSpout() {
+/* ── Collection vessel / barrel at bottom ── */
+function CollectionVessel() {
   return (
     <div
       className="flex justify-center"
-      style={{ width: "44px", height: "32px", position: "relative", zIndex: 3 }}
+      style={{ width: "48px", height: "40px", position: "relative", zIndex: 3 }}
     >
-      <svg width="44" height="32" viewBox="0 0 44 32" fill="none">
-        {/* Pipe narrowing to spout */}
-        <line x1="18" y1="0" x2="18" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
-        <line x1="26" y1="0" x2="26" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
-        {/* Valve */}
-        <line x1="14" y1="12" x2="30" y2="12" stroke="#C4943A" strokeWidth="1.5" opacity="0.4" />
-        {/* Drip lines */}
-        <line x1="22" y1="14" x2="22" y2="20" stroke="#C4943A" strokeWidth="1" opacity="0.3" strokeDasharray="2 2" />
-        <line x1="22" y1="23" x2="22" y2="27" stroke="#C4943A" strokeWidth="1" opacity="0.2" strokeDasharray="1 3" />
-        {/* Collection drop */}
-        <circle cx="22" cy="30" r="1.5" fill="#C4943A" opacity="0.25" />
+      <svg width="48" height="40" viewBox="0 0 48 40" fill="none">
+        {/* Pipe coming down into vessel */}
+        <line x1="21" y1="0" x2="21" y2="8" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
+        <line x1="27" y1="0" x2="27" y2="8" stroke="#C4943A" strokeWidth="1.5" opacity="0.45" />
+        {/* Valve / shutoff */}
+        <line x1="16" y1="8" x2="32" y2="8" stroke="#C4943A" strokeWidth="1.8" opacity="0.4" />
+        {/* Collection barrel — small trapezoid/barrel outline */}
+        <path
+          d="M14 14 L14 34 Q14 38 24 38 Q34 38 34 34 L34 14"
+          stroke="#C4943A"
+          strokeWidth="1.5"
+          opacity="0.4"
+          fill="none"
+        />
+        {/* Barrel top rim */}
+        <path
+          d="M14 14 Q14 11 24 10 Q34 11 34 14"
+          stroke="#C4943A"
+          strokeWidth="1.2"
+          opacity="0.35"
+          fill="none"
+        />
+        {/* Barrel mid-band */}
+        <line x1="14" y1="25" x2="34" y2="25" stroke="#C4943A" strokeWidth="0.8" opacity="0.2" />
+        {/* Drip into barrel */}
+        <line x1="24" y1="8" x2="24" y2="13" stroke="#C4943A" strokeWidth="0.8" opacity="0.25" strokeDasharray="2 2" />
       </svg>
+    </div>
+  );
+}
+
+/* ── Pipe segment — rendered in the flow, not through sight glasses ── */
+function PipeSegment({ height }: { height: string }) {
+  return (
+    <div
+      className="flex justify-center"
+      style={{
+        width: "48px",
+        height,
+        position: "relative",
+        zIndex: 1,
+      }}
+    >
+      {/* Outer pipe */}
+      <div
+        style={{
+          width: "4px",
+          height: "100%",
+          borderRadius: "2px",
+          background: "rgba(196,148,58,0.15)",
+          boxShadow: "0 0 0 1px rgba(196,148,58,0.1)",
+          position: "relative",
+        }}
+      >
+        {/* Inner lighter line */}
+        <div
+          style={{
+            position: "absolute",
+            left: "1px",
+            right: "1px",
+            top: 0,
+            bottom: 0,
+            borderRadius: "1px",
+            background: "rgba(196,148,58,0.25)",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -213,9 +280,7 @@ export default function HowWeHunt() {
     offset: ["start 0.8", "end 0.3"],
   });
 
-  // Map scroll progress to pipe fill (0 to 1)
   const fillScaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  // Glow intensity tied to progress
   const fillOpacity = useTransform(scrollYProgress, [0, 0.2, 1], [0, 0.6, 0.8]);
 
   return (
@@ -231,12 +296,12 @@ export default function HowWeHunt() {
       <div
         className="mx-auto"
         style={{
-          maxWidth: "1100px",
+          maxWidth: "900px",
           paddingLeft: "clamp(24px, 5vw, 56px)",
           paddingRight: "clamp(24px, 5vw, 56px)",
         }}
       >
-        {/* Section header */}
+        {/* Section header — centered */}
         <ScrollReveal>
           <p
             className="text-center"
@@ -277,49 +342,28 @@ export default function HowWeHunt() {
           </p>
         </ScrollReveal>
 
-        {/* Steps with integrated pipe */}
+        {/* Steps with integrated pipe-still */}
         <div
           ref={pipeRef}
           className="mx-auto"
           style={{
-            maxWidth: "580px",
+            maxWidth: "620px",
             position: "relative",
           }}
         >
-          {/* ===== COPPER PIPE — runs full height of steps area ===== */}
+          {/* ===== Scroll-driven fill overlay — absolute, behind everything ===== */}
           <div
             style={{
               position: "absolute",
-              left: "21px",
-              top: "28px",
-              bottom: "32px",
+              left: "22px",
+              top: "34px",
+              bottom: "40px",
               width: "4px",
-              zIndex: 1,
+              zIndex: 0,
+              overflow: "hidden",
+              borderRadius: "2px",
             }}
           >
-            {/* Outer pipe — darker edge */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: "2px",
-                background: "rgba(196,148,58,0.15)",
-                boxShadow: "0 0 0 1px rgba(196,148,58,0.1)",
-              }}
-            />
-            {/* Inner pipe — lighter center line for 3D tube effect */}
-            <div
-              style={{
-                position: "absolute",
-                left: "1px",
-                right: "1px",
-                top: 0,
-                bottom: 0,
-                borderRadius: "1px",
-                background: "rgba(196,148,58,0.25)",
-              }}
-            />
-            {/* Scroll-driven fill overlay */}
             <motion.div
               style={{
                 position: "absolute",
@@ -329,39 +373,44 @@ export default function HowWeHunt() {
                 transformOrigin: "top",
                 scaleY: fillScaleY,
                 opacity: fillOpacity,
-                boxShadow: "0 0 8px rgba(196,148,58,0.4), 0 0 20px rgba(196,148,58,0.15)",
+                boxShadow: "0 0 10px rgba(196,148,58,0.4), 0 0 24px rgba(196,148,58,0.15)",
               }}
             />
           </div>
 
-          {/* Still cap at top */}
+          {/* Still cap */}
           <StillCap />
 
-          {/* Steps */}
+          {/* Steps — pipe segments flow between sight glasses */}
           {steps.map((step, i) => (
             <div key={step.number}>
-              {/* Step row */}
+              {/* Pipe segment ABOVE this sight glass */}
+              <PipeSegment height={i === 0 ? "20px" : "12px"} />
+
+              {/* Step row: sight glass + content */}
               <div
                 className="flex items-center"
-                style={{
-                  gap: "32px",
-                  padding: "36px 0",
-                }}
+                style={{ gap: "40px" }}
               >
-                {/* Sight glass on pipe */}
                 <SightGlass number={step.number} index={i} />
-
-                {/* Step text */}
                 <StepContent step={step} index={i} />
               </div>
 
-              {/* Riveted band between steps (not after last) */}
-              {i < steps.length - 1 && <RivetedBand />}
+              {/* Pipe segment BELOW this sight glass */}
+              <PipeSegment height="20px" />
+
+              {/* Bolted flange between steps (not after last) */}
+              {i < steps.length - 1 && (
+                <>
+                  <BoltedFlange />
+                  <PipeSegment height="8px" />
+                </>
+              )}
             </div>
           ))}
 
-          {/* Still spout at bottom */}
-          <StillSpout />
+          {/* Collection vessel at bottom */}
+          <CollectionVessel />
         </div>
       </div>
     </section>
