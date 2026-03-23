@@ -82,6 +82,7 @@ export default function PricingSection() {
                 border: "1px solid #2A2520",
                 borderRadius: "16px",
                 padding: "36px",
+                paddingTop: "65px",
               }}
               whileHover={{
                 y: -3,
@@ -97,7 +98,7 @@ export default function PricingSection() {
                   textTransform: "uppercase",
                   letterSpacing: "0.15em",
                   color: "rgba(245,237,214,0.4)",
-                  marginBottom: "12px",
+                  marginBottom: "8px",
                 }}
               >
                 STANDARD PROOF
