@@ -26,7 +26,7 @@ export default function PricingSection() {
     <section
       id="pricing"
       style={{
-        backgroundColor: "var(--color-bg-secondary)",
+        background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-secondary) 35%)",
         paddingTop: "96px",
         paddingBottom: "96px",
         width: "100%",
