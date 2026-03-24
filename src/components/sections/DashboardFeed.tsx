@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import {
   type GroupedDrop,
+  type DropEvent,
   TIER_CONFIG,
   MULTIPLIER_COLORS,
   formatRelativeTime,
   getEventDescription,
   cleanCountyName,
+  getDisplayName,
 } from "@/lib/drops";
 import { BOTTLE_PRICING, type BottlePricing } from "@/data/bottles";
+import { INITIAL_WATCHLIST } from "@/components/sections/DashboardSidebar";
 
 function lookupPricing(
   displayName: string,
@@ -46,16 +50,34 @@ function lookupPricing(
 
 const FILTER_TIERS = ["all", "unicorn", "allocated", "limited"] as const;
 
+const NC_COUNTIES = [
+  "Wake",
+  "Durham",
+  "Mecklenburg",
+  "Guilford",
+  "New Hanover",
+  "Buncombe",
+] as const;
+
 function TierBadge({ tier }: { tier: string }) {
   const config = TIER_CONFIG[tier] || TIER_CONFIG.limited;
   return <span style={config.pillStyle}>{config.label}</span>;
 }
 
-interface FeedItemProps {
-  drop: GroupedDrop;
+function isOnWatchlist(dropName: string): boolean {
+  const normalized = dropName.toLowerCase();
+  return INITIAL_WATCHLIST.some((w) => {
+    const wName = w.name.toLowerCase();
+    return normalized.includes(wName) || wName.includes(normalized);
+  });
 }
 
-function FeedItem({ drop }: FeedItemProps) {
+interface FeedItemProps {
+  drop: GroupedDrop;
+  onWatchlist: boolean;
+}
+
+function FeedItem({ drop, onWatchlist }: FeedItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
@@ -96,7 +118,16 @@ function FeedItem({ drop }: FeedItemProps) {
           padding: "12px 16px",
           borderLeft: `3px solid ${tier.borderColor}`,
           cursor: hasDetails ? "pointer" : "default",
-          background: hovered ? "rgba(196, 148, 58, 0.04)" : "transparent",
+          background: onWatchlist
+            ? hovered
+              ? "rgba(196, 148, 58, 0.1)"
+              : "rgba(196, 148, 58, 0.06)"
+            : hovered
+              ? "rgba(196, 148, 58, 0.04)"
+              : "transparent",
+          boxShadow: onWatchlist
+            ? "inset 0 0 20px rgba(196, 148, 58, 0.04)"
+            : "none",
           transition: "background 200ms",
         }}
         onClick={() => hasDetails && setExpanded(!expanded)}
@@ -116,17 +147,35 @@ function FeedItem({ drop }: FeedItemProps) {
           className="flex-1 min-w-0 flex flex-col justify-center"
           style={{ marginLeft: "8px" }}
         >
-          <div
-            className="truncate"
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "clamp(15px, 2vw, 15px)",
-              fontWeight: 600,
-              color: "var(--color-cream)",
-              lineHeight: 1.3,
-            }}
-          >
-            {drop.displayName}
+          <div className="flex items-center gap-2">
+            <span
+              className="truncate"
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "clamp(15px, 2vw, 15px)",
+                fontWeight: 600,
+                color: "var(--color-cream)",
+                lineHeight: 1.3,
+              }}
+            >
+              {drop.displayName}
+            </span>
+            {onWatchlist && (
+              <span
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "var(--color-accent-amber)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
+                ⚡ ON YOUR WATCHLIST
+              </span>
+            )}
           </div>
           <div
             className="flex items-center gap-2"
@@ -309,15 +358,78 @@ function FeedItem({ drop }: FeedItemProps) {
 
 interface DashboardFeedProps {
   drops: GroupedDrop[];
+  allDrops: DropEvent[];
+  feedFilter: string;
+  onFilterChange: (filter: string) => void;
+  selectedCounties: string[];
+  onCountyToggle: (county: string) => void;
 }
 
-export default function DashboardFeed({ drops }: DashboardFeedProps) {
-  const [filter, setFilter] = useState<string>("all");
+export default function DashboardFeed({
+  drops,
+  allDrops,
+  feedFilter,
+  onFilterChange,
+  selectedCounties,
+  onCountyToggle,
+}: DashboardFeedProps) {
+  // Drop velocity computation
+  const velocity = useMemo(() => {
+    if (allDrops.length === 0) return { thisWeek: 0, avg: 0, level: "normal" as const };
+    const latest = Math.max(
+      ...allDrops.map((d) => new Date(d.timestamp).getTime())
+    );
+    const oneWeekAgo = latest - 7 * 24 * 60 * 60 * 1000;
+    const twoWeeksAgo = latest - 14 * 24 * 60 * 60 * 1000;
 
-  const filtered =
-    filter === "all"
+    const thisWeek = allDrops.filter(
+      (d) => new Date(d.timestamp).getTime() > oneWeekAgo
+    ).length;
+    const lastWeek = allDrops.filter((d) => {
+      const t = new Date(d.timestamp).getTime();
+      return t > twoWeeksAgo && t <= oneWeekAgo;
+    }).length;
+
+    const avg = Math.round((thisWeek + lastWeek) / 2);
+    const level: "high" | "normal" | "low" =
+      thisWeek > avg * 1.3 ? "high" : thisWeek < avg * 0.7 ? "low" : "normal";
+
+    return { thisWeek, avg, level };
+  }, [allDrops]);
+
+  const velocityColor =
+    velocity.level === "high"
+      ? "var(--color-success)"
+      : velocity.level === "low"
+        ? "var(--color-alert)"
+        : "var(--color-text-tertiary)";
+
+  const VelocityIcon =
+    velocity.level === "high"
+      ? TrendingUp
+      : velocity.level === "low"
+        ? TrendingDown
+        : Minus;
+
+  // Filter drops by tier
+  const tierFiltered =
+    feedFilter === "all"
       ? drops
-      : drops.filter((d) => d.rarity_tier === filter);
+      : drops.filter((d) => d.rarity_tier === feedFilter);
+
+  // Filter drops by county
+  const filtered = useMemo(() => {
+    if (selectedCounties.length === 0) return tierFiltered;
+    return tierFiltered.filter((d) => {
+      const dropCounties = d.counties.map((c) => c.toLowerCase());
+      const boardName = cleanCountyName(d.board_name || "").toLowerCase();
+      return selectedCounties.some(
+        (sc) =>
+          dropCounties.some((dc) => dc.includes(sc.toLowerCase())) ||
+          boardName.includes(sc.toLowerCase())
+      );
+    });
+  }, [tierFiltered, selectedCounties]);
 
   return (
     <div style={{ flex: "1 1 60%" }}>
@@ -333,39 +445,76 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
         }
       `}</style>
 
-      {/* Header */}
+      {/* Header + Velocity */}
       <div
-        className="flex items-center gap-3"
-        style={{ marginBottom: "16px" }}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+        style={{ marginBottom: "16px", gap: "10px" }}
       >
-        <h2
+        <div className="flex items-center gap-3">
+          <h2
+            style={{
+              fontFamily: "var(--font-playfair)",
+              fontSize: "20px",
+              fontWeight: 700,
+              color: "var(--color-cream)",
+              margin: 0,
+            }}
+          >
+            Live Feed
+          </h2>
+          <span
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "var(--color-success)",
+              animation: "pulseDot 2s ease-in-out infinite",
+              flexShrink: 0,
+            }}
+          />
+        </div>
+
+        {/* Drop Velocity Indicator */}
+        <div
+          className="flex items-center gap-2"
           style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "20px",
-            fontWeight: 700,
-            color: "var(--color-cream)",
-            margin: 0,
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "12px",
+            color: "var(--color-text-tertiary)",
           }}
         >
-          Live Feed
-        </h2>
-        <span
-          style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            background: "var(--color-success)",
-            animation: "pulseDot 2s ease-in-out infinite",
-            flexShrink: 0,
-          }}
-        />
+          <VelocityIcon size={14} style={{ color: velocityColor }} />
+          <span>
+            NC activity is{" "}
+            <span
+              style={{
+                fontWeight: 600,
+                color: velocityColor,
+                textTransform: "uppercase",
+                fontSize: "11px",
+                letterSpacing: "0.03em",
+              }}
+            >
+              {velocity.level}
+            </span>{" "}
+            this week (
+            <span style={{ fontFamily: "var(--font-jetbrains)", fontWeight: 600 }}>
+              {velocity.thisWeek}
+            </span>{" "}
+            vs{" "}
+            <span style={{ fontFamily: "var(--font-jetbrains)" }}>
+              {velocity.avg}
+            </span>{" "}
+            avg)
+          </span>
+        </div>
       </div>
 
       {/* Filter pills */}
       <div
         className="flex items-center gap-2 filter-pills-scroll"
         style={{
-          marginBottom: "16px",
+          marginBottom: "12px",
           overflowX: "auto",
           WebkitOverflowScrolling: "touch",
         }}
@@ -373,7 +522,7 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
         {FILTER_TIERS.map((tier) => (
           <button
             key={tier}
-            onClick={() => setFilter(tier)}
+            onClick={() => onFilterChange(tier)}
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "12px",
@@ -383,15 +532,15 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
               padding: "6px 14px",
               borderRadius: "20px",
               border:
-                filter === tier
+                feedFilter === tier
                   ? "1px solid var(--color-accent-amber)"
                   : "1px solid rgba(255,255,255,0.08)",
               background:
-                filter === tier
+                feedFilter === tier
                   ? "rgba(196,148,58,0.15)"
                   : "rgba(255,255,255,0.03)",
               color:
-                filter === tier
+                feedFilter === tier
                   ? "var(--color-accent-amber)"
                   : "var(--color-text-tertiary)",
               cursor: "pointer",
@@ -400,9 +549,64 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
               minHeight: "44px",
             }}
           >
-            {tier === "all" ? "All" : tier.charAt(0).toUpperCase() + tier.slice(1)}
+            {tier === "all"
+              ? "All"
+              : tier.charAt(0).toUpperCase() + tier.slice(1)}
           </button>
         ))}
+      </div>
+
+      {/* County pills — My Counties */}
+      <div
+        className="flex items-center gap-2 filter-pills-scroll"
+        style={{
+          marginBottom: "16px",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "var(--color-text-tertiary)",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          My Counties
+        </span>
+        {NC_COUNTIES.map((county) => {
+          const isSelected = selectedCounties.includes(county);
+          return (
+            <button
+              key={county}
+              onClick={() => onCountyToggle(county)}
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "11px",
+                fontWeight: 500,
+                padding: "5px 12px",
+                borderRadius: "16px",
+                border: isSelected
+                  ? "1px solid var(--color-accent-amber)"
+                  : "1px solid rgba(255,255,255,0.06)",
+                background: isSelected
+                  ? "rgba(196,148,58,0.2)"
+                  : "rgba(255,255,255,0.03)",
+                color: isSelected
+                  ? "var(--color-accent-amber)"
+                  : "var(--color-text-tertiary)",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 200ms ease",
+                minHeight: "32px",
+              }}
+            >
+              {county}
+            </button>
+          );
+        })}
       </div>
 
       {/* Feed container */}
@@ -419,7 +623,11 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
         <AnimatePresence mode="popLayout">
           {filtered.length > 0 ? (
             filtered.map((drop) => (
-              <FeedItem key={drop.id} drop={drop} />
+              <FeedItem
+                key={drop.id}
+                drop={drop}
+                onWatchlist={isOnWatchlist(drop.displayName)}
+              />
             ))
           ) : (
             <div
@@ -431,7 +639,10 @@ export default function DashboardFeed({ drops }: DashboardFeedProps) {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              No {filter} drops in recent feed
+              No {feedFilter === "all" ? "" : feedFilter + " "}drops
+              {selectedCounties.length > 0
+                ? ` in ${selectedCounties.join(", ")}`
+                : " in recent feed"}
             </div>
           )}
         </AnimatePresence>

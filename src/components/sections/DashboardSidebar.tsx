@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+import { Bell, Mail, Smartphone } from "lucide-react";
 import { fadeUpVariant } from "@/lib/animations";
 import type { DropEvent } from "@/lib/drops";
 
-interface WatchlistItem {
+export interface WatchlistItem {
   name: string;
   tier: "unicorn" | "allocated" | "limited";
   lastDrop: string | null;
 }
 
-const INITIAL_WATCHLIST: WatchlistItem[] = [
+export const INITIAL_WATCHLIST: WatchlistItem[] = [
   { name: "Pappy Van Winkle 23", tier: "unicorn", lastDrop: null },
   { name: "Blanton's", tier: "allocated", lastDrop: "2026-03-20T14:00:00Z" },
   { name: "Weller 12", tier: "allocated", lastDrop: "2026-03-18T09:30:00Z" },
@@ -329,6 +330,182 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           drops this week
         </div>
       </motion.div>
+
+      {/* Alert Preferences */}
+      <AlertPreferences />
     </div>
+  );
+}
+
+const ALERT_TIERS = [
+  { key: "unicorn", label: "Unicorn", icon: "◆" },
+  { key: "allocated", label: "Allocated", icon: "●" },
+  { key: "limited", label: "Limited", icon: "○" },
+] as const;
+
+function ToggleSwitch({
+  on,
+  onToggle,
+}: {
+  on: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        width: "36px",
+        height: "20px",
+        borderRadius: "10px",
+        border: "none",
+        background: on ? "var(--color-accent-amber)" : "rgba(255,255,255,0.08)",
+        position: "relative",
+        cursor: "pointer",
+        transition: "background 200ms ease",
+        flexShrink: 0,
+        minHeight: "20px",
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "2px",
+          left: on ? "18px" : "2px",
+          width: "16px",
+          height: "16px",
+          borderRadius: "50%",
+          background: on ? "var(--color-bg-primary)" : "var(--color-text-tertiary)",
+          transition: "left 200ms ease, background 200ms ease",
+        }}
+      />
+    </button>
+  );
+}
+
+function AlertPreferences() {
+  const [alerts, setAlerts] = useState<Record<string, { sms: boolean; email: boolean }>>({
+    unicorn: { sms: true, email: true },
+    allocated: { sms: false, email: true },
+    limited: { sms: false, email: false },
+  });
+
+  const toggle = useCallback(
+    (tier: string, channel: "sms" | "email") => {
+      setAlerts((prev) => ({
+        ...prev,
+        [tier]: { ...prev[tier], [channel]: !prev[tier][channel] },
+      }));
+    },
+    []
+  );
+
+  return (
+    <motion.div
+      variants={fadeUpVariant}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      style={{
+        background: "rgba(0,0,0,0.15)",
+        borderRadius: "12px",
+        border: "1px solid rgba(255,255,255,0.04)",
+        padding: "20px",
+        marginTop: "20px",
+      }}
+    >
+      <div
+        className="flex items-center gap-2"
+        style={{ marginBottom: "16px" }}
+      >
+        <Bell size={14} style={{ color: "var(--color-accent-amber)" }} />
+        <h3
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: "16px",
+            fontWeight: 700,
+            color: "var(--color-cream)",
+            margin: 0,
+          }}
+        >
+          Alert Preferences
+        </h3>
+      </div>
+
+      {/* Channel headers */}
+      <div
+        className="flex items-center justify-end gap-6"
+        style={{
+          marginBottom: "12px",
+          paddingRight: "2px",
+        }}
+      >
+        <div className="flex items-center gap-1">
+          <Smartphone size={11} style={{ color: "var(--color-text-tertiary)" }} />
+          <span
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            SMS
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Mail size={11} style={{ color: "var(--color-text-tertiary)" }} />
+          <span
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Email
+          </span>
+        </div>
+      </div>
+
+      {/* Tier toggles */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {ALERT_TIERS.map((tier) => (
+          <div
+            key={tier.key}
+            className="flex items-center justify-between"
+            style={{
+              padding: "8px 10px",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.02)",
+              minHeight: "44px",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              <span style={{ marginRight: "8px", opacity: 0.5 }}>{tier.icon}</span>
+              {tier.label}
+            </span>
+            <div className="flex items-center gap-6">
+              <ToggleSwitch
+                on={alerts[tier.key].sms}
+                onToggle={() => toggle(tier.key, "sms")}
+              />
+              <ToggleSwitch
+                on={alerts[tier.key].email}
+                onToggle={() => toggle(tier.key, "email")}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
   );
 }

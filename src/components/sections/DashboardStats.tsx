@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { motion, useInView } from "framer-motion";
+import { Crown } from "lucide-react";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
-import type { DropEvent } from "@/lib/drops";
+import { type DropEvent, getDisplayName } from "@/lib/drops";
+import { INITIAL_WATCHLIST } from "@/components/sections/DashboardSidebar";
 
 interface DashboardStatsProps {
   drops: DropEvent[];
@@ -108,8 +110,6 @@ function DashboardStatCard({
 }
 
 export default function DashboardStats({ drops }: DashboardStatsProps) {
-  // Use the most recent drop timestamp as "now" so stats are always meaningful
-  // even when demo data is stale relative to wall clock
   const referenceTime = useMemo(() => {
     if (drops.length === 0) return Date.now();
     const latest = Math.max(...drops.map((d) => new Date(d.timestamp).getTime()));
@@ -129,9 +129,7 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
     );
 
     const activeCounties = new Set(
-      recentDrops
-        .map((d) => d.board_name)
-        .filter(Boolean)
+      recentDrops.map((d) => d.board_name).filter(Boolean)
     ).size;
 
     const unicornAlerts = recentDrops.filter(
@@ -139,6 +137,25 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
     ).length;
 
     return { dropsToday, activeCounties, unicornAlerts };
+  }, [drops, referenceTime]);
+
+  // Personal hit rate: watchlist bottles that dropped this week
+  const watchlistHits = useMemo(() => {
+    const sevenDaysAgo = referenceTime - 7 * 24 * 60 * 60 * 1000;
+    const recentDrops = drops.filter(
+      (d) => new Date(d.timestamp).getTime() > sevenDaysAgo
+    );
+    const watchlistNames = INITIAL_WATCHLIST.map((w) => w.name.toLowerCase());
+    const matchedNames = new Set<string>();
+    for (const drop of recentDrops) {
+      const name = getDisplayName(drop).toLowerCase();
+      for (const wName of watchlistNames) {
+        if (name.includes(wName) || wName.includes(name)) {
+          matchedNames.add(wName);
+        }
+      }
+    }
+    return matchedNames.size;
   }, [drops, referenceTime]);
 
   const currentDate = useMemo(() => {
@@ -171,7 +188,7 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
         {/* Greeting row */}
         <div
           className="flex flex-col md:flex-row md:items-center md:justify-between"
-          style={{ marginBottom: "32px", gap: "16px" }}
+          style={{ marginBottom: "20px", gap: "16px" }}
         >
           {/* Left: Welcome */}
           <div>
@@ -202,8 +219,37 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
             </div>
           </div>
 
-          {/* Right: Member badge + tier */}
-          <div className="flex items-center gap-3">
+          {/* Right: Founding member + tier badges */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Founding Member Badge */}
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "var(--color-accent-gold)",
+                padding: "5px 12px",
+                borderRadius: "20px",
+                border: "1px solid rgba(232,176,75,0.25)",
+                background: "rgba(232,176,75,0.08)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Founding Member{" "}
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  color: "var(--color-accent-gold)",
+                }}
+              >
+                #007
+              </span>
+            </span>
             <span
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -239,30 +285,124 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
           </div>
         </div>
 
-        {/* Stats grid */}
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4"
-          style={{ gap: "clamp(12px, 2vw, 20px)" }}
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+        {/* Personal hit rate line */}
+        <div
+          style={{
+            marginBottom: "24px",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            color: "var(--color-text-tertiary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
         >
-          <DashboardStatCard
-            value={stats.dropsToday}
-            label="Drops Today"
-            hasActivity
+          Your watchlist had{" "}
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontWeight: 700,
+              fontSize: "14px",
+              color: watchlistHits > 0 ? "var(--color-accent-amber)" : "var(--color-text-tertiary)",
+            }}
+          >
+            {watchlistHits}
+          </span>{" "}
+          {watchlistHits === 1 ? "drop" : "drops"} this week
+        </div>
+
+        {/* Inner Circle — exclusive briefing */}
+        <div
+          style={{
+            marginBottom: "28px",
+            padding: "20px 24px",
+            borderRadius: "12px",
+            background: "rgba(0,0,0,0.25)",
+            border: "1px solid rgba(232,176,75,0.15)",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Faint scan-line overlay */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(232,176,75,0.02) 3px, rgba(232,176,75,0.02) 4px)",
+              pointerEvents: "none",
+            }}
           />
-          <DashboardStatCard value={8} label="Bottles Tracked" />
-          <DashboardStatCard
-            value={stats.activeCounties}
-            label="Active Counties"
+          <div
+            className="flex items-center gap-2"
+            style={{ marginBottom: "10px", position: "relative" }}
+          >
+            <Crown size={14} style={{ color: "var(--color-accent-gold)" }} />
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "11px",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                color: "var(--color-accent-gold)",
+              }}
+            >
+              Inner Circle
+            </span>
+          </div>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontStyle: "italic",
+              color: "var(--color-text-secondary)",
+              lineHeight: 1.6,
+              margin: 0,
+              position: "relative",
+            }}
+          >
+            Founder intel: Buffalo Trace allocation patterns suggest increased Wake County activity this week. Blanton&apos;s and E.H. Taylor shipments tracking above seasonal average.
+          </p>
+        </div>
+
+        {/* Stats grid — with command center grid overlay */}
+        <div style={{ position: "relative" }}>
+          {/* Command center grid pattern */}
+          <div
+            style={{
+              position: "absolute",
+              inset: "-16px -12px",
+              backgroundImage:
+                "repeating-linear-gradient(0deg, rgba(196,148,58,0.03) 0px, rgba(196,148,58,0.03) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(196,148,58,0.03) 0px, rgba(196,148,58,0.03) 1px, transparent 1px, transparent 40px)",
+              pointerEvents: "none",
+              borderRadius: "16px",
+            }}
           />
-          <DashboardStatCard
-            value={stats.unicornAlerts}
-            label="Unicorn Alerts"
-          />
-        </motion.div>
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4"
+            style={{ gap: "clamp(12px, 2vw, 20px)", position: "relative" }}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            <DashboardStatCard
+              value={stats.dropsToday}
+              label="Drops Today"
+              hasActivity
+            />
+            <DashboardStatCard value={8} label="Bottles Tracked" />
+            <DashboardStatCard
+              value={stats.activeCounties}
+              label="Active Counties"
+            />
+            <DashboardStatCard
+              value={stats.unicornAlerts}
+              label="Unicorn Alerts"
+            />
+          </motion.div>
+        </div>
       </div>
     </section>
   );
