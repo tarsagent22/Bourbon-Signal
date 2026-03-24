@@ -1,0 +1,511 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { staggerContainer, fadeUpVariant } from "@/lib/animations";
+
+const standardFeatures = [
+  "Instant drop alerts — email + SMS",
+  "Unlimited watchlist",
+  "Full hunt map with store-level data",
+  "Warehouse & shipment tracking",
+  "Secondary market pricing",
+  "Historical drop patterns",
+  "Community store intel",
+];
+
+const founderExclusives = [
+  "Inner Circle — private founding Telegram",
+  "Numbered Glencairn Topper (#001–100)",
+  "Permanent Founder badge on your profile",
+  "Exclusive sticker pack",
+  "2× entries in all future drawings",
+];
+
+export default function PricingCards() {
+  return (
+    <section
+      style={{
+        width: "100%",
+        paddingBottom: "64px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1000,
+          margin: "0 auto",
+          padding: "0 clamp(20px, 5vw, 48px)",
+        }}
+      >
+        <motion.div
+          className="flex flex-col md:flex-row gap-6"
+          style={{ alignItems: "stretch" }}
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          {/* Standard Proof */}
+          <motion.div
+            variants={fadeUpVariant}
+            className="order-2 md:order-1"
+            style={{ flex: 1, display: "flex" }}
+          >
+            <motion.div
+              style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                flex: 1,
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid #2A2520",
+                borderRadius: "16px",
+                padding: "36px",
+                paddingTop: "65px",
+              }}
+              whileHover={{
+                y: -3,
+                boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+                transition: { duration: 0.3 },
+              }}
+            >
+              {/* Tier label */}
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "rgba(245,237,214,0.4)",
+                  marginBottom: "8px",
+                }}
+              >
+                STANDARD PROOF
+              </p>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-1 mb-1">
+                <span
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "clamp(44px, 6vw, 56px)",
+                    fontWeight: 700,
+                    color: "var(--color-cream)",
+                  }}
+                >
+                  $10
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    color: "rgba(245,237,214,0.4)",
+                  }}
+                >
+                  /mo
+                </span>
+              </div>
+
+              {/* Annual note */}
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  color: "rgba(245,237,214,0.3)",
+                  marginBottom: "28px",
+                }}
+              >
+                $80/year · save 33%
+              </p>
+
+              {/* Features */}
+              <div style={{ display: "flex", flexDirection: "column" as const }}>
+                {standardFeatures.map((feature, i) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom:
+                        i < standardFeatures.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                    }}
+                  >
+                    <span
+                      className="shrink-0"
+                      style={{
+                        color: "#5A5550",
+                        fontSize: "16px",
+                        width: "16px",
+                      }}
+                    >
+                      ✓
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "14px",
+                        color: "rgba(245,237,214,0.7)",
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                <button
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: "1px solid rgba(196,148,58,0.35)",
+                    color: "rgba(196,148,58,0.8)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    padding: "13px",
+                    borderRadius: "10px",
+                    transition: "border-color 200ms, background 200ms, color 200ms",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--color-amber-rich)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.35)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  Start Hunting — $10/mo
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Bottled in Bond (hero card) */}
+          <motion.div
+            variants={fadeUpVariant}
+            className="order-1 md:order-2"
+            style={{ flex: 1, display: "flex", position: "relative" }}
+          >
+            {/* Founding Member badge — overlapping top edge */}
+            <div
+              style={{
+                position: "absolute",
+                top: "-14px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 2,
+                background: "linear-gradient(135deg, #C4943A, #E8C170)",
+                color: "#1A1510",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "10px",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                padding: "6px 16px",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Founding Member
+            </div>
+
+            <motion.div
+              style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                flex: 1,
+                background: "rgba(196,148,58,0.06)",
+                border: "2px solid var(--color-amber-rich)",
+                borderRadius: "16px",
+                padding: "36px",
+                paddingTop: "36px",
+                boxShadow:
+                  "0 0 60px rgba(196,148,58,0.12), 0 0 120px rgba(196,148,58,0.06)",
+                animation: "borderPulse 3s ease infinite",
+              }}
+              whileHover={{
+                y: -3,
+                boxShadow:
+                  "0 0 80px rgba(196,148,58,0.18), 0 0 140px rgba(196,148,58,0.1)",
+                transition: { duration: 0.3 },
+              }}
+            >
+              {/* Tier label */}
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "var(--color-amber-rich)",
+                  marginBottom: "8px",
+                  marginTop: "12px",
+                }}
+              >
+                BOTTLED IN BOND
+              </p>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-2 mb-2">
+                <span
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "clamp(48px, 7vw, 64px)",
+                    fontWeight: 700,
+                    color: "var(--color-amber-rich)",
+                  }}
+                >
+                  $69
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    color: "rgba(245,237,214,0.5)",
+                  }}
+                >
+                  one-time
+                </span>
+              </div>
+
+              {/* Tagline */}
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "var(--color-cream)",
+                  marginBottom: "4px",
+                }}
+              >
+                Lifetime access. No monthly fees. Ever.
+              </p>
+
+              {/* Scarcity note */}
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  fontStyle: "italic",
+                  color: "rgba(196,148,58,0.8)",
+                }}
+              >
+                Exactly 100 spots. When they&apos;re gone, they&apos;re gone.
+              </p>
+
+              {/* Scarcity progress bar */}
+              <div style={{ marginTop: "16px", marginBottom: "4px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "11px",
+                      color: "rgba(245,237,214,0.5)",
+                    }}
+                  >
+                    Founding spots remaining
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      color: "var(--color-amber-rich)",
+                    }}
+                  >
+                    100 / 100
+                  </span>
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "4px",
+                    backgroundColor: "rgba(255,255,255,0.08)",
+                    borderRadius: "2px",
+                  }}
+                >
+                  <motion.div
+                    style={{
+                      height: "4px",
+                      backgroundColor: "var(--color-amber-rich)",
+                      borderRadius: "2px",
+                      originX: 0,
+                      boxShadow: "0 0 8px rgba(196,148,58,0.6)",
+                      animation: "barPulse 2s ease infinite",
+                    }}
+                    initial={{ width: "0%" }}
+                    whileInView={{ width: "100%" }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              {/* All Standard features line */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "8px",
+                  marginTop: "16px",
+                }}
+              >
+                <span style={{ color: "var(--color-amber-rich)", fontSize: "16px" }}>
+                  ✓
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "14px",
+                    color: "var(--color-cream)",
+                    fontWeight: 500,
+                  }}
+                >
+                  All Standard Proof features, forever
+                </span>
+              </div>
+
+              {/* Founding exclusives divider */}
+              <div
+                className="relative flex items-center justify-center"
+                style={{ margin: "20px 0" }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "1px",
+                    background: "rgba(196,148,58,0.15)",
+                  }}
+                />
+                <span
+                  style={{
+                    position: "relative",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.15em",
+                    color: "rgba(196,148,58,0.5)",
+                    background: "rgba(196,148,58,0.06)",
+                    padding: "0 12px",
+                  }}
+                >
+                  FOUNDING MEMBER EXCLUSIVES
+                </span>
+              </div>
+
+              {/* Founder exclusives */}
+              <div style={{ display: "flex", flexDirection: "column" as const }}>
+                {founderExclusives.map((feature, i) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom:
+                        i < founderExclusives.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                    }}
+                  >
+                    <span
+                      className="shrink-0"
+                      style={{
+                        color: "var(--color-amber-rich)",
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "16px",
+                        width: "16px",
+                      }}
+                    >
+                      ✓
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "14px",
+                        color: "var(--color-cream)",
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                <p
+                  className="text-center"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    fontStyle: "italic",
+                    color: "rgba(245,237,214,0.55)",
+                    marginBottom: "14px",
+                  }}
+                >
+                  Become the first founding member.
+                </p>
+                <button
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                    background:
+                      "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: "#1A1510",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    padding: "16px",
+                    border: "none",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
+                    transition: "box-shadow 300ms, transform 300ms",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 30px rgba(196,148,58,0.5)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 20px rgba(196,148,58,0.3)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  Claim Your Spot — $69
+                </button>
+              </div>
+
+              {/* Note below button */}
+              <p
+                className="text-center"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "12px",
+                  color: "rgba(245,237,214,0.35)",
+                  marginTop: "10px",
+                }}
+              >
+                Secure checkout · Lifetime access · Never pay again
+              </p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

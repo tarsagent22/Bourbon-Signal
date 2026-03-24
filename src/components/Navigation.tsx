@@ -9,7 +9,7 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Hunt Map", href: "/map" },
   { label: "Bottles", href: "/bottles" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export default function Navigation() {
@@ -118,7 +118,7 @@ export default function Navigation() {
             Sign In
           </a>
           <a
-            href="#pricing"
+            href="/pricing"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "14px",
