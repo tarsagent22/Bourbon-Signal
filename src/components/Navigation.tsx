@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "Hunt Map", href: "#" },
+  { label: "Hunt Map", href: "/map" },
   { label: "Bottles", href: "/bottles" },
   { label: "Pricing", href: "#pricing" },
 ];
 
 export default function Navigation() {
+  const pathname = usePathname();
+  const isMapPage = pathname === "/map";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -26,11 +29,11 @@ export default function Navigation() {
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50"
         style={{
-          height: scrolled ? "64px" : "72px",
-          background: scrolled ? "var(--color-glass)" : "transparent",
-          backdropFilter: scrolled ? "blur(16px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-          borderBottom: scrolled
+          height: scrolled || isMapPage ? "64px" : "72px",
+          background: scrolled || isMapPage ? "var(--color-glass)" : "transparent",
+          backdropFilter: scrolled || isMapPage ? "blur(16px)" : "none",
+          WebkitBackdropFilter: scrolled || isMapPage ? "blur(16px)" : "none",
+          borderBottom: scrolled || isMapPage
             ? "1px solid rgba(212, 146, 11, 0.08)"
             : "1px solid transparent",
           transition: "all 300ms ease",
