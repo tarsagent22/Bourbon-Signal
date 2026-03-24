@@ -1,6 +1,7 @@
 "use client";
 
 import type { Store } from "@/data/stores";
+import { cleanBrandName } from "@/lib/drops";
 
 interface DropEntry {
   brand_name: string;
@@ -146,7 +147,7 @@ export default function StorePopup({ store, drops, status }: StorePopupProps) {
                   lineHeight: 1.3,
                 }}
               >
-                {drop.brand_name}
+                {cleanBrandName(drop.brand_name)}
               </span>
               <span
                 style={{

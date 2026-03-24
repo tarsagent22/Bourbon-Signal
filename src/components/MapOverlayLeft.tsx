@@ -277,7 +277,7 @@ function PanelContent({
         >
           Filter by Tier
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2" style={{ flexWrap: "nowrap", overflowX: "auto" }}>
           {filters.map((f) => (
             <button
               key={f}
@@ -286,7 +286,7 @@ function PanelContent({
                 fontFamily: "var(--font-dm-sans)",
                 fontSize: 11,
                 fontWeight: 500,
-                padding: "5px 12px",
+                padding: "4px 10px",
                 borderRadius: 20,
                 border:
                   activeFilter === f
@@ -328,7 +328,7 @@ function PanelContent({
             color: "var(--color-accent-amber)",
           }}
         >
-          {activeToday} stores active today
+          {activeToday} stores active this week
         </div>
         <div
           style={{

@@ -217,4 +217,94 @@ export const stores: Store[] = [
     lng: -77.9928,
     county: "Wayne County",
   },
+  // Burlington / Alamance (shipment board)
+  {
+    id: "store-025",
+    address: "1331 University Dr. Burlington, NC 27215",
+    city: "Burlington",
+    lat: 36.0757,
+    lng: -79.4378,
+    county: "Alamance Municipal ABC Board",
+  },
+  // Washington / Beaufort County (shipment board)
+  {
+    id: "store-026",
+    address: "780 W 15th St. Washington, NC 27889",
+    city: "Washington",
+    lat: 35.5466,
+    lng: -77.0522,
+    county: "Beaufort County ABC Board",
+  },
+  // Shallotte / Brunswick County (shipment board)
+  {
+    id: "store-027",
+    address: "4540 Main St. Shallotte, NC 28470",
+    city: "Shallotte",
+    lat: 33.9735,
+    lng: -78.3858,
+    county: "Brunswick County ABC Board",
+  },
+  // New Bern / Craven County (shipment board)
+  {
+    id: "store-028",
+    address: "3410 Dr MLK Jr Blvd. New Bern, NC 28562",
+    city: "New Bern",
+    lat: 35.1085,
+    lng: -77.0441,
+    county: "Craven County ABC Board",
+  },
+  // Smithfield / Johnston County (shipment board)
+  {
+    id: "store-029",
+    address: "1299 N Brightleaf Blvd. Smithfield, NC 27577",
+    city: "Smithfield",
+    lat: 35.5185,
+    lng: -78.3397,
+    county: "Johnston County ABC Board",
+  },
+  // Lincolnton / Lincoln County (shipment board)
+  {
+    id: "store-030",
+    address: "1100 E Main St. Lincolnton, NC 28092",
+    city: "Lincolnton",
+    lat: 35.4735,
+    lng: -81.2345,
+    county: "Lincoln County ABC Board",
+  },
+  // Jacksonville / Onslow County (shipment board)
+  {
+    id: "store-031",
+    address: "1350 Western Blvd. Jacksonville, NC 28546",
+    city: "Jacksonville",
+    lat: 34.7541,
+    lng: -77.4302,
+    county: "Onslow County ABC Board",
+  },
+  // Hillsborough / Orange County (shipment board)
+  {
+    id: "store-032",
+    address: "501 Cornelius St. Hillsborough, NC 27278",
+    city: "Hillsborough",
+    lat: 36.0754,
+    lng: -79.0997,
+    county: "Orange County ABC Board",
+  },
+  // Greenville / Pitt County (shipment board)
+  {
+    id: "store-033",
+    address: "703 SE Greenville Blvd. Greenville, NC 27858",
+    city: "Greenville",
+    lat: 35.5932,
+    lng: -77.3661,
+    county: "Pitt County ABC Board",
+  },
+  // Southport (shipment board)
+  {
+    id: "store-034",
+    address: "4886 Long Beach Rd. Southport, NC 28461",
+    city: "Southport",
+    lat: 33.9212,
+    lng: -78.0208,
+    county: "Southport ABC Board",
+  },
 ];

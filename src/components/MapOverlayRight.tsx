@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, List } from "lucide-react";
+import { cleanBrandName } from "@/lib/drops";
 
 interface RecentDrop {
   brand_name: string;
@@ -9,6 +10,8 @@ interface RecentDrop {
   timestamp: string;
   store_address: string;
   county: string;
+  city: string;
+  event_type: string;
   storeId: string;
 }
 
@@ -19,17 +22,28 @@ interface MapOverlayRightProps {
   onDropClick: (storeId: string) => void;
 }
 
-function tierColor(tier: string): string {
+function tierBorderColor(tier: string): string {
   switch (tier) {
     case "unicorn":
-      return "#E8B04B";
+      return "#C4943A";
     case "allocated":
-      return "var(--color-accent-amber)";
+      return "#B87333";
     case "limited":
-      return "var(--color-accent-copper)";
+      return "#8A8A8A";
     default:
       return "var(--color-text-tertiary)";
   }
+}
+
+function formatFeedEntry(drop: RecentDrop): { name: string; detail: string } {
+  const name = cleanBrandName(drop.brand_name);
+  if (drop.event_type === "new_shipment") {
+    return { name, detail: `Shipped to ${drop.county || drop.city}` };
+  }
+  if (drop.event_type === "in_store") {
+    return { name, detail: drop.city || drop.county };
+  }
+  return { name, detail: drop.county || drop.city };
 }
 
 function timeAgo(ts: string): string {
@@ -94,66 +108,69 @@ function DropList({
           maxHeight: "calc(100% - 50px)",
         }}
       >
-        {recentDrops.map((drop, i) => (
-          <button
-            key={i}
-            onClick={() => onDropClick(drop.storeId)}
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              padding: "10px 12px",
-              borderRadius: 8,
-              background: "transparent",
-              border: "none",
-              borderLeft: `3px solid ${tierColor(drop.rarity_tier)}`,
-              cursor: "pointer",
-              textAlign: "left",
-              width: "100%",
-              transition: "background 200ms ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "rgba(196, 148, 58, 0.08)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "transparent")
-            }
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: 13,
-                  color: "var(--color-text-primary)",
-                  lineHeight: 1.3,
-                  marginBottom: 3,
-                }}
-              >
-                {drop.brand_name}
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: 11,
-                  color: "var(--color-text-tertiary)",
-                }}
-              >
-                {drop.county}
-              </div>
-            </div>
-            <span
+        {recentDrops.map((drop, i) => {
+          const entry = formatFeedEntry(drop);
+          return (
+            <button
+              key={i}
+              onClick={() => onDropClick(drop.storeId)}
               style={{
-                fontFamily: "var(--font-jetbrains)",
-                fontSize: 10,
-                color: "var(--color-text-tertiary)",
-                flexShrink: 0,
-                marginTop: 2,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: "transparent",
+                border: "none",
+                borderLeft: `3px solid ${tierBorderColor(drop.rarity_tier)}`,
+                cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+                transition: "background 200ms ease",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(196, 148, 58, 0.08)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
             >
-              {timeAgo(drop.timestamp)}
-            </span>
-          </button>
-        ))}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: 13,
+                    color: "var(--color-text-primary)",
+                    lineHeight: 1.3,
+                    marginBottom: 3,
+                  }}
+                >
+                  {entry.name}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: 11,
+                    color: "var(--color-text-tertiary)",
+                  }}
+                >
+                  {entry.detail}
+                </div>
+              </div>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: 10,
+                  color: "var(--color-text-tertiary)",
+                  flexShrink: 0,
+                  marginTop: 2,
+                }}
+              >
+                {timeAgo(drop.timestamp)}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </>
   );

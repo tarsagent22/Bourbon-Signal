@@ -18,6 +18,7 @@ import dropsData from "@/data/drops.json";
 import StorePopup from "@/components/StorePopup";
 import MapOverlayLeft from "@/components/MapOverlayLeft";
 import MapOverlayRight from "@/components/MapOverlayRight";
+import { cleanBrandName } from "@/lib/drops";
 
 // Types
 interface Drop {
@@ -32,7 +33,7 @@ interface Drop {
 
 interface StoreWithStatus extends Store {
   status: "hot" | "warm" | "cold";
-  drops: { brand_name: string; rarity_tier: string; timestamp: string }[];
+  drops: { brand_name: string; rarity_tier: string; timestamp: string; event_type: string }[];
   tiers: Set<string>;
 }
 
@@ -42,37 +43,51 @@ interface RecentDrop {
   timestamp: string;
   store_address: string;
   county: string;
+  city: string;
+  event_type: string;
   storeId: string;
+}
+
+// Normalize address for matching (strip inconsistent spacing around periods)
+function normalizeAddr(addr: string): string {
+  return addr.replace(/\.\s*/g, ". ").replace(/\s{2,}/g, " ").trim().toLowerCase();
 }
 
 // Compute store activity status by cross-referencing with drops
 function computeStoreData(allDrops: Drop[]): {
   storesWithStatus: StoreWithStatus[];
   recentDrops: RecentDrop[];
-  activeToday: number;
+  activeThisWeek: number;
   dropsThisWeek: number;
 } {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // In-store drops indexed by address (normalize by removing extra spaces)
-  const dropsByAddress: Record<
+  // In-store drops indexed by normalized address
+  const dropsByNormAddr: Record<
     string,
-    { brand_name: string; rarity_tier: string; timestamp: string }[]
+    { brand_name: string; rarity_tier: string; timestamp: string; event_type: string }[]
   > = {};
   const allRecentDrops: RecentDrop[] = [];
 
   for (const drop of allDrops) {
     if (drop.event_type === "in_store" && drop.store_address) {
-      const addr = drop.store_address.trim();
-      if (!dropsByAddress[addr]) dropsByAddress[addr] = [];
-      dropsByAddress[addr].push({
-        brand_name: drop.brand_name,
+      const normAddr = normalizeAddr(drop.store_address);
+      if (!dropsByNormAddr[normAddr]) dropsByNormAddr[normAddr] = [];
+      dropsByNormAddr[normAddr].push({
+        brand_name: cleanBrandName(drop.brand_name),
         rarity_tier: drop.rarity_tier,
         timestamp: drop.timestamp,
+        event_type: drop.event_type,
       });
     }
+  }
+
+  // Build a map of normalized store addresses for matching
+  const normAddrToStore: Record<string, Store> = {};
+  for (const store of stores) {
+    normAddrToStore[normalizeAddr(store.address)] = store;
   }
 
   // Also create "virtual" drops for shipment events — map board_name to a store
@@ -82,8 +97,8 @@ function computeStoreData(allDrops: Drop[]): {
     const cityLower = store.city.toLowerCase();
     boardToStore[countyLower] = store;
     boardToStore[cityLower] = store;
-    // Also map common board name patterns
     boardToStore[`${cityLower} abc board`] = store;
+    boardToStore[`${countyLower} abc board`] = store;
     boardToStore[`${countyLower} abc board`] = store;
   }
 
@@ -92,22 +107,24 @@ function computeStoreData(allDrops: Drop[]): {
       const boardLower = drop.board_name.toLowerCase();
       const matchedStore = boardToStore[boardLower];
       if (matchedStore) {
-        const addr = matchedStore.address;
-        if (!dropsByAddress[addr]) dropsByAddress[addr] = [];
-        dropsByAddress[addr].push({
-          brand_name: drop.brand_name,
+        const normAddr = normalizeAddr(matchedStore.address);
+        if (!dropsByNormAddr[normAddr]) dropsByNormAddr[normAddr] = [];
+        dropsByNormAddr[normAddr].push({
+          brand_name: cleanBrandName(drop.brand_name),
           rarity_tier: drop.rarity_tier,
           timestamp: drop.timestamp,
+          event_type: drop.event_type,
         });
       }
     }
   }
 
-  let activeToday = 0;
+  let activeThisWeek = 0;
   let dropsThisWeek = 0;
 
   const storesWithStatus: StoreWithStatus[] = stores.map((store) => {
-    const storeDrops = dropsByAddress[store.address] || [];
+    const normAddr = normalizeAddr(store.address);
+    const storeDrops = dropsByNormAddr[normAddr] || [];
     // Sort by most recent first
     storeDrops.sort(
       (a, b) =>
@@ -126,9 +143,13 @@ function computeStoreData(allDrops: Drop[]): {
     let status: "hot" | "warm" | "cold" = "cold";
     if (hasRecent24h) {
       status = "hot";
-      activeToday++;
     } else if (hasRecent7d) {
       status = "warm";
+    }
+
+    // Count stores active this week (hot or warm)
+    if (hasRecent7d || hasRecent24h) {
+      activeThisWeek++;
     }
 
     // Count drops this week for this store
@@ -143,6 +164,7 @@ function computeStoreData(allDrops: Drop[]): {
         ...d,
         store_address: store.address,
         county: store.county,
+        city: store.city,
         storeId: store.id,
       });
     }
@@ -162,7 +184,7 @@ function computeStoreData(allDrops: Drop[]): {
   );
   const recentDrops = allRecentDrops.slice(0, 10);
 
-  return { storesWithStatus, recentDrops, activeToday, dropsThisWeek };
+  return { storesWithStatus, recentDrops, activeThisWeek, dropsThisWeek };
 }
 
 // Component to handle flyTo imperatively
@@ -191,7 +213,7 @@ export default function HuntMap() {
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRefs = useRef<Record<string, LCircleMarker>>({});
 
-  const { storesWithStatus, recentDrops, activeToday, dropsThisWeek } =
+  const { storesWithStatus, recentDrops, activeThisWeek, dropsThisWeek } =
     useMemo(() => computeStoreData(dropsData.drops as Drop[]), []);
 
   // Filter stores by tier
@@ -282,7 +304,7 @@ export default function HuntMap() {
       <MapOverlayLeft
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
-        activeToday={activeToday}
+        activeToday={activeThisWeek}
         dropsThisWeek={dropsThisWeek}
         isOpen={leftPanelOpen}
         onToggle={() => setLeftPanelOpen(!leftPanelOpen)}
