@@ -33,58 +33,7 @@ interface GroupedDrop {
 
 // --- Bottle pricing lookup (MSRP + secondary market) ---
 
-interface BottlePricing {
-  msrp: number;
-  secondary?: string; // e.g. "$340+" or "$300–$400"
-  secondaryLow?: number; // numeric low for multiplier calc
-}
-
-const BOTTLE_PRICING: Record<string, BottlePricing> = {
-  "pappy van winkle 23": { msrp: 299, secondary: "$3,000–$4,500", secondaryLow: 3000 },
-  "pappy van winkle 20": { msrp: 199, secondary: "$2,200–$3,000", secondaryLow: 2200 },
-  "pappy van winkle 15": { msrp: 119, secondary: "$1,800–$2,500", secondaryLow: 1800 },
-  "old rip van winkle 10": { msrp: 79, secondary: "$1,200+", secondaryLow: 1200 },
-  "van winkle special reserve 12": { msrp: 79, secondary: "$1,000+", secondaryLow: 1000 },
-  "george t stagg": { msrp: 99, secondary: "$800–$1,200", secondaryLow: 800 },
-  "william larue weller": { msrp: 99, secondary: "$700–$1,000", secondaryLow: 700 },
-  "thomas h handy": { msrp: 99, secondary: "$500–$800", secondaryLow: 500 },
-  "eagle rare 17": { msrp: 99, secondary: "$500–$700", secondaryLow: 500 },
-  "sazerac 18": { msrp: 99, secondary: "$600–$900", secondaryLow: 600 },
-  "weller 12": { msrp: 35, secondary: "$120–$180", secondaryLow: 120 },
-  "weller full proof": { msrp: 50, secondary: "$200–$300", secondaryLow: 200 },
-  "weller single barrel": { msrp: 50, secondary: "$250–$350", secondaryLow: 250 },
-  "weller antique 107": { msrp: 50, secondary: "$100–$150", secondaryLow: 100 },
-  "weller special reserve": { msrp: 22, secondary: "$60–$80", secondaryLow: 60 },
-  "weller cypb": { msrp: 50, secondary: "$250+", secondaryLow: 250 },
-  "blanton's": { msrp: 65, secondary: "$120–$180", secondaryLow: 120 },
-  "blanton's gold": { msrp: 120, secondary: "$250–$400", secondaryLow: 250 },
-  "blanton's straight from the barrel": { msrp: 150, secondary: "$400–$600", secondaryLow: 400 },
-  "e.h. taylor single barrel": { msrp: 40, secondary: "$100–$150", secondaryLow: 100 },
-  "e.h. taylor small batch": { msrp: 40, secondary: "$80–$120", secondaryLow: 80 },
-  "e.h. taylor barrel proof": { msrp: 70, secondary: "$400–$600", secondaryLow: 400 },
-  "buffalo trace": { msrp: 25, secondary: "$40–$50", secondaryLow: 40 },
-  "eagle rare": { msrp: 35, secondary: "$50–$70", secondaryLow: 50 },
-  "old fitzgerald": { msrp: 110, secondary: "$300–$500", secondaryLow: 300 },
-  "old fitzgerald 8": { msrp: 90, secondary: "$200–$350", secondaryLow: 200 },
-  "elijah craig barrel proof": { msrp: 70, secondary: "$120–$180", secondaryLow: 120 },
-  "elijah craig 18": { msrp: 130, secondary: "$400–$600", secondaryLow: 400 },
-  "elijah craig toasted barrel": { msrp: 50, secondary: "$100–$150", secondaryLow: 100 },
-  "stagg jr": { msrp: 55, secondary: "$120–$180", secondaryLow: 120 },
-  "stagg": { msrp: 55, secondary: "$120–$180", secondaryLow: 120 },
-  "booker's": { msrp: 90, secondary: "$120–$160", secondaryLow: 120 },
-  "four roses limited edition": { msrp: 150, secondary: "$300–$500", secondaryLow: 300 },
-  "kentucky owl": { msrp: 200, secondary: "$350–$500", secondaryLow: 350 },
-  "willett family estate": { msrp: 80, secondary: "$200–$400", secondaryLow: 200 },
-  "michter's 10": { msrp: 130, secondary: "$250–$350", secondaryLow: 250 },
-  "michter's 20": { msrp: 700, secondary: "$3,000–$5,000", secondaryLow: 3000 },
-  "michter's toasted barrel": { msrp: 85, secondary: "$200–$300", secondaryLow: 200 },
-  "maker's mark wood finishing": { msrp: 60, secondary: "$80–$120", secondaryLow: 80 },
-  "maker's mark fae-02": { msrp: 60, secondary: "$90–$130", secondaryLow: 90 },
-  "woodford reserve batch proof": { msrp: 130, secondary: "$200–$300", secondaryLow: 200 },
-  "henry mckenna 10": { msrp: 35, secondary: "$60–$80", secondaryLow: 60 },
-  "russell's reserve 13": { msrp: 70, secondary: "$140–$200", secondaryLow: 140 },
-  "wild turkey master's keep": { msrp: 175, secondary: "$300–$500", secondaryLow: 300 },
-};
+import { BOTTLE_PRICING, type BottlePricing } from "@/data/bottles";
 
 function lookupPricing(displayName: string, apiRetailPrice?: number): { msrp?: number; secondary?: string; multiplier?: number } {
   const normalized = displayName.toLowerCase().trim();
