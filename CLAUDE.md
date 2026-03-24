@@ -93,6 +93,32 @@ The goal is **Linear/Vercel/Stripe-tier design** — not a bourbon fan site. Tha
 - Mobile-first. Every section must look intentional on a 375px screen.
 - Copy should sound like a confident intelligence platform, not a bourbon community newsletter.
 
+## Layout Rule: CENTER EVERYTHING
+
+**Every section, page, and content block MUST be horizontally centered.** This is non-negotiable.
+
+Standard centering pattern for ALL new sections/pages:
+```tsx
+<div style={{ maxWidth: 800, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px)" }}>
+```
+
+For wider content (grids, cards):
+```tsx
+<div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px, 5vw, 48px)" }}>
+```
+
+Rules:
+- Always use `margin: "0 auto"` on the content wrapper — never rely on `className="mx-auto"` alone
+- Always set `textAlign: "center"` on headers/subtitles explicitly via `style={{}}`
+- The outer `<section>` is full-width. The inner `<div>` centers content.
+- On mobile (375px), content must have at least 20px padding on each side
+- If something looks left-aligned, it IS a bug. Fix it before shipping.
+
+Do NOT:
+- Use Tailwind's `mx-auto` as the sole centering mechanism (it fails when parent has no width constraint)
+- Omit `margin: "0 auto"` from content wrappers
+- Ship any section without checking mobile centering
+
 ## Anti-Patterns
 
 - Don't use `<Image>` from `next/image` for backgrounds — use CSS `backgroundImage`
