@@ -307,9 +307,9 @@ function StillCap() {
   // Pipe centerline waypoints
   const px = COL_CX;       // vertical centerline x
   const p0y = lidY;         // exit point (top of lid)
-  const p1y = lidY - 30;    // top of rise
-  const p2x = px + 36;      // right end of horizontal run
-  const p3y = lidY - 10;    // bottom of drop (final horizontal level)
+  const p1y = lidY - 34;    // top of rise (more headroom)
+  const p2x = px + 40;      // right end of horizontal run (wider spacing)
+  const p3y = lidY - 2;     // bottom of drop — more room between elbow 2 and 3
 
   // Rounded corner path using Q bezier — control point at corner, radius = BR
   // Corner 1: (px, p1y) — up→right
