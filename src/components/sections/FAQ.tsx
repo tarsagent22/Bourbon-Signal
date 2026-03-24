@@ -123,18 +123,18 @@ export default function FAQ() {
     <section
       id="faq"
       style={{
-        backgroundColor: "var(--color-bg-secondary)",
+        backgroundColor: "var(--color-bg-primary)",
         paddingTop: "96px",
         paddingBottom: "96px",
         width: "100%",
       }}
     >
       <div
-        className="mx-auto"
         style={{
           maxWidth: "680px",
-          paddingLeft: "clamp(16px, 4vw, 48px)",
-          paddingRight: "clamp(16px, 4vw, 48px)",
+          margin: "0 auto",
+          paddingLeft: "clamp(20px, 5vw, 48px)",
+          paddingRight: "clamp(20px, 5vw, 48px)",
         }}
       >
         <ScrollReveal>

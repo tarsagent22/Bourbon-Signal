@@ -21,10 +21,13 @@ export default function HeroSection() {
       className="relative flex items-center justify-center overflow-hidden"
       style={{ minHeight: "max(100vh, 600px)" }}
     >
-      {/* Parallax background image */}
+      {/* Parallax background image — uses CSS will-change + transform3d for GPU compositing */}
       <motion.div
         className="absolute inset-0 z-0"
-        style={{ y }}
+        style={{
+          y,
+          willChange: "transform",
+        }}
       >
         <div
           className="absolute inset-0"
@@ -34,7 +37,9 @@ export default function HeroSection() {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             filter: "blur(1.5px)",
-            transform: "scale(1.05)",
+            transform: "scale(1.05) translateZ(0)",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
           }}
         />
       </motion.div>
