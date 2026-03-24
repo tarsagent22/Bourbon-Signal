@@ -9,7 +9,7 @@ import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 
-const IS_FREE_USER = true;
+const IS_FREE_USER = false; // TODO: wire to auth — set true for paywall, false to show all features
 const FREE_VISIBLE_COUNT = 6;
 
 // Custom stagger for 0.08s between cards
