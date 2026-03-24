@@ -61,17 +61,31 @@ export default function BottleGrid() {
   const [activeTier, setActiveTier] = useState("all");
   const [sortBy, setSortBy] = useState("secondary");
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   // Sync URL search params on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tier = params.get("tier");
     const sort = params.get("sort");
+    const highlight = params.get("highlight");
     if (tier && ["all", "unicorn", "allocated", "limited"].includes(tier)) {
       setActiveTier(tier);
     }
     if (sort && ["name", "secondary", "markup", "recent"].includes(sort)) {
       setSortBy(sort);
+    }
+    if (highlight) {
+      setHighlightId(highlight);
+      // Scroll to the highlighted card after render
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`bottle-${highlight}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+      // Clear highlight after 2s
+      setTimeout(() => setHighlightId(null), 2000);
     }
   }, []);
 
@@ -170,6 +184,7 @@ export default function BottleGrid() {
                     isBlurred={isBlurred}
                     blurAmount={blurAmount}
                     isFreeUser={IS_FREE_USER}
+                    isHighlighted={highlightId === bottle.id}
                   />
                 );
               })}

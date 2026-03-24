@@ -233,3 +233,43 @@ export const MULTIPLIER_COLORS: Record<string, { bg: string; color: string; bord
   allocated: { bg: "rgba(184,115,51,0.2)", color: "#B87333", border: "rgba(184,115,51,0.4)" },
   limited: { bg: "rgba(138,138,138,0.15)", color: "#8A8A8A", border: "rgba(138,138,138,0.3)" },
 };
+
+export function lookupPricing(
+  displayName: string,
+  apiRetailPrice?: number
+): { msrp?: number; secondary?: string; multiplier?: number } {
+  // Lazy import to avoid circular dependencies at module level
+  const { BOTTLE_PRICING } = require("@/data/bottles");
+  const normalized = displayName.toLowerCase().trim();
+
+  let match: { msrp: number; secondary?: string; secondaryLow?: number } | undefined;
+  if (BOTTLE_PRICING[normalized]) {
+    match = BOTTLE_PRICING[normalized];
+  } else {
+    for (const [key, value] of Object.entries(BOTTLE_PRICING)) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        match = value as typeof match;
+        break;
+      }
+    }
+  }
+
+  const msrp = match?.msrp || (apiRetailPrice && apiRetailPrice > 0 ? apiRetailPrice : undefined);
+  const secondary = match?.secondary;
+  let multiplier: number | undefined;
+
+  if (match?.secondaryLow && msrp && msrp > 0) {
+    const mult = Math.round(match.secondaryLow / msrp);
+    if (mult >= 2) multiplier = mult;
+  }
+
+  return { msrp, secondary, multiplier };
+}
+
+/** Generate a URL-safe bottle ID from a display name for cross-page linking */
+export function bottleIdFromName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}

@@ -2,6 +2,7 @@
 
 import type { Store } from "@/data/stores";
 import { cleanBrandName } from "@/lib/drops";
+import BottleLink from "@/components/BottleLink";
 
 interface DropEntry {
   brand_name: string;
@@ -147,7 +148,7 @@ export default function StorePopup({ store, drops, status }: StorePopupProps) {
                   lineHeight: 1.3,
                 }}
               >
-                {cleanBrandName(drop.brand_name)}
+                <BottleLink name={cleanBrandName(drop.brand_name)}>{cleanBrandName(drop.brand_name)}</BottleLink>
               </span>
               <span
                 style={{

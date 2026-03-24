@@ -12,41 +12,11 @@ import {
   getEventDescription,
   cleanCountyName,
   getDisplayName,
+  lookupPricing,
 } from "@/lib/drops";
-import { BOTTLE_PRICING, type BottlePricing } from "@/data/bottles";
 import { INITIAL_WATCHLIST } from "@/components/sections/DashboardSidebar";
-
-function lookupPricing(
-  displayName: string,
-  apiRetailPrice?: number
-): { msrp?: number; secondary?: string; multiplier?: number } {
-  const normalized = displayName.toLowerCase().trim();
-
-  let match: BottlePricing | undefined;
-  if (BOTTLE_PRICING[normalized]) {
-    match = BOTTLE_PRICING[normalized];
-  } else {
-    for (const [key, value] of Object.entries(BOTTLE_PRICING)) {
-      if (normalized.includes(key) || key.includes(normalized)) {
-        match = value;
-        break;
-      }
-    }
-  }
-
-  const msrp =
-    match?.msrp ||
-    (apiRetailPrice && apiRetailPrice > 0 ? apiRetailPrice : undefined);
-  const secondary = match?.secondary;
-  let multiplier: number | undefined;
-
-  if (match?.secondaryLow && msrp && msrp > 0) {
-    const mult = Math.round(match.secondaryLow / msrp);
-    if (mult >= 2) multiplier = mult;
-  }
-
-  return { msrp, secondary, multiplier };
-}
+import BottleLink from "@/components/BottleLink";
+import CountyLink from "@/components/CountyLink";
 
 const FILTER_TIERS = ["all", "unicorn", "allocated", "limited"] as const;
 
@@ -158,7 +128,7 @@ function FeedItem({ drop, onWatchlist }: FeedItemProps) {
                 lineHeight: 1.3,
               }}
             >
-              {drop.displayName}
+              <BottleLink name={drop.displayName}>{drop.displayName}</BottleLink>
             </span>
             {onWatchlist && (
               <span
@@ -324,7 +294,20 @@ function FeedItem({ drop, onWatchlist }: FeedItemProps) {
                   >
                     {detail.label}:
                   </span>
-                  <span>{detail.value}</span>
+                  {detail.label === "Counties" ? (
+                    <span>
+                      {drop.counties.map((c, ci) => (
+                        <span key={c}>
+                          {ci > 0 && ", "}
+                          <CountyLink county={c}>{c}</CountyLink>
+                        </span>
+                      ))}
+                    </span>
+                  ) : detail.label === "Store" ? (
+                    <CountyLink county={detail.value}>{detail.value}</CountyLink>
+                  ) : (
+                    <span>{detail.value}</span>
+                  )}
                 </div>
               ))}
               {pricing.secondary && (

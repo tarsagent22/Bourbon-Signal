@@ -3,251 +3,24 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
-
-interface DropEvent {
-  timestamp: string;
-  event_type: string;
-  brand_name: string;
-  tracked_brand_name?: string;
-  board_name?: string;
-  store_address?: string;
-  quantity_shipped?: number;
-  quantity?: number;
-  rarity_tier: string;
-  retail_price?: number;
-  stores?: { store_address: string; quantity: number }[];
-}
-
-interface GroupedDrop {
-  displayName: string;
-  event_type: string;
-  rarity_tier: string;
-  timestamp: string;
-  counties: string[];
-  board_name?: string;
-  store_address?: string;
-  retail_price?: number;
-  quantity_shipped?: number;
-  id: string;
-}
-
-// --- Bottle pricing lookup (MSRP + secondary market) ---
-
-import { BOTTLE_PRICING, type BottlePricing } from "@/data/bottles";
-
-function lookupPricing(displayName: string, apiRetailPrice?: number): { msrp?: number; secondary?: string; multiplier?: number } {
-  const normalized = displayName.toLowerCase().trim();
-
-  // Try exact match first, then partial
-  let match: BottlePricing | undefined;
-  if (BOTTLE_PRICING[normalized]) {
-    match = BOTTLE_PRICING[normalized];
-  } else {
-    for (const [key, value] of Object.entries(BOTTLE_PRICING)) {
-      if (normalized.includes(key) || key.includes(normalized)) {
-        match = value;
-        break;
-      }
-    }
-  }
-
-  const msrp = match?.msrp || (apiRetailPrice && apiRetailPrice > 0 ? apiRetailPrice : undefined);
-  const secondary = match?.secondary;
-  let multiplier: number | undefined;
-
-  if (match?.secondaryLow && msrp && msrp > 0) {
-    const mult = Math.round(match.secondaryLow / msrp);
-    if (mult >= 2) multiplier = mult;
-  }
-
-  return { msrp, secondary, multiplier };
-}
+import BottleLink from "@/components/BottleLink";
+import CountyLink from "@/components/CountyLink";
+import {
+  type DropEvent,
+  type GroupedDrop,
+  groupDrops,
+  formatRelativeTime,
+  cleanCountyName,
+  lookupPricing,
+  TIER_CONFIG,
+  MULTIPLIER_COLORS,
+} from "@/lib/drops";
 
 interface DropsResponse {
   drops: DropEvent[];
   total: number;
   lastUpdated: string;
 }
-
-// --- Data processing ---
-
-function cleanBrandName(name: string): string {
-  if (!name) return "Unknown";
-  if (/^\d+$/.test(name)) return "";
-
-  let cleaned = name
-    .replace(/\b(700ML|750ML|1\.00L|1\.75L|375ML|50ML)\b/gi, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-
-  const half = Math.floor(cleaned.length / 2);
-  if (cleaned.length > 6) {
-    const firstHalf = cleaned.substring(0, half).trim();
-    const secondHalf = cleaned.substring(half).trim();
-    if (firstHalf === secondHalf) {
-      cleaned = firstHalf;
-    } else {
-      const words = cleaned.split(/\s+/);
-      if (words.length >= 4 && words.length % 2 === 0) {
-        const mid = words.length / 2;
-        const first = words.slice(0, mid).join(" ");
-        const second = words.slice(mid).join(" ");
-        if (first === second) {
-          cleaned = first;
-        }
-      }
-    }
-  }
-
-  return cleaned;
-}
-
-function getDisplayName(event: DropEvent): string {
-  const cleaned = cleanBrandName(event.brand_name);
-  if (!cleaned && event.tracked_brand_name) {
-    return cleanBrandName(event.tracked_brand_name);
-  }
-  if (event.tracked_brand_name) {
-    const trackedClean = cleanBrandName(event.tracked_brand_name);
-    if (trackedClean.length > cleaned.length) return trackedClean;
-  }
-  return cleaned || "Unknown Bottle";
-}
-
-function formatRelativeTime(timestamp: string): string {
-  const now = Date.now();
-  const then = new Date(timestamp).getTime();
-  const diffMs = now - then;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr = Math.floor(diffMs / 3600000);
-  const diffDay = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
-  if (diffDay === 1) return "1d ago";
-  return `${diffDay}d ago`;
-}
-
-function cleanCountyName(board: string): string {
-  if (!board || board === "__EMPTY") return "";
-  return board
-    .replace(/\bABC\b/gi, "")
-    .replace(/\bBoard\b/gi, "")
-    .replace(/\bCounty\b/gi, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
-function groupDrops(drops: DropEvent[]): GroupedDrop[] {
-  const SIX_HOURS = 6 * 60 * 60 * 1000;
-  const groups: Map<string, GroupedDrop> = new Map();
-
-  for (const event of drops) {
-    const displayName = getDisplayName(event);
-    if (displayName === "Unknown Bottle") continue;
-
-    const ts = new Date(event.timestamp).getTime();
-    const bucket = Math.floor(ts / SIX_HOURS);
-    const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${bucket}`;
-
-    const existing = groups.get(groupKey);
-    if (existing) {
-      const county = cleanCountyName(event.board_name || "");
-      if (county && !existing.counties.includes(county)) {
-        existing.counties.push(county);
-      }
-      if (event.timestamp > existing.timestamp) {
-        existing.timestamp = event.timestamp;
-      }
-      if (event.quantity_shipped) {
-        existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_shipped;
-      }
-      const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
-      if ((rarityOrder[event.rarity_tier] || 0) > (rarityOrder[existing.rarity_tier] || 0)) {
-        existing.rarity_tier = event.rarity_tier;
-      }
-      if (event.retail_price && !existing.retail_price) {
-        existing.retail_price = event.retail_price;
-      }
-    } else {
-      const county = cleanCountyName(event.board_name || "");
-      groups.set(groupKey, {
-        displayName,
-        event_type: event.event_type,
-        rarity_tier: event.rarity_tier,
-        timestamp: event.timestamp,
-        counties: county ? [county] : [],
-        board_name: event.board_name,
-        store_address: event.store_address,
-        retail_price: event.retail_price,
-        quantity_shipped: event.quantity_shipped,
-        id: groupKey,
-      });
-    }
-  }
-
-  return Array.from(groups.values())
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10);
-}
-
-// --- Tier config ---
-
-const TIER_CONFIG: Record<string, { label: string; borderColor: string; pillStyle: React.CSSProperties }> = {
-  unicorn: {
-    label: "UNICORN",
-    borderColor: "var(--color-amber-rich)",
-    pillStyle: {
-      background: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)",
-      backgroundSize: "200% 200%",
-      animation: "shimmer 2s ease infinite",
-      color: "#0D0B07",
-      fontFamily: "var(--font-dm-sans)",
-      fontSize: "9px",
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: "0.1em",
-      padding: "3px 10px",
-      borderRadius: "12px",
-      whiteSpace: "nowrap",
-    },
-  },
-  allocated: {
-    label: "ALLOCATED",
-    borderColor: "var(--color-copper)",
-    pillStyle: {
-      background: "rgba(184,115,51,0.2)",
-      border: "1px solid #B87333",
-      color: "#B87333",
-      fontFamily: "var(--font-dm-sans)",
-      fontSize: "9px",
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: "0.1em",
-      padding: "3px 10px",
-      borderRadius: "12px",
-      whiteSpace: "nowrap",
-    },
-  },
-  limited: {
-    label: "LIMITED",
-    borderColor: "var(--color-silver-muted)",
-    pillStyle: {
-      background: "rgba(138,138,138,0.15)",
-      border: "1px solid #8A8A8A",
-      color: "#8A8A8A",
-      fontFamily: "var(--font-dm-sans)",
-      fontSize: "9px",
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: "0.1em",
-      padding: "3px 10px",
-      borderRadius: "12px",
-      whiteSpace: "nowrap",
-    },
-  },
-};
 
 // --- Components ---
 
@@ -354,13 +127,6 @@ interface FeedRowProps {
   index: number;
 }
 
-// Multiplier badge colors per tier
-const MULTIPLIER_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  unicorn: { bg: "rgba(196,148,58,0.2)", color: "#C4943A", border: "rgba(196,148,58,0.4)" },
-  allocated: { bg: "rgba(184,115,51,0.2)", color: "#B87333", border: "rgba(184,115,51,0.4)" },
-  limited: { bg: "rgba(138,138,138,0.15)", color: "#8A8A8A", border: "rgba(138,138,138,0.3)" },
-};
-
 function FeedRow({ drop, isNew, index }: FeedRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -444,7 +210,7 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
               lineHeight: 1.3,
             }}
           >
-            {drop.displayName}
+            <BottleLink name={drop.displayName}>{drop.displayName}</BottleLink>
           </div>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
             <span
@@ -611,7 +377,18 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
                 {details.map((detail, i) => (
                   <div key={detail.label} style={{ marginBottom: i < details.length - 1 ? "4px" : 0 }}>
                     <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>{detail.label}:</span>
-                    <span>{detail.value}</span>
+                    {detail.label === "Counties" ? (
+                      <span>
+                        {drop.counties.map((c, ci) => (
+                          <span key={c}>
+                            {ci > 0 && ", "}
+                            <CountyLink county={c}>{c}</CountyLink>
+                          </span>
+                        ))}
+                      </span>
+                    ) : (
+                      <span>{detail.value}</span>
+                    )}
                   </div>
                 ))}
                 {/* Secondary market info in expanded panel */}

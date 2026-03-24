@@ -12,6 +12,7 @@ interface BottleCardProps {
   isBlurred?: boolean;
   blurAmount?: number;
   isFreeUser?: boolean;
+  isHighlighted?: boolean;
 }
 
 const tierBorderColors: Record<string, string> = {
@@ -51,6 +52,7 @@ export default function BottleCard({
   isBlurred,
   blurAmount,
   isFreeUser,
+  isHighlighted,
 }: BottleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const tierColor = tierBorderColors[bottle.tier];
@@ -83,19 +85,23 @@ export default function BottleCard({
 
   return (
     <motion.div
+      id={`bottle-${bottle.id}`}
       variants={fadeUpVariant}
       onClick={onClick}
       className="relative cursor-pointer"
       style={{
         background: cardBg,
         borderRadius: "12px",
-        border: `1px solid var(--color-card-border)`,
+        border: isHighlighted
+          ? `2px solid var(--color-amber-rich)`
+          : `1px solid var(--color-card-border)`,
         borderTop: `3px solid ${tierColor}`,
         padding: "26px",
         filter: isBlurred ? `blur(${blurAmount || 6}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
         opacity: isLimited ? 0.85 : 1,
+        animation: isHighlighted ? "highlightPulse 2s ease" : undefined,
       }}
       whileHover={{
         y: -4,

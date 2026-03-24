@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Eye, EyeOff, Lock } from "lucide-react";
+import { X, Eye, EyeOff, Lock, MapPin } from "lucide-react";
+import Link from "next/link";
 import type { Bottle } from "@/data/bottles";
 import { dropHistory } from "@/data/bottles";
 import type { DropHistoryEntry } from "@/data/bottles";
 import { useState } from "react";
+import { useWatchlistStore } from "@/lib/watchlist";
+import CountyLink from "@/components/CountyLink";
 
 interface BottleDetailProps {
   bottle: Bottle;
@@ -45,10 +48,12 @@ export default function BottleDetail({
   onClose,
   isFreeUser,
 }: BottleDetailProps) {
-  const [watching, setWatching] = useState(false);
+  const { addBottle, removeBottle, isWatching } = useWatchlistStore();
+  const watching = isWatching(bottle.id);
   const tierColor = tierColors[bottle.tier];
   const multiplier = getMultiplier(bottle);
   const history: DropHistoryEntry[] = dropHistory[bottle.id] || [];
+  const mostRecentDrop = history.length > 0 ? history[0] : null;
 
   const isUnicorn = bottle.tier === "unicorn";
   const isAllocated = bottle.tier === "allocated";
@@ -351,6 +356,39 @@ export default function BottleDetail({
             </div>
           )}
 
+          {/* View on Map */}
+          {mostRecentDrop && (
+            <Link
+              href={`/map?lat=35.78&lng=-78.64&zoom=12`}
+              className="w-full flex items-center justify-center gap-2"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--color-text-secondary)",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                textDecoration: "none",
+                marginBottom: "20px",
+                transition: "all 200ms ease",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-amber-rich)";
+                e.currentTarget.style.color = "var(--color-accent-amber)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.color = "var(--color-text-secondary)";
+              }}
+            >
+              <MapPin size={14} />
+              View on Map — {mostRecentDrop.location}
+            </Link>
+          )}
+
           {/* Drop History Timeline */}
           <div style={{ marginBottom: "28px" }}>
             <h4
@@ -469,7 +507,7 @@ export default function BottleDetail({
                         color: "var(--color-text-tertiary)",
                       }}
                     >
-                      {entry.location}
+                      <CountyLink county={entry.location}>{entry.location}</CountyLink>
                       {entry.quantity
                         ? ` \u00B7 ${entry.quantity} bottles`
                         : ""}
@@ -493,7 +531,13 @@ export default function BottleDetail({
           {/* Watchlist Button */}
           <button
             onClick={() => {
-              if (!isFreeUser) setWatching(!watching);
+              if (!isFreeUser) {
+                if (watching) {
+                  removeBottle(bottle.id);
+                } else {
+                  addBottle(bottle.id);
+                }
+              }
             }}
             className="w-full flex items-center justify-center gap-2 cursor-pointer"
             title={isFreeUser ? "Sign up to watch this bottle" : undefined}

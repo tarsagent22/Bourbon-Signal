@@ -190,15 +190,17 @@ function computeStoreData(allDrops: Drop[]): {
 // Component to handle flyTo imperatively
 function FlyToHandler({
   flyToTarget,
+  zoom,
 }: {
   flyToTarget: { lat: number; lng: number } | null;
+  zoom?: number | null;
 }) {
   const map = useMap();
   useEffect(() => {
     if (flyToTarget) {
-      map.flyTo([flyToTarget.lat, flyToTarget.lng], 14, { duration: 1.5 });
+      map.flyTo([flyToTarget.lat, flyToTarget.lng], zoom || 14, { duration: 1.5 });
     }
-  }, [flyToTarget, map]);
+  }, [flyToTarget, zoom, map]);
   return null;
 }
 
@@ -210,11 +212,49 @@ export default function HuntMap() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [initialZoom, setInitialZoom] = useState<number | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRefs = useRef<Record<string, LCircleMarker>>({});
 
   const { storesWithStatus, recentDrops, activeThisWeek, dropsThisWeek } =
     useMemo(() => computeStoreData(dropsData.drops as Drop[]), []);
+
+  // Read lat/lng/zoom query params and fly to position on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lat = params.get("lat");
+    const lng = params.get("lng");
+    const zoom = params.get("zoom");
+    if (lat && lng) {
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        if (zoom) setInitialZoom(parseInt(zoom, 10));
+        // Delay slightly so the map is ready
+        setTimeout(() => {
+          setFlyToTarget({ lat: latNum, lng: lngNum });
+          // Find and open nearest store popup
+          let nearest: typeof storesWithStatus[0] | null = null;
+          let minDist = Infinity;
+          for (const store of storesWithStatus) {
+            const dist = Math.sqrt(
+              Math.pow(store.lat - latNum, 2) + Math.pow(store.lng - lngNum, 2)
+            );
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = store;
+            }
+          }
+          if (nearest) {
+            setTimeout(() => {
+              const marker = markerRefs.current[nearest!.id];
+              if (marker) marker.openPopup();
+            }, 1600);
+          }
+        }, 500);
+      }
+    }
+  }, [storesWithStatus]);
 
   // Filter stores by tier
   const filteredStores = useMemo(() => {
@@ -264,7 +304,7 @@ export default function HuntMap() {
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
         <ZoomControl position="bottomright" />
-        <FlyToHandler flyToTarget={flyToTarget} />
+        <FlyToHandler flyToTarget={flyToTarget} zoom={initialZoom} />
 
         {filteredStores.map((store) => {
           const isHot = store.status === "hot";

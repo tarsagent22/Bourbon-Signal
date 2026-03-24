@@ -2,10 +2,14 @@
 
 import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
+import BottleLink from "@/components/BottleLink";
+import CountyLink from "@/components/CountyLink";
 
 interface TimelineEvent {
   timestamp: string;
   description: string;
+  bottleName?: string;
+  county?: string;
   tier: "unicorn" | "allocated" | "limited" | "user";
   type: "drop" | "watchlist";
 }
@@ -20,61 +24,76 @@ const TIER_DOT_COLORS: Record<string, string> = {
 const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     timestamp: "2026-03-23T01:00:00Z",
-    description: "Woodford Reserve Double Double Oaked spotted in 15 Wake County stores",
+    description: "{bottle} spotted in 15 {county} stores",
+    bottleName: "Woodford Reserve Double Double Oaked",
+    county: "Wake",
     tier: "allocated",
     type: "drop",
   },
   {
     timestamp: "2026-03-22T16:30:00Z",
-    description: "King of Kentucky Small Batch 1 shipped to 7 NC counties",
+    description: "{bottle} shipped to 7 NC counties",
+    bottleName: "King of Kentucky Small Batch",
     tier: "unicorn",
     type: "drop",
   },
   {
     timestamp: "2026-03-22T15:00:00Z",
-    description: "You added King of Kentucky to your watchlist",
+    description: "You added {bottle} to your watchlist",
+    bottleName: "King of Kentucky",
     tier: "user",
     type: "watchlist",
   },
   {
     timestamp: "2026-03-22T11:00:00Z",
-    description: "E.H. Taylor Single Barrel dropped in Durham County",
+    description: "{bottle} dropped in {county}",
+    bottleName: "E.H. Taylor Single Barrel",
+    county: "Durham",
     tier: "allocated",
     type: "drop",
   },
   {
     timestamp: "2026-03-21T16:30:00Z",
-    description: "King of Kentucky Small Batch 2 shipped to 8 counties",
+    description: "{bottle} shipped to 8 counties",
+    bottleName: "King of Kentucky Small Batch",
     tier: "unicorn",
     type: "drop",
   },
   {
     timestamp: "2026-03-21T10:00:00Z",
-    description: "You added Stagg Jr to your watchlist",
+    description: "You added {bottle} to your watchlist",
+    bottleName: "Stagg Jr",
     tier: "user",
     type: "watchlist",
   },
   {
     timestamp: "2026-03-20T14:00:00Z",
-    description: "Blanton's allocation assigned — Mecklenburg County",
+    description: "{bottle} allocation assigned — {county}",
+    bottleName: "Blanton's",
+    county: "Mecklenburg",
     tier: "allocated",
     type: "drop",
   },
   {
     timestamp: "2026-03-19T09:00:00Z",
-    description: "Weller 12 restocked in 3 Triangle-area stores",
+    description: "{bottle} restocked in 3 Triangle-area stores",
+    bottleName: "Weller 12",
+    county: "Triangle",
     tier: "allocated",
     type: "drop",
   },
   {
     timestamp: "2026-03-18T16:00:00Z",
-    description: "You added E.H. Taylor Single Barrel to your watchlist",
+    description: "You added {bottle} to your watchlist",
+    bottleName: "E.H. Taylor Single Barrel",
     tier: "user",
     type: "watchlist",
   },
   {
     timestamp: "2026-03-17T11:30:00Z",
-    description: "Eagle Rare spotted in Greensboro ABC Board",
+    description: "{bottle} spotted in {county} ABC Board",
+    bottleName: "Eagle Rare",
+    county: "Greensboro",
     tier: "limited",
     type: "drop",
   },
@@ -95,6 +114,19 @@ function formatTimelineDate(timestamp: string): string {
   if (days === 1) return `Yesterday ${time}`;
   const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return `${date} ${time}`;
+}
+
+function renderTimelineDescription(event: TimelineEvent): React.ReactNode {
+  const parts = event.description.split(/(\{bottle\}|\{county\})/);
+  return parts.map((part, i) => {
+    if (part === "{bottle}" && event.bottleName) {
+      return <BottleLink key={i} name={event.bottleName}>{event.bottleName}</BottleLink>;
+    }
+    if (part === "{county}" && event.county) {
+      return <CountyLink key={i} county={event.county}>{event.county}</CountyLink>;
+    }
+    return part;
+  });
 }
 
 export default function ActivityTimeline() {
@@ -192,7 +224,7 @@ export default function ActivityTimeline() {
                     fontStyle: event.type === "watchlist" ? "italic" : "normal",
                   }}
                 >
-                  {event.description}
+                  {renderTimelineDescription(event)}
                 </div>
               </div>
             </motion.div>

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, List } from "lucide-react";
 import { cleanBrandName } from "@/lib/drops";
+import BottleLink from "@/components/BottleLink";
 
 interface RecentDrop {
   brand_name: string;
@@ -145,7 +146,7 @@ function DropList({
                     marginBottom: 3,
                   }}
                 >
-                  {entry.name}
+                  <BottleLink name={entry.name}>{entry.name}</BottleLink>
                 </div>
                 <div
                   style={{

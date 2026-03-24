@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Bell, Mail, Smartphone } from "lucide-react";
 import { fadeUpVariant } from "@/lib/animations";
 import type { DropEvent } from "@/lib/drops";
+import BottleLink from "@/components/BottleLink";
+import { useWatchlistStore } from "@/lib/watchlist";
 
 export interface WatchlistItem {
   name: string;
@@ -171,7 +173,7 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
                     lineHeight: 1.3,
                   }}
                 >
-                  {item.name}
+                  <BottleLink name={item.name}>{item.name}</BottleLink>
                 </span>
 
                 {/* NEW pill or last drop date */}
