@@ -119,6 +119,26 @@ Do NOT:
 - Omit `margin: "0 auto"` from content wrappers
 - Ship any section without checking mobile centering
 
+## Self-Critique Loop (mandatory for visual/layout changes)
+
+Every visual or layout change MUST run this loop before pushing. No exceptions.
+
+1. **Build:** Implement the changes
+2. **Screenshot:** Start dev server, take screenshots at 1440px (desktop) and 375px (mobile)
+3. **Critique against checklist:**
+   - Is everything horizontally centered? Check on BOTH desktop and mobile.
+   - Do fonts match the system? Fraunces (--font-playfair) for headings/bottle names, Plus Jakarta Sans (--font-dm-sans) for body/labels, JetBrains Mono (--font-jetbrains) for prices/data/multipliers.
+   - Do all colors use CSS vars (var(--token-name)), not hardcoded hex?
+   - Would this look out of place on Linear.app, Vercel, or Stripe? If yes, it's not premium enough. Fix it.
+   - Is there enough breathing room? Padding, gaps, margins — nothing should feel cramped.
+   - Does mobile look intentional and designed, not just "it fits"? Check text size, touch targets, overflow.
+   - Does the new element match the existing page aesthetic? It should look like it belongs on the same site.
+   - Are hover states and interactions smooth? Spring physics preferred over CSS ease.
+4. **Fix** anything that fails the checklist
+5. **Production build** (`npm run build`) + commit + push
+
+**Skip the loop for:** Copy-only text changes, data fixes, config/env changes, non-visual code.
+
 ## Anti-Patterns
 
 - Don't use `<Image>` from `next/image` for backgrounds — use CSS `backgroundImage`
