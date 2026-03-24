@@ -67,7 +67,7 @@ export default function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative z-[3] text-center px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto pt-24">
+      <div className="relative z-[3] px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto pt-24" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <ScrollReveal delay={0}>
           <h1
             className="mb-6 max-md:!text-[44px]"

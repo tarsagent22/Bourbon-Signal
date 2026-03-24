@@ -15,11 +15,11 @@ export default function Footer() {
         borderTop: "1px solid var(--color-card-border)",
       }}
     >
-      <div className="mx-auto max-w-6xl px-8 md:px-16 lg:px-24 py-6">
-        {/* Desktop: single row. Mobile: stacked center */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Logo */}
-          <div className="flex items-baseline gap-0">
+      <div className="py-6" style={{ paddingLeft: "clamp(30px, 4vw, 60px)", paddingRight: "clamp(30px, 4vw, 60px)" }}>
+        {/* Top row: logo left (matching nav), links + copyright centered */}
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          {/* Logo — same margin as nav logo */}
+          <div className="flex items-baseline gap-0 md:mr-auto" style={{ paddingLeft: "32px" }}>
             <span
               style={{
                 fontFamily: "var(--font-playfair)",
@@ -41,8 +41,8 @@ export default function Footer() {
             </span>
           </div>
 
-          {/* Links */}
-          <nav className="flex items-center gap-6">
+          {/* Center: links */}
+          <nav className="flex items-center gap-6" style={{ margin: "0 auto" }}>
             {footerLinks.map((link) => (
               <a
                 key={link.label}
@@ -66,38 +66,40 @@ export default function Footer() {
             ))}
           </nav>
 
-          {/* Copyright */}
+          {/* Right: copyright (mirrors logo width for balance) */}
           <p
+            className="md:ml-auto"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "13px",
               color: "var(--color-text-tertiary)",
+              paddingRight: "32px",
             }}
           >
             © 2026 Proof
           </p>
         </div>
 
-        {/* Tagline */}
+        {/* Bottom tagline + disclaimer centered */}
         <p
-          className="text-center mt-4"
           style={{
             fontFamily: "var(--font-dm-sans)",
             fontSize: "13px",
             fontStyle: "italic",
             color: "var(--color-text-secondary)",
+            textAlign: "center",
+            marginTop: "16px",
           }}
         >
           Built by bourbon hunters, for bourbon hunters.
         </p>
-
-        {/* Data disclaimer */}
         <p
-          className="text-center mt-2"
           style={{
             fontFamily: "var(--font-dm-sans)",
             fontSize: "12px",
             color: "var(--color-text-tertiary)",
+            textAlign: "center",
+            marginTop: "8px",
           }}
         >
           Data sourced from state liquor control board public records

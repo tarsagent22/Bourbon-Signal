@@ -23,7 +23,7 @@ export default function Button({
 
   const variants = {
     primary: {
-      backgroundColor: "var(--color-accent-amber)",
+      background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
       color: "#0D0B0E",
       padding: "14px 28px",
       border: "2px solid transparent",

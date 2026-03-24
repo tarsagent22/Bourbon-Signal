@@ -115,24 +115,23 @@ export default function Navigation() {
             Sign In
           </a>
           <a
-            href="#"
+            href="#pricing"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "14px",
-              fontWeight: 500,
-              color: "var(--color-accent-amber)",
+              fontWeight: 600,
+              color: "#0D0B0E",
               textDecoration: "none",
-              border: "1px solid var(--color-accent-amber)",
               padding: "10px 20px",
               borderRadius: "6px",
-              backgroundColor: "transparent",
-              transition: "background-color 300ms ease",
+              background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+              transition: "opacity 300ms ease",
             }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "rgba(212, 146, 11, 0.1)")
+              (e.currentTarget.style.opacity = "0.9")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
+              (e.currentTarget.style.opacity = "1")
             }
           >
             Get Access
