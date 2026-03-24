@@ -351,10 +351,24 @@ function StillCap() {
       {/* Lyne arm pipe */}
       <Pipe d={lyneArm} />
 
-      {/* Flange on vertical rise */}
-      <Flange cx={px} cy={f1y} dir="v" />
+      {/* Flange at lid exit */}
+      <Flange cx={px} cy={p0y - 3} dir="v" />
 
-      {/* Flange on final horizontal run */}
+      {/* ── Elbow 1 (up→right) flanges ── */}
+      {/* Entry: on vertical segment, just before curve starts */}
+      <Flange cx={px} cy={p1y + BR + 3} dir="v" />
+      {/* Exit: on horizontal segment, just after curve ends */}
+      <Flange cx={px + BR + 3} cy={p1y} dir="h" />
+
+      {/* ── Elbow 2 (right→down) flanges ── */}
+      <Flange cx={p2x - BR - 3} cy={p1y} dir="h" />
+      <Flange cx={p2x} cy={p1y + BR + 3} dir="v" />
+
+      {/* ── Elbow 3 (down→right) flanges ── */}
+      <Flange cx={p2x} cy={p3y - BR - 3} dir="v" />
+      <Flange cx={p2x + BR + 3} cy={p3y} dir="h" />
+
+      {/* Flange further along final horizontal run */}
       <Flange cx={valveX - 16} cy={p3y} dir="h" />
 
       {/* Valve handwheel */}
@@ -452,7 +466,16 @@ function StillSpout() {
       {/* Product pipe */}
       <Pipe d={productPipe} />
 
-      {/* Flange on horizontal run */}
+      {/* Flange at spout exit */}
+      <Flange cx={COL_CX} cy={spoutOutY + 3} dir="v" />
+
+      {/* ── Elbow (down→left) flanges ── */}
+      {/* Entry: on vertical segment, just before curve */}
+      <Flange cx={COL_CX} cy={p1y - BR - 3} dir="v" />
+      {/* Exit: on horizontal segment, just after curve */}
+      <Flange cx={COL_CX - BR - 3} cy={p1y} dir="h" />
+
+      {/* Flange further along horizontal run */}
       <Flange cx={flangeX} cy={p1y} dir="h" />
 
       {/* Valve */}
