@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Lock, Eye, EyeOff } from "lucide-react";
+import { X, Eye, EyeOff, Lock } from "lucide-react";
 import type { Bottle } from "@/data/bottles";
 import { dropHistory } from "@/data/bottles";
 import type { DropHistoryEntry } from "@/data/bottles";
@@ -14,7 +14,7 @@ interface BottleDetailProps {
 }
 
 const tierColors: Record<string, string> = {
-  unicorn: "var(--color-accent-amber)",
+  unicorn: "var(--color-amber-rich)",
   allocated: "var(--color-copper)",
   limited: "var(--color-silver-muted)",
 };
@@ -40,11 +40,23 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDetailProps) {
+export default function BottleDetail({
+  bottle,
+  onClose,
+  isFreeUser,
+}: BottleDetailProps) {
   const [watching, setWatching] = useState(false);
   const tierColor = tierColors[bottle.tier];
   const multiplier = getMultiplier(bottle);
   const history: DropHistoryEntry[] = dropHistory[bottle.id] || [];
+
+  const isUnicorn = bottle.tier === "unicorn";
+  const isAllocated = bottle.tier === "allocated";
+  const multiplierBg = isUnicorn
+    ? "var(--color-amber-rich)"
+    : isAllocated
+      ? "var(--color-copper)"
+      : "var(--color-silver-muted)";
 
   return (
     <>
@@ -62,17 +74,17 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
       <motion.div
         className="fixed top-0 right-0 z-[80] h-full overflow-y-auto"
         style={{
-          width: "min(480px, 90vw)",
+          width: "min(480px, 100vw)",
           background: "var(--color-bg-secondary)",
           borderLeft: "1px solid var(--color-card-border)",
           boxShadow: "-8px 0 40px rgba(0, 0, 0, 0.5)",
         }}
-        initial={{ x: "100%", opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: "100%", opacity: 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="p-8">
+        <div style={{ padding: "32px" }}>
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -91,17 +103,20 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
           <div style={{ marginBottom: "32px" }}>
             {/* Tier Badge */}
             <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              className="inline-flex items-center gap-1.5"
               style={{
                 background: "rgba(13, 11, 7, 0.6)",
                 backdropFilter: "blur(8px)",
                 border: `1px solid ${tierColor}33`,
+                borderRadius: "20px",
+                padding: "4px 10px",
                 fontFamily: "var(--font-dm-sans)",
                 fontSize: "10px",
                 fontWeight: 600,
                 letterSpacing: "0.1em",
                 color: tierColor,
                 marginBottom: "16px",
+                display: "inline-flex",
               }}
             >
               <span
@@ -141,7 +156,7 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
             </p>
 
             {/* Proof & Age */}
-            <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center gap-4" style={{ marginTop: "12px" }}>
               {bottle.proof && (
                 <span
                   style={{
@@ -150,7 +165,7 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                     color: "var(--color-text-secondary)",
                   }}
                 >
-                  {bottle.proof} proof
+                  {bottle.proof}°
                 </span>
               )}
               {bottle.ageStatement && (
@@ -167,12 +182,12 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
             </div>
           </div>
 
-          {/* Price Intelligence Card */}
+          {/* Price Intelligence Block — dark inset */}
           <div
-            className="rounded-lg p-5"
             style={{
-              background: "var(--color-card-bg)",
-              border: "1px solid var(--color-card-border)",
+              background: "rgba(0, 0, 0, 0.25)",
+              borderRadius: "8px",
+              padding: "20px",
               marginBottom: "28px",
             }}
           >
@@ -182,10 +197,11 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                 <p
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "10px",
+                    fontSize: "9px",
                     fontWeight: 600,
-                    letterSpacing: "0.1em",
+                    letterSpacing: "0.12em",
                     color: "var(--color-text-tertiary)",
+                    textTransform: "uppercase",
                     marginBottom: "6px",
                   }}
                 >
@@ -196,44 +212,55 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                     fontFamily: "var(--font-jetbrains)",
                     fontSize: "24px",
                     fontWeight: 600,
-                    color: "var(--color-text-primary)",
+                    color: "var(--color-cream)",
                   }}
                 >
                   ${bottle.msrp.toLocaleString()}
                 </p>
               </div>
 
+              {/* vs */}
+              <span
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "12px",
+                  fontStyle: "italic",
+                  color: "var(--color-text-tertiary)",
+                  opacity: 0.6,
+                  alignSelf: "flex-end",
+                  marginBottom: "6px",
+                }}
+              >
+                vs
+              </span>
+
               {/* Secondary */}
               <div className="text-right">
                 <p
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "10px",
+                    fontSize: "9px",
                     fontWeight: 600,
-                    letterSpacing: "0.1em",
-                    color: "var(--color-accent-amber)",
+                    letterSpacing: "0.12em",
+                    color: "var(--color-amber-rich)",
+                    textTransform: "uppercase",
                     marginBottom: "6px",
                   }}
                 >
                   SECONDARY
                 </p>
-                <div className="flex items-center gap-2 justify-end">
-                  <p
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "24px",
-                      fontWeight: 600,
-                      color: "var(--color-accent-amber)",
-                      filter: isFreeUser ? "blur(10px)" : "none",
-                      userSelect: isFreeUser ? "none" : "auto",
-                    }}
-                  >
-                    {bottle.secondary || "N/A"}
-                  </p>
-                  {isFreeUser && (
-                    <Lock size={14} style={{ color: "var(--color-text-tertiary)" }} />
-                  )}
-                </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font-jetbrains)",
+                    fontSize: "24px",
+                    fontWeight: 600,
+                    color: "var(--color-amber-rich)",
+                    filter: isFreeUser ? "blur(3px)" : "none",
+                    userSelect: isFreeUser ? "none" : "auto",
+                  }}
+                >
+                  {bottle.secondary || "N/A"}
+                </p>
               </div>
             </div>
 
@@ -241,22 +268,26 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
             {multiplier && (
               <div className="flex items-center gap-3" style={{ marginBottom: "12px" }}>
                 <span
-                  className="inline-flex items-center px-3 py-1.5 rounded-full"
                   style={{
-                    background: `${tierColor}18`,
-                    border: `1px solid ${tierColor}40`,
                     fontFamily: "var(--font-jetbrains)",
-                    fontSize: "18px",
+                    fontSize: "20px",
                     fontWeight: 700,
-                    color: tierColor,
-                    filter: isFreeUser ? "blur(10px)" : "none",
+                    color: "#1A1510",
+                    background: multiplierBg,
+                    borderRadius: "20px",
+                    padding: "6px 16px",
+                    lineHeight: 1,
+                    filter: isFreeUser ? "blur(3px)" : "none",
                     userSelect: isFreeUser ? "none" : "auto",
                   }}
                 >
                   {multiplier}x
                 </span>
                 {isFreeUser ? (
-                  <Lock size={14} style={{ color: "var(--color-text-tertiary)" }} />
+                  <Lock
+                    size={14}
+                    style={{ color: "var(--color-text-tertiary)" }}
+                  />
                 ) : (
                   <span
                     style={{
@@ -303,13 +334,14 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                 {bottle.flavor.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1.5 rounded-full"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
                       fontSize: "12px",
-                      color: "var(--color-accent-amber)",
-                      border: "1px solid rgba(196, 135, 10, 0.25)",
-                      background: "rgba(196, 135, 10, 0.06)",
+                      color: "var(--color-amber-rich)",
+                      border: "1px solid rgba(196, 148, 58, 0.25)",
+                      background: "rgba(196, 148, 58, 0.06)",
+                      borderRadius: "20px",
+                      padding: "4px 12px",
                     }}
                   >
                     {tag}
@@ -337,10 +369,12 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
 
             {isFreeUser ? (
               <div
-                className="rounded-lg p-6 text-center"
+                className="text-center"
                 style={{
                   background: "var(--color-card-bg)",
                   border: "1px solid var(--color-card-border)",
+                  borderRadius: "8px",
+                  padding: "24px",
                 }}
               >
                 <Lock
@@ -362,15 +396,17 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                 </p>
                 <a
                   href="/#pricing"
-                  className="inline-block px-5 py-2.5 rounded-md"
+                  className="inline-block"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "13px",
                     fontWeight: 600,
-                    color: "#0D0B0E",
+                    color: "#1A1510",
                     background:
                       "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                     textDecoration: "none",
+                    borderRadius: "8px",
+                    padding: "10px 20px",
                   }}
                 >
                   Unlock with Standard Proof
@@ -378,13 +414,13 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
               </div>
             ) : history.length > 0 ? (
               <div className="relative" style={{ paddingLeft: "20px" }}>
-                {/* Vertical line */}
+                {/* Vertical amber line */}
                 <div
                   className="absolute top-1 bottom-1"
                   style={{
                     left: "5px",
                     width: "2px",
-                    background: "rgba(196, 135, 10, 0.2)",
+                    background: "rgba(196, 148, 58, 0.2)",
                     borderRadius: "1px",
                   }}
                 />
@@ -406,8 +442,14 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                         width: "10px",
                         height: "10px",
                         borderRadius: "50%",
-                        background: i === 0 ? "var(--color-accent-amber)" : "rgba(196, 135, 10, 0.3)",
-                        border: i === 0 ? "2px solid rgba(196, 135, 10, 0.4)" : "none",
+                        background:
+                          i === 0
+                            ? "var(--color-amber-rich)"
+                            : "rgba(196, 148, 58, 0.3)",
+                        border:
+                          i === 0
+                            ? "2px solid rgba(196, 148, 58, 0.4)"
+                            : "none",
                       }}
                     />
                     <p
@@ -428,7 +470,9 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
                       }}
                     >
                       {entry.location}
-                      {entry.quantity ? ` \u00B7 ${entry.quantity} bottles` : ""}
+                      {entry.quantity
+                        ? ` \u00B7 ${entry.quantity} bottles`
+                        : ""}
                     </p>
                   </div>
                 ))}
@@ -451,7 +495,7 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
             onClick={() => {
               if (!isFreeUser) setWatching(!watching);
             }}
-            className="w-full py-3 rounded-lg cursor-pointer flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2 cursor-pointer"
             title={isFreeUser ? "Sign up to watch this bottle" : undefined}
             style={{
               fontFamily: "var(--font-dm-sans)",
@@ -460,10 +504,12 @@ export default function BottleDetail({ bottle, onClose, isFreeUser }: BottleDeta
               background: watching
                 ? "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)"
                 : "transparent",
-              color: watching ? "#0D0B0E" : "var(--color-accent-amber)",
+              color: watching ? "#1A1510" : "var(--color-amber-rich)",
               border: watching
                 ? "1px solid transparent"
-                : "1px solid var(--color-accent-amber)",
+                : "1px solid var(--color-amber-rich)",
+              borderRadius: "8px",
+              padding: "12px",
               opacity: isFreeUser ? 0.5 : 1,
               transition: "all 300ms ease",
             }}

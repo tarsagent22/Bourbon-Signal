@@ -3,15 +3,22 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer } from "@/lib/animations";
-import { Lock } from "lucide-react";
 import { bottles as allBottles } from "@/data/bottles";
 import type { Bottle } from "@/data/bottles";
 import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 
-const IS_FREE_USER = true; // Simulated — toggle for paywall
+const IS_FREE_USER = true;
 const FREE_VISIBLE_COUNT = 6;
+
+// Custom stagger for 0.08s between cards
+const cardStagger = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
 
 function sortBottles(list: Bottle[], sortBy: string): Bottle[] {
   const sorted = [...list];
@@ -24,20 +31,29 @@ function sortBottles(list: Bottle[], sortBy: string): Bottle[] {
       );
     case "markup": {
       const getMarkup = (b: Bottle) =>
-        b.secondaryLow && b.msrp > 0
-          ? b.secondaryLow / b.msrp
-          : 0;
+        b.secondaryLow && b.msrp > 0 ? b.secondaryLow / b.msrp : 0;
       return sorted.sort((a, b) => getMarkup(b) - getMarkup(a));
     }
     case "recent":
       return sorted.sort((a, b) => {
         if (!a.lastSeen) return 1;
         if (!b.lastSeen) return -1;
-        return new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime();
+        return (
+          new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime()
+        );
       });
     default:
       return sorted;
   }
+}
+
+function getBlurAmount(index: number): number {
+  // Progressive blur for cards beyond the free limit
+  const offset = index - FREE_VISIBLE_COUNT;
+  if (offset <= 0) return 0;
+  if (offset === 1) return 2;
+  if (offset === 2) return 4;
+  return 6;
 }
 
 export default function BottleGrid() {
@@ -78,12 +94,10 @@ export default function BottleGrid() {
   const filteredBottles = useMemo(() => {
     let result = allBottles;
 
-    // Filter by tier
     if (activeTier !== "all") {
       result = result.filter((b) => b.tier === activeTier);
     }
 
-    // Filter by search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -94,7 +108,6 @@ export default function BottleGrid() {
       );
     }
 
-    // Sort
     return sortBottles(result, sortBy);
   }, [activeTier, searchQuery, sortBy]);
 
@@ -110,9 +123,15 @@ export default function BottleGrid() {
         onSortChange={setSortBy}
       />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8" style={{ paddingTop: "32px", paddingBottom: "40px" }}>
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "32px clamp(20px, 5vw, 48px) 40px",
+        }}
+      >
         {filteredBottles.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center" style={{ padding: "80px 0" }}>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -124,13 +143,14 @@ export default function BottleGrid() {
             </p>
           </div>
         ) : (
-          <>
+          <div className="relative">
             <motion.div
-              className="grid gap-6"
+              className="grid"
               style={{
-                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+                gap: "24px",
               }}
-              variants={staggerContainer}
+              variants={cardStagger}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-50px" }}
@@ -138,6 +158,9 @@ export default function BottleGrid() {
               {filteredBottles.map((bottle, index) => {
                 const isBlurred =
                   IS_FREE_USER && index >= FREE_VISIBLE_COUNT;
+                const blurAmount = IS_FREE_USER
+                  ? getBlurAmount(index)
+                  : 0;
 
                 return (
                   <BottleCard
@@ -145,29 +168,26 @@ export default function BottleGrid() {
                     bottle={bottle}
                     onClick={() => setSelectedBottle(bottle)}
                     isBlurred={isBlurred}
+                    blurAmount={blurAmount}
                     isFreeUser={IS_FREE_USER}
                   />
                 );
               })}
             </motion.div>
 
-            {/* Paywall CTA */}
+            {/* Blur Wall CTA */}
             {IS_FREE_USER && filteredBottles.length > FREE_VISIBLE_COUNT && (
               <div
-                className="relative mt-[-120px] pt-32 pb-16 text-center"
+                className="relative"
                 style={{
+                  marginTop: "-160px",
+                  paddingTop: "80px",
+                  paddingBottom: "60px",
                   background:
-                    "linear-gradient(to bottom, transparent 0%, var(--color-bg-primary) 40%)",
+                    "linear-gradient(to bottom, transparent 0%, var(--color-bg-primary) 50%)",
+                  textAlign: "center",
                 }}
               >
-                <Lock
-                  size={32}
-                  style={{
-                    color: "var(--color-accent-amber)",
-                    margin: "0 auto 16px",
-                    opacity: 0.6,
-                  }}
-                />
                 <h3
                   style={{
                     fontFamily: "var(--font-playfair)",
@@ -184,44 +204,57 @@ export default function BottleGrid() {
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "15px",
                     color: "var(--color-text-secondary)",
-                    marginBottom: "8px",
-                    maxWidth: "440px",
+                    marginBottom: "28px",
+                    maxWidth: "480px",
                     marginLeft: "auto",
                     marginRight: "auto",
+                    lineHeight: 1.6,
                   }}
                 >
-                  Get secondary market pricing, multiplier data, and drop history
-                  for every bottle we track.
+                  Access secondary market data, drop history, and watchlists
+                  for {allBottles.length}+ bottles
                 </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: "13px",
-                    color: "var(--color-text-tertiary)",
-                    marginBottom: "24px",
-                  }}
-                >
-                  Starting at $9/mo with Standard Proof
-                </p>
-                <a
-                  href="/#pricing"
-                  className="inline-block px-8 py-3 rounded-lg"
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "15px",
-                    fontWeight: 600,
-                    color: "#0D0B0E",
-                    background:
-                      "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                    textDecoration: "none",
-                    transition: "opacity 300ms ease",
-                  }}
-                >
-                  View Plans
-                </a>
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <a
+                    href="/#pricing"
+                    className="inline-block rounded-lg"
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      color: "var(--color-accent-amber)",
+                      background: "transparent",
+                      border: "2px solid var(--color-accent-amber)",
+                      padding: "12px 24px",
+                      textDecoration: "none",
+                      borderRadius: "8px",
+                      transition: "all 200ms ease",
+                    }}
+                  >
+                    Start Hunting — $10/mo
+                  </a>
+                  <a
+                    href="/#pricing"
+                    className="inline-block rounded-lg"
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      color: "#1A1510",
+                      background:
+                        "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                      padding: "14px 28px",
+                      textDecoration: "none",
+                      borderRadius: "8px",
+                      transition: "all 200ms ease",
+                    }}
+                  >
+                    Claim Your Spot — $69
+                  </a>
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 

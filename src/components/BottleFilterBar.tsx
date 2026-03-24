@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown } from "lucide-react";
 import type { Bottle } from "@/data/bottles";
 
@@ -32,8 +33,11 @@ export default function BottleFilterBar({
 }: BottleFilterBarProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [sortOpen, setSortOpen] = useState(false);
+  const [isStuck, setIsStuck] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
 
   // Debounced search
   useEffect(() => {
@@ -62,6 +66,18 @@ export default function BottleFilterBar({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Detect sticky state
+  useEffect(() => {
+    const el = stickyRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsStuck(!entry.isIntersecting),
+      { threshold: [1], rootMargin: "-65px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const tierCounts = {
     all: bottles.length,
     unicorn: bottles.filter((b) => b.tier === "unicorn").length,
@@ -79,146 +95,195 @@ export default function BottleFilterBar({
   const currentSort = sortOptions.find((s) => s.value === sortBy);
 
   return (
-    <div
-      className="sticky z-40"
-      style={{
-        top: "64px",
-        background: "var(--color-glass)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(212, 146, 11, 0.08)",
-        padding: "16px 0",
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
-        {/* Search Input */}
-        <div className="relative" style={{ marginBottom: "14px" }}>
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: "var(--color-text-tertiary)" }}
-          />
-          <input
-            type="text"
-            placeholder="Search bottles..."
-            value={localQuery}
-            onChange={(e) => setLocalQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg outline-none"
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              background: "var(--color-card-bg)",
-              border: "1px solid var(--color-card-border)",
-              transition: "border-color 300ms ease",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--color-accent-amber)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--color-card-border)";
-            }}
-          />
-        </div>
+    <>
+      {/* Sentinel for sticky detection */}
+      <div ref={stickyRef} style={{ height: "1px", marginBottom: "-1px" }} />
 
-        {/* Tier Pills + Sort */}
-        <div className="flex items-center justify-between flex-wrap gap-6">
-          {/* Tier Pills */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {tiers.map((tier) => {
-              const isActive = activeTier === tier.key;
-              return (
-                <button
-                  key={tier.key}
-                  onClick={() => onTierChange(tier.key)}
-                  className="px-3 py-1.5 rounded-full cursor-pointer transition-all duration-200"
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    background: isActive
-                      ? "var(--color-accent-amber)"
-                      : "transparent",
-                    color: isActive ? "#0D0B07" : "var(--color-text-secondary)",
-                    border: isActive
-                      ? "1px solid var(--color-accent-amber)"
-                      : "1px solid rgba(212, 146, 11, 0.15)",
-                  }}
-                >
-                  {tier.label} ({tierCounts[tier.key as keyof typeof tierCounts]})
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="relative" ref={sortRef}>
-            <button
-              onClick={() => setSortOpen(!sortOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
+      <div
+        className="sticky z-40"
+        style={{
+          top: "64px",
+          background: "var(--color-glass)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderBottom: isStuck
+            ? "1px solid var(--color-card-border)"
+            : "1px solid transparent",
+          padding: "16px 0",
+          transition: "border-color 300ms ease",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "0 clamp(20px, 5vw, 48px)",
+          }}
+        >
+          {/* Search Input */}
+          <div className="relative" style={{ marginBottom: "14px" }}>
+            <Search
+              size={16}
+              className="absolute top-1/2 -translate-y-1/2"
+              style={{
+                color: searchFocused
+                  ? "var(--color-amber-rich)"
+                  : "var(--color-text-tertiary)",
+                left: "14px",
+                transition: "color 200ms ease",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search bottles, distilleries, flavors..."
+              value={localQuery}
+              onChange={(e) => setLocalQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className="w-full outline-none"
               style={{
                 fontFamily: "var(--font-dm-sans)",
-                fontSize: "12px",
-                color: "var(--color-text-secondary)",
-                background: "rgba(36, 30, 25, 0.6)",
-                border: "1px solid rgba(212, 146, 11, 0.1)",
+                fontSize: "14px",
+                color: "var(--color-text-primary)",
+                background: "var(--color-card-bg)",
+                border: searchFocused
+                  ? "1px solid var(--color-amber-rich)"
+                  : "1px solid var(--color-card-border)",
+                borderRadius: "10px",
+                padding: "12px 16px 12px 40px",
+                boxShadow: searchFocused
+                  ? "0 0 20px rgba(196, 148, 58, 0.1)"
+                  : "none",
+                transition: "border-color 200ms ease, box-shadow 200ms ease",
               }}
-            >
-              {currentSort?.label || "Sort"}
-              <ChevronDown size={14} />
-            </button>
+            />
+          </div>
 
-            {sortOpen && (
-              <div
-                className="absolute right-0 mt-2 rounded-lg overflow-hidden z-50"
-                style={{
-                  width: "220px",
-                  background: "var(--color-bg-secondary)",
-                  border: "1px solid var(--color-card-border)",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
-                }}
-              >
-                {sortOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      onSortChange(opt.value);
-                      setSortOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2.5 cursor-pointer"
+          {/* Tier Pills + Sort */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            {/* Tier Pills */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {tiers.map((tier) => {
+                const isActive = activeTier === tier.key;
+                return (
+                  <motion.button
+                    key={tier.key}
+                    onClick={() => onTierChange(tier.key)}
+                    className="cursor-pointer"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      color:
-                        sortBy === opt.value
-                          ? "var(--color-accent-amber)"
-                          : "var(--color-text-secondary)",
-                      background:
-                        sortBy === opt.value
-                          ? "rgba(196, 135, 10, 0.08)"
-                          : "transparent",
-                      border: "none",
-                      transition: "background 150ms ease",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      background: isActive ? "#C4943A" : "transparent",
+                      color: isActive ? "#1A1510" : "var(--color-text-secondary)",
+                      border: isActive
+                        ? "1px solid #C4943A"
+                        : "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "20px",
+                      padding: "6px 14px",
+                      outline: "none",
                     }}
-                    onMouseEnter={(e) => {
-                      if (sortBy !== opt.value) {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (sortBy !== opt.value) {
-                        e.currentTarget.style.background = "transparent";
-                      }
-                    }}
+                    layout
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
+                    {tier.label} ({tierCounts[tier.key as keyof typeof tierCounts]})
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortRef}>
+              <motion.button
+                onClick={() => setSortOpen(!sortOpen)}
+                className="flex items-center gap-2 cursor-pointer"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
+                  background: "rgba(36, 30, 25, 0.6)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "20px",
+                  padding: "6px 14px",
+                  outline: "none",
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {currentSort?.label || "Sort"}
+                <motion.div
+                  animate={{ rotate: sortOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronDown size={14} />
+                </motion.div>
+              </motion.button>
+
+              <AnimatePresence>
+                {sortOpen && (
+                  <motion.div
+                    className="absolute right-0 mt-2 z-50 overflow-hidden"
+                    style={{
+                      width: "220px",
+                      background: "var(--color-bg-secondary)",
+                      border: "1px solid var(--color-amber-rich)",
+                      borderRadius: "10px",
+                      boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+                    }}
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {sortOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => {
+                          onSortChange(opt.value);
+                          setSortOpen(false);
+                        }}
+                        className="w-full text-left cursor-pointer"
+                        style={{
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          color:
+                            sortBy === opt.value
+                              ? "var(--color-amber-rich)"
+                              : "var(--color-text-secondary)",
+                          background:
+                            sortBy === opt.value
+                              ? "rgba(196, 148, 58, 0.08)"
+                              : "transparent",
+                          border: "none",
+                          padding: "10px 16px",
+                          transition: "background 150ms ease",
+                          outline: "none",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (sortBy !== opt.value) {
+                            e.currentTarget.style.background =
+                              "rgba(196, 148, 58, 0.05)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (sortBy !== opt.value) {
+                            e.currentTarget.style.background = "transparent";
+                          }
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
