@@ -34,18 +34,20 @@ function getMultiplier(bottle: Bottle): number | null {
   return mult >= 2 ? mult : null;
 }
 
-function getFrequencyLabel(avg?: number): string {
-  if (!avg) return "No data";
-  if (avg < 0.5) return "Very rare";
-  if (avg < 1) return "Rare";
-  if (avg < 2) return "Occasional";
-  if (avg < 4) return "Regular";
-  return "Frequent";
+function getFrequencyLabel(avg?: number): { label: string; color: string } {
+  if (!avg) return { label: "No data", color: "var(--color-text-tertiary)" };
+  if (avg < 0.5) return { label: "Very rare", color: "#E85D26" };
+  if (avg < 1) return { label: "Rare", color: "var(--color-accent-amber)" };
+  if (avg < 2) return { label: "Uncommon", color: "var(--color-accent-copper)" };
+  if (avg < 4) return { label: "Regular", color: "var(--color-text-tertiary)" };
+  return { label: "Frequent", color: "var(--color-text-tertiary)" };
 }
 
 export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: BottleCardProps) {
   const tierColor = tierColors[bottle.tier];
   const multiplier = getMultiplier(bottle);
+
+  const isUnicorn = bottle.tier === "unicorn";
 
   return (
     <motion.div
@@ -53,7 +55,7 @@ export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: B
       onClick={onClick}
       className="relative cursor-pointer"
       style={{
-        background: "var(--color-card-bg)",
+        background: isUnicorn ? "rgba(40, 32, 22, 0.9)" : "var(--color-card-bg)",
         borderRadius: "10px",
         border: "1px solid var(--color-card-border)",
         borderTop: `3px solid ${tierColor}`,
@@ -62,6 +64,7 @@ export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: B
         filter: isBlurred ? "blur(6px)" : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
+        boxShadow: isUnicorn ? "0 0 20px rgba(196, 148, 58, 0.08), 0 0 40px rgba(196, 148, 58, 0.04)" : "none",
       }}
       whileHover={{
         y: -3,
@@ -190,7 +193,7 @@ export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: B
                 fontSize: "16px",
                 fontWeight: 500,
                 color: "var(--color-accent-amber)",
-                filter: isFreeUser ? "blur(8px)" : "none",
+                filter: isFreeUser ? "blur(3px)" : "none",
                 userSelect: isFreeUser ? "none" : "auto",
               }}
             >
@@ -242,23 +245,37 @@ export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: B
       )}
 
       {/* Drop Frequency */}
-      <p
-        style={{
-          fontFamily: "var(--font-dm-sans)",
-          fontSize: "12px",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
-        {bottle.avgDropsPerMonth
-          ? `Avg: ${bottle.avgDropsPerMonth} drops/mo`
-          : "No drop data"}
-        {bottle.avgDropsPerMonth ? (
-          <span style={{ marginLeft: "8px", opacity: 0.6 }}>
-            ({getFrequencyLabel(bottle.avgDropsPerMonth)})
-          </span>
-        ) : null}
-      </p>
+      <div className="flex items-center gap-2 flex-wrap" style={{ marginBottom: "16px" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "12px",
+            color: "var(--color-text-tertiary)",
+          }}
+        >
+          {bottle.avgDropsPerMonth
+            ? `Avg: ${bottle.avgDropsPerMonth} drops/mo`
+            : "No drop data"}
+        </p>
+        {bottle.avgDropsPerMonth ? (() => {
+          const freq = getFrequencyLabel(bottle.avgDropsPerMonth);
+          return (
+            <span
+              className="inline-flex items-center px-2 py-0.5 rounded-full"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "10px",
+                fontWeight: 600,
+                color: freq.color,
+                background: `${freq.color}15`,
+                border: `1px solid ${freq.color}30`,
+              }}
+            >
+              {freq.label}
+            </span>
+          );
+        })() : null}
+      </div>
 
       {/* Footer */}
       <div
@@ -292,8 +309,8 @@ export default function BottleCard({ bottle, onClick, isBlurred, isFreeUser }: B
           )}
         </div>
         <ChevronRight
-          size={14}
-          style={{ color: "var(--color-text-tertiary)" }}
+          size={18}
+          style={{ color: "var(--color-text-secondary)" }}
         />
       </div>
     </motion.div>

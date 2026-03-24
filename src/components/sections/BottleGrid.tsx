@@ -110,7 +110,7 @@ export default function BottleGrid() {
         onSortChange={setSortBy}
       />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-8" style={{ paddingTop: "32px", paddingBottom: "40px" }}>
         {filteredBottles.length === 0 ? (
           <div className="text-center py-20">
             <p

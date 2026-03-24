@@ -108,21 +108,21 @@ export default function BottleFilterBar({
               fontFamily: "var(--font-dm-sans)",
               fontSize: "14px",
               color: "var(--color-text-primary)",
-              background: "rgba(36, 30, 25, 0.6)",
-              border: "1px solid rgba(212, 146, 11, 0.1)",
+              background: "var(--color-card-bg)",
+              border: "1px solid var(--color-card-border)",
               transition: "border-color 300ms ease",
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = "var(--color-accent-amber)";
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = "rgba(212, 146, 11, 0.1)";
+              e.currentTarget.style.borderColor = "var(--color-card-border)";
             }}
           />
         </div>
 
         {/* Tier Pills + Sort */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-6">
           {/* Tier Pills */}
           <div className="flex items-center gap-2 flex-wrap">
             {tiers.map((tier) => {

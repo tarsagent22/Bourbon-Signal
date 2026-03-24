@@ -24,7 +24,15 @@ export default function BottlesPage() {
       <Navigation />
 
       {/* Page Header */}
-      <section className="pt-32 pb-8 text-center px-6">
+      <section
+        className="pb-8 px-6"
+        style={{
+          paddingTop: "120px",
+          textAlign: "center",
+          maxWidth: "800px",
+          margin: "0 auto",
+        }}
+      >
         <ScrollReveal>
           <p
             style={{
