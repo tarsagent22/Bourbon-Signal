@@ -14,7 +14,6 @@ import ScrollReveal from "@/components/ScrollReveal";
 import DataFreshness from "@/components/DataFreshness";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { groupDrops, type DropEvent } from "@/lib/drops";
-import dropsData from "@/data/drops.json";
 
 const DashboardMiniMap = dynamic(() => import("@/components/DashboardMiniMap"), {
   ssr: false,
@@ -32,12 +31,36 @@ export default function DashboardPage() {
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const feedRef = useRef<HTMLDivElement>(null);
 
+  // Live data from engine API
+  const [drops, setDrops] = useState<DropEvent[]>([]);
+  const [total, setTotal] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     setMounted(true);
+
+    const fetchDrops = async () => {
+      try {
+        const res = await fetch("/api/drops");
+        if (!res.ok) throw new Error("fetch failed");
+        const json: { drops: DropEvent[]; total: number; lastUpdated: string } = await res.json();
+        setDrops(json.drops);
+        setTotal(json.total);
+        setLastUpdated(json.lastUpdated);
+      } catch {
+        // Keep existing data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrops();
+    const interval = setInterval(fetchDrops, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  const drops = (dropsData as { drops: DropEvent[] }).drops;
-  const grouped = useMemo(() => groupDrops(drops, 20), [drops]);
+  const grouped = useMemo(() => groupDrops(drops, 50), [drops]);
 
   const scrollToFeed = useCallback(() => {
     feedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -101,6 +124,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         {/* Section 1: Greeting + Stats */}
+        <div style={{ opacity: loading ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
         <ScrollReveal delay={0}>
           <DashboardStats drops={drops} />
         </ScrollReveal>
@@ -114,7 +138,7 @@ export default function DashboardPage() {
             marginTop: "12px",
           }}
         >
-          <DataFreshness lastUpdated={(dropsData as { lastUpdated: string }).lastUpdated} />
+          {lastUpdated && <DataFreshness lastUpdated={lastUpdated} />}
         </div>
 
         {/* Quick Actions Row */}
@@ -164,6 +188,7 @@ export default function DashboardPage() {
                 onFilterChange={setFeedFilter}
                 selectedCounties={selectedCounties}
                 onCountyToggle={handleCountyToggle}
+                total={total}
               />
               <DashboardSidebar drops={drops} miniMap={<DashboardMiniMap />} />
             </div>
@@ -175,6 +200,7 @@ export default function DashboardPage() {
           <ScrollReveal delay={200}>
             <ActivityTimeline />
           </ScrollReveal>
+        </div>
         </div>
       </motion.main>
       <Footer />

@@ -346,6 +346,7 @@ interface DashboardFeedProps {
   onFilterChange: (filter: string) => void;
   selectedCounties: string[];
   onCountyToggle: (county: string) => void;
+  total?: number;
 }
 
 export default function DashboardFeed({
@@ -355,6 +356,7 @@ export default function DashboardFeed({
   onFilterChange,
   selectedCounties,
   onCountyToggle,
+  total,
 }: DashboardFeedProps) {
   // Drop velocity computation
   const velocity = useMemo(() => {
@@ -663,6 +665,21 @@ export default function DashboardFeed({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Feed footer */}
+      {total && total > 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "16px",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            color: "var(--color-text-tertiary)",
+          }}
+        >
+          Showing {filtered.length} most recent of {total.toLocaleString()} tracked drops
+        </div>
+      )}
     </div>
   );
 }
