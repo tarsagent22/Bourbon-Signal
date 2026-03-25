@@ -8,8 +8,9 @@ export interface DropEvent {
   quantity_shipped?: number;
   quantity?: number;
   rarity_tier: string;
-  retail_price?: number;
-  stores?: { store_address: string; quantity: number }[];
+  retail_price?: number | null;
+  state?: string;
+  stores?: { store_address?: string; store_id?: string; city?: string; quantity?: number; qty?: number }[];
 }
 
 export interface GroupedDrop {
@@ -20,8 +21,9 @@ export interface GroupedDrop {
   counties: string[];
   board_name?: string;
   store_address?: string;
-  retail_price?: number;
+  retail_price?: number | null;
   quantity_shipped?: number;
+  state?: string;
   id: string;
 }
 
@@ -149,6 +151,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         store_address: event.store_address,
         retail_price: event.retail_price,
         quantity_shipped: event.quantity_shipped,
+        state: event.state,
         id: groupKey,
       });
     }
@@ -163,7 +166,7 @@ export function getEventDescription(drop: GroupedDrop): string {
   switch (drop.event_type) {
     case "new_shipment": {
       if (drop.counties.length > 1) {
-        return `\u2192 ${drop.counties.length} NC counties`;
+        return `\u2192 ${drop.counties.length} locations`;
       }
       if (drop.counties.length === 1) {
         return `\u2192 ${drop.counties[0]}`;

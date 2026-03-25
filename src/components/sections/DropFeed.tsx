@@ -134,7 +134,7 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
   const [glowing, setGlowing] = useState(isNew);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
   const description = getEventDescription(drop);
-  const pricing = lookupPricing(drop.displayName, drop.retail_price);
+  const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const multColors = MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
 
@@ -213,6 +213,26 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
             <BottleLink name={drop.displayName}>{drop.displayName}</BottleLink>
           </div>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
+            {/* State badge */}
+            {drop.state && (
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  color: "rgba(245,237,214,0.4)",
+                  background: "rgba(245,237,214,0.06)",
+                  border: "1px solid rgba(245,237,214,0.1)",
+                  padding: "1px 5px",
+                  borderRadius: "4px",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
+                {drop.state}
+              </span>
+            )}
             <span
               style={{
                 fontFamily: "var(--font-dm-sans)",
