@@ -322,7 +322,7 @@ export default function PricingSection() {
               <div style={{ marginTop: "16px", marginBottom: "4px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                   <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "rgba(245,237,214,0.5)" }}>Founding spots remaining</span>
-                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>100 / 100</span>
+                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>38 / 100</span>
                 </div>
                 <div style={{ width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
                   <motion.div
@@ -335,7 +335,7 @@ export default function PricingSection() {
                       animation: "barPulse 2s ease infinite",
                     }}
                     initial={{ width: "0%" }}
-                    whileInView={{ width: "100%" }}
+                    whileInView={{ width: "38%" }}
                     viewport={{ once: true }}
                     transition={{ duration: 1.2, ease: "easeOut" }}
                   />

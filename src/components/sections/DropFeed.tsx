@@ -649,7 +649,7 @@ export default function DropFeed() {
             </div>
           )}
 
-          {/* CTA below feed */}
+          {/* Drop count below feed */}
           {data && (
             <div style={{ textAlign: "center", marginTop: "32px" }}>
               <p
@@ -657,27 +657,10 @@ export default function DropFeed() {
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
                   color: "rgba(245,237,214,0.5)",
-                  marginBottom: "12px",
                 }}
               >
                 {hiddenCount + blurredCount} more drops tracked in real time
               </p>
-              <button
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#0D0B07",
-                  background: "var(--color-amber-rich)",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "12px 28px",
-                  cursor: "pointer",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                Join Proof — $69
-              </button>
             </div>
           )}
 

@@ -585,14 +585,6 @@ export default function HowWeHunt() {
       <SvgDefs />
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
         <ScrollReveal>
-          <p style={{
-            fontFamily: "var(--font-plus-jakarta)", fontSize: 11,
-            textTransform: "uppercase", letterSpacing: "0.2em",
-            color: "var(--color-accent-amber)", marginBottom: 14,
-            textAlign: "center",
-          }}>
-            THE PROCESS
-          </p>
           <h2 style={{
             fontFamily: "var(--font-fraunces)", fontSize: "clamp(32px,6vw,44px)",
             fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 14,

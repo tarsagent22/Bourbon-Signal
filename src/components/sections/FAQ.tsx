@@ -148,7 +148,7 @@ export default function FAQ() {
               marginBottom: "48px",
             }}
           >
-            Questions
+            Before You Hunt
           </h2>
         </ScrollReveal>
 
