@@ -87,7 +87,7 @@ export default function DashboardPage() {
         style={{
           minHeight: "100vh",
           background: "var(--color-bg-primary)",
-          paddingTop: "clamp(120px, 15vw, 160px)",
+          paddingTop: "120px",
           paddingBottom: "80px",
         }}
       >
@@ -101,7 +101,7 @@ export default function DashboardPage() {
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "0 clamp(16px, 5vw, 48px)",
+            padding: "0 clamp(20px, 5vw, 48px)",
             marginTop: "clamp(24px, 4vw, 36px)",
           }}
         >
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "0 clamp(16px, 5vw, 48px)",
+            padding: "0 clamp(20px, 5vw, 48px)",
             marginTop: "clamp(32px, 5vw, 56px)",
           }}
         >

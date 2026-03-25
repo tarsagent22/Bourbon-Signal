@@ -16,9 +16,9 @@ interface BottleCardProps {
 }
 
 const tierBorderColors: Record<string, string> = {
-  unicorn: "var(--color-amber-rich)",
-  allocated: "var(--color-copper)",
-  limited: "var(--color-silver-muted)",
+  unicorn: "#C4943A",
+  allocated: "#B87333",
+  limited: "#8A8A8A",
 };
 
 const tierLabels: Record<string, string> = {
@@ -39,9 +39,9 @@ function getMultiplier(bottle: Bottle): number | null {
 
 function getRarityInfo(avg?: number): { label: string; color: string } | null {
   if (!avg) return null;
-  if (avg < 0.5) return { label: "Very rare", color: "var(--color-amber-rich)" };
-  if (avg < 1) return { label: "Rare", color: "var(--color-copper)" };
-  if (avg < 2) return { label: "Uncommon", color: "var(--color-silver-muted)" };
+  if (avg < 0.5) return { label: "Very rare", color: "#C4943A" };
+  if (avg < 1) return { label: "Rare", color: "#B87333" };
+  if (avg < 2) return { label: "Uncommon", color: "#8A8A8A" };
   if (avg < 4) return { label: "Common", color: "var(--color-text-tertiary)" };
   return { label: "Common", color: "var(--color-text-tertiary)" };
 }
@@ -62,9 +62,9 @@ export default function BottleCard({
   const isAllocated = bottle.tier === "allocated";
   const isLimited = bottle.tier === "limited";
 
-  // Tier-specific backgrounds
+  // Tier-specific backgrounds — unicorn gets subtle amber tint per spec
   const cardBg = isUnicorn
-    ? "rgba(196, 148, 58, 0.03)"
+    ? "rgba(196,148,58,0.03)"
     : "var(--color-card-bg)";
 
   // Tier-specific hover shadow
@@ -76,10 +76,10 @@ export default function BottleCard({
 
   // Multiplier badge colors
   const multiplierBg = isUnicorn
-    ? "var(--color-amber-rich)"
+    ? "#C4943A"
     : isAllocated
-      ? "var(--color-copper)"
-      : "var(--color-silver-muted)";
+      ? "#B87333"
+      : "#8A8A8A";
 
   const multiplierText = isUnicorn || isAllocated ? "#1A1510" : "#1A1510";
 
@@ -96,7 +96,7 @@ export default function BottleCard({
           ? `2px solid var(--color-amber-rich)`
           : `1px solid var(--color-card-border)`,
         borderTop: `3px solid ${tierColor}`,
-        padding: "26px",
+        padding: "24px",
         filter: isBlurred ? `blur(${blurAmount || 6}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
@@ -134,7 +134,13 @@ export default function BottleCard({
           style={{
             background: "rgba(13, 11, 7, 0.6)",
             backdropFilter: "blur(8px)",
-            border: `1px solid ${tierColor}33`,
+            border: `1px solid ${
+              bottle.tier === "unicorn"
+                ? "rgba(196,148,58,0.3)"
+                : bottle.tier === "allocated"
+                  ? "rgba(184,115,51,0.3)"
+                  : "rgba(138,138,138,0.25)"
+            }`,
             borderRadius: "20px",
             padding: "4px 10px",
             fontFamily: "var(--font-dm-sans)",
@@ -295,7 +301,7 @@ export default function BottleCard({
         )}
         <span
           style={{
-            fontFamily: "var(--font-dm-sans)",
+            fontFamily: "var(--font-jetbrains)",
             fontSize: "11px",
             color: "var(--color-text-tertiary)",
           }}

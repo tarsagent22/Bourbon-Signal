@@ -17,9 +17,9 @@ interface BottleDetailProps {
 }
 
 const tierColors: Record<string, string> = {
-  unicorn: "var(--color-amber-rich)",
-  allocated: "var(--color-copper)",
-  limited: "var(--color-silver-muted)",
+  unicorn: "#C4943A",
+  allocated: "#B87333",
+  limited: "#8A8A8A",
 };
 
 const tierLabels: Record<string, string> = {
@@ -58,10 +58,10 @@ export default function BottleDetail({
   const isUnicorn = bottle.tier === "unicorn";
   const isAllocated = bottle.tier === "allocated";
   const multiplierBg = isUnicorn
-    ? "var(--color-amber-rich)"
+    ? "#C4943A"
     : isAllocated
-      ? "var(--color-copper)"
-      : "var(--color-silver-muted)";
+      ? "#B87333"
+      : "#8A8A8A";
 
   return (
     <>
@@ -112,7 +112,13 @@ export default function BottleDetail({
               style={{
                 background: "rgba(13, 11, 7, 0.6)",
                 backdropFilter: "blur(8px)",
-                border: `1px solid ${tierColor}33`,
+                border: `1px solid ${
+                  bottle.tier === "unicorn"
+                    ? "rgba(196,148,58,0.3)"
+                    : bottle.tier === "allocated"
+                      ? "rgba(184,115,51,0.3)"
+                      : "rgba(138,138,138,0.25)"
+                }`,
                 borderRadius: "20px",
                 padding: "4px 10px",
                 fontFamily: "var(--font-dm-sans)",

@@ -19,11 +19,11 @@ interface StorePopupProps {
 function tierColor(tier: string): string {
   switch (tier) {
     case "unicorn":
-      return "#E8B04B";
+      return "#C4943A";
     case "allocated":
-      return "var(--color-accent-amber)";
+      return "#B87333";
     case "limited":
-      return "var(--color-accent-copper)";
+      return "#8A8A8A";
     default:
       return "var(--color-text-tertiary)";
   }

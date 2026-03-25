@@ -437,7 +437,7 @@ export default function DashboardFeed({
           <h2
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: "20px",
+              fontSize: "24px",
               fontWeight: 700,
               color: "var(--color-cream)",
               margin: 0,
@@ -615,17 +615,50 @@ export default function DashboardFeed({
           ) : (
             <div
               style={{
-                padding: "48px 20px",
+                padding: "60px 20px",
                 textAlign: "center",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
-                color: "var(--color-text-tertiary)",
               }}
             >
-              No {feedFilter === "all" ? "" : feedFilter + " "}drops
-              {selectedCounties.length > 0
-                ? ` in ${selectedCounties.join(", ")}`
-                : " in recent feed"}
+              <p
+                style={{
+                  fontFamily: "var(--font-playfair)",
+                  fontSize: "18px",
+                  color: "var(--color-cream)",
+                  marginBottom: "8px",
+                }}
+              >
+                No drops detected recently
+              </p>
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  color: "var(--color-text-tertiary)",
+                  marginBottom: "20px",
+                }}
+              >
+                {selectedCounties.length > 0
+                  ? `No ${feedFilter === "all" ? "" : feedFilter + " "}drops in ${selectedCounties.join(", ")}`
+                  : "Check back soon or widen your filters"}
+              </p>
+              <a
+                href="/map"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--color-accent-amber)",
+                  background: "transparent",
+                  border: "1px solid rgba(196,148,58,0.3)",
+                  borderRadius: "8px",
+                  padding: "10px 20px",
+                  textDecoration: "none",
+                  display: "inline-block",
+                  transition: "all 200ms ease",
+                }}
+              >
+                Check the Hunt Map
+              </a>
             </div>
           )}
         </AnimatePresence>

@@ -27,7 +27,7 @@ export default function BottlesPage() {
       <section
         className="relative"
         style={{
-          paddingTop: "140px",
+          paddingTop: "120px",
           paddingBottom: "32px",
           textAlign: "center",
           overflow: "hidden",
@@ -70,7 +70,7 @@ export default function BottlesPage() {
             <h1
               style={{
                 fontFamily: "var(--font-playfair)",
-                fontSize: "clamp(36px, 5vw, 56px)",
+                fontSize: "clamp(32px, 5vw, 48px)",
                 fontWeight: 700,
                 color: "var(--color-cream)",
                 lineHeight: 1.1,

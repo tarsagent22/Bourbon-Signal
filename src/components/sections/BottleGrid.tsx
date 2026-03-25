@@ -145,16 +145,48 @@ export default function BottleGrid() {
         }}
       >
         {filteredBottles.length === 0 ? (
-          <div className="text-center" style={{ padding: "80px 0" }}>
+          <div style={{ padding: "80px 0", textAlign: "center" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "18px",
+                color: "var(--color-cream)",
+                marginBottom: "8px",
+              }}
+            >
+              No bottles match your search
+            </p>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
-                fontSize: "16px",
+                fontSize: "13px",
                 color: "var(--color-text-tertiary)",
+                marginBottom: "20px",
               }}
             >
-              No bottles match your search.
+              Try adjusting your filters or search term
             </p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setActiveTier("all");
+                setSortBy("secondary");
+              }}
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--color-accent-amber)",
+                background: "transparent",
+                border: "1px solid rgba(196,148,58,0.3)",
+                borderRadius: "8px",
+                padding: "10px 20px",
+                cursor: "pointer",
+                transition: "all 200ms ease",
+              }}
+            >
+              Clear filters
+            </button>
           </div>
         ) : (
           <div className="relative">

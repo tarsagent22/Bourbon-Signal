@@ -25,9 +25,9 @@ export const INITIAL_WATCHLIST: WatchlistItem[] = [
 ];
 
 const TIER_DOT_COLORS: Record<string, string> = {
-  unicorn: "var(--color-amber-rich)",
-  allocated: "var(--color-copper)",
-  limited: "var(--color-silver-muted)",
+  unicorn: "#C4943A",
+  allocated: "#B87333",
+  limited: "#8A8A8A",
 };
 
 function isWithin24h(dateStr: string | null): boolean {
@@ -96,7 +96,7 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           background: "rgba(0,0,0,0.15)",
           borderRadius: "12px",
           border: "1px solid rgba(255,255,255,0.04)",
-          padding: "20px",
+          padding: "24px",
           marginBottom: "20px",
         }}
       >
@@ -107,7 +107,7 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           <h3
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: "16px",
+              fontSize: "24px",
               fontWeight: 700,
               color: "var(--color-cream)",
               margin: 0,
@@ -133,6 +133,49 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           </button>
         </div>
 
+        {watchlist.length === 0 ? (
+          <div style={{ padding: "32px 0", textAlign: "center" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "18px",
+                color: "var(--color-cream)",
+                marginBottom: "8px",
+              }}
+            >
+              Your watchlist is empty
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                color: "var(--color-text-tertiary)",
+                marginBottom: "20px",
+              }}
+            >
+              Add bottles from The Library to start tracking drops
+            </p>
+            <a
+              href="/bottles"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--color-accent-amber)",
+                background: "transparent",
+                border: "1px solid rgba(196,148,58,0.3)",
+                borderRadius: "8px",
+                padding: "10px 20px",
+                textDecoration: "none",
+                display: "inline-block",
+                transition: "all 200ms ease",
+              }}
+            >
+              Browse The Library
+            </a>
+          </div>
+        ) : (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
           {watchlist.map((item) => {
             const isNew = isWithin24h(item.lastDrop);
@@ -240,6 +283,8 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
         >
           + Add Bottle
         </button>
+        </>
+        )}
       </motion.div>
 
       {/* Drop Trends */}
@@ -252,13 +297,13 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           background: "rgba(0,0,0,0.15)",
           borderRadius: "12px",
           border: "1px solid rgba(255,255,255,0.04)",
-          padding: "20px",
+          padding: "24px",
         }}
       >
         <h3
           style={{
             fontFamily: "var(--font-playfair)",
-            fontSize: "16px",
+            fontSize: "24px",
             fontWeight: 700,
             color: "var(--color-cream)",
             margin: "0 0 20px 0",
@@ -411,7 +456,7 @@ function AlertPreferences() {
         background: "rgba(0,0,0,0.15)",
         borderRadius: "12px",
         border: "1px solid rgba(255,255,255,0.04)",
-        padding: "20px",
+        padding: "24px",
         marginTop: "20px",
       }}
     >
@@ -423,7 +468,7 @@ function AlertPreferences() {
         <h3
           style={{
             fontFamily: "var(--font-playfair)",
-            fontSize: "16px",
+            fontSize: "24px",
             fontWeight: 700,
             color: "var(--color-cream)",
             margin: 0,

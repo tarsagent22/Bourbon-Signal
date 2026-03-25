@@ -17,7 +17,7 @@ export default function PricingPage() {
         <section
           style={{
             width: "100%",
-            paddingTop: "clamp(120px, 15vw, 160px)",
+            paddingTop: "120px",
             paddingBottom: "0",
           }}
         >
@@ -36,6 +36,7 @@ export default function PricingPage() {
                   fontSize: "12px",
                   textTransform: "uppercase",
                   letterSpacing: "0.15em",
+                  fontWeight: 600,
                   color: "var(--color-accent-amber)",
                   marginBottom: "16px",
                 }}

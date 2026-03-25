@@ -15,10 +15,10 @@ interface TimelineEvent {
 }
 
 const TIER_DOT_COLORS: Record<string, string> = {
-  unicorn: "var(--color-amber-rich)",
-  allocated: "var(--color-copper)",
-  limited: "var(--color-silver-muted)",
-  user: "var(--color-accent-amber)",
+  unicorn: "#C4943A",
+  allocated: "#B87333",
+  limited: "#8A8A8A",
+  user: "#C4943A",
 };
 
 const TIMELINE_EVENTS: TimelineEvent[] = [
@@ -143,7 +143,7 @@ export default function ActivityTimeline() {
         <h2
           style={{
             fontFamily: "var(--font-playfair)",
-            fontSize: "20px",
+            fontSize: "24px",
             fontWeight: 700,
             color: "var(--color-cream)",
             margin: "0 0 32px 0",
@@ -152,7 +152,29 @@ export default function ActivityTimeline() {
           Recent Activity
         </h2>
 
-        {/* Timeline */}
+        {TIMELINE_EVENTS.length === 0 ? (
+          <div style={{ padding: "32px 0", textAlign: "center" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "18px",
+                color: "var(--color-cream)",
+                marginBottom: "8px",
+              }}
+            >
+              No recent activity
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                color: "var(--color-text-tertiary)",
+              }}
+            >
+              Activity will appear here as drops are detected
+            </p>
+          </div>
+        ) : (
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -230,6 +252,7 @@ export default function ActivityTimeline() {
             </motion.div>
           ))}
         </motion.div>
+        )}
       </div>
     </section>
   );

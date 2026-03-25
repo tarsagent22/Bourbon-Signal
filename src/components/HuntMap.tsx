@@ -310,15 +310,25 @@ export default function HuntMap() {
           const isHot = store.status === "hot";
           const isWarm = store.status === "warm";
 
+          // Tier-colored markers: highest tier determines color
+          const tierOrder = ["unicorn", "allocated", "limited"];
+          const highestTier = tierOrder.find((t) => store.tiers.has(t)) || "limited";
+          const tierFillMap: Record<string, string> = {
+            unicorn: "#C4943A",
+            allocated: "#B87333",
+            limited: "#6B6560",
+          };
+          const markerFill = (isHot || isWarm) ? tierFillMap[highestTier] : "#6B6560";
+
           return (
             <CircleMarker
               key={store.id}
               center={[store.lat, store.lng]}
               radius={isHot ? 10 : isWarm ? 7 : 5}
               pathOptions={{
-                fillColor: isHot || isWarm ? "#C4943A" : "#6B6560",
+                fillColor: markerFill,
                 fillOpacity: isHot ? 0.9 : isWarm ? 0.5 : 0.3,
-                color: isHot ? "#C4943A" : isWarm ? "#C4943A" : "transparent",
+                color: isHot ? markerFill : isWarm ? markerFill : "transparent",
                 weight: isHot ? 2 : isWarm ? 1 : 0,
                 className: isHot ? "marker-pulse" : undefined,
               }}

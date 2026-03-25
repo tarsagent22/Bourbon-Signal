@@ -58,7 +58,7 @@ function DashboardStatCard({
       style={{
         background: "rgba(0,0,0,0.2)",
         borderRadius: "12px",
-        padding: "20px",
+        padding: "24px",
         borderLeft: "3px solid var(--color-accent-amber)",
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
         boxShadow: hovered
@@ -182,7 +182,7 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
         style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "0 clamp(16px, 5vw, 48px)",
+          padding: "0 clamp(20px, 5vw, 48px)",
         }}
       >
         {/* Greeting row */}
@@ -192,10 +192,23 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
         >
           {/* Left: Welcome */}
           <div>
+            <p
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                fontWeight: 600,
+                letterSpacing: "0.15em",
+                color: "var(--color-accent-amber)",
+                textTransform: "uppercase",
+                marginBottom: "12px",
+              }}
+            >
+              LIVE DASHBOARD
+            </p>
             <h1
               style={{
                 fontFamily: "var(--font-playfair)",
-                fontSize: "clamp(24px, 4vw, 32px)",
+                fontSize: "clamp(32px, 5vw, 48px)",
                 fontWeight: 700,
                 color: "var(--color-cream)",
                 lineHeight: 1.2,

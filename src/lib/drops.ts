@@ -176,7 +176,7 @@ export function getEventDescription(drop: GroupedDrop): string {
 export const TIER_CONFIG: Record<string, { label: string; borderColor: string; pillStyle: React.CSSProperties }> = {
   unicorn: {
     label: "UNICORN",
-    borderColor: "var(--color-amber-rich)",
+    borderColor: "#C4943A",
     pillStyle: {
       background: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)",
       backgroundSize: "200% 200%",
@@ -194,10 +194,10 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
   },
   allocated: {
     label: "ALLOCATED",
-    borderColor: "var(--color-copper)",
+    borderColor: "#B87333",
     pillStyle: {
-      background: "rgba(184,115,51,0.2)",
-      border: "1px solid #B87333",
+      background: "rgba(184,115,51,0.15)",
+      border: "1px solid rgba(184,115,51,0.3)",
       color: "#B87333",
       fontFamily: "var(--font-dm-sans)",
       fontSize: "9px",
@@ -211,10 +211,10 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
   },
   limited: {
     label: "LIMITED",
-    borderColor: "var(--color-silver-muted)",
+    borderColor: "#8A8A8A",
     pillStyle: {
-      background: "rgba(138,138,138,0.15)",
-      border: "1px solid #8A8A8A",
+      background: "rgba(138,138,138,0.12)",
+      border: "1px solid rgba(138,138,138,0.25)",
       color: "#8A8A8A",
       fontFamily: "var(--font-dm-sans)",
       fontSize: "9px",
@@ -229,9 +229,9 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
 };
 
 export const MULTIPLIER_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  unicorn: { bg: "rgba(196,148,58,0.2)", color: "#C4943A", border: "rgba(196,148,58,0.4)" },
-  allocated: { bg: "rgba(184,115,51,0.2)", color: "#B87333", border: "rgba(184,115,51,0.4)" },
-  limited: { bg: "rgba(138,138,138,0.15)", color: "#8A8A8A", border: "rgba(138,138,138,0.3)" },
+  unicorn: { bg: "rgba(196,148,58,0.15)", color: "#C4943A", border: "rgba(196,148,58,0.3)" },
+  allocated: { bg: "rgba(184,115,51,0.15)", color: "#B87333", border: "rgba(184,115,51,0.3)" },
+  limited: { bg: "rgba(138,138,138,0.12)", color: "#8A8A8A", border: "rgba(138,138,138,0.25)" },
 };
 
 export function lookupPricing(
