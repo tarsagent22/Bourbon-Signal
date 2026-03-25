@@ -712,4 +712,20 @@ export const dropHistory: Record<string, DropHistoryEntry[]> = {
     { date: "2026-02-15", location: "Guilford County", quantity: 6 },
     { date: "2026-02-01", location: "Forsyth County", quantity: 4 },
   ],
+  "eh-taylor-single-barrel": [
+    { date: "2026-03-17", location: "Wake County", quantity: 6 },
+    { date: "2026-03-02", location: "Durham County", quantity: 4 },
+    { date: "2026-02-14", location: "Mecklenburg County", quantity: 8 },
+  ],
+  "eagle-rare": [
+    { date: "2026-03-22", location: "Guilford County", quantity: 12 },
+    { date: "2026-03-14", location: "Wake County", quantity: 18 },
+    { date: "2026-03-05", location: "Durham County", quantity: 10 },
+    { date: "2026-02-22", location: "Forsyth County", quantity: 8 },
+  ],
+  "stagg-jr": [
+    { date: "2026-03-15", location: "Mecklenburg County", quantity: 6 },
+    { date: "2026-02-28", location: "Wake County", quantity: 4 },
+    { date: "2026-02-10", location: "Durham County", quantity: 3 },
+  ],
 };

@@ -9,7 +9,6 @@ import Footer from "@/components/Footer";
 import DashboardStats from "@/components/sections/DashboardStats";
 import DashboardFeed from "@/components/sections/DashboardFeed";
 import DashboardSidebar from "@/components/sections/DashboardSidebar";
-import ActivityTimeline from "@/components/sections/ActivityTimeline";
 import ScrollReveal from "@/components/ScrollReveal";
 import DataFreshness from "@/components/DataFreshness";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
@@ -259,12 +258,6 @@ export default function DashboardPage() {
           </ScrollReveal>
         </div>
 
-        {/* Section 4: Activity Timeline */}
-        <div style={{ marginTop: "clamp(40px, 6vw, 64px)" }}>
-          <ScrollReveal delay={200}>
-            <ActivityTimeline />
-          </ScrollReveal>
-        </div>
         </div>
       </motion.main>
       <Footer />

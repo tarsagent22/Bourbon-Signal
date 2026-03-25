@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Bell, Mail, Smartphone } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Mail, Smartphone, X, Search, ChevronRight } from "lucide-react";
 import { fadeUpVariant } from "@/lib/animations";
 import type { DropEvent } from "@/lib/drops";
 import BottleLink from "@/components/BottleLink";
 import { useWatchlistStore } from "@/lib/watchlist";
+import { bottles, dropHistory } from "@/data/bottles";
 
 export interface WatchlistItem {
   name: string;
@@ -30,12 +31,15 @@ const TIER_DOT_COLORS: Record<string, string> = {
   limited: "#8A8A8A",
 };
 
-function isWithin24h(dateStr: string | null): boolean {
-  if (!dateStr) return false;
-  return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000;
-}
+const DEFAULT_BOTTLES = [
+  "blantons",
+  "weller-12",
+  "eh-taylor-single-barrel",
+  "eagle-rare",
+  "stagg-jr",
+];
 
-function formatShortDate(dateStr: string | null): string {
+function formatShortDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "No drops yet";
   const d = new Date(dateStr);
   const now = Date.now();
@@ -46,44 +50,95 @@ function formatShortDate(dateStr: string | null): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function isWithin24h(dateStr: string | null | undefined): boolean {
+  if (!dateStr) return false;
+  return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000;
+}
+
 interface DashboardSidebarProps {
   drops: DropEvent[];
   miniMap?: React.ReactNode;
 }
 
 export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarProps) {
-  const [watchlist] = useState<WatchlistItem[]>(INITIAL_WATCHLIST);
+  const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedBottle, setExpandedBottle] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const weeklyTrend = useMemo(() => {
-    // Use latest drop timestamp as reference so chart is meaningful with demo data
-    const latest = drops.length > 0
-      ? Math.max(...drops.map((d) => new Date(d.timestamp).getTime()))
-      : Date.now();
-    const days: { label: string; count: number }[] = [];
-    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(latest - i * 86400000);
-      dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setHours(23, 59, 59, 999);
-
-      const count = drops.filter((d) => {
-        const t = new Date(d.timestamp).getTime();
-        return t >= dayStart.getTime() && t <= dayEnd.getTime();
-      }).length;
-
-      days.push({
-        label: dayNames[dayStart.getDay()],
-        count,
-      });
+  // Pre-populate on first mount if empty
+  useEffect(() => {
+    if (watchedBottles.length === 0) {
+      DEFAULT_BOTTLES.forEach((id) => addBottle(id));
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return days;
-  }, [drops]);
+  // Derive watchlist from store
+  const watchlist = useMemo(() => {
+    return watchedBottles
+      .map((id) => bottles.find((b) => b.id === id))
+      .filter((b): b is NonNullable<typeof b> => b != null);
+  }, [watchedBottles]);
 
-  const totalWeek = weeklyTrend.reduce((sum, d) => sum + d.count, 0);
-  const maxCount = Math.max(...weeklyTrend.map((d) => d.count), 1);
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return bottles
+      .filter(
+        (b) =>
+          b.name.toLowerCase().includes(q) && !watchedBottles.includes(b.id)
+      )
+      .slice(0, 6);
+  }, [searchQuery, watchedBottles]);
+
+  // Close search on outside click
+  useEffect(() => {
+    if (!searchOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+        setSearchQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [searchOpen]);
+
+  // Close search on Escape
+  useEffect(() => {
+    if (!searchOpen) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setSearchQuery("");
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [searchOpen]);
+
+  // Focus input when search opens
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [searchOpen]);
+
+  const handleAddBottle = useCallback(
+    (id: string) => {
+      addBottle(id);
+      setSearchOpen(false);
+      setSearchQuery("");
+    },
+    [addBottle]
+  );
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedBottle((prev) => (prev === id ? null : id));
+  }, []);
 
   return (
     <div style={{ flex: "1 1 40%", minWidth: 0 }}>
@@ -116,22 +171,6 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
           >
             My Watchlist
           </h3>
-          <button
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              color: "var(--color-text-tertiary)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "4px 8px",
-              minHeight: "44px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            Edit
-          </button>
         </div>
 
         {watchlist.length === 0 ? (
@@ -176,207 +215,367 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
             </a>
           </div>
         ) : (
-        <>
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-          {watchlist.map((item) => {
-            const isNew = isWithin24h(item.lastDrop);
-            return (
-              <div
-                key={item.name}
-                className="flex items-center"
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  background: isNew
-                    ? "rgba(196,148,58,0.06)"
-                    : "transparent",
-                  animation: isNew ? "pulseDot 3s ease-in-out infinite" : undefined,
-                  gap: "10px",
-                  minHeight: "44px",
-                }}
-              >
-                {/* Tier dot */}
-                <span
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: TIER_DOT_COLORS[item.tier] || TIER_DOT_COLORS.limited,
-                    flexShrink: 0,
-                  }}
-                />
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {watchlist.map((bottle) => {
+                const history = dropHistory[bottle.id];
+                const lastDropDate = history?.[0]?.date ?? null;
+                const isNew = isWithin24h(lastDropDate);
+                const isExpanded = expandedBottle === bottle.id;
 
-                {/* Name */}
-                <span
-                  className="flex-1 truncate"
-                  style={{
-                    fontFamily: "var(--font-playfair)",
-                    fontSize: "clamp(13px, 2vw, 14px)",
-                    fontWeight: 500,
-                    color: "var(--color-cream)",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  <BottleLink name={item.name}>{item.name}</BottleLink>
-                </span>
+                return (
+                  <div key={bottle.id}>
+                    <div
+                      className="flex items-center group"
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        background: isNew
+                          ? "rgba(196,148,58,0.06)"
+                          : isExpanded
+                          ? "rgba(255,255,255,0.03)"
+                          : "transparent",
+                        animation: isNew
+                          ? "pulseDot 3s ease-in-out infinite"
+                          : undefined,
+                        gap: "10px",
+                        minHeight: "44px",
+                        cursor: "pointer",
+                        transition: "background 150ms ease",
+                      }}
+                      onClick={() => toggleExpand(bottle.id)}
+                      onMouseEnter={(e) => {
+                        if (!isNew && !isExpanded)
+                          e.currentTarget.style.background =
+                            "rgba(255,255,255,0.02)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isNew && !isExpanded)
+                          e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      {/* Tier dot */}
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background:
+                            TIER_DOT_COLORS[bottle.tier] ||
+                            TIER_DOT_COLORS.limited,
+                          flexShrink: 0,
+                        }}
+                      />
 
-                {/* NEW pill or last drop date */}
-                {isNew ? (
-                  <span
+                      {/* Name */}
+                      <span
+                        className="flex-1 truncate"
+                        style={{
+                          fontFamily: "var(--font-playfair)",
+                          fontSize: "clamp(13px, 2vw, 14px)",
+                          fontWeight: 500,
+                          color: "var(--color-cream)",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        <BottleLink name={bottle.name}>{bottle.name}</BottleLink>
+                      </span>
+
+                      {/* NEW pill or last drop date */}
+                      {isNew ? (
+                        <span
+                          style={{
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "9px",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.08em",
+                            color: "#0D0B07",
+                            background: "var(--color-accent-amber)",
+                            padding: "2px 8px",
+                            borderRadius: "8px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          NEW
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontFamily: "var(--font-jetbrains)",
+                            fontSize: "11px",
+                            color: "var(--color-text-tertiary)",
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {formatShortDate(lastDropDate)}
+                        </span>
+                      )}
+
+                      {/* Remove button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeBottle(bottle.id);
+                          if (expandedBottle === bottle.id)
+                            setExpandedBottle(null);
+                        }}
+                        className="opacity-0 group-hover:opacity-100"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px",
+                          color: "var(--color-text-tertiary)",
+                          transition: "color 150ms ease, opacity 150ms ease",
+                          flexShrink: 0,
+                          minWidth: "24px",
+                          minHeight: "24px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = "var(--color-alert)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color =
+                            "var(--color-text-tertiary)";
+                        }}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+
+                    {/* Expandable detail panel */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: "easeInOut" }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <DropDetailPanel bottleId={bottle.id} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add Bottle button / Search */}
+            <div ref={searchRef} style={{ position: "relative", marginTop: "12px" }}>
+              <AnimatePresence mode="wait">
+                {searchOpen ? (
+                  <motion.div
+                    key="search"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "0 12px",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(196,148,58,0.3)",
+                        background: "rgba(0,0,0,0.2)",
+                        minHeight: "44px",
+                      }}
+                    >
+                      <Search
+                        size={14}
+                        style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }}
+                      />
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="Search bottles..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: "none",
+                          border: "none",
+                          outline: "none",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          color: "var(--color-cream)",
+                          padding: "12px 0",
+                          minHeight: "44px",
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setSearchQuery("");
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px",
+                          color: "var(--color-text-tertiary)",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    {/* Search results dropdown */}
+                    {searchQuery.trim() && (
+                      <div
+                        style={{
+                          marginTop: "4px",
+                          borderRadius: "8px",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                          background: "rgba(13,11,7,0.95)",
+                          backdropFilter: "blur(12px)",
+                          overflow: "hidden",
+                          maxHeight: "280px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {searchResults.length === 0 ? (
+                          <div
+                            style={{
+                              padding: "16px",
+                              textAlign: "center",
+                              fontFamily: "var(--font-dm-sans)",
+                              fontSize: "13px",
+                              color: "var(--color-text-tertiary)",
+                            }}
+                          >
+                            No matching bottles
+                          </div>
+                        ) : (
+                          searchResults.map((b) => (
+                            <button
+                              key={b.id}
+                              onClick={() => handleAddBottle(b.id)}
+                              className="w-full"
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                padding: "10px 14px",
+                                background: "transparent",
+                                border: "none",
+                                borderBottom: "1px solid rgba(255,255,255,0.04)",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                transition: "background 150ms ease",
+                                minHeight: "44px",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(196,148,58,0.08)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                              }}
+                            >
+                              {/* Tier dot */}
+                              <span
+                                style={{
+                                  width: "6px",
+                                  height: "6px",
+                                  borderRadius: "50%",
+                                  background:
+                                    TIER_DOT_COLORS[b.tier] ||
+                                    TIER_DOT_COLORS.limited,
+                                  flexShrink: 0,
+                                }}
+                              />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontFamily: "var(--font-playfair)",
+                                    fontSize: "13px",
+                                    fontWeight: 500,
+                                    color: "var(--color-cream)",
+                                    lineHeight: 1.3,
+                                  }}
+                                >
+                                  {b.name}
+                                </div>
+                                <div
+                                  style={{
+                                    fontFamily: "var(--font-dm-sans)",
+                                    fontSize: "11px",
+                                    color: "var(--color-text-tertiary)",
+                                    lineHeight: 1.3,
+                                    marginTop: "2px",
+                                  }}
+                                >
+                                  {b.distillery}
+                                </div>
+                              </div>
+                              <span
+                                style={{
+                                  fontFamily: "var(--font-jetbrains)",
+                                  fontSize: "12px",
+                                  color: "var(--color-accent-amber)",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                ${b.msrp}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="add-btn"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="w-full"
+                    onClick={() => setSearchOpen(true)}
                     style={{
                       fontFamily: "var(--font-dm-sans)",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      color: "#0D0B07",
-                      background: "var(--color-accent-amber)",
-                      padding: "2px 8px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "var(--color-accent-amber)",
+                      background: "none",
+                      border: "1px solid rgba(196,148,58,0.2)",
                       borderRadius: "8px",
-                      whiteSpace: "nowrap",
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      transition: "all 200ms ease",
+                      minHeight: "44px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(196,148,58,0.08)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(196,148,58,0.4)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "none";
+                      e.currentTarget.style.borderColor =
+                        "rgba(196,148,58,0.2)";
                     }}
                   >
-                    NEW
-                  </span>
-                ) : (
-                  <span
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      color: "var(--color-text-tertiary)",
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {formatShortDate(item.lastDrop)}
-                  </span>
+                    + Add Bottle
+                  </motion.button>
                 )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Add Bottle button */}
-        <button
-          className="w-full"
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "var(--color-accent-amber)",
-            background: "none",
-            border: "1px solid rgba(196,148,58,0.2)",
-            borderRadius: "8px",
-            padding: "12px 16px",
-            cursor: "pointer",
-            marginTop: "12px",
-            transition: "all 200ms ease",
-            minHeight: "44px",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(196,148,58,0.08)";
-            e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "none";
-            e.currentTarget.style.borderColor = "rgba(196,148,58,0.2)";
-          }}
-        >
-          + Add Bottle
-        </button>
-        </>
-        )}
-      </motion.div>
-
-      {/* Drop Trends */}
-      <motion.div
-        variants={fadeUpVariant}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        style={{
-          background: "rgba(0,0,0,0.15)",
-          borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.04)",
-          padding: "24px",
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "var(--color-cream)",
-            margin: "0 0 20px 0",
-          }}
-        >
-          Drop Trends
-        </h3>
-
-        {/* Bar chart */}
-        <div
-          className="flex items-end justify-between"
-          style={{ height: "100px", gap: "8px" }}
-        >
-          {weeklyTrend.map((day, i) => (
-            <div
-              key={i}
-              className="flex flex-col items-center flex-1"
-              style={{ height: "100%", justifyContent: "flex-end", gap: "6px" }}
-            >
-              {/* Bar track + fill */}
-              <div
-                style={{
-                  width: "100%",
-                  maxWidth: "32px",
-                  height: "80px",
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: "4px",
-                  position: "relative",
-                  overflow: "hidden",
-                  display: "flex",
-                  alignItems: "flex-end",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    height: `${Math.max((day.count / maxCount) * 100, day.count > 0 ? 8 : 0)}%`,
-                    background: "var(--color-accent-amber)",
-                    borderRadius: "4px 4px 0 0",
-                    opacity: 0.8,
-                    transition: "height 0.6s ease",
-                  }}
-                />
-              </div>
-              {/* Day label */}
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "10px",
-                  color: "var(--color-text-tertiary)",
-                }}
-              >
-                {day.label}
-              </span>
+              </AnimatePresence>
             </div>
-          ))}
-        </div>
-
-        {/* Summary */}
-        <div
-          style={{
-            marginTop: "16px",
-            fontFamily: "var(--font-jetbrains)",
-            fontSize: "12px",
-            color: "var(--color-text-tertiary)",
-          }}
-        >
-          <span style={{ color: "var(--color-accent-amber)", fontWeight: 600 }}>
-            {totalWeek}
-          </span>{" "}
-          drops this week
-        </div>
+          </>
+        )}
       </motion.div>
 
       {/* Mini Map */}
@@ -388,6 +587,119 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
 
       {/* Alert Preferences */}
       <AlertPreferences />
+    </div>
+  );
+}
+
+/* Drop detail panel shown when a watchlist row is expanded */
+function DropDetailPanel({ bottleId }: { bottleId: string }) {
+  const history = dropHistory[bottleId];
+
+  return (
+    <div
+      style={{
+        padding: "12px 12px 12px 28px",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "10px",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "var(--color-text-tertiary)",
+          margin: "0 0 8px 0",
+        }}
+      >
+        Most Recent Drop
+      </p>
+
+      {!history || history.length === 0 ? (
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            color: "var(--color-text-tertiary)",
+            margin: 0,
+          }}
+        >
+          No drops recorded yet
+        </p>
+      ) : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "12px",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "12px",
+                color: "var(--color-cream)",
+              }}
+            >
+              {new Date(history[0].date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              {history[0].location}
+            </span>
+            {history[0].quantity != null && (
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "11px",
+                  color: "var(--color-text-tertiary)",
+                }}
+              >
+                Qty: {history[0].quantity}
+              </span>
+            )}
+          </div>
+
+          {history.length > 1 && (
+            <a
+              href="/bottles"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                fontWeight: 500,
+                color: "var(--color-accent-amber)",
+                textDecoration: "none",
+                marginTop: "8px",
+                transition: "opacity 150ms ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.8";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+              }}
+            >
+              View all {history.length} drops
+              <ChevronRight size={12} />
+            </a>
+          )}
+        </>
+      )}
     </div>
   );
 }

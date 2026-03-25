@@ -85,6 +85,11 @@ body::after {
   50% { box-shadow: 0 0 14px rgba(196,148,58,0.8); }
 }
 
+/* On touch devices, always show remove buttons */
+@media (hover: none) {
+  .group .group-hover\:opacity-100 { opacity: 1 !important; }
+}
+
 /* Drop feed scrollbar */
 .drop-feed-scroll::-webkit-scrollbar { width: 4px; }
 .drop-feed-scroll::-webkit-scrollbar-track { background: transparent; }
