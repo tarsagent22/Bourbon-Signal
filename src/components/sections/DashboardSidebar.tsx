@@ -126,7 +126,7 @@ function BottleSearch({
   }, [query, watchedIds]);
 
   return (
-    <div ref={containerRef} style={{ position: "relative", marginTop: "8px" }}>
+    <div ref={containerRef} style={{ position: "relative", marginTop: "8px", zIndex: 100 }}>
       {/* Search input */}
       <div
         className="flex items-center"
@@ -608,6 +608,8 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
           border: "1px solid rgba(255,255,255,0.04)",
           padding: "24px",
           marginBottom: "20px",
+          position: "relative",
+          zIndex: searchOpen ? 100 : "auto",
         }}
       >
         <div
