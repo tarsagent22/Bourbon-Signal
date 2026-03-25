@@ -70,7 +70,7 @@ export default function HeroSection() {
       <div className="relative z-[3] px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto pt-24" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <ScrollReveal delay={0}>
           <h1
-            className="mb-8 max-md:!text-[44px]"
+            className="mb-14 max-md:!text-[44px]"
             style={{
               fontFamily: "var(--font-playfair)",
               fontSize: "72px",
@@ -86,7 +86,7 @@ export default function HeroSection() {
 
         <ScrollReveal delay={100}>
           <p
-            className="mx-auto mb-12 max-w-[560px]"
+            className="mx-auto mb-16 max-w-[560px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "18px",
