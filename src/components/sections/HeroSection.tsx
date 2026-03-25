@@ -72,10 +72,10 @@ export default function HeroSection() {
           <h1
             className="mb-6 max-md:!text-[44px]"
             style={{
-              fontFamily: "var(--font-dm-sans)",
+              fontFamily: "var(--font-playfair)",
               fontSize: "72px",
               lineHeight: 1.0,
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: "-0.02em",
               color: "var(--color-text-primary)",
             }}
