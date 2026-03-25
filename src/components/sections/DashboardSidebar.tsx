@@ -126,7 +126,7 @@ function BottleSearch({
   }, [query, watchedIds]);
 
   return (
-    <div ref={containerRef} style={{ position: "relative", marginTop: "8px", zIndex: 100 }}>
+    <div ref={containerRef} style={{ marginTop: "8px" }}>
       {/* Search input */}
       <div
         className="flex items-center"
@@ -178,23 +178,17 @@ function BottleSearch({
         </button>
       </div>
 
-      {/* Results dropdown */}
+      {/* Results list — inline (not absolute) so it pushes content down on mobile */}
       {results.length > 0 && (
         <div
           style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
             marginTop: "4px",
-            background: "var(--color-bg-secondary, #1A1510)",
-            border: "1px solid rgba(196,148,58,0.2)",
+            background: "rgba(0,0,0,0.25)",
+            border: "1px solid rgba(196,148,58,0.15)",
             borderRadius: "8px",
             overflow: "hidden",
-            zIndex: 50,
             maxHeight: "300px",
             overflowY: "auto",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
           }}
         >
           {results.map((bottle) => (
@@ -212,18 +206,12 @@ function BottleSearch({
       {results.length === 0 && query.trim() && (
         <div
           style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
             marginTop: "4px",
-            background: "var(--color-bg-secondary, #1A1510)",
-            border: "1px solid rgba(196,148,58,0.2)",
+            background: "rgba(0,0,0,0.25)",
+            border: "1px solid rgba(196,148,58,0.15)",
             borderRadius: "8px",
             padding: "20px",
             textAlign: "center",
-            zIndex: 50,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
           }}
         >
           <p
@@ -608,8 +596,6 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
           border: "1px solid rgba(255,255,255,0.04)",
           padding: "24px",
           marginBottom: "20px",
-          position: "relative",
-          zIndex: searchOpen ? 100 : "auto",
         }}
       >
         <div
