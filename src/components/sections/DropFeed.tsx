@@ -496,7 +496,7 @@ export default function DropFeed() {
     <section
       style={{
         backgroundColor: "var(--color-bg-warm)",
-        paddingTop: "96px",
+        paddingTop: "40px",
         paddingBottom: "96px",
         width: "100%",
         display: "flex",
@@ -567,18 +567,37 @@ export default function DropFeed() {
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
 
-          {/* Legend row */}
+          {/* Tier filter pills — larger for header context */}
           <div
-            className="flex items-center justify-end gap-3"
+            className="flex items-center flex-wrap gap-2"
             style={{
-              paddingBottom: "12px",
-              transform: "scale(0.8)",
-              transformOrigin: "right center",
+              paddingBottom: "16px",
             }}
           >
-            <TierBadge tier="unicorn" />
-            <TierBadge tier="allocated" />
-            <TierBadge tier="limited" />
+            {[
+              { label: "Unicorn", bg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", color: "#0D0B07", border: "none" },
+              { label: "Allocated", bg: "rgba(184,115,51,0.15)", color: "#B87333", border: "1px solid rgba(184,115,51,0.3)" },
+              { label: "Limited", bg: "rgba(138,138,138,0.12)", color: "#8A8A8A", border: "1px solid rgba(138,138,138,0.25)" },
+            ].map((pill) => (
+              <span
+                key={pill.label}
+                style={{
+                  background: pill.bg,
+                  color: pill.color,
+                  border: pill.border,
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  whiteSpace: "nowrap",
+                  cursor: "default",
+                }}
+              >
+                {pill.label}
+              </span>
+            ))}
           </div>
 
           {/* Feed rows */}
@@ -657,7 +676,7 @@ export default function DropFeed() {
                   letterSpacing: "0.02em",
                 }}
               >
-                Join ProofHunt — $69
+                Join Proof — $69
               </button>
             </div>
           )}
@@ -681,18 +700,6 @@ export default function DropFeed() {
             </div>
           )}
 
-          {/* Public note */}
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "13px",
-              color: "rgba(245,237,214,0.3)",
-              marginTop: "20px",
-            }}
-          >
-            No account needed to browse the public drop feed.
-          </p>
         </ScrollReveal>
       </div>
     </section>

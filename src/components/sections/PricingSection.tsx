@@ -183,9 +183,9 @@ export default function PricingSection() {
                   style={{
                     width: "100%",
                     cursor: "pointer",
-                    background: "transparent",
-                    border: "1px solid rgba(196,148,58,0.35)",
-                    color: "rgba(196,148,58,0.8)",
+                    background: "rgba(196,148,58,0.08)",
+                    border: "1px solid rgba(196,148,58,0.4)",
+                    color: "rgba(196,148,58,0.9)",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "14px",
                     fontWeight: 500,
@@ -194,12 +194,12 @@ export default function PricingSection() {
                     transition: "border-color 200ms, background 200ms, color 200ms",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--color-amber-rich)";
-                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.5)";
-                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
                   Start Hunting — $10/mo
