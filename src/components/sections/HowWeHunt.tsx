@@ -579,7 +579,7 @@ export default function HowWeHunt() {
   return (
     <section id="how-we-hunt" style={{
       backgroundColor: "var(--color-bg-primary)",
-      paddingTop: 80, paddingBottom: 80, width: "100%",
+      paddingTop: 56, paddingBottom: 56, width: "100%",
       overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>
       <SvgDefs />

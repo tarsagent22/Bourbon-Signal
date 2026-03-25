@@ -124,8 +124,8 @@ export default function FAQ() {
       id="faq"
       style={{
         backgroundColor: "var(--color-bg-primary)",
-        paddingTop: "96px",
-        paddingBottom: "96px",
+        paddingTop: "64px",
+        paddingBottom: "64px",
         width: "100%",
       }}
     >
@@ -145,7 +145,7 @@ export default function FAQ() {
               fontSize: "36px",
               fontWeight: 700,
               color: "var(--color-text-primary)",
-              marginBottom: "48px",
+              marginBottom: "32px",
             }}
           >
             Before You Hunt

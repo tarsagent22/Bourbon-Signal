@@ -496,8 +496,8 @@ export default function DropFeed() {
     <section
       style={{
         backgroundColor: "var(--color-bg-warm)",
-        paddingTop: "40px",
-        paddingBottom: "96px",
+        paddingTop: "24px",
+        paddingBottom: "64px",
         width: "100%",
         display: "flex",
         flexDirection: "column" as const,

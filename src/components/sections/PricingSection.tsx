@@ -27,8 +27,8 @@ export default function PricingSection() {
       id="pricing"
       style={{
         background: "var(--color-bg-primary)",
-        paddingTop: "96px",
-        paddingBottom: "96px",
+        paddingTop: "64px",
+        paddingBottom: "64px",
         width: "100%",
         display: "flex",
         flexDirection: "column" as const,
