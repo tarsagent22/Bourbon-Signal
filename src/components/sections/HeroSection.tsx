@@ -70,7 +70,7 @@ export default function HeroSection() {
       <div className="relative z-[3] px-6 sm:px-8 md:px-16 lg:px-24 max-w-[800px] mx-auto pt-24" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <ScrollReveal delay={0}>
           <h1
-            className="mb-6 max-md:!text-[44px]"
+            className="mb-8 max-md:!text-[44px]"
             style={{
               fontFamily: "var(--font-playfair)",
               fontSize: "72px",
@@ -86,7 +86,7 @@ export default function HeroSection() {
 
         <ScrollReveal delay={100}>
           <p
-            className="mx-auto mb-10 max-w-[560px]"
+            className="mx-auto mb-12 max-w-[560px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "18px",
@@ -95,48 +95,13 @@ export default function HeroSection() {
               textShadow: "0 2px 8px rgba(0,0,0,0.6)",
             }}
           >
-            Know the moment allocated bourbon moves — before the crowds.
+            Know the moment allocated whiskey moves — before the crowds.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-3">
             <Button variant="primary">Become a Founding Member</Button>
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-              }}
-            >
-              100 founding spots. Lifetime access. No monthly fees.
-            </p>
-
-            {/* Social proof */}
-            <div
-              className="flex items-center gap-2"
-              style={{ marginTop: "12px" }}
-            >
-              <span
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  backgroundColor: "var(--color-accent-amber)",
-                  display: "inline-block",
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  color: "var(--color-text-tertiary)",
-                }}
-              >
-                Join 47 hunters already tracking
-              </span>
-            </div>
           </div>
         </ScrollReveal>
 
