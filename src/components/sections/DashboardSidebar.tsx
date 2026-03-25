@@ -7,7 +7,7 @@ import { fadeUpVariant } from "@/lib/animations";
 import type { DropEvent } from "@/lib/drops";
 import BottleLink from "@/components/BottleLink";
 import { useWatchlistStore } from "@/lib/watchlist";
-import { bottles, dropHistory, type Bottle } from "@/data/bottles";
+import { useBottles, type EngineBottle } from "@/lib/useEngineData";
 
 export interface WatchlistItem {
   name: string;
@@ -65,12 +65,8 @@ function isWithin24h(dateStr: string | null): boolean {
   return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000;
 }
 
-function getLastDropDate(bottleId: string): string | null {
-  const history = dropHistory[bottleId];
-  if (history && history.length > 0) {
-    return history[0].date;
-  }
-  return null;
+function getLastDropDate(bottle: EngineBottle): string | null {
+  return bottle.last_drop || null;
 }
 
 // --- Bottle Search Component ---
@@ -79,10 +75,12 @@ function BottleSearch({
   onSelect,
   onClose,
   watchedIds,
+  allBottles,
 }: {
   onSelect: (id: string) => void;
   onClose: () => void;
   watchedIds: string[];
+  allBottles: EngineBottle[];
 }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,9 +111,9 @@ function BottleSearch({
   }, [onClose]);
 
   const results = useMemo(() => {
-    if (!query.trim()) return bottles.filter((b) => !watchedIds.includes(b.id)).slice(0, 8);
+    if (!query.trim()) return allBottles.filter((b) => !watchedIds.includes(b.id)).slice(0, 8);
     const q = query.toLowerCase();
-    return bottles
+    return allBottles
       .filter(
         (b) =>
           !watchedIds.includes(b.id) &&
@@ -123,7 +121,7 @@ function BottleSearch({
             b.distillery.toLowerCase().includes(q))
       )
       .slice(0, 8);
-  }, [query, watchedIds]);
+  }, [query, watchedIds, allBottles]);
 
   return (
     <div ref={containerRef} style={{ marginTop: "8px" }}>
@@ -233,7 +231,7 @@ function SearchResultRow({
   bottle,
   onSelect,
 }: {
-  bottle: Bottle;
+  bottle: EngineBottle;
   onSelect: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -317,15 +315,14 @@ function WatchlistRow({
   onToggle,
   onRemove,
 }: {
-  bottle: Bottle;
+  bottle: EngineBottle;
   isExpanded: boolean;
   onToggle: () => void;
   onRemove: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
-  const lastDropDate = getLastDropDate(bottle.id);
+  const lastDropDate = getLastDropDate(bottle);
   const isNew = isWithin24h(lastDropDate);
-  const history = dropHistory[bottle.id];
 
   return (
     <div>
@@ -469,7 +466,7 @@ function WatchlistRow({
                 Most Recent Drop
               </p>
 
-              {history && history.length > 0 ? (
+              {lastDropDate ? (
                 <>
                   <div
                     style={{
@@ -479,16 +476,6 @@ function WatchlistRow({
                     }}
                   >
                     <div
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "13px",
-                        color: "var(--color-cream)",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {history[0].location}
-                    </div>
-                    <div
                       className="flex items-center gap-3"
                       style={{
                         fontFamily: "var(--font-jetbrains)",
@@ -496,17 +483,11 @@ function WatchlistRow({
                         color: "var(--color-text-tertiary)",
                       }}
                     >
-                      <span>{formatFullDate(history[0].date)}</span>
-                      {history[0].quantity && (
-                        <span>
-                          {history[0].quantity}{" "}
-                          {history[0].quantity === 1 ? "bottle" : "bottles"}
-                        </span>
-                      )}
+                      <span>{formatFullDate(lastDropDate)}</span>
                     </div>
                   </div>
 
-                  {history.length > 1 && (
+                  {bottle.drop_count_30d > 1 && (
                     <a
                       href="/bottles"
                       onClick={(e) => e.stopPropagation()}
@@ -521,7 +502,7 @@ function WatchlistRow({
                         transition: "opacity 200ms",
                       }}
                     >
-                      View all {history.length} drops →
+                      {bottle.drop_count_30d} drops in last 30 days →
                     </a>
                   )}
                 </>
@@ -557,6 +538,7 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
   const [searchOpen, setSearchOpen] = useState(false);
   const [expandedBottleId, setExpandedBottleId] = useState<string | null>(null);
   const hasInitialized = useRef(false);
+  const { bottles: apiBottles } = useBottles();
 
   // Pre-populate with defaults if store is empty on first mount
   useEffect(() => {
@@ -571,9 +553,9 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
   // Resolve watched bottle IDs to bottle objects
   const watchlist = useMemo(() => {
     return watchedBottles
-      .map((id) => bottles.find((b) => b.id === id))
-      .filter((b): b is Bottle => b !== undefined);
-  }, [watchedBottles]);
+      .map((id) => apiBottles.find((b) => b.id === id))
+      .filter((b): b is EngineBottle => b !== undefined);
+  }, [watchedBottles, apiBottles]);
 
   const handleToggleExpand = useCallback(
     (id: string) => {
@@ -699,6 +681,7 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
                 }}
                 onClose={() => setSearchOpen(false)}
                 watchedIds={watchedBottles}
+                allBottles={apiBottles}
               />
             ) : (
               <button

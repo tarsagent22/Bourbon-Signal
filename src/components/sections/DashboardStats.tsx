@@ -6,6 +6,7 @@ import { Crown } from "lucide-react";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { type DropEvent, getDisplayName } from "@/lib/drops";
 import { INITIAL_WATCHLIST } from "@/components/sections/DashboardSidebar";
+import { useStats } from "@/lib/useEngineData";
 
 interface DashboardStatsProps {
   drops: DropEvent[];
@@ -110,34 +111,13 @@ function DashboardStatCard({
 }
 
 export default function DashboardStats({ drops }: DashboardStatsProps) {
+  const { stats: engineStats } = useStats();
+
   const referenceTime = useMemo(() => {
     if (drops.length === 0) return Date.now();
     const latest = Math.max(...drops.map((d) => new Date(d.timestamp).getTime()));
     return latest;
   }, [drops]);
-
-  const stats = useMemo(() => {
-    const oneDayAgo = referenceTime - 24 * 60 * 60 * 1000;
-    const sevenDaysAgo = referenceTime - 7 * 24 * 60 * 60 * 1000;
-
-    const dropsToday = drops.filter(
-      (d) => new Date(d.timestamp).getTime() > oneDayAgo
-    ).length;
-
-    const recentDrops = drops.filter(
-      (d) => new Date(d.timestamp).getTime() > sevenDaysAgo
-    );
-
-    const activeCounties = new Set(
-      recentDrops.map((d) => d.board_name).filter(Boolean)
-    ).size;
-
-    const unicornAlerts = recentDrops.filter(
-      (d) => d.rarity_tier === "unicorn"
-    ).length;
-
-    return { dropsToday, activeCounties, unicornAlerts };
-  }, [drops, referenceTime]);
 
   // Personal hit rate: watchlist bottles that dropped this week
   const watchlistHits = useMemo(() => {
@@ -401,17 +381,17 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
             viewport={{ once: true, margin: "-50px" }}
           >
             <DashboardStatCard
-              value={stats.dropsToday}
+              value={engineStats.drops_today}
               label="Drops Today"
               hasActivity
             />
-            <DashboardStatCard value={8} label="Bottles Tracked" />
+            <DashboardStatCard value={engineStats.total_bottles} label="Bottles Tracked" />
             <DashboardStatCard
-              value={stats.activeCounties}
-              label="Active Counties"
+              value={engineStats.total_stores}
+              label="Active Stores"
             />
             <DashboardStatCard
-              value={stats.unicornAlerts}
+              value={engineStats.unicorn_count}
               label="Unicorn Alerts"
             />
           </motion.div>
