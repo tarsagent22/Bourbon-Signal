@@ -118,7 +118,7 @@ function BottleSearch({
         (b) =>
           !watchedIds.includes(b.id) &&
           (b.name.toLowerCase().includes(q) ||
-            b.distillery.toLowerCase().includes(q))
+            (b.distillery && b.distillery.toLowerCase().includes(q)))
       )
       .slice(0, 8);
   }, [query, watchedIds, allBottles]);
