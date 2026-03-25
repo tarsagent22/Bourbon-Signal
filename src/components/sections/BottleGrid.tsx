@@ -8,8 +8,7 @@ import type { Bottle } from "@/data/bottles";
 import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
-
-const IS_FREE_USER = false; // TODO: wire to auth — set true for paywall, false to show all features
+import { useAuth } from "@/lib/auth";
 const FREE_VISIBLE_COUNT = 6;
 
 // Custom stagger for 0.08s between cards
@@ -57,6 +56,8 @@ function getBlurAmount(index: number): number {
 }
 
 export default function BottleGrid() {
+  const { isSignedIn } = useAuth();
+  const IS_FREE_USER = !isSignedIn;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTier, setActiveTier] = useState("all");
   const [sortBy, setSortBy] = useState("secondary");
