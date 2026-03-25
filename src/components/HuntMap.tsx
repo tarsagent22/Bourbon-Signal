@@ -350,6 +350,65 @@ export default function HuntMap() {
         })}
       </MapContainer>
 
+      {/* Empty state when filter returns no stores */}
+      {filteredStores.length === 0 && activeFilter !== "All" && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 999,
+            textAlign: "center",
+            background: "var(--color-glass)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1px solid var(--color-card-border)",
+            borderRadius: 12,
+            padding: "32px 40px",
+            maxWidth: 320,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "var(--font-playfair)",
+              fontSize: 18,
+              color: "var(--color-cream)",
+              marginBottom: 8,
+            }}
+          >
+            No {activeFilter.toLowerCase()} stores found
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 13,
+              color: "var(--color-text-tertiary)",
+              marginBottom: 20,
+            }}
+          >
+            No stores with {activeFilter.toLowerCase()}-tier drops this week
+          </p>
+          <button
+            onClick={() => setActiveFilter("All")}
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--color-accent-amber)",
+              background: "transparent",
+              border: "1px solid rgba(196,148,58,0.3)",
+              borderRadius: 8,
+              padding: "10px 20px",
+              cursor: "pointer",
+              transition: "all 200ms ease",
+            }}
+          >
+            Show all stores
+          </button>
+        </div>
+      )}
+
       {/* Overlay panels */}
       <MapOverlayLeft
         activeFilter={activeFilter}
