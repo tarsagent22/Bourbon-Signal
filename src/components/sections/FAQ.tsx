@@ -19,7 +19,7 @@ const faqs: FAQItem[] = [
   {
     question: "What states do you cover?",
     answer:
-      "We're live in North Carolina with full store-level tracking. Virginia and Pennsylvania are next — join the waitlist to get notified when your state goes live.",
+      "We track allocated bourbon across multiple states with store-level data. We're expanding rapidly — new states are added regularly.",
   },
   {
     question: "What's the difference between Standard and Bottled in Bond?",

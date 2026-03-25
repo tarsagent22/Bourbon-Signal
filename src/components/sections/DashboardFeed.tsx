@@ -470,7 +470,7 @@ export default function DashboardFeed({
         >
           <VelocityIcon size={14} style={{ color: velocityColor }} />
           <span>
-            NC activity is{" "}
+            Drop activity is{" "}
             <span
               style={{
                 fontWeight: 600,

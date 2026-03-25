@@ -536,25 +536,6 @@ export default function DropFeed() {
               Live Drop Feed
             </h2>
 
-            {/* State dropdown */}
-            <select
-              defaultValue="nc"
-              style={{
-                background: "#1A1510",
-                border: "1px solid var(--color-amber-rich)",
-                color: "var(--color-cream)",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                padding: "6px 14px",
-                borderRadius: "20px",
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              <option value="nc">North Carolina</option>
-              <option value="va" disabled>Virginia — Coming Soon</option>
-              <option value="pa" disabled>Pennsylvania — Coming Soon</option>
-            </select>
           </div>
 
           {/* Data freshness */}

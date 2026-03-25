@@ -41,7 +41,7 @@ export default function Footer() {
             marginBottom: "24px",
           }}
         >
-          Join the founding members getting first access to every drop in NC.
+          Join the founding members getting first access to every drop.
         </p>
         <a
           href="/pricing"
