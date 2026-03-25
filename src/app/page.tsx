@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
+import DataFreshness from "@/components/DataFreshness";
+import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/sections/HeroSection";
@@ -53,13 +55,18 @@ export default function Home() {
   return (
     <>
       <Navigation />
-      <main className="overflow-x-hidden">
+      <motion.main
+        className="overflow-x-hidden"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
         <HeroSection />
         <DropFeed />
         <PricingSection />
         <HowWeHunt />
         <FAQ />
-      </main>
+      </motion.main>
       <Footer />
       <ScrollToTopButton />
     </>

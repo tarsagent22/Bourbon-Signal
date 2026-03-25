@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { Bell, MapPin, Diamond } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -10,9 +11,14 @@ import DashboardFeed from "@/components/sections/DashboardFeed";
 import DashboardSidebar from "@/components/sections/DashboardSidebar";
 import ActivityTimeline from "@/components/sections/ActivityTimeline";
 import ScrollReveal from "@/components/ScrollReveal";
+import DataFreshness from "@/components/DataFreshness";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { groupDrops, type DropEvent } from "@/lib/drops";
 import dropsData from "@/data/drops.json";
+
+const DashboardMiniMap = dynamic(() => import("@/components/DashboardMiniMap"), {
+  ssr: false,
+});
 
 interface QuickAction {
   label: string;
@@ -83,18 +89,33 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-      <main
+      <motion.main
         style={{
           minHeight: "100vh",
           background: "var(--color-bg-primary)",
           paddingTop: "120px",
           paddingBottom: "80px",
         }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
       >
         {/* Section 1: Greeting + Stats */}
         <ScrollReveal delay={0}>
           <DashboardStats drops={drops} />
         </ScrollReveal>
+
+        {/* Data Freshness */}
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "0 clamp(20px, 5vw, 48px)",
+            marginTop: "12px",
+          }}
+        >
+          <DataFreshness lastUpdated={(dropsData as { lastUpdated: string }).lastUpdated} />
+        </div>
 
         {/* Quick Actions Row */}
         <div
@@ -144,7 +165,7 @@ export default function DashboardPage() {
                 selectedCounties={selectedCounties}
                 onCountyToggle={handleCountyToggle}
               />
-              <DashboardSidebar drops={drops} />
+              <DashboardSidebar drops={drops} miniMap={<DashboardMiniMap />} />
             </div>
           </ScrollReveal>
         </div>
@@ -155,7 +176,7 @@ export default function DashboardPage() {
             <ActivityTimeline />
           </ScrollReveal>
         </div>
-      </main>
+      </motion.main>
       <Footer />
     </>
   );

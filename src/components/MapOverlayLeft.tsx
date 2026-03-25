@@ -2,6 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Filter } from "lucide-react";
+import DataFreshness from "@/components/DataFreshness";
+import dropsData from "@/data/drops.json";
 
 interface MapOverlayLeftProps {
   activeFilter: string;
@@ -338,6 +340,9 @@ function PanelContent({
           }}
         >
           {dropsThisWeek} drops this week
+        </div>
+        <div style={{ marginTop: 4 }}>
+          <DataFreshness lastUpdated={(dropsData as { lastUpdated: string }).lastUpdated} />
         </div>
       </div>
     </>

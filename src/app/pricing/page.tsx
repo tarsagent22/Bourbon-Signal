@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -12,7 +13,12 @@ export default function PricingPage() {
   return (
     <>
       <Navigation />
-      <main className="overflow-x-hidden">
+      <motion.main
+        className="overflow-x-hidden"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
         {/* Section 1: Page Header */}
         <section
           style={{
@@ -179,7 +185,7 @@ export default function PricingPage() {
             </ScrollReveal>
           </div>
         </section>
-      </main>
+      </motion.main>
       <Footer />
     </>
   );

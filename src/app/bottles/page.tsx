@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -22,6 +23,11 @@ export default function BottlesPage() {
       }}
     >
       <Navigation />
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
 
       {/* Page Header */}
       <section
@@ -113,6 +119,7 @@ export default function BottlesPage() {
 
       {/* Grid Section */}
       <BottleGrid />
+      </motion.div>
 
       <Footer />
     </div>

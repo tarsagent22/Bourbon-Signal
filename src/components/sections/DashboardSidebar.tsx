@@ -48,9 +48,10 @@ function formatShortDate(dateStr: string | null): string {
 
 interface DashboardSidebarProps {
   drops: DropEvent[];
+  miniMap?: React.ReactNode;
 }
 
-export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
+export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarProps) {
   const [watchlist] = useState<WatchlistItem[]>(INITIAL_WATCHLIST);
 
   const weeklyTrend = useMemo(() => {
@@ -377,6 +378,13 @@ export default function DashboardSidebar({ drops }: DashboardSidebarProps) {
           drops this week
         </div>
       </motion.div>
+
+      {/* Mini Map */}
+      {miniMap && (
+        <div style={{ marginTop: "20px" }}>
+          {miniMap}
+        </div>
+      )}
 
       {/* Alert Preferences */}
       <AlertPreferences />

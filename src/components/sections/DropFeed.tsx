@@ -15,6 +15,7 @@ import {
   TIER_CONFIG,
   MULTIPLIER_COLORS,
 } from "@/lib/drops";
+import DataFreshness from "@/components/DataFreshness";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -557,6 +558,13 @@ export default function DropFeed() {
               <option value="pa" disabled>Pennsylvania — Coming Soon</option>
             </select>
           </div>
+
+          {/* Data freshness */}
+          {data?.lastUpdated && (
+            <div style={{ marginTop: "10px" }}>
+              <DataFreshness lastUpdated={data.lastUpdated} />
+            </div>
+          )}
 
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />

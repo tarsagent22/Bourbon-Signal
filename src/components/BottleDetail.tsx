@@ -8,6 +8,7 @@ import { dropHistory } from "@/data/bottles";
 import type { DropHistoryEntry } from "@/data/bottles";
 import { useState } from "react";
 import { useWatchlistStore } from "@/lib/watchlist";
+import { useToastStore } from "@/lib/toast";
 import CountyLink from "@/components/CountyLink";
 
 interface BottleDetailProps {
@@ -49,6 +50,7 @@ export default function BottleDetail({
   isFreeUser,
 }: BottleDetailProps) {
   const { addBottle, removeBottle, isWatching } = useWatchlistStore();
+  const addToast = useToastStore((s) => s.addToast);
   const watching = isWatching(bottle.id);
   const tierColor = tierColors[bottle.tier];
   const multiplier = getMultiplier(bottle);
@@ -540,8 +542,10 @@ export default function BottleDetail({
               if (!isFreeUser) {
                 if (watching) {
                   removeBottle(bottle.id);
+                  addToast(`Removed ${bottle.name} from watchlist`, "bookmark-x");
                 } else {
                   addBottle(bottle.id);
+                  addToast(`Added ${bottle.name} to watchlist`, "bookmark");
                 }
               }
             }}

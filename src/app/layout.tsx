@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
+import ToastContainer from "@/components/Toast";
 
 export const metadata: Metadata = {
   title: "Proof — Never Miss a Bourbon Drop",
@@ -18,7 +19,10 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
     >
-      <body style={{ fontFamily: "var(--font-dm-sans)" }}>{children}</body>
+      <body style={{ fontFamily: "var(--font-dm-sans)" }}>
+        {children}
+        <ToastContainer />
+      </body>
     </html>
   );
 }

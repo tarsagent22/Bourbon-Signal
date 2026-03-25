@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import WatchlistDropdown from "@/components/WatchlistDropdown";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -117,6 +118,7 @@ export default function Navigation() {
           >
             Sign In
           </a>
+          <WatchlistDropdown />
           <a
             href="/pricing"
             style={{
