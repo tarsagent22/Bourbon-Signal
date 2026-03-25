@@ -202,7 +202,6 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
         {/* Center: name + description */}
         <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "8px" }}>
           <div
-            className="truncate"
             style={{
               fontFamily: "var(--font-playfair)",
               fontSize: "17px",
@@ -215,7 +214,6 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
           </div>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
             <span
-              className="truncate"
               style={{
                 fontFamily: "var(--font-dm-sans)",
                 fontSize: "12px",

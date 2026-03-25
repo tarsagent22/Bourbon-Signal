@@ -53,7 +53,20 @@ export function cleanBrandName(name: string): string {
     }
   }
 
-  return cleaned;
+  return toTitleCase(cleaned);
+}
+
+function toTitleCase(str: string): string {
+  const preserveUppercase = new Set(["E.H.", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XV", "XX", "XXV", "EH", "VSOP", "XO", "VS"]);
+  return str
+    .split(/\s+/)
+    .map((word) => {
+      if (preserveUppercase.has(word.toUpperCase())) return word.toUpperCase();
+      if (/^[A-Z]{1,2}\.$/.test(word)) return word.toUpperCase(); // E.H. style initials
+      if (word.length === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
 
 export function getDisplayName(event: DropEvent): string {

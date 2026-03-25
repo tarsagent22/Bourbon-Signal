@@ -92,6 +92,7 @@ export default function HeroSection() {
               fontSize: "18px",
               lineHeight: 1.6,
               color: "var(--color-text-secondary)",
+              textShadow: "0 2px 8px rgba(0,0,0,0.6)",
             }}
           >
             Know the moment allocated bourbon moves — before the crowds.
@@ -111,6 +112,31 @@ export default function HeroSection() {
               100 founding spots. Lifetime access. No monthly fees.
             </p>
 
+            {/* Social proof */}
+            <div
+              className="flex items-center gap-2"
+              style={{ marginTop: "12px" }}
+            >
+              <span
+                style={{
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  backgroundColor: "var(--color-accent-amber)",
+                  display: "inline-block",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "12px",
+                  color: "var(--color-text-tertiary)",
+                }}
+              >
+                Join 47 hunters already tracking
+              </span>
+            </div>
           </div>
         </ScrollReveal>
 
@@ -122,12 +148,12 @@ export default function HeroSection() {
         style={{ opacity: chevronOpacity }}
       >
         <motion.div
-          animate={{ y: [0, 8, 0] }}
+          animate={{ y: [0, 12, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           <ChevronDown
-            size={28}
-            style={{ color: "var(--color-text-tertiary)" }}
+            size={36}
+            style={{ color: "var(--color-text-secondary)" }}
           />
         </motion.div>
       </motion.div>
