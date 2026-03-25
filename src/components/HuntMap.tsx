@@ -16,7 +16,6 @@ import { stores } from "@/data/stores";
 import type { Store } from "@/data/stores";
 import dropsData from "@/data/drops.json";
 import StorePopup from "@/components/StorePopup";
-import MapOverlayLeft from "@/components/MapOverlayLeft";
 import MapOverlayRight from "@/components/MapOverlayRight";
 import { cleanBrandName } from "@/lib/drops";
 
@@ -206,7 +205,7 @@ function FlyToHandler({
 
 export default function HuntMap() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  // Left panel removed — legend/filters merged into right panel
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{
     lat: number;
@@ -409,20 +408,16 @@ export default function HuntMap() {
         </div>
       )}
 
-      {/* Overlay panels */}
-      <MapOverlayLeft
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        activeToday={activeThisWeek}
-        dropsThisWeek={dropsThisWeek}
-        isOpen={leftPanelOpen}
-        onToggle={() => setLeftPanelOpen(!leftPanelOpen)}
-      />
+      {/* Single overlay panel — legend + filters + feed merged */}
       <MapOverlayRight
         recentDrops={recentDrops}
         isOpen={rightPanelOpen}
         onToggle={() => setRightPanelOpen(!rightPanelOpen)}
         onDropClick={handleDropClick}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        activeThisWeek={activeThisWeek}
+        dropsThisWeek={dropsThisWeek}
       />
     </div>
   );

@@ -21,7 +21,19 @@ interface MapOverlayRightProps {
   isOpen: boolean;
   onToggle: () => void;
   onDropClick: (storeId: string) => void;
+  activeFilter?: string;
+  onFilterChange?: (filter: string) => void;
+  activeThisWeek?: number;
+  dropsThisWeek?: number;
 }
+
+const legendItems = [
+  { color: "var(--color-accent-amber)", opacity: 0.9, label: "Active this week", pulse: true },
+  { color: "var(--color-accent-amber)", opacity: 0.5, label: "Drop this week", pulse: false },
+  { color: "var(--color-text-tertiary)", opacity: 0.3, label: "No recent drops", pulse: false },
+];
+
+const filters = ["All", "Unicorn", "Allocated", "Limited"];
 
 function tierBorderColor(tier: string): string {
   switch (tier) {
@@ -177,11 +189,61 @@ function DropList({
   );
 }
 
+function LegendAndFilters({ activeFilter, onFilterChange, activeThisWeek, dropsThisWeek }: {
+  activeFilter?: string; onFilterChange?: (f: string) => void; activeThisWeek?: number; dropsThisWeek?: number;
+}) {
+  if (!onFilterChange) return null;
+  return (
+    <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid var(--color-card-border)" }}>
+      {/* Legend */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+        {legendItems.map((item) => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: item.pulse ? 10 : 7, height: item.pulse ? 10 : 7, borderRadius: "50%",
+              background: item.color, opacity: item.opacity,
+              animation: item.pulse ? "pulse-marker 2s ease-in-out infinite" : "none",
+            }} />
+            <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, color: "var(--color-text-secondary)" }}>
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+      {/* Filter pills */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        {filters.map((f) => (
+          <button key={f} onClick={() => onFilterChange(f)} style={{
+            fontFamily: "var(--font-dm-sans)", fontSize: 11, padding: "4px 10px", borderRadius: 20, cursor: "pointer",
+            border: activeFilter === f ? "1px solid transparent" : "1px solid rgba(255,255,255,0.08)",
+            background: activeFilter === f ? "#C4943A" : "transparent",
+            color: activeFilter === f ? "#1A1510" : "var(--color-text-secondary)",
+            fontWeight: activeFilter === f ? 600 : 400, transition: "all 200ms ease",
+          }}>{f}</button>
+        ))}
+      </div>
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 16 }}>
+        <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)" }}>
+          {activeThisWeek ?? 0} active this week
+        </span>
+        <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-text-tertiary)" }}>
+          {dropsThisWeek ?? 0} drops
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function MapOverlayRight({
   recentDrops,
   isOpen,
   onToggle,
   onDropClick,
+  activeFilter,
+  onFilterChange,
+  activeThisWeek,
+  dropsThisWeek,
 }: MapOverlayRightProps) {
   return (
     <>
@@ -230,6 +292,7 @@ export default function MapOverlayRight({
           flexDirection: "column",
         }}
       >
+        <LegendAndFilters activeFilter={activeFilter} onFilterChange={onFilterChange} activeThisWeek={activeThisWeek} dropsThisWeek={dropsThisWeek} />
         <DropList recentDrops={recentDrops} onDropClick={onDropClick} />
       </div>
 
@@ -302,6 +365,7 @@ export default function MapOverlayRight({
               >
                 <X size={20} />
               </button>
+              <LegendAndFilters activeFilter={activeFilter} onFilterChange={onFilterChange} activeThisWeek={activeThisWeek} dropsThisWeek={dropsThisWeek} />
               <DropList
                 recentDrops={recentDrops}
                 onDropClick={(storeId) => {
