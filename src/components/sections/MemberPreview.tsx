@@ -100,7 +100,7 @@ function MiniDropFeed() {
   );
 }
 
-// ── Mini Hunt Map Mockup ──
+// ── Mini Hunt Map — Real map image with pin overlays ──
 function MiniHuntMap() {
   // Store pins scattered realistically — clusters near cities, outliers spread out
   const pins = [
@@ -132,89 +132,29 @@ function MiniHuntMap() {
   return (
     <div
       style={{
-        background: "var(--color-bg-secondary)",
+        position: "relative",
+        aspectRatio: "4/3",
         borderRadius: "8px",
         overflow: "hidden",
         border: "1px solid rgba(196,148,58,0.12)",
-        position: "relative",
-        aspectRatio: "4/3",
       }}
     >
-      {/* Full SVG map — grid, roads, state shapes */}
-      <svg
-        viewBox="0 0 200 150"
+      {/* Real map background */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/map-preview.png"
+        alt="NC and VA store map"
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
-        }}
-        fill="none"
-      >
-        {/* Base grid — faint coordinate grid */}
-        {[15, 30, 45, 60, 75, 90, 105, 120, 135].map((y) => (
-          <line key={`gy${y}`} x1="0" y1={y} x2="200" y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
-        ))}
-        {[20, 40, 60, 80, 100, 120, 140, 160, 180].map((x) => (
-          <line key={`gx${x}`} x1={x} y1="0" x2={x} y2="150" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
-        ))}
-
-        {/* Major roads / highways — slightly brighter */}
-        {/* I-85 diagonal (Charlotte → Raleigh direction) */}
-        <line x1="0" y1="90" x2="200" y2="25" stroke="rgba(255,255,255,0.09)" strokeWidth="1" />
-        {/* I-40 roughly horizontal */}
-        <line x1="0" y1="52" x2="200" y2="48" stroke="rgba(255,255,255,0.09)" strokeWidth="1" />
-        {/* I-95 vertical (east side) */}
-        <line x1="155" y1="0" x2="155" y2="150" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
-        {/* I-77 vertical (Charlotte) */}
-        <line x1="32" y1="0" x2="32" y2="150" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
-        {/* US-1 diagonal */}
-        <line x1="80" y1="0" x2="100" y2="150" stroke="rgba(255,255,255,0.05)" strokeWidth="0.7" />
-        {/* Secondary roads */}
-        <line x1="0" y1="70" x2="200" y2="70" stroke="rgba(255,255,255,0.05)" strokeWidth="0.6" />
-        <line x1="0" y1="110" x2="200" y2="110" stroke="rgba(255,255,255,0.05)" strokeWidth="0.6" />
-        <line x1="60" y1="0" x2="60" y2="150" stroke="rgba(255,255,255,0.05)" strokeWidth="0.6" />
-        <line x1="120" y1="0" x2="120" y2="150" stroke="rgba(255,255,255,0.05)" strokeWidth="0.6" />
-
-        {/* State boundary — NC/VA border (rough horizontal line) */}
-        <path
-          d="M 0,32 C 30,30 60,34 90,31 C 120,28 150,33 200,30"
-          stroke="rgba(196,148,58,0.22)"
-          strokeWidth="1"
-          strokeDasharray="6 4"
-        />
-
-        {/* NC coastal shape hint */}
-        <path
-          d="M 160,80 C 170,85 180,90 190,95 C 195,100 195,110 185,115 C 175,120 165,115 160,108"
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth="0.8"
-        />
-
-        {/* Water body hint (Atlantic coast tint) */}
-        <path
-          d="M 185,80 L 200,80 L 200,150 L 170,150 L 165,130 L 175,110 L 180,95 Z"
-          fill="rgba(30,50,80,0.18)"
-        />
-
-        {/* Mountain range hint (west) */}
-        <path
-          d="M 0,40 L 8,30 L 16,42 L 22,28 L 28,40 L 34,32 L 40,45 L 0,45 Z"
-          fill="rgba(255,255,255,0.025)"
-        />
-      </svg>
-
-      {/* Vignette overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse at 55% 55%, rgba(10,8,6,0) 30%, rgba(10,8,6,0.65) 100%)",
-          pointerEvents: "none",
+          objectFit: "cover",
+          filter: "brightness(0.85)",
         }}
       />
 
-      {/* Store pins */}
+      {/* Amber pin overlay dots — key cities */}
       {pins.map((pin, i) => (
         <div
           key={i}
@@ -255,7 +195,17 @@ function MiniHuntMap() {
         </div>
       ))}
 
-      {/* State label */}
+      {/* Vignette */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at 55% 55%, rgba(10,8,6,0) 30%, rgba(10,8,6,0.65) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* NC · VA label */}
       <div
         style={{
           position: "absolute",
@@ -444,6 +394,156 @@ function MiniSmsAlert() {
   );
 }
 
+// ── Mini Email Inbox Mockup — Apple Mail dark mode style ──
+function MiniEmailInbox() {
+  const emails = [
+    {
+      subject: "🦄 Pappy Van Winkle 15yr — ABC Store #112, Charlotte (2 bottles)",
+      preview: "Spotted 4 min ago. Tap to open map.",
+      time: "9:04 AM",
+    },
+    {
+      subject: "🥃 Blanton's Original — ABC Store #247, Raleigh (6 bottles)",
+      preview: "Spotted 12 min ago. 6 bottles remaining.",
+      time: "9:12 AM",
+    },
+    {
+      subject: "📦 Weller Special Reserve — ABC Store #391, Durham (12 bottles)",
+      preview: "Spotted 31 min ago. Lower demand — good chance.",
+      time: "9:31 AM",
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        background: "#1C1C1E",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      {/* Inbox header */}
+      <div
+        style={{
+          padding: "7px 10px 6px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "#2C2C2E",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            fontWeight: 600,
+            color: "var(--color-text-primary)",
+          }}
+        >
+          Inbox
+        </span>
+        <div
+          style={{
+            background: "var(--color-accent-amber)",
+            borderRadius: "10px",
+            padding: "1px 6px",
+            fontFamily: "var(--font-jetbrains)",
+            fontSize: "9px",
+            fontWeight: 700,
+            color: "#0D0B0E",
+            lineHeight: "14px",
+          }}
+        >
+          3
+        </div>
+      </div>
+
+      {/* Email rows */}
+      {emails.map((email, i) => (
+        <div
+          key={i}
+          style={{
+            padding: "8px 10px",
+            borderBottom: i < emails.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "7px",
+          }}
+        >
+          {/* Unread indicator dot */}
+          <div
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "var(--color-accent-amber)",
+              flexShrink: 0,
+              marginTop: "4px",
+            }}
+          />
+
+          {/* Content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "4px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  flexShrink: 0,
+                }}
+              >
+                ProofHunt Alerts
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "8px",
+                  color: "var(--color-text-tertiary)",
+                  flexShrink: 0,
+                }}
+              >
+                {email.time}
+              </span>
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "8.5px",
+                fontWeight: 500,
+                color: "var(--color-text-primary)",
+                marginTop: "2px",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+              } as React.CSSProperties}
+            >
+              {email.subject}
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "8px",
+                color: "var(--color-text-tertiary)",
+                marginTop: "1px",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {email.preview}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Feature Card ──
 interface FeatureCardProps {
   caption: string;
@@ -502,7 +602,7 @@ export default function MemberPreview() {
     >
       <div
         style={{
-          maxWidth: "800px",
+          maxWidth: "900px",
           margin: "0 auto",
           padding: "0 clamp(20px, 5vw, 40px)",
         }}
@@ -534,16 +634,15 @@ export default function MemberPreview() {
           </p>
         </ScrollReveal>
 
-        {/* Cards grid */}
+        {/* Cards grid — 2×2 on desktop, stacked on mobile */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
+          className="grid gap-5"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "20px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
           }}
         >
           <FeatureCard caption="Real-time drop intel, unblurred">
@@ -554,8 +653,12 @@ export default function MemberPreview() {
             <MiniHuntMap />
           </FeatureCard>
 
-          <FeatureCard caption="Instant SMS + email alerts">
+          <FeatureCard caption="Instant SMS alerts">
             <MiniSmsAlert />
+          </FeatureCard>
+
+          <FeatureCard caption="Email alerts — never miss a drop">
+            <MiniEmailInbox />
           </FeatureCard>
         </motion.div>
       </div>

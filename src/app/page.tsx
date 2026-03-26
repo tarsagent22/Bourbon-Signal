@@ -8,7 +8,6 @@ import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/sections/HeroSection";
-import AlertPreview from "@/components/sections/AlertPreview";
 import DropFeed from "@/components/sections/DropFeed";
 import MemberPreview from "@/components/sections/MemberPreview";
 import PricingSection from "@/components/sections/PricingSection";
@@ -65,7 +64,6 @@ export default function Home() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <HeroSection />
-        <AlertPreview />
         <DropFeed />
         {/* DropFeed (primary) → MemberPreview (tertiary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />
