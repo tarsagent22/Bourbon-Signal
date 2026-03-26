@@ -8,10 +8,13 @@ import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/sections/HeroSection";
+import AlertPreview from "@/components/sections/AlertPreview";
 import DropFeed from "@/components/sections/DropFeed";
+import MemberPreview from "@/components/sections/MemberPreview";
 import PricingSection from "@/components/sections/PricingSection";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
+import EmailCapture from "@/components/sections/EmailCapture";
 
 function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
@@ -62,10 +65,13 @@ export default function Home() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <HeroSection />
+        <AlertPreview />
         <DropFeed />
+        <MemberPreview />
         <PricingSection />
         <HowWeHunt />
         <FAQ />
+        <EmailCapture />
       </motion.main>
       <Footer />
       <ScrollToTopButton />
