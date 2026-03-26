@@ -464,6 +464,8 @@ export default function DropFeed() {
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
+  const [selectedState, setSelectedState] = useState<string>("All");
+  const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
 
   const fetchDrops = useCallback(async () => {
     try {
@@ -508,9 +510,16 @@ export default function DropFeed() {
     return () => clearInterval(interval);
   }, [fetchDrops]);
 
+  // Apply state and tier filters
+  const filteredGrouped = grouped.filter((drop) => {
+    if (selectedState !== "All" && drop.state !== selectedState) return false;
+    if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
+    return true;
+  });
+
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) : 0;
-  const visibleCount = Math.min(grouped.length, 3);
-  const blurredCount = grouped.length - visibleCount;
+  const visibleCount = Math.min(filteredGrouped.length, 3);
+  const blurredCount = filteredGrouped.length - visibleCount;
 
   return (
     <section
@@ -568,37 +577,82 @@ export default function DropFeed() {
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
 
-          {/* Tier filter pills — larger for header context */}
+          {/* Filters row: State toggle + Tier filter pills */}
           <div
             className="flex items-center flex-wrap gap-2"
-            style={{
-              paddingBottom: "16px",
-            }}
+            style={{ paddingBottom: "16px" }}
           >
+            {/* State filter toggle */}
+            {(["All", "NC", "VA"] as const).map((state) => {
+              const isActive = selectedState === state;
+              return (
+                <button
+                  key={state}
+                  onClick={() => setSelectedState(state)}
+                  style={{
+                    background: isActive ? "rgba(196,148,58,0.18)" : "rgba(245,237,214,0.05)",
+                    color: isActive ? "var(--color-accent-amber)" : "rgba(245,237,214,0.45)",
+                    border: isActive ? "1px solid rgba(196,148,58,0.55)" : "1px solid rgba(245,237,214,0.1)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    whiteSpace: "nowrap" as const,
+                    cursor: "pointer",
+                    transition: "background 150ms, color 150ms, border-color 150ms",
+                  }}
+                >
+                  {state}
+                </button>
+              );
+            })}
+
+            {/* Divider dot */}
+            <span style={{ color: "rgba(245,237,214,0.15)", fontSize: "12px", userSelect: "none" }}>·</span>
+
+            {/* Tier filter pills */}
             {[
-              { label: "Unicorn", bg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", color: "#0D0B07", border: "none" },
-              { label: "Allocated", bg: "rgba(184,115,51,0.15)", color: "#B87333", border: "1px solid rgba(184,115,51,0.3)" },
-              { label: "Limited", bg: "rgba(138,138,138,0.12)", color: "#8A8A8A", border: "1px solid rgba(138,138,138,0.25)" },
-            ].map((pill) => (
-              <span
-                key={pill.label}
-                style={{
-                  background: pill.bg,
-                  color: pill.color,
-                  border: pill.border,
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  padding: "8px 16px",
-                  borderRadius: "20px",
-                  whiteSpace: "nowrap",
-                  cursor: "default",
-                }}
-              >
-                {pill.label}
-              </span>
-            ))}
+              { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
+              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.3)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.06)", inactiveColor: "rgba(184,115,51,0.45)", border: "1px solid rgba(184,115,51,0.2)" },
+              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.22)", activeColor: "#AAAAAA", inactiveBg: "rgba(138,138,138,0.05)", inactiveColor: "rgba(138,138,138,0.4)", border: "1px solid rgba(138,138,138,0.18)" },
+            ].map((pill) => {
+              const isActive = activeTiers.has(pill.tier);
+              return (
+                <button
+                  key={pill.tier}
+                  onClick={() => {
+                    setActiveTiers((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(pill.tier)) {
+                        next.delete(pill.tier);
+                      } else {
+                        next.add(pill.tier);
+                      }
+                      return next;
+                    });
+                  }}
+                  style={{
+                    background: isActive ? pill.activeBg : pill.inactiveBg,
+                    color: isActive ? pill.activeColor : pill.inactiveColor,
+                    border: isActive ? `1px solid ${pill.tier === "unicorn" ? "rgba(196,148,58,0.6)" : pill.tier === "allocated" ? "rgba(184,115,51,0.45)" : "rgba(138,138,138,0.4)"}` : pill.border,
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    whiteSpace: "nowrap" as const,
+                    cursor: "pointer",
+                    transition: "background 150ms, color 150ms, border-color 150ms",
+                    boxShadow: isActive && pill.tier === "unicorn" ? "0 0 8px rgba(196,148,58,0.2)" : "none",
+                  }}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Feed rows */}
@@ -623,7 +677,7 @@ export default function DropFeed() {
           ) : (
             <div style={{ position: "relative" }}>
               <AnimatePresence mode="popLayout">
-                {grouped.map((drop, index) => (
+                {filteredGrouped.map((drop, index) => (
                   <FeedRow
                     key={drop.id}
                     drop={drop}
@@ -634,7 +688,7 @@ export default function DropFeed() {
               </AnimatePresence>
 
               {/* Gradient overlay over blurred rows */}
-              {grouped.length > 3 && (
+              {filteredGrouped.length > 3 && (
                 <div
                   style={{
                     position: "absolute",

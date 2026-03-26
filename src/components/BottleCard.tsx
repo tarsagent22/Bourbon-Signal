@@ -5,6 +5,7 @@ import { fadeUpVariant } from "@/lib/animations";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { Bottle } from "@/data/bottles";
+import { formatRelativeTime } from "@/lib/drops";
 
 interface BottleCardProps {
   bottle: Bottle;
@@ -13,6 +14,8 @@ interface BottleCardProps {
   blurAmount?: number;
   isFreeUser?: boolean;
   isHighlighted?: boolean;
+  lastSeenTimestamp?: string;
+  lastSeenLocation?: string;
 }
 
 const tierBorderColors: Record<string, string> = {
@@ -53,6 +56,8 @@ export default function BottleCard({
   blurAmount,
   isFreeUser,
   isHighlighted,
+  lastSeenTimestamp,
+  lastSeenLocation,
 }: BottleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const tierColor = tierBorderColors[bottle.tier];
@@ -311,6 +316,21 @@ export default function BottleCard({
             : "No drop data"}
         </span>
       </div>
+
+      {/* Last seen indicator — only if we have drop data */}
+      {lastSeenTimestamp && (
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "rgba(196,148,58,0.6)",
+            marginBottom: "10px",
+          }}
+        >
+          Last seen: {formatRelativeTime(lastSeenTimestamp)}
+          {lastSeenLocation ? ` in ${lastSeenLocation}` : ""}
+        </p>
+      )}
 
       {/* Footer: Proof, Age, Arrow */}
       <div

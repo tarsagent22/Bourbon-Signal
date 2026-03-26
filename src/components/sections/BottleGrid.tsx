@@ -9,7 +9,31 @@ import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 import { useAuth } from "@/lib/auth";
+import dropsData from "@/data/drops.json";
+import { getDisplayName, formatRelativeTime } from "@/lib/drops";
+import type { DropEvent } from "@/lib/drops";
 const FREE_VISIBLE_COUNT = 6;
+
+// Build a lookup: normalized bottle name → most recent matching drop
+function buildLastSeenLookup(drops: DropEvent[]): Map<string, { timestamp: string; location: string }> {
+  const map = new Map<string, { timestamp: string; location: string }>();
+  for (const event of drops) {
+    const name = getDisplayName(event).toLowerCase().trim();
+    if (!name || name === "unknown bottle") continue;
+    const existing = map.get(name);
+    if (!existing || event.timestamp > existing.timestamp) {
+      // Build location string
+      let location = "";
+      if (event.stores && event.stores.length > 0 && event.stores[0].city) {
+        location = `${event.stores[0].city.replace(/\b\w/g, (c) => c.toUpperCase())}, ${event.state || ""}`.trim().replace(/,$/, "");
+      } else if (event.state) {
+        location = event.state;
+      }
+      map.set(name, { timestamp: event.timestamp, location });
+    }
+  }
+  return map;
+}
 
 // Custom stagger for 0.08s between cards
 const cardStagger = {
@@ -63,6 +87,12 @@ export default function BottleGrid() {
   const [sortBy, setSortBy] = useState("secondary");
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Build last-seen lookup from static drops data
+  const lastSeenLookup = useMemo(
+    () => buildLastSeenLookup((dropsData as { drops: DropEvent[] }).drops),
+    []
+  );
 
   // Sync URL search params on mount
   useEffect(() => {
@@ -209,6 +239,21 @@ export default function BottleGrid() {
                   ? getBlurAmount(index)
                   : 0;
 
+                // Find last-seen from drops data using partial name match
+                const bottleNameNorm = bottle.name.toLowerCase().trim();
+                let lastSeenInfo: { timestamp: string; location: string } | undefined;
+                // Try exact match first
+                lastSeenInfo = lastSeenLookup.get(bottleNameNorm);
+                // If no exact match, try partial match
+                if (!lastSeenInfo) {
+                  for (const [key, val] of lastSeenLookup) {
+                    if (bottleNameNorm.includes(key) || key.includes(bottleNameNorm)) {
+                      lastSeenInfo = val;
+                      break;
+                    }
+                  }
+                }
+
                 return (
                   <BottleCard
                     key={bottle.id}
@@ -218,6 +263,8 @@ export default function BottleGrid() {
                     blurAmount={blurAmount}
                     isFreeUser={IS_FREE_USER}
                     isHighlighted={highlightId === bottle.id}
+                    lastSeenTimestamp={lastSeenInfo?.timestamp}
+                    lastSeenLocation={lastSeenInfo?.location}
                   />
                 );
               })}

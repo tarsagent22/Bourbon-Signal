@@ -13,7 +13,7 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    description: "We monitor state liquor control boards, warehouse shipments, and distributor networks daily",
+    description: "We monitor 8+ data sources across state liquor control boards — warehouse shipments, store inventory, allocation lists, and distribution networks — updated every 15 to 30 minutes.",
     flavor: "Proprietary sourcing across every major channel",
   },
   {
@@ -28,7 +28,7 @@ const steps: StepData[] = [
   },
   {
     number: "04",
-    description: "Instant alerts hit your phone the moment a bottle you're watching lands on a shelf",
+    description: "Instant alerts via SMS and email hit your phone the moment a bottle you're watching lands on a shelf. Most alerts fire within minutes of the data updating.",
     flavor: "Seconds matter — you'll know before the crowd",
   },
 ];

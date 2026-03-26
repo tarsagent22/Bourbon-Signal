@@ -101,7 +101,9 @@ export default function HeroSection() {
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-3">
-            <Button variant="primary">Become a Founding Member</Button>
+            <a href="/pricing" style={{ textDecoration: "none" }}>
+              <Button variant="primary">Become a Founding Member</Button>
+            </a>
           </div>
         </ScrollReveal>
 

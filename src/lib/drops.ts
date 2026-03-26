@@ -157,8 +157,24 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     }
   }
 
+  const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
+  const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+
   return Array.from(groups.values())
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort((a, b) => {
+      const tA = new Date(a.timestamp).getTime();
+      const tB = new Date(b.timestamp).getTime();
+      const bucketA = Math.floor(tA / SIX_HOURS_MS);
+      const bucketB = Math.floor(tB / SIX_HOURS_MS);
+      // Primary: newest bucket first
+      if (bucketA !== bucketB) return bucketB - bucketA;
+      // Secondary within same bucket: higher rarity first
+      const rA = rarityOrder[a.rarity_tier] || 0;
+      const rB = rarityOrder[b.rarity_tier] || 0;
+      if (rA !== rB) return rB - rA;
+      // Tertiary: newest timestamp first
+      return tB - tA;
+    })
     .slice(0, limit);
 }
 

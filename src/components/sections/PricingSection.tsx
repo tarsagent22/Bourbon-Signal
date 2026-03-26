@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
+import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 
 const standardFeatures = [
   "Instant drop alerts — email + SMS",
@@ -179,9 +180,12 @@ export default function PricingSection() {
 
               {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
-                <button
+                <a
+                  href="/pricing"
                   style={{
+                    display: "block",
                     width: "100%",
+                    boxSizing: "border-box",
                     cursor: "pointer",
                     background: "rgba(196,148,58,0.08)",
                     border: "1px solid rgba(196,148,58,0.4)",
@@ -192,18 +196,20 @@ export default function PricingSection() {
                     padding: "13px",
                     borderRadius: "10px",
                     transition: "border-color 200ms, background 200ms, color 200ms",
+                    textAlign: "center",
+                    textDecoration: "none",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
-                    e.currentTarget.style.background = "rgba(196,148,58,0.15)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(196,148,58,0.7)";
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(196,148,58,0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
-                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(196,148,58,0.4)";
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
                   Start Hunting — $10/mo
-                </button>
+                </a>
               </div>
             </motion.div>
           </motion.div>
@@ -322,7 +328,7 @@ export default function PricingSection() {
               <div style={{ marginTop: "16px", marginBottom: "4px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                   <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "rgba(245,237,214,0.5)" }}>Founding spots remaining</span>
-                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>38 / 100</span>
+                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>{FOUNDING_SPOTS_REMAINING} / 100</span>
                 </div>
                 <div style={{ width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
                   <motion.div
@@ -335,7 +341,7 @@ export default function PricingSection() {
                       animation: "barPulse 2s ease infinite",
                     }}
                     initial={{ width: "0%" }}
-                    whileInView={{ width: "38%" }}
+                    whileInView={{ width: `${100 - FOUNDING_SPOTS_REMAINING}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 1.2, ease: "easeOut" }}
                   />
@@ -432,11 +438,14 @@ export default function PricingSection() {
                     marginBottom: "14px",
                   }}
                 >
-                  Become the first founding member.
+                  Join the founding 100.
                 </p>
-                <button
+                <a
+                  href="/pricing"
                   style={{
+                    display: "block",
                     width: "100%",
+                    boxSizing: "border-box",
                     cursor: "pointer",
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                     color: "#1A1510",
@@ -448,18 +457,20 @@ export default function PricingSection() {
                     borderRadius: "10px",
                     boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
                     transition: "box-shadow 300ms, transform 300ms",
+                    textAlign: "center",
+                    textDecoration: "none",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
-                    e.currentTarget.style.transform = "translateY(0)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
                   }}
                 >
                   Claim Your Spot — $69
-                </button>
+                </a>
               </div>
 
               {/* Note below button */}
