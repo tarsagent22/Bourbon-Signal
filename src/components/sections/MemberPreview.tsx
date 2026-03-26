@@ -102,31 +102,32 @@ function MiniDropFeed() {
 
 // ── Mini Hunt Map — Real map image with pin overlays ──
 function MiniHuntMap() {
-  // Store pins scattered realistically — clusters near cities, outliers spread out
+  // Store pins — coordinates matched to /public/map-preview.png (CartoDB dark_all, zoom 6, tiles 17-19 x 24-25)
   const pins = [
     // Charlotte cluster
-    { x: 32, y: 62, hot: true, size: 10 },
-    { x: 36, y: 67, hot: false, size: 7 },
-    { x: 28, y: 58, hot: false, size: 7 },
+    { x: 21, y: 65, hot: true, size: 10 },
+    { x: 24, y: 68, hot: false, size: 7 },
+    { x: 18, y: 62, hot: false, size: 7 },
     // Raleigh/Durham/Cary cluster
-    { x: 68, y: 42, hot: true, size: 10 },
-    { x: 73, y: 46, hot: false, size: 7 },
-    { x: 64, y: 38, hot: true, size: 8 },
+    { x: 34, y: 59, hot: true, size: 10 },
+    { x: 33, y: 57, hot: false, size: 7 },
+    { x: 33, y: 59, hot: true, size: 8 },
     // Greensboro
-    { x: 52, y: 44, hot: false, size: 7 },
+    { x: 27, y: 56, hot: false, size: 7 },
     // Wilmington
-    { x: 78, y: 72, hot: false, size: 6 },
+    { x: 38, y: 76, hot: false, size: 6 },
     // Asheville
-    { x: 18, y: 50, hot: false, size: 7 },
+    { x: 11, y: 61, hot: false, size: 7 },
     // Virginia — Richmond cluster
-    { x: 72, y: 22, hot: true, size: 9 },
-    { x: 78, y: 18, hot: false, size: 6 },
-    // Northern VA
-    { x: 68, y: 12, hot: false, size: 6 },
-    // Scattered outliers
-    { x: 44, y: 55, hot: false, size: 5 },
-    { x: 56, y: 30, hot: false, size: 5 },
-    { x: 88, y: 55, hot: false, size: 5 },
+    { x: 41, y: 40, hot: true, size: 9 },
+    { x: 44, y: 37, hot: false, size: 6 },
+    // Virginia Beach / Norfolk
+    { x: 48, y: 47, hot: false, size: 6 },
+    // Northern VA (Arlington)
+    { x: 43, y: 24, hot: false, size: 6 },
+    // Scattered NC outliers
+    { x: 25, y: 70, hot: false, size: 5 },
+    { x: 30, y: 63, hot: false, size: 5 },
   ];
 
   return (
