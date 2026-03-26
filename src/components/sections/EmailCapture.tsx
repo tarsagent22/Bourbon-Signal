@@ -122,7 +122,8 @@ export default function EmailCapture() {
                     transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "rgba(196,148,58,0.45)";
+                    e.target.style.borderColor = "var(--color-accent-amber)";
+                    e.target.style.outline = "none";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "rgba(255,255,255,0.1)";
@@ -134,20 +135,23 @@ export default function EmailCapture() {
                     padding: "12px 24px",
                     borderRadius: "8px",
                     border: "none",
-                    background: "var(--color-accent-amber)",
-                    color: "#0D0B0E",
+                    background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: "#1A1510",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "14px",
                     fontWeight: 600,
                     cursor: "pointer",
                     flexShrink: 0,
-                    transition: "background 0.2s, transform 0.15s",
+                    boxShadow: "0 4px 20px rgba(196,148,58,0.25)",
+                    transition: "box-shadow 0.2s, transform 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "var(--color-accent-gold)";
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 28px rgba(196,148,58,0.45)";
+                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "var(--color-accent-amber)";
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 20px rgba(196,148,58,0.25)";
+                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
                   }}
                   onMouseDown={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)";

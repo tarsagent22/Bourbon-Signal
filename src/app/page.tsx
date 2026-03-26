@@ -67,10 +67,20 @@ export default function Home() {
         <HeroSection />
         <AlertPreview />
         <DropFeed />
+        {/* DropFeed (primary) → MemberPreview (tertiary) */}
+        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />
         <MemberPreview />
+        {/* MemberPreview (tertiary) → PricingSection (primary) */}
+        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />
         <PricingSection />
+        {/* PricingSection (primary) → HowWeHunt (tertiary) */}
+        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />
         <HowWeHunt />
+        {/* HowWeHunt (tertiary) → FAQ (primary) */}
+        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />
         <FAQ />
+        {/* FAQ (primary) → EmailCapture (secondary) */}
+        <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%)" }} />
         <EmailCapture />
       </motion.main>
       <Footer />

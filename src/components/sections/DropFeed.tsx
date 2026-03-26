@@ -161,10 +161,10 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
 
   const hasDetails = details.length > 0;
 
-  // Blur wall logic
-  const isBlurred = index >= 3;
-  const blurAmount = index === 3 ? "1.5px" : index === 4 ? "3px" : "5px";
-  const blurOpacity = index === 3 ? 0.7 : index === 4 ? 0.5 : 0.3;
+  // Blur wall logic — only last 2 of 8 are blurred
+  const isBlurred = index >= 6;
+  const blurAmount = index === 6 ? "1.5px" : "3px";
+  const blurOpacity = index === 6 ? 0.7 : 0.5;
 
   return (
     <motion.div
@@ -174,7 +174,7 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
         filter: isBlurred ? `blur(${blurAmount})` : "none",
-        pointerEvents: isBlurred && index >= 5 ? "none" : "auto",
+        pointerEvents: isBlurred ? "none" : "auto",
         ...(glowing && index === 0
           ? { animation: "newDropGlow 2s ease infinite" }
           : {}),
@@ -517,9 +517,10 @@ export default function DropFeed() {
     return true;
   });
 
-  const hiddenCount = data ? Math.max(0, data.total - grouped.length) : 0;
-  const visibleCount = Math.min(filteredGrouped.length, 3);
-  const blurredCount = filteredGrouped.length - visibleCount;
+  // Limit displayed drops to 8; only last 2 are blurred
+  const MAX_DISPLAYED = 8;
+  const displayedGrouped = filteredGrouped.slice(0, MAX_DISPLAYED);
+  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredGrouped.length - MAX_DISPLAYED) : 0;
 
   return (
     <section
@@ -677,7 +678,7 @@ export default function DropFeed() {
           ) : (
             <div style={{ position: "relative" }}>
               <AnimatePresence mode="popLayout">
-                {filteredGrouped.map((drop, index) => (
+                {displayedGrouped.map((drop, index) => (
                   <FeedRow
                     key={drop.id}
                     drop={drop}
@@ -688,7 +689,7 @@ export default function DropFeed() {
               </AnimatePresence>
 
               {/* Gradient overlay over blurred rows */}
-              {filteredGrouped.length > 3 && (
+              {displayedGrouped.length > 6 && (
                 <div
                   style={{
                     position: "absolute",
@@ -714,7 +715,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount + blurredCount} more drops tracked in real time
+                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked in real time` : "Updated every 15 minutes"}
               </p>
             </div>
           )}

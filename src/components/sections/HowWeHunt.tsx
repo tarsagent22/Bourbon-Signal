@@ -578,7 +578,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
 export default function HowWeHunt() {
   return (
     <section id="how-we-hunt" style={{
-      backgroundColor: "var(--color-bg-primary)",
+      backgroundColor: "var(--color-bg-tertiary)",
       paddingTop: 56, paddingBottom: 56, width: "100%",
       overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>

@@ -14,65 +14,8 @@ export default function Footer() {
         backgroundColor: "var(--color-bg-primary)",
       }}
     >
-      {/* CTA row */}
-      <div
-        style={{
-          borderTop: "1px solid var(--color-card-border)",
-          padding: "48px clamp(20px, 5vw, 48px)",
-          textAlign: "center",
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "28px",
-            fontWeight: 700,
-            color: "var(--color-cream)",
-            marginBottom: "10px",
-          }}
-        >
-          Ready to hunt?
-        </h3>
-        <p
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "14px",
-            color: "var(--color-text-secondary)",
-            marginBottom: "24px",
-          }}
-        >
-          Join the founding members getting first access to every drop.
-        </p>
-        <a
-          href="/pricing"
-          style={{
-            display: "inline-block",
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "15px",
-            fontWeight: 600,
-            color: "#1A1510",
-            background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-            border: "none",
-            borderRadius: "10px",
-            padding: "13px 32px",
-            textDecoration: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
-            transition: "box-shadow 300ms, transform 300ms",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          View Pricing
-        </a>
-      </div>
-
+      {/* EmailCapture (secondary) → Footer (primary) transition */}
+      <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)" }} />
       <div className="py-6" style={{ paddingLeft: "clamp(30px, 4vw, 60px)", paddingRight: "clamp(30px, 4vw, 60px)" }}>
         {/* Top row: logo left (matching nav), links + copyright centered */}
         <div className="flex flex-col md:flex-row items-center gap-4">
