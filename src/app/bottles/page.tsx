@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import BottleGrid from "@/components/sections/BottleGrid";
+import StateSelector from "@/components/StateSelector";
 import { useBottles } from "@/hooks/useBottles";
 
 export default function BottlesPage() {
@@ -126,6 +127,18 @@ export default function BottlesPage() {
           </ScrollReveal>
         </div>
       </section>
+
+      {/* State filter row — sits above bottle grid */}
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "0 clamp(20px, 5vw, 48px)",
+          marginBottom: "8px",
+        }}
+      >
+        <StateSelector />
+      </div>
 
       {/* Grid Section */}
       <BottleGrid bottles={bottles} loading={loading} />

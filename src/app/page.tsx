@@ -58,7 +58,6 @@ export default function Home() {
   return (
     <>
       <Navigation />
-      <StateSelector />
       <motion.main
         className="overflow-x-hidden"
         initial={{ opacity: 0, y: 12 }}
@@ -66,6 +65,16 @@ export default function Home() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <HeroSection />
+        {/* State filter row — sits above the drop feed */}
+        <div
+          style={{
+            maxWidth: "680px",
+            margin: "0 auto",
+            padding: "0 16px",
+          }}
+        >
+          <StateSelector />
+        </div>
         <DropFeed />
         {/* DropFeed (primary) → MemberPreview (tertiary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />

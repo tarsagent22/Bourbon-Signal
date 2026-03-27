@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
 import { useAuth } from "@/lib/auth";
-import {
-  useStatePreferences,
-  AVAILABLE_STATES,
-} from "@/lib/statePreferences";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -17,172 +13,6 @@ const navLinks = [
   { label: "Bottles", href: "/bottles" },
   { label: "Pricing", href: "/pricing" },
 ];
-
-function StateIndicator() {
-  const { selectedStates, hasSelectedStates, toggleState } =
-    useStatePreferences();
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest("[data-state-indicator]")) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [open]);
-
-  if (!mounted || !hasSelectedStates) return null;
-
-  const label =
-    selectedStates.length > 0 ? selectedStates.join(" · ") : "All States";
-
-  return (
-    <div
-      data-state-indicator
-      style={{ position: "relative" }}
-    >
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          fontFamily: "var(--font-jetbrains)",
-          fontSize: "11px",
-          fontWeight: 600,
-          letterSpacing: "0.04em",
-          color: selectedStates.length > 0
-            ? "var(--color-accent-amber)"
-            : "var(--color-text-tertiary)",
-          background: "rgba(196, 148, 58, 0.06)",
-          border: "1px solid rgba(196, 148, 58, 0.15)",
-          borderRadius: "100px",
-          padding: "4px 12px",
-          cursor: "pointer",
-          transition: "all 200ms ease",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{
-              position: "absolute",
-              top: "calc(100% + 8px)",
-              right: 0,
-              minWidth: "180px",
-              background: "rgba(20, 17, 22, 0.98)",
-              border: "1px solid rgba(196, 148, 58, 0.15)",
-              borderRadius: "10px",
-              padding: "8px",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-              zIndex: 100,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "10px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-tertiary)",
-                margin: "4px 8px 8px",
-              }}
-            >
-              Your States
-            </p>
-            {AVAILABLE_STATES.map((state) => {
-              const isActive = selectedStates.includes(state.code);
-              const isComingSoon = "comingSoon" in state && state.comingSoon;
-
-              return (
-                <button
-                  key={state.code}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isComingSoon) toggleState(state.code);
-                  }}
-                  disabled={!!isComingSoon}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    padding: "8px 10px",
-                    borderRadius: "6px",
-                    border: "none",
-                    background: isActive
-                      ? "rgba(196, 148, 58, 0.1)"
-                      : "transparent",
-                    cursor: isComingSoon ? "not-allowed" : "pointer",
-                    transition: "background 150ms ease",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    color: isComingSoon
-                      ? "var(--color-text-tertiary)"
-                      : isActive
-                        ? "var(--color-accent-amber)"
-                        : "var(--color-text-secondary)",
-                    opacity: isComingSoon ? 0.5 : 1,
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    {state.name}
-                    {isComingSoon && (
-                      <span
-                        style={{
-                          fontSize: "9px",
-                          fontWeight: 600,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--color-text-tertiary)",
-                          background: "rgba(255,255,255,0.05)",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        Soon
-                      </span>
-                    )}
-                  </span>
-                  {isActive && (
-                    <span
-                      style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "var(--color-accent-amber)",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -271,7 +101,6 @@ export default function Navigation() {
               />
             </a>
           ))}
-          <StateIndicator />
         </div>
 
         {/* Right side */}
@@ -418,9 +247,6 @@ export default function Navigation() {
                 {link.label}
               </a>
             ))}
-
-            {/* Mobile state indicator */}
-            <StateIndicator />
 
             {/* Mobile auth actions */}
             {mounted && isSignedIn ? (

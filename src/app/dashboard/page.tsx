@@ -15,6 +15,7 @@ import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { groupDrops, type DropEvent } from "@/lib/drops";
 import { useAuth } from "@/lib/auth";
 import { useStatePreferences } from "@/lib/statePreferences";
+import StateSelector from "@/components/StateSelector";
 
 const DashboardMiniMap = dynamic(() => import("@/components/DashboardMiniMap"), {
   ssr: false,
@@ -247,6 +248,18 @@ export default function DashboardPage() {
             {/* Right: DataFreshness timestamp */}
             {lastUpdated && <DataFreshness lastUpdated={lastUpdated} />}
           </div>
+        </div>
+
+        {/* State filter row — below live banner, above stats */}
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "0 clamp(20px, 5vw, 48px)",
+            marginBottom: "16px",
+          }}
+        >
+          <StateSelector />
         </div>
 
         {/* Section 1: Greeting + Stats */}
