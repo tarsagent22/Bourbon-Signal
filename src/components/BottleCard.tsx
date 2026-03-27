@@ -8,6 +8,7 @@ import { BOTTLE_PRICING } from "@/data/bottles";
 import { formatRelativeTime } from "@/lib/drops";
 import { useWatchlistStore } from "@/lib/watchlist";
 import { useToastStore } from "@/lib/toast";
+import DropHistoryModal from "@/components/DropHistoryModal";
 
 interface BottleCardProps {
   bottle: Bottle;
@@ -48,6 +49,7 @@ export default function BottleCard({
 }: BottleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showSignupHint, setShowSignupHint] = useState(false);
+  const [dropHistoryOpen, setDropHistoryOpen] = useState(false);
   const { addBottle, removeBottle, isWatching } = useWatchlistStore();
   const addToast = useToastStore((s) => s.addToast);
   const watching = isWatching(bottle.id);
@@ -330,19 +332,45 @@ export default function BottleCard({
             {bottle.ageStatement}
           </span>
         )}
-        {bottle.avgDropsPerMonth && (
-          <span
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: "10px",
-              color: "var(--color-text-tertiary)",
-              marginLeft: "auto",
-            }}
-          >
-            {bottle.avgDropsPerMonth}/mo
-          </span>
-        )}
+        {/* View drops button — replaces raw avgDropsPerMonth count */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setDropHistoryOpen(true);
+          }}
+          style={{
+            marginLeft: "auto",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "var(--color-accent-amber)",
+            textDecoration: "none",
+            transition: "opacity 150ms ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.textDecoration = "underline";
+            e.currentTarget.style.opacity = "0.8";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.textDecoration = "none";
+            e.currentTarget.style.opacity = "1";
+          }}
+        >
+          View drops
+        </button>
       </div>
+
+      {/* Drop history modal */}
+      {dropHistoryOpen && (
+        <DropHistoryModal
+          bottle={bottle}
+          isOpen={dropHistoryOpen}
+          onClose={() => setDropHistoryOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }
