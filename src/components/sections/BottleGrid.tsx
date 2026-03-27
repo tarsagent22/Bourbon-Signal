@@ -34,11 +34,13 @@ function buildLastSeenLookup(drops: DropEvent[]): Map<string, { timestamp: strin
   return map;
 }
 
-// Custom stagger for 0.08s between cards
+// Simplified animation — no stagger to avoid lag on large lists
 const cardStagger = {
-  hidden: {},
+  hidden: { opacity: 0, y: 10 },
   visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3 },
   },
 };
 
@@ -92,6 +94,8 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const [sortBy, setSortBy] = useState("secondary");
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 24;
 
   // Build last-seen lookup from static drops data
   const lastSeenLookup = useMemo(
@@ -137,6 +141,11 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
     window.history.replaceState(null, "", newUrl);
   }, [activeTier, sortBy]);
 
+  // Reset to page 1 whenever filters/search change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeTier, activeDistillery]);
+
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
@@ -164,6 +173,12 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
 
     return sortBottles(result, sortBy);
   }, [propBottles, activeTier, searchQuery, sortBy, activeDistillery]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredBottles.length / ITEMS_PER_PAGE);
+  const startIdx = (page - 1) * ITEMS_PER_PAGE;
+  const endIdx = startIdx + ITEMS_PER_PAGE;
+  const paginatedBottles = filteredBottles.slice(startIdx, endIdx);
 
   // Loading state
   if (loading) {
@@ -261,16 +276,17 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                 gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
                 gap: "24px",
               }}
-              variants={cardStagger}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              {filteredBottles.map((bottle, index) => {
+              {paginatedBottles.map((bottle, index) => {
+                // Use global index for blur (page offset + local index)
+                const globalIndex = startIdx + index;
                 const isBlurred =
-                  IS_FREE_USER && index >= FREE_VISIBLE_COUNT;
+                  IS_FREE_USER && globalIndex >= FREE_VISIBLE_COUNT;
                 const blurAmount = IS_FREE_USER
-                  ? getBlurAmount(index)
+                  ? getBlurAmount(globalIndex)
                   : 0;
 
                 // Find last-seen from drops data using partial name match
@@ -303,6 +319,74 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                 );
               })}
             </motion.div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && !(IS_FREE_USER && filteredBottles.length > FREE_VISIBLE_COUNT) && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "16px",
+                  marginTop: "40px",
+                  paddingBottom: "8px",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setPage((p) => Math.max(1, p - 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  disabled={page === 1}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: page === 1 ? "var(--color-text-tertiary)" : "var(--color-accent-amber)",
+                    background: "transparent",
+                    border: `1px solid ${page === 1 ? "rgba(255,255,255,0.08)" : "rgba(196,148,58,0.3)"}`,
+                    borderRadius: "8px",
+                    padding: "8px 18px",
+                    cursor: page === 1 ? "not-allowed" : "pointer",
+                    opacity: page === 1 ? 0.4 : 1,
+                    transition: "all 200ms ease",
+                  }}
+                >
+                  ← Previous
+                </button>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => {
+                    setPage((p) => Math.min(totalPages, p + 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  disabled={page === totalPages}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: page === totalPages ? "var(--color-text-tertiary)" : "var(--color-accent-amber)",
+                    background: "transparent",
+                    border: `1px solid ${page === totalPages ? "rgba(255,255,255,0.08)" : "rgba(196,148,58,0.3)"}`,
+                    borderRadius: "8px",
+                    padding: "8px 18px",
+                    cursor: page === totalPages ? "not-allowed" : "pointer",
+                    opacity: page === totalPages ? 0.4 : 1,
+                    transition: "all 200ms ease",
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
 
             {/* Blur Wall CTA */}
             {IS_FREE_USER && filteredBottles.length > FREE_VISIBLE_COUNT && (
