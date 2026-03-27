@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { X, Eye, EyeOff, Lock, MapPin } from "lucide-react";
 import Link from "next/link";
 import type { Bottle } from "@/data/bottles";
-import { dropHistory } from "@/data/bottles";
+import { dropHistory, BOTTLE_PRICING } from "@/data/bottles";
 import type { DropHistoryEntry } from "@/data/bottles";
 import { useState } from "react";
 import { useWatchlistStore } from "@/lib/watchlist";
@@ -53,7 +53,19 @@ export default function BottleDetail({
   const addToast = useToastStore((s) => s.addToast);
   const watching = isWatching(bottle.id);
   const tierColor = tierColors[bottle.tier];
-  const multiplier = getMultiplier(bottle);
+
+  // Cross-reference secondary pricing from static lookup if not in engine data
+  const pricingKey = bottle.name.toLowerCase();
+  const pricingData = BOTTLE_PRICING[pricingKey];
+  const resolvedSecondary = bottle.secondary || pricingData?.secondary || null;
+  const resolvedSecondaryLow = bottle.secondaryLow || pricingData?.secondaryLow;
+  const resolvedBottle = {
+    ...bottle,
+    secondary: resolvedSecondary || undefined,
+    secondaryLow: resolvedSecondaryLow,
+  };
+
+  const multiplier = getMultiplier(resolvedBottle);
   const history: DropHistoryEntry[] = dropHistory[bottle.id] || [];
   const mostRecentDrop = history.length > 0 ? history[0] : null;
 
@@ -232,49 +244,53 @@ export default function BottleDetail({
                 </p>
               </div>
 
-              {/* vs */}
-              <span
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  fontStyle: "italic",
-                  color: "var(--color-text-tertiary)",
-                  opacity: 0.6,
-                  alignSelf: "flex-end",
-                  marginBottom: "6px",
-                }}
-              >
-                vs
-              </span>
-
-              {/* Secondary */}
-              <div className="text-right">
-                <p
+              {/* vs — only show when secondary data exists */}
+              {resolvedSecondary && (
+                <span
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "9px",
-                    fontWeight: 600,
-                    letterSpacing: "0.12em",
-                    color: "var(--color-amber-rich)",
-                    textTransform: "uppercase",
+                    fontSize: "12px",
+                    fontStyle: "italic",
+                    color: "var(--color-text-tertiary)",
+                    opacity: 0.6,
+                    alignSelf: "flex-end",
                     marginBottom: "6px",
                   }}
                 >
-                  SECONDARY
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: "24px",
-                    fontWeight: 600,
-                    color: "var(--color-amber-rich)",
-                    filter: isFreeUser ? "blur(3px)" : "none",
-                    userSelect: isFreeUser ? "none" : "auto",
-                  }}
-                >
-                  {bottle.secondary || "N/A"}
-                </p>
-              </div>
+                  vs
+                </span>
+              )}
+
+              {/* Secondary */}
+              {resolvedSecondary && (
+                <div className="text-right">
+                  <p
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      letterSpacing: "0.12em",
+                      color: "var(--color-amber-rich)",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    SECONDARY
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "24px",
+                      fontWeight: 600,
+                      color: "var(--color-amber-rich)",
+                      filter: isFreeUser ? "blur(3px)" : "none",
+                      userSelect: isFreeUser ? "none" : "auto",
+                    }}
+                  >
+                    {resolvedSecondary}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Multiplier */}

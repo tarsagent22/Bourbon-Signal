@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { fadeUpVariant } from "@/lib/animations";
-import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { Bottle } from "@/data/bottles";
+import { BOTTLE_PRICING } from "@/data/bottles";
 import { formatRelativeTime } from "@/lib/drops";
+import { useWatchlistStore } from "@/lib/watchlist";
+import { useToastStore } from "@/lib/toast";
 
 interface BottleCardProps {
   bottle: Bottle;
@@ -34,21 +36,6 @@ function formatMsrp(msrp: number): string {
   return `$${msrp.toLocaleString()}`;
 }
 
-function getMultiplier(bottle: Bottle): number | null {
-  if (!bottle.secondaryLow || !bottle.msrp || bottle.msrp <= 0) return null;
-  const mult = Math.round(bottle.secondaryLow / bottle.msrp);
-  return mult >= 2 ? mult : null;
-}
-
-function getRarityInfo(avg?: number): { label: string; color: string } | null {
-  if (!avg) return null;
-  if (avg < 0.5) return { label: "Very rare", color: "#C4943A" };
-  if (avg < 1) return { label: "Rare", color: "#B87333" };
-  if (avg < 2) return { label: "Uncommon", color: "#8A8A8A" };
-  if (avg < 4) return { label: "Common", color: "var(--color-text-tertiary)" };
-  return { label: "Common", color: "var(--color-text-tertiary)" };
-}
-
 export default function BottleCard({
   bottle,
   onClick,
@@ -60,33 +47,46 @@ export default function BottleCard({
   lastSeenLocation,
 }: BottleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [showSignupHint, setShowSignupHint] = useState(false);
+  const { addBottle, removeBottle, isWatching } = useWatchlistStore();
+  const addToast = useToastStore((s) => s.addToast);
+  const watching = isWatching(bottle.id);
+
   const tierColor = tierBorderColors[bottle.tier];
-  const multiplier = getMultiplier(bottle);
-  const rarity = getRarityInfo(bottle.avgDropsPerMonth);
   const isUnicorn = bottle.tier === "unicorn";
-  const isAllocated = bottle.tier === "allocated";
   const isLimited = bottle.tier === "limited";
 
-  // Tier-specific backgrounds — unicorn gets subtle amber tint per spec
+  // Cross-reference secondary pricing from BOTTLE_PRICING lookup
+  const pricingKey = bottle.name.toLowerCase();
+  const pricingData = BOTTLE_PRICING[pricingKey];
+  // Prefer live bottle data if it has secondary, otherwise fall back to lookup
+  const secondaryString = bottle.secondary || pricingData?.secondary || null;
+
+  // Tier-specific backgrounds
   const cardBg = isUnicorn
     ? "rgba(196,148,58,0.03)"
     : "var(--color-card-bg)";
 
   // Tier-specific hover shadow
   const hoverShadow = isUnicorn
-    ? "0 0 40px rgba(196, 148, 58, 0.08), 0 12px 40px rgba(0, 0, 0, 0.3)"
-    : isAllocated
-      ? "0 12px 40px rgba(0, 0, 0, 0.3)"
-      : "0 8px 24px rgba(0, 0, 0, 0.2)";
+    ? "0 0 24px rgba(196, 148, 58, 0.06), 0 8px 24px rgba(0, 0, 0, 0.25)"
+    : "0 4px 16px rgba(0, 0, 0, 0.2)";
 
-  // Multiplier badge colors
-  const multiplierBg = isUnicorn
-    ? "#C4943A"
-    : isAllocated
-      ? "#B87333"
-      : "#8A8A8A";
-
-  const multiplierText = isUnicorn || isAllocated ? "#1A1510" : "#1A1510";
+  function handleWatchClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (isFreeUser) {
+      setShowSignupHint(true);
+      setTimeout(() => setShowSignupHint(false), 2000);
+      return;
+    }
+    if (watching) {
+      removeBottle(bottle.id);
+      addToast(`Removed ${bottle.name} from watchlist`, "bookmark-x");
+    } else {
+      addBottle(bottle.id);
+      addToast(`Added ${bottle.name} to watchlist`, "bookmark");
+    }
+  }
 
   return (
     <motion.div
@@ -96,38 +96,104 @@ export default function BottleCard({
       className="relative cursor-pointer"
       style={{
         background: cardBg,
-        borderRadius: "12px",
+        borderRadius: "10px",
         border: isHighlighted
           ? `2px solid var(--color-amber-rich)`
-          : `1px solid var(--color-card-border)`,
-        borderTop: `3px solid ${tierColor}`,
-        padding: "24px",
+          : `1px solid rgba(255,255,255,0.06)`,
+        borderTop: `2px solid ${tierColor}`,
+        padding: "14px",
         filter: isBlurred ? `blur(${blurAmount || 6}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
         opacity: isLimited ? 0.85 : 1,
         animation: isHighlighted ? "highlightPulse 2s ease" : undefined,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
       }}
       whileHover={{
-        y: -4,
+        y: -2,
         boxShadow: hoverShadow,
-        borderColor: "var(--color-card-border-hover)",
+        borderColor: "rgba(255,255,255,0.1)",
         transition: { type: "spring", stiffness: 300, damping: 20 },
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      {/* Header: Name + Tier Badge */}
-      <div className="flex items-start justify-between" style={{ marginBottom: "6px" }}>
+      {/* + Watchlist button — top right */}
+      <button
+        onClick={handleWatchClick}
+        title={isFreeUser ? "Sign up to use watchlist" : watching ? "Remove from watchlist" : "Add to watchlist"}
+        className="absolute cursor-pointer"
+        style={{
+          top: "8px",
+          right: "8px",
+          width: "24px",
+          height: "24px",
+          borderRadius: "50%",
+          border: watching
+            ? "1px solid rgba(196,148,58,0.7)"
+            : "1px solid rgba(196,148,58,0.4)",
+          background: watching
+            ? "rgba(196,148,58,0.2)"
+            : "transparent",
+          color: "var(--color-accent-amber)",
+          fontSize: "16px",
+          lineHeight: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          transition: "all 150ms ease",
+          zIndex: 2,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "rgba(196,148,58,0.18)";
+          e.currentTarget.style.borderColor = "rgba(196,148,58,0.8)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = watching ? "rgba(196,148,58,0.2)" : "transparent";
+          e.currentTarget.style.borderColor = watching ? "rgba(196,148,58,0.7)" : "rgba(196,148,58,0.4)";
+        }}
+      >
+        {watching ? "✓" : "+"}
+      </button>
+
+      {/* Signup hint tooltip */}
+      {showSignupHint && (
+        <div
+          className="absolute"
+          style={{
+            top: "36px",
+            right: "4px",
+            background: "var(--color-bg-secondary)",
+            border: "1px solid rgba(196,148,58,0.3)",
+            borderRadius: "6px",
+            padding: "6px 10px",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "var(--color-text-secondary)",
+            whiteSpace: "nowrap",
+            zIndex: 10,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+          }}
+        >
+          Sign up to use watchlist
+        </div>
+      )}
+
+      {/* Row 1: Name + Tier Badge */}
+      <div
+        className="flex items-center"
+        style={{ marginBottom: "6px", paddingRight: "32px" }}
+      >
         <h3
           style={{
             fontFamily: "var(--font-playfair)",
-            fontSize: "19px",
+            fontSize: "13px",
             fontWeight: 700,
             color: "var(--color-cream)",
             lineHeight: 1.3,
             flex: 1,
-            paddingRight: "12px",
+            paddingRight: "8px",
           }}
         >
           {bottle.name}
@@ -135,243 +201,147 @@ export default function BottleCard({
 
         {/* Tier Badge */}
         <span
-          className="flex items-center gap-1.5 shrink-0"
+          className="flex items-center gap-1 shrink-0"
           style={{
             background: "rgba(13, 11, 7, 0.6)",
-            backdropFilter: "blur(8px)",
             border: `1px solid ${
               bottle.tier === "unicorn"
-                ? "rgba(196,148,58,0.3)"
+                ? "rgba(196,148,58,0.25)"
                 : bottle.tier === "allocated"
-                  ? "rgba(184,115,51,0.3)"
-                  : "rgba(138,138,138,0.25)"
+                  ? "rgba(184,115,51,0.25)"
+                  : "rgba(138,138,138,0.2)"
             }`,
             borderRadius: "20px",
-            padding: "4px 10px",
+            padding: "2px 7px",
             fontFamily: "var(--font-dm-sans)",
-            fontSize: "10px",
+            fontSize: "9px",
             fontWeight: 600,
-            letterSpacing: "0.1em",
+            letterSpacing: "0.08em",
             color: tierColor,
           }}
         >
           <span
             style={{
-              width: "5px",
-              height: "5px",
+              width: "4px",
+              height: "4px",
               borderRadius: "50%",
               background: tierColor,
+              flexShrink: 0,
             }}
           />
           {tierLabels[bottle.tier]}
         </span>
       </div>
 
-      {/* Distillery */}
+      {/* Row 2: Distillery */}
       <p
         style={{
           fontFamily: "var(--font-dm-sans)",
-          fontSize: "12px",
+          fontSize: "11px",
           color: "var(--color-text-tertiary)",
-          marginBottom: "20px",
+          marginBottom: "10px",
+          lineHeight: 1.2,
         }}
       >
         {bottle.distillery}
       </p>
 
-      {/* Price Intelligence Block — dark inset */}
-      <div
-        style={{
-          background: "rgba(0, 0, 0, 0.25)",
-          borderRadius: "8px",
-          padding: "16px",
-          marginBottom: "16px",
-        }}
-      >
-        <div className="flex items-center justify-between">
-          {/* MSRP + vs + Secondary */}
-          <div className="flex items-center gap-3">
-            {/* MSRP */}
-            <div>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  color: "var(--color-text-tertiary)",
-                  textTransform: "uppercase",
-                  marginBottom: "4px",
-                }}
-              >
-                MSRP
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "20px",
-                  fontWeight: 600,
-                  color: "var(--color-cream)",
-                }}
-              >
-                {formatMsrp(bottle.msrp)}
-              </p>
-            </div>
-
-            {/* vs */}
-            <span
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "11px",
-                fontStyle: "italic",
-                color: "var(--color-text-tertiary)",
-                opacity: 0.6,
-                alignSelf: "flex-end",
-                marginBottom: "4px",
-              }}
-            >
-              vs
-            </span>
-
-            {/* Secondary */}
-            <div>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  color: "var(--color-amber-rich)",
-                  textTransform: "uppercase",
-                  marginBottom: "4px",
-                }}
-              >
-                SECONDARY
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "var(--color-amber-rich)",
-                  filter: isFreeUser ? "blur(3px)" : "none",
-                  userSelect: isFreeUser ? "none" : "auto",
-                }}
-              >
-                {bottle.secondary || "N/A"}
-              </p>
-            </div>
-          </div>
-
-          {/* MULTIPLIER BADGE — right-aligned, the star of the show */}
-          {multiplier && (
-            <span
-              style={{
-                fontFamily: "var(--font-jetbrains)",
-                fontSize: "18px",
-                fontWeight: 700,
-                color: multiplierText,
-                background: multiplierBg,
-                borderRadius: "20px",
-                padding: "6px 14px",
-                lineHeight: 1,
-                filter: isFreeUser ? "blur(3px)" : "none",
-                userSelect: isFreeUser ? "none" : "auto",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {multiplier}x
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Rarity + Drop Frequency */}
-      <div className="flex items-center gap-3" style={{ marginBottom: "16px" }}>
-        {rarity && (
+      {/* Row 3: Prices */}
+      <div className="flex items-baseline justify-between" style={{ marginBottom: "8px" }}>
+        <div>
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "15px",
+              fontWeight: 600,
+              color: "var(--color-cream)",
+            }}
+          >
+            {formatMsrp(bottle.msrp)}
+          </span>
           <span
             style={{
               fontFamily: "var(--font-dm-sans)",
-              fontSize: "11px",
-              fontWeight: 600,
-              color: rarity.color,
-              border: `1px solid ${rarity.color}`,
-              borderRadius: "10px",
-              padding: "2px 8px",
-              background: "rgba(0, 0, 0, 0.3)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+              marginLeft: "4px",
             }}
           >
-            {rarity.label}
+            MSRP
+          </span>
+        </div>
+
+        {secondaryString && (
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "11px",
+              color: "var(--color-text-tertiary)",
+              filter: isFreeUser ? "blur(3px)" : "none",
+              userSelect: isFreeUser ? "none" : "auto",
+            }}
+          >
+            {secondaryString}
           </span>
         )}
-        <span
-          style={{
-            fontFamily: "var(--font-jetbrains)",
-            fontSize: "11px",
-            color: "var(--color-text-tertiary)",
-          }}
-        >
-          {bottle.avgDropsPerMonth
-            ? `${bottle.avgDropsPerMonth} drops/mo`
-            : "No drop data"}
-        </span>
       </div>
 
-      {/* Last seen indicator — only if we have drop data */}
+      {/* Row 4: Last seen (if available) */}
       {lastSeenTimestamp && (
         <p
           style={{
             fontFamily: "var(--font-dm-sans)",
             fontSize: "11px",
-            color: "rgba(196,148,58,0.6)",
-            marginBottom: "10px",
+            color: "rgba(196,148,58,0.55)",
+            marginBottom: "6px",
           }}
         >
           Last seen: {formatRelativeTime(lastSeenTimestamp)}
-          {lastSeenLocation ? ` in ${lastSeenLocation}` : ""}
+          {lastSeenLocation ? ` · ${lastSeenLocation}` : ""}
         </p>
       )}
 
-      {/* Footer: Proof, Age, Arrow */}
+      {/* Row 5: Footer — proof, age */}
       <div
-        className="flex items-center justify-between pt-3"
+        className="flex items-center gap-3 pt-2"
         style={{
-          borderTop: "1px solid rgba(212, 146, 11, 0.08)",
+          borderTop: "1px solid rgba(255,255,255,0.04)",
         }}
       >
-        <div className="flex items-center gap-4">
-          {bottle.proof && (
-            <span
-              style={{
-                fontFamily: "var(--font-jetbrains)",
-                fontSize: "11px",
-                color: "var(--color-text-tertiary)",
-              }}
-            >
-              {bottle.proof}°
-            </span>
-          )}
-          {bottle.ageStatement && (
-            <span
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "11px",
-                color: "var(--color-text-tertiary)",
-              }}
-            >
-              {bottle.ageStatement}
-            </span>
-          )}
-        </div>
-        <motion.div
-          animate={{ rotate: isHovered ? 90 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        >
-          <ChevronRight
-            size={18}
-            style={{ color: "var(--color-text-secondary)" }}
-          />
-        </motion.div>
+        {bottle.proof && (
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            {bottle.proof}°
+          </span>
+        )}
+        {bottle.ageStatement && (
+          <span
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            {bottle.ageStatement}
+          </span>
+        )}
+        {bottle.avgDropsPerMonth && (
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "10px",
+              color: "var(--color-text-tertiary)",
+              marginLeft: "auto",
+            }}
+          >
+            {bottle.avgDropsPerMonth}/mo
+          </span>
+        )}
       </div>
     </motion.div>
   );
