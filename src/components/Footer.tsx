@@ -94,17 +94,7 @@ export default function Footer() {
         >
           Built by bourbon hunters, for bourbon hunters.
         </p>
-        <p
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "12px",
-            color: "var(--color-text-tertiary)",
-            textAlign: "center",
-            marginTop: "8px",
-          }}
-        >
-          Data sourced from state liquor control board public records
-        </p>
+
       </div>
     </footer>
   );

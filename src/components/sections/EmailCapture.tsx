@@ -38,20 +38,6 @@ export default function EmailCapture() {
         }}
       >
         <ScrollReveal>
-          {/* Eyebrow */}
-          <p
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "11px",
-              color: "var(--color-accent-amber)",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              marginBottom: "16px",
-            }}
-          >
-            Free Weekly Digest
-          </p>
-
           {/* Headline */}
           <h2
             style={{
@@ -64,8 +50,6 @@ export default function EmailCapture() {
               textAlign: "center",
             }}
           >
-            Not ready to commit?
-            <br />
             Get a free weekly drop digest.
           </h2>
 

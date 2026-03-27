@@ -210,3 +210,13 @@ body::after {
 .leaflet-container {
   background: #0D0B07 !important;
 }
+
+/* Member Preview — force 2×2 grid on desktop, single column on mobile */
+.member-preview-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .member-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

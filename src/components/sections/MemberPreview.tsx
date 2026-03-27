@@ -641,10 +641,7 @@ export default function MemberPreview() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid gap-5"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          }}
+          className="grid gap-5 member-preview-grid"
         >
           <FeatureCard caption="Real-time drop intel, unblurred">
             <MiniDropFeed />
