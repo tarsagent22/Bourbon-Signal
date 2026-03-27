@@ -1,19 +1,29 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import BottleGrid from "@/components/sections/BottleGrid";
-import { bottles } from "@/data/bottles";
+import { useBottles } from "@/hooks/useBottles";
 
 export default function BottlesPage() {
-  const tierCounts = {
+  const { bottles, loading } = useBottles();
+
+  const tierCounts = useMemo(() => ({
     unicorn: bottles.filter((b) => b.tier === "unicorn").length,
     allocated: bottles.filter((b) => b.tier === "allocated").length,
     limited: bottles.filter((b) => b.tier === "limited").length,
-  };
-  const totalTiers = Object.values(tierCounts).filter((c) => c > 0).length;
+  }), [bottles]);
+
+  const totalTiers = useMemo(
+    () => Object.values(tierCounts).filter((c) => c > 0).length,
+    [tierCounts]
+  );
+
+  const totalLabel = loading ? "--" : `${bottles.length}`;
+  const tiersLabel = loading ? "--" : `${totalTiers}`;
 
   return (
     <div
@@ -111,14 +121,14 @@ export default function BottlesPage() {
                 color: "var(--color-accent-amber)",
               }}
             >
-              Tracking {bottles.length}+ bottles across {totalTiers} tiers
+              Tracking {totalLabel}+ bottles across {tiersLabel} tiers
             </p>
           </ScrollReveal>
         </div>
       </section>
 
       {/* Grid Section */}
-      <BottleGrid />
+      <BottleGrid bottles={bottles} loading={loading} />
       </motion.div>
 
       <Footer />

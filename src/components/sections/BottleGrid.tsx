@@ -2,16 +2,15 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { staggerContainer } from "@/lib/animations";
-import { bottles as allBottles } from "@/data/bottles";
 import type { Bottle } from "@/data/bottles";
 import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 import { useAuth } from "@/lib/auth";
 import dropsData from "@/data/drops.json";
-import { getDisplayName, formatRelativeTime } from "@/lib/drops";
+import { getDisplayName } from "@/lib/drops";
 import type { DropEvent } from "@/lib/drops";
+
 const FREE_VISIBLE_COUNT = 6;
 
 // Build a lookup: normalized bottle name → most recent matching drop
@@ -79,7 +78,12 @@ function getBlurAmount(index: number): number {
   return 6;
 }
 
-export default function BottleGrid() {
+interface BottleGridProps {
+  bottles: Bottle[];
+  loading?: boolean;
+}
+
+export default function BottleGrid({ bottles: propBottles, loading = false }: BottleGridProps) {
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
   const [searchQuery, setSearchQuery] = useState("");
@@ -138,7 +142,7 @@ export default function BottleGrid() {
   }, []);
 
   const filteredBottles = useMemo(() => {
-    let result = allBottles;
+    let result = propBottles;
 
     if (activeTier !== "all") {
       result = result.filter((b) => b.tier === activeTier);
@@ -159,12 +163,34 @@ export default function BottleGrid() {
     }
 
     return sortBottles(result, sortBy);
-  }, [activeTier, searchQuery, sortBy]);
+  }, [propBottles, activeTier, searchQuery, sortBy, activeDistillery]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div
+        style={{
+          padding: "120px 0",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "15px",
+            color: "var(--color-text-tertiary)",
+          }}
+        >
+          Loading bottles...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
       <BottleFilterBar
-        bottles={allBottles}
+        bottles={propBottles}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         activeTier={activeTier}
@@ -315,7 +341,7 @@ export default function BottleGrid() {
                   }}
                 >
                   Access secondary market data, drop history, and watchlists
-                  for {allBottles.length}+ bottles
+                  for {propBottles.length}+ bottles
                 </p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <a
