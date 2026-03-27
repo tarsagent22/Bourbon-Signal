@@ -18,17 +18,17 @@ const steps: StepData[] = [
   },
   {
     number: "02",
-    description: "The moment a bottle you care about hits a store shelf, you get a text and email.",
-    flavor: "You get alerted instantly",
+    description: "Track the moment a bottle you care about appears in the system — updated every 15 to 30 minutes.",
+    flavor: "You see it first",
   },
   {
     number: "03",
-    description: "Our map shows you which store has it, how many bottles, and how far away it is.",
+    description: "Our map shows you which store has it and how many bottles are available.",
     flavor: "See exactly where to go",
   },
   {
     number: "04",
-    description: "Show up before the crowd. Members have found Pappy, Blanton's, and Weller within minutes of an alert.",
+    description: "Move before the crowd. When allocated bottles like Pappy, Blanton's, or Weller hit a shelf, minutes matter.",
     flavor: "You grab the bottle",
   },
 ];
@@ -559,14 +559,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
         }}>
           <SightGlass number={step.number} index={index} />
         </div>
-        {/* Solid connector to step text */}
-        <div style={{
-          position: "absolute", top: "50%", left: VB_W,
-          width: 28, height: 1,
-          background: isInView ? "rgba(196,148,58,0.4)" : "rgba(58,53,48,0.15)",
-          transition: "background 0.5s ease",
-          transform: "translateY(-50%)",
-        }} />
+
       </div>
       <div style={{ flex: 1, paddingLeft: 28 }}>
         <StepText step={step} index={index} />
