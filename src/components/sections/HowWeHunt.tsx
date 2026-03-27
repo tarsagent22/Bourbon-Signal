@@ -13,23 +13,23 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    description: "We monitor 10 ABC boards across NC & VA — warehouse shipments, store inventory, allocation lists, and distribution networks — updated every 15 to 30 minutes.",
-    flavor: "Proprietary sourcing across every major channel",
+    description: "Every 15–30 minutes, we check warehouse shipments, store inventories, and allocation lists across NC and VA.",
+    flavor: "We scan state databases",
   },
   {
     number: "02",
-    description: "Our system filters thousands of data points to surface only confirmed allocations and verified drops",
-    flavor: "A special formulation — tuned to catch what others miss",
+    description: "The moment a bottle you care about hits a store shelf, you get a text and email.",
+    flavor: "You get alerted instantly",
   },
   {
     number: "03",
-    description: "Every drop is tagged by bottle, tier, store location, and county before it reaches you",
-    flavor: "Organized, searchable, and mapped to your watchlist",
+    description: "Our map shows you which store has it, how many bottles, and how far away it is.",
+    flavor: "See exactly where to go",
   },
   {
     number: "04",
-    description: "Instant alerts via SMS and email hit your phone the moment a bottle you're watching lands on a shelf. Most alerts fire within minutes of the data updating.",
-    flavor: "Seconds matter — you'll know before the crowd",
+    description: "Show up before the crowd. Members have found Pappy, Blanton's, and Weller within minutes of an alert.",
+    flavor: "You grab the bottle",
   },
 ];
 

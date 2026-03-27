@@ -10,7 +10,6 @@ import Footer from "@/components/Footer";
 import StateSelector from "@/components/StateSelector";
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
-import MemberPreview from "@/components/sections/MemberPreview";
 import PricingSection from "@/components/sections/PricingSection";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
@@ -76,17 +75,13 @@ export default function Home() {
           <StateSelector />
         </div>
         <DropFeed />
-        {/* DropFeed (primary) → MemberPreview (tertiary) */}
-        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />
-        <MemberPreview />
-        {/* MemberPreview (tertiary) → PricingSection (primary) */}
+        {/* DropFeed (warm) → HowWeHunt (tertiary) */}
+        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-tertiary) 100%)" }} />
+        <HowWeHunt />
+        {/* HowWeHunt (tertiary) → PricingSection (primary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />
         <PricingSection />
-        {/* PricingSection (primary) → HowWeHunt (tertiary) */}
-        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%)" }} />
-        <HowWeHunt />
-        {/* HowWeHunt (tertiary) → FAQ (primary) */}
-        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />
+        {/* PricingSection (primary) → FAQ (primary) — no transition needed, same bg */}
         <FAQ />
         {/* FAQ (primary) → EmailCapture (secondary) */}
         <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%)" }} />

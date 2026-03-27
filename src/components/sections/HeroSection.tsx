@@ -104,6 +104,15 @@ export default function HeroSection() {
             <a href="/pricing" style={{ textDecoration: "none" }}>
               <Button variant="primary">Become a Founding Member</Button>
             </a>
+            <p style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "var(--color-text-tertiary)",
+              letterSpacing: "0.08em",
+              marginTop: "8px",
+            }}>
+              Currently tracking NC &amp; VA · PA and Utah coming soon
+            </p>
           </div>
         </ScrollReveal>
 

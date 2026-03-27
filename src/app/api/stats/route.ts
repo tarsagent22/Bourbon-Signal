@@ -5,7 +5,7 @@ const ENGINE_URL = "https://engine.proofhunt.co/stats";
 export async function GET() {
   try {
     const res = await fetch(ENGINE_URL, {
-      cache: "no-store",
+      next: { revalidate: 60 },
       headers: { "User-Agent": "proofhunt-web/1.0" },
     });
 
@@ -16,7 +16,7 @@ export async function GET() {
     const data = await res.json();
 
     return NextResponse.json(data, {
-      headers: { "Cache-Control": "no-store" },
+      headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" },
     });
   } catch (err) {
     console.error("[api/stats] Error fetching from engine:", err);

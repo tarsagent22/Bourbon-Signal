@@ -466,20 +466,7 @@ export default function DropFeed() {
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
-  const [hasInitedFilter, setHasInitedFilter] = useState(false);
-  const [selectedState, setSelectedState] = useState<string>("All");
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
-
-  // Default the state filter based on user preferences
-  useEffect(() => {
-    if (hasInitedFilter) return;
-    if (hasSelectedStates && preferredStates.length === 1) {
-      setSelectedState(preferredStates[0]);
-      setHasInitedFilter(true);
-    } else {
-      setHasInitedFilter(true);
-    }
-  }, [hasSelectedStates, preferredStates, hasInitedFilter]);
 
   const fetchDrops = useCallback(async () => {
     try {
@@ -526,11 +513,8 @@ export default function DropFeed() {
 
   // Apply state and tier filters
   const filteredGrouped = grouped.filter((drop) => {
-    // Explicit single-state filter takes priority
-    if (selectedState !== "All") {
-      if (drop.state !== selectedState) return false;
-    } else if (hasSelectedStates && preferredStates.length > 0) {
-      // "All" is selected but user has preferences — show only preferred states
+    // State filtering via Zustand store (set by StateSelector above)
+    if (hasSelectedStates && preferredStates.length > 0) {
       if (drop.state && !preferredStates.includes(drop.state)) return false;
     }
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
@@ -598,41 +582,11 @@ export default function DropFeed() {
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
 
-          {/* Filters row: State toggle + Tier filter pills */}
+          {/* Filters row: Tier filter pills */}
           <div
             className="flex items-center flex-wrap gap-2"
             style={{ paddingBottom: "16px" }}
           >
-            {/* State filter toggle */}
-            {(["All", "NC", "VA"] as const).map((state) => {
-              const isActive = selectedState === state;
-              return (
-                <button
-                  key={state}
-                  onClick={() => setSelectedState(state)}
-                  style={{
-                    background: isActive ? "rgba(196,148,58,0.18)" : "rgba(245,237,214,0.05)",
-                    color: isActive ? "var(--color-accent-amber)" : "rgba(245,237,214,0.45)",
-                    border: isActive ? "1px solid rgba(196,148,58,0.55)" : "1px solid rgba(245,237,214,0.1)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    whiteSpace: "nowrap" as const,
-                    cursor: "pointer",
-                    transition: "background 150ms, color 150ms, border-color 150ms",
-                  }}
-                >
-                  {state}
-                </button>
-              );
-            })}
-
-            {/* Divider dot */}
-            <span style={{ color: "rgba(245,237,214,0.15)", fontSize: "12px", userSelect: "none" }}>·</span>
-
             {/* Tier filter pills */}
             {[
               { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
