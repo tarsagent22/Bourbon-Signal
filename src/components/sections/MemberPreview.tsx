@@ -294,7 +294,7 @@ function MiniSmsAlert() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "10px", fontWeight: 600, color: "var(--color-text-primary)" }}>
-            ProofHunt
+            Proof
           </div>
           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "8px", color: "rgba(255,255,255,0.4)" }}>
             iMessage
@@ -497,7 +497,7 @@ function MiniEmailInbox() {
                   flexShrink: 0,
                 }}
               >
-                ProofHunt Alerts
+                Proof Alerts
               </span>
               <span
                 style={{

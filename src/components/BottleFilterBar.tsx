@@ -13,6 +13,8 @@ interface BottleFilterBarProps {
   onTierChange: (tier: string) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
+  activeDistillery?: string;
+  onDistilleryChange?: (distillery: string) => void;
 }
 
 const sortOptions = [
@@ -30,6 +32,8 @@ export default function BottleFilterBar({
   onTierChange,
   sortBy,
   onSortChange,
+  activeDistillery = "all",
+  onDistilleryChange,
 }: BottleFilterBarProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [sortOpen, setSortOpen] = useState(false);
@@ -77,6 +81,9 @@ export default function BottleFilterBar({
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  // Build sorted unique distillery list
+  const distilleries = Array.from(new Set(bottles.map((b) => b.distillery).filter(Boolean))).sort();
 
   const tierCounts = {
     all: bottles.length,
@@ -159,7 +166,7 @@ export default function BottleFilterBar({
             />
           </div>
 
-          {/* Tier Pills + Sort */}
+          {/* Tier Pills + Distillery + Sort */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             {/* Tier Pills */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -193,6 +200,35 @@ export default function BottleFilterBar({
                 );
               })}
             </div>
+
+            {/* Distillery Dropdown + Sort */}
+            <div className="flex items-center gap-2">
+              {onDistilleryChange && distilleries.length > 0 && (
+                <select
+                  value={activeDistillery}
+                  onChange={(e) => onDistilleryChange(e.target.value)}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: activeDistillery !== "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                    background: "rgba(36, 30, 25, 0.6)",
+                    border: activeDistillery !== "all"
+                      ? "1px solid rgba(196,148,58,0.4)"
+                      : "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "20px",
+                    padding: "6px 14px",
+                    outline: "none",
+                    cursor: "pointer",
+                    maxWidth: "180px",
+                  }}
+                >
+                  <option value="all">All Distilleries</option>
+                  {distilleries.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              )}
 
             {/* Sort Dropdown */}
             <div className="relative" ref={sortRef}>
@@ -281,6 +317,7 @@ export default function BottleFilterBar({
                 )}
               </AnimatePresence>
             </div>
+            </div>{/* end Distillery + Sort flex wrapper */}
           </div>
         </div>
       </div>

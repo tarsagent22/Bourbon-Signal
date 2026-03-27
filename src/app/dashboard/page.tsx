@@ -186,23 +186,64 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        {/* Section 1: Greeting + Stats */}
-        <div style={{ opacity: loading ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
-        <ScrollReveal delay={0}>
-          <DashboardStats drops={drops} />
-        </ScrollReveal>
-
-        {/* Data Freshness */}
+        {/* Live Data Banner */}
         <div
           style={{
             maxWidth: 1200,
             margin: "0 auto",
             padding: "0 clamp(20px, 5vw, 48px)",
-            marginTop: "12px",
+            marginBottom: "16px",
           }}
         >
-          {lastUpdated && <DataFreshness lastUpdated={lastUpdated} />}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "rgba(34, 197, 94, 0.06)",
+              border: "1px solid rgba(34, 197, 94, 0.15)",
+              borderRadius: "8px",
+              padding: "8px 14px",
+              gap: "12px",
+            }}
+          >
+            {/* Left: pulse dot + label */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  background: "rgba(34, 197, 94, 0.9)",
+                  boxShadow: "0 0 6px rgba(34, 197, 94, 0.6)",
+                  animation: "livePulse 2s ease-in-out infinite",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "rgba(34, 197, 94, 0.85)",
+                }}
+              >
+                Live Data
+              </span>
+            </div>
+            {/* Right: DataFreshness timestamp */}
+            {lastUpdated && <DataFreshness lastUpdated={lastUpdated} />}
+          </div>
         </div>
+
+        {/* Section 1: Greeting + Stats */}
+        <div style={{ opacity: loading ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
+        <ScrollReveal delay={0}>
+          <DashboardStats drops={drops} />
+        </ScrollReveal>
 
         {/* Quick Actions Row */}
         <div

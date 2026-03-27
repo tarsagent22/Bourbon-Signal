@@ -60,7 +60,7 @@ export default function PricingCards() {
                 border: "1px solid #2A2520",
                 borderRadius: "16px",
                 padding: "36px",
-                paddingTop: "65px",
+                paddingTop: "36px",
               }}
               whileHover={{
                 y: -3,
@@ -68,6 +68,26 @@ export default function PricingCards() {
                 transition: { duration: 0.3 },
               }}
             >
+              {/* Free trial badge */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "10px",
+                    fontVariant: "small-caps",
+                    letterSpacing: "0.12em",
+                    color: "var(--color-accent-amber)",
+                    background: "rgba(196,148,58,0.08)",
+                    border: "1px solid rgba(196,148,58,0.4)",
+                    borderRadius: "20px",
+                    padding: "4px 12px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  7-day free trial
+                </span>
+              </div>
+
               {/* Tier label */}
               <p
                 style={{
@@ -183,7 +203,7 @@ export default function PricingCards() {
                     e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
-                  Start Hunting — $10/mo
+                  Start Free Trial
                 </button>
                 <p
                   className="text-center"
@@ -194,7 +214,7 @@ export default function PricingCards() {
                     marginTop: "10px",
                   }}
                 >
-                  Cancel anytime · No contracts · Instant access
+                  7 days free · Cancel anytime · No card required
                 </p>
               </div>
             </motion.div>

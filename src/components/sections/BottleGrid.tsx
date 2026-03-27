@@ -84,6 +84,7 @@ export default function BottleGrid() {
   const IS_FREE_USER = !isSignedIn;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTier, setActiveTier] = useState("all");
+  const [activeDistillery, setActiveDistillery] = useState("all");
   const [sortBy, setSortBy] = useState("secondary");
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -143,6 +144,10 @@ export default function BottleGrid() {
       result = result.filter((b) => b.tier === activeTier);
     }
 
+    if (activeDistillery !== "all") {
+      result = result.filter((b) => b.distillery === activeDistillery);
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -166,6 +171,8 @@ export default function BottleGrid() {
         onTierChange={setActiveTier}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        activeDistillery={activeDistillery}
+        onDistilleryChange={setActiveDistillery}
       />
 
       <div
@@ -201,6 +208,7 @@ export default function BottleGrid() {
               onClick={() => {
                 setSearchQuery("");
                 setActiveTier("all");
+                setActiveDistillery("all");
                 setSortBy("secondary");
               }}
               style={{
