@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import ScrollReveal from "../ScrollReveal";
 
 interface FeatureRow {
@@ -126,14 +125,6 @@ function FreePill({ active }: { active: boolean }) {
 }
 
 export default function FeatureComparison() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   let rowIndex = 0;
 
@@ -149,7 +140,7 @@ export default function FeatureComparison() {
         style={{
           maxWidth: 1000,
           margin: "0 auto",
-          padding: "0 clamp(20px, 5vw, 48px)",
+          padding: "0 clamp(12px, 3vw, 48px)",
         }}
       >
         <ScrollReveal>
@@ -175,102 +166,100 @@ export default function FeatureComparison() {
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            {/* Column headers — desktop only */}
-            {!isMobile && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 120px 120px 140px",
-                  padding: "16px 24px",
-                  background: "rgba(255,255,255,0.03)",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <span />
-                {/* Free column header */}
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "rgba(245,237,214,0.35)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}
-                  >
-                    Free
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      color: "rgba(245,237,214,0.25)",
-                      marginTop: "2px",
-                    }}
-                  >
-                    $0
-                  </div>
+            {/* Column headers — always visible */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 60px 70px 80px",
+                padding: "16px clamp(12px, 3vw, 24px)",
+                background: "rgba(255,255,255,0.03)",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <span />
+              {/* Free column header */}
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "clamp(9px, 2vw, 12px)",
+                    fontWeight: 600,
+                    color: "rgba(245,237,214,0.35)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  Free
                 </div>
-                {/* Standard column header */}
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "rgba(245,237,214,0.5)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}
-                  >
-                    Standard
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      color: "rgba(245,237,214,0.35)",
-                      marginTop: "2px",
-                    }}
-                  >
-                    $10/mo
-                  </div>
-                </div>
-                {/* Bottled in Bond column header */}
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "var(--color-amber-rich)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}
-                  >
-                    Bottled in Bond
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      color: "rgba(196,148,58,0.6)",
-                      marginTop: "2px",
-                    }}
-                  >
-                    $69 lifetime
-                  </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-jetbrains)",
+                    fontSize: "clamp(9px, 1.8vw, 11px)",
+                    color: "rgba(245,237,214,0.25)",
+                    marginTop: "2px",
+                  }}
+                >
+                  $0
                 </div>
               </div>
-            )}
+              {/* Standard column header */}
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "clamp(9px, 2vw, 12px)",
+                    fontWeight: 600,
+                    color: "rgba(245,237,214,0.5)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  Standard
+                </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-jetbrains)",
+                    fontSize: "clamp(9px, 1.8vw, 11px)",
+                    color: "rgba(245,237,214,0.35)",
+                    marginTop: "2px",
+                  }}
+                >
+                  $10/mo
+                </div>
+              </div>
+              {/* Bottled in Bond column header */}
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "clamp(9px, 2vw, 12px)",
+                    fontWeight: 600,
+                    color: "var(--color-amber-rich)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  BiB
+                </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-jetbrains)",
+                    fontSize: "clamp(9px, 1.8vw, 11px)",
+                    color: "rgba(196,148,58,0.6)",
+                    marginTop: "2px",
+                  }}
+                >
+                  $69
+                </div>
+              </div>
+            </div>
 
             {categories.map((category) => (
               <div key={category.label}>
                 {/* Category header */}
                 <div
                   style={{
-                    padding: isMobile ? "14px 20px" : "14px 24px",
+                    padding: "14px clamp(12px, 3vw, 24px)",
                     borderBottom: "1px solid rgba(196,148,58,0.12)",
                     background: category.isExclusive
                       ? "rgba(196,148,58,0.04)"
@@ -291,7 +280,7 @@ export default function FeatureComparison() {
                   </span>
                 </div>
 
-                {/* Feature rows */}
+                {/* Feature rows — same grid layout on all screen sizes */}
                 {category.features.map((feature) => {
                   const isEven = rowIndex % 2 === 0;
                   rowIndex++;
@@ -299,44 +288,13 @@ export default function FeatureComparison() {
                     ? "rgba(196,148,58,0.03)"
                     : "transparent";
 
-                  if (isMobile) {
-                    return (
-                      <div
-                        key={feature.name}
-                        style={{
-                          padding: "12px 20px",
-                          background: isEven
-                            ? `rgba(255,255,255,0.02)`
-                            : warmBg,
-                          borderBottom: "1px solid rgba(255,255,255,0.03)",
-                        }}
-                      >
-                        <p
-                          style={{
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "13px",
-                            color: "var(--color-text-secondary)",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          {feature.name}
-                        </p>
-                        <div className="flex gap-2 flex-wrap">
-                          <FreePill active={feature.free} />
-                          <Pill active={feature.standard} label="Standard" />
-                          <Pill active={feature.bib} label="BiB" />
-                        </div>
-                      </div>
-                    );
-                  }
-
                   return (
                     <div
                       key={feature.name}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 120px 120px 140px",
-                        padding: "12px 24px",
+                        gridTemplateColumns: "1fr 60px 70px 80px",
+                        padding: "12px clamp(12px, 3vw, 24px)",
                         alignItems: "center",
                         background: isEven
                           ? "rgba(255,255,255,0.02)"
@@ -347,7 +305,7 @@ export default function FeatureComparison() {
                       <span
                         style={{
                           fontFamily: "var(--font-dm-sans)",
-                          fontSize: "13px",
+                          fontSize: "clamp(11px, 2.5vw, 13px)",
                           color: "var(--color-text-secondary)",
                         }}
                       >
