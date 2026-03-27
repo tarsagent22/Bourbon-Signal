@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
+import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 
 const standardFeatures = [
   "Instant drop alerts — email + SMS",
@@ -86,7 +87,7 @@ export default function PricingCards() {
                 <span
                   style={{
                     fontFamily: "var(--font-playfair)",
-                    fontSize: "clamp(44px, 6vw, 56px)",
+                    fontSize: "56px",
                     fontWeight: 700,
                     color: "var(--color-cream)",
                   }}
@@ -154,33 +155,47 @@ export default function PricingCards() {
                 ))}
               </div>
 
-              {/* CTA */}
+              {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
                 <button
                   style={{
+                    display: "block",
                     width: "100%",
+                    boxSizing: "border-box",
                     cursor: "pointer",
-                    background: "transparent",
-                    border: "1px solid rgba(196,148,58,0.35)",
-                    color: "rgba(196,148,58,0.8)",
+                    background: "rgba(196,148,58,0.08)",
+                    border: "1px solid rgba(196,148,58,0.4)",
+                    color: "rgba(196,148,58,0.9)",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "14px",
                     fontWeight: 500,
                     padding: "13px",
                     borderRadius: "10px",
                     transition: "border-color 200ms, background 200ms, color 200ms",
+                    textAlign: "center",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--color-amber-rich)";
-                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.35)";
-                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
                   Start Hunting — $10/mo
                 </button>
+                <p
+                  className="text-center"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "12px",
+                    color: "rgba(245,237,214,0.35)",
+                    marginTop: "10px",
+                  }}
+                >
+                  Cancel anytime · No contracts · Instant access
+                </p>
               </div>
             </motion.div>
           </motion.div>
@@ -189,31 +204,8 @@ export default function PricingCards() {
           <motion.div
             variants={fadeUpVariant}
             className="order-1 md:order-2"
-            style={{ flex: 1, display: "flex", position: "relative" }}
+            style={{ flex: 1, display: "flex" }}
           >
-            {/* Founding Member badge — overlapping top edge */}
-            <div
-              style={{
-                position: "absolute",
-                top: "-14px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 2,
-                background: "linear-gradient(135deg, #C4943A, #E8C170)",
-                color: "#1A1510",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "10px",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
-                padding: "6px 16px",
-                borderRadius: "4px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Founding Member
-            </div>
-
             <motion.div
               style={{
                 display: "flex",
@@ -222,8 +214,8 @@ export default function PricingCards() {
                 background: "rgba(196,148,58,0.06)",
                 border: "2px solid var(--color-amber-rich)",
                 borderRadius: "16px",
-                padding: "36px",
-                paddingTop: "36px",
+                overflow: "hidden",
+                padding: 0,
                 boxShadow:
                   "0 0 60px rgba(196,148,58,0.12), 0 0 120px rgba(196,148,58,0.06)",
                 animation: "borderPulse 3s ease infinite",
@@ -235,6 +227,27 @@ export default function PricingCards() {
                 transition: { duration: 0.3 },
               }}
             >
+              {/* Founding Member ribbon — full width strip inside card */}
+              <div
+                style={{
+                  width: "100%",
+                  backgroundColor: "var(--color-amber-rich)",
+                  color: "#0D0B07",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "8px 0",
+                  textAlign: "center",
+                }}
+              >
+                Founding Member
+              </div>
+
+              {/* Card content */}
+              <div style={{ padding: "36px", display: "flex", flexDirection: "column" as const, flex: 1 }}>
+
               {/* Tier label */}
               <p
                 style={{
@@ -244,7 +257,6 @@ export default function PricingCards() {
                   letterSpacing: "0.15em",
                   color: "var(--color-amber-rich)",
                   marginBottom: "8px",
-                  marginTop: "12px",
                 }}
               >
                 BOTTLED IN BOND
@@ -255,7 +267,7 @@ export default function PricingCards() {
                 <span
                   style={{
                     fontFamily: "var(--font-playfair)",
-                    fontSize: "clamp(48px, 7vw, 64px)",
+                    fontSize: "64px",
                     fontWeight: 700,
                     color: "var(--color-amber-rich)",
                   }}
@@ -300,40 +312,11 @@ export default function PricingCards() {
 
               {/* Scarcity progress bar */}
               <div style={{ marginTop: "16px", marginBottom: "4px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "11px",
-                      color: "rgba(245,237,214,0.5)",
-                    }}
-                  >
-                    Founding spots remaining
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      color: "var(--color-amber-rich)",
-                    }}
-                  >
-                    100 / 100
-                  </span>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "rgba(245,237,214,0.5)" }}>Founding spots remaining</span>
+                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-amber-rich)" }}>{FOUNDING_SPOTS_REMAINING} / 100</span>
                 </div>
-                <div
-                  style={{
-                    width: "100%",
-                    height: "4px",
-                    backgroundColor: "rgba(255,255,255,0.08)",
-                    borderRadius: "2px",
-                  }}
-                >
+                <div style={{ width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
                   <motion.div
                     style={{
                       height: "4px",
@@ -344,7 +327,7 @@ export default function PricingCards() {
                       animation: "barPulse 2s ease infinite",
                     }}
                     initial={{ width: "0%" }}
-                    whileInView={{ width: "100%" }}
+                    whileInView={{ width: `${100 - FOUNDING_SPOTS_REMAINING}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 1.2, ease: "easeOut" }}
                   />
@@ -352,18 +335,8 @@ export default function PricingCards() {
               </div>
 
               {/* All Standard features line */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  marginBottom: "8px",
-                  marginTop: "16px",
-                }}
-              >
-                <span style={{ color: "var(--color-amber-rich)", fontSize: "16px" }}>
-                  ✓
-                </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", marginTop: "16px" }}>
+                <span style={{ color: "var(--color-amber-rich)", fontSize: "16px" }}>✓</span>
                 <span
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -397,7 +370,7 @@ export default function PricingCards() {
                     textTransform: "uppercase",
                     letterSpacing: "0.15em",
                     color: "rgba(196,148,58,0.5)",
-                    background: "rgba(196,148,58,0.06)",
+                    background: "var(--color-bg-secondary)",
                     padding: "0 12px",
                   }}
                 >
@@ -444,8 +417,9 @@ export default function PricingCards() {
                 ))}
               </div>
 
-              {/* CTA */}
+              {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
+                {/* Social proof — sits right above button */}
                 <p
                   className="text-center"
                   style={{
@@ -457,14 +431,15 @@ export default function PricingCards() {
                     marginBottom: "14px",
                   }}
                 >
-                  Become the first founding member.
+                  Join the founding 100.
                 </p>
                 <button
                   style={{
+                    display: "block",
                     width: "100%",
+                    boxSizing: "border-box",
                     cursor: "pointer",
-                    background:
-                      "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                     color: "#1A1510",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "16px",
@@ -474,15 +449,14 @@ export default function PricingCards() {
                     borderRadius: "10px",
                     boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
                     transition: "box-shadow 300ms, transform 300ms",
+                    textAlign: "center",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 30px rgba(196,148,58,0.5)";
+                    e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 20px rgba(196,148,58,0.3)";
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
@@ -502,6 +476,7 @@ export default function PricingCards() {
               >
                 Secure checkout · Lifetime access · Never pay again
               </p>
+              </div>{/* end card content */}
             </motion.div>
           </motion.div>
         </motion.div>
