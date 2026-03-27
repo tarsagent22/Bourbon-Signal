@@ -14,6 +14,7 @@ import DataFreshness from "@/components/DataFreshness";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { groupDrops, type DropEvent } from "@/lib/drops";
 import { useAuth } from "@/lib/auth";
+import { useStatePreferences } from "@/lib/statePreferences";
 
 const DashboardMiniMap = dynamic(() => import("@/components/DashboardMiniMap"), {
   ssr: false,
@@ -27,6 +28,7 @@ interface QuickAction {
 
 export default function DashboardPage() {
   const { isSignedIn, signIn } = useAuth();
+  const { selectedStates, hasSelectedStates } = useStatePreferences();
   const [mounted, setMounted] = useState(false);
   const [feedFilter, setFeedFilter] = useState("all");
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
@@ -61,7 +63,13 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const grouped = useMemo(() => groupDrops(drops, 50), [drops]);
+  // Filter drops by state preferences
+  const stateFilteredDrops = useMemo(() => {
+    if (!hasSelectedStates || selectedStates.length === 0) return drops;
+    return drops.filter((d) => !d.state || selectedStates.includes(d.state));
+  }, [drops, selectedStates, hasSelectedStates]);
+
+  const grouped = useMemo(() => groupDrops(stateFilteredDrops, 50), [stateFilteredDrops]);
 
   const scrollToFeed = useCallback(() => {
     feedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -231,7 +239,9 @@ export default function DashboardPage() {
                   color: "rgba(34, 197, 94, 0.85)",
                 }}
               >
-                Live Data
+                Live Data{hasSelectedStates && selectedStates.length > 0
+                  ? ` — ${selectedStates.join(" & ")}`
+                  : ""}
               </span>
             </div>
             {/* Right: DataFreshness timestamp */}
@@ -242,7 +252,7 @@ export default function DashboardPage() {
         {/* Section 1: Greeting + Stats */}
         <div style={{ opacity: loading ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
         <ScrollReveal delay={0}>
-          <DashboardStats drops={drops} />
+          <DashboardStats drops={stateFilteredDrops} />
         </ScrollReveal>
 
         {/* Quick Actions Row */}
@@ -287,14 +297,14 @@ export default function DashboardPage() {
             >
               <DashboardFeed
                 drops={grouped}
-                allDrops={drops}
+                allDrops={stateFilteredDrops}
                 feedFilter={feedFilter}
                 onFilterChange={setFeedFilter}
                 selectedCounties={selectedCounties}
                 onCountyToggle={handleCountyToggle}
                 total={total}
               />
-              <DashboardSidebar drops={drops} miniMap={<DashboardMiniMap />} />
+              <DashboardSidebar drops={stateFilteredDrops} miniMap={<DashboardMiniMap />} />
             </div>
           </ScrollReveal>
         </div>

@@ -7,6 +7,7 @@ import BottleCard from "@/components/BottleCard";
 import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 import { useAuth } from "@/lib/auth";
+import { useStatePreferences } from "@/lib/statePreferences";
 import dropsData from "@/data/drops.json";
 import { getDisplayName } from "@/lib/drops";
 import type { DropEvent } from "@/lib/drops";
@@ -88,6 +89,7 @@ interface BottleGridProps {
 export default function BottleGrid({ bottles: propBottles, loading = false }: BottleGridProps) {
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
+  const { selectedStates, hasSelectedStates } = useStatePreferences();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTier, setActiveTier] = useState("all");
   const [activeDistillery, setActiveDistillery] = useState("all");
@@ -150,8 +152,16 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
     setSearchQuery(query);
   }, []);
 
+  // Filter bottles by state preferences first
+  const stateFilteredBottles = useMemo(() => {
+    if (!hasSelectedStates || selectedStates.length === 0) return propBottles;
+    return propBottles.filter(
+      (b) => !b.state || selectedStates.includes(b.state)
+    );
+  }, [propBottles, selectedStates, hasSelectedStates]);
+
   const filteredBottles = useMemo(() => {
-    let result = propBottles;
+    let result = stateFilteredBottles;
 
     if (activeTier !== "all") {
       result = result.filter((b) => b.tier === activeTier);
@@ -172,7 +182,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
     }
 
     return sortBottles(result, sortBy);
-  }, [propBottles, activeTier, searchQuery, sortBy, activeDistillery]);
+  }, [stateFilteredBottles, activeTier, searchQuery, sortBy, activeDistillery]);
 
   // Pagination
   const totalPages = Math.ceil(filteredBottles.length / ITEMS_PER_PAGE);
@@ -223,6 +233,46 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
           padding: "32px clamp(20px, 5vw, 48px) 40px",
         }}
       >
+        {/* State filter indicator */}
+        {hasSelectedStates && selectedStates.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              marginBottom: "20px",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                color: "var(--color-text-tertiary)",
+              }}
+            >
+              Showing bottles from
+            </span>
+            {selectedStates.map((s) => (
+              <span
+                key={s}
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  color: "var(--color-accent-amber)",
+                  background: "rgba(196, 148, 58, 0.1)",
+                  border: "1px solid rgba(196, 148, 58, 0.2)",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                }}
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
         {filteredBottles.length === 0 ? (
           <div style={{ padding: "80px 0", textAlign: "center" }}>
             <p

@@ -7,6 +7,7 @@ import DataFreshness from "@/components/DataFreshness";
 import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import StateSelector from "@/components/StateSelector";
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
 import MemberPreview from "@/components/sections/MemberPreview";
@@ -57,6 +58,7 @@ export default function Home() {
   return (
     <>
       <Navigation />
+      <StateSelector />
       <motion.main
         className="overflow-x-hidden"
         initial={{ opacity: 0, y: 12 }}

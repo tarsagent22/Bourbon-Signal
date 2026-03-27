@@ -11,6 +11,7 @@ export interface Bottle {
   flavor?: string[];
   avgDropsPerMonth?: number;
   lastSeen?: string;
+  state?: string;
 }
 
 export interface BottlePricing {

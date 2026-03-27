@@ -16,6 +16,7 @@ import {
   MULTIPLIER_COLORS,
 } from "@/lib/drops";
 import DataFreshness from "@/components/DataFreshness";
+import { useStatePreferences } from "@/lib/statePreferences";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -457,6 +458,7 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
 // --- Main component ---
 
 export default function DropFeed() {
+  const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
@@ -464,8 +466,20 @@ export default function DropFeed() {
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
+  const [hasInitedFilter, setHasInitedFilter] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("All");
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
+
+  // Default the state filter based on user preferences
+  useEffect(() => {
+    if (hasInitedFilter) return;
+    if (hasSelectedStates && preferredStates.length === 1) {
+      setSelectedState(preferredStates[0]);
+      setHasInitedFilter(true);
+    } else {
+      setHasInitedFilter(true);
+    }
+  }, [hasSelectedStates, preferredStates, hasInitedFilter]);
 
   const fetchDrops = useCallback(async () => {
     try {
@@ -512,7 +526,13 @@ export default function DropFeed() {
 
   // Apply state and tier filters
   const filteredGrouped = grouped.filter((drop) => {
-    if (selectedState !== "All" && drop.state !== selectedState) return false;
+    // Explicit single-state filter takes priority
+    if (selectedState !== "All") {
+      if (drop.state !== selectedState) return false;
+    } else if (hasSelectedStates && preferredStates.length > 0) {
+      // "All" is selected but user has preferences — show only preferred states
+      if (drop.state && !preferredStates.includes(drop.state)) return false;
+    }
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     return true;
   });
