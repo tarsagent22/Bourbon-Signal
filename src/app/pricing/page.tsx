@@ -6,7 +6,6 @@ import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import PricingCards from "@/components/sections/PricingCards";
 import FeatureComparison from "@/components/sections/FeatureComparison";
-import ValueStats from "@/components/sections/ValueStats";
 import FAQ from "@/components/sections/FAQ";
 
 export default function PricingPage() {
@@ -36,48 +35,18 @@ export default function PricingPage() {
             }}
           >
             <ScrollReveal>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                  fontWeight: 600,
-                  color: "var(--color-accent-amber)",
-                  marginBottom: "16px",
-                }}
-              >
-                PRICING
-              </p>
-            </ScrollReveal>
-
-            <ScrollReveal delay={100}>
               <h1
                 style={{
                   fontFamily: "var(--font-playfair)",
                   fontSize: "clamp(32px, 5vw, 48px)",
                   fontWeight: 700,
                   color: "var(--color-cream)",
-                  marginBottom: "12px",
+                  marginBottom: "48px",
                   textAlign: "center",
                 }}
               >
                 Choose Your Proof
               </h1>
-            </ScrollReveal>
-
-            <ScrollReveal delay={200}>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "16px",
-                  color: "var(--color-text-secondary)",
-                  marginBottom: "48px",
-                  textAlign: "center",
-                }}
-              >
-                Two ways to hunt. One clear choice.
-              </p>
             </ScrollReveal>
           </div>
         </section>
@@ -88,10 +57,7 @@ export default function PricingPage() {
         {/* Section 3: Feature Comparison */}
         <FeatureComparison />
 
-        {/* Section 4: Value Reinforcement */}
-        <ValueStats />
-
-        {/* Section 5: FAQ */}
+        {/* Section 4: FAQ */}
         <FAQ />
 
         {/* Section 6: Final CTA */}

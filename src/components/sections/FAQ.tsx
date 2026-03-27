@@ -27,6 +27,12 @@ const faqs: FAQItem[] = [
       "Standard Proof is $10/mo for full access to alerts, maps, and tracking. Bottled in Bond is a one-time $69 lifetime membership with exclusive founding member perks — numbered glassware, private group, and 2x drawing entries.",
   },
   {
+    question: "What does Bottled in Bond mean?",
+    // {/* [PLACEHOLDER] — Chandler review needed */}
+    answer:
+      "In bourbon, Bottled in Bond is a designation under the Bottled-in-Bond Act of 1897 — it means the whiskey was made by one distiller at one distillery in one season, aged at least four years in a federally bonded warehouse, and bottled at exactly 100 proof. It\u2019s the gold standard of authenticity and quality. We named our founding membership tier after it because it represents the same thing we offer: verified, uncut, straight from the source. Only 100 Bottled in Bond spots will ever exist.",
+  },
+  {
     question: "Can I cancel my subscription?",
     answer:
       "Standard Proof members can cancel anytime — no contracts, no hassle. Bottled in Bond is a one-time purchase with lifetime access, so there's nothing to cancel.",

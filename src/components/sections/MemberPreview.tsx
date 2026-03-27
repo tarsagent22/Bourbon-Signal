@@ -569,6 +569,10 @@ function FeatureCard({ caption, children }: FeatureCardProps) {
           border: "1px solid var(--color-card-border)",
           background: "var(--color-card-bg)",
           padding: "10px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         {children}
@@ -643,7 +647,7 @@ export default function MemberPreview() {
           viewport={{ once: true, margin: "-50px" }}
           className="grid gap-5 member-preview-grid"
         >
-          <FeatureCard caption="Real-time drop intel, unblurred">
+          <FeatureCard caption="Real-time drop intel, tailored to you">
             <MiniDropFeed />
           </FeatureCard>
 
@@ -655,7 +659,7 @@ export default function MemberPreview() {
             <MiniSmsAlert />
           </FeatureCard>
 
-          <FeatureCard caption="Email alerts — never miss a drop">
+          <FeatureCard caption="Email alerts">
             <MiniEmailInbox />
           </FeatureCard>
         </motion.div>

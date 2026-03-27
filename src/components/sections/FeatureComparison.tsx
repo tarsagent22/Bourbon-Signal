@@ -5,6 +5,7 @@ import ScrollReveal from "../ScrollReveal";
 
 interface FeatureRow {
   name: string;
+  free: boolean;
   standard: boolean;
   bib: boolean;
 }
@@ -19,31 +20,33 @@ const categories: FeatureCategory[] = [
   {
     label: "Alerts & Tracking",
     features: [
-      { name: "Drop alerts (email + SMS)", standard: true, bib: true },
-      { name: "Real-time alert speed", standard: true, bib: true },
-      { name: "Unlimited watchlist", standard: true, bib: true },
-      { name: "Warehouse shipment tracking", standard: true, bib: true },
+      { name: "Drop feed (delayed)", free: true, standard: false, bib: false },
+      { name: "Free weekly digest", free: true, standard: true, bib: true },
+      { name: "Drop alerts (email + SMS)", free: false, standard: true, bib: true },
+      { name: "Real-time alert speed", free: false, standard: true, bib: true },
+      { name: "Unlimited watchlist", free: false, standard: true, bib: true },
+      { name: "Warehouse shipment tracking", free: false, standard: true, bib: true },
     ],
   },
   {
     label: "Intelligence",
     features: [
-      { name: "Bottle Library (MSRP + secondary)", standard: true, bib: true },
-      { name: "Hunt Map with store data", standard: true, bib: true },
-      { name: "Historical drop patterns", standard: true, bib: true },
-      { name: "Community store intel", standard: true, bib: true },
+      { name: "Bottle Library (MSRP + secondary)", free: false, standard: true, bib: true },
+      { name: "Hunt Map with store data", free: false, standard: true, bib: true },
+      { name: "Historical drop patterns", free: false, standard: true, bib: true },
+      { name: "Community store intel", free: false, standard: true, bib: true },
     ],
   },
   {
     label: "Founding Member Exclusives",
     isExclusive: true,
     features: [
-      { name: "Lifetime access (no monthly fees)", standard: false, bib: true },
-      { name: "The Inner Circle (private Telegram)", standard: false, bib: true },
-      { name: "Numbered Glencairn Topper (#001–100)", standard: false, bib: true },
-      { name: "Permanent Founder badge", standard: false, bib: true },
-      { name: "Exclusive sticker pack", standard: false, bib: true },
-      { name: "2× entries in all drawings", standard: false, bib: true },
+      { name: "Lifetime access (no monthly fees)", free: false, standard: false, bib: true },
+      { name: "The Inner Circle (private Telegram)", free: false, standard: false, bib: true },
+      { name: "Numbered Glencairn Topper (#001–100)", free: false, standard: false, bib: true },
+      { name: "Permanent Founder badge", free: false, standard: false, bib: true },
+      { name: "Exclusive sticker pack", free: false, standard: false, bib: true },
+      { name: "2× entries in all drawings", free: false, standard: false, bib: true },
     ],
   },
 ];
@@ -95,6 +98,29 @@ function Pill({ active, label }: { active: boolean; label: string }) {
       }}
     >
       {active ? "✓" : "✗"} {label}
+    </span>
+  );
+}
+
+function FreePill({ active }: { active: boolean }) {
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-dm-sans)",
+        fontSize: "11px",
+        fontWeight: 500,
+        padding: "3px 10px",
+        borderRadius: "100px",
+        background: active
+          ? "rgba(245,237,214,0.08)"
+          : "rgba(255,255,255,0.04)",
+        color: active ? "rgba(245,237,214,0.6)" : "rgba(140,100,90,0.5)",
+        border: active
+          ? "1px solid rgba(245,237,214,0.15)"
+          : "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      {active ? "✓" : "✗"} Free
     </span>
   );
 }
@@ -154,39 +180,88 @@ export default function FeatureComparison() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 140px 140px",
+                  gridTemplateColumns: "1fr 120px 120px 140px",
                   padding: "16px 24px",
                   background: "rgba(255,255,255,0.03)",
                   borderBottom: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
                 <span />
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "rgba(245,237,214,0.5)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    textAlign: "center",
-                  }}
-                >
-                  Standard
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "var(--color-amber-rich)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    textAlign: "center",
-                  }}
-                >
-                  Bottled in Bond
-                </span>
+                {/* Free column header */}
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "rgba(245,237,214,0.35)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    Free
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      color: "rgba(245,237,214,0.25)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    $0
+                  </div>
+                </div>
+                {/* Standard column header */}
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "rgba(245,237,214,0.5)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    Standard
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      color: "rgba(245,237,214,0.35)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    $10/mo
+                  </div>
+                </div>
+                {/* Bottled in Bond column header */}
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "var(--color-amber-rich)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    Bottled in Bond
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-jetbrains)",
+                      fontSize: "11px",
+                      color: "rgba(196,148,58,0.6)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    $69 lifetime
+                  </div>
+                </div>
               </div>
             )}
 
@@ -246,7 +321,8 @@ export default function FeatureComparison() {
                         >
                           {feature.name}
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <FreePill active={feature.free} />
                           <Pill active={feature.standard} label="Standard" />
                           <Pill active={feature.bib} label="BiB" />
                         </div>
@@ -259,7 +335,7 @@ export default function FeatureComparison() {
                       key={feature.name}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 140px 140px",
+                        gridTemplateColumns: "1fr 120px 120px 140px",
                         padding: "12px 24px",
                         alignItems: "center",
                         background: isEven
@@ -276,6 +352,9 @@ export default function FeatureComparison() {
                         }}
                       >
                         {feature.name}
+                      </span>
+                      <span style={{ textAlign: "center" }}>
+                        <CheckMark active={feature.free} />
                       </span>
                       <span style={{ textAlign: "center" }}>
                         <CheckMark active={feature.standard} />
