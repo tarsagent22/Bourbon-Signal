@@ -13,12 +13,12 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    description: "Every 15–30 minutes, we check warehouse shipments, store inventories, and allocation lists across NC and VA.",
+    description: "Every 10 minutes, we check warehouse shipments, store inventories, and allocation lists across NC and VA.",
     flavor: "We scan state databases",
   },
   {
     number: "02",
-    description: "Track the moment a bottle you care about appears in the system — updated every 15 to 30 minutes.",
+    description: "Track the moment a bottle you care about appears in the system — updated every 10 minutes.",
     flavor: "You see it first",
   },
   {
