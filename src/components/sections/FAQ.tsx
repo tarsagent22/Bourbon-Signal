@@ -24,7 +24,7 @@ const faqs: FAQItem[] = [
   {
     question: "What's the difference between Standard and Bottled in Bond?",
     answer:
-      "Standard Proof is $5/mo (or $40/year) for full access to alerts, maps, and tracking. Bottled in Bond is a one-time $39 lifetime membership with exclusive founding member perks — numbered glassware, private group, and 2x drawing entries.",
+      "Standard Proof is $5/mo (or $40/year). You pick the bottles you're hunting, set the stores you'll drive to, and we email you the moment something drops — personalized, no noise. Bottled in Bond is a one-time $39 lifetime membership with the same personalized alerts forever, plus exclusive founding perks — numbered glassware, private group, and 2× drawing entries.",
   },
   {
     question: "What does Bottled in Bond mean?",

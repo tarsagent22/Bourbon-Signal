@@ -94,7 +94,7 @@ export default function HeroSection() {
               textShadow: "0 2px 8px rgba(0,0,0,0.6)",
             }}
           >
-            Know the moment allocated whiskey moves — before the crowds.
+            Pick your bottles. Pick your stores. Get alerted the moment they drop.
           </p>
         </ScrollReveal>
 

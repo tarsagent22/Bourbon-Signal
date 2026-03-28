@@ -22,7 +22,7 @@ const categories: FeatureCategory[] = [
       { name: "Drop feed (Limited tier, delayed)", free: true, standard: true, bib: true },
       { name: "Drop feed (all tiers, real-time)", free: false, standard: true, bib: true },
       { name: "Weekly email digest", free: true, standard: true, bib: true },
-      { name: "Drop alerts (email + SMS)", free: false, standard: true, bib: true },
+      { name: "Personalized email drop alerts", free: false, standard: true, bib: true },
       { name: "Personalized watchlist", free: false, standard: true, bib: true },
       { name: "Store filtering by area", free: false, standard: true, bib: true },
     ],

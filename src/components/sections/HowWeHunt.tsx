@@ -18,8 +18,8 @@ const steps: StepData[] = [
   },
   {
     number: "02",
-    description: "Track the moment a bottle you care about appears in the system — updated every 10 minutes.",
-    flavor: "You see it first",
+    description: "You pick the bottles. You pick the stores. We watch them for you — and email you the second something drops.",
+    flavor: "You get alerted",
   },
   {
     number: "03",

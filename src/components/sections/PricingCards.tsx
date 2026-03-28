@@ -5,9 +5,9 @@ import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 
 const standardFeatures = [
-  "Drop alerts — all tiers (email + SMS)",
-  "Personalized watchlist",
-  "Store filtering by area",
+  "Personalized drop alerts — your bottles, your stores",
+  "Watchlist — track the exact bottles you're hunting",
+  "Store alerts — only stores within your range",
   "Secondary market pricing",
 ];
 
