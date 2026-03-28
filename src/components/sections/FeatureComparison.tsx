@@ -31,8 +31,8 @@ const categories: FeatureCategory[] = [
     label: "Intelligence",
     features: [
       { name: "Bottle Library (MSRP + pricing)", free: true, standard: true, bib: true },
-      { name: "Hunt Map with store data", free: false, standard: true, bib: true },
-      { name: "Member Dashboard", free: false, standard: true, bib: true },
+      { name: "Hunt Map with store data (coming soon)", free: false, standard: true, bib: true },
+      { name: "Member Dashboard (coming soon)", free: false, standard: true, bib: true },
       { name: "Secondary market pricing", free: false, standard: true, bib: true },
     ],
   },

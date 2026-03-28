@@ -15,6 +15,9 @@ interface BottleFilterBarProps {
   onSortChange: (sort: string) => void;
   activeDistillery?: string;
   onDistilleryChange?: (distillery: string) => void;
+  showWatchlist?: boolean;
+  onWatchlistToggle?: () => void;
+  watchlistCount?: number;
 }
 
 const sortOptions = [
@@ -34,6 +37,9 @@ export default function BottleFilterBar({
   onSortChange,
   activeDistillery = "all",
   onDistilleryChange,
+  showWatchlist = false,
+  onWatchlistToggle,
+  watchlistCount = 0,
 }: BottleFilterBarProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [sortOpen, setSortOpen] = useState(false);
@@ -168,8 +174,48 @@ export default function BottleFilterBar({
 
           {/* Tier Pills + Distillery + Sort */}
           <div className="flex items-center justify-between flex-wrap gap-3">
-            {/* Tier Pills */}
+            {/* Watchlist Pill + Tier Pills */}
             <div className="flex items-center gap-2 flex-wrap">
+              {/* My Watchlist pill */}
+              {onWatchlistToggle && (
+                <>
+                  <motion.button
+                    onClick={onWatchlistToggle}
+                    className="cursor-pointer flex items-center gap-1"
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      background: showWatchlist ? "#C4943A" : "rgba(196,148,58,0.08)",
+                      color: showWatchlist ? "#1A1510" : "var(--color-accent-amber)",
+                      border: showWatchlist
+                        ? "1px solid #C4943A"
+                        : "1px solid rgba(196,148,58,0.3)",
+                      borderRadius: "20px",
+                      padding: "6px 14px",
+                      outline: "none",
+                    }}
+                    layout
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span style={{ fontSize: "11px" }}>★</span>
+                    {watchlistCount > 0
+                      ? `My Watchlist (${watchlistCount})`
+                      : "My Watchlist"}
+                  </motion.button>
+                  {/* Thin divider */}
+                  <div
+                    style={{
+                      width: "1px",
+                      height: "20px",
+                      background: "rgba(255,255,255,0.1)",
+                      flexShrink: 0,
+                    }}
+                  />
+                </>
+              )}
               {tiers.map((tier) => {
                 const isActive = activeTier === tier.key;
                 return (

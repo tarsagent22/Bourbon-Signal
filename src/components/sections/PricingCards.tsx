@@ -8,9 +8,12 @@ const standardFeatures = [
   "Drop alerts — all tiers (email + SMS)",
   "Personalized watchlist",
   "Store filtering by area",
+  "Secondary market pricing",
+];
+
+const comingSoonFeatures = [
   "Hunt map with store-level data",
   "Member dashboard",
-  "Secondary market pricing",
 ];
 
 const founderExclusives = [
@@ -138,17 +141,14 @@ export default function PricingCards() {
 
               {/* Features */}
               <div style={{ display: "flex", flexDirection: "column" as const }}>
-                {standardFeatures.map((feature, i) => (
+                {standardFeatures.map((feature) => (
                   <div
                     key={feature}
                     className="flex items-start"
                     style={{
                       gap: "10px",
                       padding: "9px 0",
-                      borderBottom:
-                        i < standardFeatures.length - 1
-                          ? "1px solid rgba(255,255,255,0.04)"
-                          : "none",
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
                     }}
                   >
                     <span
@@ -169,6 +169,38 @@ export default function PricingCards() {
                       }}
                     >
                       {feature}
+                    </span>
+                  </div>
+                ))}
+                {comingSoonFeatures.map((feature) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <span
+                      className="shrink-0"
+                      style={{
+                        color: "rgba(196,148,58,0.4)",
+                        fontSize: "16px",
+                        width: "16px",
+                      }}
+                    >
+                      ◎
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "14px",
+                        color: "rgba(245,237,214,0.4)",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {feature} <span style={{ fontSize: "11px", color: "rgba(196,148,58,0.5)" }}>coming soon</span>
                     </span>
                   </div>
                 ))}

@@ -8,6 +8,7 @@ import BottleDetail from "@/components/BottleDetail";
 import BottleFilterBar from "@/components/BottleFilterBar";
 import { useAuth } from "@/lib/auth";
 import { useStatePreferences } from "@/lib/statePreferences";
+import { useWatchlistStore } from "@/lib/watchlist";
 import dropsData from "@/data/drops.json";
 import { getDisplayName } from "@/lib/drops";
 import type { DropEvent } from "@/lib/drops";
@@ -90,10 +91,12 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
   const { selectedStates, hasSelectedStates } = useStatePreferences();
+  const { watchedBottles } = useWatchlistStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTier, setActiveTier] = useState("all");
   const [activeDistillery, setActiveDistillery] = useState("all");
   const [sortBy, setSortBy] = useState("secondary");
+  const [showWatchlist, setShowWatchlist] = useState(false);
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -146,7 +149,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   // Reset to page 1 whenever filters/search change
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, activeTier, activeDistillery]);
+  }, [searchQuery, activeTier, activeDistillery, showWatchlist]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -162,6 +165,12 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
 
   const filteredBottles = useMemo(() => {
     let result = stateFilteredBottles;
+
+    // Watchlist filter takes priority over tier/distillery filters
+    if (showWatchlist) {
+      result = result.filter((b) => watchedBottles.includes(b.id));
+      return sortBottles(result, sortBy);
+    }
 
     if (activeTier !== "all") {
       result = result.filter((b) => b.tier === activeTier);
@@ -182,7 +191,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
     }
 
     return sortBottles(result, sortBy);
-  }, [stateFilteredBottles, activeTier, searchQuery, sortBy, activeDistillery]);
+  }, [stateFilteredBottles, activeTier, searchQuery, sortBy, activeDistillery, showWatchlist, watchedBottles]);
 
   // Pagination
   const totalPages = Math.ceil(filteredBottles.length / ITEMS_PER_PAGE);
@@ -224,6 +233,9 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
         onSortChange={setSortBy}
         activeDistillery={activeDistillery}
         onDistilleryChange={setActiveDistillery}
+        showWatchlist={showWatchlist}
+        onWatchlistToggle={() => setShowWatchlist((v) => !v)}
+        watchlistCount={watchedBottles.length}
       />
 
       <div
@@ -275,48 +287,92 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
         )}
         {filteredBottles.length === 0 ? (
           <div style={{ padding: "80px 0", textAlign: "center" }}>
-            <p
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "18px",
-                color: "var(--color-cream)",
-                marginBottom: "8px",
-              }}
-            >
-              No bottles match your search
-            </p>
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "20px",
-              }}
-            >
-              Try adjusting your filters or search term
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveTier("all");
-                setActiveDistillery("all");
-                setSortBy("secondary");
-              }}
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "var(--color-accent-amber)",
-                background: "transparent",
-                border: "1px solid rgba(196,148,58,0.3)",
-                borderRadius: "8px",
-                padding: "10px 20px",
-                cursor: "pointer",
-                transition: "all 200ms ease",
-              }}
-            >
-              Clear filters
-            </button>
+            {showWatchlist ? (
+              <>
+                <p
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "18px",
+                    color: "var(--color-cream)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Your watchlist is empty
+                </p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    color: "var(--color-text-tertiary)",
+                    marginBottom: "20px",
+                  }}
+                >
+                  No bottles on your watchlist yet. Click the + on any bottle to add it.
+                </p>
+                <button
+                  onClick={() => setShowWatchlist(false)}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--color-accent-amber)",
+                    background: "transparent",
+                    border: "1px solid rgba(196,148,58,0.3)",
+                    borderRadius: "8px",
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    transition: "all 200ms ease",
+                  }}
+                >
+                  Browse all bottles
+                </button>
+              </>
+            ) : (
+              <>
+                <p
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "18px",
+                    color: "var(--color-cream)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  No bottles match your search
+                </p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    color: "var(--color-text-tertiary)",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Try adjusting your filters or search term
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveTier("all");
+                    setActiveDistillery("all");
+                    setSortBy("secondary");
+                  }}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--color-accent-amber)",
+                    background: "transparent",
+                    border: "1px solid rgba(196,148,58,0.3)",
+                    borderRadius: "8px",
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    transition: "all 200ms ease",
+                  }}
+                >
+                  Clear filters
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="relative">
