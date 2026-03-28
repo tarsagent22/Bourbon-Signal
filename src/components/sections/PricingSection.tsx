@@ -115,7 +115,7 @@ export default function PricingSection() {
                     color: "var(--color-cream)",
                   }}
                 >
-                  $10
+                  $5
                 </span>
                 <span
                   style={{
@@ -137,7 +137,7 @@ export default function PricingSection() {
                   marginBottom: "28px",
                 }}
               >
-                $80/year · save 33%
+                $40/year · save 33%
               </p>
 
               {/* Features */}
@@ -208,8 +208,19 @@ export default function PricingSection() {
                     (e.currentTarget as HTMLAnchorElement).style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
-                  Start Hunting — $10/mo
+                  Start Free Trial
                 </a>
+                <p
+                  className="text-center"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "12px",
+                    color: "rgba(245,237,214,0.35)",
+                    marginTop: "10px",
+                  }}
+                >
+                  7 days free · Cancel anytime · No card required
+                </p>
               </div>
             </motion.div>
           </motion.div>
@@ -286,7 +297,7 @@ export default function PricingSection() {
                     color: "var(--color-amber-rich)",
                   }}
                 >
-                  $69
+                  $39
                 </span>
                 <span
                   style={{
@@ -469,7 +480,7 @@ export default function PricingSection() {
                     (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
                   }}
                 >
-                  Claim Your Spot — $69
+                  Claim Your Spot — $39
                 </a>
               </div>
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, FormEvent } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
-import Button from "../Button";
 
 export default function HeroSection() {
   const ref = useRef(null);
@@ -100,20 +99,7 @@ export default function HeroSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <div className="flex flex-col items-center gap-3">
-            <a href="/pricing" style={{ textDecoration: "none" }}>
-              <Button variant="primary">Become a Founding Member</Button>
-            </a>
-            <p style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "13px",
-              color: "var(--color-text-tertiary)",
-              letterSpacing: "0.08em",
-              marginTop: "8px",
-            }}>
-              Currently tracking NC &amp; VA · PA and Utah coming soon
-            </p>
-          </div>
+          <HeroEmailCapture />
         </ScrollReveal>
 
       </div>
@@ -134,5 +120,131 @@ export default function HeroSection() {
         </motion.div>
       </motion.div>
     </section>
+  );
+}
+
+function HeroEmailCapture() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    console.log({ email });
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4" style={{ width: "100%", maxWidth: "480px" }}>
+      {!submitted ? (
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col sm:flex-row items-center gap-3"
+          style={{ width: "100%" }}
+        >
+          <input
+            type="email"
+            required
+            placeholder="you@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              flex: 1,
+              width: "100%",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              color: "var(--color-text-primary)",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "8px",
+              padding: "14px 16px",
+              outline: "none",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              transition: "border-color 200ms",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
+          />
+          <button
+            type="submit"
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#0D0B0E",
+              background: "linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-gold) 100%)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "14px 24px",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              transition: "opacity 200ms",
+              flexShrink: 0,
+            }}
+          >
+            Get Free Drop Alerts
+          </button>
+        </form>
+      ) : (
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "16px",
+            fontWeight: 500,
+            color: "var(--color-accent-amber)",
+          }}
+        >
+          You&apos;re in! Watch your inbox. 🥃
+        </p>
+      )}
+
+      {/* Become a Member CTA */}
+      <a
+        href="/pricing"
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "14px",
+          fontWeight: 500,
+          color: "var(--color-text-secondary)",
+          textDecoration: "none",
+          transition: "color 200ms",
+          marginTop: "4px",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "var(--color-text-primary)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "var(--color-text-secondary)";
+        }}
+      >
+        Become a Member →
+      </a>
+
+      <p
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "12px",
+          color: "var(--color-text-tertiary)",
+          marginTop: "0px",
+        }}
+      >
+        Founding members get lifetime access + exclusive perks. 100 spots at $39.
+      </p>
+
+      <p style={{
+        fontFamily: "var(--font-dm-sans)",
+        fontSize: "13px",
+        color: "var(--color-text-tertiary)",
+        letterSpacing: "0.08em",
+        marginTop: "8px",
+      }}>
+        Currently tracking NC &amp; VA · PA and Utah coming soon
+      </p>
+    </div>
   );
 }

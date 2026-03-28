@@ -1,91 +1,69 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { useAuth } from "@/lib/auth";
-
-const HuntMap = dynamic(() => import("@/components/HuntMap"), { ssr: false });
 
 export default function MapPage() {
-  const { isSignedIn, signIn } = useAuth();
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <Navigation />
-        <div
-          style={{
-            minHeight: "100vh",
-            background: "var(--color-bg-primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            padding: "0 clamp(20px, 5vw, 40px)",
-          }}
-        >
-          <div style={{ maxWidth: 440 }}>
-            <h1
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "clamp(28px, 5vw, 40px)",
-                fontWeight: 700,
-                color: "var(--color-cream)",
-                marginBottom: "12px",
-              }}
-            >
-              Members Only
-            </h1>
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "16px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "32px",
-                lineHeight: 1.6,
-              }}
-            >
-              Sign in to access the Hunt Map
-            </p>
-            <button
-              onClick={signIn}
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#0D0B0E",
-                padding: "12px 32px",
-                borderRadius: "6px",
-                background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                border: "none",
-                cursor: "pointer",
-                transition: "opacity 300ms ease",
-              }}
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
   return (
-    <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden" }}>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1100 }}>
-        <Navigation />
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        style={{ width: "100%", height: "100%" }}
+    <>
+      <Navigation />
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--color-bg-primary)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "0 clamp(20px, 5vw, 40px)",
+        }}
       >
-        <HuntMap />
-      </motion.div>
-    </div>
+        <div style={{ maxWidth: 480 }}>
+          <div style={{ fontSize: "64px", marginBottom: "24px" }}>🗺️</div>
+          <h1
+            style={{
+              fontFamily: "var(--font-playfair)",
+              fontSize: "clamp(32px, 5vw, 44px)",
+              fontWeight: 700,
+              color: "var(--color-cream)",
+              marginBottom: "16px",
+              lineHeight: 1.1,
+            }}
+          >
+            Hunt Map — Coming Soon
+          </h1>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "16px",
+              color: "var(--color-text-secondary)",
+              marginBottom: "32px",
+              lineHeight: 1.6,
+            }}
+          >
+            Interactive store-level tracking across NC and VA. Available for paying members.
+          </p>
+          <Link
+            href="/pricing"
+            style={{
+              display: "inline-block",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#0D0B0E",
+              padding: "14px 32px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-gold) 100%)",
+              textDecoration: "none",
+              transition: "opacity 300ms ease",
+            }}
+          >
+            View Pricing
+          </Link>
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 }

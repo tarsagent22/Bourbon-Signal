@@ -112,7 +112,7 @@ export default function PricingCards() {
                     color: "var(--color-cream)",
                   }}
                 >
-                  $10
+                  $5
                 </span>
                 <span
                   style={{
@@ -134,7 +134,7 @@ export default function PricingCards() {
                   marginBottom: "28px",
                 }}
               >
-                $80/year · save 33%
+                $40/year · save 33%
               </p>
 
               {/* Features */}
@@ -214,7 +214,7 @@ export default function PricingCards() {
                     marginTop: "10px",
                   }}
                 >
-                  7 days free · Cancel anytime · No card required
+                  7 days free · Cancel anytime · No card required · $5/mo after
                 </p>
               </div>
             </motion.div>
@@ -292,7 +292,7 @@ export default function PricingCards() {
                     color: "var(--color-amber-rich)",
                   }}
                 >
-                  $69
+                  $39
                 </span>
                 <span
                   style={{
@@ -480,7 +480,7 @@ export default function PricingCards() {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  Claim Your Spot — $69
+                  Claim Your Spot — $39
                 </button>
               </div>
 

@@ -528,6 +528,7 @@ export default function DropFeed() {
 
   return (
     <section
+      id="drops"
       style={{
         backgroundColor: "var(--color-bg-warm)",
         paddingTop: "24px",

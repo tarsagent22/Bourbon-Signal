@@ -1,383 +1,69 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
-import { Bell, MapPin, Diamond } from "lucide-react";
+import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import DashboardStats from "@/components/sections/DashboardStats";
-import DashboardFeed from "@/components/sections/DashboardFeed";
-import DashboardSidebar from "@/components/sections/DashboardSidebar";
-import ScrollReveal from "@/components/ScrollReveal";
-import DataFreshness from "@/components/DataFreshness";
-import { staggerContainer, fadeUpVariant } from "@/lib/animations";
-import { groupDrops, type DropEvent } from "@/lib/drops";
-import { useAuth } from "@/lib/auth";
-import { useStatePreferences } from "@/lib/statePreferences";
-import StateSelector from "@/components/StateSelector";
-
-const DashboardMiniMap = dynamic(() => import("@/components/DashboardMiniMap"), {
-  ssr: false,
-});
-
-interface QuickAction {
-  label: string;
-  icon: typeof Bell;
-  action: () => void;
-}
 
 export default function DashboardPage() {
-  const { isSignedIn, signIn } = useAuth();
-  const { selectedStates, hasSelectedStates } = useStatePreferences();
-  const [mounted, setMounted] = useState(false);
-  const [feedFilter, setFeedFilter] = useState("all");
-  const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
-  const feedRef = useRef<HTMLDivElement>(null);
-
-  // Live data from engine API
-  const [drops, setDrops] = useState<DropEvent[]>([]);
-  const [total, setTotal] = useState(0);
-  const [lastUpdated, setLastUpdated] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setMounted(true);
-
-    const fetchDrops = async () => {
-      try {
-        const res = await fetch("/api/drops");
-        if (!res.ok) throw new Error("fetch failed");
-        const json: { drops: DropEvent[]; total: number; lastUpdated: string } = await res.json();
-        setDrops(json.drops);
-        setTotal(json.total);
-        setLastUpdated(json.lastUpdated);
-      } catch {
-        // Keep existing data on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDrops();
-    const interval = setInterval(fetchDrops, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Filter drops by state preferences
-  const stateFilteredDrops = useMemo(() => {
-    if (!hasSelectedStates || selectedStates.length === 0) return drops;
-    return drops.filter((d) => !d.state || selectedStates.includes(d.state));
-  }, [drops, selectedStates, hasSelectedStates]);
-
-  const grouped = useMemo(() => groupDrops(stateFilteredDrops, 50), [stateFilteredDrops]);
-
-  const scrollToFeed = useCallback(() => {
-    feedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  const handleCountyToggle = useCallback((county: string) => {
-    setSelectedCounties((prev) =>
-      prev.includes(county)
-        ? prev.filter((c) => c !== county)
-        : [...prev, county]
-    );
-  }, []);
-
-  const quickActions: QuickAction[] = useMemo(
-    () => [
-      {
-        label: "What dropped today?",
-        icon: Bell,
-        action: () => {
-          setFeedFilter("all");
-          setSelectedCounties([]);
-          scrollToFeed();
-        },
-      },
-      {
-        label: "Check my counties",
-        icon: MapPin,
-        action: () => {
-          setFeedFilter("all");
-          setSelectedCounties(["Wake", "Durham"]);
-          scrollToFeed();
-        },
-      },
-      {
-        label: "Nearest unicorn",
-        icon: Diamond,
-        action: () => {
-          setFeedFilter("unicorn");
-          setSelectedCounties([]);
-          scrollToFeed();
-        },
-      },
-    ],
-    [scrollToFeed]
-  );
-
-  if (!mounted) return null;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <Navigation />
-        <div
-          style={{
-            minHeight: "100vh",
-            background: "var(--color-bg-primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            padding: "0 clamp(20px, 5vw, 40px)",
-          }}
-        >
-          <div style={{ maxWidth: 440 }}>
-            <h1
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "clamp(28px, 5vw, 40px)",
-                fontWeight: 700,
-                color: "var(--color-cream)",
-                marginBottom: "12px",
-              }}
-            >
-              Members Only
-            </h1>
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "16px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "32px",
-                lineHeight: 1.6,
-              }}
-            >
-              Sign in to access your dashboard
-            </p>
-            <button
-              onClick={signIn}
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#0D0B0E",
-                padding: "12px 32px",
-                borderRadius: "6px",
-                background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                border: "none",
-                cursor: "pointer",
-                transition: "opacity 300ms ease",
-              }}
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
   return (
     <>
       <Navigation />
-      <motion.main
+      <div
         style={{
           minHeight: "100vh",
           background: "var(--color-bg-primary)",
-          paddingTop: "120px",
-          paddingBottom: "80px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "0 clamp(20px, 5vw, 40px)",
         }}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        {/* Live Data Banner */}
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 48px)",
-            marginBottom: "16px",
-          }}
-        >
-          <div
+        <div style={{ maxWidth: 480 }}>
+          <div style={{ fontSize: "64px", marginBottom: "24px" }}>📊</div>
+          <h1
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "rgba(34, 197, 94, 0.06)",
-              border: "1px solid rgba(34, 197, 94, 0.15)",
-              borderRadius: "8px",
-              padding: "8px 14px",
-              gap: "12px",
+              fontFamily: "var(--font-playfair)",
+              fontSize: "clamp(32px, 5vw, 44px)",
+              fontWeight: 700,
+              color: "var(--color-cream)",
+              marginBottom: "16px",
+              lineHeight: 1.1,
             }}
           >
-            {/* Left: pulse dot + label */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "7px",
-                  height: "7px",
-                  borderRadius: "50%",
-                  background: "rgba(34, 197, 94, 0.9)",
-                  boxShadow: "0 0 6px rgba(34, 197, 94, 0.6)",
-                  animation: "livePulse 2s ease-in-out infinite",
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "rgba(34, 197, 94, 0.85)",
-                }}
-              >
-                Live Data{hasSelectedStates && selectedStates.length > 0
-                  ? ` — ${selectedStates.join(" & ")}`
-                  : ""}
-              </span>
-            </div>
-            {/* Right: DataFreshness timestamp */}
-            {lastUpdated && <DataFreshness lastUpdated={lastUpdated} />}
-          </div>
+            Member Dashboard — Coming Soon
+          </h1>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "16px",
+              color: "var(--color-text-secondary)",
+              marginBottom: "32px",
+              lineHeight: 1.6,
+            }}
+          >
+            Your personalized command center for tracking drops, watchlists, and alerts. Available for paying members.
+          </p>
+          <Link
+            href="/pricing"
+            style={{
+              display: "inline-block",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#0D0B0E",
+              padding: "14px 32px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-gold) 100%)",
+              textDecoration: "none",
+              transition: "opacity 300ms ease",
+            }}
+          >
+            View Pricing
+          </Link>
         </div>
-
-        {/* State filter row — below live banner, above stats */}
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 48px)",
-            marginBottom: "16px",
-          }}
-        >
-          <StateSelector />
-        </div>
-
-        {/* Section 1: Greeting + Stats */}
-        <div style={{ opacity: loading ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
-        <ScrollReveal delay={0}>
-          <DashboardStats drops={stateFilteredDrops} />
-        </ScrollReveal>
-
-        {/* Quick Actions Row */}
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 48px)",
-            marginTop: "clamp(24px, 4vw, 36px)",
-          }}
-        >
-          <ScrollReveal delay={50}>
-            <motion.div
-              className="grid grid-cols-1 sm:grid-cols-3"
-              style={{ gap: "clamp(12px, 2vw, 16px)" }}
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-            >
-              {quickActions.map((action) => (
-                <QuickActionCard key={action.label} action={action} />
-              ))}
-            </motion.div>
-          </ScrollReveal>
-        </div>
-
-        {/* Section 2 + 3: Feed + Sidebar two-column layout */}
-        <div
-          ref={feedRef}
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 48px)",
-            marginTop: "clamp(32px, 5vw, 56px)",
-          }}
-        >
-          <ScrollReveal delay={100}>
-            <div
-              className="flex flex-col lg:flex-row"
-              style={{ gap: "clamp(20px, 3vw, 32px)" }}
-            >
-              <DashboardFeed
-                drops={grouped}
-                allDrops={stateFilteredDrops}
-                feedFilter={feedFilter}
-                onFilterChange={setFeedFilter}
-                selectedCounties={selectedCounties}
-                onCountyToggle={handleCountyToggle}
-                total={total}
-              />
-              <DashboardSidebar drops={stateFilteredDrops} miniMap={<DashboardMiniMap />} />
-            </div>
-          </ScrollReveal>
-        </div>
-
-        </div>
-      </motion.main>
+      </div>
       <Footer />
     </>
-  );
-}
-
-function QuickActionCard({ action }: { action: QuickAction }) {
-  const [hovered, setHovered] = useState(false);
-  const Icon = action.icon;
-
-  return (
-    <motion.button
-      variants={fadeUpVariant}
-      onClick={action.action}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      whileTap={{ scale: 0.98 }}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        padding: "16px 20px",
-        borderRadius: "12px",
-        background: "rgba(0,0,0,0.2)",
-        border: hovered
-          ? "1px solid rgba(196,148,58,0.3)"
-          : "1px solid rgba(255,255,255,0.04)",
-        cursor: "pointer",
-        transition: "all 250ms ease",
-        transform: hovered ? "translateY(-2px)" : "translateY(0)",
-        boxShadow: hovered
-          ? "0 8px 24px rgba(196,148,58,0.08)"
-          : "0 0 0 rgba(0,0,0,0)",
-        width: "100%",
-        minHeight: "56px",
-        textAlign: "left",
-      }}
-    >
-      <Icon
-        size={18}
-        style={{
-          color: "var(--color-accent-amber)",
-          flexShrink: 0,
-        }}
-      />
-      <span
-        style={{
-          fontFamily: "var(--font-dm-sans)",
-          fontSize: "14px",
-          fontWeight: 700,
-          color: "var(--color-text-primary)",
-        }}
-      >
-        {action.label}
-      </span>
-    </motion.button>
   );
 }

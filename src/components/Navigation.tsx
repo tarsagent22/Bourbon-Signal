@@ -8,8 +8,7 @@ import WatchlistDropdown from "@/components/WatchlistDropdown";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Hunt Map", href: "/map" },
+  { label: "Drops", href: "/#drops" },
   { label: "Bottles", href: "/bottles" },
   { label: "Pricing", href: "/pricing" },
 ];
