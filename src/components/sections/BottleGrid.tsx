@@ -494,7 +494,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       transition: "all 200ms ease",
                     }}
                   >
-                    Start Hunting — $10/mo
+                    Start Free Trial — $5/mo
                   </a>
                   <a
                     href="/#pricing"
@@ -512,7 +512,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       transition: "all 200ms ease",
                     }}
                   >
-                    Claim Your Spot — $69
+                    Claim Your Spot — $39
                   </a>
                 </div>
               </div>

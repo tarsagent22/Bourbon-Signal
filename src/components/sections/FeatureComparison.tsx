@@ -19,21 +19,21 @@ const categories: FeatureCategory[] = [
   {
     label: "Alerts & Tracking",
     features: [
-      { name: "Drop feed (delayed)", free: true, standard: false, bib: false },
-      { name: "Free weekly digest", free: true, standard: true, bib: true },
+      { name: "Drop feed (Limited tier, delayed)", free: true, standard: true, bib: true },
+      { name: "Drop feed (all tiers, real-time)", free: false, standard: true, bib: true },
+      { name: "Weekly email digest", free: true, standard: true, bib: true },
       { name: "Drop alerts (email + SMS)", free: false, standard: true, bib: true },
-      { name: "Real-time alert speed", free: false, standard: true, bib: true },
-      { name: "Unlimited watchlist", free: false, standard: true, bib: true },
-      { name: "Warehouse shipment tracking", free: false, standard: true, bib: true },
+      { name: "Personalized watchlist", free: false, standard: true, bib: true },
+      { name: "Store filtering by area", free: false, standard: true, bib: true },
     ],
   },
   {
     label: "Intelligence",
     features: [
-      { name: "Bottle Library (MSRP + secondary)", free: false, standard: true, bib: true },
+      { name: "Bottle Library (MSRP + pricing)", free: true, standard: true, bib: true },
       { name: "Hunt Map with store data", free: false, standard: true, bib: true },
-      { name: "Historical drop patterns", free: false, standard: true, bib: true },
-      { name: "Community store intel", free: false, standard: true, bib: true },
+      { name: "Member Dashboard", free: false, standard: true, bib: true },
+      { name: "Secondary market pricing", free: false, standard: true, bib: true },
     ],
   },
   {

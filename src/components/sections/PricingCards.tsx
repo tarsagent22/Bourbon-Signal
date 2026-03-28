@@ -5,13 +5,12 @@ import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 
 const standardFeatures = [
-  "Instant drop alerts — email + SMS",
-  "Unlimited watchlist",
-  "Full hunt map with store-level data",
-  "Warehouse & shipment tracking",
+  "Drop alerts — all tiers (email + SMS)",
+  "Personalized watchlist",
+  "Store filtering by area",
+  "Hunt map with store-level data",
+  "Member dashboard",
   "Secondary market pricing",
-  "Historical drop patterns",
-  "Community store intel",
 ];
 
 const founderExclusives = [
