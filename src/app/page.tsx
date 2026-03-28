@@ -3,17 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
-import DataFreshness from "@/components/DataFreshness";
-import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import StateSelector from "@/components/StateSelector";
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
-import PricingSection from "@/components/sections/PricingSection";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
-import EmailCapture from "@/components/sections/EmailCapture";
 
 function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
@@ -64,28 +59,15 @@ export default function Home() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <HeroSection />
-        {/* State filter row — sits above the drop feed */}
-        <div
-          style={{
-            maxWidth: "680px",
-            margin: "0 auto",
-            padding: "0 16px",
-          }}
-        >
-          <StateSelector />
+        <div id="drops">
+          <DropFeed />
         </div>
-        <DropFeed />
         {/* DropFeed (warm) → HowWeHunt (tertiary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-tertiary) 100%)" }} />
         <HowWeHunt />
-        {/* HowWeHunt (tertiary) → PricingSection (primary) */}
+        {/* HowWeHunt (tertiary) → FAQ (primary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />
-        <PricingSection />
-        {/* PricingSection (primary) → FAQ (primary) — no transition needed, same bg */}
         <FAQ />
-        {/* FAQ (primary) → EmailCapture (secondary) */}
-        <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%)" }} />
-        <EmailCapture />
       </motion.main>
       <Footer />
       <ScrollToTopButton />

@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
-import Button from "../Button";
 
 export default function HeroSection() {
   const ref = useRef(null);
@@ -14,6 +13,17 @@ export default function HeroSection() {
   });
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const chevronOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    console.log({ name, email });
+    setSubmitted(true);
+  };
 
   return (
     <section
@@ -100,10 +110,140 @@ export default function HeroSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <div className="flex flex-col items-center gap-3">
-            <a href="/pricing" style={{ textDecoration: "none" }}>
-              <Button variant="primary">Become a Founding Member</Button>
-            </a>
+          <div className="flex flex-col items-center gap-3 w-full" style={{ maxWidth: "420px" }}>
+            {submitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  padding: "20px 24px",
+                  borderRadius: "12px",
+                  background: "rgba(196,148,58,0.08)",
+                  border: "1px solid rgba(196,148,58,0.3)",
+                }}
+              >
+                <p style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "var(--color-text-primary)",
+                  marginBottom: "4px",
+                }}>
+                  You&apos;re in! 🥃
+                </p>
+                <p style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "14px",
+                  color: "var(--color-text-secondary)",
+                }}>
+                  Watch your inbox.
+                </p>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.05)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    color: "var(--color-text-primary)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "15px",
+                    outline: "none",
+                    transition: "border-color 200ms",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                />
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.05)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    color: "var(--color-text-primary)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "15px",
+                    outline: "none",
+                    transition: "border-color 200ms",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: "#1A1510",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
+                    transition: "box-shadow 300ms, transform 300ms",
+                    boxSizing: "border-box",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  Get Free Drop Alerts
+                </button>
+              </form>
+            )}
+
+            <p style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "var(--color-text-secondary)",
+              marginTop: "12px",
+              lineHeight: 1.5,
+            }}>
+              Founding members get personalized alerts + lifetime access.{" "}
+              <a
+                href="/pricing"
+                style={{
+                  color: "var(--color-accent-amber)",
+                  textDecoration: "none",
+                  fontWeight: 500,
+                  borderBottom: "1px solid rgba(196,148,58,0.3)",
+                  transition: "border-color 200ms",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(196,148,58,0.3)")}
+              >
+                100 spots — $69
+              </a>.
+            </p>
+
             <p style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "13px",
@@ -115,7 +255,6 @@ export default function HeroSection() {
             </p>
           </div>
         </ScrollReveal>
-
       </div>
 
       {/* Scroll indicator */}

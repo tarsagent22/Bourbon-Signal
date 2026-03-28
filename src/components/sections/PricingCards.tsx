@@ -4,14 +4,15 @@ import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 
-const standardFeatures = [
-  "Instant drop alerts — email + SMS",
-  "Unlimited watchlist",
-  "Full hunt map with store-level data",
-  "Warehouse & shipment tracking",
-  "Secondary market pricing",
-  "Historical drop patterns",
-  "Community store intel",
+const freeFeatures = [
+  "Daily email digest — Limited drops across NC ABC stores",
+  "Access to Bottle Library",
+];
+
+const founderFeatures = [
+  "All bottle tiers (Unicorn, Allocated, Limited)",
+  "Personalized watchlist alerts",
+  "Store filtering",
 ];
 
 const founderExclusives = [
@@ -45,7 +46,7 @@ export default function PricingCards() {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Standard Proof */}
+          {/* Free Tier */}
           <motion.div
             variants={fadeUpVariant}
             className="order-2 md:order-1"
@@ -68,26 +69,6 @@ export default function PricingCards() {
                 transition: { duration: 0.3 },
               }}
             >
-              {/* Free trial badge */}
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "10px",
-                    fontVariant: "small-caps",
-                    letterSpacing: "0.12em",
-                    color: "var(--color-accent-amber)",
-                    background: "rgba(196,148,58,0.08)",
-                    border: "1px solid rgba(196,148,58,0.4)",
-                    borderRadius: "20px",
-                    padding: "4px 12px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  7-day free trial
-                </span>
-              </div>
-
               {/* Tier label */}
               <p
                 style={{
@@ -99,7 +80,7 @@ export default function PricingCards() {
                   marginBottom: "8px",
                 }}
               >
-                STANDARD PROOF
+                FREE
               </p>
 
               {/* Price */}
@@ -112,34 +93,25 @@ export default function PricingCards() {
                     color: "var(--color-cream)",
                   }}
                 >
-                  $10
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "16px",
-                    color: "rgba(245,237,214,0.4)",
-                  }}
-                >
-                  /mo
+                  $0
                 </span>
               </div>
 
-              {/* Annual note */}
+              {/* Tagline */}
               <p
                 style={{
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  color: "rgba(245,237,214,0.3)",
+                  fontSize: "14px",
+                  color: "rgba(245,237,214,0.4)",
                   marginBottom: "28px",
                 }}
               >
-                $80/year · save 33%
+                No card required
               </p>
 
               {/* Features */}
               <div style={{ display: "flex", flexDirection: "column" as const }}>
-                {standardFeatures.map((feature, i) => (
+                {freeFeatures.map((feature, i) => (
                   <div
                     key={feature}
                     className="flex items-start"
@@ -147,7 +119,7 @@ export default function PricingCards() {
                       gap: "10px",
                       padding: "9px 0",
                       borderBottom:
-                        i < standardFeatures.length - 1
+                        i < freeFeatures.length - 1
                           ? "1px solid rgba(255,255,255,0.04)"
                           : "none",
                     }}
@@ -177,12 +149,14 @@ export default function PricingCards() {
 
               {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
-                <button
+                <a
+                  href="/#"
                   style={{
                     display: "block",
                     width: "100%",
                     boxSizing: "border-box",
-                    cursor: "pointer",
+                    textAlign: "center",
+                    textDecoration: "none",
                     background: "rgba(196,148,58,0.08)",
                     border: "1px solid rgba(196,148,58,0.4)",
                     color: "rgba(196,148,58,0.9)",
@@ -192,7 +166,6 @@ export default function PricingCards() {
                     padding: "13px",
                     borderRadius: "10px",
                     transition: "border-color 200ms, background 200ms, color 200ms",
-                    textAlign: "center",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
@@ -203,19 +176,8 @@ export default function PricingCards() {
                     e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
-                  Start Free Trial
-                </button>
-                <p
-                  className="text-center"
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    color: "rgba(245,237,214,0.35)",
-                    marginTop: "10px",
-                  }}
-                >
-                  7 days free · Cancel anytime · No card required
-                </p>
+                  Sign Up Free
+                </a>
               </div>
             </motion.div>
           </motion.div>
@@ -354,19 +316,42 @@ export default function PricingCards() {
                 </div>
               </div>
 
-              {/* All Standard features line */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", marginTop: "16px" }}>
-                <span style={{ color: "var(--color-amber-rich)", fontSize: "16px" }}>✓</span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "14px",
-                    color: "var(--color-cream)",
-                    fontWeight: 500,
-                  }}
-                >
-                  All Standard Proof features, forever
-                </span>
+              {/* Founder features */}
+              <div style={{ display: "flex", flexDirection: "column" as const, marginTop: "16px" }}>
+                {founderFeatures.map((feature, i) => (
+                  <div
+                    key={feature}
+                    className="flex items-start"
+                    style={{
+                      gap: "10px",
+                      padding: "9px 0",
+                      borderBottom:
+                        i < founderFeatures.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
+                    }}
+                  >
+                    <span
+                      className="shrink-0"
+                      style={{
+                        color: "var(--color-amber-rich)",
+                        fontSize: "16px",
+                        width: "16px",
+                      }}
+                    >
+                      ✓
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "14px",
+                        color: "var(--color-cream)",
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  </div>
+                ))}
               </div>
 
               {/* Founding exclusives divider */}
@@ -453,12 +438,14 @@ export default function PricingCards() {
                 >
                   Join the founding 100.
                 </p>
-                <button
+                <a
+                  href="#"
                   style={{
                     display: "block",
                     width: "100%",
                     boxSizing: "border-box",
-                    cursor: "pointer",
+                    textAlign: "center",
+                    textDecoration: "none",
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                     color: "#1A1510",
                     fontFamily: "var(--font-dm-sans)",
@@ -469,7 +456,6 @@ export default function PricingCards() {
                     borderRadius: "10px",
                     boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
                     transition: "box-shadow 300ms, transform 300ms",
-                    textAlign: "center",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
@@ -481,7 +467,7 @@ export default function PricingCards() {
                   }}
                 >
                   Claim Your Spot — $69
-                </button>
+                </a>
               </div>
 
               {/* Note below button */}

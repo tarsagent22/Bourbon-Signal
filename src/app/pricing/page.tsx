@@ -60,7 +60,7 @@ export default function PricingPage() {
         {/* Section 4: FAQ */}
         <FAQ />
 
-        {/* Section 6: Final CTA */}
+        {/* Section 5: Final CTA */}
         <section
           style={{
             width: "100%",
@@ -107,11 +107,14 @@ export default function PricingPage() {
 
             <ScrollReveal delay={200}>
               <div className="flex flex-col items-center gap-3">
-                <button
+                <a
+                  href="#"
                   style={{
                     width: "100%",
                     maxWidth: "320px",
-                    cursor: "pointer",
+                    display: "block",
+                    textAlign: "center",
+                    textDecoration: "none",
                     background:
                       "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                     color: "#1A1510",
@@ -136,7 +139,7 @@ export default function PricingPage() {
                   }}
                 >
                   Claim Your Spot — $69
-                </button>
+                </a>
                 <p
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -145,7 +148,7 @@ export default function PricingPage() {
                     textAlign: "center",
                   }}
                 >
-                  7-day money-back guarantee. Cancel anytime.
+                  Secure checkout · Lifetime access · Never pay again
                 </p>
               </div>
             </ScrollReveal>

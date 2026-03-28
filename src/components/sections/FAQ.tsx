@@ -12,6 +12,11 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
+    question: "What do free members get?",
+    answer:
+      "A daily email digest covering Limited releases across NC ABC stores. No account needed — just your email. Founding members get alerts for every bottle tier (Unicorn, Allocated, and Limited), filtered to their watchlist and preferred stores.",
+  },
+  {
     question: "How fast are the drop alerts?",
     answer:
       "Most alerts fire within minutes of data hitting the state system. Shipment alerts go out the same day the warehouse logs the transfer — often before bottles reach the shelf.",
