@@ -18,6 +18,7 @@ import {
 import DataFreshness from "@/components/DataFreshness";
 import { useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
+import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -464,6 +465,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 export default function DropFeed() {
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
   const { isSignedIn } = useAuth();
+  const { prefs: areaPrefs } = useAreaPreferences();
   const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
@@ -527,10 +529,52 @@ export default function DropFeed() {
     return true;
   });
 
+  // Apply area preferences (Clerk-backed per-user preferences)
+  const filteredByArea = filteredGrouped.filter((drop) => {
+    // No preferences set = show everything
+    if (!areaPrefs.states.length) return true;
+
+    // Filter by state
+    const dropState = drop.state || "NC";
+    if (!areaPrefs.states.includes(dropState)) return false;
+
+    // NC board filter
+    if (dropState === "NC" && areaPrefs.ncBoards.length > 0) {
+      const board = drop.board_name || "";
+      return areaPrefs.ncBoards.some((b) =>
+        board.toLowerCase().includes(b.toLowerCase())
+      );
+    }
+
+    // VA city filter
+    if (dropState === "VA" && areaPrefs.vaCities.length > 0) {
+      if (drop.counties?.length > 0) {
+        return areaPrefs.vaCities.some((city) =>
+          drop.counties.some((c) =>
+            c.toLowerCase().includes(city.toLowerCase())
+          )
+        );
+      }
+    }
+
+    // PA county filter
+    if (dropState === "PA" && areaPrefs.paCounties.length > 0) {
+      const county = drop.counties?.[0] || "";
+      return areaPrefs.paCounties.some((c) =>
+        county.toLowerCase().includes(c.toLowerCase())
+      );
+    }
+
+    return true;
+  });
+
+  // Check if area prefs are active
+  const hasAreaPrefs = areaPrefs.states.length > 0;
+
   // Limit displayed drops to 8; only last 2 are blurred
   const MAX_DISPLAYED = 8;
-  const displayedGrouped = filteredGrouped.slice(0, MAX_DISPLAYED);
-  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredGrouped.length - MAX_DISPLAYED) : 0;
+  const displayedGrouped = filteredByArea.slice(0, MAX_DISPLAYED);
+  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredByArea.length - MAX_DISPLAYED) : 0;
 
   return (
     <section
@@ -576,7 +620,25 @@ export default function DropFeed() {
             >
               Live Drop Feed
             </h2>
-
+            {hasAreaPrefs && (
+              <a
+                href="/settings"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  color: "var(--color-accent-amber)",
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                  opacity: 0.85,
+                  transition: "opacity 150ms",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
+              >
+                Filtered to your areas · Edit
+              </a>
+            )}
           </div>
 
           {/* Data freshness */}

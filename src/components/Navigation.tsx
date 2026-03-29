@@ -119,6 +119,26 @@ export default function Navigation() {
               >
                 {userDisplayName}
               </span>
+              <a
+                href="/settings"
+                title="Settings"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "18px",
+                  color: "var(--color-text-tertiary)",
+                  textDecoration: "none",
+                  lineHeight: 1,
+                  transition: "color 200ms ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--color-text-secondary)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--color-text-tertiary)")
+                }
+              >
+                ⚙
+              </a>
               {/* Upgrade nudge for free (unsubscribed) members */}
               {memberTier === null && (
                 <a
@@ -275,6 +295,19 @@ export default function Navigation() {
             {/* Mobile auth actions */}
             {mounted && isSignedIn ? (
               <>
+                <a
+                  href="/settings"
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "var(--color-text-secondary)",
+                    textDecoration: "none",
+                  }}
+                >
+                  Settings
+                </a>
                 <span
                   style={{
                     fontFamily: "var(--font-dm-sans)",
