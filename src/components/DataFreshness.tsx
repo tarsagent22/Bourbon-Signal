@@ -57,7 +57,7 @@ export default function DataFreshness({ lastUpdated }: DataFreshnessProps) {
           color: "var(--color-text-tertiary)",
         }}
       >
-        Data as of {timeLabel}
+        Live · checking every 10 min · last drop {timeLabel}
       </span>
     </div>
   );

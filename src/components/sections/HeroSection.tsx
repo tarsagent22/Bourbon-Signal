@@ -83,15 +83,33 @@ export default function HeroSection() {
           </h1>
         </ScrollReveal>
 
+        <ScrollReveal delay={50}>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              fontWeight: 500,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--color-accent-amber)",
+              textAlign: "center",
+              marginBottom: "24px",
+            }}
+          >
+            Your hub for allocated whiskey hunting
+          </p>
+        </ScrollReveal>
+
         <ScrollReveal delay={100}>
           <p
-            className="mx-auto mb-16 max-w-[560px]"
+            className="mx-auto max-w-[560px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "18px",
               lineHeight: 1.6,
               color: "var(--color-text-secondary)",
               textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+              marginBottom: "40px",
             }}
           >
             Pick your bottles. Pick your stores. Get alerted the moment they drop.

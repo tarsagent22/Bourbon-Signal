@@ -17,6 +17,7 @@ import {
 } from "@/lib/drops";
 import DataFreshness from "@/components/DataFreshness";
 import { useStatePreferences } from "@/lib/statePreferences";
+import { useAuth } from "@/lib/auth";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -127,9 +128,10 @@ interface FeedRowProps {
   drop: GroupedDrop;
   isNew: boolean;
   index: number;
+  isFreeUser: boolean;
 }
 
-function FeedRow({ drop, isNew, index }: FeedRowProps) {
+function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [glowing, setGlowing] = useState(isNew);
@@ -162,8 +164,8 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
 
   const hasDetails = details.length > 0;
 
-  // Blur wall logic — only last 2 of 8 are blurred
-  const isBlurred = index >= 6;
+  // Blur wall logic — free users: blur last 2 of 8. Paid members: no blur
+  const isBlurred = isFreeUser && index >= 6;
   const blurAmount = index === 6 ? "1.5px" : "3px";
   const blurOpacity = index === 6 ? 0.7 : 0.5;
 
@@ -459,6 +461,8 @@ function FeedRow({ drop, isNew, index }: FeedRowProps) {
 
 export default function DropFeed() {
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
+  const { isSignedIn } = useAuth();
+  const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
@@ -659,12 +663,13 @@ export default function DropFeed() {
                     drop={drop}
                     isNew={newIds.has(drop.id)}
                     index={index}
+                    isFreeUser={isFreeUser}
                   />
                 ))}
               </AnimatePresence>
 
-              {/* Gradient overlay over blurred rows */}
-              {displayedGrouped.length > 6 && (
+              {/* Gradient overlay over blurred rows — only for free users */}
+              {isFreeUser && displayedGrouped.length > 6 && (
                 <div
                   style={{
                     position: "absolute",
