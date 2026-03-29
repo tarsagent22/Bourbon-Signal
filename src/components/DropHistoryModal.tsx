@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
 import { getDisplayName, formatRelativeTime, cleanCountyName, TIER_CONFIG } from "@/lib/drops";
@@ -30,7 +31,15 @@ function getDropLocation(drop: DropEvent): string {
 
 /** Derive a store/board display name from a drop event */
 function getStoreName(drop: DropEvent): string {
-  if (drop.state === "VA" && drop.stores && drop.stores.length > 0) {
+  // PA store-level events
+  if (drop.state_code === "PA" || drop.state === "PA") {
+    if (drop.store_name) return drop.store_name;
+    if (drop.store_city) return `PA — ${drop.store_city}`;
+    if ((drop as any).stores_in_stock) return `${(drop as any).stores_in_stock} PA stores`;
+    return "Pennsylvania ABC Store";
+  }
+  // VA events
+  if ((drop.state === "VA" || (drop as any).state_code === "VA") && drop.stores && drop.stores.length > 0) {
     const count = drop.stores.length;
     if (count === 1) {
       const city = drop.stores[0].city;
@@ -38,11 +47,24 @@ function getStoreName(drop: DropEvent): string {
     }
     return `${count} VA ABC stores`;
   }
+  // NC events — board_name is the county/board
   if (drop.board_name) {
     const county = cleanCountyName(drop.board_name);
-    return county ? `${county} ABC Board` : drop.board_name;
+    if (county) return `${county} ABC Board`;
+    // board_name might be a store name for some scrapers
+    if (drop.board_name.length < 60) return drop.board_name;
   }
-  return "Unknown Store";
+  // NC warehouse/price events — these aren't store-level, show NC distribution
+  if (!drop.state || drop.state === "NC") {
+    const types: Record<string, string> = {
+      new_shipment: "NC ABC Warehouse",
+      allocation_assigned: "NC ABC Distribution",
+      price_change: "NC ABC Price List",
+      in_store: "NC ABC Store",
+    };
+    return types[drop.event_type] || "NC ABC";
+  }
+  return "State ABC Store";
 }
 
 export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistoryModalProps) {
@@ -120,7 +142,8 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
 
   const hasPreferences = preferences.states.length > 0 || preferences.boards.length > 0;
 
-  return (
+  // Use a portal to render at document.body — prevents parent transforms/overflow from breaking fixed positioning
+  const modalContent = (
     /* Backdrop */
     <div
       className="fixed inset-0 flex items-center justify-center"
@@ -370,4 +393,9 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
       </div>
     </div>
   );
+
+  // createPortal renders at document.body, bypassing any parent transform/stacking context
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : null;
 }

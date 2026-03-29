@@ -125,46 +125,7 @@ export default function BottleCard({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      {/* Quick watchlist icon — top right */}
-      <button
-        onClick={handleWatchClick}
-        title={isFreeUser ? "Sign up to use watchlist" : watching ? "Remove from hunt" : "Add to hunt"}
-        className="absolute cursor-pointer"
-        style={{
-          top: "8px",
-          right: "8px",
-          width: "24px",
-          height: "24px",
-          borderRadius: "50%",
-          border: watching
-            ? "1px solid rgba(196,148,58,0.7)"
-            : "1px solid rgba(196,148,58,0.4)",
-          background: watching
-            ? "rgba(196,148,58,0.2)"
-            : "transparent",
-          color: "var(--color-accent-amber)",
-          fontSize: "14px",
-          fontWeight: 700,
-          lineHeight: "24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 0,
-          textAlign: "center" as const,
-          transition: "all 150ms ease",
-          zIndex: 2,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(196,148,58,0.18)";
-          e.currentTarget.style.borderColor = "rgba(196,148,58,0.8)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = watching ? "rgba(196,148,58,0.2)" : "transparent";
-          e.currentTarget.style.borderColor = watching ? "rgba(196,148,58,0.7)" : "rgba(196,148,58,0.4)";
-        }}
-      >
-        {watching ? "✓" : "+"}
-      </button>
+      {/* Top-right quick icon removed — "Add to Hunt" button at bottom is sufficient */}
 
       {/* Signup hint tooltip */}
       {showSignupHint && (
