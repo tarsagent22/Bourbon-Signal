@@ -23,8 +23,8 @@ const steps: StepData[] = [
   },
   {
     number: "03",
-    description: "Your alert tells you which store, how many bottles, and exactly when it appeared. No guesswork — just go.",
-    flavor: "Know exactly where to go",
+    description: "Your alert tells you which ABC board received the shipment, what bottles, and how many cases. You know where to look before anyone else.",
+    flavor: "Know where to look",
   },
   {
     number: "04",

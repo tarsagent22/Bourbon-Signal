@@ -138,12 +138,14 @@ export default function BottleCard({
             ? "rgba(196,148,58,0.2)"
             : "transparent",
           color: "var(--color-accent-amber)",
-          fontSize: "16px",
-          lineHeight: 1,
+          fontSize: "14px",
+          fontWeight: 700,
+          lineHeight: "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           padding: 0,
+          textAlign: "center" as const,
           transition: "all 150ms ease",
           zIndex: 2,
         }}
@@ -235,43 +237,49 @@ export default function BottleCard({
         </span>
       </div>
 
-      {/* Row 2: Distillery */}
-      <p
-        style={{
-          fontFamily: "var(--font-dm-sans)",
-          fontSize: "11px",
-          color: "var(--color-text-tertiary)",
-          marginBottom: "10px",
-          lineHeight: 1.2,
-        }}
-      >
-        {bottle.distillery}
-      </p>
+      {/* Row 2: Distillery — hide if unknown/missing */}
+      {bottle.distillery && bottle.distillery !== "Unknown" && (
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "var(--color-text-tertiary)",
+            marginBottom: "10px",
+            lineHeight: 1.2,
+          }}
+        >
+          {bottle.distillery}
+        </p>
+      )}
 
-      {/* Row 3: Prices */}
+      {/* Row 3: Prices — hide MSRP if $0 or missing */}
       <div className="flex items-baseline justify-between" style={{ marginBottom: "8px" }}>
-        <div>
-          <span
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: "15px",
-              fontWeight: 600,
-              color: "var(--color-cream)",
-            }}
-          >
-            {formatMsrp(bottle.msrp)}
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "10px",
-              color: "var(--color-text-tertiary)",
-              marginLeft: "4px",
-            }}
-          >
-            MSRP
-          </span>
-        </div>
+        {bottle.msrp && bottle.msrp > 0 ? (
+          <div>
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "var(--color-cream)",
+              }}
+            >
+              {formatMsrp(bottle.msrp)}
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "10px",
+                color: "var(--color-text-tertiary)",
+                marginLeft: "4px",
+              }}
+            >
+              MSRP
+            </span>
+          </div>
+        ) : (
+          <div />
+        )}
 
         {secondaryString && (
           <span

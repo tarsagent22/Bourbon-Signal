@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Bottle } from "@/data/bottles";
-import dropsData from "@/data/drops.json";
 import type { DropEvent } from "@/lib/drops";
 import { getDisplayName, formatRelativeTime, cleanCountyName, TIER_CONFIG } from "@/lib/drops";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -70,14 +69,27 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
     };
   }, [isOpen]);
 
-  const recentDrops = useMemo(() => {
-    // Cast JSON data to DropEvent[]
-    const allDrops = (dropsData as { drops: DropEvent[] }).drops;
+  const [allDrops, setAllDrops] = useState<DropEvent[]>([]);
 
-    // Match drops whose display name matches the bottle name
-    let filtered = allDrops.filter(
-      (d) => getDisplayName(d).toLowerCase() === bottle.name.toLowerCase()
-    );
+  // Fetch drops from live API instead of static file
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch("/api/drops")
+      .then((r) => r.json())
+      .then((data) => setAllDrops(data.drops || []))
+      .catch(() => setAllDrops([]));
+  }, [isOpen]);
+
+  const recentDrops = useMemo(() => {
+    // Match drops by name — use fuzzy matching (contains) to handle name variants
+    const bottleName = bottle.name.toLowerCase().replace(/['']/g, "").trim();
+    let filtered = allDrops.filter((d) => {
+      const dropName = getDisplayName(d).toLowerCase().replace(/['']/g, "").trim();
+      // Exact match or significant substring match
+      return dropName === bottleName || 
+        dropName.includes(bottleName) || 
+        bottleName.includes(dropName);
+    });
 
     // TODO: When preferences.states is populated (user has set area preferences),
     // this filter will narrow results to their preferred states.
