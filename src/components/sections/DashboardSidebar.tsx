@@ -31,13 +31,7 @@ const TIER_DOT_COLORS: Record<string, string> = {
   limited: "#8A8A8A",
 };
 
-const DEFAULT_BOTTLE_IDS = [
-  "blantons",
-  "weller-12",
-  "eh-taylor-single-barrel",
-  "eagle-rare",
-  "stagg-jr",
-];
+// No default pre-population — watchlist starts empty
 
 function formatShortDate(dateStr: string | null): string {
   if (!dateStr) return "No drops yet";
@@ -537,18 +531,10 @@ export default function DashboardSidebar({ drops, miniMap }: DashboardSidebarPro
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [expandedBottleId, setExpandedBottleId] = useState<string | null>(null);
-  const hasInitialized = useRef(false);
+
   const { bottles: apiBottles } = useBottles();
 
-  // Pre-populate with defaults if store is empty on first mount
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
-    if (watchedBottles.length === 0) {
-      DEFAULT_BOTTLE_IDS.forEach((id) => addBottle(id));
-    }
-  }, [watchedBottles.length, addBottle]);
+  // Watchlist starts empty — user adds bottles explicitly
 
   // Resolve watched bottle IDs to bottle objects
   const watchlist = useMemo(() => {
