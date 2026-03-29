@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -21,7 +21,20 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { isSignedIn, user, memberTier, signIn, signOut } = useAuth();
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    if (profileOpen) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [profileOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -105,41 +118,10 @@ export default function Navigation() {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-5" style={{ marginRight: "10px" }}>
+        <div className="hidden md:flex items-center gap-4" style={{ marginRight: "10px" }}>
           {mounted && isSignedIn ? (
             <>
-              <span
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: "var(--color-text-secondary)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {userDisplayName}
-              </span>
-              <a
-                href="/settings"
-                title="Settings"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "18px",
-                  color: "var(--color-text-tertiary)",
-                  textDecoration: "none",
-                  lineHeight: 1,
-                  transition: "color 200ms ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--color-text-secondary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--color-text-tertiary)")
-                }
-              >
-                ⚙
-              </a>
-              {/* Upgrade nudge for free (unsubscribed) members */}
+              {/* Upgrade nudge — only for free tier, stays in nav */}
               {memberTier === null && (
                 <a
                   href="/pricing"
@@ -149,47 +131,189 @@ export default function Navigation() {
                     fontWeight: 600,
                     color: "var(--color-accent-amber)",
                     textDecoration: "none",
-                    border: "1px solid rgba(196,148,58,0.4)",
+                    border: "1px solid rgba(196,148,58,0.35)",
                     borderRadius: "4px",
-                    padding: "4px 10px",
+                    padding: "5px 12px",
                     whiteSpace: "nowrap",
                     transition: "all 200ms ease",
+                    letterSpacing: "0.02em",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(196,148,58,0.1)";
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.8)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.35)";
                   }}
                 >
                   Upgrade ↑
                 </a>
               )}
-              <WatchlistDropdown />
-              <button
-                onClick={() => signOut()}
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "var(--color-text-tertiary)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  transition: "color 300ms ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--color-text-secondary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--color-text-tertiary)")
-                }
-              >
-                Sign Out
-              </button>
+
+              {/* Profile avatar + dropdown */}
+              <div ref={profileRef} style={{ position: "relative" }}>
+                {/* Avatar button */}
+                <button
+                  onClick={() => setProfileOpen((o) => !o)}
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "50%",
+                    background: profileOpen
+                      ? "rgba(196,148,58,0.25)"
+                      : "rgba(196,148,58,0.12)",
+                    border: `1px solid ${profileOpen ? "rgba(196,148,58,0.7)" : "rgba(196,148,58,0.3)"}`,
+                    color: "var(--color-accent-amber)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 200ms ease",
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!profileOpen) {
+                      e.currentTarget.style.background = "rgba(196,148,58,0.2)";
+                      e.currentTarget.style.borderColor = "rgba(196,148,58,0.6)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!profileOpen) {
+                      e.currentTarget.style.background = "rgba(196,148,58,0.12)";
+                      e.currentTarget.style.borderColor = "rgba(196,148,58,0.3)";
+                    }
+                  }}
+                  aria-label="Profile menu"
+                >
+                  {userDisplayName.charAt(0).toUpperCase()}
+                </button>
+
+                {/* Dropdown panel */}
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 10px)",
+                        right: 0,
+                        width: "220px",
+                        background: "rgba(20, 16, 12, 0.97)",
+                        backdropFilter: "blur(20px)",
+                        WebkitBackdropFilter: "blur(20px)",
+                        border: "1px solid rgba(196,148,58,0.15)",
+                        borderTop: "2px solid var(--color-accent-amber)",
+                        borderRadius: "10px",
+                        boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                        overflow: "hidden",
+                        zIndex: 200,
+                      }}
+                    >
+                      {/* User info */}
+                      <div style={{ padding: "16px 16px 12px" }}>
+                        <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 600, color: "var(--color-cream)", marginBottom: "2px" }}>
+                          {userDisplayName}
+                        </p>
+                        <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "var(--color-text-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {user?.emailAddresses?.[0]?.emailAddress || ""}
+                        </p>
+                        {memberTier && (
+                          <span style={{
+                            display: "inline-block",
+                            marginTop: "8px",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            color: "#0D0B0E",
+                            background: "linear-gradient(135deg, var(--color-accent-amber), var(--color-accent-gold))",
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                          }}>
+                            {memberTier === "bottled-in-bond" ? "Bottled in Bond" : "Standard Proof"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
+
+                      {/* Menu items */}
+                      {[
+                        { label: "My Hunt Areas", href: "/settings#areas", icon: "🎯" },
+                        { label: "Settings", href: "/settings", icon: "⚙" },
+                      ].map((item) => (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setProfileOpen(false)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            padding: "11px 16px",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "13px",
+                            fontWeight: 500,
+                            color: "var(--color-text-secondary)",
+                            textDecoration: "none",
+                            transition: "all 150ms ease",
+                            borderLeft: "2px solid transparent",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = "var(--color-cream)";
+                            e.currentTarget.style.background = "rgba(196,148,58,0.06)";
+                            e.currentTarget.style.borderLeftColor = "var(--color-accent-amber)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "var(--color-text-secondary)";
+                            e.currentTarget.style.background = "transparent";
+                            e.currentTarget.style.borderLeftColor = "transparent";
+                          }}
+                        >
+                          <span style={{ fontSize: "14px", width: "18px", textAlign: "center" }}>{item.icon}</span>
+                          {item.label}
+                        </a>
+                      ))}
+
+                      {/* Divider */}
+                      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
+
+                      {/* Sign out */}
+                      <button
+                        onClick={() => { setProfileOpen(false); signOut(); }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                          padding: "11px 16px",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          fontWeight: 400,
+                          color: "var(--color-text-tertiary)",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "color 150ms ease",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-tertiary)")}
+                      >
+                        Sign out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </>
           ) : (
             <>
@@ -292,50 +416,46 @@ export default function Navigation() {
               </a>
             ))}
 
-            {/* Mobile auth actions */}
+            {/* Mobile auth — clean bottom section */}
             {mounted && isSignedIn ? (
-              <>
-                <a
-                  href="/settings"
-                  onClick={() => setMobileOpen(false)}
-                  style={{
-                    fontFamily: "var(--font-playfair)",
-                    fontSize: "24px",
-                    fontWeight: 700,
-                    color: "var(--color-text-secondary)",
-                    textDecoration: "none",
-                  }}
-                >
-                  Settings
-                </a>
-                <span
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", marginTop: "8px", paddingTop: "24px", borderTop: "1px solid rgba(196,148,58,0.15)", width: "200px" }}>
+                <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)", marginBottom: "8px" }}>
                   {userDisplayName}
-                </span>
+                </p>
+                {[
+                  { label: "My Hunt Areas", href: "/settings#areas" },
+                  { label: "Settings", href: "/settings" },
+                ].map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "16px",
+                      fontWeight: 500,
+                      color: "var(--color-text-secondary)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                ))}
                 <button
-                  onClick={() => {
-                    signOut();
-                    setMobileOpen(false);
-                  }}
+                  onClick={() => { signOut(); setMobileOpen(false); }}
                   style={{
+                    marginTop: "4px",
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "18px",
-                    fontWeight: 500,
+                    fontSize: "13px",
                     color: "var(--color-text-tertiary)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
                   }}
                 >
-                  Sign Out
+                  Sign out
                 </button>
-              </>
+              </div>
             ) : (
               <>
                 <a
