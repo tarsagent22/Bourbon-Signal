@@ -254,15 +254,7 @@ function HeroEmailCapture() {
         Founding members get lifetime access + exclusive perks. 100 spots at $39.
       </p>
 
-      <p style={{
-        fontFamily: "var(--font-dm-sans)",
-        fontSize: "13px",
-        color: "var(--color-text-tertiary)",
-        letterSpacing: "0.08em",
-        marginTop: "8px",
-      }}>
-        Currently tracking NC &amp; VA · PA and Utah coming soon
-      </p>
+
     </div>
   );
 }
