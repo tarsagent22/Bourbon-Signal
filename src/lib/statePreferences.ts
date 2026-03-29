@@ -12,6 +12,7 @@ interface StatePreferencesStore {
 export const AVAILABLE_STATES = [
   { code: "NC", name: "North Carolina", active: true },
   { code: "VA", name: "Virginia", active: true },
+  { code: "PA", name: "Pennsylvania", active: true },
   { code: "PA", name: "Pennsylvania", active: false, comingSoon: true },
   { code: "UT", name: "Utah", active: false, comingSoon: true },
 ] as const;

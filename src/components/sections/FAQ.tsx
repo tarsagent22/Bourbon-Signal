@@ -19,7 +19,7 @@ const faqs: FAQItem[] = [
   {
     question: "What states do you cover?",
     answer:
-      "We currently track allocated bourbon in North Carolina and Virginia with store-level data. Pennsylvania and Utah are next — we're actively building those scrapers.",
+      "We currently track allocated bourbon in North Carolina, Virginia, and Pennsylvania — all with store-level data. Utah is next.",
   },
   {
     question: "What's the difference between Standard and Bottled in Bond?",

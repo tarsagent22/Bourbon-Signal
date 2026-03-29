@@ -5,12 +5,22 @@ export interface DropEvent {
   tracked_brand_name?: string;
   board_name?: string;
   store_address?: string;
+  store_city?: string;
+  store_county?: string;
+  store_name?: string;
+  store_id?: string;
+  store_zip?: string;
+  stores_in_stock?: number;
   quantity_shipped?: number;
+  quantity_in_stock?: number;
   quantity?: number;
   rarity_tier: string;
   retail_price?: number | null;
   state?: string;
+  state_code?: string;
+  source?: string;
   stores?: { store_address?: string; store_id?: string; city?: string; quantity?: number; qty?: number }[];
+  store_details?: { id: string; name?: string; city?: string; county?: string; qty: number }[];
 }
 
 export interface GroupedDrop {
@@ -121,8 +131,14 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${bucket}`;
 
     const existing = groups.get(groupKey);
+    // For PA events, location is store_city or store_county; for NC/VA it's board_name
+    const getLocation = (ev: DropEvent) =>
+      ev.store_city
+        ? (ev.store_county ? `${ev.store_city} (${ev.store_county} Co.)` : ev.store_city)
+        : cleanCountyName(ev.board_name || "");
+
     if (existing) {
-      const county = cleanCountyName(event.board_name || "");
+      const county = getLocation(event);
       if (county && !existing.counties.includes(county)) {
         existing.counties.push(county);
       }
@@ -132,6 +148,9 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (event.quantity_shipped) {
         existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_shipped;
       }
+      if (event.quantity_in_stock) {
+        existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_in_stock;
+      }
       const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
       if ((rarityOrder[event.rarity_tier] || 0) > (rarityOrder[existing.rarity_tier] || 0)) {
         existing.rarity_tier = event.rarity_tier;
@@ -140,18 +159,18 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         existing.retail_price = event.retail_price;
       }
     } else {
-      const county = cleanCountyName(event.board_name || "");
+      const county = getLocation(event);
       groups.set(groupKey, {
         displayName,
         event_type: event.event_type,
         rarity_tier: event.rarity_tier,
         timestamp: event.timestamp,
         counties: county ? [county] : [],
-        board_name: event.board_name,
+        board_name: event.board_name || event.store_city,
         store_address: event.store_address,
         retail_price: event.retail_price,
-        quantity_shipped: event.quantity_shipped,
-        state: event.state,
+        quantity_shipped: event.quantity_shipped ?? event.quantity_in_stock,
+        state: event.state || (event.state_code === 'PA' ? 'PA' : undefined),
         id: groupKey,
       });
     }
@@ -199,6 +218,23 @@ export function getEventDescription(drop: GroupedDrop): string {
     }
     case "allocation_assigned": {
       return "Allocation assigned";
+    }
+    case "in_stock": {
+      // PA store-level event
+      if (drop.counties.length > 1) {
+        return `\u2192 ${drop.counties.length} PA stores`;
+      }
+      if (drop.counties.length === 1) {
+        return `\u2192 ${drop.counties[0]}, PA`;
+      }
+      return "\u2192 PA stores";
+    }
+    case "new_allocation": {
+      return "New PA allocation";
+    }
+    case "restock": {
+      const loc = drop.counties[0] || (drop.board_name ?? "");
+      return `Restocked${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     default:
       return drop.event_type;
