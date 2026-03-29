@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
@@ -340,7 +341,8 @@ function StateAreaSection({
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { isSignedIn, user, signOut } = useAuth();
+  const { isSignedIn: clerkSignedIn, isLoaded: clerkLoaded } = useUser();
+  const { user, signOut } = useAuth();
   const { prefs, loading, savePreferences } = useAreaPreferences();
   const [localPrefs, setLocalPrefs] = useState<AreaPreferences>({
     states: [],
@@ -348,20 +350,15 @@ export default function SettingsPage() {
     vaCities: [],
     paCounties: [],
   });
-  const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Redirect only after Clerk has fully loaded — prevents false redirect on first render
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Redirect if not signed in
-  useEffect(() => {
-    if (mounted && !loading && !isSignedIn) {
-      router.push("/sign-in");
+    if (clerkLoaded && !clerkSignedIn) {
+      router.push("/sign-in?redirect_url=/settings");
     }
-  }, [mounted, isSignedIn, loading, router]);
+  }, [clerkLoaded, clerkSignedIn, router]);
 
   // Sync server prefs → local state
   useEffect(() => {
@@ -400,8 +397,8 @@ export default function SettingsPage() {
   const userEmail =
     user?.emailAddresses?.[0]?.emailAddress || "";
 
-  // Show skeleton while loading/redirecting
-  if (!mounted || loading || !isSignedIn) {
+  // Show skeleton while Clerk loads or redirecting
+  if (!clerkLoaded || !clerkSignedIn) {
     return (
       <>
         <Navigation />
