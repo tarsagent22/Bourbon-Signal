@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 import ToastContainer from "@/components/Toast";
@@ -36,14 +38,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: "#D4920B",
+          colorBackground: "#1A1612",
+          colorText: "#F5EDD6",
+          colorInputBackground: "#2A2520",
+          colorInputText: "#F5EDD6",
+        },
+      }}
     >
-      <body style={{ fontFamily: "var(--font-dm-sans)" }}>
-        {children}
-        <ToastContainer />
-      </body>
-    </html>
+      <html
+        lang="en"
+        className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
+      >
+        <body style={{ fontFamily: "var(--font-dm-sans)" }}>
+          {children}
+          <ToastContainer />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

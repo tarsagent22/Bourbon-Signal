@@ -1,27 +1,21 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+"use client";
 
-interface AuthState {
-  isSignedIn: boolean;
-  memberTier: "bottled-in-bond" | "standard" | null;
-  memberNumber: number;
-  signIn: () => void;
-  signOut: () => void;
+import { useUser, useClerk } from "@clerk/nextjs";
+
+export function useAuth() {
+  const { isSignedIn, user } = useUser();
+  const { signOut, openSignIn } = useClerk();
+
+  // For now, all signed-in users are treated as "standard" tier
+  // Tier info will come from Stripe metadata later
+  const memberTier = isSignedIn ? "standard" : null;
+
+  return {
+    isSignedIn: !!isSignedIn,
+    memberTier,
+    memberNumber: 0, // will be assigned later
+    user,
+    signIn: () => openSignIn(),
+    signOut: () => signOut(),
+  };
 }
-
-export const useAuth = create<AuthState>()(
-  persist(
-    (set) => ({
-      isSignedIn: false,
-      memberTier: null,
-      memberNumber: 7,
-      signIn: () =>
-        set({ isSignedIn: true, memberTier: "bottled-in-bond", memberNumber: 7 }),
-      signOut: () =>
-        set({ isSignedIn: false, memberTier: null }),
-    }),
-    {
-      name: "proof-auth",
-    }
-  )
-);

@@ -21,7 +21,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { isSignedIn, memberNumber, signIn, signOut } = useAuth();
+  const { isSignedIn, user, signIn, signOut } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -30,7 +30,7 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const formattedMember = `#${String(memberNumber).padStart(3, "0")}`;
+  const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
 
   return (
     <>
@@ -111,22 +111,17 @@ export default function Navigation() {
               <span
                 style={{
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "var(--color-accent-amber)",
-                  padding: "6px 14px",
-                  borderRadius: "100px",
-                  border: "1px solid rgba(196, 148, 58, 0.3)",
-                  background: "rgba(196, 148, 58, 0.08)",
-                  letterSpacing: "0.04em",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--color-text-secondary)",
                   whiteSpace: "nowrap",
                 }}
               >
-                Founding Member {formattedMember}
+                {userDisplayName}
               </span>
               <WatchlistDropdown />
               <button
-                onClick={signOut}
+                onClick={() => signOut()}
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
@@ -255,17 +250,12 @@ export default function Navigation() {
                 <span
                   style={{
                     fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "var(--color-accent-amber)",
-                    padding: "6px 14px",
-                    borderRadius: "100px",
-                    border: "1px solid rgba(196, 148, 58, 0.3)",
-                    background: "rgba(196, 148, 58, 0.08)",
-                    letterSpacing: "0.04em",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    color: "var(--color-text-secondary)",
                   }}
                 >
-                  Founding Member {formattedMember}
+                  {userDisplayName}
                 </span>
                 <button
                   onClick={() => {
