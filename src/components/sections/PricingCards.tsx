@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 const standardFeatures = [
   "Personalized drop alerts — your bottles, your stores",
@@ -25,6 +27,23 @@ const founderExclusives = [
 ];
 
 export default function PricingCards() {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (!isSignedIn) {
+      router.push(`/sign-in?redirect_url=/pricing`);
+      return;
+    }
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
+
   return (
     <section
       style={{
@@ -209,6 +228,7 @@ export default function PricingCards() {
               {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
                 <button
+                  onClick={() => handleCheckout("monthly")}
                   style={{
                     display: "block",
                     width: "100%",
@@ -485,6 +505,7 @@ export default function PricingCards() {
                   Join the founding 100.
                 </p>
                 <button
+                  onClick={() => handleCheckout("founder")}
                   style={{
                     display: "block",
                     width: "100%",

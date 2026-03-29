@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle } from "@/data/bottles";
 import BottleCard from "@/components/BottleCard";
@@ -90,6 +92,22 @@ interface BottleGridProps {
 export default function BottleGrid({ bottles: propBottles, loading = false }: BottleGridProps) {
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
+  const router = useRouter();
+  const { isSignedIn: clerkSignedIn } = useClerkAuth();
+
+  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (!clerkSignedIn) {
+      router.push(`/sign-in?redirect_url=/pricing`);
+      return;
+    }
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
   const { selectedStates, hasSelectedStates } = useStatePreferences();
   const { watchedBottles } = useWatchlistStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -534,8 +552,8 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                   for {propBottles.length}+ bottles
                 </p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
-                  <a
-                    href="/#pricing"
+                  <button
+                    onClick={() => handleCheckout("monthly")}
                     className="inline-block rounded-lg"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
@@ -545,15 +563,15 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       background: "transparent",
                       border: "2px solid var(--color-accent-amber)",
                       padding: "12px 24px",
-                      textDecoration: "none",
                       borderRadius: "8px",
+                      cursor: "pointer",
                       transition: "all 200ms ease",
                     }}
                   >
                     Start Free Trial — $5/mo
-                  </a>
-                  <a
-                    href="/#pricing"
+                  </button>
+                  <button
+                    onClick={() => handleCheckout("founder")}
                     className="inline-block rounded-lg"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
@@ -563,13 +581,14 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       background:
                         "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                       padding: "14px 28px",
-                      textDecoration: "none",
                       borderRadius: "8px",
+                      cursor: "pointer",
+                      border: "none",
                       transition: "all 200ms ease",
                     }}
                   >
                     Claim Your Spot — $39
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

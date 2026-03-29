@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 const standardFeatures = [
   "Personalized drop alerts — your bottles, your stores",
@@ -25,6 +27,23 @@ const founderExclusives = [
 ];
 
 export default function PricingSection() {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (!isSignedIn) {
+      router.push(`/sign-in?redirect_url=/pricing`);
+      return;
+    }
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
+
   return (
     <section
       id="pricing"
@@ -211,8 +230,8 @@ export default function PricingSection() {
 
               {/* CTA — pushed to bottom */}
               <div style={{ marginTop: "auto", paddingTop: "24px" }}>
-                <a
-                  href="/pricing"
+                <button
+                  onClick={() => handleCheckout("monthly")}
                   style={{
                     display: "block",
                     width: "100%",
@@ -228,19 +247,18 @@ export default function PricingSection() {
                     borderRadius: "10px",
                     transition: "border-color 200ms, background 200ms, color 200ms",
                     textAlign: "center",
-                    textDecoration: "none",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(196,148,58,0.7)";
-                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(196,148,58,0.15)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(196,148,58,0.4)";
-                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(196,148,58,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
                   Start Free Trial
-                </a>
+                </button>
                 <p
                   className="text-center"
                   style={{
@@ -482,8 +500,8 @@ export default function PricingSection() {
                 >
                   Join the founding 100.
                 </p>
-                <a
-                  href="/pricing"
+                <button
+                  onClick={() => handleCheckout("founder")}
                   style={{
                     display: "block",
                     width: "100%",
@@ -500,19 +518,18 @@ export default function PricingSection() {
                     boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
                     transition: "box-shadow 300ms, transform 300ms",
                     textAlign: "center",
-                    textDecoration: "none",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
-                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 6px 30px rgba(196,148,58,0.5)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
-                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(196,148,58,0.3)";
+                    e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
                   Claim Your Spot — $39
-                </a>
+                </button>
               </div>
 
               {/* Note below button */}

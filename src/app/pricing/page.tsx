@@ -7,8 +7,27 @@ import ScrollReveal from "@/components/ScrollReveal";
 import PricingCards from "@/components/sections/PricingCards";
 import FeatureComparison from "@/components/sections/FeatureComparison";
 import FAQ from "@/components/sections/FAQ";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 export default function PricingPage() {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (!isSignedIn) {
+      router.push(`/sign-in?redirect_url=/pricing`);
+      return;
+    }
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
+
   return (
     <>
       <Navigation />
@@ -108,6 +127,7 @@ export default function PricingPage() {
             <ScrollReveal delay={200}>
               <div className="flex flex-col items-center gap-3">
                 <button
+                  onClick={() => handleCheckout("founder")}
                   style={{
                     width: "100%",
                     maxWidth: "320px",
@@ -135,7 +155,7 @@ export default function PricingPage() {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  Claim Your Spot — $69
+                  Claim Your Spot — $39
                 </button>
                 <p
                   style={{

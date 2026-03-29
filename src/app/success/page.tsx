@@ -1,0 +1,219 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import Link from "next/link";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+
+function getTrialEndDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+
+  // We can't know the plan from session_id alone without a server call,
+  // so we show generic success messaging that covers both cases well.
+  // The session_id is available if needed for future server-side lookup.
+  const trialEndDate = getTrialEndDate();
+
+  return (
+    <div
+      style={{
+        minHeight: "80vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "clamp(40px, 8vw, 80px) clamp(20px, 5vw, 40px)",
+      }}
+    >
+      {/* Amber glow ambient */}
+      <div
+        style={{
+          position: "fixed",
+          top: "30%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "600px",
+          height: "400px",
+          background: "radial-gradient(ellipse, rgba(196,148,58,0.08) 0%, transparent 70%)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      <div
+        style={{
+          maxWidth: 520,
+          margin: "0 auto",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        {/* Icon */}
+        <div
+          style={{
+            width: "64px",
+            height: "64px",
+            borderRadius: "50%",
+            background: "rgba(196,148,58,0.12)",
+            border: "1px solid rgba(196,148,58,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 32px",
+            fontSize: "28px",
+          }}
+        >
+          🥃
+        </div>
+
+        {/* Heading */}
+        <h1
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: "clamp(28px, 5vw, 40px)",
+            fontWeight: 700,
+            color: "var(--color-cream)",
+            marginBottom: "16px",
+            lineHeight: 1.2,
+          }}
+        >
+          You&apos;re in. Welcome to the hunt.
+        </h1>
+
+        {/* Subheading — covers both founder and standard */}
+        <div
+          style={{
+            background: "rgba(196,148,58,0.06)",
+            border: "1px solid rgba(196,148,58,0.2)",
+            borderRadius: "12px",
+            padding: "20px 24px",
+            marginBottom: "32px",
+          }}
+        >
+          {/* Standard trial info (shown by default — founder users see a similar feel) */}
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "15px",
+              color: "var(--color-text-secondary)",
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
+            Your 7-day trial starts now. You won&apos;t be charged until{" "}
+            <span
+              style={{
+                color: "var(--color-accent-amber)",
+                fontWeight: 600,
+              }}
+            >
+              {trialEndDate}
+            </span>
+            .
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "var(--color-text-tertiary)",
+              marginTop: "10px",
+              marginBottom: 0,
+            }}
+          >
+            If you claimed a Founder spot, you&apos;re set for life — no future charges, ever.
+          </p>
+        </div>
+
+        {/* What's next */}
+        <p
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "14px",
+            color: "var(--color-text-secondary)",
+            marginBottom: "32px",
+            lineHeight: 1.6,
+          }}
+        >
+          Drop alerts are live. Start building your watchlist and we&apos;ll notify you the moment your bottles hit shelves.
+        </p>
+
+        {/* CTA */}
+        <Link
+          href="/bottles"
+          style={{
+            display: "inline-block",
+            background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+            color: "#1A1510",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "16px",
+            fontWeight: 700,
+            padding: "16px 40px",
+            borderRadius: "10px",
+            textDecoration: "none",
+            boxShadow: "0 4px 20px rgba(196,148,58,0.3)",
+            transition: "box-shadow 300ms, transform 300ms",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+              "0 6px 30px rgba(196,148,58,0.5)";
+            (e.currentTarget as HTMLAnchorElement).style.transform =
+              "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+              "0 4px 20px rgba(196,148,58,0.3)";
+            (e.currentTarget as HTMLAnchorElement).style.transform =
+              "translateY(0)";
+          }}
+        >
+          Start Hunting →
+        </Link>
+
+        {/* Session ID (hidden but available for debugging) */}
+        {sessionId && (
+          <p
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "11px",
+              color: "rgba(245,237,214,0.15)",
+              marginTop: "32px",
+            }}
+          >
+            {sessionId}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <>
+      <Navigation />
+      <main
+        style={{
+          background: "var(--color-bg-primary)",
+          minHeight: "100vh",
+        }}
+      >
+        <Suspense fallback={<div style={{ minHeight: "80vh" }} />}>
+          <SuccessContent />
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  );
+}
