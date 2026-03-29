@@ -157,16 +157,19 @@ export default function Navigation() {
                 <button
                   onClick={() => setProfileOpen((o) => !o)}
                   style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "50%",
+                    width: "36px",
+                    height: "36px",
+                    // Wax seal: slightly imperfect circle via clip-path polygon with 12 points
+                    clipPath: "polygon(50% 0%, 61% 4%, 72% 2%, 80% 9%, 88% 14%, 95% 23%, 98% 34%, 98% 46%, 95% 57%, 88% 67%, 80% 74%, 70% 80%, 58% 84%, 46% 84%, 34% 80%, 24% 74%, 15% 66%, 7% 56%, 3% 44%, 3% 32%, 7% 21%, 15% 13%, 25% 7%, 37% 3%)",
                     background: profileOpen
-                      ? "rgba(196,148,58,0.25)"
-                      : "rgba(196,148,58,0.12)",
-                    border: `1px solid ${profileOpen ? "rgba(196,148,58,0.7)" : "rgba(196,148,58,0.3)"}`,
-                    color: "var(--color-accent-amber)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "13px",
+                      ? "radial-gradient(circle at 38% 35%, rgba(228,185,90,0.95) 0%, rgba(196,148,58,0.92) 40%, rgba(160,112,30,0.9) 100%)"
+                      : "radial-gradient(circle at 38% 35%, rgba(212,164,74,0.85) 0%, rgba(180,128,40,0.8) 45%, rgba(140,95,18,0.78) 100%)",
+                    boxShadow: profileOpen
+                      ? "inset 0 1px 2px rgba(255,220,100,0.3), inset 0 -1px 3px rgba(80,40,0,0.5), 0 2px 8px rgba(196,148,58,0.35)"
+                      : "inset 0 1px 2px rgba(255,220,100,0.2), inset 0 -1px 3px rgba(80,40,0,0.4), 0 1px 4px rgba(0,0,0,0.4)",
+                    color: "rgba(20,12,0,0.85)",
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "14px",
                     fontWeight: 700,
                     cursor: "pointer",
                     display: "flex",
@@ -174,17 +177,20 @@ export default function Navigation() {
                     justifyContent: "center",
                     transition: "all 200ms ease",
                     flexShrink: 0,
+                    textShadow: "0 1px 0 rgba(255,210,80,0.4), 0 -1px 1px rgba(80,40,0,0.5)",
+                    letterSpacing: "0.02em",
+                    border: "none",
+                    outline: "none",
+                    padding: 0,
                   }}
                   onMouseEnter={(e) => {
                     if (!profileOpen) {
-                      e.currentTarget.style.background = "rgba(196,148,58,0.2)";
-                      e.currentTarget.style.borderColor = "rgba(196,148,58,0.6)";
+                      e.currentTarget.style.boxShadow = "inset 0 1px 2px rgba(255,220,100,0.3), inset 0 -1px 3px rgba(80,40,0,0.5), 0 2px 10px rgba(196,148,58,0.4)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!profileOpen) {
-                      e.currentTarget.style.background = "rgba(196,148,58,0.12)";
-                      e.currentTarget.style.borderColor = "rgba(196,148,58,0.3)";
+                      e.currentTarget.style.boxShadow = "inset 0 1px 2px rgba(255,220,100,0.2), inset 0 -1px 3px rgba(80,40,0,0.4), 0 1px 4px rgba(0,0,0,0.4)";
                     }
                   }}
                   aria-label="Profile menu"
