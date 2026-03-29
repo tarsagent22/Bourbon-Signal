@@ -97,7 +97,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
     if (!clerkSignedIn) {
-      router.push(`/sign-in?redirect_url=/pricing`);
+      router.push(`/sign-up?redirect_url=/pricing`);
       return;
     }
     const res = await fetch("/api/checkout", {

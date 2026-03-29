@@ -21,7 +21,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { isSignedIn, user, signIn, signOut } = useAuth();
+  const { isSignedIn, user, memberTier, signIn, signOut } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -119,6 +119,34 @@ export default function Navigation() {
               >
                 {userDisplayName}
               </span>
+              {/* Upgrade nudge for free (unsubscribed) members */}
+              {memberTier === null && (
+                <a
+                  href="/pricing"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "var(--color-accent-amber)",
+                    textDecoration: "none",
+                    border: "1px solid rgba(196,148,58,0.4)",
+                    borderRadius: "4px",
+                    padding: "4px 10px",
+                    whiteSpace: "nowrap",
+                    transition: "all 200ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(196,148,58,0.1)";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.8)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+                  }}
+                >
+                  Upgrade ↑
+                </a>
+              )}
               <WatchlistDropdown />
               <button
                 onClick={() => signOut()}

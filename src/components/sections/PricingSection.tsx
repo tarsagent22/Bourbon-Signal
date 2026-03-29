@@ -32,7 +32,7 @@ export default function PricingSection() {
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
     if (!isSignedIn) {
-      router.push(`/sign-in?redirect_url=/pricing`);
+      router.push(`/sign-up?redirect_url=/pricing`);
       return;
     }
     const res = await fetch("/api/checkout", {

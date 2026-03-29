@@ -280,7 +280,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
               >
                 MSRP ${pricing.msrp}
               </span>
-              {/* Secondary price — blurred for free users */}
+              {/* Secondary price — blurred for free users only */}
               {pricing.secondary && (
                 <div className="flex items-center gap-1.5" style={{ marginTop: "2px" }}>
                   <span
@@ -290,24 +290,26 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                       fontWeight: 600,
                       color: "var(--color-accent-amber)",
                       whiteSpace: "nowrap",
-                      filter: "blur(4px)",
-                      userSelect: "none",
+                      filter: isFreeUser ? "blur(4px)" : "none",
+                      userSelect: isFreeUser ? "none" : "auto",
                     }}
                   >
                     {pricing.secondary}
                   </span>
-                  {/* Lock icon */}
-                  <span
-                    title="Unlock with Standard Proof"
-                    style={{
-                      fontSize: "10px",
-                      color: "rgba(245,237,214,0.3)",
-                      cursor: "help",
-                    }}
-                  >
-                    🔒
-                  </span>
-                  {/* Multiplier badge — blurred */}
+                  {/* Lock icon — only show for free users */}
+                  {isFreeUser && (
+                    <span
+                      title="Unlock with Standard Proof"
+                      style={{
+                        fontSize: "10px",
+                        color: "rgba(245,237,214,0.3)",
+                        cursor: "help",
+                      }}
+                    >
+                      🔒
+                    </span>
+                  )}
+                  {/* Multiplier badge */}
                   {pricing.multiplier && (
                     <span
                       style={{
@@ -320,8 +322,8 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                         borderRadius: "8px",
                         padding: "1px 6px",
                         whiteSpace: "nowrap",
-                        filter: "blur(3px)",
-                        userSelect: "none",
+                        filter: isFreeUser ? "blur(3px)" : "none",
+                        userSelect: isFreeUser ? "none" : "auto",
                       }}
                     >
                       {pricing.multiplier}x
@@ -419,8 +421,8 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                     <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>Secondary:</span>
                     <span
                       style={{
-                        filter: "blur(4px)",
-                        userSelect: "none",
+                        filter: isFreeUser ? "blur(4px)" : "none",
+                        userSelect: isFreeUser ? "none" : "auto",
                         color: "var(--color-accent-amber)",
                       }}
                     >

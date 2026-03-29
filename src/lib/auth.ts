@@ -6,9 +6,9 @@ export function useAuth() {
   const { isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
 
-  // For now, all signed-in users are treated as "standard" tier
-  // Tier info will come from Stripe metadata later
-  const memberTier = isSignedIn ? "standard" : null;
+  // Tier is null until Stripe confirms payment via webhook + user metadata
+  // TODO: Read from Clerk user.publicMetadata.tier once webhook writes it
+  const memberTier = (isSignedIn && user?.publicMetadata?.tier as string) || null;
 
   return {
     isSignedIn: !!isSignedIn,
