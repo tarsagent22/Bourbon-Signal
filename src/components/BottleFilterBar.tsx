@@ -9,37 +9,30 @@ interface BottleFilterBarProps {
   bottles: Bottle[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  activeTier: string;
-  onTierChange: (tier: string) => void;
+  activeFilter: string;
+  onFilterChange: (filter: string) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
   activeDistillery?: string;
   onDistilleryChange?: (distillery: string) => void;
-  showWatchlist?: boolean;
-  onWatchlistToggle?: () => void;
-  watchlistCount?: number;
 }
 
 const sortOptions = [
-  { value: "secondary", label: "Highest Secondary Value" },
-  { value: "name", label: "Name A\u2013Z" },
-  { value: "markup", label: "Biggest Markup" },
-  { value: "recent", label: "Recently Dropped" },
+  { value: "recent", label: "Most Recent Drop" },
+  { value: "secondary", label: "Secondary Price" },
+  { value: "name", label: "Name A–Z" },
 ];
 
 export default function BottleFilterBar({
   bottles,
   searchQuery,
   onSearchChange,
-  activeTier,
-  onTierChange,
+  activeFilter,
+  onFilterChange,
   sortBy,
   onSortChange,
   activeDistillery = "all",
   onDistilleryChange,
-  showWatchlist = false,
-  onWatchlistToggle,
-  watchlistCount = 0,
 }: BottleFilterBarProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [sortOpen, setSortOpen] = useState(false);
@@ -91,18 +84,11 @@ export default function BottleFilterBar({
   // Build sorted unique distillery list
   const distilleries = Array.from(new Set(bottles.map((b) => b.distillery).filter(Boolean))).sort();
 
-  const tierCounts = {
-    all: bottles.length,
-    unicorn: bottles.filter((b) => b.tier === "unicorn").length,
-    allocated: bottles.filter((b) => b.tier === "allocated").length,
-    limited: bottles.filter((b) => b.tier === "limited").length,
-  };
-
-  const tiers = [
+  const filters = [
     { key: "all", label: "All" },
-    { key: "unicorn", label: "Unicorn" },
-    { key: "allocated", label: "Allocated" },
-    { key: "limited", label: "Limited" },
+    { key: "in-stock", label: "In Stock Now" },
+    { key: "seen-week", label: "Seen This Week" },
+    { key: "my-states", label: "My States" },
   ];
 
   const currentSort = sortOptions.find((s) => s.value === sortBy);
@@ -133,6 +119,21 @@ export default function BottleFilterBar({
             padding: "0 clamp(20px, 5vw, 48px)",
           }}
         >
+          {/* Section header */}
+          <div style={{ marginBottom: "14px" }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "18px",
+                fontWeight: 700,
+                color: "var(--color-cream)",
+                marginBottom: "2px",
+              }}
+            >
+              Discover Bottles
+            </h2>
+          </div>
+
           {/* Search Input */}
           <div className="relative" style={{ marginBottom: "14px" }}>
             <Search
@@ -172,65 +173,25 @@ export default function BottleFilterBar({
             />
           </div>
 
-          {/* Tier Pills + Distillery + Sort */}
+          {/* Filter Pills + Distillery + Sort */}
           <div className="flex items-center justify-between flex-wrap gap-3">
-            {/* Watchlist Pill + Tier Pills */}
+            {/* Filter Pills */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* My Watchlist pill */}
-              {onWatchlistToggle && (
-                <>
-                  <motion.button
-                    onClick={onWatchlistToggle}
-                    className="cursor-pointer flex items-center gap-1"
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      background: showWatchlist ? "#C4943A" : "rgba(196,148,58,0.08)",
-                      color: showWatchlist ? "#1A1510" : "var(--color-accent-amber)",
-                      border: showWatchlist
-                        ? "1px solid #C4943A"
-                        : "1px solid rgba(196,148,58,0.3)",
-                      borderRadius: "20px",
-                      padding: "6px 14px",
-                      outline: "none",
-                    }}
-                    layout
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span style={{ fontSize: "11px" }}>★</span>
-                    {watchlistCount > 0
-                      ? `My Watchlist (${watchlistCount})`
-                      : "My Watchlist"}
-                  </motion.button>
-                  {/* Thin divider */}
-                  <div
-                    style={{
-                      width: "1px",
-                      height: "20px",
-                      background: "rgba(255,255,255,0.1)",
-                      flexShrink: 0,
-                    }}
-                  />
-                </>
-              )}
-              {tiers.map((tier) => {
-                const isActive = activeTier === tier.key;
+              {filters.map((filter) => {
+                const isActive = activeFilter === filter.key;
                 return (
                   <motion.button
-                    key={tier.key}
-                    onClick={() => onTierChange(tier.key)}
+                    key={filter.key}
+                    onClick={() => onFilterChange(filter.key)}
                     className="cursor-pointer"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
                       fontSize: "12px",
                       fontWeight: 600,
-                      background: isActive ? "#C4943A" : "transparent",
+                      background: isActive ? "var(--color-amber-rich)" : "transparent",
                       color: isActive ? "#1A1510" : "var(--color-text-secondary)",
                       border: isActive
-                        ? "1px solid #C4943A"
+                        ? "1px solid var(--color-amber-rich)"
                         : "1px solid rgba(255, 255, 255, 0.08)",
                       borderRadius: "20px",
                       padding: "6px 14px",
@@ -241,7 +202,7 @@ export default function BottleFilterBar({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {tier.label} ({tierCounts[tier.key as keyof typeof tierCounts]})
+                    {filter.label}
                   </motion.button>
                 );
               })}
@@ -276,94 +237,94 @@ export default function BottleFilterBar({
                 </select>
               )}
 
-            {/* Sort Dropdown */}
-            <div className="relative" ref={sortRef}>
-              <motion.button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 cursor-pointer"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  color: "var(--color-text-secondary)",
-                  background: "rgba(36, 30, 25, 0.6)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderRadius: "20px",
-                  padding: "6px 14px",
-                  outline: "none",
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {currentSort?.label || "Sort"}
-                <motion.div
-                  animate={{ rotate: sortOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
+              {/* Sort Dropdown */}
+              <div className="relative" ref={sortRef}>
+                <motion.button
+                  onClick={() => setSortOpen(!sortOpen)}
+                  className="flex items-center gap-2 cursor-pointer"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: "var(--color-text-secondary)",
+                    background: "rgba(36, 30, 25, 0.6)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "20px",
+                    padding: "6px 14px",
+                    outline: "none",
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <ChevronDown size={14} />
-                </motion.div>
-              </motion.button>
-
-              <AnimatePresence>
-                {sortOpen && (
+                  {currentSort?.label || "Sort"}
                   <motion.div
-                    className="absolute right-0 mt-2 z-50 overflow-hidden"
-                    style={{
-                      width: "220px",
-                      background: "var(--color-bg-secondary)",
-                      border: "1px solid var(--color-amber-rich)",
-                      borderRadius: "10px",
-                      boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
-                    }}
-                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ rotate: sortOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {sortOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => {
-                          onSortChange(opt.value);
-                          setSortOpen(false);
-                        }}
-                        className="w-full text-left cursor-pointer"
-                        style={{
-                          fontFamily: "var(--font-dm-sans)",
-                          fontSize: "13px",
-                          color:
-                            sortBy === opt.value
-                              ? "var(--color-amber-rich)"
-                              : "var(--color-text-secondary)",
-                          background:
-                            sortBy === opt.value
-                              ? "rgba(196, 148, 58, 0.08)"
-                              : "transparent",
-                          border: "none",
-                          padding: "10px 16px",
-                          transition: "background 150ms ease",
-                          outline: "none",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (sortBy !== opt.value) {
-                            e.currentTarget.style.background =
-                              "rgba(196, 148, 58, 0.05)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (sortBy !== opt.value) {
-                            e.currentTarget.style.background = "transparent";
-                          }
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                    <ChevronDown size={14} />
                   </motion.div>
-                )}
-              </AnimatePresence>
+                </motion.button>
+
+                <AnimatePresence>
+                  {sortOpen && (
+                    <motion.div
+                      className="absolute right-0 mt-2 z-50 overflow-hidden"
+                      style={{
+                        width: "220px",
+                        background: "var(--color-bg-secondary)",
+                        border: "1px solid var(--color-amber-rich)",
+                        borderRadius: "10px",
+                        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+                      }}
+                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {sortOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            onSortChange(opt.value);
+                            setSortOpen(false);
+                          }}
+                          className="w-full text-left cursor-pointer"
+                          style={{
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "13px",
+                            color:
+                              sortBy === opt.value
+                                ? "var(--color-amber-rich)"
+                                : "var(--color-text-secondary)",
+                            background:
+                              sortBy === opt.value
+                                ? "rgba(196, 148, 58, 0.08)"
+                                : "transparent",
+                            border: "none",
+                            padding: "10px 16px",
+                            transition: "background 150ms ease",
+                            outline: "none",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (sortBy !== opt.value) {
+                              e.currentTarget.style.background =
+                                "rgba(196, 148, 58, 0.05)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (sortBy !== opt.value) {
+                              e.currentTarget.style.background = "transparent";
+                            }
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-            </div>{/* end Distillery + Sort flex wrapper */}
           </div>
         </div>
       </div>

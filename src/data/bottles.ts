@@ -12,6 +12,9 @@ export interface Bottle {
   avgDropsPerMonth?: number;
   lastSeen?: string;
   state?: string;
+  has_inventory?: boolean;
+  last_drop?: string | null;
+  drop_count_30d?: number;
 }
 
 export interface BottlePricing {

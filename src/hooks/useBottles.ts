@@ -34,6 +34,9 @@ export function useBottles() {
           lastSeen: b.last_drop || undefined,
           avgDropsPerMonth: b.drop_count_30d || 0,
           state: b.state || undefined,
+          has_inventory: b.has_inventory || false,
+          last_drop: b.last_drop || null,
+          drop_count_30d: b.drop_count_30d || 0,
           // These fields aren't in the engine yet — leave undefined
           secondary: undefined,
           proof: undefined,

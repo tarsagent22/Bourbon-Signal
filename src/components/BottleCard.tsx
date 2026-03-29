@@ -8,6 +8,7 @@ import { BOTTLE_PRICING } from "@/data/bottles";
 import { formatRelativeTime } from "@/lib/drops";
 import { useWatchlistStore } from "@/lib/watchlist";
 import { useToastStore } from "@/lib/toast";
+import { getAvailabilityInfo } from "@/lib/availability";
 import DropHistoryModal from "@/components/DropHistoryModal";
 
 interface BottleCardProps {
@@ -61,8 +62,10 @@ export default function BottleCard({
   // Cross-reference secondary pricing from BOTTLE_PRICING lookup
   const pricingKey = bottle.name.toLowerCase();
   const pricingData = BOTTLE_PRICING[pricingKey];
-  // Prefer live bottle data if it has secondary, otherwise fall back to lookup
   const secondaryString = bottle.secondary || pricingData?.secondary || null;
+
+  // Availability
+  const availability = getAvailabilityInfo(bottle);
 
   // Tier-specific backgrounds
   const cardBg = isUnicorn
@@ -83,10 +86,10 @@ export default function BottleCard({
     }
     if (watching) {
       removeBottle(bottle.id);
-      addToast(`Removed ${bottle.name} from watchlist`, "bookmark-x");
+      addToast(`Removed ${bottle.name} from your hunt`, "bookmark-x");
     } else {
       addBottle(bottle.id);
-      addToast(`Added ${bottle.name} to watchlist`, "bookmark");
+      addToast(`Added ${bottle.name} to your hunt`, "bookmark");
     }
   }
 
@@ -110,6 +113,8 @@ export default function BottleCard({
         opacity: isLimited ? 0.85 : 1,
         animation: isHighlighted ? "highlightPulse 2s ease" : undefined,
         boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+        display: "flex",
+        flexDirection: "column",
       }}
       whileHover={{
         y: -2,
@@ -120,10 +125,10 @@ export default function BottleCard({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      {/* + Watchlist button — top right */}
+      {/* Quick watchlist icon — top right */}
       <button
         onClick={handleWatchClick}
-        title={isFreeUser ? "Sign up to use watchlist" : watching ? "Remove from watchlist" : "Add to watchlist"}
+        title={isFreeUser ? "Sign up to use watchlist" : watching ? "Remove from hunt" : "Add to hunt"}
         className="absolute cursor-pointer"
         style={{
           top: "8px",
@@ -180,11 +185,41 @@ export default function BottleCard({
             boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
           }}
         >
-          Sign up to use watchlist
+          Sign up to track bottles
         </div>
       )}
 
-      {/* Row 1: Name + Tier Badge */}
+      {/* Row 1: Availability Status — LEAD */}
+      <div
+        className="flex items-center gap-2"
+        style={{ marginBottom: "8px" }}
+      >
+        <span
+          style={{
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            background: availability.isAvailable
+              ? "var(--color-success)"
+              : "var(--color-text-tertiary)",
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "12px",
+            fontWeight: 600,
+            color: availability.isAvailable
+              ? "var(--color-success)"
+              : "var(--color-text-tertiary)",
+          }}
+        >
+          {availability.label}
+        </span>
+      </div>
+
+      {/* Row 2: Name + Tier Badge */}
       <div
         className="flex items-center"
         style={{ marginBottom: "6px", paddingRight: "32px" }}
@@ -237,7 +272,7 @@ export default function BottleCard({
         </span>
       </div>
 
-      {/* Row 2: Distillery — hide if unknown/missing */}
+      {/* Row 3: Distillery — hide if unknown/missing */}
       {bottle.distillery && bottle.distillery !== "Unknown" && (
         <p
           style={{
@@ -252,7 +287,7 @@ export default function BottleCard({
         </p>
       )}
 
-      {/* Row 3: Prices — hide MSRP if $0 or missing */}
+      {/* Row 4: Prices — MSRP + secondary */}
       <div className="flex items-baseline justify-between" style={{ marginBottom: "8px" }}>
         {bottle.msrp && bottle.msrp > 0 ? (
           <div>
@@ -296,26 +331,12 @@ export default function BottleCard({
         )}
       </div>
 
-      {/* Row 4: Last seen (if available) */}
-      {lastSeenTimestamp && (
-        <p
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "11px",
-            color: "rgba(196,148,58,0.55)",
-            marginBottom: "6px",
-          }}
-        >
-          Last seen: {formatRelativeTime(lastSeenTimestamp)}
-          {lastSeenLocation ? ` · ${lastSeenLocation}` : ""}
-        </p>
-      )}
-
-      {/* Row 5: Footer — proof, age */}
+      {/* Row 5: Footer — proof, age, view drops */}
       <div
         className="flex items-center gap-3 pt-2"
         style={{
           borderTop: "1px solid rgba(255,255,255,0.04)",
+          marginBottom: "12px",
         }}
       >
         {bottle.proof && (
@@ -340,7 +361,6 @@ export default function BottleCard({
             {bottle.ageStatement}
           </span>
         )}
-        {/* View drops button — replaces raw avgDropsPerMonth count */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -368,6 +388,63 @@ export default function BottleCard({
           }}
         >
           View drops
+        </button>
+      </div>
+
+      {/* Row 6: Add to Hunt CTA — prominent bottom button */}
+      <div style={{ marginTop: "auto" }}>
+        <button
+          onClick={handleWatchClick}
+          className="w-full cursor-pointer"
+          style={{
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            fontWeight: 600,
+            padding: "10px 16px",
+            borderRadius: "8px",
+            border: watching
+              ? "1.5px solid rgba(196,148,58,0.6)"
+              : "1.5px solid rgba(196,148,58,0.4)",
+            background: watching
+              ? "rgba(196,148,58,0.15)"
+              : "transparent",
+            color: "var(--color-accent-amber)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            transition: "all 200ms ease",
+          }}
+          onMouseEnter={(e) => {
+            if (watching) {
+              e.currentTarget.style.background = "rgba(196,148,58,0.25)";
+              e.currentTarget.style.borderColor = "rgba(196,148,58,0.8)";
+            } else {
+              e.currentTarget.style.background = "rgba(196,148,58,0.1)";
+              e.currentTarget.style.borderColor = "rgba(196,148,58,0.6)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (watching) {
+              e.currentTarget.style.background = "rgba(196,148,58,0.15)";
+              e.currentTarget.style.borderColor = "rgba(196,148,58,0.6)";
+            } else {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderColor = "rgba(196,148,58,0.4)";
+            }
+          }}
+        >
+          {watching ? (
+            <>
+              <span>Watching</span>
+              <span style={{ fontSize: "14px" }}>✓</span>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: "14px" }}>+</span>
+              <span>Add to Hunt</span>
+            </>
+          )}
         </button>
       </div>
 
