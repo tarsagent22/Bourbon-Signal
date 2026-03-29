@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
@@ -339,11 +339,18 @@ function StateAreaSection({
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const router = useRouter();
-  const { isSignedIn: clerkSignedIn, isLoaded: clerkLoaded } = useUser();
+  const clerkAuth = useClerkAuth();
   const { user, signOut } = useAuth();
-  const { prefs, loading, savePreferences } = useAreaPreferences();
+  const { prefs, savePreferences } = useAreaPreferences();
+
+  // Redirect if not authenticated (Clerk token indicates auth status)
+  useEffect(() => {
+    if (!clerkAuth.sessionId) {
+      router.push("/sign-in");
+    }
+  }, [clerkAuth.sessionId, router]);
   const [localPrefs, setLocalPrefs] = useState<AreaPreferences>({
     states: [],
     ncBoards: [],
@@ -352,13 +359,6 @@ export default function SettingsPage() {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  // Redirect only after Clerk has fully loaded — prevents false redirect on first render
-  useEffect(() => {
-    if (clerkLoaded && !clerkSignedIn) {
-      router.push("/sign-in?redirect_url=/settings");
-    }
-  }, [clerkLoaded, clerkSignedIn, router]);
 
   // Sync server prefs → local state
   useEffect(() => {
@@ -397,23 +397,6 @@ export default function SettingsPage() {
   const userEmail =
     user?.emailAddresses?.[0]?.emailAddress || "";
 
-  // Show skeleton while Clerk loads or redirecting
-  if (!clerkLoaded || !clerkSignedIn) {
-    return (
-      <>
-        <Navigation />
-        <div
-          style={{
-            minHeight: "100vh",
-            background: "var(--color-bg-primary)",
-            paddingTop: "120px",
-          }}
-        />
-        <Footer />
-      </>
-    );
-  }
-
   const stateOptions = [
     { code: "NC", label: "North Carolina" },
     { code: "VA", label: "Virginia" },
@@ -421,17 +404,15 @@ export default function SettingsPage() {
   ];
 
   return (
-    <>
-      <Navigation />
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "var(--color-bg-primary)",
-          paddingTop: "100px",
-          paddingBottom: "80px",
-        }}
-      >
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px)" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "var(--color-bg-primary)",
+        paddingTop: "100px",
+        paddingBottom: "80px",
+      }}
+    >
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px)" }}>
 
           {/* Page header */}
           <div style={{ marginBottom: "40px" }}>
@@ -734,10 +715,17 @@ export default function SettingsPage() {
                 Sign Out
               </button>
             </div>
-          </div>
-
-        </div>
       </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <>
+      <Navigation />
+      <SettingsPageContent />
       <Footer />
     </>
   );
