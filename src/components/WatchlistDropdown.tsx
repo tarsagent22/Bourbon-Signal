@@ -191,7 +191,7 @@ export default function WatchlistDropdown() {
                   No bottles watched yet
                 </p>
                 <a
-                  href="/bottles"
+                  href="/dashboard"
                   onClick={() => setOpen(false)}
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -209,7 +209,7 @@ export default function WatchlistDropdown() {
                 {watchedItems.map((item) => (
                   <a
                     key={item.id}
-                    href={`/bottles?highlight=${bottleIdFromName(item.name)}`}
+                    href={`/dashboard?highlight=${bottleIdFromName(item.name)}`}
                     onClick={() => setOpen(false)}
                     className="flex items-center"
                     style={{

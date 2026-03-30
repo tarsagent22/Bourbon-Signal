@@ -622,7 +622,7 @@ export default function DropFeed() {
             </h2>
             {hasAreaPrefs && (
               <a
-                href="/settings"
+                href="/dashboard"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "12px",

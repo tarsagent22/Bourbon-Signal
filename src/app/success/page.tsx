@@ -151,7 +151,7 @@ function SuccessContent() {
 
         {/* CTA */}
         <Link
-          href="/bottles"
+          href="/dashboard"
           style={{
             display: "inline-block",
             background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",

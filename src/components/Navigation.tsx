@@ -9,7 +9,6 @@ import { useAuth } from "@/lib/auth";
 
 const navLinks = [
   { label: "Drops", href: "/#drops" },
-  { label: "Bottles", href: "/bottles" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Hunt Map", href: "/map" },
   { label: "Pricing", href: "/pricing" },
@@ -254,8 +253,7 @@ export default function Navigation() {
 
                       {/* Menu items */}
                       {[
-                        { label: "My Hunt Areas", href: "/settings#areas", icon: "🎯" },
-                        { label: "Settings", href: "/settings", icon: "⚙" },
+                        { label: "My Hunt Areas", href: "/dashboard", icon: "🎯" },
                       ].map((item) => (
                         <a
                           key={item.href}
@@ -429,8 +427,7 @@ export default function Navigation() {
                   {userDisplayName}
                 </p>
                 {[
-                  { label: "My Hunt Areas", href: "/settings#areas" },
-                  { label: "Settings", href: "/settings" },
+                  { label: "My Hunt Areas", href: "/dashboard" },
                 ].map((item) => (
                   <a
                     key={item.href}

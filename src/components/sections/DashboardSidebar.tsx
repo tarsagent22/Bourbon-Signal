@@ -483,7 +483,7 @@ function WatchlistRow({
 
                   {bottle.drop_count_30d > 1 && (
                     <a
-                      href="/bottles"
+                      href="/dashboard"
                       onClick={(e) => e.stopPropagation()}
                       style={{
                         display: "inline-block",

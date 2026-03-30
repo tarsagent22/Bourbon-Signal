@@ -14,7 +14,7 @@ export default function BottleLink({ name, children, style, className }: BottleL
   const bottleId = bottleIdFromName(name);
   return (
     <Link
-      href={`/bottles?highlight=${bottleId}`}
+      href={`/dashboard?highlight=${bottleId}`}
       className={className}
       style={{
         textDecoration: "none",
