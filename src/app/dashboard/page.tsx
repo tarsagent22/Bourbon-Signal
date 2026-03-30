@@ -1,18 +1,16 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import BottleGrid from "@/components/sections/BottleGrid";
-import StateSelector from "@/components/StateSelector";
 import { useBottles } from "@/hooks/useBottles";
 import { useWatchlistStore } from "@/lib/watchlist";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
+import { useStores } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import { getAvailabilityInfo } from "@/lib/availability";
 import type { AreaPreferences } from "@/app/api/user/preferences/route";
@@ -74,8 +72,7 @@ function SearchPicker({ options, selected, placeholder, onAdd, onRemove }: Picke
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const filtered = options
-    .filter((o) => !selected.includes(o) && o.toLowerCase().includes(query.toLowerCase()))
-    .slice(0, 12);
+    .filter((o) => !selected.includes(o) && o.toLowerCase().includes(query.toLowerCase()));
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -219,6 +216,169 @@ function SearchPicker({ options, selected, placeholder, onAdd, onRemove }: Picke
   );
 }
 
+// ─── Store name picker (string IDs) ───────────────────────────────────────────
+
+interface StorePickerProps {
+  options: Array<{ id: string; label: string }>;
+  selected: string[]; // store IDs
+  placeholder: string;
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+}
+
+function StoreIdPicker({ options, selected, placeholder, onAdd, onRemove }: StorePickerProps) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const filtered = options.filter(
+    (o) => !selected.includes(o.id) && o.label.toLowerCase().includes(query.toLowerCase())
+  );
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedLabels = selected
+    .map((id) => options.find((o) => o.id === id))
+    .filter(Boolean) as Array<{ id: string; label: string }>;
+
+  return (
+    <div ref={wrapperRef} style={{ position: "relative" }}>
+      {/* Selected chips */}
+      {selectedLabels.length > 0 && (
+        <div className="flex flex-wrap gap-2" style={{ marginBottom: "10px" }}>
+          {selectedLabels.map((store) => (
+            <span
+              key={store.id}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "12px",
+                fontWeight: 500,
+                color: "var(--color-accent-amber)",
+                background: "rgba(196,148,58,0.12)",
+                border: "1px solid rgba(196,148,58,0.3)",
+                borderRadius: "6px",
+                padding: "4px 8px",
+              }}
+            >
+              {store.label}
+              <button
+                onClick={() => onRemove(store.id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "rgba(196,148,58,0.6)",
+                  fontSize: "14px",
+                  lineHeight: 1,
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                aria-label={`Remove ${store.label}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <input
+        type="text"
+        value={query}
+        placeholder={placeholder}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        style={{
+          width: "100%",
+          padding: "10px 14px",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(196,148,58,0.2)",
+          borderRadius: "8px",
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "14px",
+          color: "var(--color-text-primary)",
+          outline: "none",
+          transition: "border-color 200ms",
+        }}
+        onFocusCapture={(e) => {
+          e.currentTarget.style.borderColor = "rgba(196,148,58,0.5)";
+        }}
+        onBlurCapture={(e) => {
+          e.currentTarget.style.borderColor = "rgba(196,148,58,0.2)";
+        }}
+      />
+
+      {open && filtered.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            marginTop: "4px",
+            background: "var(--color-bg-tertiary)",
+            border: "1px solid rgba(196,148,58,0.2)",
+            borderRadius: "8px",
+            zIndex: 100,
+            maxHeight: "220px",
+            overflowY: "auto",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+          }}
+        >
+          {filtered.map((item) => (
+            <button
+              key={item.id}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onAdd(item.id);
+                setQuery("");
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                padding: "10px 14px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                color: "var(--color-text-secondary)",
+                transition: "background 150ms, color 150ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(196,148,58,0.08)";
+                e.currentTarget.style.color = "var(--color-text-primary)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "none";
+                e.currentTarget.style.color = "var(--color-text-secondary)";
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── State sub-section ─────────────────────────────────────────────────────────
 
 interface StateAreaSectionProps {
@@ -230,6 +390,7 @@ interface StateAreaSectionProps {
   onAdd: (item: string) => void;
   onRemove: (item: string) => void;
   placeholder: string;
+  children?: React.ReactNode;
 }
 
 function StateAreaSection({
@@ -241,6 +402,7 @@ function StateAreaSection({
   onAdd,
   onRemove,
   placeholder,
+  children,
 }: StateAreaSectionProps) {
   const [expanded, setExpanded] = useState(selected.length > 0);
 
@@ -339,7 +501,118 @@ function StateAreaSection({
               Cancel
             </button>
           )}
+          {children}
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── PA Store Sub-Picker ──────────────────────────────────────────────────────
+
+interface PAStorePickerProps {
+  county: string;
+  stores: Array<{ id: string; name: string; city: string; address?: string }>;
+  paStores: string[]; // all selected store IDs (across all counties)
+  onAddStore: (id: string) => void;
+  onRemoveStore: (id: string) => void;
+}
+
+function PAStorePicker({ county, stores, paStores, onAddStore, onRemoveStore }: PAStorePickerProps) {
+  // "all" or "specific"
+  const selectedInCounty = paStores.filter((id) =>
+    stores.some((s) => s.id === id)
+  );
+  const [mode, setMode] = useState<"all" | "specific">(
+    selectedInCounty.length > 0 ? "specific" : "all"
+  );
+
+  const storeOptions = stores.map((s) => ({
+    id: s.id,
+    label: `Fine Wine #${s.id} — ${s.city}${s.address ? ` (${s.address})` : ""}`,
+  }));
+
+  return (
+    <div
+      style={{
+        marginTop: "12px",
+        padding: "12px 14px",
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(196,148,58,0.08)",
+        borderRadius: "6px",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "12px",
+          fontWeight: 600,
+          color: "var(--color-text-secondary)",
+          marginBottom: "10px",
+        }}
+      >
+        {county} County stores:
+      </p>
+
+      {/* Radio buttons */}
+      <div className="flex flex-col gap-2" style={{ marginBottom: mode === "specific" ? "12px" : 0 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            cursor: "pointer",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            color: mode === "all" ? "var(--color-text-primary)" : "var(--color-text-tertiary)",
+          }}
+        >
+          <input
+            type="radio"
+            name={`pa-store-mode-${county}`}
+            value="all"
+            checked={mode === "all"}
+            onChange={() => {
+              setMode("all");
+              // Remove all stores for this county from selection
+              selectedInCounty.forEach((id) => onRemoveStore(id));
+            }}
+            style={{ accentColor: "var(--color-accent-amber)" }}
+          />
+          All stores in {county}
+        </label>
+
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            cursor: "pointer",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "13px",
+            color: mode === "specific" ? "var(--color-text-primary)" : "var(--color-text-tertiary)",
+          }}
+        >
+          <input
+            type="radio"
+            name={`pa-store-mode-${county}`}
+            value="specific"
+            checked={mode === "specific"}
+            onChange={() => setMode("specific")}
+            style={{ accentColor: "var(--color-accent-amber)" }}
+          />
+          Specific stores only
+        </label>
+      </div>
+
+      {mode === "specific" && (
+        <StoreIdPicker
+          options={storeOptions}
+          selected={selectedInCounty}
+          placeholder={`Search ${county} stores…`}
+          onAdd={onAddStore}
+          onRemove={onRemoveStore}
+        />
       )}
     </div>
   );
@@ -405,7 +678,7 @@ function WatchlistCard({
           transition: "all 150ms ease",
           padding: 0,
         }}
-        title="Remove from hunt"
+        title="Remove from watchlist"
       >
         ×
       </button>
@@ -487,12 +760,11 @@ function WatchlistCard({
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const clerkAuth = useClerkAuth();
   const { bottles, loading } = useBottles();
-  const { isSignedIn, user } = useAuth();
+  const { isSignedIn } = useAuth();
   const { watchedBottles, removeBottle } = useWatchlistStore();
   const { prefs, savePreferences } = useAreaPreferences();
+  const { stores } = useStores();
   const [mounted, setMounted] = useState(false);
 
   // Area prefs state
@@ -501,6 +773,7 @@ export default function DashboardPage() {
     ncBoards: [],
     vaCities: [],
     paCounties: [],
+    paStores: [],
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -525,6 +798,7 @@ export default function DashboardPage() {
         ncBoards: code === "NC" && hasState ? [] : prev.ncBoards,
         vaCities: code === "VA" && hasState ? [] : prev.vaCities,
         paCounties: code === "PA" && hasState ? [] : prev.paCounties,
+        paStores: code === "PA" && hasState ? [] : prev.paStores,
       };
     });
   };
@@ -554,6 +828,24 @@ export default function DashboardPage() {
   }, [bottles, watchedBottles, mounted]);
 
   const showWatchlistSection = mounted && (isSignedIn || watchedBottles.length > 0);
+
+  // Auto-filter bottles by selected states from saved prefs
+  const filteredBottles = useMemo(() => {
+    if (!prefs.states || prefs.states.length === 0) return bottles;
+    return bottles.filter((b) => !b.state || prefs.states.includes(b.state));
+  }, [bottles, prefs.states]);
+
+  // PA stores grouped by county (only for selected counties)
+  const paStoresByCounty = useMemo(() => {
+    const paStoresAll = stores.filter((s) => s.state === "PA");
+    const byCounty: Record<string, typeof paStoresAll> = {};
+    for (const store of paStoresAll) {
+      if (!store.county) continue;
+      if (!byCounty[store.county]) byCounty[store.county] = [];
+      byCounty[store.county].push(store);
+    }
+    return byCounty;
+  }, [stores]);
 
   return (
     <div
@@ -595,22 +887,6 @@ export default function DashboardPage() {
               position: "relative",
             }}
           >
-            <ScrollReveal>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  letterSpacing: "0.15em",
-                  color: "var(--color-accent-amber)",
-                  textTransform: "uppercase",
-                  marginBottom: "16px",
-                }}
-              >
-                BOTTLE TRACKER
-              </p>
-            </ScrollReveal>
-
             <ScrollReveal delay={100}>
               <h1
                 style={{
@@ -622,7 +898,7 @@ export default function DashboardPage() {
                   marginBottom: "16px",
                 }}
               >
-                The Hunt
+                Dashboard
               </h1>
             </ScrollReveal>
 
@@ -637,13 +913,13 @@ export default function DashboardPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Track the bottles you&apos;re after. Get alerted when they drop.
+                Select your location preferences, save your favorite bottles to your watchlist, get alerted when they hit your area.
               </p>
             </ScrollReveal>
           </div>
         </section>
 
-        {/* ── My Hunt Areas ── */}
+        {/* ── Where I'm Hunting ── */}
         {mounted && isSignedIn && (
           <section style={{ padding: "0 0 32px" }}>
             <div
@@ -670,7 +946,7 @@ export default function DashboardPage() {
                     marginBottom: "6px",
                   }}
                 >
-                  My Hunt Areas
+                  Where I&apos;m Hunting
                 </h2>
                 <p
                   style={{
@@ -800,9 +1076,42 @@ export default function DashboardPage() {
                       setLocalPrefs((p) => ({
                         ...p,
                         paCounties: p.paCounties.filter((c) => c !== item),
+                        // Also remove stores from that county
+                        paStores: p.paStores.filter(
+                          (id) =>
+                            !(paStoresByCounty[item] ?? []).some((s) => s.id === id)
+                        ),
                       }))
                     }
-                  />
+                  >
+                    {/* Store-level pickers for each selected PA county */}
+                    {localPrefs.paCounties.length > 0 && stores.length > 0 &&
+                      localPrefs.paCounties.map((county) => {
+                        const countyStores = paStoresByCounty[county] ?? [];
+                        if (countyStores.length === 0) return null;
+                        return (
+                          <PAStorePicker
+                            key={county}
+                            county={county}
+                            stores={countyStores}
+                            paStores={localPrefs.paStores}
+                            onAddStore={(id) =>
+                              setLocalPrefs((p) => ({
+                                ...p,
+                                paStores: [...p.paStores, id],
+                              }))
+                            }
+                            onRemoveStore={(id) =>
+                              setLocalPrefs((p) => ({
+                                ...p,
+                                paStores: p.paStores.filter((s) => s !== id),
+                              }))
+                            }
+                          />
+                        );
+                      })
+                    }
+                  </StateAreaSection>
                 )}
 
                 {/* Save button */}
@@ -837,7 +1146,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Section A: Your Hunt (Watchlist) */}
+        {/* My Watchlist */}
         {showWatchlistSection && (
           <section
             style={{
@@ -864,7 +1173,7 @@ export default function DashboardPage() {
                       color: "var(--color-cream)",
                     }}
                   >
-                    Your Hunt
+                    My Watchlist
                   </h2>
                   {watchedBottlesList.length > 0 && (
                     <span
@@ -901,7 +1210,7 @@ export default function DashboardPage() {
                         color: "var(--color-text-tertiary)",
                       }}
                     >
-                      Add bottles below to start tracking your hunt
+                      Add bottles below to start tracking your watchlist
                     </p>
                   </div>
                 ) : (
@@ -927,20 +1236,8 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* State filter row */}
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 48px)",
-            marginBottom: "8px",
-          }}
-        >
-          <StateSelector />
-        </div>
-
-        {/* Section B: Discover Bottles */}
-        <BottleGrid bottles={bottles} loading={loading} />
+        {/* Bottle Grid — auto-filtered by hunting area states */}
+        <BottleGrid bottles={filteredBottles} loading={loading} />
       </motion.div>
 
       <Footer />

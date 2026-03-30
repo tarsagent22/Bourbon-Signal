@@ -6,6 +6,7 @@ export interface AreaPreferences {
   ncBoards: string[];     // ["Wake", "Durham", "Mecklenburg"] — empty = all
   vaCities: string[];     // ["Richmond", "Roanoke"] — empty = all
   paCounties: string[];   // ["Allegheny", "Philadelphia"] — empty = all
+  paStores: string[];     // store IDs like ["0215", "0222"] — empty = all stores in selected counties
 }
 
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const prefs = (user.publicMetadata?.areaPreferences as AreaPreferences) || {
-    states: [], ncBoards: [], vaCities: [], paCounties: [],
+    states: [], ncBoards: [], vaCities: [], paCounties: [], paStores: [],
   };
   return NextResponse.json(prefs);
 }

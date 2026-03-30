@@ -9,6 +9,7 @@ const EMPTY_PREFS: AreaPreferences = {
   ncBoards: [],
   vaCities: [],
   paCounties: [],
+  paStores: [],
 };
 
 // In-memory cache so we don't re-fetch on every render
