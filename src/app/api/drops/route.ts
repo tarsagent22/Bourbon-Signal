@@ -15,6 +15,18 @@ export async function GET() {
 
     const data = await res.json();
 
+    // Normalize state field to 2-letter code
+    const STATE_MAP: Record<string, string> = {
+      "Pennsylvania": "PA", "North Carolina": "NC", "Virginia": "VA",
+      "Utah": "UT", "Texas": "TX", "Ohio": "OH",
+    };
+    if (Array.isArray(data.drops)) {
+      data.drops = data.drops.map((d: Record<string, unknown>) => ({
+        ...d,
+        state: STATE_MAP[d.state as string] ?? d.state_code ?? d.state,
+      }));
+    }
+
     return NextResponse.json(data, {
       headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" },
     });
