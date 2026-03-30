@@ -23,7 +23,7 @@ const steps: StepData[] = [
   },
   {
     number: "03",
-    description: "Your alert tells you which ABC board received the shipment, what bottles, and how many cases. You know where to look before anyone else.",
+    description: "Your alert tells you the most precise information available — store, county, or city — along with what bottles dropped and how many cases. You know where to look before anyone else.",
     flavor: "Know where to look",
   },
   {

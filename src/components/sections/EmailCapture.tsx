@@ -187,42 +187,7 @@ export default function EmailCapture() {
             )}
           </AnimatePresence>
 
-          {/* Secondary link */}
-          {!submitted && (
-            <motion.p
-              variants={fadeUpVariant}
-              initial="hidden"
-              animate="visible"
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-                marginTop: "20px",
-              }}
-            >
-              Or{" "}
-              <a
-                href="#"
-                onClick={handleStateLink}
-                style={{
-                  color: "var(--color-accent-amber)",
-                  textDecoration: "none",
-                  borderBottom: "1px solid rgba(196,148,58,0.3)",
-                  transition: "color 0.2s, border-color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-accent-gold)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(232,176,75,0.5)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-accent-amber)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(196,148,58,0.3)";
-                }}
-              >
-                get notified when we launch in your state →
-              </a>
-            </motion.p>
-          )}
+          {/* Secondary link removed */}
         </ScrollReveal>
       </div>
     </section>
