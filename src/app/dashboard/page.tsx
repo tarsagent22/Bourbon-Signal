@@ -509,13 +509,6 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (mounted && !clerkAuth.sessionId) {
-      router.push("/sign-in");
-    }
-  }, [clerkAuth.sessionId, router, mounted]);
-
   // Sync server prefs → local state
   useEffect(() => {
     setLocalPrefs(prefs);
