@@ -512,7 +512,7 @@ function StateAreaSection({
 
 interface PAStorePickerProps {
   county: string;
-  stores: Array<{ id: string; name: string; city: string; address?: string }>;
+  stores: Array<{ id: string; name?: string; city: string; address?: string }>;
   paStores: string[]; // all selected store IDs (across all counties)
   onAddStore: (id: string) => void;
   onRemoveStore: (id: string) => void;
@@ -835,7 +835,7 @@ export default function DashboardPage() {
     return bottles.filter((b) => !b.state || prefs.states.includes(b.state));
   }, [bottles, prefs.states]);
 
-  // PA stores grouped by county (only for selected counties)
+  // PA stores grouped by county
   const paStoresByCounty = useMemo(() => {
     const paStoresAll = stores.filter((s) => s.state === "PA");
     const byCounty: Record<string, typeof paStoresAll> = {};
@@ -846,6 +846,25 @@ export default function DashboardPage() {
     }
     return byCounty;
   }, [stores]);
+
+  // VA stores grouped by city (title-cased)
+  const vaStoresByCity = useMemo(() => {
+    const vaStoresAll = stores.filter((s) => s.state === "VA");
+    const byCity: Record<string, typeof vaStoresAll> = {};
+    for (const store of vaStoresAll) {
+      const city = (store.city || "").replace(/\b\w/g, (c) => c.toUpperCase());
+      if (!city) continue;
+      if (!byCity[city]) byCity[city] = [];
+      byCity[city].push(store);
+    }
+    return byCity;
+  }, [stores]);
+
+  // Dynamic VA city list from actual store data (falls back to static list if stores not loaded)
+  const vaCityOptions = useMemo(() => {
+    const liveCities = Object.keys(vaStoresByCity).sort();
+    return liveCities.length > 0 ? liveCities : VA_CITIES;
+  }, [vaStoresByCity]);
 
   return (
     <div
@@ -1040,7 +1059,7 @@ export default function DashboardPage() {
                     stateCode="VA"
                     label="Cities"
                     subLabel="VA cities"
-                    options={VA_CITIES}
+                    options={vaCityOptions}
                     selected={localPrefs.vaCities}
                     placeholder="Search VA cities…"
                     onAdd={(item) =>
@@ -1055,7 +1074,26 @@ export default function DashboardPage() {
                         vaCities: p.vaCities.filter((c) => c !== item),
                       }))
                     }
-                  />
+                  >
+                    {/* Store list per selected VA city */}
+                    {localPrefs.vaCities.length > 0 && stores.length > 0 &&
+                      localPrefs.vaCities.map((city) => {
+                        const cityStores = vaStoresByCity[city] ?? [];
+                        if (cityStores.length === 0) return null;
+                        return (
+                          <div key={city} style={{ marginTop: "10px", padding: "10px 12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(196,148,58,0.08)", borderRadius: "6px" }}>
+                            <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: "6px" }}>
+                              {city} — {cityStores.length} store{cityStores.length !== 1 ? "s" : ""}
+                            </p>
+                            {cityStores.map((s) => (
+                              <p key={s.id} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)", marginBottom: "3px" }}>
+                                · {s.address || `Store #${s.id}`}{s.district ? ` (${s.district})` : ""}
+                              </p>
+                            ))}
+                          </div>
+                        );
+                      })}
+                  </StateAreaSection>
                 )}
 
                 {localPrefs.states.includes("PA") && (

@@ -4,15 +4,17 @@ import { useState, useEffect } from "react";
 
 export interface Store {
   id: string;
-  name: string;
+  name?: string;
   state: string;
   city: string;
-  county: string;
+  county?: string;
   address?: string;
   zip?: string;
   lat?: number;
   lng?: number;
   hours?: string;
+  district?: string;
+  bottle_count?: number;
 }
 
 // In-memory cache
