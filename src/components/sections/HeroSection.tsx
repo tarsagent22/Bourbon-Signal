@@ -249,6 +249,8 @@ function HeroEmailCapture() {
           fontSize: "12px",
           color: "var(--color-text-tertiary)",
           marginTop: "0px",
+          padding: "0 24px",
+          textAlign: "center",
         }}
       >
         Founding members get lifetime access + exclusive perks. 100 spots at $39.

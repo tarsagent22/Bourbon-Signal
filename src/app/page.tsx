@@ -7,7 +7,7 @@ import DataFreshness from "@/components/DataFreshness";
 import dropsData from "@/data/drops.json";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import StateSelector from "@/components/StateSelector";
+
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
 import PricingSection from "@/components/sections/PricingSection";
@@ -64,16 +64,6 @@ export default function Home() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <HeroSection />
-        {/* State filter row — sits above the drop feed */}
-        <div
-          style={{
-            maxWidth: "680px",
-            margin: "0 auto",
-            padding: "0 16px",
-          }}
-        >
-          <StateSelector />
-        </div>
         <DropFeed />
         {/* DropFeed (warm) → HowWeHunt (tertiary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-tertiary) 100%)" }} />

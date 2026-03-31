@@ -20,7 +20,7 @@ export default function Footer() {
         {/* Top row: logo left (matching nav), links + copyright centered */}
         <div className="flex flex-col md:flex-row items-center gap-4">
           {/* Logo — same margin as nav logo */}
-          <div className="flex items-baseline gap-0 md:mr-auto" style={{ paddingLeft: "32px" }}>
+          <div className="flex items-baseline gap-0 md:mr-auto" style={{ paddingLeft: "0" }}>
             <span
               style={{
                 fontFamily: "var(--font-playfair)",
@@ -74,7 +74,7 @@ export default function Footer() {
               fontFamily: "var(--font-dm-sans)",
               fontSize: "13px",
               color: "var(--color-text-tertiary)",
-              paddingRight: "32px",
+              paddingRight: "0",
             }}
           >
             © 2026 Proof
