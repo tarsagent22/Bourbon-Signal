@@ -150,7 +150,7 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
       style={{
         zIndex: 1000,
         background: "rgba(0, 0, 0, 0.72)",
-        backdropFilter: "blur(4px)",
+        backdropFilter: "blur(24px)",
         padding: "clamp(16px, 4vw, 32px)",
       }}
       onClick={onClose}

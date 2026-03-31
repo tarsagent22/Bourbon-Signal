@@ -360,7 +360,7 @@ export default function HuntMap() {
             zIndex: 999,
             textAlign: "center",
             background: "var(--color-glass)",
-            backdropFilter: "blur(16px)",
+            backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(16px)",
             border: "1px solid var(--color-card-border)",
             borderRadius: 12,

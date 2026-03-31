@@ -51,8 +51,8 @@ export default function Navigation() {
         style={{
           height: scrolled || isMapPage ? "64px" : "72px",
           background: scrolled || isMapPage ? "var(--color-glass)" : "transparent",
-          backdropFilter: scrolled || isMapPage ? "blur(16px)" : "none",
-          WebkitBackdropFilter: scrolled || isMapPage ? "blur(16px)" : "none",
+          backdropFilter: scrolled || isMapPage ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled || isMapPage ? "blur(12px)" : "none",
           borderBottom: scrolled || isMapPage
             ? "1px solid rgba(212, 146, 11, 0.08)"
             : "1px solid transparent",
@@ -205,8 +205,8 @@ export default function Navigation() {
                         right: 0,
                         width: "220px",
                         background: "rgba(20, 16, 12, 0.97)",
-                        backdropFilter: "blur(20px)",
-                        WebkitBackdropFilter: "blur(20px)",
+                        backdropFilter: "blur(24px)",
+                        WebkitBackdropFilter: "blur(24px)",
                         border: "1px solid rgba(196,148,58,0.15)",
                         borderTop: "2px solid var(--color-accent-amber)",
                         borderRadius: "10px",
@@ -384,7 +384,7 @@ export default function Navigation() {
               background: "var(--color-glass)",
               backdropFilter: "blur(24px)",
               WebkitBackdropFilter: "blur(24px)",
-            }}
+            }} // Overlay (full-screen modals, dropdowns)
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 50 }}

@@ -28,7 +28,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
         gap: "12px",
         padding: "14px 20px",
         background: "var(--color-glass)",
-        backdropFilter: "blur(16px)",
+        backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--color-card-border)",
         borderLeft: "3px solid var(--color-accent-amber)",

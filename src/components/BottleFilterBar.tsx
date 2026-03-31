@@ -103,7 +103,7 @@ export default function BottleFilterBar({
         style={{
           top: "64px",
           background: "var(--color-glass)",
-          backdropFilter: "blur(16px)",
+          backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(16px)",
           borderBottom: isStuck
             ? "1px solid var(--color-card-border)"

@@ -152,7 +152,7 @@ export default function EmailCapture() {
                 key="thanks"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.35 }}
+                transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
                 style={{
                   padding: "16px 24px",
                   borderRadius: "10px",

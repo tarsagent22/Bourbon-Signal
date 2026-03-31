@@ -21,7 +21,7 @@ function MiniSparklines() {
           initial={{ height: 0 }}
           whileInView={{ height: `${h}%` }}
           viewport={{ once: true }}
-          transition={{ delay: i * 0.05, duration: 0.4, ease: "easeOut" }}
+          transition={{ delay: i * 0.05, duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
         />
       ))}
     </div>

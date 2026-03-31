@@ -125,7 +125,7 @@ export default function BottleDetail({
               className="inline-flex items-center gap-1.5"
               style={{
                 background: "rgba(13, 11, 7, 0.6)",
-                backdropFilter: "blur(8px)",
+                backdropFilter: "blur(12px)",
                 border: `1px solid ${
                   bottle.tier === "unicorn"
                     ? "rgba(196,148,58,0.3)"

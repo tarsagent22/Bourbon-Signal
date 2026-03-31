@@ -177,8 +177,8 @@ function HeroEmailCapture() {
               borderRadius: "8px",
               padding: "14px 16px",
               outline: "none",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
               transition: "border-color 200ms",
             }}
             onFocus={(e) => {

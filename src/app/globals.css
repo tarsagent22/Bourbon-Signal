@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg-primary: #0D0B07;
-  --color-bg-secondary: #0A0806;
-  --color-bg-tertiary: #141209;
+  --color-bg-primary: #0D0B07;      /* Page base */
+  --color-bg-secondary: #131008;    /* Cards, elevated surfaces */
+  --color-bg-tertiary: #1A160C;     /* Highest elevation — modals, dropdowns */
 
   --color-accent-amber: #C4870A;
   --color-accent-copper: #B87333;
@@ -21,7 +21,7 @@
   --color-card-border: rgba(212, 146, 11, 0.18);
   --color-card-border-hover: rgba(212, 146, 11, 0.3);
 
-  --color-glass: rgba(13, 11, 14, 0.7);
+  --color-glass: rgba(20, 16, 10, 0.85);
 
   --color-bg-warm: #0D0B07;
   --color-cream: #F5EDD6;
@@ -224,5 +224,14 @@ body::after {
 @media (min-width: 640px) {
   .member-preview-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Accessibility: respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

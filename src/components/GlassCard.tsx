@@ -38,8 +38,8 @@ export default function GlassCard({
         className={`relative p-6 ${className}`}
         style={{
           background: "var(--color-card-bg)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           borderRadius: "12px",
           border: hovered && hoverable ? "1px solid transparent" : "1px solid var(--color-card-border)",
           borderTop: accent

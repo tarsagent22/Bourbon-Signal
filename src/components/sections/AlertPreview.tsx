@@ -65,7 +65,7 @@ function NotificationCard({ alert, index }: { alert: AlertNotification; index: n
       variants={fadeUpVariant}
       style={{
         background: "var(--color-card-bg)",
-        backdropFilter: "blur(16px)",
+        backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--color-card-border)",
         borderLeft: `3px solid ${tier.dot}`,
