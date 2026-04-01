@@ -66,7 +66,7 @@ export default function Home() {
         <HeroSection />
         <DropFeed />
         {/* DropFeed (warm) → HowWeHunt (tertiary) */}
-        <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-tertiary) 100%)" }} />
+        <div style={{ height: 12, background: "linear-gradient(to bottom, var(--color-bg-warm) 0%, var(--color-bg-tertiary) 100%)" }} />
         <HowWeHunt />
         {/* HowWeHunt (tertiary) → PricingSection (primary) */}
         <div style={{ height: 40, background: "linear-gradient(to bottom, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%)" }} />

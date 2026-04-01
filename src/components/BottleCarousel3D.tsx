@@ -4,311 +4,14 @@ import { useEffect, useRef } from "react";
 import type * as THREE_NS from "three";
 
 // ——————————————————————————————————————————————
-// Label definitions for the 8 bourbon bottles
+// Load real bottle label images
 // ——————————————————————————————————————————————
-interface BottleLabel {
-  name: string;
-  render: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
+async function loadLabelImage(path: string): Promise<any> {
+  const THREE = await import("three");
+  const texture = await new THREE.TextureLoader().loadAsync(path);
+  texture.flipY = false;
+  return texture;
 }
-
-const BOTTLE_LABELS: BottleLabel[] = [
-  {
-    name: "George T. Stagg",
-    render: (ctx, w, h) => {
-      // Deep burgundy bg
-      ctx.fillStyle = "#3B0A1A";
-      ctx.fillRect(0, 0, w, h);
-      // Gold border
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 6;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      ctx.strokeRect(16, 16, w - 32, h - 32);
-      // Text
-      ctx.fillStyle = "#D4A017";
-      ctx.textAlign = "center";
-      ctx.font = "bold 28px serif";
-      ctx.fillText("GEORGE T.", w / 2, 120);
-      ctx.fillText("STAGG", w / 2, 155);
-      ctx.font = "14px serif";
-      ctx.fillStyle = "#C4943A";
-      ctx.fillText("Buffalo Trace", w / 2, 200);
-      ctx.fillText("Antique Collection", w / 2, 220);
-      ctx.font = "italic 11px serif";
-      ctx.fillStyle = "#AA8833";
-      ctx.fillText("Kentucky Straight", w / 2, 270);
-      ctx.fillText("Bourbon Whiskey", w / 2, 288);
-      // Decorative line
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(40, 240);
-      ctx.lineTo(w - 40, 240);
-      ctx.stroke();
-    },
-  },
-  {
-    name: "Pappy Van Winkle 23",
-    render: (ctx, w, h) => {
-      // Cream bg
-      ctx.fillStyle = "#F5EDD6";
-      ctx.fillRect(0, 0, w, h);
-      // Ornate border
-      ctx.strokeStyle = "#5C3A1E";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(8, 8, w - 16, h - 16);
-      ctx.strokeStyle = "#8B6B3D";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(14, 14, w - 28, h - 28);
-      // Text
-      ctx.fillStyle = "#3A1F0B";
-      ctx.textAlign = "center";
-      ctx.font = "bold 16px serif";
-      ctx.fillText("PAPPY VAN WINKLE'S", w / 2, 100);
-      ctx.font = "bold 30px serif";
-      ctx.fillText("FAMILY", w / 2, 150);
-      ctx.fillText("RESERVE", w / 2, 185);
-      ctx.font = "bold 44px serif";
-      ctx.fillStyle = "#5C3A1E";
-      ctx.fillText("23", w / 2, 245);
-      ctx.font = "14px serif";
-      ctx.fillStyle = "#6B4D2E";
-      ctx.fillText("YEAR OLD", w / 2, 270);
-      ctx.font = "italic 11px serif";
-      ctx.fillText("Kentucky Straight", w / 2, 310);
-      ctx.fillText("Bourbon Whiskey", w / 2, 328);
-    },
-  },
-  {
-    name: "William Larue Weller",
-    render: (ctx, w, h) => {
-      // Forest green bg
-      ctx.fillStyle = "#1A3A1A";
-      ctx.fillRect(0, 0, w, h);
-      // Gold border
-      ctx.strokeStyle = "#C4943A";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      // Text
-      ctx.fillStyle = "#D4A017";
-      ctx.textAlign = "center";
-      ctx.font = "bold 22px serif";
-      ctx.fillText("WILLIAM", w / 2, 110);
-      ctx.fillText("LARUE", w / 2, 140);
-      ctx.fillText("WELLER", w / 2, 170);
-      ctx.font = "14px serif";
-      ctx.fillStyle = "#AA8833";
-      ctx.fillText("Buffalo Trace", w / 2, 215);
-      ctx.fillText("Antique Collection", w / 2, 235);
-      // Line
-      ctx.strokeStyle = "#C4943A";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(40, 260);
-      ctx.lineTo(w - 40, 260);
-      ctx.stroke();
-      ctx.font = "italic 12px serif";
-      ctx.fillStyle = "#88AA44";
-      ctx.fillText("Uncut · Unfiltered", w / 2, 290);
-    },
-  },
-  {
-    name: "Eagle Rare 17",
-    render: (ctx, w, h) => {
-      // Navy bg
-      ctx.fillStyle = "#0A1A3B";
-      ctx.fillRect(0, 0, w, h);
-      // Gold border
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      // Simple eagle motif
-      ctx.fillStyle = "#D4A017";
-      ctx.beginPath();
-      ctx.moveTo(w / 2, 60);
-      ctx.lineTo(w / 2 - 30, 100);
-      ctx.lineTo(w / 2 - 15, 95);
-      ctx.lineTo(w / 2 - 20, 115);
-      ctx.lineTo(w / 2, 105);
-      ctx.lineTo(w / 2 + 20, 115);
-      ctx.lineTo(w / 2 + 15, 95);
-      ctx.lineTo(w / 2 + 30, 100);
-      ctx.closePath();
-      ctx.fill();
-      // Text
-      ctx.textAlign = "center";
-      ctx.font = "bold 34px serif";
-      ctx.fillText("EAGLE", w / 2, 165);
-      ctx.fillText("RARE", w / 2, 200);
-      ctx.font = "bold 22px serif";
-      ctx.fillStyle = "#C4943A";
-      ctx.fillText("17 YEAR OLD", w / 2, 250);
-      ctx.font = "italic 11px serif";
-      ctx.fillStyle = "#8899BB";
-      ctx.fillText("Kentucky Straight", w / 2, 290);
-      ctx.fillText("Bourbon Whiskey", w / 2, 308);
-    },
-  },
-  {
-    name: "Four Roses LE Small Batch",
-    render: (ctx, w, h) => {
-      // Black bg
-      ctx.fillStyle = "#0A0A0A";
-      ctx.fillRect(0, 0, w, h);
-      // Rose gold border
-      ctx.strokeStyle = "#B87333";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      // Rose drawing
-      ctx.strokeStyle = "#B87333";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(w / 2, 80, 15, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(w / 2 - 8, 78, 10, 0.5, 2.5);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(w / 2 + 8, 78, 10, 0.7, 2.7);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(w / 2, 95);
-      ctx.lineTo(w / 2, 115);
-      ctx.stroke();
-      // Text
-      ctx.fillStyle = "#D4A077";
-      ctx.textAlign = "center";
-      ctx.font = "bold 30px serif";
-      ctx.fillText("FOUR", w / 2, 155);
-      ctx.fillText("ROSES", w / 2, 190);
-      // Ribbon
-      ctx.fillStyle = "#B87333";
-      ctx.fillRect(30, 210, w - 60, 28);
-      ctx.fillStyle = "#0A0A0A";
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText("LIMITED EDITION", w / 2, 229);
-      ctx.fillStyle = "#D4A077";
-      ctx.font = "18px serif";
-      ctx.fillText("SMALL BATCH", w / 2, 275);
-    },
-  },
-  {
-    name: "Weller Full Proof",
-    render: (ctx, w, h) => {
-      // Amber/orange bg
-      ctx.fillStyle = "#C4780A";
-      ctx.fillRect(0, 0, w, h);
-      // Dark border
-      ctx.strokeStyle = "#3A2810";
-      ctx.lineWidth = 5;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      // Text
-      ctx.fillStyle = "#1A0A00";
-      ctx.textAlign = "center";
-      ctx.font = "bold 40px serif";
-      ctx.fillText("WELLER", w / 2, 130);
-      ctx.font = "bold 28px serif";
-      ctx.fillText("FULL", w / 2, 180);
-      ctx.fillText("PROOF", w / 2, 215);
-      ctx.font = "bold 18px sans-serif";
-      ctx.fillStyle = "#3A2810";
-      ctx.fillText("114 PROOF", w / 2, 260);
-      // Line
-      ctx.strokeStyle = "#3A2810";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(40, 278);
-      ctx.lineTo(w - 40, 278);
-      ctx.stroke();
-      ctx.font = "italic 12px serif";
-      ctx.fillStyle = "#2A1800";
-      ctx.fillText("Original Wheated Bourbon", w / 2, 300);
-    },
-  },
-  {
-    name: "Old Fitzgerald BiB",
-    render: (ctx, w, h) => {
-      // Dark olive green bg
-      ctx.fillStyle = "#2A3A1A";
-      ctx.fillRect(0, 0, w, h);
-      // Cream border
-      ctx.strokeStyle = "#D4C8A0";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(10, 10, w - 20, h - 20);
-      // Text
-      ctx.fillStyle = "#F5EDD6";
-      ctx.textAlign = "center";
-      ctx.font = "bold 24px serif";
-      ctx.fillText("OLD", w / 2, 110);
-      ctx.fillText("FITZGERALD", w / 2, 142);
-      // Ribbon
-      ctx.fillStyle = "#D4C8A0";
-      ctx.fillRect(30, 170, w - 60, 28);
-      ctx.fillStyle = "#2A3A1A";
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText("BOTTLED IN BOND", w / 2, 189);
-      ctx.fillStyle = "#D4C8A0";
-      ctx.font = "italic 11px serif";
-      ctx.fillText("Kentucky Straight", w / 2, 240);
-      ctx.fillText("Bourbon Whiskey", w / 2, 258);
-    },
-  },
-  {
-    name: "E.H. Taylor Small Batch",
-    render: (ctx, w, h) => {
-      // Royal blue bg
-      ctx.fillStyle = "#1A2A5A";
-      ctx.fillRect(0, 0, w, h);
-      // Gold ornate border (double)
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(8, 8, w - 16, h - 16);
-      ctx.strokeStyle = "#AA8833";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(15, 15, w - 30, h - 30);
-      // Corner decorations
-      const cs = 20;
-      const corners = [
-        [20, 20],
-        [w - 20, 20],
-        [20, h - 20],
-        [w - 20, h - 20],
-      ];
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 2;
-      for (const [cx, cy] of corners) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, cs / 2, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      // Text
-      ctx.fillStyle = "#D4A017";
-      ctx.textAlign = "center";
-      ctx.font = "bold 14px serif";
-      ctx.fillText("COLONEL", w / 2, 90);
-      ctx.font = "bold 22px serif";
-      ctx.fillText("E.H. TAYLOR", w / 2, 120);
-      ctx.font = "bold 14px serif";
-      ctx.fillText("JR.", w / 2, 145);
-      // Line
-      ctx.strokeStyle = "#D4A017";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(40, 165);
-      ctx.lineTo(w - 40, 165);
-      ctx.stroke();
-      ctx.font = "bold 20px serif";
-      ctx.fillStyle = "#C4943A";
-      ctx.fillText("SMALL BATCH", w / 2, 200);
-      // BiB stamp
-      ctx.strokeStyle = "#AA8833";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(w / 2 - 60, 225, 120, 35);
-      ctx.fillStyle = "#AA8833";
-      ctx.font = "bold 12px sans-serif";
-      ctx.fillText("BOTTLED IN BOND", w / 2, 248);
-    },
-  },
-];
 
 // ——————————————————————————————————————————————
 // Profile points for lathe geometry (bourbon bottle shape)
@@ -432,22 +135,18 @@ export default function BottleCarousel3D() {
         metalness: 0.6,
       });
 
-      // Create label canvas textures
-      function createLabelTexture(
-        label: BottleLabel
-      ): THREE_NS.CanvasTexture {
-        const canvas = document.createElement("canvas");
-        canvas.width = 256;
-        canvas.height = 512;
-        const ctx = canvas.getContext("2d")!;
-        label.render(ctx, 256, 512);
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.flipY = false;
-        return texture;
-      }
+      // Load real label images
+      const labelTextures = await Promise.all([
+        loadLabelImage('/bottles/blanton.jpg'),
+        loadLabelImage('/bottles/pappyvw.jpg'),
+        loadLabelImage('/bottles/stagg.jpg'),
+        loadLabelImage('/bottles/weller.jpg'),
+        loadLabelImage('/bottles/russell.jpg'),
+        loadLabelImage('/bottles/forester.jpg'),
+      ]);
 
-      // Create bottles — fewer on mobile but still a full carousel
-      const BOTTLE_COUNT = mobile ? 6 : 8;
+      // Create bottles — 6 bottles matching the 6 images
+      const BOTTLE_COUNT = 6;
       const SPACING = mobile ? 0.9 : 0.75; // wider spacing on mobile — fewer visible at once
       const totalWidth = BOTTLE_COUNT * SPACING;
       const bottleGroups: THREE_NS.Group[] = [];
@@ -464,12 +163,12 @@ export default function BottleCarousel3D() {
         cap.position.y = 0.78 + 0.03;
         group.add(cap);
 
-        // Label plane — MeshBasicMaterial so labels are self-lit (ignore scene lighting)
-        const labelTexture = createLabelTexture(BOTTLE_LABELS[i]);
+        // Label plane — use real image texture
+        const labelTexture = labelTextures[i % labelTextures.length];
         const labelMaterial = new THREE.MeshBasicMaterial({
           map: labelTexture,
           transparent: true,
-          opacity: 0.95,
+          opacity: 1.0, // full opacity for real images
         });
         const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
         const label = new THREE.Mesh(labelGeometry, labelMaterial);
@@ -485,9 +184,16 @@ export default function BottleCarousel3D() {
         const s = mobile ? 1.8 : 1.4;
         group.scale.set(s, s, s);
 
-        // Tilt — Z rotation 36° + X forward lean 15°
-        group.rotation.z = Math.PI / 5;
-        group.rotation.x = Math.PI / 12;
+        // Tilt — alternating directions for variety
+        const tiltDirection = i % 2 === 0 ? 1 : -1;
+        group.rotation.z = (Math.PI / 5) * tiltDirection;
+        group.rotation.x = (Math.PI / 12) * tiltDirection;
+
+        // Random starting Y rotation for each bottle
+        const startingY = Math.random() * Math.PI * 2;
+        group.children[0].rotation.y = startingY;
+        group.children[1].rotation.y = startingY;
+        group.children[2].rotation.y = startingY;
 
         scene.add(group);
         bottleGroups.push(group);
@@ -509,11 +215,11 @@ export default function BottleCarousel3D() {
           cap.position.y = 0.78 + 0.03;
           group.add(cap);
 
-          const labelTexture = createLabelTexture(BOTTLE_LABELS[i]);
+          const labelTexture = labelTextures[i % labelTextures.length];
           const labelMaterial = new THREE.MeshBasicMaterial({
             map: labelTexture,
             transparent: true,
-            opacity: 0.95,
+            opacity: 1.0, // full opacity for real images
           });
           const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
           const label = new THREE.Mesh(labelGeometry, labelMaterial);
@@ -528,8 +234,17 @@ export default function BottleCarousel3D() {
           group.position.x = xPos;
           const cs = mobile ? 1.8 : 1.4;
           group.scale.set(cs, cs, cs);
-          group.rotation.z = Math.PI / 5;
-          group.rotation.x = Math.PI / 12;
+
+          // Tilt — alternating directions for variety
+          const tiltDirection = i % 2 === 0 ? 1 : -1;
+          group.rotation.z = (Math.PI / 5) * tiltDirection;
+          group.rotation.x = (Math.PI / 12) * tiltDirection;
+
+          // Random starting Y rotation for each bottle
+          const startingY = Math.random() * Math.PI * 2;
+          group.children[0].rotation.y = startingY;
+          group.children[1].rotation.y = startingY;
+          group.children[2].rotation.y = startingY;
 
           scene.add(group);
           cloneGroups.push(group);
