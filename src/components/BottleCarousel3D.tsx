@@ -362,9 +362,9 @@ export default function BottleCarousel3D() {
       const height = container.clientHeight;
       const mobile = width < 768;
 
-      // Mobile: tighter FOV, pull camera back slightly so tilted bottles fit
+      // Mobile: push camera in close so only 3-4 bottles fill screen
       const camera = new THREE.PerspectiveCamera(mobile ? 55 : 60, width / height, 0.1, 100);
-      camera.position.set(0, 1.5, mobile ? 6 : 8);
+      camera.position.set(0, 1.5, mobile ? 3.5 : 8);
       camera.lookAt(0, 0.25, 0);
 
       const renderer = new THREE.WebGLRenderer({
@@ -448,7 +448,7 @@ export default function BottleCarousel3D() {
 
       // Create bottles — fewer on mobile but still a full carousel
       const BOTTLE_COUNT = mobile ? 6 : 8;
-      const SPACING = mobile ? 0.65 : 0.75; // tighter spacing on mobile
+      const SPACING = mobile ? 0.9 : 0.75; // wider spacing on mobile — fewer visible at once
       const totalWidth = BOTTLE_COUNT * SPACING;
       const bottleGroups: THREE_NS.Group[] = [];
 
@@ -482,7 +482,7 @@ export default function BottleCarousel3D() {
         group.position.x = xPos;
 
         // Scale — slightly smaller on mobile so bottles fit narrower canvas
-        const s = mobile ? 1.1 : 1.4;
+        const s = mobile ? 1.8 : 1.4;
         group.scale.set(s, s, s);
 
         // Tilt — Z rotation 36° + X forward lean 15°
@@ -526,7 +526,7 @@ export default function BottleCarousel3D() {
             SPACING / 2 +
             offset * totalWidth;
           group.position.x = xPos;
-          const cs = mobile ? 1.1 : 1.4;
+          const cs = mobile ? 1.8 : 1.4;
           group.scale.set(cs, cs, cs);
           group.rotation.z = Math.PI / 5;
           group.rotation.x = Math.PI / 12;
