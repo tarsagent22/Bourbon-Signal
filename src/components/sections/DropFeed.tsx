@@ -151,9 +151,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
     }
   }, [isNew, index]);
 
-  // Hover lift animation state
-  const [cardHovered, setCardHovered] = useState(false);
-
   // Build detail fields
   const details: { label: string; value: string }[] = [];
   if (drop.counties.length > 0) {
@@ -196,7 +193,8 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           cursor: hasDetails ? "pointer" : "default",
           background: hovered ? "rgba(196, 148, 58, 0.08)" : "transparent",
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
-          boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "0 0 0 rgba(0,0,0,0)",
+          boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
+          borderColor: hovered ? "rgba(212, 146, 11, 0.5)" : tier.borderColor,
           transition: "all 200ms ease",
         }}
         onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
