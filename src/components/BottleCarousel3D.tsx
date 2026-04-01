@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type * as THREE_NS from "three";
 
 // ——————————————————————————————————————————————
@@ -332,57 +332,6 @@ const SCALE = 0.1;
 // ——————————————————————————————————————————————
 // Mobile fallback component
 // ——————————————————————————————————————————————
-function MobileFallback() {
-  return (
-    <div
-      className="relative w-full flex items-center justify-center"
-      style={{ height: "60vh", overflow: "hidden" }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(26, 16, 8, 0.6) 0%, #0D0B07 70%)",
-        }}
-      />
-      <div className="relative flex items-end justify-center gap-6" style={{ height: "70%" }}>
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              opacity: i === 1 ? 0.5 : 0.25,
-              transform: `rotate(${i === 0 ? -8 : i === 2 ? 8 : 0}deg)`,
-            }}
-          >
-            <svg
-              width="60"
-              height="180"
-              viewBox="0 0 60 180"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 180 L15 170 Q10 170 10 165 L10 60 Q10 40 15 35 L15 20 Q15 15 20 12 L20 5 Q20 0 25 0 L35 0 Q40 0 40 5 L40 12 Q45 15 45 20 L45 35 Q50 40 50 60 L50 165 Q50 170 45 170 L45 180 Z"
-                fill="rgba(196, 135, 10, 0.15)"
-                stroke="rgba(196, 135, 10, 0.25)"
-                strokeWidth="1"
-              />
-            </svg>
-          </div>
-        ))}
-      </div>
-      {/* Fade gradient on sides */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(to right, #0D0B07 0%, transparent 20%, transparent 80%, #0D0B07 100%)",
-        }}
-      />
-    </div>
-  );
-}
-
 // ——————————————————————————————————————————————
 // Main 3D carousel component
 // ——————————————————————————————————————————————
@@ -390,17 +339,8 @@ export default function BottleCarousel3D() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<any>(null);
   const animFrameRef = useRef<number>(0);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) return;
     if (!containerRef.current) return;
 
     let disposed = false;
@@ -420,18 +360,21 @@ export default function BottleCarousel3D() {
       const container = containerRef.current!;
       const width = container.clientWidth;
       const height = container.clientHeight;
+      const mobile = width < 768;
 
-      const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
-      camera.position.set(0, 1.5, 8);
+      // Mobile: tighter FOV, pull camera back slightly so tilted bottles fit
+      const camera = new THREE.PerspectiveCamera(mobile ? 55 : 60, width / height, 0.1, 100);
+      camera.position.set(0, 1.5, mobile ? 6 : 8);
       camera.lookAt(0, 0.25, 0);
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: !mobile, // skip antialiasing on mobile for perf
         alpha: true,
         powerPreference: "high-performance",
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      // Cap pixel ratio at 1 on mobile — looks fine, saves significant GPU
+      renderer.setPixelRatio(mobile ? Math.min(window.devicePixelRatio, 1) : Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
       container.appendChild(renderer.domElement);
@@ -503,9 +446,9 @@ export default function BottleCarousel3D() {
         return texture;
       }
 
-      // Create bottles
-      const BOTTLE_COUNT = 8;
-      const SPACING = 0.75; // spacing between bottles
+      // Create bottles — fewer on mobile but still a full carousel
+      const BOTTLE_COUNT = mobile ? 6 : 8;
+      const SPACING = mobile ? 0.65 : 0.75; // tighter spacing on mobile
       const totalWidth = BOTTLE_COUNT * SPACING;
       const bottleGroups: THREE_NS.Group[] = [];
 
@@ -538,8 +481,9 @@ export default function BottleCarousel3D() {
         const xPos = i * SPACING - totalWidth / 2 + SPACING / 2;
         group.position.x = xPos;
 
-        // Scale up 1.4x
-        group.scale.set(1.4, 1.4, 1.4);
+        // Scale — slightly smaller on mobile so bottles fit narrower canvas
+        const s = mobile ? 1.1 : 1.4;
+        group.scale.set(s, s, s);
 
         // Tilt — Z rotation 36° + X forward lean 15°
         group.rotation.z = Math.PI / 5;
@@ -582,7 +526,8 @@ export default function BottleCarousel3D() {
             SPACING / 2 +
             offset * totalWidth;
           group.position.x = xPos;
-          group.scale.set(1.4, 1.4, 1.4);
+          const cs = mobile ? 1.1 : 1.4;
+          group.scale.set(cs, cs, cs);
           group.rotation.z = Math.PI / 5;
           group.rotation.x = Math.PI / 12;
 
@@ -610,6 +555,9 @@ export default function BottleCarousel3D() {
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+        // Update pixel ratio on resize (orientation change on mobile)
+        const isMob = w < 768;
+        renderer.setPixelRatio(isMob ? Math.min(window.devicePixelRatio, 1) : Math.min(window.devicePixelRatio, 2));
       };
       window.addEventListener("resize", handleResize);
 
@@ -671,11 +619,7 @@ export default function BottleCarousel3D() {
     return () => {
       if (cleanup) cleanup();
     };
-  }, [isMobile]);
-
-  if (isMobile) {
-    return <MobileFallback />;
-  }
+  }, []);
 
   return (
     <div
