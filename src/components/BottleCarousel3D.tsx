@@ -421,8 +421,8 @@ export default function BottleCarousel3D() {
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-      camera.position.set(0, 0.35, 2.8);
+      const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+      camera.position.set(0, 1.5, 8);
       camera.lookAt(0, 0.25, 0);
 
       const renderer = new THREE.WebGLRenderer({
@@ -437,17 +437,27 @@ export default function BottleCarousel3D() {
       container.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
-      // Lighting
-      const ambient = new THREE.AmbientLight(0x1a1008, 0.8);
+      // Lighting — dramatic amber setup
+      const ambient = new THREE.AmbientLight(0x3d2810, 2.5);
       scene.add(ambient);
 
-      const pointRight = new THREE.PointLight(0xc4870a, 2.0, 30);
-      pointRight.position.set(5, 8, 5);
-      scene.add(pointRight);
+      const mainAmber = new THREE.PointLight(0xc4870a, 5.0, 50);
+      mainAmber.position.set(3, 5, 6);
+      scene.add(mainAmber);
 
       const pointLeft = new THREE.PointLight(0x4433aa, 0.5, 25);
       pointLeft.position.set(-8, 2, 3);
       scene.add(pointLeft);
+
+      // Rim light behind bottles — amber edge glow
+      const rimLight = new THREE.PointLight(0xc4870a, 3.0, 30);
+      rimLight.position.set(0, 2, -4);
+      scene.add(rimLight);
+
+      // Fill light from below
+      const fillLight = new THREE.PointLight(0x8b4513, 1.5, 25);
+      fillLight.position.set(0, -3, 3);
+      scene.add(fillLight);
 
       // Bottle geometry from lathe profile
       const profilePoints: THREE_NS.Vector2[] = BOTTLE_PROFILE.map(
@@ -511,13 +521,12 @@ export default function BottleCarousel3D() {
         cap.position.y = 0.78 + 0.03;
         group.add(cap);
 
-        // Label plane
+        // Label plane — MeshBasicMaterial so labels are self-lit (ignore scene lighting)
         const labelTexture = createLabelTexture(BOTTLE_LABELS[i]);
-        const labelMaterial = new THREE.MeshStandardMaterial({
+        const labelMaterial = new THREE.MeshBasicMaterial({
           map: labelTexture,
-          transparent: false,
-          roughness: 0.6,
-          metalness: 0.05,
+          transparent: true,
+          opacity: 0.95,
         });
         const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
         const label = new THREE.Mesh(labelGeometry, labelMaterial);
@@ -529,8 +538,12 @@ export default function BottleCarousel3D() {
         const xPos = i * SPACING - totalWidth / 2 + SPACING / 2;
         group.position.x = xPos;
 
-        // Tilt ~30° on Z axis
-        group.rotation.z = (30 * Math.PI) / 180;
+        // Scale up 1.4x
+        group.scale.set(1.4, 1.4, 1.4);
+
+        // Tilt — Z rotation 36° + X forward lean 15°
+        group.rotation.z = Math.PI / 5;
+        group.rotation.x = Math.PI / 12;
 
         scene.add(group);
         bottleGroups.push(group);
@@ -553,11 +566,10 @@ export default function BottleCarousel3D() {
           group.add(cap);
 
           const labelTexture = createLabelTexture(BOTTLE_LABELS[i]);
-          const labelMaterial = new THREE.MeshStandardMaterial({
+          const labelMaterial = new THREE.MeshBasicMaterial({
             map: labelTexture,
-            transparent: false,
-            roughness: 0.6,
-            metalness: 0.05,
+            transparent: true,
+            opacity: 0.95,
           });
           const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
           const label = new THREE.Mesh(labelGeometry, labelMaterial);
@@ -570,7 +582,9 @@ export default function BottleCarousel3D() {
             SPACING / 2 +
             offset * totalWidth;
           group.position.x = xPos;
-          group.rotation.z = (30 * Math.PI) / 180;
+          group.scale.set(1.4, 1.4, 1.4);
+          group.rotation.z = Math.PI / 5;
+          group.rotation.x = Math.PI / 12;
 
           scene.add(group);
           cloneGroups.push(group);

@@ -1,34 +1,29 @@
 "use client";
 
-import { useRef, useState, FormEvent } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ChevronDown, ArrowRight } from "lucide-react";
+import { useRef } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
 import BottleCarousel3D from "../BottleCarousel3D";
 
 export default function HeroSection() {
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-  const chevronOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
   return (
     <section
       ref={ref}
       className="relative flex items-end justify-center overflow-hidden"
-      style={{ height: "max(60vh, 500px)", minHeight: "500px" }}
+      style={{ height: "max(70vh, 500px)", minHeight: "500px" }}
     >
       {/* 3D Carousel Background */}
       <BottleCarousel3D />
 
-      {/* Bottom vignette gradient */}
+      {/* Bottom vignette gradient — starts at 40% for clean text overlap */}
       <div
         className="absolute inset-0 z-[1] pointer-events-none"
         style={{
           background:
-            "linear-gradient(to bottom, transparent 30%, rgba(13, 11, 7, 0.4) 55%, #0D0B07 100%)",
+            "linear-gradient(to bottom, transparent 40%, rgba(13, 11, 7, 0.5) 60%, #0D0B07 100%)",
         }}
       />
 
@@ -54,22 +49,26 @@ export default function HeroSection() {
         }}
       />
 
-      {/* Content overlay — positioned in lower third */}
+      {/* Content overlay — positioned at bottom 12% */}
       <div
-        className="relative z-[3] px-8 sm:px-10 md:px-16 lg:px-24 max-w-[800px] mx-auto pb-16"
+        className="absolute z-[3] px-8 sm:px-10 md:px-16 lg:px-24 max-w-[800px] mx-auto"
         style={{
+          bottom: "12%",
+          left: "50%",
+          transform: "translateX(-50%)",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          width: "100%",
         }}
       >
         <ScrollReveal delay={0}>
           <h1
-            className="mb-5 max-md:!text-[38px]"
+            className="mb-5"
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: "72px",
+              fontSize: "clamp(36px, 8vw, 72px)",
               lineHeight: 1.0,
               fontWeight: 700,
               letterSpacing: "-0.02em",
@@ -125,45 +124,30 @@ export default function HeroSection() {
 
             <a
               href="#drops"
-              className="flex items-center gap-1"
               style={{
                 fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
+                fontSize: "15px",
                 fontWeight: 500,
-                color: "var(--color-text-secondary)",
+                color: "rgba(245, 237, 214, 0.6)",
                 textDecoration: "none",
+                cursor: "pointer",
                 transition: "color 200ms",
                 padding: "14px 16px",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-text-primary)";
+                e.currentTarget.style.color = "rgba(245, 237, 214, 0.9)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--color-text-secondary)";
+                e.currentTarget.style.color = "rgba(245, 237, 214, 0.6)";
               }}
             >
-              See Live Drops
-              <ChevronDown size={16} />
+              See Live Drops ↓
             </a>
           </div>
         </ScrollReveal>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[3]"
-        style={{ opacity: chevronOpacity }}
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown
-            size={28}
-            style={{ color: "var(--color-text-tertiary)" }}
-          />
-        </motion.div>
-      </motion.div>
+      {/* Scroll indicator removed — ↓ is inline with "See Live Drops" */}
     </section>
   );
 }
