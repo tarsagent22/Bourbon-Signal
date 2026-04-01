@@ -4,37 +4,46 @@ import { useEffect, useRef } from "react";
 import type * as THREE_NS from "three";
 
 // ——————————————————————————————————————————————
-// Load real bottle label images
+// Unique LatheGeometry profiles for each bottle
+// Each entry: [radius, y] pairs. Multiply by 0.1 for Three.js units.
+// Last Y value used for cap placement.
 // ——————————————————————————————————————————————
-async function loadLabelImage(path: string): Promise<any> {
-  const THREE = await import("three");
+const BOTTLE_PROFILES: [number, number][][] = [
+  // 0 — Blanton's Single Barrel — round, squat, wide-shouldered
+  [[0,0],[1.4,0],[1.5,0.3],[1.5,1.8],[1.4,3.2],[1.2,4.5],[0.5,5.8],[0.42,6.8],[0.38,7.2],[0.42,7.5]],
+  // 1 — Pappy Van Winkle 23 — tall, elegant, thin long neck
+  [[0,0],[1.1,0],[1.2,0.3],[1.2,1.5],[1.1,3.5],[1.0,5.5],[0.7,7.0],[0.32,8.5],[0.28,9.5],[0.32,9.8]],
+  // 2 — George T. Stagg — wide, heavy body, short thick neck
+  [[0,0],[1.5,0],[1.6,0.4],[1.6,1.5],[1.5,3.0],[1.3,4.5],[0.8,5.5],[0.45,6.2],[0.4,6.8],[0.45,7.1]],
+  // 3 — Weller Antique 107 — classic tall bourbon, gentle taper
+  [[0,0],[1.2,0],[1.3,0.3],[1.3,1.5],[1.2,3.2],[1.1,4.8],[0.7,6.0],[0.38,7.2],[0.33,8.0],[0.38,8.3]],
+  // 4 — Russell's Reserve 15 — straight-sided, modern, slight taper
+  [[0,0],[1.2,0],[1.25,0.3],[1.25,2.0],[1.2,4.0],[1.1,5.5],[0.6,6.5],[0.35,7.5],[0.3,8.3],[0.35,8.6]],
+  // 5 — Old Forester 1924 — squared shoulders, classic
+  [[0,0],[1.2,0],[1.3,0.3],[1.35,1.2],[1.35,2.5],[1.2,4.2],[0.8,5.8],[0.4,7.0],[0.35,7.8],[0.4,8.1]],
+];
+
+// Labels map — same order as profiles
+const BOTTLE_LABEL_PATHS = [
+  '/bottles/blanton.jpg',
+  '/bottles/pappyvw.jpg',
+  '/bottles/stagg.jpg',
+  '/bottles/weller.jpg',
+  '/bottles/russell.jpg',
+  '/bottles/forester.jpg',
+];
+
+// ——————————————————————————————————————————————
+// Load a label image as a THREE texture
+// ——————————————————————————————————————————————
+async function loadLabelImage(THREE: typeof import("three"), path: string): Promise<THREE_NS.Texture> {
   const texture = await new THREE.TextureLoader().loadAsync(path);
   texture.flipY = false;
   return texture;
 }
 
-// ——————————————————————————————————————————————
-// Profile points for lathe geometry (bourbon bottle shape)
-// Scaled by 0.1 for Three.js units
-// ——————————————————————————————————————————————
-const BOTTLE_PROFILE: [number, number][] = [
-  [0.0, 0.0],
-  [1.2, 0.0],
-  [1.3, 0.5],
-  [1.3, 1.5],
-  [1.2, 3.0],
-  [1.1, 4.5],
-  [0.9, 5.5],
-  [0.4, 6.5],
-  [0.35, 7.5],
-  [0.4, 7.8],
-];
+const BOTTLE_COUNT = 6;
 
-const SCALE = 0.1;
-
-// ——————————————————————————————————————————————
-// Mobile fallback component
-// ——————————————————————————————————————————————
 // ——————————————————————————————————————————————
 // Main 3D carousel component
 // ——————————————————————————————————————————————
@@ -65,18 +74,16 @@ export default function BottleCarousel3D() {
       const height = container.clientHeight;
       const mobile = width < 768;
 
-      // Mobile: push camera in close so only 3-4 bottles fill screen
       const camera = new THREE.PerspectiveCamera(mobile ? 55 : 60, width / height, 0.1, 100);
       camera.position.set(0, 1.5, mobile ? 3.5 : 8);
       camera.lookAt(0, 0.25, 0);
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: !mobile, // skip antialiasing on mobile for perf
+        antialias: !mobile,
         alpha: true,
         powerPreference: "high-performance",
       });
       renderer.setSize(width, height);
-      // Cap pixel ratio at 1 on mobile — looks fine, saves significant GPU
       renderer.setPixelRatio(mobile ? Math.min(window.devicePixelRatio, 1) : Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
@@ -95,7 +102,7 @@ export default function BottleCarousel3D() {
       pointLeft.position.set(-8, 2, 3);
       scene.add(pointLeft);
 
-      // Rim light behind bottles — amber edge glow
+      // Rim light behind bottles
       const rimLight = new THREE.PointLight(0xc4870a, 3.0, 30);
       rimLight.position.set(0, 2, -4);
       scene.add(rimLight);
@@ -105,14 +112,8 @@ export default function BottleCarousel3D() {
       fillLight.position.set(0, -3, 3);
       scene.add(fillLight);
 
-      // Bottle geometry from lathe profile
-      const profilePoints: THREE_NS.Vector2[] = BOTTLE_PROFILE.map(
-        ([x, y]) => new THREE.Vector2(x * SCALE, y * SCALE)
-      );
-      const bottleGeometry = new THREE.LatheGeometry(profilePoints, 32);
-
-      // Glass material
-      const glassMaterial = new THREE.MeshPhysicalMaterial({
+      // Glass material (shared base, cloned per bottle)
+      const glassMaterialBase = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(0x1a1208),
         transparent: true,
         opacity: 0.85,
@@ -122,130 +123,103 @@ export default function BottleCarousel3D() {
         transmission: 0.3,
       });
 
-      // Cap geometry
-      const capGeometry = new THREE.CylinderGeometry(
-        0.04 * 1,
-        0.04 * 1,
-        0.06,
-        16
-      );
+      // Cap material
       const capMaterial = new THREE.MeshStandardMaterial({
         color: 0x2a2010,
         roughness: 0.3,
         metalness: 0.6,
       });
 
-      // Load real label images
-      const labelTextures = await Promise.all([
-        loadLabelImage('/bottles/blanton.jpg'),
-        loadLabelImage('/bottles/pappyvw.jpg'),
-        loadLabelImage('/bottles/stagg.jpg'),
-        loadLabelImage('/bottles/weller.jpg'),
-        loadLabelImage('/bottles/russell.jpg'),
-        loadLabelImage('/bottles/forester.jpg'),
-      ]);
+      // Load all 6 label textures in parallel
+      const labelTextures = await Promise.all(
+        BOTTLE_LABEL_PATHS.map((path) => loadLabelImage(THREE, path))
+      );
 
-      // Create bottles — 6 bottles matching the 6 images
-      const BOTTLE_COUNT = 6;
-      const SPACING = mobile ? 0.9 : 0.75; // wider spacing on mobile — fewer visible at once
+      if (disposed) return;
+
+      // Build per-bottle geometries — each unique
+      const bottleGeometries = BOTTLE_PROFILES.map((profile) =>
+        new THREE.LatheGeometry(
+          profile.map(([x, y]) => new THREE.Vector2(x * 0.1, y * 0.1)),
+          32
+        )
+      );
+
+      // Cap radius per bottle (using last profile point's radius * 0.1 * ~1.05 for slight overhang)
+      const capRadii = BOTTLE_PROFILES.map(
+        (profile) => profile[profile.length - 1][0] * 0.1 * 1.05
+      );
+
+      // Cap Y position = last Y value of each profile * 0.1 + half cap height
+      const capYPositions = BOTTLE_PROFILES.map(
+        (profile) => profile[profile.length - 1][1] * 0.1 + 0.03
+      );
+
+      const SPACING = mobile ? 0.9 : 0.75;
       const totalWidth = BOTTLE_COUNT * SPACING;
       const bottleGroups: THREE_NS.Group[] = [];
 
-      for (let i = 0; i < BOTTLE_COUNT; i++) {
+      // ——— Helper: build a single bottle group ———
+      function makeBottleGroup(i: number, xOffset: number): THREE_NS.Group {
+        const idx = i % BOTTLE_COUNT;
         const group = new THREE.Group();
 
-        // Bottle mesh
-        const bottle = new THREE.Mesh(bottleGeometry, glassMaterial.clone());
-        group.add(bottle);
+        // Bottle mesh — unique geometry per type
+        const bottle = new THREE.Mesh(bottleGeometries[idx], glassMaterialBase.clone());
+        group.add(bottle); // children[0]
 
-        // Cap
-        const cap = new THREE.Mesh(capGeometry, capMaterial);
-        cap.position.y = 0.78 + 0.03;
-        group.add(cap);
+        // Cap — sized and positioned to match this bottle's profile
+        const capGeo = new THREE.CylinderGeometry(capRadii[idx], capRadii[idx], 0.06, 16);
+        const cap = new THREE.Mesh(capGeo, capMaterial);
+        cap.position.y = capYPositions[idx];
+        group.add(cap); // children[1]
 
-        // Label plane — use real image texture
-        const labelTexture = labelTextures[i % labelTextures.length];
+        // Label plane — real image texture, full opacity
         const labelMaterial = new THREE.MeshBasicMaterial({
-          map: labelTexture,
+          map: labelTextures[idx],
           transparent: true,
-          opacity: 1.0, // full opacity for real images
+          opacity: 1.0,
         });
         const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
         const label = new THREE.Mesh(labelGeometry, labelMaterial);
-        // Position label on front of bottle body
         label.position.set(0, 0.3, 0.135);
-        group.add(label);
+        group.add(label); // children[2]
 
         // Position in row
-        const xPos = i * SPACING - totalWidth / 2 + SPACING / 2;
-        group.position.x = xPos;
+        group.position.x = xOffset;
 
-        // Scale — slightly smaller on mobile so bottles fit narrower canvas
+        // Scale
         const s = mobile ? 1.8 : 1.4;
         group.scale.set(s, s, s);
 
-        // Tilt — alternating directions for variety
-        const tiltDirection = i % 2 === 0 ? 1 : -1;
-        group.rotation.z = (Math.PI / 5) * tiltDirection;
-        group.rotation.x = (Math.PI / 12) * tiltDirection;
+        // Tilt — alternate direction per bottle
+        const tiltDir = i % 2 === 0 ? 1 : -1;
+        group.rotation.z = (Math.PI / 5) * tiltDir;
+        group.rotation.x = (Math.PI / 12) * tiltDir;
 
-        // Random starting Y rotation for each bottle
+        // Random starting Y rotation for spin variety
         const startingY = Math.random() * Math.PI * 2;
         group.children[0].rotation.y = startingY;
         group.children[1].rotation.y = startingY;
         group.children[2].rotation.y = startingY;
 
+        return group;
+      }
+
+      // Primary bottles
+      for (let i = 0; i < BOTTLE_COUNT; i++) {
+        const xPos = i * SPACING - totalWidth / 2 + SPACING / 2;
+        const group = makeBottleGroup(i, xPos);
         scene.add(group);
         bottleGroups.push(group);
       }
 
-      // Duplicate bottles on both sides for infinite loop illusion
+      // Clone banks left and right for infinite scroll illusion
       const cloneGroups: THREE_NS.Group[] = [];
-      for (let offset = -1; offset <= 1; offset += 2) {
+      for (const offset of [-1, 1]) {
         for (let i = 0; i < BOTTLE_COUNT; i++) {
-          const group = new THREE.Group();
-
-          const bottle = new THREE.Mesh(
-            bottleGeometry,
-            glassMaterial.clone()
-          );
-          group.add(bottle);
-
-          const cap = new THREE.Mesh(capGeometry, capMaterial);
-          cap.position.y = 0.78 + 0.03;
-          group.add(cap);
-
-          const labelTexture = labelTextures[i % labelTextures.length];
-          const labelMaterial = new THREE.MeshBasicMaterial({
-            map: labelTexture,
-            transparent: true,
-            opacity: 1.0, // full opacity for real images
-          });
-          const labelGeometry = new THREE.PlaneGeometry(0.18, 0.28);
-          const label = new THREE.Mesh(labelGeometry, labelMaterial);
-          label.position.set(0, 0.3, 0.135);
-          group.add(label);
-
-          const xPos =
-            i * SPACING -
-            totalWidth / 2 +
-            SPACING / 2 +
-            offset * totalWidth;
-          group.position.x = xPos;
-          const cs = mobile ? 1.8 : 1.4;
-          group.scale.set(cs, cs, cs);
-
-          // Tilt — alternating directions for variety
-          const tiltDirection = i % 2 === 0 ? 1 : -1;
-          group.rotation.z = (Math.PI / 5) * tiltDirection;
-          group.rotation.x = (Math.PI / 12) * tiltDirection;
-
-          // Random starting Y rotation for each bottle
-          const startingY = Math.random() * Math.PI * 2;
-          group.children[0].rotation.y = startingY;
-          group.children[1].rotation.y = startingY;
-          group.children[2].rotation.y = startingY;
-
+          const xPos = i * SPACING - totalWidth / 2 + SPACING / 2 + offset * totalWidth;
+          const group = makeBottleGroup(i, xPos);
           scene.add(group);
           cloneGroups.push(group);
         }
@@ -255,12 +229,10 @@ export default function BottleCarousel3D() {
 
       // Animation
       let isPaused = false;
-      const DRIFT_SPEED = totalWidth / 60; // traverse full width in 60s
+      const DRIFT_SPEED = totalWidth / 60; // full width in 60s
       const SPIN_SPEED = (Math.PI * 2) / 10; // full rotation in 10s
 
-      const handleVisibility = () => {
-        isPaused = document.hidden;
-      };
+      const handleVisibility = () => { isPaused = document.hidden; };
       document.addEventListener("visibilitychange", handleVisibility);
 
       const handleResize = () => {
@@ -270,7 +242,6 @@ export default function BottleCarousel3D() {
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
-        // Update pixel ratio on resize (orientation change on mobile)
         const isMob = w < 768;
         renderer.setPixelRatio(isMob ? Math.min(window.devicePixelRatio, 1) : Math.min(window.devicePixelRatio, 2));
       };
@@ -291,20 +262,17 @@ export default function BottleCarousel3D() {
         const delta = (time - lastTime) / 1000;
         lastTime = time;
 
-        // Drift all bottles left
         for (const group of allGroups) {
           group.position.x -= DRIFT_SPEED * delta;
 
-          // Wrap around when too far left
+          // Wrap when too far left
           if (group.position.x < -totalWidth * 1.5) {
             group.position.x += totalWidth * 3;
           }
 
-          // Spin each bottle on Y axis (spin the children, not the tilted group)
-          // Rotate bottle mesh, cap, and label together around Y
+          // Spin bottle, cap, and label together on Y axis
           group.children[0].rotation.y += SPIN_SPEED * delta;
           group.children[1].rotation.y += SPIN_SPEED * delta;
-          // Keep label facing forward by counter-rotating
           group.children[2].rotation.y += SPIN_SPEED * delta;
         }
 
@@ -313,12 +281,13 @@ export default function BottleCarousel3D() {
 
       animFrameRef.current = requestAnimationFrame(animate);
 
-      // Cleanup function
       return () => {
         disposed = true;
         cancelAnimationFrame(animFrameRef.current);
         document.removeEventListener("visibilitychange", handleVisibility);
         window.removeEventListener("resize", handleResize);
+        // Dispose all geometries
+        bottleGeometries.forEach((g) => g.dispose());
         renderer.dispose();
         if (container.contains(renderer.domElement)) {
           container.removeChild(renderer.domElement);
@@ -327,23 +296,16 @@ export default function BottleCarousel3D() {
     };
 
     let cleanup: (() => void) | undefined;
-    init().then((c) => {
-      cleanup = c;
-    });
+    init().then((c) => { cleanup = c; });
 
-    return () => {
-      if (cleanup) cleanup();
-    };
+    return () => { if (cleanup) cleanup(); };
   }, []);
 
   return (
     <div
       ref={containerRef}
       className="absolute inset-0"
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
+      style={{ width: "100%", height: "100%" }}
     />
   );
 }
