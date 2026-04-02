@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import ScrollReveal from "@/components/ScrollReveal";
 import BottleLink from "@/components/BottleLink";
 import CountyLink from "@/components/CountyLink";
 import {
@@ -609,7 +608,7 @@ export default function DropFeed() {
       `}</style>
 
       <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px" }}>
-        <ScrollReveal delay={0}>
+        <div>
           {/* Header row */}
           <div className="flex items-center justify-between">
             <h2
@@ -787,7 +786,7 @@ export default function DropFeed() {
             </div>
           )}
 
-        </ScrollReveal>
+        </div>
       </div>
     </section>
   );
