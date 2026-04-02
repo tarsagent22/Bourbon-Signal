@@ -4,7 +4,6 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
-import BottleCarousel3D from "../BottleCarousel3D";
 
 export default function HeroSection() {
   const ref = useRef(null);
@@ -15,8 +14,17 @@ export default function HeroSection() {
       className="relative flex items-end justify-center overflow-hidden"
       style={{ height: "max(70vh, 500px)", minHeight: "500px" }}
     >
-      {/* 3D Carousel Background */}
-      <BottleCarousel3D />
+      {/* Hero background — blurred bourbon shelf image */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/hero-bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          filter: "blur(1.5px) brightness(0.45)",
+          transform: "scale(1.04)",
+        }}
+      />
 
       {/* Bottom vignette gradient — starts at 40% for clean text overlap */}
       <div

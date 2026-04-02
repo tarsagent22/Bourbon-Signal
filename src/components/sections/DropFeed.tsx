@@ -533,9 +533,10 @@ export default function DropFeed() {
   });
 
   // Apply area preferences (Clerk-backed per-user preferences)
+  // Only apply area prefs if the user is signed in AND has actually set preferences
   const filteredByArea = filteredGrouped.filter((drop) => {
-    // No preferences set = show everything
-    if (!areaPrefs.states.length) return true;
+    // Not signed in, or no preferences set = show everything
+    if (!isSignedIn || !areaPrefs.states.length) return true;
 
     // Filter by state
     const dropState = drop.state || "NC";
