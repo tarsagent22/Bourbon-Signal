@@ -42,22 +42,22 @@ export default function RootLayout({
       appearance={{
         baseTheme: dark,
         variables: {
-          colorPrimary: "#C4943A",
+          colorPrimary: "#D4920B",
           colorBackground: "#1C1812",
-          colorText: "#F5EDD6",
-          colorTextSecondary: "#C4BBB5",
+          colorText: "#F7F0E0",
+          colorTextSecondary: "#B8A99A",
           colorInputBackground: "#312B24",
-          colorInputText: "#F5EDD6",
+          colorInputText: "#F7F0E0",
           borderRadius: "10px",
         },
         elements: {
-          card: { boxShadow: "none", border: "1px solid rgba(196,148,58,0.15)" },
+          card: { boxShadow: "none", border: "1px solid rgba(245,237,214,0.1)" },
           formButtonPrimary: {
-            background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+            background: "linear-gradient(135deg, #D4920B 0%, #EFC050 100%)",
             color: "#1A1510",
             fontWeight: 700,
           },
-          footerActionLink: { color: "#C4943A" },
+          footerActionLink: { color: "#D4920B" },
         },
       }}
     >

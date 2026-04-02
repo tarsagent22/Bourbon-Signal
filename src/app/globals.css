@@ -1,33 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg-primary: #0D0B07;      /* Page base */
-  --color-bg-secondary: #131008;    /* Cards, elevated surfaces */
-  --color-bg-tertiary: #1A160C;     /* Highest elevation — modals, dropdowns */
+  --color-bg-primary: #0F0D09;
+  --color-bg-secondary: #1A160F;
+  --color-bg-tertiary: #242018;
 
-  --color-accent-amber: #C4870A;
+  --color-accent-amber: #D4920B;
   --color-accent-copper: #B87333;
-  --color-accent-gold: #E8B04B;
+  --color-accent-gold: #EFC050;
 
-  --color-text-primary: #F5F0E8;
-  --color-text-secondary: #C4BBB5;
-  --color-text-tertiary: #6B6560;
+  --color-text-primary: #F7F0E0;
+  --color-text-secondary: #B8A99A;
+  --color-text-tertiary: #6B6258;
 
   --color-success: #2D6A4F;
   --color-alert: #E85D26;
   --color-info: #4A90A4;
 
-  --color-card-bg: rgba(36, 30, 25, 0.9);
-  --color-card-border: rgba(212, 146, 11, 0.18);
-  --color-card-border-hover: rgba(212, 146, 11, 0.3);
+  --color-card-bg: rgba(36, 30, 22, 0.92);
+  --color-card-border: rgba(245, 237, 214, 0.08);
+  --color-card-border-hover: rgba(245, 237, 214, 0.16);
 
-  --color-glass: rgba(20, 16, 10, 0.85);
+  --color-glass: rgba(20, 16, 10, 0.88);
 
-  --color-bg-warm: #0D0B07;
-  --color-cream: #F5EDD6;
-  --color-amber-rich: #C4943A;
+  --color-bg-warm: #0F0D09;
+  --color-cream: #F7F0E0;
+  --color-amber-rich: #D4920B;
   --color-copper: #B87333;
-  --color-silver-muted: #8A8A8A;
+  --color-silver-muted: #8A8078;
 }
 
 * {
