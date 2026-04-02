@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -7,10 +8,11 @@ import ScrollReveal from "@/components/ScrollReveal";
 import PricingCards from "@/components/sections/PricingCards";
 import FeatureComparison from "@/components/sections/FeatureComparison";
 import FAQ from "@/components/sections/FAQ";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { useEffect, useRef } from "react";
 
-export default function PricingPage() {
+function PricingPageContent() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
 
@@ -27,6 +29,17 @@ export default function PricingPage() {
     const data = await res.json();
     if (data.url) window.location.href = data.url;
   };
+
+  const searchParams = useSearchParams();
+  const checkoutTriggered = useRef(false);
+
+  useEffect(() => {
+    const plan = searchParams.get("checkout") as "monthly" | "annual" | "founder" | null;
+    if (isSignedIn && plan && ["monthly", "annual", "founder"].includes(plan) && !checkoutTriggered.current) {
+      checkoutTriggered.current = true;
+      handleCheckout(plan);
+    }
+  }, [isSignedIn, searchParams]);
 
   return (
     <>
@@ -174,5 +187,13 @@ export default function PricingPage() {
       </motion.main>
       <Footer />
     </>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={null}>
+      <PricingPageContent />
+    </Suspense>
   );
 }

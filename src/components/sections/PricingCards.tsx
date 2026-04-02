@@ -32,7 +32,7 @@ export default function PricingCards() {
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=/pricing`);
+      router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
       return;
     }
     const res = await fetch("/api/checkout", {
