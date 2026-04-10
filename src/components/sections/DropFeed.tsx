@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import BottleLink from "@/components/BottleLink";
 import CountyLink from "@/components/CountyLink";
 import {
@@ -524,37 +524,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 // --- Main component ---
 
 export default function DropFeed() {
-  const sectionRef = useRef<HTMLElement | null>(null);
   const shouldReduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start 90%", "end 25%"],
-  });
-  const ambientOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.18, 0.62, 1],
-    shouldReduceMotion ? [0.1, 0.12, 0.12, 0.1] : [0.1, 0.34, 0.22, 0.1]
-  );
-  const ambientScale = useTransform(
-    scrollYProgress,
-    [0, 0.45, 1],
-    shouldReduceMotion ? [1, 1, 1] : [0.96, 1.02, 1]
-  );
-  const headerY = useTransform(
-    scrollYProgress,
-    [0, 0.45, 1],
-    shouldReduceMotion ? [0, 0, 0] : [18, 0, -6]
-  );
-  const trustY = useTransform(
-    scrollYProgress,
-    [0, 0.4, 1],
-    shouldReduceMotion ? [0, 0, 0] : [10, 0, -4]
-  );
-  const contentY = useTransform(
-    scrollYProgress,
-    [0, 0.55, 1],
-    shouldReduceMotion ? [0, 0, 0] : [22, 0, -8]
-  );
 
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
   const { isSignedIn } = useAuth();
@@ -687,7 +657,6 @@ export default function DropFeed() {
   return (
     <section
       id="drops"
-      ref={sectionRef}
       style={{
         backgroundColor: "var(--color-bg-warm)",
         paddingTop: "24px",
@@ -715,22 +684,20 @@ export default function DropFeed() {
         }
       `}</style>
 
-      <motion.div
+      <div
         aria-hidden
         style={{
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          opacity: ambientOpacity,
-          scale: ambientScale,
+          opacity: 0.16,
           background:
-            "radial-gradient(ellipse 72% 56% at 50% 18%, rgba(196,148,58,0.18) 0%, rgba(196,148,58,0.08) 34%, rgba(196,148,58,0.03) 56%, transparent 74%), linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, transparent 24%, transparent 100%)",
-          transformOrigin: "50% 18%",
+            "radial-gradient(ellipse 72% 56% at 50% 18%, rgba(196,148,58,0.16) 0%, rgba(196,148,58,0.07) 34%, rgba(196,148,58,0.025) 56%, transparent 74%), linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, transparent 24%, transparent 100%)",
         }}
       />
 
       <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px", position: "relative", zIndex: 1 }}>
-        <motion.div style={{ y: contentY }}>
+        <div>
           {/* Trust row */}
           <motion.div
             className="flex flex-wrap items-center gap-x-4 gap-y-2"
@@ -738,7 +705,6 @@ export default function DropFeed() {
               marginBottom: "16px",
               paddingBottom: "14px",
               borderBottom: "1px solid rgba(245,237,214,0.08)",
-              y: trustY,
             }}
             initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
             whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -770,7 +736,6 @@ export default function DropFeed() {
           {/* Header row */}
           <motion.div
             className="flex items-center justify-between gap-4"
-            style={{ y: headerY }}
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
@@ -1020,7 +985,7 @@ export default function DropFeed() {
             </div>
           )}
 
-        </motion.div>
+        </div>
       </div>
     </section>
   );
