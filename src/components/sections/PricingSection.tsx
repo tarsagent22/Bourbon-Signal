@@ -32,7 +32,7 @@ export default function PricingSection() {
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=/pricing`);
+      router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
       return;
     }
     const res = await fetch("/api/checkout", {
@@ -76,7 +76,7 @@ export default function PricingSection() {
             textShadow: "0 0 40px rgba(196,148,58,0.2)",
           }}
         >
-          Choose Your Proof
+Choose Your Proof
         </h2>
         <div className="mb-12" />
 
@@ -123,7 +123,7 @@ export default function PricingSection() {
                   marginBottom: "8px",
                 }}
               >
-                STANDARD PROOF
+                MEMBER ACCESS
               </p>
 
               {/* Price */}
@@ -158,7 +158,7 @@ export default function PricingSection() {
                   marginBottom: "28px",
                 }}
               >
-                $40/year · save 33%
+                Instant access to faster bottle intel · $40/year saves 33%
               </p>
 
               {/* Features */}

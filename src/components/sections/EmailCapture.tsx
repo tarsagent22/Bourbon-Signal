@@ -26,7 +26,7 @@ export default function EmailCapture() {
         paddingTop: "80px",
         paddingBottom: "80px",
         width: "100%",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
+        borderTop: "none",
       }}
     >
       <div

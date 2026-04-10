@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -764,6 +765,13 @@ export default function DashboardPage() {
   const { isSignedIn } = useAuth();
   const { watchedBottles, removeBottle } = useWatchlistStore();
   const { prefs, savePreferences } = useAreaPreferences();
+  const previewPrefs: AreaPreferences = {
+    states: ["NC", "VA", "PA"],
+    ncBoards: ["Wake", "Mecklenburg"],
+    vaCities: ["Richmond", "Virginia Beach"],
+    paCounties: ["Allegheny"],
+    paStores: [],
+  };
   const { stores } = useStores();
   const [mounted, setMounted] = useState(false);
 
@@ -777,6 +785,7 @@ export default function DashboardPage() {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const isPreviewMode = mounted && !isSignedIn;
 
   useEffect(() => {
     setMounted(true);
@@ -784,8 +793,8 @@ export default function DashboardPage() {
 
   // Sync server prefs → local state
   useEffect(() => {
-    setLocalPrefs(prefs);
-  }, [prefs]);
+    setLocalPrefs(isSignedIn ? prefs : previewPrefs);
+  }, [prefs, isSignedIn]);
 
   const toggleState = (code: string) => {
     setLocalPrefs((prev) => {
@@ -804,6 +813,7 @@ export default function DashboardPage() {
   };
 
   const handleSave = async () => {
+    if (isPreviewMode) return;
     setSaving(true);
     try {
       await savePreferences(localPrefs);
@@ -939,7 +949,7 @@ export default function DashboardPage() {
         </section>
 
         {/* ── Where I'm Hunting ── */}
-        {mounted && isSignedIn && (
+        {mounted && (
           <section style={{ padding: "0 0 32px" }}>
             <div
               style={{
@@ -975,8 +985,75 @@ export default function DashboardPage() {
                     marginBottom: "24px",
                   }}
                 >
-                  Filter the drop feed to only show bottles in your area. Select states, then narrow down by specific boards or cities.
+                  {isPreviewMode
+                    ? "Preview the full hunting setup. Sign in to save states, boards, cities, and store preferences to your account."
+                    : "Filter the drop feed to only show bottles in your area. Select states, then narrow down by specific boards or cities."}
                 </p>
+
+                {isPreviewMode && (
+                  <div
+                    style={{
+                      marginBottom: "20px",
+                      padding: "14px 16px",
+                      borderRadius: "10px",
+                      background: "rgba(196,148,58,0.08)",
+                      border: "1px solid rgba(196,148,58,0.2)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "13px",
+                        color: "var(--color-text-secondary)",
+                        margin: 0,
+                      }}
+                    >
+                      You&apos;re viewing the full dashboard preview. Nothing here is hidden anymore, but saving preferences still requires an account.
+                    </p>
+                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                      <Link
+                        href="/sign-up?redirect_url=/dashboard"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "10px 16px",
+                          borderRadius: "8px",
+                          background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                          color: "#0D0B07",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          fontWeight: 700,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Create account
+                      </Link>
+                      <Link
+                        href="/sign-in?redirect_url=/dashboard"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "10px 16px",
+                          borderRadius: "8px",
+                          border: "1px solid rgba(196,148,58,0.25)",
+                          background: "rgba(255,255,255,0.03)",
+                          color: "var(--color-accent-amber)",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Sign in
+                      </Link>
+                    </div>
+                  </div>
+                )}
 
                 {/* State pills */}
                 <p
@@ -1156,7 +1233,7 @@ export default function DashboardPage() {
                 <div style={{ marginTop: "28px" }}>
                   <button
                     onClick={handleSave}
-                    disabled={saving}
+                    disabled={saving || isPreviewMode}
                     style={{
                       padding: "12px 28px",
                       borderRadius: "8px",
@@ -1170,13 +1247,13 @@ export default function DashboardPage() {
                       fontFamily: "var(--font-dm-sans)",
                       fontSize: "14px",
                       fontWeight: 700,
-                      cursor: saving ? "not-allowed" : "pointer",
-                      opacity: saving ? 0.7 : 1,
+                      cursor: saving || isPreviewMode ? "not-allowed" : "pointer",
+                      opacity: saving || isPreviewMode ? 0.7 : 1,
                       transition: "all 200ms ease",
                       minWidth: "160px",
                     }}
                   >
-                    {saving ? "Saving…" : saved ? "Saved ✓" : "Save Preferences"}
+                    {isPreviewMode ? "Sign in to save" : saving ? "Saving…" : saved ? "Saved ✓" : "Save Preferences"}
                   </button>
                 </div>
               </div>

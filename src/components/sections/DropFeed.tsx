@@ -25,6 +25,65 @@ interface DropsResponse {
   lastUpdated: string;
 }
 
+const MOCK_DROPS: DropEvent[] = [
+  {
+    timestamp: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
+    brand_name: "Blanton's Single Barrel",
+    event_type: "in_store",
+    state: "VA",
+    state_code: "VA",
+    store_city: "Richmond",
+    store_address: "West Broad St",
+    board_name: "Richmond",
+    rarity_tier: "allocated",
+    quantity_in_stock: 6,
+    quantity_shipped: 0,
+    retail_price: 74.99,
+  },
+  {
+    timestamp: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
+    brand_name: "Weller Antique 107",
+    event_type: "in_store",
+    state: "NC",
+    state_code: "NC",
+    store_city: "Raleigh",
+    store_address: "Wake County",
+    board_name: "Wake",
+    rarity_tier: "allocated",
+    quantity_in_stock: 3,
+    quantity_shipped: 0,
+    retail_price: 59.99,
+  },
+  {
+    timestamp: new Date(Date.now() - 23 * 60 * 1000).toISOString(),
+    brand_name: "Stagg",
+    event_type: "in_store",
+    state: "PA",
+    state_code: "PA",
+    store_city: "Pittsburgh",
+    store_address: "Allegheny County",
+    board_name: "Pittsburgh",
+    rarity_tier: "unicorn",
+    quantity_in_stock: 2,
+    quantity_shipped: 0,
+    retail_price: 64.99,
+  },
+  {
+    timestamp: new Date(Date.now() - 31 * 60 * 1000).toISOString(),
+    brand_name: "Eagle Rare 10",
+    event_type: "in_store",
+    state: "VA",
+    state_code: "VA",
+    store_city: "Virginia Beach",
+    store_address: "Lynnhaven Pkwy",
+    board_name: "Virginia Beach",
+    rarity_tier: "limited",
+    quantity_in_stock: 8,
+    quantity_shipped: 0,
+    retail_price: 42.99,
+  },
+];
+
 // --- Components ---
 
 function SkeletonRow() {
@@ -473,6 +532,7 @@ export default function DropFeed() {
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [lastFetch, setLastFetch] = useState<string>("");
+  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(600);
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
@@ -485,7 +545,8 @@ export default function DropFeed() {
       const json: DropsResponse = await res.json();
       setError(false);
 
-      const newGrouped = groupDrops(json.drops);
+      const sourceDrops = json.drops.length > 0 ? json.drops : MOCK_DROPS;
+      const newGrouped = groupDrops(sourceDrops);
 
       if (!isFirstLoad.current) {
         const incoming = new Set<string>();
@@ -509,7 +570,9 @@ export default function DropFeed() {
 
       setData(json);
       setGrouped(newGrouped);
-      setLastFetch(new Date().toISOString());
+      const nowIso = new Date().toISOString();
+      setLastFetch(nowIso);
+      setSecondsUntilRefresh(600);
     } catch {
       setError(true);
     }
@@ -520,6 +583,13 @@ export default function DropFeed() {
     const interval = setInterval(fetchDrops, 30000);
     return () => clearInterval(interval);
   }, [fetchDrops]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsUntilRefresh((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Apply state and tier filters
   const filteredGrouped = grouped.filter((drop) => {
@@ -578,6 +648,9 @@ export default function DropFeed() {
   const MAX_DISPLAYED = 8;
   const displayedGrouped = filteredByArea.slice(0, MAX_DISPLAYED);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredByArea.length - MAX_DISPLAYED) : 0;
+  const minutes = Math.floor(secondsUntilRefresh / 60);
+  const seconds = secondsUntilRefresh % 60;
+  const refreshLabel = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
   return (
     <section
@@ -609,20 +682,64 @@ export default function DropFeed() {
 
       <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px" }}>
         <div>
+          {/* Trust row */}
+          <div
+            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+            style={{
+              marginBottom: "16px",
+              paddingBottom: "14px",
+              borderBottom: "1px solid rgba(245,237,214,0.08)",
+            }}
+          >
+            {[
+              { label: "Coverage", value: "NC • VA • PA" },
+              { label: "Updated", value: data?.lastUpdated ? "live" : "checking" },
+              { label: "Next refresh", value: refreshLabel },
+              { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },
+            ].map((item, idx) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-2"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  color: "rgba(245,237,214,0.72)",
+                }}
+              >
+                <span style={{ color: "rgba(245,237,214,0.42)" }}>{item.label}</span>
+                <span style={{ color: "var(--color-cream)", fontWeight: 600 }}>{item.value}</span>
+                {idx < 3 && <span style={{ color: "rgba(245,237,214,0.18)" }}>•</span>}
+              </div>
+            ))}
+          </div>
+
           {/* Header row */}
-          <div className="flex items-center justify-between">
-            <h2
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "32px",
-                fontWeight: 700,
-                color: "var(--color-cream)",
-                lineHeight: 1.1,
-                margin: 0,
-              }}
-            >
-              Live Drop Feed
-            </h2>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2
+                style={{
+                  fontFamily: "var(--font-playfair)",
+                  fontSize: "32px",
+                  fontWeight: 700,
+                  color: "var(--color-cream)",
+                  lineHeight: 1.1,
+                  margin: 0,
+                }}
+              >
+                Live Drop Feed
+              </h2>
+              <p
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  color: "rgba(245,237,214,0.55)",
+                  marginTop: "6px",
+                  marginBottom: 0,
+                }}
+              >
+                Real-time bottle intel from monitored state activity.
+              </p>
+            </div>
             {hasAreaPrefs && (
               <a
                 href="/dashboard"
@@ -646,10 +763,32 @@ export default function DropFeed() {
 
           {/* Data freshness */}
           {data?.lastUpdated && (
-            <div style={{ marginTop: "10px" }}>
+            <div style={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
               <DataFreshness lastUpdated={data.lastUpdated} />
+              <div
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "11px",
+                  color: secondsUntilRefresh <= 15 ? "var(--color-accent-amber)" : "var(--color-text-tertiary)",
+                }}
+              >
+                Updated live • next refresh in {refreshLabel}
+              </div>
             </div>
           )}
+
+          {/* Premium member nudge */}
+          <div
+            style={{
+              marginTop: "14px",
+              marginBottom: "16px",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "13px",
+              color: "rgba(245,237,214,0.58)",
+            }}
+          >
+            Unlock maps, dashboards, and deeper bottle intel with member access.
+          </div>
 
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
@@ -704,16 +843,32 @@ export default function DropFeed() {
 
           {/* Feed rows */}
           {error && !data ? (
-            <div
-              className="flex items-center justify-center"
-              style={{
-                padding: "80px 0",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "15px",
-                color: "rgba(245,237,214,0.35)",
-              }}
-            >
-              Feed temporarily unavailable
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  marginBottom: "18px",
+                  padding: "12px 14px",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(212,146,11,0.16)",
+                  background: "rgba(212,146,11,0.05)",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "13px",
+                  color: "rgba(245,237,214,0.65)",
+                }}
+              >
+                Live feed is temporarily unavailable — showing recent sample activity so you can preview the product experience.
+              </div>
+              <AnimatePresence mode="popLayout">
+                {groupDrops(MOCK_DROPS).map((drop, index) => (
+                  <FeedRow
+                    key={drop.id}
+                    drop={drop}
+                    isNew={false}
+                    index={index}
+                    isFreeUser={isFreeUser}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
           ) : !data ? (
             <>

@@ -12,36 +12,40 @@ export default function HeroSection() {
     <section
       ref={ref}
       className="relative flex items-end justify-center overflow-hidden"
-      style={{ height: "max(70vh, 500px)", minHeight: "500px" }}
+      style={{
+        height: "100vh",
+        minHeight: "720px",
+        maxHeight: "980px",
+        backgroundColor: "#090806",
+      }}
     >
-      {/* Hero background — blurred bourbon shelf image */}
+      {/* Hero background image */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/hero-bg.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center 30%",
-          filter: "blur(1.5px) brightness(0.45)",
-          transform: "scale(1.04)",
+          filter: "blur(1.5px) brightness(0.48)",
+          transform: "scale(1.045)",
         }}
       />
 
-      {/* Bottom vignette gradient — starts at 40% for clean text overlap */}
+      {/* Minimal readability overlays */}
       <div
         className="absolute inset-0 z-[1] pointer-events-none"
         style={{
           background:
-            "linear-gradient(to bottom, transparent 40%, rgba(13, 11, 7, 0.5) 60%, #0D0B07 100%)",
+            "linear-gradient(to bottom, rgba(8, 6, 4, 0.24) 0%, rgba(8, 6, 4, 0.10) 26%, rgba(8, 6, 4, 0.16) 72%, rgba(8, 6, 4, 0.42) 100%)",
         }}
       />
 
-      {/* Top vignette for nav blending */}
       <div
         className="absolute inset-x-0 top-0 z-[1] pointer-events-none"
         style={{
-          height: "120px",
+          height: "96px",
           background:
-            "linear-gradient(to bottom, rgba(13, 11, 7, 0.6) 0%, transparent 100%)",
+            "linear-gradient(to bottom, rgba(8, 6, 4, 0.26) 0%, transparent 100%)",
         }}
       />
 
@@ -50,20 +54,20 @@ export default function HeroSection() {
         className="absolute z-[2] w-[600px] h-[400px] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse at center, rgba(212, 146, 11, 0.04) 0%, transparent 70%)",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
         }}
       />
 
-      {/* Content overlay — positioned at bottom 12% */}
+      {/* Content overlay — vertically centered */}
       <div
-        className="absolute z-[3] px-8 sm:px-10 md:px-16 lg:px-24 max-w-[800px] mx-auto"
+        className="absolute z-[3] px-12 sm:px-16 md:px-24 lg:px-32 max-w-[900px] mx-auto"
         style={{
-          bottom: "12%",
+          top: "50%",
           left: "50%",
-          transform: "translateX(-50%)",
+          transform: "translate(-50%, -50%)",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
@@ -76,31 +80,37 @@ export default function HeroSection() {
             className="mb-5"
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: "clamp(36px, 8vw, 72px)",
-              lineHeight: 1.0,
+              fontSize: "clamp(34px, 7vw, 66px)",
+              lineHeight: 1.02,
               fontWeight: 700,
-              letterSpacing: "-0.02em",
+              letterSpacing: "-0.025em",
               color: "var(--color-cream, #F5EDD6)",
               textShadow: "0 4px 24px rgba(0,0,0,0.7)",
+              maxWidth: "900px",
+              marginLeft: "auto",
+              marginRight: "auto",
             }}
           >
-            NEVER MISS A DROP.
+Live bourbon intel.
           </h1>
         </ScrollReveal>
 
         <ScrollReveal delay={50}>
           <p
-            className="mx-auto max-w-[480px]"
+            className="mx-auto max-w-[680px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
-              fontSize: "18px",
-              lineHeight: 1.6,
+              fontSize: "17px",
+              lineHeight: 1.65,
               color: "var(--color-text-secondary)",
               textShadow: "0 2px 12px rgba(0,0,0,0.8)",
-              marginBottom: "32px",
+              marginBottom: "18px",
             }}
           >
-            Real-time alerts when allocated bourbon hits your state&apos;s shelves.
+            <span style={{ display: "block", fontWeight: 700, color: "var(--color-cream)", marginBottom: "6px" }}>
+              Never miss a drop.
+            </span>
+            Track real-time allocated bourbon activity across NC, VA, and PA.
           </p>
         </ScrollReveal>
 
@@ -126,7 +136,7 @@ export default function HeroSection() {
                 boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
               }}
             >
-              Get Early Access
+Become a Member
               <ArrowRight size={16} />
             </a>
 
@@ -149,7 +159,7 @@ export default function HeroSection() {
                 e.currentTarget.style.color = "rgba(245, 237, 214, 0.6)";
               }}
             >
-              See Live Drops ↓
+              View Live Feed ↓
             </a>
           </div>
         </ScrollReveal>
