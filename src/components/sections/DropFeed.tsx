@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import BottleLink from "@/components/BottleLink";
 import CountyLink from "@/components/CountyLink";
 import {
@@ -524,6 +524,38 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 // --- Main component ---
 
 export default function DropFeed() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 90%", "end 25%"],
+  });
+  const ambientOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.18, 0.62, 1],
+    shouldReduceMotion ? [0.1, 0.12, 0.12, 0.1] : [0.1, 0.34, 0.22, 0.1]
+  );
+  const ambientScale = useTransform(
+    scrollYProgress,
+    [0, 0.45, 1],
+    shouldReduceMotion ? [1, 1, 1] : [0.96, 1.02, 1]
+  );
+  const headerY = useTransform(
+    scrollYProgress,
+    [0, 0.45, 1],
+    shouldReduceMotion ? [0, 0, 0] : [18, 0, -6]
+  );
+  const trustY = useTransform(
+    scrollYProgress,
+    [0, 0.4, 1],
+    shouldReduceMotion ? [0, 0, 0] : [10, 0, -4]
+  );
+  const contentY = useTransform(
+    scrollYProgress,
+    [0, 0.55, 1],
+    shouldReduceMotion ? [0, 0, 0] : [22, 0, -8]
+  );
+
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
   const { isSignedIn } = useAuth();
   const { prefs: areaPrefs } = useAreaPreferences();
@@ -655,6 +687,7 @@ export default function DropFeed() {
   return (
     <section
       id="drops"
+      ref={sectionRef}
       style={{
         backgroundColor: "var(--color-bg-warm)",
         paddingTop: "24px",
@@ -663,6 +696,8 @@ export default function DropFeed() {
         display: "flex",
         flexDirection: "column" as const,
         alignItems: "center",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       <style>{`
@@ -680,16 +715,35 @@ export default function DropFeed() {
         }
       `}</style>
 
-      <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px" }}>
-        <div>
+      <motion.div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          opacity: ambientOpacity,
+          scale: ambientScale,
+          background:
+            "radial-gradient(ellipse 72% 56% at 50% 18%, rgba(196,148,58,0.18) 0%, rgba(196,148,58,0.08) 34%, rgba(196,148,58,0.03) 56%, transparent 74%), linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, transparent 24%, transparent 100%)",
+          transformOrigin: "50% 18%",
+        }}
+      />
+
+      <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px", position: "relative", zIndex: 1 }}>
+        <motion.div style={{ y: contentY }}>
           {/* Trust row */}
-          <div
+          <motion.div
             className="flex flex-wrap items-center gap-x-4 gap-y-2"
             style={{
               marginBottom: "16px",
               paddingBottom: "14px",
               borderBottom: "1px solid rgba(245,237,214,0.08)",
+              y: trustY,
             }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {[
               { label: "Coverage", value: "NC • VA • PA" },
@@ -711,10 +765,17 @@ export default function DropFeed() {
                 {idx < 3 && <span style={{ color: "rgba(245,237,214,0.18)" }}>•</span>}
               </div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Header row */}
-          <div className="flex items-center justify-between gap-4">
+          <motion.div
+            className="flex items-center justify-between gap-4"
+            style={{ y: headerY }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-70px" }}
+            transition={{ duration: 0.72, ease: [0.25, 0.1, 0.25, 1] }}
+          >
             <div>
               <h2
                 style={{
@@ -759,7 +820,7 @@ export default function DropFeed() {
                 Filtered to your areas · Edit
               </a>
             )}
-          </div>
+          </motion.div>
 
           {/* Data freshness */}
           {data?.lastUpdated && (
@@ -778,7 +839,7 @@ export default function DropFeed() {
           )}
 
           {/* Premium member nudge */}
-          <div
+          <motion.div
             style={{
               marginTop: "14px",
               marginBottom: "16px",
@@ -786,17 +847,25 @@ export default function DropFeed() {
               fontSize: "13px",
               color: "rgba(245,237,214,0.58)",
             }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
             Unlock maps, dashboards, and deeper bottle intel with member access.
-          </div>
+          </motion.div>
 
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
 
           {/* Filters row: Tier filter pills */}
-          <div
+          <motion.div
             className="flex items-center flex-wrap gap-2"
             style={{ paddingBottom: "16px" }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-70px" }}
+            transition={{ duration: 0.6, delay: 0.06, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {/* Tier filter pills */}
             {[
@@ -806,8 +875,12 @@ export default function DropFeed() {
             ].map((pill) => {
               const isActive = activeTiers.has(pill.tier);
               return (
-                <button
+                <motion.button
                   key={pill.tier}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
+                  whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.45, delay: 0.06 + (pill.tier === "unicorn" ? 0 : pill.tier === "allocated" ? 0.05 : 0.1), ease: [0.25, 0.1, 0.25, 1] }}
                   onClick={() => {
                     setActiveTiers((prev) => {
                       const next = new Set(prev);
@@ -836,10 +909,10 @@ export default function DropFeed() {
                   }}
                 >
                   {pill.label}
-                </button>
+                </motion.button>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* Feed rows */}
           {error && !data ? (
@@ -877,7 +950,13 @@ export default function DropFeed() {
               ))}
             </>
           ) : (
-            <div style={{ position: "relative" }}>
+            <motion.div
+              style={{ position: "relative" }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <AnimatePresence mode="popLayout">
                 {displayedGrouped.map((drop, index) => (
                   <FeedRow
@@ -904,7 +983,7 @@ export default function DropFeed() {
                   }}
                 />
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* Drop count below feed */}
@@ -941,7 +1020,7 @@ export default function DropFeed() {
             </div>
           )}
 
-        </div>
+        </motion.div>
       </div>
     </section>
   );
