@@ -534,7 +534,8 @@ export default function DropFeed() {
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [lastFetch, setLastFetch] = useState<string>("");
-  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(600);
+  const POLL_INTERVAL_SECONDS = 30;
+  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(POLL_INTERVAL_SECONDS);
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
@@ -574,7 +575,7 @@ export default function DropFeed() {
       setGrouped(newGrouped);
       const nowIso = new Date().toISOString();
       setLastFetch(nowIso);
-      setSecondsUntilRefresh(600);
+      setSecondsUntilRefresh(POLL_INTERVAL_SECONDS);
     } catch {
       setError(true);
     }
@@ -582,7 +583,7 @@ export default function DropFeed() {
 
   useEffect(() => {
     fetchDrops();
-    const interval = setInterval(fetchDrops, 30000);
+    const interval = setInterval(fetchDrops, POLL_INTERVAL_SECONDS * 1000);
     return () => clearInterval(interval);
   }, [fetchDrops]);
 
@@ -650,6 +651,7 @@ export default function DropFeed() {
   const MAX_DISPLAYED = 8;
   const displayedGrouped = filteredByArea.slice(0, MAX_DISPLAYED);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredByArea.length - MAX_DISPLAYED) : 0;
+  const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
   const minutes = Math.floor(secondsUntilRefresh / 60);
   const seconds = secondsUntilRefresh % 60;
   const refreshLabel = `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -713,7 +715,7 @@ export default function DropFeed() {
           >
             {[
               { label: "Coverage", value: "NC • VA • PA" },
-              { label: "Updated", value: data?.lastUpdated ? "live" : "checking" },
+              { label: "Updated", value: timerIsStale ? "stalled" : data?.lastUpdated ? "live" : "checking" },
               { label: "Next refresh", value: refreshLabel },
               { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },
             ].map((item, idx) => (

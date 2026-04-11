@@ -67,20 +67,17 @@ export default function Home() {
         <div
           style={{
             height: 28,
-            background: "linear-gradient(to bottom, rgba(9, 8, 6, 0.26) 0%, rgba(13, 11, 7, 0.72) 45%, var(--color-bg-warm) 100%)",
+            background: "var(--color-bg-primary)",
           }}
         />
         <DropFeed />
-        {/* DropFeed (warm) → HowWeHunt (tertiary) */}
-        <div style={{ height: 22, background: "linear-gradient(to bottom, rgba(18,15,11,0.92) 0%, rgba(22,18,13,0.98) 55%, #15110D 100%)" }} />
+        <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
         <HowWeHunt />
-        {/* HowWeHunt (tertiary) → PricingSection (primary) */}
-        <div style={{ height: 24, background: "linear-gradient(to bottom, rgba(21,17,13,0.98) 0%, rgba(18,15,11,1) 48%, var(--color-bg-primary) 100%)" }} />
+        <div style={{ height: 24, background: "var(--color-bg-primary)" }} />
         <PricingSection />
         {/* PricingSection (primary) → FAQ (primary) — no transition needed, same bg */}
         <FAQ />
-        {/* FAQ (primary) → EmailCapture (secondary) */}
-        <div style={{ height: 20, background: "linear-gradient(to bottom, rgba(13,11,7,1) 0%, rgba(16,13,10,1) 55%, var(--color-bg-secondary) 100%)", borderTop: "none" }} />
+        <div style={{ height: 20, background: "var(--color-bg-primary)", borderTop: "none" }} />
         <EmailCapture />
       </motion.main>
       <Footer />
