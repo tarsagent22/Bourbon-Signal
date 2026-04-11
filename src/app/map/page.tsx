@@ -31,7 +31,7 @@ export default function MapPage() {
               lineHeight: 1.1,
             }}
           >
-            Hunt Map — Coming Soon
+CaskSignal Map — Coming Soon
           </h1>
           <p
             style={{
@@ -42,7 +42,7 @@ export default function MapPage() {
               lineHeight: 1.6,
             }}
           >
-            Interactive store-level tracking across NC and VA. Available for paying members.
+            Interactive store-level tracking across NC, VA, and PA. Available for paying members.
           </p>
           <Link
             href="/pricing"

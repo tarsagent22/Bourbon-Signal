@@ -76,7 +76,7 @@ export default function PricingSection() {
             textShadow: "0 0 40px rgba(196,148,58,0.2)",
           }}
         >
-Choose Your Proof
+Choose Our Proof
         </h2>
         <div className="mb-12" />
 
