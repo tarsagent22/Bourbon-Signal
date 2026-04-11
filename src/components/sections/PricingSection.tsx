@@ -76,7 +76,7 @@ export default function PricingSection() {
             textShadow: "0 0 40px rgba(196,148,58,0.2)",
           }}
         >
-Choose Our Proof
+Choose Your Proof
         </h2>
         <div className="mb-12" />
 
@@ -123,7 +123,7 @@ Choose Our Proof
                   marginBottom: "8px",
                 }}
               >
-                MEMBER ACCESS
+                STANDARD PROOF
               </p>
 
               {/* Price */}

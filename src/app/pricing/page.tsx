@@ -77,7 +77,7 @@ function PricingPageContent() {
                   textAlign: "center",
                 }}
               >
-                Choose Our Proof
+                Choose Your Proof
               </h1>
             </ScrollReveal>
           </div>

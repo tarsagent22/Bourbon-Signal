@@ -36,7 +36,7 @@ export default function HeroSection() {
         className="absolute inset-0 z-[1] pointer-events-none"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(8, 6, 4, 0.24) 0%, rgba(8, 6, 4, 0.10) 26%, rgba(8, 6, 4, 0.16) 72%, rgba(8, 6, 4, 0.42) 100%)",
+            "linear-gradient(to bottom, rgba(8, 6, 4, 0.24) 0%, rgba(8, 6, 4, 0.10) 24%, rgba(8, 6, 4, 0.20) 62%, rgba(10, 8, 6, 0.72) 84%, var(--color-bg-warm) 100%)",
         }}
       />
 
