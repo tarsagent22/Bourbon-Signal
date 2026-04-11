@@ -30,7 +30,7 @@ export default function SignInPage() {
               letterSpacing: "0.02em",
             }}
           >
-            PROOF
+            CASKSIGNAL
           </span>
           <span
             style={{

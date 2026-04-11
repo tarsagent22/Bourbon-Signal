@@ -6,29 +6,29 @@ import "./globals.css";
 import ToastContainer from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "Proof — Never Miss a Bourbon Drop",
-  description: "Track allocated bourbon drops across NC and VA. Real-time alerts when rare bottles hit store shelves. Join the hunt.",
-  metadataBase: new URL("https://proofhunt.co"),
+  title: "CaskSignal — Real-Time Bourbon Drop Signals",
+  description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
+  metadataBase: new URL("https://casksignal.com"),
   openGraph: {
-    title: "Proof — Never Miss a Bourbon Drop",
-    description: "Track allocated bourbon drops across NC and VA. Real-time alerts when rare bottles hit store shelves.",
-    url: "https://proofhunt.co",
-    siteName: "Proof",
+    title: "CaskSignal — Real-Time Bourbon Drop Signals",
+    description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
+    url: "https://casksignal.com",
+    siteName: "CaskSignal",
     type: "website",
     images: [
       {
-        url: "https://proofhunt.co/hero-bg.jpg",
+        url: "https://casksignal.com/hero-bg.jpg",
         width: 1200,
         height: 630,
-        alt: "Proof — Bourbon drop tracking",
+        alt: "CaskSignal — Bourbon drop signals",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Proof — Never Miss a Bourbon Drop",
-    description: "Track allocated bourbon drops across NC and VA. Real-time alerts when rare bottles hit store shelves.",
-    images: ["https://proofhunt.co/hero-bg.jpg"],
+    title: "CaskSignal — Real-Time Bourbon Drop Signals",
+    description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
+    images: ["https://casksignal.com/hero-bg.jpg"],
   },
 };
 

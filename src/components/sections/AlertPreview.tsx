@@ -124,7 +124,7 @@ function NotificationCard({ alert, index }: { alert: AlertNotification; index: n
               color: "var(--color-text-tertiary)",
             }}
           >
-            Proof
+            CaskSignal
           </span>
         </div>
 

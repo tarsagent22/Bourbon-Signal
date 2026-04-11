@@ -27,7 +27,7 @@ export default function SignUpPage() {
               letterSpacing: "0.02em",
             }}
           >
-            PROOF
+            CASKSIGNAL
           </span>
           <span
             style={{

@@ -71,7 +71,7 @@ export default function Navigation() {
               letterSpacing: "0.02em",
             }}
           >
-            PROOF
+            CASKSIGNAL
           </span>
           <span
             style={{

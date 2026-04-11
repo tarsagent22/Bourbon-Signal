@@ -29,7 +29,7 @@ export default function Footer() {
                 color: "var(--color-text-primary)",
               }}
             >
-              PROOF
+              CASKSIGNAL
             </span>
             <span
               style={{
@@ -77,7 +77,7 @@ export default function Footer() {
               paddingRight: "0",
             }}
           >
-            © 2026 Proof
+            © 2026 CaskSignal
           </p>
         </div>
 

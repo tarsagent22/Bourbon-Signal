@@ -76,7 +76,7 @@ export default function HowItWorks() {
     <section id="how-it-works" className="py-28 sm:py-32 px-6 sm:px-8 md:px-16 lg:px-24" style={{ backgroundColor: "var(--color-bg-primary)" }}>
       <div className="mx-auto max-w-6xl">
         <SectionHeading
-          heading="How Proof Works"
+          heading="How CaskSignal Works"
           subheading="From warehouse to your watchlist in three steps."
         />
 

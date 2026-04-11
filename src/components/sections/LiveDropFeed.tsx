@@ -160,7 +160,7 @@ export default function LiveDropFeed() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Proof members see these alerts the moment they happen. You&apos;re
+            CaskSignal members see these alerts the moment they happen. You&apos;re
             seeing them on a delay.{" "}
             <a
               href="#pricing"

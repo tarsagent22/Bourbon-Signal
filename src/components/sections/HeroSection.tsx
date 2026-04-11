@@ -108,7 +108,7 @@ Live bourbon intel.
             }}
           >
             <span style={{ display: "block", fontWeight: 700, color: "var(--color-cream)", marginBottom: "6px" }}>
-              Never miss a drop.
+              Catch the signal early.
             </span>
             Track real-time allocated bourbon activity across NC, VA, and PA.
           </p>

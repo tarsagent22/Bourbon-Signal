@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/api/",
     },
-    sitemap: "https://proofhunt.co/sitemap.xml",
+    sitemap: "https://casksignal.com/sitemap.xml",
   };
 }
