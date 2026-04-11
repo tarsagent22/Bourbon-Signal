@@ -1,424 +1,265 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Popup,
-  ZoomControl,
-  useMap,
-} from "react-leaflet";
-import type { Map as LeafletMap, CircleMarker as LCircleMarker } from "leaflet";
+import { useEffect, useMemo, useState } from "react";
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-
-import { stores } from "@/data/stores";
-import type { Store } from "@/data/stores";
-import dropsData from "@/data/drops.json";
-import StorePopup from "@/components/StorePopup";
-import MapOverlayRight from "@/components/MapOverlayRight";
+import { Crosshair, MapPin, Search } from "lucide-react";
+import type { Store } from "@/hooks/useStores";
+import type { Bottle } from "@/data/bottles";
+import { useLocationStore, getDistanceMiles, formatDistanceMiles } from "@/lib/location";
 import { cleanBrandName } from "@/lib/drops";
 
-// Types
-interface Drop {
-  timestamp: string;
-  event_type: string;
-  brand_name: string;
-  store_address?: string;
-  board_name?: string;
-  rarity_tier: string;
-  quantity?: number;
+interface HuntMapProps {
+  stores: Store[];
+  bottles: Bottle[];
+  initialBottleId?: string | null;
 }
 
-interface StoreWithStatus extends Store {
-  status: "hot" | "warm" | "cold";
-  drops: { brand_name: string; rarity_tier: string; timestamp: string; event_type: string }[];
-  tiers: Set<string>;
+interface StoreWithDistance extends Store {
+  distanceMiles: number | null;
 }
 
-interface RecentDrop {
-  brand_name: string;
-  rarity_tier: string;
-  timestamp: string;
-  store_address: string;
-  county: string;
-  city: string;
-  event_type: string;
-  storeId: string;
+function normalizeName(value: string): string {
+  return cleanBrandName(value).toLowerCase().trim();
 }
 
-// Normalize address for matching (strip inconsistent spacing around periods)
-function normalizeAddr(addr: string): string {
-  return addr.replace(/\.\s*/g, ". ").replace(/\s{2,}/g, " ").trim().toLowerCase();
+function getBottleLabel(bottle: Bottle): string {
+  return bottle.state ? `${bottle.name} · ${bottle.state}` : bottle.name;
 }
 
-// Compute store activity status by cross-referencing with drops
-function computeStoreData(allDrops: Drop[]): {
-  storesWithStatus: StoreWithStatus[];
-  recentDrops: RecentDrop[];
-  activeThisWeek: number;
-  dropsThisWeek: number;
-} {
-  const now = new Date();
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  // In-store drops indexed by normalized address
-  const dropsByNormAddr: Record<
-    string,
-    { brand_name: string; rarity_tier: string; timestamp: string; event_type: string }[]
-  > = {};
-  const allRecentDrops: RecentDrop[] = [];
-
-  for (const drop of allDrops) {
-    if (drop.event_type === "in_store" && drop.store_address) {
-      const normAddr = normalizeAddr(drop.store_address);
-      if (!dropsByNormAddr[normAddr]) dropsByNormAddr[normAddr] = [];
-      dropsByNormAddr[normAddr].push({
-        brand_name: cleanBrandName(drop.brand_name),
-        rarity_tier: drop.rarity_tier,
-        timestamp: drop.timestamp,
-        event_type: drop.event_type,
-      });
-    }
-  }
-
-  // Build a map of normalized store addresses for matching
-  const normAddrToStore: Record<string, Store> = {};
-  for (const store of stores) {
-    normAddrToStore[normalizeAddr(store.address)] = store;
-  }
-
-  // Also create "virtual" drops for shipment events — map board_name to a store
-  const boardToStore: Record<string, Store> = {};
-  for (const store of stores) {
-    const countyLower = store.county.toLowerCase();
-    const cityLower = store.city.toLowerCase();
-    boardToStore[countyLower] = store;
-    boardToStore[cityLower] = store;
-    boardToStore[`${cityLower} abc board`] = store;
-    boardToStore[`${countyLower} abc board`] = store;
-    boardToStore[`${countyLower} abc board`] = store;
-  }
-
-  for (const drop of allDrops) {
-    if (drop.event_type === "new_shipment" && drop.board_name) {
-      const boardLower = drop.board_name.toLowerCase();
-      const matchedStore = boardToStore[boardLower];
-      if (matchedStore) {
-        const normAddr = normalizeAddr(matchedStore.address);
-        if (!dropsByNormAddr[normAddr]) dropsByNormAddr[normAddr] = [];
-        dropsByNormAddr[normAddr].push({
-          brand_name: cleanBrandName(drop.brand_name),
-          rarity_tier: drop.rarity_tier,
-          timestamp: drop.timestamp,
-          event_type: drop.event_type,
-        });
-      }
-    }
-  }
-
-  let activeThisWeek = 0;
-  let dropsThisWeek = 0;
-
-  const storesWithStatus: StoreWithStatus[] = stores.map((store) => {
-    const normAddr = normalizeAddr(store.address);
-    const storeDrops = dropsByNormAddr[normAddr] || [];
-    // Sort by most recent first
-    storeDrops.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    const tiers = new Set(storeDrops.map((d) => d.rarity_tier));
-
-    const hasRecent24h = storeDrops.some(
-      (d) => new Date(d.timestamp) >= oneDayAgo
-    );
-    const hasRecent7d = storeDrops.some(
-      (d) => new Date(d.timestamp) >= sevenDaysAgo
-    );
-
-    let status: "hot" | "warm" | "cold" = "cold";
-    if (hasRecent24h) {
-      status = "hot";
-    } else if (hasRecent7d) {
-      status = "warm";
-    }
-
-    // Count stores active this week (hot or warm)
-    if (hasRecent7d || hasRecent24h) {
-      activeThisWeek++;
-    }
-
-    // Count drops this week for this store
-    const weekDropCount = storeDrops.filter(
-      (d) => new Date(d.timestamp) >= sevenDaysAgo
-    ).length;
-    dropsThisWeek += weekDropCount;
-
-    // Add to recent drops feed
-    for (const d of storeDrops.slice(0, 3)) {
-      allRecentDrops.push({
-        ...d,
-        store_address: store.address,
-        county: store.county,
-        city: store.city,
-        storeId: store.id,
-      });
-    }
-
-    return {
-      ...store,
-      status,
-      drops: storeDrops,
-      tiers,
-    };
-  });
-
-  // Sort recent drops by timestamp, take last 10
-  allRecentDrops.sort(
-    (a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-  const recentDrops = allRecentDrops.slice(0, 10);
-
-  return { storesWithStatus, recentDrops, activeThisWeek, dropsThisWeek };
-}
-
-// Component to handle flyTo imperatively
-function FlyToHandler({
-  flyToTarget,
-  zoom,
-}: {
-  flyToTarget: { lat: number; lng: number } | null;
-  zoom?: number | null;
-}) {
+function FlyToLocation({ center }: { center: LatLngExpression }) {
   const map = useMap();
   useEffect(() => {
-    if (flyToTarget) {
-      map.flyTo([flyToTarget.lat, flyToTarget.lng], zoom || 14, { duration: 1.5 });
-    }
-  }, [flyToTarget, zoom, map]);
+    map.flyTo(center, 10, { duration: 1.2 });
+  }, [center, map]);
   return null;
 }
 
-export default function HuntMap() {
-  const [activeFilter, setActiveFilter] = useState("All");
-  // Left panel removed — legend/filters merged into right panel
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [flyToTarget, setFlyToTarget] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [initialZoom, setInitialZoom] = useState<number | null>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const markerRefs = useRef<Record<string, LCircleMarker>>({});
+export default function HuntMap({ stores, bottles, initialBottleId }: HuntMapProps) {
+  const { userLocation } = useLocationStore();
+  const [selectedBottleId, setSelectedBottleId] = useState<string>(initialBottleId || "all");
+  const [storeQuery, setStoreQuery] = useState("");
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
-  const { storesWithStatus, recentDrops, activeThisWeek, dropsThisWeek } =
-    useMemo(() => computeStoreData(dropsData.drops as Drop[]), []);
+  const bottleOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return bottles
+      .filter((bottle) => {
+        const key = `${normalizeName(bottle.name)}|${bottle.state || ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [bottles]);
 
-  // Read lat/lng/zoom query params and fly to position on load
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const lat = params.get("lat");
-    const lng = params.get("lng");
-    const zoom = params.get("zoom");
-    if (lat && lng) {
-      const latNum = parseFloat(lat);
-      const lngNum = parseFloat(lng);
-      if (!isNaN(latNum) && !isNaN(lngNum)) {
-        if (zoom) setInitialZoom(parseInt(zoom, 10));
-        // Delay slightly so the map is ready
-        setTimeout(() => {
-          setFlyToTarget({ lat: latNum, lng: lngNum });
-          // Find and open nearest store popup
-          let nearest: typeof storesWithStatus[0] | null = null;
-          let minDist = Infinity;
-          for (const store of storesWithStatus) {
-            const dist = Math.sqrt(
-              Math.pow(store.lat - latNum, 2) + Math.pow(store.lng - lngNum, 2)
-            );
-            if (dist < minDist) {
-              minDist = dist;
-              nearest = store;
-            }
-          }
-          if (nearest) {
-            setTimeout(() => {
-              const marker = markerRefs.current[nearest!.id];
-              if (marker) marker.openPopup();
-            }, 1600);
-          }
-        }, 500);
-      }
-    }
-  }, [storesWithStatus]);
-
-  // Filter stores by tier
-  const filteredStores = useMemo(() => {
-    if (activeFilter === "All") return storesWithStatus;
-    const tierKey = activeFilter.toLowerCase();
-    return storesWithStatus.filter((s) => s.tiers.has(tierKey));
-  }, [activeFilter, storesWithStatus]);
-
-  const handleDropClick = useCallback(
-    (storeId: string) => {
-      const store = storesWithStatus.find((s) => s.id === storeId);
-      if (store) {
-        setFlyToTarget({ lat: store.lat, lng: store.lng });
-        // Open popup after flyTo completes
-        setTimeout(() => {
-          const marker = markerRefs.current[storeId];
-          if (marker) {
-            marker.openPopup();
-          }
-        }, 1600);
-      }
-    },
-    [storesWithStatus]
+  const selectedBottle = useMemo(
+    () => bottleOptions.find((bottle) => bottle.id === selectedBottleId) || null,
+    [bottleOptions, selectedBottleId]
   );
+
+  const filteredStores = useMemo<StoreWithDistance[]>(() => {
+    const query = storeQuery.trim().toLowerCase();
+    return stores
+      .filter((store) => {
+        if (!query) return true;
+        const haystack = `${store.name || ""} ${store.city} ${store.county || ""} ${store.address || ""}`.toLowerCase();
+        return haystack.includes(query);
+      })
+      .map((store) => ({
+        ...store,
+        distanceMiles: userLocation && store.lat != null && store.lng != null
+          ? getDistanceMiles(userLocation, { lat: store.lat, lng: store.lng })
+          : null,
+      }))
+      .sort((a, b) => {
+        if (a.distanceMiles != null && b.distanceMiles != null) return a.distanceMiles - b.distanceMiles;
+        if (a.distanceMiles != null) return -1;
+        if (b.distanceMiles != null) return 1;
+        return (a.city || "").localeCompare(b.city || "");
+      });
+  }, [stores, storeQuery, userLocation]);
+
+  const selectedStore = filteredStores.find((store) => store.id === selectedStoreId) || filteredStores[0] || null;
+
+  const mapCenter: LatLngExpression = selectedStore?.lat && selectedStore?.lng
+    ? [selectedStore.lat, selectedStore.lng]
+    : userLocation
+      ? [userLocation.lat, userLocation.lng]
+      : [37.8, -78.5];
+
+  useEffect(() => {
+    if (!selectedStoreId && filteredStores.length > 0) {
+      setSelectedStoreId(filteredStores[0].id);
+    }
+  }, [filteredStores, selectedStoreId]);
 
   return (
     <div
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100vh",
-        background: "var(--color-bg-primary)",
+        display: "grid",
+        gridTemplateColumns: "minmax(280px, 360px) minmax(0, 1fr)",
+        gap: 20,
+        minHeight: "calc(100vh - 180px)",
       }}
+      className="hunt-map-grid"
     >
-      <MapContainer
-        center={[35.55, -79.85]}
-        zoom={7}
-        minZoom={6}
-        maxZoom={18}
-        scrollWheelZoom={true}
-        zoomControl={false}
-        style={{ width: "100%", height: "100%", background: "#0D0B07" }}
-        ref={mapRef}
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: 20,
+          background: "rgba(255,255,255,0.03)",
+          padding: 18,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          minHeight: 0,
+        }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
-        <ZoomControl position="bottomright" />
-        <FlyToHandler flyToTarget={flyToTarget} zoom={initialZoom} />
+        <div>
+          <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Hunt setup
+          </p>
+          <h2 style={{ margin: "8px 0 6px", fontFamily: "var(--font-playfair)", fontSize: 28, color: "var(--color-text-primary)" }}>
+            Bottles and stores near you
+          </h2>
+          <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+            Pick a bottle, narrow to nearby stores, and jump straight into the hunt.
+          </p>
+        </div>
 
-        {filteredStores.map((store) => {
-          const isHot = store.status === "hot";
-          const isWarm = store.status === "warm";
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <label style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>Bottle</label>
+          <select
+            value={selectedBottleId}
+            onChange={(e) => setSelectedBottleId(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px 14px",
+              borderRadius: 10,
+              border: "1px solid rgba(196,148,58,0.18)",
+              background: "rgba(16,12,9,0.9)",
+              color: "var(--color-text-primary)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 14,
+            }}
+          >
+            <option value="all">All bottles</option>
+            {bottleOptions.map((bottle) => (
+              <option key={bottle.id} value={bottle.id}>{getBottleLabel(bottle)}</option>
+            ))}
+          </select>
+        </div>
 
-          // Tier-colored markers: highest tier determines color
-          const tierOrder = ["unicorn", "allocated", "limited"];
-          const highestTier = tierOrder.find((t) => store.tiers.has(t)) || "limited";
-          const tierFillMap: Record<string, string> = {
-            unicorn: "#C4943A",
-            allocated: "#B87333",
-            limited: "#6B6560",
-          };
-          const markerFill = (isHot || isWarm) ? tierFillMap[highestTier] : "#6B6560";
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <label style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>Store search</label>
+          <div style={{ position: "relative" }}>
+            <Search size={15} style={{ position: "absolute", left: 12, top: 13, color: "var(--color-text-tertiary)" }} />
+            <input
+              value={storeQuery}
+              onChange={(e) => setStoreQuery(e.target.value)}
+              placeholder="Search city, county, or address"
+              style={{
+                width: "100%",
+                padding: "12px 14px 12px 38px",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(16,12,9,0.9)",
+                color: "var(--color-text-primary)",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: 14,
+              }}
+            />
+          </div>
+        </div>
 
-          return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {userLocation && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-accent-amber)", background: "rgba(196,148,58,0.1)", border: "1px solid rgba(196,148,58,0.22)", borderRadius: 999, padding: "6px 10px" }}>
+              <Crosshair size={12} />
+              Sorting by distance from {userLocation.label}
+            </span>
+          )}
+          {selectedBottle && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 999, padding: "6px 10px" }}>
+              <MapPin size={12} />
+              Hunting {selectedBottle.name}
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, overflowY: "auto", paddingRight: 4 }}>
+          {filteredStores.slice(0, 50).map((store) => {
+            const isActive = store.id === selectedStore?.id;
+            return (
+              <button
+                key={store.id}
+                onClick={() => setSelectedStoreId(store.id)}
+                style={{
+                  textAlign: "left",
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  border: isActive ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.05)",
+                  background: isActive ? "rgba(196,148,58,0.09)" : "rgba(255,255,255,0.02)",
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
+                  <div>
+                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
+                      {store.name || `${store.state} store`}
+                    </div>
+                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                      {store.address || "Address unavailable"}
+                    </div>
+                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
+                      {[store.city, store.state].filter(Boolean).join(", ")}
+                    </div>
+                  </div>
+                  {store.distanceMiles != null && (
+                    <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
+                      {formatDistanceMiles(store.distanceMiles)}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", minHeight: 540 }}>
+        <MapContainer center={mapCenter} zoom={7} scrollWheelZoom style={{ width: "100%", height: "100%", minHeight: 540, background: "#0D0B07" }}>
+          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+          <FlyToLocation center={mapCenter} />
+          {filteredStores.filter((store) => store.lat != null && store.lng != null).slice(0, 200).map((store) => (
             <CircleMarker
               key={store.id}
-              center={[store.lat, store.lng]}
-              radius={isHot ? 10 : isWarm ? 7 : 5}
+              center={[store.lat!, store.lng!]}
+              radius={store.id === selectedStore?.id ? 9 : 6}
               pathOptions={{
-                fillColor: markerFill,
-                fillOpacity: isHot ? 0.9 : isWarm ? 0.5 : 0.3,
-                color: isHot ? markerFill : isWarm ? markerFill : "transparent",
-                weight: isHot ? 2 : isWarm ? 1 : 0,
-                className: isHot ? "marker-pulse" : undefined,
+                fillColor: store.id === selectedStore?.id ? "#D4920B" : "#B87333",
+                fillOpacity: store.id === selectedStore?.id ? 0.9 : 0.65,
+                color: "rgba(255,255,255,0.18)",
+                weight: 1,
               }}
-              ref={(ref) => {
-                if (ref) {
-                  markerRefs.current[store.id] = ref;
-                }
-              }}
+              eventHandlers={{ click: () => setSelectedStoreId(store.id) }}
             >
               <Popup>
-                <StorePopup
-                  store={store}
-                  drops={store.drops}
-                  status={store.status}
-                />
+                <div style={{ minWidth: 200 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>{store.name || `${store.state} store`}</div>
+                  <div style={{ fontSize: 13, marginBottom: 6 }}>{store.address || "Address unavailable"}</div>
+                  <div style={{ fontSize: 12, color: "#555" }}>{[store.city, store.state].filter(Boolean).join(", ")}</div>
+                  {userLocation && store.distanceMiles != null && (
+                    <div style={{ fontSize: 12, marginTop: 8 }}>{formatDistanceMiles(store.distanceMiles)} away</div>
+                  )}
+                </div>
               </Popup>
             </CircleMarker>
-          );
-        })}
-      </MapContainer>
-
-      {/* Empty state when filter returns no stores */}
-      {filteredStores.length === 0 && activeFilter !== "All" && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 999,
-            textAlign: "center",
-            background: "var(--color-glass)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid var(--color-card-border)",
-            borderRadius: 12,
-            padding: "32px 40px",
-            maxWidth: 320,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: 18,
-              color: "var(--color-cream)",
-              marginBottom: 8,
-            }}
-          >
-            No {activeFilter.toLowerCase()} stores found
-          </p>
-          <p
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: 13,
-              color: "var(--color-text-tertiary)",
-              marginBottom: 20,
-            }}
-          >
-            No stores with {activeFilter.toLowerCase()}-tier drops this week
-          </p>
-          <button
-            onClick={() => setActiveFilter("All")}
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--color-accent-amber)",
-              background: "transparent",
-              border: "1px solid rgba(196,148,58,0.3)",
-              borderRadius: 8,
-              padding: "10px 20px",
-              cursor: "pointer",
-              transition: "all 200ms ease",
-            }}
-          >
-            Show all stores
-          </button>
-        </div>
-      )}
-
-      {/* Single overlay panel — legend + filters + feed merged */}
-      <MapOverlayRight
-        recentDrops={recentDrops}
-        isOpen={rightPanelOpen}
-        onToggle={() => setRightPanelOpen(!rightPanelOpen)}
-        onDropClick={handleDropClick}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        activeThisWeek={activeThisWeek}
-        dropsThisWeek={dropsThisWeek}
-      />
+          ))}
+        </MapContainer>
+      </div>
     </div>
   );
 }

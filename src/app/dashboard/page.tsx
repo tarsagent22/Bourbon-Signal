@@ -13,6 +13,8 @@ import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStores } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
+import HuntSetupCard from "@/components/HuntSetupCard";
+import SetLocationButton from "@/components/SetLocationButton";
 import { getAvailabilityInfo } from "@/lib/availability";
 import type { AreaPreferences } from "@/app/api/user/preferences/route";
 
@@ -1260,6 +1262,48 @@ export default function DashboardPage() {
             </div>
           </section>
         )}
+
+        <section
+          style={{
+            padding: "0 0 24px",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 1200,
+              margin: "0 auto",
+              padding: "0 clamp(20px, 5vw, 48px)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 18 }}>
+              <div>
+                <h2
+                  style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "var(--color-cream)",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Set your real hunt
+                </h2>
+                <p
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "14px",
+                    color: "var(--color-text-secondary)",
+                    margin: 0,
+                  }}
+                >
+                  Tell CaskSignal what bottle you want and which stores you’d actually drive to.
+                </p>
+              </div>
+              <SetLocationButton />
+            </div>
+            <HuntSetupCard bottles={bottles} stores={stores} />
+          </div>
+        </section>
 
         {/* My Watchlist */}
         {showWatchlistSection && (

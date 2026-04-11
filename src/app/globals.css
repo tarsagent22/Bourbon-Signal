@@ -227,6 +227,21 @@ body::after {
   }
 }
 
+.hunt-map-grid,
+.hunt-setup-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .hunt-map-grid {
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  }
+
+  .hunt-setup-grid {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
 /* Accessibility: respect user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

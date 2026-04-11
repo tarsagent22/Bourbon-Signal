@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
+import SetLocationButton from "@/components/SetLocationButton";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
@@ -118,6 +119,7 @@ export default function Navigation() {
 
         {/* Right side */}
         <div className="hidden md:flex items-center gap-4" style={{ marginRight: "10px" }}>
+          <SetLocationButton compact />
           {mounted && isSignedIn ? (
             <>
               {/* Upgrade nudge — only for free tier, stays in nav */}
