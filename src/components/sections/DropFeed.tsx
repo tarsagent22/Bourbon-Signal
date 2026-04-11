@@ -787,22 +787,6 @@ export default function DropFeed() {
             )}
           </motion.div>
 
-          {/* Data freshness */}
-          {data?.lastUpdated && (
-            <div style={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-              <DataFreshness lastUpdated={data.lastUpdated} />
-              <div
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "11px",
-                  color: secondsUntilRefresh <= 15 ? "var(--color-accent-amber)" : "var(--color-text-tertiary)",
-                }}
-              >
-                Updated live • next refresh in {refreshLabel}
-              </div>
-            </div>
-          )}
-
           {/* Premium member nudge */}
           <motion.div
             style={{
