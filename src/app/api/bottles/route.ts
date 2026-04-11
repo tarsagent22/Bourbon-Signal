@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-const ENGINE_URL = "https://engine.proofhunt.co/bottles";
+const ENGINE_URL = "https://engine.casksignal.com/bottles";
 
 export async function GET() {
   try {
     const res = await fetch(ENGINE_URL, {
       next: { revalidate: 60 },
-      headers: { "User-Agent": "proofhunt-web/1.0" },
+      headers: { "User-Agent": "casksignal-web/1.0" },
     });
 
     if (!res.ok) {
