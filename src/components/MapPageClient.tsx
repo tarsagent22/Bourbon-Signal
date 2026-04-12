@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import SetLocationButton from "@/components/SetLocationButton";
 import { useStores } from "@/hooks/useStores";
 import { useBottles } from "@/hooks/useBottles";
+import { useDrops } from "@/hooks/useDrops";
 
 const Map = dynamic(() => import("@/components/HuntMap"), {
   ssr: false,
@@ -20,8 +21,9 @@ const Map = dynamic(() => import("@/components/HuntMap"), {
 export default function MapPageClient() {
   const { stores, loading: storesLoading } = useStores();
   const { bottles, loading: bottlesLoading } = useBottles();
+  const { drops, loading: dropsLoading } = useDrops();
 
-  const ready = useMemo(() => !storesLoading && !bottlesLoading, [storesLoading, bottlesLoading]);
+  const ready = useMemo(() => !storesLoading && !bottlesLoading && !dropsLoading, [storesLoading, bottlesLoading, dropsLoading]);
 
   return (
     <section style={{ maxWidth: 1400, margin: "0 auto", padding: "0 clamp(20px, 4vw, 40px) 64px" }}>
@@ -41,7 +43,7 @@ export default function MapPageClient() {
       </div>
 
       {ready ? (
-        <Map stores={stores} bottles={bottles} />
+        <Map stores={stores} bottles={bottles} drops={drops} />
       ) : (
         <div style={{ minHeight: 420, borderRadius: 20, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: 15, color: "var(--color-text-tertiary)" }}>

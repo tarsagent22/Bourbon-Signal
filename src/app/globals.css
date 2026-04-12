@@ -234,7 +234,7 @@ body::after {
 
 @media (min-width: 1024px) {
   .hunt-map-grid {
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
   }
 
   .hunt-setup-grid {
