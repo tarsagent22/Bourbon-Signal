@@ -1286,7 +1286,7 @@ export default function DashboardPage() {
                     marginBottom: "6px",
                   }}
                 >
-                  Set your real hunt
+                  Setup
                 </h2>
                 <p
                   style={{

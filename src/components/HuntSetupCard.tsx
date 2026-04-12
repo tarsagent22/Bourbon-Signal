@@ -53,7 +53,7 @@ export default function HuntSetupCard({ bottles, stores }: HuntSetupCardProps) {
     <div style={{ borderRadius: 20, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)", padding: 22 }}>
       <div style={{ marginBottom: 18 }}>
         <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-          Build your hunt
+          Setup
         </p>
         <h3 style={{ margin: "8px 0 8px", fontFamily: "var(--font-playfair)", fontSize: 28, color: "var(--color-text-primary)" }}>
           Pick the bottle. Pick the stores. You’re set.
@@ -166,7 +166,7 @@ export default function HuntSetupCard({ bottles, stores }: HuntSetupCardProps) {
             </button>
             {savedTarget && (
               <p style={{ margin: "10px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-accent-amber)" }}>
-                Saved. This bottle now has a store-specific hunt target.
+                Saved. This bottle now has a store-specific setup.
               </p>
             )}
           </div>

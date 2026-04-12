@@ -119,13 +119,13 @@ export default function HuntMap({ stores, bottles, initialBottleId }: HuntMapPro
       >
         <div>
           <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Hunt setup
+            Setup
           </p>
           <h2 style={{ margin: "8px 0 6px", fontFamily: "var(--font-playfair)", fontSize: 28, color: "var(--color-text-primary)" }}>
             Bottles and stores near you
           </h2>
           <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-            Pick a bottle, narrow to nearby stores, and jump straight into the hunt.
+            Pick a bottle, narrow to nearby stores, and jump straight into the map.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export default function HuntMap({ stores, bottles, initialBottleId }: HuntMapPro
           {selectedBottle && (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 999, padding: "6px 10px" }}>
               <MapPin size={12} />
-              Hunting {selectedBottle.name}
+              {selectedBottle.name}
             </span>
           )}
         </div>
@@ -208,7 +208,7 @@ export default function HuntMap({ stores, bottles, initialBottleId }: HuntMapPro
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
                   <div>
                     <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
-                      {store.name || `${store.state} store`}
+                      {store.name || `${store.city || store.state} store`}
                     </div>
                     <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
                       {store.address || "Address unavailable"}
@@ -248,7 +248,7 @@ export default function HuntMap({ stores, bottles, initialBottleId }: HuntMapPro
             >
               <Popup>
                 <div style={{ minWidth: 200 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>{store.name || `${store.state} store`}</div>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>{store.name || `${store.city || store.state} store`}</div>
                   <div style={{ fontSize: 13, marginBottom: 6 }}>{store.address || "Address unavailable"}</div>
                   <div style={{ fontSize: 12, color: "#555" }}>{[store.city, store.state].filter(Boolean).join(", ")}</div>
                   {userLocation && store.distanceMiles != null && (
