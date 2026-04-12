@@ -9,6 +9,7 @@ import type { Store } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
 import { useLocationStore, getDistanceMiles, formatDistanceMiles } from "@/lib/location";
+import { ZIP_CENTROIDS } from "@/data/zip-centroids";
 import { cleanBrandName, formatRelativeTime } from "@/lib/drops";
 
 interface HuntMapProps {
@@ -27,13 +28,15 @@ function normalizeName(value: string): string {
   return cleanBrandName(value).toLowerCase().trim();
 }
 
-function zipToCenter(zip: string): LatLngExpression | null {
+function zipToCenter(zip: string): { center: LatLngExpression; label: string } | null {
   const trimmed = zip.trim();
   if (!/^\d{5}$/.test(trimmed)) return null;
-  if (trimmed.startsWith("27") || trimmed.startsWith("28")) return [35.5, -79.5];
-  if (trimmed.startsWith("22") || trimmed.startsWith("23") || trimmed.startsWith("24")) return [37.8, -78.5];
-  if (trimmed.startsWith("15") || trimmed.startsWith("16") || trimmed.startsWith("17") || trimmed.startsWith("18") || trimmed.startsWith("19")) return [40.9, -77.7];
-  return null;
+  const centroid = ZIP_CENTROIDS[trimmed];
+  if (!centroid) return null;
+  return {
+    center: [centroid.lat, centroid.lng],
+    label: `${centroid.zip} · ${centroid.city}, ${centroid.state}`,
+  };
 }
 
 function getBottleLabel(bottle: Bottle): string {
@@ -110,6 +113,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
 
   const storesWithDrops = useMemo<StoreWithDistance[]>(() => {
     const filtered = stores
+      .filter((store) => store.isMappable)
       .filter((store) => storeMatchesArea(store, areaCenter, 60))
       .map((store) => {
         const recentDrops = drops
@@ -156,8 +160,8 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
   const handleZipApply = () => {
     const nextCenter = zipToCenter(zipQuery);
     if (nextCenter) {
-      setAreaCenter(nextCenter);
-      setAreaLabel(zipQuery.trim());
+      setAreaCenter(nextCenter.center);
+      setAreaLabel(nextCenter.label);
     }
   };
 
@@ -210,7 +214,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
             </span>
           )}
           <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>
-            Showing stores within about 60 miles
+            Showing precise store locations within about 60 miles
           </span>
         </div>
 
@@ -316,6 +320,11 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
               </button>
             );
           })}
+          {storesWithDrops.length === 0 && (
+            <div style={{ padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-tertiary)", lineHeight: 1.6 }}>
+              No precise store locations found for this area yet. We should not fake board-level dots here.
+            </div>
+          )}
         </div>
       </div>
 
