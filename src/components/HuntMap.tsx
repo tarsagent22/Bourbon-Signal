@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Crosshair, MapPin, Search, X, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Crosshair, MapPin, Search, X, SlidersHorizontal, Sparkles, Route, Clock3, MapPinned } from "lucide-react";
 import type { Store } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
@@ -67,6 +67,16 @@ function FlyToLocation({ center }: { center: LatLngExpression }) {
     map.flyTo(center, 10, { duration: 1.1 });
   }, [center, map]);
   return null;
+}
+
+function markerFill(isSelected: boolean, hasSignal: boolean): string {
+  if (isSelected) return "#D4920B";
+  if (hasSignal) return "#EFC050";
+  return "#6B6258";
+}
+
+function markerStroke(hasSignal: boolean): string {
+  return hasSignal ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.14)";
 }
 
 export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
@@ -154,6 +164,10 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
 
   const selectedStore = storesWithDrops.find((store) => store.id === selectedStoreId) || storesWithDrops[0] || null;
   const storesWithSignal = storesWithDrops.filter((store) => store.matchingDrops.length > 0).length;
+  const selectedStoreVisibleDrops = useMemo(() => {
+    if (!selectedStore) return [];
+    return selectedStore.matchingDrops.slice(0, 8);
+  }, [selectedStore]);
   const mapCenter: LatLngExpression = selectedStore?.lat && selectedStore?.lng
     ? [selectedStore.lat, selectedStore.lng]
     : areaCenter || [37.8, -78.5];
@@ -191,7 +205,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+        <div className="hunt-map-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
           <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
             <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>In range</div>
             <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{storesWithDrops.length}</div>
@@ -384,6 +398,77 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
             {selectedStore?.distanceMiles != null ? `${formatDistanceMiles(selectedStore.distanceMiles)} away` : "Live store positions"}
           </div>
         </div>
+
+        <div style={{ position: "absolute", right: 16, bottom: 16, zIndex: 500, width: "min(360px, calc(100% - 32px))", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(11,10,8,0.9) 0%, rgba(11,10,8,0.82) 100%)", backdropFilter: "blur(14px)", boxShadow: "0 24px 60px rgba(0,0,0,0.38)", overflow: "hidden" }}>
+          <div style={{ padding: "16px 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: 6 }}>
+                  Selected store
+                </div>
+                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 24, lineHeight: 1.05, color: "var(--color-text-primary)" }}>
+                  {selectedStore ? (selectedStore.name || `${selectedStore.city || selectedStore.state} store`) : "Pick a store"}
+                </div>
+              </div>
+              {selectedStore?.matchingDrops.length ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 999, background: "rgba(196,148,58,0.12)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", fontFamily: "var(--font-jetbrains)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                  <Sparkles size={11} />
+                  {selectedStore.matchingDrops.length} signal
+                </div>
+              ) : null}
+            </div>
+
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.55 }}>
+              {selectedStore?.address || "Address unavailable"}
+              {selectedStore ? <><br />{[selectedStore.city, selectedStore.state].filter(Boolean).join(", ")}</> : null}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><Route size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Distance</span></div>
+                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.distanceMiles != null ? formatDistanceMiles(selectedStore.distanceMiles) : "--"}</div>
+              </div>
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><Clock3 size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Recent drops</span></div>
+                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.recentDrops.length ?? 0}</div>
+              </div>
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><MapPinned size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Status</span></div>
+                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.matchingDrops.length ? "Hot" : "Quiet"}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: "14px 16px 16px", maxHeight: 240, overflowY: "auto" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
+              Matching drops
+            </div>
+            {selectedStore && selectedStoreVisibleDrops.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {selectedStoreVisibleDrops.map((drop, index) => (
+                  <div key={`${selectedStore.id}-detail-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", lineHeight: 1.35 }}>
+                        {cleanBrandName(drop.brand_name)}
+                      </div>
+                      <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 4 }}>
+                        {drop.event_type.replace(/_/g, " ")}
+                      </div>
+                    </div>
+                    <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
+                      {formatRelativeTime(drop.timestamp)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "12px 12px", fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-tertiary)", lineHeight: 1.55 }}>
+                {selectedStore ? "No recent matching drops for the current bottle filters. Try widening the hunt radius or clearing bottle filters." : "Pick a store on the left and the detail panel will lock onto it."}
+              </div>
+            )}
+          </div>
+        </div>
+
         <MapContainer center={mapCenter} zoom={7} scrollWheelZoom style={{ width: "100%", height: "100%", minHeight: 540, background: "#0D0B07" }}>
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
           <FlyToLocation center={mapCenter} />
@@ -394,29 +479,15 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
               <CircleMarker
                 key={store.id}
                 center={[store.lat!, store.lng!]}
-                radius={isSelected ? 10 : hasSignal ? 8 : 6}
+                radius={isSelected ? 11 : hasSignal ? 8 : 6}
                 pathOptions={{
-                  fillColor: isSelected ? "#D4920B" : hasSignal ? "#EFC050" : "#6B6258",
-                  fillOpacity: isSelected ? 0.95 : hasSignal ? 0.85 : 0.55,
-                  color: hasSignal ? "rgba(255,255,255,0.32)" : "rgba(255,255,255,0.12)",
-                  weight: 1,
+                  fillColor: markerFill(isSelected, hasSignal),
+                  fillOpacity: isSelected ? 0.98 : hasSignal ? 0.88 : 0.55,
+                  color: markerStroke(hasSignal),
+                  weight: isSelected ? 2 : 1,
                 }}
                 eventHandlers={{ click: () => setSelectedStoreId(store.id) }}
-              >
-                <Popup>
-                  <div style={{ minWidth: 220 }}>
-                    <div style={{ fontWeight: 700, marginBottom: 6 }}>{store.name || `${store.city || store.state} store`}</div>
-                    <div style={{ fontSize: 13, marginBottom: 6 }}>{store.address || "Address unavailable"}</div>
-                    <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>{[store.city, store.state].filter(Boolean).join(", ")}</div>
-                    {(store.matchingDrops.slice(0, 5)).map((drop, index) => (
-                      <div key={`${store.id}-popup-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 6 }}>
-                        <span style={{ fontSize: 12 }}>{cleanBrandName(drop.brand_name)}</span>
-                        <span style={{ fontSize: 11, color: "#777" }}>{formatRelativeTime(drop.timestamp)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Popup>
-              </CircleMarker>
+              />
             );
           })}
         </MapContainer>
