@@ -7,15 +7,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 
 const standardFeatures = [
-  "Personalized drop alerts — your bottles, your stores",
-  "Watchlist — track the exact bottles you're hunting",
-  "Store alerts — only stores within your range",
-  "Secondary market pricing",
+  "Bottle-plus-store hunt setup",
+  "Full hunt map and store board",
+  "Watchlist for the exact bottles you chase",
+  "Secondary market pricing and deeper bottle intel",
 ];
 
-const comingSoonFeatures = [
-  "Hunt map with store-level data",
-  "Member dashboard",
+const alertFeatures = [
+  "Member alerts layer rolling out next",
+  "Designed for bottle-specific, store-aware notifications",
 ];
 
 const founderExclusives = [
@@ -158,7 +158,7 @@ Choose Your Proof
                   marginBottom: "28px",
                 }}
               >
-                Instant access to faster bottle intel · $40/year saves 33%
+                Full hunt workflow access now · $40/year saves 33%
               </p>
 
               {/* Features */}
@@ -194,7 +194,7 @@ Choose Your Proof
                     </span>
                   </div>
                 ))}
-                {comingSoonFeatures.map((feature) => (
+                {alertFeatures.map((feature) => (
                   <div
                     key={feature}
                     className="flex items-start"
@@ -222,7 +222,7 @@ Choose Your Proof
                         fontStyle: "italic",
                       }}
                     >
-                      {feature} <span style={{ fontSize: "11px", color: "rgba(196,148,58,0.5)" }}>coming soon</span>
+                      {feature} <span style={{ fontSize: "11px", color: "rgba(196,148,58,0.5)" }}>next layer</span>
                     </span>
                   </div>
                 ))}
@@ -257,7 +257,7 @@ Choose Your Proof
                     e.currentTarget.style.background = "rgba(196,148,58,0.08)";
                   }}
                 >
-                  Start Free Trial
+                  Get Standard Proof
                 </button>
                 <p
                   className="text-center"
@@ -268,7 +268,7 @@ Choose Your Proof
                     marginTop: "10px",
                   }}
                 >
-                  7 days free · Cancel anytime · No card required
+                  Hunt map, store board, and bottle tracking
                 </p>
               </div>
             </motion.div>

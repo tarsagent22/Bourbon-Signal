@@ -86,18 +86,18 @@ export default function HeroSection() {
               letterSpacing: "-0.025em",
               color: "var(--color-cream, #F5EDD6)",
               textShadow: "0 4px 24px rgba(0,0,0,0.7)",
-              maxWidth: "900px",
+              maxWidth: "980px",
               marginLeft: "auto",
               marginRight: "auto",
             }}
           >
-Live bourbon intel.
+            Build a smarter bourbon hunt before the shelves get picked clean.
           </h1>
         </ScrollReveal>
 
         <ScrollReveal delay={50}>
           <p
-            className="mx-auto max-w-[680px]"
+            className="mx-auto max-w-[760px]"
             style={{
               fontFamily: "var(--font-dm-sans)",
               fontSize: "17px",
@@ -108,10 +108,43 @@ Live bourbon intel.
             }}
           >
             <span style={{ display: "block", fontWeight: 700, color: "var(--color-cream)", marginBottom: "6px" }}>
-              Catch the signal early.
+              Track live signal across NC, VA, and PA.
             </span>
-            Track real-time allocated bourbon activity across NC, VA, and PA.
+            Use the feed, map, and bottle-plus-store hunt setup to figure out where to look first. Member alerts are the next speed layer.
           </p>
+        </ScrollReveal>
+
+        <ScrollReveal delay={125}>
+          <div
+            className="flex flex-wrap items-center justify-center gap-2"
+            style={{ marginBottom: "18px" }}
+          >
+            {[
+              "Live drop feed",
+              "Hunt map",
+              "Bottle + store targeting",
+              "Alerts layer coming next",
+            ].map((pill) => (
+              <span
+                key={pill}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  borderRadius: 999,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(10,8,6,0.32)",
+                  backdropFilter: "blur(8px)",
+                  color: "rgba(245, 237, 214, 0.78)",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
         </ScrollReveal>
 
         <ScrollReveal delay={150}>
@@ -136,7 +169,7 @@ Live bourbon intel.
                 boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
               }}
             >
-Become a Member
+Start Hunting
               <ArrowRight size={16} />
             </a>
 
@@ -159,7 +192,7 @@ Become a Member
                 e.currentTarget.style.color = "rgba(245, 237, 214, 0.6)";
               }}
             >
-              View Live Feed ↓
+              See Live Signal ↓
             </a>
           </div>
         </ScrollReveal>

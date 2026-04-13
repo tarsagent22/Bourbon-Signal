@@ -10,8 +10,9 @@ import Footer from "@/components/Footer";
 
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
+import HuntWorkflow from "@/components/sections/HuntWorkflow";
+import MapShowcase from "@/components/sections/MapShowcase";
 import PricingSection from "@/components/sections/PricingSection";
-import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
 import EmailCapture from "@/components/sections/EmailCapture";
 
@@ -72,8 +73,8 @@ export default function Home() {
         />
         <DropFeed />
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
-        <HowWeHunt />
-        <div style={{ height: 24, background: "var(--color-bg-primary)" }} />
+        <HuntWorkflow />
+        <MapShowcase />
         <PricingSection />
         {/* PricingSection (primary) → FAQ (primary) — no transition needed, same bg */}
         <FAQ />
