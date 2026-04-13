@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Crosshair, MapPin, Search, X } from "lucide-react";
+import { Crosshair, MapPin, Search, X, SlidersHorizontal, Sparkles } from "lucide-react";
 import type { Store } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
@@ -153,6 +153,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
   }, [storesWithDrops, selectedStoreId]);
 
   const selectedStore = storesWithDrops.find((store) => store.id === selectedStoreId) || storesWithDrops[0] || null;
+  const storesWithSignal = storesWithDrops.filter((store) => store.matchingDrops.length > 0).length;
   const mapCenter: LatLngExpression = selectedStore?.lat && selectedStore?.lng
     ? [selectedStore.lat, selectedStore.lng]
     : areaCenter || [37.8, -78.5];
@@ -176,18 +177,33 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
   };
 
   return (
-    <div className="hunt-map-grid" style={{ display: "grid", gap: 20, minHeight: "calc(100vh - 180px)" }}>
-      <div style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, background: "rgba(255,255,255,0.03)", padding: 18, display: "flex", flexDirection: "column", gap: 16, minHeight: 0 }}>
+    <div className="hunt-map-grid" style={{ display: "grid", gap: 20, minHeight: "calc(100vh - 180px)", alignItems: "stretch" }}>
+      <div style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, background: "linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.02) 100%)", padding: 20, display: "flex", flexDirection: "column", gap: 18, minHeight: 0, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
         <div>
           <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Setup
           </p>
-          <h2 style={{ margin: "8px 0 6px", fontFamily: "var(--font-playfair)", fontSize: 28, color: "var(--color-text-primary)" }}>
-            Stores near you
+          <h2 style={{ margin: "8px 0 6px", fontFamily: "var(--font-playfair)", fontSize: 30, color: "var(--color-text-primary)" }}>
+            Build your hunt
           </h2>
-          <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-            Use your location or ZIP code, then narrow the map with the bottles you care about.
+          <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.65 }}>
+            Pick an area, filter for the bottles you actually chase, and work a short list of stores with real signal.
           </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>In range</div>
+            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{storesWithDrops.length}</div>
+          </div>
+          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>With signal</div>
+            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{storesWithSignal}</div>
+          </div>
+          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>Bottle filters</div>
+            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{selectedBottleIds.length}</div>
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
@@ -216,6 +232,18 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
           <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>
             Showing precise store locations within about 60 miles
           </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid rgba(196,148,58,0.14)", background: "rgba(196,148,58,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Sparkles size={15} style={{ color: "var(--color-accent-amber)", flexShrink: 0 }} />
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+              {selectedBottleIds.length > 0 ? "Stores with matching drops float to the top." : "Add bottles to turn this from a generic store list into a real hunt board."}
+            </div>
+          </div>
+          <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
+            {selectedBottleIds.length > 0 ? `${storesWithSignal} matches` : "Optional filter"}
+          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -260,6 +288,16 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
           )}
         </div>
 
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Store board
+          </div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)" }}>
+            <SlidersHorizontal size={13} />
+            Ranked by signal, then distance
+          </div>
+        </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 10, overflowY: "auto", paddingRight: 4 }}>
           {storesWithDrops.slice(0, 40).map((store) => {
             const isActive = store.id === selectedStore?.id;
@@ -268,12 +306,20 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
               <button
                 key={store.id}
                 onClick={() => setSelectedStoreId(store.id)}
-                style={{ textAlign: "left", padding: "14px", borderRadius: 14, border: isActive ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.05)", background: isActive ? "rgba(196,148,58,0.09)" : "rgba(255,255,255,0.02)", cursor: "pointer" }}
+                style={{ textAlign: "left", padding: "15px 15px 14px", borderRadius: 16, border: isActive ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.05)", background: isActive ? "linear-gradient(180deg, rgba(196,148,58,0.12) 0%, rgba(196,148,58,0.07) 100%)" : "rgba(255,255,255,0.02)", cursor: "pointer", boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.05)" : "none" }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 4 }}>
-                      {store.name || `${store.city || store.state} store`}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>
+                        {store.name || `${store.city || store.state} store`}
+                      </span>
+                      {store.matchingDrops.length > 0 && (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", borderRadius: 999, background: "rgba(196,148,58,0.12)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", fontFamily: "var(--font-jetbrains)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                          <Sparkles size={10} />
+                          {store.matchingDrops.length} signal
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
                       {store.address || "Address unavailable"}
@@ -328,7 +374,16 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
         </div>
       </div>
 
-      <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", minHeight: 540 }}>
+      <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", minHeight: 540, background: "#0D0B07", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+        <div style={{ position: "absolute", top: 16, left: 16, right: 16, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, pointerEvents: "none" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(9,8,7,0.72)", backdropFilter: "blur(10px)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 13, pointerEvents: "auto" }}>
+            <MapPin size={14} style={{ color: "var(--color-accent-amber)" }} />
+            {selectedStore ? (selectedStore.name || `${selectedStore.city || selectedStore.state} store`) : "Select a store"}
+          </div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(9,8,7,0.72)", backdropFilter: "blur(10px)", color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)", fontSize: 12, pointerEvents: "auto" }}>
+            {selectedStore?.distanceMiles != null ? `${formatDistanceMiles(selectedStore.distanceMiles)} away` : "Live store positions"}
+          </div>
+        </div>
         <MapContainer center={mapCenter} zoom={7} scrollWheelZoom style={{ width: "100%", height: "100%", minHeight: 540, background: "#0D0B07" }}>
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
           <FlyToLocation center={mapCenter} />
