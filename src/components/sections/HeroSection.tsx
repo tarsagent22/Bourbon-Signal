@@ -91,7 +91,7 @@ export default function HeroSection() {
               marginRight: "auto",
             }}
           >
-            Build a smarter bourbon hunt before the shelves get picked clean.
+            Never miss a drop.
           </h1>
         </ScrollReveal>
 
@@ -107,10 +107,7 @@ export default function HeroSection() {
               marginBottom: "18px",
             }}
           >
-            <span style={{ display: "block", fontWeight: 700, color: "var(--color-cream)", marginBottom: "6px" }}>
-              Track live signal across NC, VA, and PA.
-            </span>
-            Use the feed, map, and bottle-plus-store hunt setup to figure out where to look first. Member alerts are the next speed layer.
+            Find the allocated bourbon you&apos;re looking for with alerts as soon as bottles start moving.
           </p>
         </ScrollReveal>
 
