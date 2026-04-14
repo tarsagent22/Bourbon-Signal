@@ -35,15 +35,6 @@ interface BottleOption {
   bottle: Bottle;
 }
 
-interface LocationSuggestion {
-  id: string;
-  label: string;
-  hint: string;
-  type: "zip" | "city" | "state";
-  state: string;
-  value: string;
-}
-
 function normalizeBottleName(name: string) {
   return name
     .toLowerCase()
@@ -69,6 +60,15 @@ function makeStateLabel(code: string) {
   if (code === "VA") return "Virginia";
   if (code === "PA") return "Pennsylvania";
   return code;
+}
+
+function normalizeNcBoardLabel(raw: string) {
+  return raw
+    .replace(/^NC ABC\s*[—-]\s*/i, "")
+    .replace(/\bABC Board\b/gi, "")
+    .replace(/\bMunicipal\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function StepShell({
@@ -259,7 +259,6 @@ export default function DashboardPage() {
 
   const [mounted, setMounted] = useState(false);
   const [bottleQuery, setBottleQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
   const [localPrefs, setLocalPrefs] = useState<AreaPreferences>(EMPTY_PREFS);
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
@@ -333,128 +332,64 @@ export default function DashboardPage() {
     });
   }, [bottleOptions, bottleQuery, selectedCanonicalKeys]);
 
-  const allCities = useMemo(() => {
-    const cityMap = new Map<string, string>();
+  const ncBoards = useMemo(() => {
+    return Array.from(
+      new Set(
+        stores.flatMap((store) => {
+          if (store.state !== "NC") return [];
+          const raw = store.district || store.id || store.name || "";
+          if (!raw) return [];
+          return [normalizeNcBoardLabel(raw)];
+        })
+      )
+    )
+      .filter(Boolean)
+      .sort();
+  }, [stores]);
+
+  const vaCities = useMemo(() => {
+    return Array.from(
+      new Set(
+        stores.flatMap((store) => {
+          if (store.state !== "VA" || !store.city) return [];
+          return [titleCase(store.city)];
+        })
+      )
+    ).sort();
+  }, [stores]);
+
+  const vaStoresByCity = useMemo(() => {
+    const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
-      if (!store.city || !store.state) continue;
+      if (store.state !== "VA" || !store.city) continue;
       const city = titleCase(store.city);
-      const key = `${store.state}:${city}`;
-      if (!cityMap.has(key)) cityMap.set(key, city);
+      const existing = grouped.get(city) ?? [];
+      grouped.set(city, [...existing, store]);
     }
-    return Array.from(cityMap.entries()).map(([key, city]) => {
-      const [state] = key.split(":");
-      return { city, state };
-    });
+    return grouped;
   }, [stores]);
 
-  const zipSuggestions = useMemo(() => {
-    const seen = new Set<string>();
-    const items: Array<{ zip: string; state: string }> = [];
+  const paCounties = useMemo(() => {
+    return Array.from(
+      new Set(
+        stores.flatMap((store) => {
+          if (store.state !== "PA" || !store.county) return [];
+          return [titleCase(store.county)];
+        })
+      )
+    ).sort();
+  }, [stores]);
+
+  const paStoresByCounty = useMemo(() => {
+    const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
-      const match = store.address?.match(/\b(\d{5})\b/);
-      if (!match) continue;
-      const zip = match[1];
-      const key = `${store.state}:${zip}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      items.push({ zip, state: store.state });
+      if (store.state !== "PA" || !store.county) continue;
+      const county = titleCase(store.county);
+      const existing = grouped.get(county) ?? [];
+      grouped.set(county, [...existing, store]);
     }
-    return items.sort((a, b) => a.zip.localeCompare(b.zip));
+    return grouped;
   }, [stores]);
-
-  const locationSuggestions = useMemo<LocationSuggestion[]>(() => {
-    const stateSuggestions: LocationSuggestion[] = ["NC", "VA", "PA"].map((state) => ({
-      id: `state:${state}`,
-      label: makeStateLabel(state),
-      hint: `State`,
-      type: "state",
-      state,
-      value: state,
-    }));
-
-    const citySuggestions: LocationSuggestion[] = allCities.map(({ city, state }) => ({
-      id: `city:${state}:${city}`,
-      label: city,
-      hint: makeStateLabel(state),
-      type: "city",
-      state,
-      value: city,
-    }));
-
-    const zips: LocationSuggestion[] = zipSuggestions.map(({ zip, state }) => ({
-      id: `zip:${state}:${zip}`,
-      label: zip,
-      hint: makeStateLabel(state),
-      type: "zip",
-      state,
-      value: zip,
-    }));
-
-    return [...stateSuggestions, ...citySuggestions, ...zips];
-  }, [allCities, zipSuggestions]);
-
-  const filteredLocationSuggestions = useMemo(() => {
-    const query = locationQuery.trim().toLowerCase();
-    if (!query) return locationSuggestions.slice(0, 16);
-    return locationSuggestions
-      .filter((suggestion) => {
-        const haystack = `${suggestion.label} ${suggestion.hint} ${suggestion.state}`.toLowerCase();
-        return haystack.includes(query);
-      })
-      .slice(0, 18);
-  }, [locationSuggestions, locationQuery]);
-
-  const selectedStateDetails = useMemo(() => {
-    return localPrefs.states.map((state) => {
-      if (state === "NC") {
-        return {
-          state,
-          title: "North Carolina",
-          detailLabel: "Boards",
-          detailOptions: Array.from(
-            new Set(
-              stores.flatMap((store) => {
-                if (store.state !== "NC" || !store.name) return [];
-                return [store.name.replace(/^NC ABC —\s*/i, "").trim()];
-              })
-            )
-          ).sort(),
-          selectedDetails: localPrefs.ncBoards,
-        };
-      }
-
-      if (state === "VA") {
-        return {
-          state,
-          title: "Virginia",
-          detailLabel: "Cities",
-          detailOptions: Array.from(
-            new Set(
-              stores
-                .filter((store) => store.state === "VA" && store.city)
-                .map((store) => titleCase(store.city))
-            )
-          ).sort(),
-          selectedDetails: localPrefs.vaCities,
-        };
-      }
-
-      return {
-        state,
-        title: "Pennsylvania",
-        detailLabel: "Counties",
-        detailOptions: Array.from(
-          new Set(
-            stores.flatMap((store) => {
-              if (store.state !== "PA" || !store.county) return [];
-              return [titleCase(store.county)];
-            })
-          )
-        ).sort(),
-        selectedDetails: localPrefs.paCounties,
-      };
-    });
-  }, [localPrefs, stores]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -463,39 +398,6 @@ export default function DashboardPage() {
 
   const removeBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => removeBottle(id));
-  };
-
-  const applyLocationSuggestion = (suggestion: LocationSuggestion) => {
-    setLocalPrefs((prev) => {
-      const nextStates = prev.states.includes(suggestion.state)
-        ? prev.states
-        : [...prev.states, suggestion.state];
-
-      if (suggestion.type === "state") {
-        return { ...prev, states: nextStates };
-      }
-
-      if (suggestion.type === "city" && suggestion.state === "VA") {
-        return {
-          ...prev,
-          states: nextStates,
-          vaCities: prev.vaCities.includes(suggestion.value)
-            ? prev.vaCities
-            : [...prev.vaCities, suggestion.value],
-        };
-      }
-
-      if (suggestion.type === "city" && suggestion.state === "PA") {
-        return {
-          ...prev,
-          states: nextStates,
-          paCounties: prev.paCounties,
-        };
-      }
-
-      return { ...prev, states: nextStates };
-    });
-    setLocationQuery("");
   };
 
   const toggleState = (state: string) => {
@@ -534,6 +436,15 @@ export default function DashboardPage() {
         paCounties: has ? prev.paCounties.filter((item) => item !== value) : [...prev.paCounties, value],
       };
     });
+  };
+
+  const togglePaStore = (storeId: string) => {
+    setLocalPrefs((prev) => ({
+      ...prev,
+      paStores: prev.paStores.includes(storeId)
+        ? prev.paStores.filter((id) => id !== storeId)
+        : [...prev.paStores, storeId],
+    }));
   };
 
   const handleSaveLocations = async () => {
@@ -848,7 +759,7 @@ export default function DashboardPage() {
         <StepShell
           step="02"
           title="Set your location"
-          subtitle="Tell Bourbon Signal the territory you actually hunt. Start broad with a zip code, city, or state, then narrow into boards, cities, or counties that matter."
+          subtitle="Pick the states you hunt in first, then refine only as far as the available data allows. North Carolina drills into boards, Virginia drills into cities and then stores, and Pennsylvania drills into counties and then stores."
         >
           <div style={{ display: "grid", gap: "18px" }}>
             {!isSignedIn && (
@@ -884,14 +795,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0,0.95fr) minmax(0,1.05fr)",
-                gap: "18px",
-              }}
-              className="md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] grid-cols-1"
-            >
+            <div style={{ display: "grid", gap: "18px" }}>
               <div
                 style={{
                   background: "rgba(11,9,7,0.56)",
@@ -903,97 +807,25 @@ export default function DashboardPage() {
                   gap: "14px",
                 }}
               >
-                <div>
-                  <label
-                    htmlFor="location-search"
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      color: "var(--color-text-tertiary)",
-                      display: "block",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Start with a zip code, city, or state
-                  </label>
-                  <input
-                    id="location-search"
-                    value={locationQuery}
-                    onChange={(event) => setLocationQuery(event.target.value)}
-                    placeholder="Charlotte, 27601, Virginia, PA..."
-                    style={{
-                      width: "100%",
-                      padding: "14px 16px",
-                      borderRadius: "12px",
-                      border: "1px solid rgba(196,148,58,0.18)",
-                      background: "rgba(255,255,255,0.04)",
-                      color: "var(--color-text-primary)",
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "15px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
-
-                <div
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    background: "rgba(255,255,255,0.02)",
-                  }}
-                >
-                  {filteredLocationSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      onClick={() => applyLocationSuggestion(suggestion)}
+                  <div>
+                    <p
                       style={{
-                        width: "100%",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "12px",
-                        padding: "14px 16px",
-                        border: "none",
-                        borderBottom: "1px solid rgba(255,255,255,0.06)",
-                        background: "transparent",
-                        cursor: "pointer",
-                        textAlign: "left",
+                        margin: 0,
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: "var(--color-text-tertiary)",
                       }}
                     >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "15px", color: "var(--color-text-primary)", fontWeight: 600 }}>
-                          {suggestion.label}
-                        </span>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)" }}>
-                          {suggestion.hint}
-                        </span>
-                      </div>
-                      <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)" }}>
-                        {suggestion.type.toUpperCase()}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      States you hunt in
+                    </p>
+                  </div>
 
-              <div
-                style={{
-                  background: "rgba(11,9,7,0.56)",
-                  border: "1px solid rgba(196,148,58,0.12)",
-                  borderRadius: "14px",
-                  padding: "18px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-              >
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                  {["NC", "VA", "PA"].map((state) => {
-                    const active = localPrefs.states.includes(state);
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {["NC", "VA", "PA"].map((state) => {
+                      const active = localPrefs.states.includes(state);
                     return (
                       <button
                         key={state}
@@ -1014,60 +846,222 @@ export default function DashboardPage() {
                       </button>
                     );
                   })}
-                </div>
+                  </div>
 
-                {selectedStateDetails.length === 0 ? (
+                {localPrefs.states.length === 0 ? (
                   <div style={{ padding: "18px", borderRadius: "12px", border: "1px dashed rgba(255,255,255,0.16)", color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", lineHeight: 1.7 }}>
-                    Pick a state above, or start with a search on the left. Then you can narrow into boards, cities, or counties specific to that state.
+                    Pick the states you actually hunt in. Then Bourbon Signal will let you refine each state down to the most specific level the data supports.
                   </div>
                 ) : (
-                  selectedStateDetails.map((section) => (
-                    <div
-                      key={section.state}
-                      style={{
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: "12px",
-                        padding: "16px",
-                        background: "rgba(255,255,255,0.03)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "12px",
-                      }}
-                    >
-                      <div>
-                        <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                          {section.title}
-                        </h3>
-                        <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                          Refine by {section.detailLabel.toLowerCase()} if you want a tighter hunt area.
-                        </p>
+                  <div style={{ display: "grid", gap: "16px" }}>
+                    {localPrefs.states.includes("NC") && (
+                      <div
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "12px",
+                          padding: "16px",
+                          background: "rgba(255,255,255,0.03)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "12px",
+                        }}
+                      >
+                        <div>
+                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                            North Carolina
+                          </h3>
+                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                            NC data is currently board-level, so this is the most specific clean filter we should expose here.
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                          {ncBoards.map((board) => {
+                            const active = localPrefs.ncBoards.includes(board);
+                            return (
+                              <button
+                                key={board}
+                                onClick={() => updateStateDetail("NC", board)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {board}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
+                    )}
 
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                        {section.detailOptions.slice(0, 80).map((value) => {
-                          const active = section.selectedDetails.includes(value);
-                          return (
-                            <button
-                              key={value}
-                              onClick={() => updateStateDetail(section.state, value)}
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: "999px",
-                                border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                fontFamily: "var(--font-dm-sans)",
-                                fontSize: "13px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              {value}
-                            </button>
-                          );
-                        })}
+                    {localPrefs.states.includes("VA") && (
+                      <div
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "12px",
+                          padding: "16px",
+                          background: "rgba(255,255,255,0.03)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "12px",
+                        }}
+                      >
+                        <div>
+                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                            Virginia
+                          </h3>
+                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                            First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                          {vaCities.slice(0, 120).map((city) => {
+                            const active = localPrefs.vaCities.includes(city);
+                            return (
+                              <button
+                                key={city}
+                                onClick={() => updateStateDetail("VA", city)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {city}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {localPrefs.vaCities.length > 0 && (
+                          <div style={{ display: "grid", gap: "12px" }}>
+                            {localPrefs.vaCities.map((city) => {
+                              const cityStores = vaStoresByCity.get(city) ?? [];
+                              if (cityStores.length === 0) return null;
+                              return (
+                                <div key={city} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
+                                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                    {city} stores
+                                  </p>
+                                  <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                    {cityStores.map((store) => (
+                                      <div key={store.id} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                        {store.name} {store.address ? `• ${store.address}` : ""}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    )}
+
+                    {localPrefs.states.includes("PA") && (
+                      <div
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "12px",
+                          padding: "16px",
+                          background: "rgba(255,255,255,0.03)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "12px",
+                        }}
+                      >
+                        <div>
+                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                            Pennsylvania
+                          </h3>
+                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                            Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                          {paCounties.map((county) => {
+                            const active = localPrefs.paCounties.includes(county);
+                            return (
+                              <button
+                                key={county}
+                                onClick={() => updateStateDetail("PA", county)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {county}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {localPrefs.paCounties.length > 0 && (
+                          <div style={{ display: "grid", gap: "12px" }}>
+                            {localPrefs.paCounties.map((county) => {
+                              const countyStores = paStoresByCounty.get(county) ?? [];
+                              if (countyStores.length === 0) return null;
+                              return (
+                                <div key={county} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
+                                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                    {county} County stores
+                                  </p>
+                                  <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                    {countyStores.map((store) => {
+                                      const active = localPrefs.paStores.includes(store.id);
+                                      return (
+                                        <button
+                                          key={store.id}
+                                          onClick={() => togglePaStore(store.id)}
+                                          style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            gap: "12px",
+                                            width: "100%",
+                                            borderRadius: "10px",
+                                            border: active ? "1px solid rgba(196,148,58,0.36)" : "1px solid rgba(255,255,255,0.06)",
+                                            background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                                            padding: "10px 12px",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                          }}
+                                        >
+                                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                            {store.name} {store.address ? `• ${store.address}` : ""}
+                                          </span>
+                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
+                                            {active ? "ON" : "ALL"}
+                                          </span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div style={{ display: "flex", justifyContent: "flex-start" }}>
