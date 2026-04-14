@@ -76,6 +76,17 @@ function normalizeNcBoardLabel(raw: string) {
     .trim();
 }
 
+function isLikelyNcBoardLabel(label: string) {
+  if (!label) return false;
+  const normalized = label.trim();
+  if (!normalized) return false;
+  if (/\d/.test(normalized)) return false;
+  if (/\b(county|address|suite|road|rd\b|street|st\b|drive|dr\b|lane|ln\b|avenue|ave\b|boulevard|blvd\b|highway|hwy\b|zip)\b/i.test(normalized)) {
+    return false;
+  }
+  return normalized.split(" ").length <= 5;
+}
+
 function StyledSelect({
   value,
   onChange,
@@ -395,7 +406,8 @@ export default function DashboardPage() {
           if (store.state !== "NC") return [];
           const raw = store.district || store.id || store.name || "";
           if (!raw) return [];
-          return [normalizeNcBoardLabel(raw)];
+          const label = normalizeNcBoardLabel(raw);
+          return isLikelyNcBoardLabel(label) ? [label] : [];
         })
       )
     )
@@ -1107,7 +1119,7 @@ export default function DashboardPage() {
                         </div>
 
                         {localPrefs.vaCities.length > 0 && (
-                          <div style={{ display: "grid", gap: "12px" }}>
+                          <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
                             {localPrefs.vaCities.map((city) => {
                               const cityStores = vaStoresByCity.get(city) ?? [];
                               const selection = vaStoreSelections[city] ?? { mode: "all", storeIds: cityStores.map((store) => store.id) };
@@ -1233,7 +1245,7 @@ export default function DashboardPage() {
                         </div>
 
                         {localPrefs.paCounties.length > 0 && (
-                          <div style={{ display: "grid", gap: "12px" }}>
+                          <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
                             {localPrefs.paCounties.map((county) => {
                               const countyStores = paStoresByCounty.get(county) ?? [];
                               const selection = paStoreSelections[county] ?? { mode: "all", storeIds: countyStores.map((store) => store.id) };
@@ -1335,10 +1347,10 @@ export default function DashboardPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(0,0.95fr) minmax(0,1.05fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
               gap: "18px",
+              alignItems: "start",
             }}
-            className="md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] grid-cols-1"
           >
             <div
               style={{
@@ -1378,9 +1390,10 @@ export default function DashboardPage() {
                       justifyContent: "space-between",
                       gap: "12px",
                       alignItems: "center",
+                      minHeight: "112px",
                     }}
                   >
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
                       <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
                         {channel.title}
                       </span>
@@ -1397,6 +1410,7 @@ export default function DashboardPage() {
                         border: active ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
                         position: "relative",
                         flexShrink: 0,
+                        alignSelf: "center",
                       }}
                     >
                       <span
