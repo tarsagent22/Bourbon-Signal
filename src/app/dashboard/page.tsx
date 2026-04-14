@@ -35,6 +35,11 @@ interface BottleOption {
   bottle: Bottle;
 }
 
+interface StoreSelectionState {
+  mode: "all" | "custom";
+  storeIds: string[];
+}
+
 function normalizeBottleName(name: string) {
   return name
     .toLowerCase()
@@ -268,6 +273,8 @@ export default function DashboardPage() {
     site: true,
   });
   const [savedNotifications, setSavedNotifications] = useState(false);
+  const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
+  const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
 
   useEffect(() => {
     setMounted(true);
@@ -438,13 +445,60 @@ export default function DashboardPage() {
     });
   };
 
-  const togglePaStore = (storeId: string) => {
-    setLocalPrefs((prev) => ({
+  const updateVaSelectionMode = (city: string, mode: "all" | "custom") => {
+    const cityStores = (vaStoresByCity.get(city) ?? []).map((store) => store.id);
+    setVaStoreSelections((prev) => ({
       ...prev,
-      paStores: prev.paStores.includes(storeId)
-        ? prev.paStores.filter((id) => id !== storeId)
-        : [...prev.paStores, storeId],
+      [city]: {
+        mode,
+        storeIds: mode === "all" ? cityStores : prev[city]?.storeIds ?? [],
+      },
     }));
+  };
+
+  const toggleVaStore = (city: string, storeId: string) => {
+    setVaStoreSelections((prev) => {
+      const current = prev[city] ?? { mode: "custom" as const, storeIds: [] };
+      const has = current.storeIds.includes(storeId);
+      const nextStoreIds = has
+        ? current.storeIds.filter((id) => id !== storeId)
+        : [...current.storeIds, storeId];
+      return {
+        ...prev,
+        [city]: {
+          mode: "custom",
+          storeIds: nextStoreIds,
+        },
+      };
+    });
+  };
+
+  const updatePaSelectionMode = (county: string, mode: "all" | "custom") => {
+    const countyStores = (paStoresByCounty.get(county) ?? []).map((store) => store.id);
+    setPaStoreSelections((prev) => ({
+      ...prev,
+      [county]: {
+        mode,
+        storeIds: mode === "all" ? countyStores : prev[county]?.storeIds ?? [],
+      },
+    }));
+  };
+
+  const togglePaCountyStore = (county: string, storeId: string) => {
+    setPaStoreSelections((prev) => {
+      const current = prev[county] ?? { mode: "custom" as const, storeIds: [] };
+      const has = current.storeIds.includes(storeId);
+      const nextStoreIds = has
+        ? current.storeIds.filter((id) => id !== storeId)
+        : [...current.storeIds, storeId];
+      return {
+        ...prev,
+        [county]: {
+          mode: "custom",
+          storeIds: nextStoreIds,
+        },
+      };
+    });
   };
 
   const handleSaveLocations = async () => {
@@ -537,10 +591,9 @@ export default function DashboardPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(0, 1.2fr) minmax(300px, 0.8fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
               gap: "22px",
             }}
-            className="md:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] grid-cols-1"
           >
             <div
               style={{
@@ -823,7 +876,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
                     {["NC", "VA", "PA"].map((state) => {
                       const active = localPrefs.states.includes(state);
                     return (
@@ -831,8 +884,9 @@ export default function DashboardPage() {
                         key={state}
                         onClick={() => toggleState(state)}
                         style={{
-                          padding: "10px 16px",
-                          borderRadius: "999px",
+                          width: "100%",
+                          padding: "14px 16px",
+                          borderRadius: "14px",
                           border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
                           background: active ? "rgba(196,148,58,0.14)" : "rgba(255,255,255,0.04)",
                           color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
@@ -840,6 +894,7 @@ export default function DashboardPage() {
                           fontWeight: 700,
                           fontSize: "14px",
                           cursor: "pointer",
+                          textAlign: "left",
                         }}
                       >
                         {makeStateLabel(state)}
@@ -871,32 +926,62 @@ export default function DashboardPage() {
                             North Carolina
                           </h3>
                           <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                            NC data is currently board-level, so this is the most specific clean filter we should expose here.
+                            NC data is currently board-level, so this is the most specific filter we provide for this state
                           </p>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                          {ncBoards.map((board) => {
-                            const active = localPrefs.ncBoards.includes(board);
-                            return (
+                        <select
+                          value=""
+                          onChange={(event) => {
+                            if (!event.target.value) return;
+                            updateStateDetail("NC", event.target.value);
+                            event.currentTarget.value = "";
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "14px 16px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(196,148,58,0.18)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "var(--color-text-primary)",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "14px",
+                          }}
+                        >
+                          <option value="">Add board</option>
+                          {ncBoards.filter((board) => !localPrefs.ncBoards.includes(board)).map((board) => (
+                            <option key={board} value={board}>
+                              {board}
+                            </option>
+                          ))}
+                        </select>
+                        {localPrefs.ncBoards.length > 0 && (
+                          <div style={{ display: "grid", gap: "8px" }}>
+                            {localPrefs.ncBoards.map((board) => (
                               <button
                                 key={board}
                                 onClick={() => updateStateDetail("NC", board)}
                                 style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  width: "100%",
+                                  borderRadius: "10px",
+                                  border: "1px solid rgba(196,148,58,0.18)",
+                                  background: "rgba(196,148,58,0.08)",
+                                  padding: "12px 14px",
+                                  color: "var(--color-text-primary)",
                                   fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
+                                  fontSize: "14px",
                                   cursor: "pointer",
+                                  textAlign: "left",
                                 }}
                               >
-                                {board}
+                                <span>{board}</span>
+                                <span style={{ color: "var(--color-text-tertiary)", fontSize: "18px" }}>×</span>
                               </button>
-                            );
-                          })}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -920,46 +1005,90 @@ export default function DashboardPage() {
                             First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
                           </p>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                          {vaCities.slice(0, 120).map((city) => {
-                            const active = localPrefs.vaCities.includes(city);
-                            return (
-                              <button
-                                key={city}
-                                onClick={() => updateStateDetail("VA", city)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {city}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <select
+                          value=""
+                          onChange={(event) => {
+                            if (!event.target.value) return;
+                            updateStateDetail("VA", event.target.value);
+                            event.currentTarget.value = "";
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "14px 16px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(196,148,58,0.18)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "var(--color-text-primary)",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "14px",
+                          }}
+                        >
+                          <option value="">Add city</option>
+                          {vaCities.filter((city) => !localPrefs.vaCities.includes(city)).map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </select>
 
                         {localPrefs.vaCities.length > 0 && (
                           <div style={{ display: "grid", gap: "12px" }}>
                             {localPrefs.vaCities.map((city) => {
                               const cityStores = vaStoresByCity.get(city) ?? [];
+                              const selection = vaStoreSelections[city] ?? { mode: "all", storeIds: cityStores.map((store) => store.id) };
                               if (cityStores.length === 0) return null;
                               return (
                                 <div key={city} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                    {city} stores
-                                  </p>
+                                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                      {city} stores
+                                    </p>
+                                    <button
+                                      onClick={() => updateVaSelectionMode(city, selection.mode === "all" ? "custom" : "all")}
+                                      style={{
+                                        borderRadius: "999px",
+                                        border: "1px solid rgba(196,148,58,0.24)",
+                                        background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                        color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                        padding: "8px 12px",
+                                        fontFamily: "var(--font-dm-sans)",
+                                        fontSize: "12px",
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Track all stores
+                                    </button>
+                                  </div>
                                   <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                    {cityStores.map((store) => (
-                                      <div key={store.id} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                                        {store.name} {store.address ? `• ${store.address}` : ""}
-                                      </div>
-                                    ))}
+                                    {cityStores.map((store) => {
+                                      const active = selection.mode === "all" || selection.storeIds.includes(store.id);
+                                      return (
+                                        <button
+                                          key={store.id}
+                                          onClick={() => toggleVaStore(city, store.id)}
+                                          style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            width: "100%",
+                                            borderRadius: "10px",
+                                            border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.06)",
+                                            background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.03)",
+                                            padding: "10px 12px",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                          }}
+                                        >
+                                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                            {store.name} {store.address ? `• ${store.address}` : ""}
+                                          </span>
+                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
+                                            {active ? "✓" : "×"}
+                                          </span>
+                                        </button>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               );
@@ -989,47 +1118,68 @@ export default function DashboardPage() {
                             Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
                           </p>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                          {paCounties.map((county) => {
-                            const active = localPrefs.paCounties.includes(county);
-                            return (
-                              <button
-                                key={county}
-                                onClick={() => updateStateDetail("PA", county)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {county}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <select
+                          value=""
+                          onChange={(event) => {
+                            if (!event.target.value) return;
+                            updateStateDetail("PA", event.target.value);
+                            event.currentTarget.value = "";
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "14px 16px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(196,148,58,0.18)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "var(--color-text-primary)",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "14px",
+                          }}
+                        >
+                          <option value="">Add county</option>
+                          {paCounties.filter((county) => !localPrefs.paCounties.includes(county)).map((county) => (
+                            <option key={county} value={county}>
+                              {county}
+                            </option>
+                          ))}
+                        </select>
 
                         {localPrefs.paCounties.length > 0 && (
                           <div style={{ display: "grid", gap: "12px" }}>
                             {localPrefs.paCounties.map((county) => {
                               const countyStores = paStoresByCounty.get(county) ?? [];
+                              const selection = paStoreSelections[county] ?? { mode: "all", storeIds: countyStores.map((store) => store.id) };
                               if (countyStores.length === 0) return null;
                               return (
                                 <div key={county} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                    {county} County stores
-                                  </p>
+                                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                      {county} County stores
+                                    </p>
+                                    <button
+                                      onClick={() => updatePaSelectionMode(county, selection.mode === "all" ? "custom" : "all")}
+                                      style={{
+                                        borderRadius: "999px",
+                                        border: "1px solid rgba(196,148,58,0.24)",
+                                        background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                        color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                        padding: "8px 12px",
+                                        fontFamily: "var(--font-dm-sans)",
+                                        fontSize: "12px",
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Track all stores
+                                    </button>
+                                  </div>
                                   <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
                                     {countyStores.map((store) => {
-                                      const active = localPrefs.paStores.includes(store.id);
+                                      const active = selection.mode === "all" || selection.storeIds.includes(store.id);
                                       return (
                                         <button
                                           key={store.id}
-                                          onClick={() => togglePaStore(store.id)}
+                                          onClick={() => togglePaCountyStore(county, store.id)}
                                           style={{
                                             display: "flex",
                                             justifyContent: "space-between",
@@ -1047,8 +1197,8 @@ export default function DashboardPage() {
                                           <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
                                             {store.name} {store.address ? `• ${store.address}` : ""}
                                           </span>
-                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
-                                            {active ? "ON" : "ALL"}
+                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
+                                            {active ? "✓" : "×"}
                                           </span>
                                         </button>
                                       );
