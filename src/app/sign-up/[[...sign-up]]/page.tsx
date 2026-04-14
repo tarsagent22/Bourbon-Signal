@@ -27,7 +27,7 @@ export default function SignUpPage() {
               letterSpacing: "0.02em",
             }}
           >
-            CASKSIGNAL
+            BOURBON SIGNAL
           </span>
           <span
             style={{

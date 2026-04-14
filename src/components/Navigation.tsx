@@ -72,7 +72,7 @@ export default function Navigation() {
               letterSpacing: "0.02em",
             }}
           >
-            CASKSIGNAL
+            BOURBON SIGNAL
           </span>
           <span
             style={{
