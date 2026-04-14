@@ -7,29 +7,24 @@ import ScrollReveal from "@/components/ScrollReveal";
 interface StepData {
   number: string;
   description: string;
-  flavor: string;
 }
 
 const steps: StepData[] = [
   {
     number: "01",
-    description: "Every 10 minutes, we check warehouse shipments, store inventories, and allocation lists across NC, VA, and PA.",
-    flavor: "We scan state databases",
+    description: "Our proprietary data collection method does the heavy lifting for you by finding allocated bottle intel 24/7",
   },
   {
     number: "02",
-    description: "You pick the bottles. You pick the stores. We watch them for you — and email you the second something drops.",
-    flavor: "You get alerted",
+    description: "Set your location. Pick your bottles. We watch them for you.",
   },
   {
     number: "03",
-    description: "Your alert tells you the most precise information available — store, county, or city — along with what bottles dropped and how many cases. You know where to look before anyone else.",
-    flavor: "Know where to look",
+    description: "We alert you. Your preferences dictate how often you get notified about the bottles you care about.",
   },
   {
     number: "04",
-    description: "Move before the crowd. When allocated bottles like Pappy, Blanton's, or Weller hit a shelf, minutes matter.",
-    flavor: "You grab the bottle",
+    description: "Grab the bottle you've been looking for. When allocated bottles like Blanton's, EH Taylor, or that unicorn bottle hit shelves, you'll have the edge.",
   },
 ];
 
@@ -448,7 +443,7 @@ function StillSpout() {
 
   return (
     <svg viewBox={`0 0 ${VB_W} ${svgH}`} fill="none" overflow="visible"
-      style={{ width: VB_W, height: svgH, display: "block", overflow: "visible" }}>
+      style={{ width: VB_W, height: svgH, display: "block", overflow: "visible", marginLeft: 0 }}>
 
       {/* Column walls at top */}
       <line x1={COL_X} y1="0" x2={COL_X} y2="20" stroke={AC} strokeWidth="1.5" opacity="0.45" />
@@ -520,26 +515,25 @@ function SightGlass({ number, index }: { number: string; index: number }) {
 }
 
 // Step text
-function StepText({ step, index }: { step: StepData; index: number }) {
+function StepText({ step, index, align }: { step: StepData; index: number; align: "left" | "right" }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
+  const fromX = align === "left" ? -48 : 48;
   return (
-    <div ref={ref} style={{
-      opacity: isInView ? 1 : 0,
-      transform: isInView ? "translateX(0)" : "translateX(20px)",
-      transition: `all 0.6s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.05}s`,
-    }}>
+    <div
+      ref={ref}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? "translateX(0)" : `translateX(${fromX}px)`,
+        transition: `all 0.65s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.06}s`,
+        textAlign: align,
+      }}
+    >
       <p style={{
-        fontFamily: "var(--font-plus-jakarta)", fontSize: 16, fontWeight: 500,
-        color: "var(--color-text-primary)", lineHeight: 1.55, marginBottom: 10,
+        fontFamily: "var(--font-plus-jakarta)", fontSize: 17, fontWeight: 500,
+        color: "var(--color-text-primary)", lineHeight: 1.7, margin: 0,
       }}>
         {step.description}
-      </p>
-      <p style={{
-        fontFamily: "var(--font-plus-jakarta)", fontSize: 14, fontStyle: "italic",
-        color: "rgba(196,148,58,0.4)", lineHeight: 1.5,
-      }}>
-        {step.flavor}
       </p>
     </div>
   );
@@ -547,11 +541,21 @@ function StepText({ step, index }: { step: StepData; index: number }) {
 
 // Step row
 function StepRow({ step, index }: { step: StepData; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
+  const textOnRight = index % 2 === 0;
   return (
-    <div style={{ display: "flex", alignItems: "center", minHeight: 190 }}>
-      <div ref={ref} style={{ width: VB_W, flexShrink: 0, alignSelf: "stretch", position: "relative" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+        alignItems: "center",
+        minHeight: 210,
+        columnGap: 32,
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        {!textOnRight && <StepText step={step} index={index} align="left" />}
+      </div>
+      <div style={{ width: VB_W, flexShrink: 0, alignSelf: "stretch", position: "relative" }}>
         <CylinderBody plateCount={index === 0 ? 2 : 3} />
         <div style={{
           position: "absolute", top: "50%", left: COL_CX,
@@ -559,10 +563,9 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
         }}>
           <SightGlass number={step.number} index={index} />
         </div>
-
       </div>
-      <div style={{ flex: 1, paddingLeft: 28 }}>
-        <StepText step={step} index={index} />
+      <div style={{ minWidth: 0 }}>
+        {textOnRight && <StepText step={step} index={index} align="right" />}
       </div>
     </div>
   );
@@ -576,7 +579,7 @@ export default function HowWeHunt() {
       overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>
       <SvgDefs />
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
         <ScrollReveal>
           <h2 style={{
             fontFamily: "var(--font-fraunces)", fontSize: "clamp(32px,6vw,44px)",
@@ -591,19 +594,23 @@ export default function HowWeHunt() {
             maxWidth: 480, margin: "0 auto 52px",
             textAlign: "center",
           }}>
-            From raw data to your phone in minutes. Same process, distilled for speed.
+            From raw signal to bottle in hand, built to move faster than the crowd.
           </p>
         </ScrollReveal>
 
         <div>
-          <StillCap />
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <StillCap />
+          </div>
           {steps.map((step, i) => (
             <div key={step.number}>
               <StepRow step={step} index={i} />
               {i < steps.length - 1 && <SectionFlange />}
             </div>
           ))}
-          <StillSpout />
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <StillSpout />
+          </div>
         </div>
       </div>
     </section>
