@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const ENGINE_URL = "https://engine.casksignal.com/stats";
+const ENGINE_URL = "https://engine.bourbonsignal.com/stats";
 
 export async function GET() {
   try {
