@@ -23,6 +23,14 @@ export interface DropEvent {
   store_details?: { id: string; name?: string; city?: string; county?: string; qty: number }[];
 }
 
+export interface DropLocation {
+  label: string;
+  city?: string;
+  address?: string;
+  boardName?: string;
+  quantity?: number;
+}
+
 export interface GroupedDrop {
   displayName: string;
   event_type: string;
@@ -35,6 +43,7 @@ export interface GroupedDrop {
   quantity_shipped?: number;
   state?: string;
   id: string;
+  locations: DropLocation[];
 }
 
 export function cleanBrandName(name: string): string {
@@ -122,6 +131,27 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
   const SIX_HOURS = 6 * 60 * 60 * 1000;
   const groups: Map<string, GroupedDrop> = new Map();
 
+  const getLocation = (ev: DropEvent): DropLocation | null => {
+    const city = ev.store_city?.trim();
+    const address = ev.store_address?.trim();
+    const boardName = cleanCountyName(ev.board_name || "");
+    const quantity = ev.quantity_in_stock ?? ev.quantity_shipped ?? ev.quantity;
+
+    const primaryLabel = city
+      ? (ev.store_county ? `${city} (${ev.store_county} Co.)` : city)
+      : boardName || address;
+
+    if (!primaryLabel) return null;
+
+    return {
+      label: primaryLabel,
+      city,
+      address,
+      boardName: boardName || ev.board_name,
+      quantity: quantity && quantity > 0 ? quantity : undefined,
+    };
+  };
+
   for (const event of drops) {
     const displayName = getDisplayName(event);
     if (displayName === "Unknown Bottle") continue;
@@ -131,16 +161,14 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${bucket}`;
 
     const existing = groups.get(groupKey);
-    // For PA events, location is store_city or store_county; for NC/VA it's board_name
-    const getLocation = (ev: DropEvent) =>
-      ev.store_city
-        ? (ev.store_county ? `${ev.store_city} (${ev.store_county} Co.)` : ev.store_city)
-        : cleanCountyName(ev.board_name || "");
+    const location = getLocation(event);
 
     if (existing) {
-      const county = getLocation(event);
-      if (county && !existing.counties.includes(county)) {
-        existing.counties.push(county);
+      if (location && !existing.locations.some((loc) => loc.label === location.label && loc.address === location.address)) {
+        existing.locations.push(location);
+      }
+      if (location && !existing.counties.includes(location.label)) {
+        existing.counties.push(location.label);
       }
       if (event.timestamp > existing.timestamp) {
         existing.timestamp = event.timestamp;
@@ -159,19 +187,19 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         existing.retail_price = event.retail_price;
       }
     } else {
-      const county = getLocation(event);
       groups.set(groupKey, {
         displayName,
         event_type: event.event_type,
         rarity_tier: event.rarity_tier,
         timestamp: event.timestamp,
-        counties: county ? [county] : [],
+        counties: location ? [location.label] : [],
         board_name: event.board_name || event.store_city,
         store_address: event.store_address,
         retail_price: event.retail_price,
         quantity_shipped: event.quantity_shipped ?? event.quantity_in_stock,
         state: event.state || (event.state_code === 'PA' ? 'PA' : undefined),
         id: groupKey,
+        locations: location ? [location] : [],
       });
     }
   }

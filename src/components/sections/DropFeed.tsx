@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import BottleLink from "@/components/BottleLink";
 import CountyLink from "@/components/CountyLink";
 import {
   type DropEvent,
   type GroupedDrop,
+  type DropLocation,
   groupDrops,
   formatRelativeTime,
   cleanCountyName,
@@ -191,6 +191,8 @@ interface FeedRowProps {
 }
 
 function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
+  const visibleLocations = isFreeUser ? drop.locations.slice(0, 1) : drop.locations;
+  const hiddenLocationCount = Math.max(drop.locations.length - visibleLocations.length, 0);
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [glowing, setGlowing] = useState(isNew);
@@ -211,9 +213,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
   // Build detail fields
   const details: { label: string; value: string }[] = [];
-  if (drop.counties.length > 0) {
-    details.push({ label: "Counties", value: drop.counties.join(", ") });
-  }
   if (drop.retail_price && drop.retail_price > 0) {
     details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
   }
@@ -221,7 +220,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
     details.push({ label: "Quantity", value: `${drop.quantity_shipped} cases` });
   }
 
-  const hasDetails = details.length > 0;
+  const hasDetails = details.length > 0 || drop.locations.length > 0;
 
   // Blur wall logic — free users: blur last 2 of 8. Paid members: no blur
   const isBlurred = isFreeUser && index >= 6;
@@ -266,17 +265,23 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
         {/* Center: name + description */}
         <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "8px" }}>
-          <div
+          <button
+            type="button"
             style={{
               fontFamily: "var(--font-playfair)",
               fontSize: "17px",
               fontWeight: 600,
               color: "var(--color-cream)",
               lineHeight: 1.3,
+              background: "none",
+              border: "none",
+              padding: 0,
+              textAlign: "left",
+              cursor: hasDetails ? "pointer" : "default",
             }}
           >
-            <BottleLink name={drop.displayName}>{drop.displayName}</BottleLink>
-          </div>
+            {drop.displayName}
+          </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
             {/* State badge */}
             {drop.state && (
@@ -460,21 +465,77 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
+                {drop.locations.length > 0 && (
+                  <div style={{ marginBottom: details.length > 0 ? "10px" : 0 }}>
+                    <div
+                      style={{
+                        color: "rgba(245,237,214,0.35)",
+                        marginBottom: "8px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        fontSize: "10px",
+                        fontFamily: "var(--font-jetbrains)",
+                      }}
+                    >
+                      {drop.state ? `${drop.state} signal` : "Signal"}
+                    </div>
+                    <div style={{ display: "grid", gap: "8px" }}>
+                      {visibleLocations.map((location: DropLocation) => (
+                        <div
+                          key={`${location.label}-${location.address ?? ""}`}
+                          style={{
+                            padding: "10px 12px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(245,237,214,0.08)",
+                            background: "rgba(245,237,214,0.03)",
+                          }}
+                        >
+                          <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
+                            <CountyLink county={location.label}>{location.label}</CountyLink>
+                          </div>
+                          {(location.address || location.boardName) && (
+                            <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>
+                              {location.address || location.boardName}
+                            </div>
+                          )}
+                          {location.quantity && (
+                            <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
+                              {location.quantity} spotted
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {isFreeUser && hiddenLocationCount > 0 && (
+                        <div
+                          style={{
+                            padding: "10px 12px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(212,146,11,0.18)",
+                            background: "rgba(212,146,11,0.06)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              filter: "blur(4px)",
+                              userSelect: "none",
+                              color: "rgba(245,237,214,0.45)",
+                              marginBottom: "8px",
+                            }}
+                          >
+                            Hidden member locations
+                          </div>
+                          <div style={{ color: "var(--color-accent-amber)", fontWeight: 600 }}>
+                            Become a member to see {hiddenLocationCount === 1 ? "the other location" : `the other ${hiddenLocationCount} locations`}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {details.map((detail, i) => (
                   <div key={detail.label} style={{ marginBottom: i < details.length - 1 ? "4px" : 0 }}>
                     <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>{detail.label}:</span>
-                    {detail.label === "Counties" ? (
-                      <span>
-                        {drop.counties.map((c, ci) => (
-                          <span key={c}>
-                            {ci > 0 && ", "}
-                            <CountyLink county={c}>{c}</CountyLink>
-                          </span>
-                        ))}
-                      </span>
-                    ) : (
-                      <span>{detail.value}</span>
-                    )}
+                    <span>{detail.value}</span>
                   </div>
                 ))}
                 {/* Secondary market info in expanded panel */}
