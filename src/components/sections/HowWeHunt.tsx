@@ -395,16 +395,18 @@ function CylinderBody({ plateCount }: { plateCount: number }) {
 // Riveted flange between sections
 function SectionFlange() {
   return (
-    <svg viewBox={`0 0 ${VB_W} 14`} fill="none" style={{ width: VB_W, height: 14, display: "block" }}>
-      <rect x={COL_X} y="0" width={COL_W} height="14" fill={AC} opacity="0.04" />
-      <line x1={COL_X - 10} y1="3" x2={COL_X + COL_W + 10} y2="3" stroke={AC} strokeWidth="1.2" opacity="0.35" />
-      <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={AC} strokeWidth="1.2" opacity="0.35" />
-      <circle cx={COL_X - 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
-      <circle cx={COL_X + COL_W + 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
-      <circle cx={COL_CX - 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
-      <circle cx={COL_CX} cy="7" r="1.5" fill={AC} opacity="0.2" />
-      <circle cx={COL_CX + 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
-    </svg>
+    <div style={{ width: VB_W, height: 14, margin: "0 auto", position: "relative" }}>
+      <svg viewBox={`0 0 ${VB_W} 14`} fill="none" style={{ width: VB_W, height: 14, display: "block" }}>
+        <rect x={COL_X} y="0" width={COL_W} height="14" fill={AC} opacity="0.04" />
+        <line x1={COL_X - 10} y1="3" x2={COL_X + COL_W + 10} y2="3" stroke={AC} strokeWidth="1.2" opacity="0.35" />
+        <line x1={COL_X - 10} y1="11" x2={COL_X + COL_W + 10} y2="11" stroke={AC} strokeWidth="1.2" opacity="0.35" />
+        <circle cx={COL_X - 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
+        <circle cx={COL_X + COL_W + 7} cy="7" r="3" stroke={AC} strokeWidth="0.8" opacity="0.3" fill="none" />
+        <circle cx={COL_CX - 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
+        <circle cx={COL_CX} cy="7" r="1.5" fill={AC} opacity="0.2" />
+        <circle cx={COL_CX + 12} cy="7" r="1.5" fill={AC} opacity="0.2" />
+      </svg>
+    </div>
   );
 }
 
@@ -515,10 +517,10 @@ function SightGlass({ number, index }: { number: string; index: number }) {
 }
 
 // Step text
-function StepText({ step, index, align }: { step: StepData; index: number; align: "left" | "right" }) {
+function StepText({ step, index, side }: { step: StepData; index: number; side: "left" | "right" }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
-  const fromX = align === "left" ? -48 : 48;
+  const fromX = side === "left" ? -48 : 48;
   return (
     <div
       ref={ref}
@@ -526,7 +528,7 @@ function StepText({ step, index, align }: { step: StepData; index: number; align
         opacity: isInView ? 1 : 0,
         transform: isInView ? "translateX(0)" : `translateX(${fromX}px)`,
         transition: `all 0.65s cubic-bezier(0.25,0.1,0.25,1) ${index * 0.06}s`,
-        textAlign: align,
+        textAlign: side === "left" ? "right" : "left",
       }}
     >
       <p style={{
@@ -553,7 +555,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
       }}
     >
       <div style={{ minWidth: 0 }}>
-        {!textOnRight && <StepText step={step} index={index} align="left" />}
+        {!textOnRight && <StepText step={step} index={index} side="left" />}
       </div>
       <div style={{ width: VB_W, flexShrink: 0, alignSelf: "stretch", position: "relative" }}>
         <CylinderBody plateCount={index === 0 ? 2 : 3} />
@@ -565,7 +567,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
         </div>
       </div>
       <div style={{ minWidth: 0 }}>
-        {textOnRight && <StepText step={step} index={index} align="right" />}
+        {textOnRight && <StepText step={step} index={index} side="right" />}
       </div>
     </div>
   );
@@ -574,7 +576,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
 export default function HowWeHunt() {
   return (
     <section id="how-we-hunt" style={{
-      backgroundColor: "#15110D",
+      backgroundColor: "var(--color-bg-primary)",
       paddingTop: 56, paddingBottom: 56, width: "100%",
       overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>
@@ -582,7 +584,7 @@ export default function HowWeHunt() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
         <ScrollReveal>
           <h2 style={{
-            fontFamily: "var(--font-fraunces)", fontSize: "clamp(32px,6vw,44px)",
+            fontFamily: "var(--font-playfair)", fontSize: "clamp(32px,6vw,44px)",
             fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 14,
             textAlign: "center",
           }}>
