@@ -56,6 +56,72 @@ function normalizeBottleName(name: string) {
     .trim();
 }
 
+function isWhiskeyProduct(name: string) {
+  const normalized = name.toLowerCase();
+  const blockedTerms = [
+    "vodka",
+    "tequila",
+    "rum",
+    "gin",
+    "brandy",
+    "cognac",
+    "mezcal",
+    "liqueur",
+    "cream",
+    "moonshine",
+    "vermouth",
+    "cordial",
+    "schnapps",
+    "wine",
+    "champagne",
+    "amaro",
+    "aperitif",
+    "agave",
+    "soju",
+    "ready to drink",
+    "hard seltzer",
+  ];
+
+  if (blockedTerms.some((term) => normalized.includes(term))) return false;
+
+  const allowedTerms = [
+    "bourbon",
+    "whiskey",
+    "whisky",
+    "rye",
+    "scotch",
+    "single malt",
+    "irish",
+    "weller",
+    "blanton",
+    "stagg",
+    "pappy",
+    "van winkle",
+    "eh taylor",
+    "e.h. taylor",
+    "old fitzgerald",
+    "king of kentucky",
+    "elijah craig",
+    "four roses",
+    "wild turkey",
+    "maker's mark",
+    "makers mark",
+    "buffalo trace",
+    "old forester",
+    "knob creek",
+    "booker's",
+    "bookers",
+    "woodford reserve",
+    "jack daniel",
+    "heaven hill",
+    "michter",
+    "old grand dad",
+    "1792",
+  ];
+
+  return allowedTerms.some((term) => normalized.includes(term));
+}
+
 function titleCase(input: string) {
   return input.replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -333,6 +399,7 @@ export default function DashboardPage() {
     site: true,
   });
   const [savedNotifications, setSavedNotifications] = useState(false);
+  const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
 
@@ -349,6 +416,7 @@ export default function DashboardPage() {
     const grouped = new Map<string, BottleOption>();
 
     for (const bottle of bottles) {
+      if (!isWhiskeyProduct(bottle.name)) continue;
       const canonicalKey = normalizeBottleName(bottle.name);
       const existing = grouped.get(canonicalKey);
       if (!existing) {
@@ -374,6 +442,13 @@ export default function DashboardPage() {
       .filter((option) => option.label.length > 1)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [bottles]);
+
+  const toggleStateCollapsed = (state: string) => {
+    setCollapsedStates((prev) => ({
+      ...prev,
+      [state]: !prev[state],
+    }));
+  };
 
   const watchedBottleOptions = useMemo(() => {
     if (!mounted) return [];
@@ -982,79 +1057,88 @@ export default function DashboardPage() {
                           gap: "12px",
                         }}
                       >
-                        <div>
-                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                            North Carolina
-                          </h3>
-                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                            NC data is currently board-level, so this is the most specific filter we provide for this state
-                          </p>
-                        </div>
-                        <StyledSelect
-                          value=""
-                          onChange={(event) => {
-                            if (!event.target.value) return;
-                            updateStateDetail("NC", event.target.value);
-                            event.currentTarget.value = "";
-                          }}
-                        >
-                          <option value="">Add board</option>
-                          {ncBoards.filter((board) => !localPrefs.ncBoards.includes(board)).map((board) => (
-                            <option key={board} value={board}>
-                              {board}
-                            </option>
-                          ))}
-                        </StyledSelect>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                          {ncBoards.map((board) => {
-                            const active = localPrefs.ncBoards.includes(board);
-                            return (
-                              <button
-                                key={board}
-                                onClick={() => updateStateDetail("NC", board)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {board}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {localPrefs.ncBoards.length > 0 && (
-                          <div style={{ display: "grid", gap: "8px" }} className="md:hidden">
-                            {localPrefs.ncBoards.map((board) => (
-                              <button
-                                key={board}
-                                onClick={() => updateStateDetail("NC", board)}
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                  width: "100%",
-                                  borderRadius: "10px",
-                                  border: "1px solid rgba(196,148,58,0.18)",
-                                  background: "rgba(196,148,58,0.08)",
-                                  padding: "12px 14px",
-                                  color: "var(--color-text-primary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "14px",
-                                  cursor: "pointer",
-                                  textAlign: "left",
-                                }}
-                              >
-                                <span>{board}</span>
-                                <span style={{ color: "var(--color-text-tertiary)", fontSize: "18px" }}>×</span>
-                              </button>
-                            ))}
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
+                          <div>
+                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                              North Carolina
+                            </h3>
+                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                              NC data is currently board-level, so this is the most specific filter we provide for this state
+                            </p>
                           </div>
+                          <button onClick={() => toggleStateCollapsed("NC")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                            {collapsedStates.NC ? "Expand" : "Collapse"}
+                          </button>
+                        </div>
+                        {!collapsedStates.NC && (
+                          <>
+                            <StyledSelect
+                              value=""
+                              onChange={(event) => {
+                                if (!event.target.value) return;
+                                updateStateDetail("NC", event.target.value);
+                                event.currentTarget.value = "";
+                              }}
+                            >
+                              <option value="">Add board</option>
+                              {ncBoards.filter((board) => !localPrefs.ncBoards.includes(board)).map((board) => (
+                                <option key={board} value={board}>
+                                  {board}
+                                </option>
+                              ))}
+                            </StyledSelect>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                              {ncBoards.map((board) => {
+                                const active = localPrefs.ncBoards.includes(board);
+                                return (
+                                  <button
+                                    key={board}
+                                    onClick={() => updateStateDetail("NC", board)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: "999px",
+                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                      fontFamily: "var(--font-dm-sans)",
+                                      fontSize: "13px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    {board}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {localPrefs.ncBoards.length > 0 && (
+                              <div style={{ display: "grid", gap: "8px" }} className="md:hidden">
+                                {localPrefs.ncBoards.map((board) => (
+                                  <button
+                                    key={board}
+                                    onClick={() => updateStateDetail("NC", board)}
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      width: "100%",
+                                      borderRadius: "10px",
+                                      border: "1px solid rgba(196,148,58,0.18)",
+                                      background: "rgba(196,148,58,0.08)",
+                                      padding: "12px 14px",
+                                      color: "var(--color-text-primary)",
+                                      fontFamily: "var(--font-dm-sans)",
+                                      fontSize: "14px",
+                                      cursor: "pointer",
+                                      textAlign: "left",
+                                    }}
+                                  >
+                                    <span>{board}</span>
+                                    <span style={{ color: "var(--color-text-tertiary)", fontSize: "18px" }}>×</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
@@ -1071,116 +1155,125 @@ export default function DashboardPage() {
                           gap: "12px",
                         }}
                       >
-                        <div>
-                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                            Virginia
-                          </h3>
-                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                            First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
-                          </p>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
+                          <div>
+                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                              Virginia
+                            </h3>
+                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                              First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
+                            </p>
+                          </div>
+                          <button onClick={() => toggleStateCollapsed("VA")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                            {collapsedStates.VA ? "Expand" : "Collapse"}
+                          </button>
                         </div>
-                        <StyledSelect
-                          value=""
-                          onChange={(event) => {
-                            if (!event.target.value) return;
-                            updateStateDetail("VA", event.target.value);
-                            event.currentTarget.value = "";
-                          }}
-                        >
-                          <option value="">Add city</option>
-                          {vaCities.filter((city) => !localPrefs.vaCities.includes(city)).map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
-                        </StyledSelect>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                          {vaCities.slice(0, 120).map((city) => {
-                            const active = localPrefs.vaCities.includes(city);
-                            return (
-                              <button
-                                key={city}
-                                onClick={() => updateStateDetail("VA", city)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {city}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        {!collapsedStates.VA && (
+                          <>
+                            <StyledSelect
+                              value=""
+                              onChange={(event) => {
+                                if (!event.target.value) return;
+                                updateStateDetail("VA", event.target.value);
+                                event.currentTarget.value = "";
+                              }}
+                            >
+                              <option value="">Add city</option>
+                              {vaCities.filter((city) => !localPrefs.vaCities.includes(city)).map((city) => (
+                                <option key={city} value={city}>
+                                  {city}
+                                </option>
+                              ))}
+                            </StyledSelect>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                              {vaCities.slice(0, 120).map((city) => {
+                                const active = localPrefs.vaCities.includes(city);
+                                return (
+                                  <button
+                                    key={city}
+                                    onClick={() => updateStateDetail("VA", city)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: "999px",
+                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                      fontFamily: "var(--font-dm-sans)",
+                                      fontSize: "13px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    {city}
+                                  </button>
+                                );
+                              })}
+                            </div>
 
-                        {localPrefs.vaCities.length > 0 && (
-                          <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
-                            {localPrefs.vaCities.map((city) => {
-                              const cityStores = vaStoresByCity.get(city) ?? [];
-                              const selection = vaStoreSelections[city] ?? { mode: "all", storeIds: cityStores.map((store) => store.id) };
-                              if (cityStores.length === 0) return null;
-                              return (
-                                <div key={city} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                      {city} stores
-                                    </p>
-                                    <button
-                                      onClick={() => updateVaSelectionMode(city, selection.mode === "all" ? "custom" : "all")}
-                                      style={{
-                                        borderRadius: "999px",
-                                        border: "1px solid rgba(196,148,58,0.24)",
-                                        background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                        color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                        padding: "8px 12px",
-                                        fontFamily: "var(--font-dm-sans)",
-                                        fontSize: "12px",
-                                        fontWeight: 700,
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Track all stores
-                                    </button>
-                                  </div>
-                                  <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                    {cityStores.map((store) => {
-                                      const active = selection.mode === "all" || selection.storeIds.includes(store.id);
-                                      return (
+                            {localPrefs.vaCities.length > 0 && (
+                              <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
+                                {localPrefs.vaCities.map((city) => {
+                                  const cityStores = vaStoresByCity.get(city) ?? [];
+                                  const selection = vaStoreSelections[city] ?? { mode: "all", storeIds: cityStores.map((store) => store.id) };
+                                  if (cityStores.length === 0) return null;
+                                  return (
+                                    <div key={city} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
+                                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                                        <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                          {city} stores
+                                        </p>
                                         <button
-                                          key={store.id}
-                                          onClick={() => toggleVaStore(city, store.id)}
+                                          onClick={() => updateVaSelectionMode(city, selection.mode === "all" ? "custom" : "all")}
                                           style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            width: "100%",
-                                            borderRadius: "10px",
-                                            border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.06)",
-                                            background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.03)",
-                                            padding: "10px 12px",
+                                            borderRadius: "999px",
+                                            border: "1px solid rgba(196,148,58,0.24)",
+                                            background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                            color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                            padding: "8px 12px",
+                                            fontFamily: "var(--font-dm-sans)",
+                                            fontSize: "12px",
+                                            fontWeight: 700,
                                             cursor: "pointer",
-                                            textAlign: "left",
                                           }}
                                         >
-                                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                                            {store.name} {store.address ? `• ${store.address}` : ""}
-                                          </span>
-                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
-                                            {active ? "✓" : "×"}
-                                          </span>
+                                          Track all stores
                                         </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
+                                      </div>
+                                      <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                        {cityStores.map((store) => {
+                                          const active = selection.mode === "all" || selection.storeIds.includes(store.id);
+                                          return (
+                                            <button
+                                              key={store.id}
+                                              onClick={() => toggleVaStore(city, store.id)}
+                                              style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                borderRadius: "10px",
+                                                border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.06)",
+                                                background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.03)",
+                                                padding: "10px 12px",
+                                                cursor: "pointer",
+                                                textAlign: "left",
+                                              }}
+                                            >
+                                              <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                                {store.name} {store.address ? `• ${store.address}` : ""}
+                                              </span>
+                                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
+                                                {active ? "✓" : "×"}
+                                              </span>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
@@ -1197,117 +1290,126 @@ export default function DashboardPage() {
                           gap: "12px",
                         }}
                       >
-                        <div>
-                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                            Pennsylvania
-                          </h3>
-                          <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                            Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
-                          </p>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
+                          <div>
+                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                              Pennsylvania
+                            </h3>
+                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                              Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
+                            </p>
+                          </div>
+                          <button onClick={() => toggleStateCollapsed("PA")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                            {collapsedStates.PA ? "Expand" : "Collapse"}
+                          </button>
                         </div>
-                        <StyledSelect
-                          value=""
-                          onChange={(event) => {
-                            if (!event.target.value) return;
-                            updateStateDetail("PA", event.target.value);
-                            event.currentTarget.value = "";
-                          }}
-                        >
-                          <option value="">Add county</option>
-                          {paCounties.filter((county) => !localPrefs.paCounties.includes(county)).map((county) => (
-                            <option key={county} value={county}>
-                              {county}
-                            </option>
-                          ))}
-                        </StyledSelect>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                          {paCounties.map((county) => {
-                            const active = localPrefs.paCounties.includes(county);
-                            return (
-                              <button
-                                key={county}
-                                onClick={() => updateStateDetail("PA", county)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: "999px",
-                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                  fontFamily: "var(--font-dm-sans)",
-                                  fontSize: "13px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {county}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        {!collapsedStates.PA && (
+                          <>
+                            <StyledSelect
+                              value=""
+                              onChange={(event) => {
+                                if (!event.target.value) return;
+                                updateStateDetail("PA", event.target.value);
+                                event.currentTarget.value = "";
+                              }}
+                            >
+                              <option value="">Add county</option>
+                              {paCounties.filter((county) => !localPrefs.paCounties.includes(county)).map((county) => (
+                                <option key={county} value={county}>
+                                  {county}
+                                </option>
+                              ))}
+                            </StyledSelect>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                              {paCounties.map((county) => {
+                                const active = localPrefs.paCounties.includes(county);
+                                return (
+                                  <button
+                                    key={county}
+                                    onClick={() => updateStateDetail("PA", county)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: "999px",
+                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                      fontFamily: "var(--font-dm-sans)",
+                                      fontSize: "13px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    {county}
+                                  </button>
+                                );
+                              })}
+                            </div>
 
-                        {localPrefs.paCounties.length > 0 && (
-                          <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
-                            {localPrefs.paCounties.map((county) => {
-                              const countyStores = paStoresByCounty.get(county) ?? [];
-                              const selection = paStoreSelections[county] ?? { mode: "all", storeIds: countyStores.map((store) => store.id) };
-                              if (countyStores.length === 0) return null;
-                              return (
-                                <div key={county} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                      {county} County stores
-                                    </p>
-                                    <button
-                                      onClick={() => updatePaSelectionMode(county, selection.mode === "all" ? "custom" : "all")}
-                                      style={{
-                                        borderRadius: "999px",
-                                        border: "1px solid rgba(196,148,58,0.24)",
-                                        background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                        color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                        padding: "8px 12px",
-                                        fontFamily: "var(--font-dm-sans)",
-                                        fontSize: "12px",
-                                        fontWeight: 700,
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Track all stores
-                                    </button>
-                                  </div>
-                                  <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                    {countyStores.map((store) => {
-                                      const active = selection.mode === "all" || selection.storeIds.includes(store.id);
-                                      return (
+                            {localPrefs.paCounties.length > 0 && (
+                              <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
+                                {localPrefs.paCounties.map((county) => {
+                                  const countyStores = paStoresByCounty.get(county) ?? [];
+                                  const selection = paStoreSelections[county] ?? { mode: "all", storeIds: countyStores.map((store) => store.id) };
+                                  if (countyStores.length === 0) return null;
+                                  return (
+                                    <div key={county} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
+                                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                                        <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                                          {county} County stores
+                                        </p>
                                         <button
-                                          key={store.id}
-                                          onClick={() => togglePaCountyStore(county, store.id)}
+                                          onClick={() => updatePaSelectionMode(county, selection.mode === "all" ? "custom" : "all")}
                                           style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            gap: "12px",
-                                            width: "100%",
-                                            borderRadius: "10px",
-                                            border: active ? "1px solid rgba(196,148,58,0.36)" : "1px solid rgba(255,255,255,0.06)",
-                                            background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                                            padding: "10px 12px",
+                                            borderRadius: "999px",
+                                            border: "1px solid rgba(196,148,58,0.24)",
+                                            background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                            color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                            padding: "8px 12px",
+                                            fontFamily: "var(--font-dm-sans)",
+                                            fontSize: "12px",
+                                            fontWeight: 700,
                                             cursor: "pointer",
-                                            textAlign: "left",
                                           }}
                                         >
-                                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                                            {store.name} {store.address ? `• ${store.address}` : ""}
-                                          </span>
-                                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
-                                            {active ? "✓" : "×"}
-                                          </span>
+                                          Track all stores
                                         </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
+                                      </div>
+                                      <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                        {countyStores.map((store) => {
+                                          const active = selection.mode === "all" || selection.storeIds.includes(store.id);
+                                          return (
+                                            <button
+                                              key={store.id}
+                                              onClick={() => togglePaCountyStore(county, store.id)}
+                                              style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                gap: "12px",
+                                                width: "100%",
+                                                borderRadius: "10px",
+                                                border: active ? "1px solid rgba(196,148,58,0.36)" : "1px solid rgba(255,255,255,0.06)",
+                                                background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                                                padding: "10px 12px",
+                                                cursor: "pointer",
+                                                textAlign: "left",
+                                              }}
+                                            >
+                                              <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                                {store.name} {store.address ? `• ${store.address}` : ""}
+                                              </span>
+                                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
+                                                {active ? "✓" : "×"}
+                                              </span>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
