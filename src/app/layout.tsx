@@ -6,29 +6,29 @@ import "./globals.css";
 import ToastContainer from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "CaskSignal — Real-Time Bourbon Drop Signals",
+  title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
   description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
-  metadataBase: new URL("https://casksignal.com"),
+  metadataBase: new URL("https://bourbonsignal.com"),
   openGraph: {
-    title: "CaskSignal — Real-Time Bourbon Drop Signals",
+    title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
     description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
-    url: "https://casksignal.com",
-    siteName: "CaskSignal",
+    url: "https://bourbonsignal.com",
+    siteName: "Bourbon Signal",
     type: "website",
     images: [
       {
-        url: "https://casksignal.com/hero-bg.jpg",
+        url: "https://bourbonsignal.com/hero-bg.jpg",
         width: 1200,
         height: 630,
-        alt: "CaskSignal — Bourbon drop signals",
+        alt: "Bourbon Signal — Bourbon drop signals",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CaskSignal — Real-Time Bourbon Drop Signals",
+    title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
     description: "Track allocated bourbon drops across NC, VA, and PA. Real-time signals when rare bottles hit store shelves.",
-    images: ["https://casksignal.com/hero-bg.jpg"],
+    images: ["https://bourbonsignal.com/hero-bg.jpg"],
   },
 };
 

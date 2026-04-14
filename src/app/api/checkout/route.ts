@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
     mode: isFounder ? "payment" : "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: resolvedPriceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://casksignal.com"}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://casksignal.com"}/pricing`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com"}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com"}/pricing`,
     metadata: {
       userId: userId || "anonymous",
       plan: plan || "unknown",

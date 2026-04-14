@@ -70,7 +70,7 @@ export default function MapShowcase() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/map-preview.png"
-                    alt="CaskSignal hunt map preview"
+                    alt="Bourbon Signal hunt map preview"
                     style={{ width: "100%", height: 320, objectFit: "cover", filter: "brightness(0.72) contrast(1.02) saturate(0.9)" }}
                   />
                   <div style={{ position: "absolute", top: 14, left: 14, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(8,7,6,0.72)", backdropFilter: "blur(10px)", fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>

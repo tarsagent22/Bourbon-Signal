@@ -89,7 +89,7 @@ function SuccessContent() {
             lineHeight: 1.2,
           }}
         >
-          You&apos;re in. Welcome to CaskSignal.
+          You&apos;re in. Welcome to Bourbon Signal.
         </h1>
 
         {/* Subheading — covers both founder and standard */}

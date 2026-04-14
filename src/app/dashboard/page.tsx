@@ -1296,7 +1296,7 @@ export default function DashboardPage() {
                     margin: 0,
                   }}
                 >
-                  Tell CaskSignal what bottle you want and which stores you’d actually drive to.
+                  Tell Bourbon Signal what bottle you want and which stores you’d actually drive to.
                 </p>
               </div>
               <SetLocationButton />

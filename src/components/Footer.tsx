@@ -29,7 +29,7 @@ export default function Footer() {
                 color: "var(--color-text-primary)",
               }}
             >
-              CASKSIGNAL
+              BOURBON SIGNAL
             </span>
             <span
               style={{
@@ -77,7 +77,7 @@ export default function Footer() {
               paddingRight: "0",
             }}
           >
-            © 2026 CaskSignal
+            © 2026 Bourbon Signal
           </p>
         </div>
 
