@@ -76,6 +76,55 @@ function normalizeNcBoardLabel(raw: string) {
     .trim();
 }
 
+function StyledSelect({
+  value,
+  onChange,
+  children,
+}: {
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLSelectElement>;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ position: "relative" }} className="md:hidden">
+      <select
+        value={value}
+        onChange={onChange}
+        style={{
+          width: "100%",
+          padding: "14px 44px 14px 16px",
+          borderRadius: "12px",
+          border: "1px solid rgba(196,148,58,0.18)",
+          background: "rgba(17, 13, 9, 0.92)",
+          color: "var(--color-cream)",
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: "14px",
+          outline: "none",
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+        }}
+      >
+        {children}
+      </select>
+      <span
+        style={{
+          position: "absolute",
+          right: "16px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--color-accent-amber)",
+          fontSize: "12px",
+          pointerEvents: "none",
+        }}
+      >
+        ▾
+      </span>
+    </div>
+  );
+}
+
 function StepShell({
   step,
   title,
@@ -929,22 +978,12 @@ export default function DashboardPage() {
                             NC data is currently board-level, so this is the most specific filter we provide for this state
                           </p>
                         </div>
-                        <select
+                        <StyledSelect
                           value=""
                           onChange={(event) => {
                             if (!event.target.value) return;
                             updateStateDetail("NC", event.target.value);
                             event.currentTarget.value = "";
-                          }}
-                          style={{
-                            width: "100%",
-                            padding: "14px 16px",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(196,148,58,0.18)",
-                            background: "rgba(255,255,255,0.04)",
-                            color: "var(--color-text-primary)",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "14px",
                           }}
                         >
                           <option value="">Add board</option>
@@ -953,9 +992,32 @@ export default function DashboardPage() {
                               {board}
                             </option>
                           ))}
-                        </select>
+                        </StyledSelect>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                          {ncBoards.map((board) => {
+                            const active = localPrefs.ncBoards.includes(board);
+                            return (
+                              <button
+                                key={board}
+                                onClick={() => updateStateDetail("NC", board)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {board}
+                              </button>
+                            );
+                          })}
+                        </div>
                         {localPrefs.ncBoards.length > 0 && (
-                          <div style={{ display: "grid", gap: "8px" }}>
+                          <div style={{ display: "grid", gap: "8px" }} className="md:hidden">
                             {localPrefs.ncBoards.map((board) => (
                               <button
                                 key={board}
@@ -1005,22 +1067,12 @@ export default function DashboardPage() {
                             First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
                           </p>
                         </div>
-                        <select
+                        <StyledSelect
                           value=""
                           onChange={(event) => {
                             if (!event.target.value) return;
                             updateStateDetail("VA", event.target.value);
                             event.currentTarget.value = "";
-                          }}
-                          style={{
-                            width: "100%",
-                            padding: "14px 16px",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(196,148,58,0.18)",
-                            background: "rgba(255,255,255,0.04)",
-                            color: "var(--color-text-primary)",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "14px",
                           }}
                         >
                           <option value="">Add city</option>
@@ -1029,7 +1081,30 @@ export default function DashboardPage() {
                               {city}
                             </option>
                           ))}
-                        </select>
+                        </StyledSelect>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                          {vaCities.slice(0, 120).map((city) => {
+                            const active = localPrefs.vaCities.includes(city);
+                            return (
+                              <button
+                                key={city}
+                                onClick={() => updateStateDetail("VA", city)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {city}
+                              </button>
+                            );
+                          })}
+                        </div>
 
                         {localPrefs.vaCities.length > 0 && (
                           <div style={{ display: "grid", gap: "12px" }}>
@@ -1118,22 +1193,12 @@ export default function DashboardPage() {
                             Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
                           </p>
                         </div>
-                        <select
+                        <StyledSelect
                           value=""
                           onChange={(event) => {
                             if (!event.target.value) return;
                             updateStateDetail("PA", event.target.value);
                             event.currentTarget.value = "";
-                          }}
-                          style={{
-                            width: "100%",
-                            padding: "14px 16px",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(196,148,58,0.18)",
-                            background: "rgba(255,255,255,0.04)",
-                            color: "var(--color-text-primary)",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "14px",
                           }}
                         >
                           <option value="">Add county</option>
@@ -1142,7 +1207,30 @@ export default function DashboardPage() {
                               {county}
                             </option>
                           ))}
-                        </select>
+                        </StyledSelect>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
+                          {paCounties.map((county) => {
+                            const active = localPrefs.paCounties.includes(county);
+                            return (
+                              <button
+                                key={county}
+                                onClick={() => updateStateDetail("PA", county)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: "999px",
+                                  border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
+                                  background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
+                                  color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                                  fontFamily: "var(--font-dm-sans)",
+                                  fontSize: "13px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {county}
+                              </button>
+                            );
+                          })}
+                        </div>
 
                         {localPrefs.paCounties.length > 0 && (
                           <div style={{ display: "grid", gap: "12px" }}>
