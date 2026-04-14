@@ -33,7 +33,6 @@ interface BottleOption {
   label: string;
   bottleIds: string[];
   bottle: Bottle;
-  states: string[];
 }
 
 interface LocationSuggestion {
@@ -48,9 +47,15 @@ interface LocationSuggestion {
 function normalizeBottleName(name: string) {
   return name
     .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
     .replace(/small batch\s*\d+/g, "small batch")
     .replace(/single barrel\s*\d+/g, "single barrel")
     .replace(/private barrel\s*\d+/g, "private barrel")
+    .replace(/batch proof\s*\d+/g, "batch proof")
+    .replace(/\bproof\s*\d+/g, "proof")
+    .replace(/\b(375ml|750ml|1l|1\.75l)\b/g, " ")
+    .replace(/\b(ncabc|nc abc|va abc|fwgs|state-specific|north carolina|virginia|pennsylvania)\b/g, " ")
+    .replace(/\b(\d+)\b$/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -206,32 +211,6 @@ function WatchlistBottleCard({
           {option.label}
         </h3>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              color: "var(--color-accent-amber)",
-              background: "rgba(196,148,58,0.10)",
-              border: "1px solid rgba(196,148,58,0.2)",
-              borderRadius: "999px",
-              padding: "4px 10px",
-            }}
-          >
-            {option.bottle.distillery}
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              color: "var(--color-text-secondary)",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "999px",
-              padding: "4px 10px",
-            }}
-          >
-            {option.states.join(" • ")}
-          </span>
           {option.bottle.msrp > 0 && (
             <span
               style={{
@@ -312,16 +291,11 @@ export default function DashboardPage() {
           label: bottle.name,
           bottleIds: [bottle.id],
           bottle,
-          states: bottle.state ? [bottle.state] : [],
         });
         continue;
       }
 
       existing.bottleIds.push(bottle.id);
-      if (bottle.state && !existing.states.includes(bottle.state)) {
-        existing.states.push(bottle.state);
-      }
-
       const existingScore = (existing.bottle.drop_count_30d || 0) + (existing.bottle.lastSeen ? 5 : 0);
       const nextScore = (bottle.drop_count_30d || 0) + (bottle.lastSeen ? 5 : 0);
       if (nextScore > existingScore) {
@@ -331,7 +305,7 @@ export default function DashboardPage() {
     }
 
     return Array.from(grouped.values())
-      .map((option) => ({ ...option, states: option.states.sort() }))
+      .filter((option) => option.label.length > 1)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [bottles]);
 
@@ -764,14 +738,9 @@ export default function DashboardPage() {
                               fontFamily: "var(--font-dm-sans)",
                               fontSize: "13px",
                               color: "var(--color-text-secondary)",
-                              display: "flex",
-                              flexWrap: "wrap",
-                              gap: "8px",
                             }}
                           >
-                            <span>{option.bottle.distillery}</span>
-                            <span style={{ color: "var(--color-text-tertiary)" }}>•</span>
-                            <span>{option.states.join(" / ")}</span>
+                            {option.bottle.msrp > 0 ? `MSRP $${option.bottle.msrp.toFixed(0)}` : "Track this bottle across your hunt area"}
                           </div>
                         </div>
                         <button
