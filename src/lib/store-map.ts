@@ -35,7 +35,11 @@ export function normalizeMapStore(raw: Record<string, unknown>): MapStoreRecord 
   const rawName = typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : undefined;
 
   const isMappable = Boolean(address && lat != null && lng != null);
-  const precision = isMappable ? "store" : "board";
+  const looksLikeBoard = Boolean(
+    (rawName && /\babc\b|\bboard\b/i.test(rawName)) ||
+    (district && /\babc\b|\bboard\b/i.test(district))
+  );
+  const precision = looksLikeBoard ? "board" : isMappable ? "store" : "board";
   const displayLabel = rawName || address || district || county || [city, state].filter(Boolean).join(", ") || String(raw.id ?? "Unknown store");
 
   return {
