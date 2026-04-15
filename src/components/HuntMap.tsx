@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Crosshair, MapPin, Search, X, SlidersHorizontal, Sparkles, Route, Clock3, MapPinned } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { Store } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
-import { useLocationStore, getDistanceMiles, formatDistanceMiles } from "@/lib/location";
-import { ZIP_CENTROIDS } from "@/data/zip-centroids";
 import { cleanBrandName, formatRelativeTime } from "@/lib/drops";
+import { ZIP_CENTROIDS } from "@/data/zip-centroids";
 
 interface HuntMapProps {
   stores: Store[];
@@ -18,480 +17,323 @@ interface HuntMapProps {
   drops: DropEvent[];
 }
 
-interface StoreWithDistance extends Store {
-  distanceMiles: number | null;
-  recentDrops: DropEvent[];
-  matchingDrops: DropEvent[];
+type Mode = "bottle" | "store";
+
+interface BottleOption {
+  id: string;
+  label: string;
+  canonicalName: string;
 }
 
-function normalizeName(value: string): string {
+interface DropMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  quantity: number | null;
+  timestamp: string;
+  storeName?: string;
+  boardName?: string;
+}
+
+function normalizeName(value: string) {
   return cleanBrandName(value).toLowerCase().trim();
 }
 
-function zipToCenter(zip: string): { center: LatLngExpression; label: string } | null {
-  const trimmed = zip.trim();
-  if (!/^\d{5}$/.test(trimmed)) return null;
-  const centroid = ZIP_CENTROIDS[trimmed];
-  if (!centroid) return null;
+function resolveArea(query: string): { center: LatLngExpression; label: string } | null {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{5}$/.test(trimmed)) {
+    const centroid = ZIP_CENTROIDS[trimmed];
+    if (!centroid) return null;
+    return {
+      center: [centroid.lat, centroid.lng],
+      label: `${centroid.city}, ${centroid.state} ${centroid.zip}`,
+    };
+  }
+
+  const match = Object.values(ZIP_CENTROIDS).find((entry) =>
+    `${entry.city}, ${entry.state}`.toLowerCase() === trimmed.toLowerCase() ||
+    entry.city.toLowerCase() === trimmed.toLowerCase()
+  );
+
+  if (!match) return null;
+
   return {
-    center: [centroid.lat, centroid.lng],
-    label: `${centroid.zip} · ${centroid.city}, ${centroid.state}`,
+    center: [match.lat, match.lng],
+    label: `${match.city}, ${match.state}`,
   };
 }
 
-function getBottleLabel(bottle: Bottle): string {
-  return bottle.state ? `${bottle.name} · ${bottle.state}` : bottle.name;
+function distanceMiles(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const earthRadiusMiles = 3958.8;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * earthRadiusMiles * Math.asin(Math.sqrt(h));
 }
 
-function storeMatchesArea(store: Store, areaCenter: LatLngExpression | null, radiusMiles: number): boolean {
-  if (!areaCenter || store.lat == null || store.lng == null) return true;
-  const [lat, lng] = areaCenter as [number, number];
-  return getDistanceMiles({ lat, lng }, { lat: store.lat, lng: store.lng }) <= radiusMiles;
-}
-
-function storeKey(store: Store): string[] {
-  return [store.id, store.address || "", `${store.city}|${store.state}`];
-}
-
-function dropMatchesStore(drop: DropEvent, store: Store): boolean {
-  const dropId = drop.store_id ? String(drop.store_id) : "";
-  if (dropId && dropId === store.id) return true;
-  if (drop.store_address && store.address && drop.store_address.trim().toLowerCase() === store.address.trim().toLowerCase()) return true;
-  if (drop.store_city && store.city && drop.store_city.trim().toLowerCase() === store.city.trim().toLowerCase() && (drop.state || "") === store.state) return true;
-  return false;
-}
-
-function FlyToLocation({ center }: { center: LatLngExpression }) {
+function FlyToView({ center, zoom }: { center: LatLngExpression; zoom: number }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, 10, { duration: 1.1 });
-  }, [center, map]);
+    map.flyTo(center, zoom, { duration: 1.1 });
+  }, [center, zoom, map]);
   return null;
 }
 
-function markerFill(isSelected: boolean, hasSignal: boolean): string {
-  if (isSelected) return "#D4920B";
-  if (hasSignal) return "#EFC050";
-  return "#6B6258";
-}
-
-function markerStroke(hasSignal: boolean): string {
-  return hasSignal ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.14)";
-}
-
 export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
-  const { userLocation } = useLocationStore();
-  const [zipQuery, setZipQuery] = useState("");
-  const [areaCenter, setAreaCenter] = useState<LatLngExpression | null>(null);
-  const [areaLabel, setAreaLabel] = useState<string>("");
+  const [mode, setMode] = useState<Mode>("bottle");
   const [bottleSearch, setBottleSearch] = useState("");
   const [selectedBottleIds, setSelectedBottleIds] = useState<string[]>([]);
+  const [locationQuery, setLocationQuery] = useState("");
+  const [selectedState, setSelectedState] = useState("NC");
+  const [daysBack, setDaysBack] = useState(7);
+  const [areaCenter, setAreaCenter] = useState<LatLngExpression>([35.5, -79.0]);
+  const [mapZoom, setMapZoom] = useState(6);
+  const [areaLabel, setAreaLabel] = useState("East Coast");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
-  const [expandedStores, setExpandedStores] = useState<Record<string, boolean>>({});
+  const [showOlderStoreData, setShowOlderStoreData] = useState(false);
 
-  useEffect(() => {
-    if (userLocation) {
-      setAreaCenter([userLocation.lat, userLocation.lng]);
-      setAreaLabel(userLocation.label);
-    }
-  }, [userLocation]);
-
-  const bottleOptions = useMemo(() => {
+  const bottleOptions = useMemo<BottleOption[]>(() => {
     const seen = new Set<string>();
     return bottles
-      .filter((bottle) => {
-        const key = `${normalizeName(bottle.name)}|${bottle.state || ""}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
+      .map((bottle) => ({
+        id: bottle.id,
+        label: bottle.name,
+        canonicalName: normalizeName(bottle.name),
+      }))
+      .filter((option) => {
+        if (!option.canonicalName || seen.has(option.canonicalName)) return false;
+        seen.add(option.canonicalName);
         return true;
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [bottles]);
 
-  const visibleBottleOptions = useMemo(() => {
-    const q = bottleSearch.trim().toLowerCase();
+  const bottleSuggestions = useMemo(() => {
+    const query = bottleSearch.trim().toLowerCase();
     return bottleOptions
-      .filter((bottle) => !selectedBottleIds.includes(bottle.id))
-      .filter((bottle) => !q || getBottleLabel(bottle).toLowerCase().includes(q))
-      .slice(0, 12);
+      .filter((option) => !selectedBottleIds.includes(option.id))
+      .filter((option) => !query || option.label.toLowerCase().includes(query))
+      .slice(0, 10);
   }, [bottleOptions, bottleSearch, selectedBottleIds]);
 
   const selectedBottleNames = useMemo(
-    () => new Set(selectedBottleIds.map((id) => bottleOptions.find((bottle) => bottle.id === id)).filter(Boolean).map((bottle) => normalizeName((bottle as Bottle).name))),
+    () => new Set(selectedBottleIds.map((id) => bottleOptions.find((option) => option.id === id)?.canonicalName).filter(Boolean)),
     [selectedBottleIds, bottleOptions]
   );
 
-  const storesWithDrops = useMemo<StoreWithDistance[]>(() => {
-    const filtered = stores
-      .filter((store) => store.isMappable)
-      .filter((store) => storeMatchesArea(store, areaCenter, 60))
-      .map((store) => {
-        const recentDrops = drops
-          .filter((drop) => dropMatchesStore(drop, store))
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const areaPoint = useMemo(() => ({ lat: (areaCenter as [number, number])[0], lng: (areaCenter as [number, number])[1] }), [areaCenter]);
 
-        const matchingDrops = selectedBottleNames.size > 0
-          ? recentDrops.filter((drop) => selectedBottleNames.has(normalizeName(drop.brand_name)))
-          : recentDrops;
+  const handleApplyArea = () => {
+    const resolved = resolveArea(locationQuery);
+    if (!resolved) return;
+    setAreaCenter(resolved.center);
+    setAreaLabel(resolved.label);
+    setMapZoom(mode === "bottle" ? 10 : 11);
+  };
 
+  const filteredDrops = useMemo(() => {
+    const cutoff = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+    return drops.filter((drop) => {
+      const time = new Date(drop.timestamp).getTime();
+      if (time < cutoff) return false;
+      if (mode === "bottle" && selectedBottleNames.size > 0) {
+        return selectedBottleNames.has(normalizeName(drop.brand_name));
+      }
+      return true;
+    });
+  }, [drops, daysBack, mode, selectedBottleNames]);
+
+  const bottleMarkers = useMemo<DropMarker[]>(() => {
+    if (mode !== "bottle") return [];
+    return filteredDrops
+      .map((drop, index) => {
+        const lat = typeof (drop as any).lat === "number" ? (drop as any).lat : null;
+        const lng = typeof (drop as any).lng === "number" ? (drop as any).lng : null;
+        if (lat == null || lng == null) return null;
+        if (distanceMiles(areaPoint, { lat, lng }) > 60) return null;
         return {
-          ...store,
-          distanceMiles: areaCenter && store.lat != null && store.lng != null
-            ? getDistanceMiles({ lat: (areaCenter as [number, number])[0], lng: (areaCenter as [number, number])[1] }, { lat: store.lat, lng: store.lng })
-            : userLocation && store.lat != null && store.lng != null
-              ? getDistanceMiles(userLocation, { lat: store.lat, lng: store.lng })
-              : null,
-          recentDrops,
-          matchingDrops,
+          id: `${drop.brand_name}-${drop.timestamp}-${index}`,
+          lat,
+          lng,
+          label: cleanBrandName(drop.brand_name),
+          quantity: drop.quantity_shipped ?? drop.quantity_in_stock ?? drop.quantity ?? null,
+          timestamp: drop.timestamp,
+          storeName: drop.store_name,
+          boardName: drop.board_name,
         };
       })
-      .sort((a, b) => {
-        const aSignal = a.matchingDrops.length > 0 ? 1 : 0;
-        const bSignal = b.matchingDrops.length > 0 ? 1 : 0;
-        if (aSignal !== bSignal) return bSignal - aSignal;
-        if (a.distanceMiles != null && b.distanceMiles != null) return a.distanceMiles - b.distanceMiles;
-        if (a.distanceMiles != null) return -1;
-        if (b.distanceMiles != null) return 1;
-        return (a.city || "").localeCompare(b.city || "");
-      });
+      .filter(Boolean) as DropMarker[];
+  }, [filteredDrops, mode, areaPoint]);
 
-    return filtered;
-  }, [stores, drops, areaCenter, userLocation, selectedBottleNames]);
+  const visibleStores = useMemo(() => {
+    if (mode !== "store") return [];
+    return stores
+      .filter((store) => store.state === selectedState)
+      .filter((store) => store.lat != null && store.lng != null)
+      .filter((store) => distanceMiles(areaPoint, { lat: store.lat!, lng: store.lng! }) <= 60)
+      .sort((a, b) => (a.name || a.displayLabel).localeCompare(b.name || b.displayLabel));
+  }, [stores, mode, selectedState, areaPoint]);
 
   useEffect(() => {
-    if (!selectedStoreId && storesWithDrops.length > 0) setSelectedStoreId(storesWithDrops[0].id);
-  }, [storesWithDrops, selectedStoreId]);
-
-  const selectedStore = storesWithDrops.find((store) => store.id === selectedStoreId) || storesWithDrops[0] || null;
-  const storesWithSignal = storesWithDrops.filter((store) => store.matchingDrops.length > 0).length;
-  const selectedStoreVisibleDrops = useMemo(() => {
-    if (!selectedStore) return [];
-    return selectedStore.matchingDrops.slice(0, 8);
-  }, [selectedStore]);
-  const mapCenter: LatLngExpression = selectedStore?.lat && selectedStore?.lng
-    ? [selectedStore.lat, selectedStore.lng]
-    : areaCenter || [37.8, -78.5];
-
-  const handleZipApply = () => {
-    const nextCenter = zipToCenter(zipQuery);
-    if (nextCenter) {
-      setAreaCenter(nextCenter.center);
-      setAreaLabel(nextCenter.label);
+    if (mode === "store" && visibleStores.length > 0 && !selectedStoreId) {
+      setSelectedStoreId(visibleStores[0].id);
     }
-  };
+  }, [mode, visibleStores, selectedStoreId]);
 
-  const handleAddBottle = (bottleId: string) => {
-    if (selectedBottleIds.includes(bottleId) || selectedBottleIds.length >= 5) return;
-    setSelectedBottleIds((current) => [...current, bottleId]);
-    setBottleSearch("");
-  };
+  const selectedStore = visibleStores.find((store) => store.id === selectedStoreId) ?? null;
 
-  const toggleExpanded = (storeId: string) => {
-    setExpandedStores((current) => ({ ...current, [storeId]: !current[storeId] }));
-  };
+  const recentStoreDrops = useMemo(() => {
+    if (!selectedStore) return [];
+    const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return drops
+      .filter((drop) => {
+        const time = new Date(drop.timestamp).getTime();
+        if (time < cutoff) return false;
+        if (drop.store_id && String(drop.store_id) === selectedStore.id) return true;
+        if (drop.store_address && selectedStore.address && drop.store_address.toLowerCase() === selectedStore.address.toLowerCase()) return true;
+        return false;
+      })
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [drops, selectedStore]);
+
+  const olderStoreDrops = useMemo(() => {
+    if (!selectedStore || !showOlderStoreData) return [];
+    const newerCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const olderCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    return drops
+      .filter((drop) => {
+        const time = new Date(drop.timestamp).getTime();
+        if (time >= newerCutoff || time < olderCutoff) return false;
+        if (drop.store_id && String(drop.store_id) === selectedStore.id) return true;
+        if (drop.store_address && selectedStore.address && drop.store_address.toLowerCase() === selectedStore.address.toLowerCase()) return true;
+        return false;
+      })
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [drops, selectedStore, showOlderStoreData]);
 
   return (
-    <div className="hunt-map-grid" style={{ display: "grid", gap: 20, minHeight: "calc(100vh - 180px)", alignItems: "stretch" }}>
-      <div style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, background: "linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.02) 100%)", padding: 20, display: "flex", flexDirection: "column", gap: 18, minHeight: 0, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
-        <div>
-          <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Setup
-          </p>
-          <h2 style={{ margin: "8px 0 6px", fontFamily: "var(--font-playfair)", fontSize: 30, color: "var(--color-text-primary)" }}>
-            Build your hunt
-          </h2>
-          <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.65 }}>
-            Pick an area, filter for the bottles you actually chase, and work a short list of stores with real signal.
-          </p>
-        </div>
+    <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", background: "#0D0B07", minHeight: "calc(100vh - 140px)" }}>
+      <div style={{ position: "absolute", top: 16, left: 16, right: 16, zIndex: 500, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(9,8,7,0.82)", backdropFilter: "blur(12px)", padding: 16 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <button onClick={() => setMode("bottle")} style={{ flex: 1, borderRadius: 999, border: mode === "bottle" ? "1px solid rgba(196,148,58,0.35)" : "1px solid rgba(255,255,255,0.08)", background: mode === "bottle" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.03)", color: mode === "bottle" ? "var(--color-accent-amber)" : "var(--color-text-secondary)", padding: "10px 12px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Search by bottle</button>
+            <button onClick={() => setMode("store")} style={{ flex: 1, borderRadius: 999, border: mode === "store" ? "1px solid rgba(196,148,58,0.35)" : "1px solid rgba(255,255,255,0.08)", background: mode === "store" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.03)", color: mode === "store" ? "var(--color-accent-amber)" : "var(--color-text-secondary)", padding: "10px 12px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Search by store/board</button>
+          </div>
 
-        <div className="hunt-map-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
-          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>In range</div>
-            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{storesWithDrops.length}</div>
-          </div>
-          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>With signal</div>
-            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{storesWithSignal}</div>
-          </div>
-          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", padding: "12px 12px 10px" }}>
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-tertiary)", marginBottom: 6 }}>Bottle filters</div>
-            <div style={{ fontFamily: "var(--font-playfair)", fontSize: 26, color: "var(--color-text-primary)", lineHeight: 1 }}>{selectedBottleIds.length}</div>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
-          <input
-            value={zipQuery}
-            onChange={(e) => setZipQuery(e.target.value)}
-            placeholder="Enter ZIP code"
-            inputMode="numeric"
-            style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.9)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}
-          />
-          <button
-            onClick={handleZipApply}
-            style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-          >
-            Use ZIP
-          </button>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          {areaLabel && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-accent-amber)", background: "rgba(196,148,58,0.1)", border: "1px solid rgba(196,148,58,0.22)", borderRadius: 999, padding: "6px 10px" }}>
-              <Crosshair size={12} />
-              Area: {areaLabel}
-            </span>
-          )}
-          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>
-            Showing precise store locations within about 60 miles
-          </span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid rgba(196,148,58,0.14)", background: "rgba(196,148,58,0.06)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Sparkles size={15} style={{ color: "var(--color-accent-amber)", flexShrink: 0 }} />
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-              {selectedBottleIds.length > 0 ? "Stores with matching drops float to the top." : "Add bottles to turn this from a generic store list into a real hunt board."}
-            </div>
-          </div>
-          <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
-            {selectedBottleIds.length > 0 ? `${storesWithSignal} matches` : "Optional filter"}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>Bottles</label>
-          <div style={{ position: "relative" }}>
-            <Search size={15} style={{ position: "absolute", left: 12, top: 13, color: "var(--color-text-tertiary)" }} />
-            <input
-              value={bottleSearch}
-              onChange={(e) => setBottleSearch(e.target.value)}
-              placeholder="Search bottles"
-              style={{ width: "100%", padding: "12px 14px 12px 38px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.9)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}
-            />
-            {bottleSearch.trim() && visibleBottleOptions.length > 0 && (
-              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 30, background: "rgba(20,16,12,0.98)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,0.45)" }}>
-                {visibleBottleOptions.map((bottle) => (
-                  <button
-                    key={bottle.id}
-                    onClick={() => handleAddBottle(bottle.id)}
-                    style={{ width: "100%", textAlign: "left", padding: "12px 14px", border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)", background: "transparent", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontSize: 13 }}
-                  >
-                    {getBottleLabel(bottle)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {selectedBottleIds.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {selectedBottleIds.map((id) => {
-                const bottle = bottleOptions.find((entry) => entry.id === id);
-                if (!bottle) return null;
-                return (
-                  <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(196,148,58,0.1)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", borderRadius: 999, padding: "6px 10px", fontFamily: "var(--font-dm-sans)", fontSize: 12 }}>
-                    {bottle.name}
-                    <button onClick={() => setSelectedBottleIds((current) => current.filter((entry) => entry !== id))} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", display: "inline-flex", padding: 0 }}>
-                      <X size={12} />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Store board
-          </div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)" }}>
-            <SlidersHorizontal size={13} />
-            Ranked by signal, then distance
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, overflowY: "auto", paddingRight: 4 }}>
-          {storesWithDrops.slice(0, 40).map((store) => {
-            const isActive = store.id === selectedStore?.id;
-            const visibleDrops = (expandedStores[store.id] ? store.matchingDrops : store.matchingDrops.slice(0, 5));
-            return (
-              <button
-                key={store.id}
-                onClick={() => setSelectedStoreId(store.id)}
-                style={{ textAlign: "left", padding: "15px 15px 14px", borderRadius: 16, border: isActive ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.05)", background: isActive ? "linear-gradient(180deg, rgba(196,148,58,0.12) 0%, rgba(196,148,58,0.07) 100%)" : "rgba(255,255,255,0.02)", cursor: "pointer", boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.05)" : "none" }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", marginBottom: 10 }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>
-                        {store.name || `${store.city || store.state} store`}
-                      </span>
-                      {store.matchingDrops.length > 0 && (
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", borderRadius: 999, background: "rgba(196,148,58,0.12)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", fontFamily: "var(--font-jetbrains)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                          <Sparkles size={10} />
-                          {store.matchingDrops.length} signal
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                      {store.address || "Address unavailable"}
-                    </div>
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", marginTop: 4 }}>
-                      {[store.city, store.state].filter(Boolean).join(", ")}
-                    </div>
+          {mode === "bottle" ? (
+            <div style={{ display: "grid", gap: 10 }}>
+              <div style={{ position: "relative" }}>
+                <Search size={15} style={{ position: "absolute", left: 12, top: 13, color: "var(--color-text-tertiary)" }} />
+                <input value={bottleSearch} onChange={(e) => setBottleSearch(e.target.value)} placeholder="Search bottle" style={{ width: "100%", padding: "12px 14px 12px 38px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }} />
+                {bottleSearch.trim() && bottleSuggestions.length > 0 && (
+                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 510, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(12,10,8,0.98)" }}>
+                    {bottleSuggestions.map((option) => (
+                      <button key={option.id} onClick={() => { setSelectedBottleIds((current) => [...current, option.id]); setBottleSearch(""); }} style={{ width: "100%", border: "none", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "transparent", color: "var(--color-text-primary)", textAlign: "left", padding: "12px 14px", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontSize: 13 }}>{option.label}</button>
+                    ))}
                   </div>
-                  {store.distanceMiles != null && (
-                    <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
-                      {formatDistanceMiles(store.distanceMiles)}
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {visibleDrops.length > 0 ? visibleDrops.map((drop, index) => (
-                    <div key={`${store.id}-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.4 }}>
-                        {cleanBrandName(drop.brand_name)}
-                      </span>
-                      <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-text-tertiary)", whiteSpace: "nowrap" }}>
-                        {formatRelativeTime(drop.timestamp)}
-                      </span>
-                    </div>
-                  )) : (
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)" }}>
-                      No recent matching drops.
-                    </div>
-                  )}
-                </div>
-
-                {store.matchingDrops.length > 5 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleExpanded(store.id);
-                    }}
-                    style={{ marginTop: 10, background: "transparent", border: "none", color: "var(--color-accent-amber)", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontSize: 12, padding: 0 }}
-                  >
-                    {expandedStores[store.id] ? "Show less" : `Show more (${store.matchingDrops.length - 5})`}
-                  </button>
                 )}
-              </button>
-            );
-          })}
-          {storesWithDrops.length === 0 && (
-            <div style={{ padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-tertiary)", lineHeight: 1.6 }}>
-              No precise store locations found for this area yet. We should not fake board-level dots here.
+              </div>
+              {selectedBottleIds.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {selectedBottleIds.map((id) => {
+                    const option = bottleOptions.find((entry) => entry.id === id);
+                    if (!option) return null;
+                    return <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 999, padding: "6px 10px", background: "rgba(196,148,58,0.10)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", fontFamily: "var(--font-dm-sans)", fontSize: 12 }}>{option.label}<button onClick={() => setSelectedBottleIds((current) => current.filter((entry) => entry !== id))} style={{ border: "none", background: "transparent", color: "inherit", cursor: "pointer", padding: 0 }}><X size={12} /></button></span>;
+                  })}
+                </div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8 }}>
+                <input value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder="ZIP code or city" style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }} />
+                <select value={String(daysBack)} onChange={(e) => setDaysBack(Number(e.target.value))} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
+                  {[1, 3, 7, 14].map((days) => <option key={days} value={days}>{`Last ${days} day${days === 1 ? "" : "s"}`}</option>)}
+                </select>
+                <button onClick={handleApplyArea} style={{ borderRadius: 12, border: "1px solid rgba(196,148,58,0.24)", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Go</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "140px 1fr auto", gap: 8 }}>
+                <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
+                  <option value="NC">North Carolina</option>
+                  <option value="VA">Virginia</option>
+                  <option value="PA">Pennsylvania</option>
+                </select>
+                <input value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder="ZIP code or city" style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }} />
+                <button onClick={handleApplyArea} style={{ borderRadius: 12, border: "1px solid rgba(196,148,58,0.24)", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Go</button>
+              </div>
+              {selectedStore && (
+                <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: 14 }}>
+                  <div style={{ fontFamily: "var(--font-playfair)", fontSize: 22, color: "var(--color-cream)", marginBottom: 6 }}>{selectedStore.name || selectedStore.displayLabel}</div>
+                  <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{selectedStore.address || selectedStore.displayLabel}</div>
+                  <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+                    {recentStoreDrops.length > 0 ? recentStoreDrops.slice(0, 8).map((drop, index) => (
+                      <div key={`${selectedStore.id}-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{cleanBrandName(drop.brand_name)}</span>
+                        <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)" }}>{formatRelativeTime(drop.timestamp)}</span>
+                      </div>
+                    )) : (
+                      <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-tertiary)", lineHeight: 1.6 }}>
+                        No drops within last 7 days, <button onClick={() => setShowOlderStoreData(true)} style={{ background: "transparent", border: "none", color: "var(--color-accent-amber)", padding: 0, cursor: "pointer", font: "inherit" }}>click here to show older data</button>
+                      </div>
+                    )}
+                    {showOlderStoreData && olderStoreDrops.map((drop, index) => (
+                      <div key={`${selectedStore.id}-older-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{cleanBrandName(drop.brand_name)}</span>
+                        <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)" }}>{formatRelativeTime(drop.timestamp)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", minHeight: 540, background: "#0D0B07", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
-        <div style={{ position: "absolute", top: 16, left: 16, right: 16, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, pointerEvents: "none" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(9,8,7,0.72)", backdropFilter: "blur(10px)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 13, pointerEvents: "auto" }}>
-            <MapPin size={14} style={{ color: "var(--color-accent-amber)" }} />
-            {selectedStore ? (selectedStore.name || `${selectedStore.city || selectedStore.state} store`) : "Select a store"}
-          </div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(9,8,7,0.72)", backdropFilter: "blur(10px)", color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)", fontSize: 12, pointerEvents: "auto" }}>
-            {selectedStore?.distanceMiles != null ? `${formatDistanceMiles(selectedStore.distanceMiles)} away` : "Live store positions"}
-          </div>
-        </div>
+      <MapContainer center={areaCenter} zoom={mapZoom} scrollWheelZoom style={{ width: "100%", height: "calc(100vh - 140px)", minHeight: 620, background: "#0D0B07" }}>
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+        <FlyToView center={areaCenter} zoom={mapZoom} />
 
-        <div style={{ position: "absolute", right: 16, bottom: 16, zIndex: 500, width: "min(360px, calc(100% - 32px))", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(11,10,8,0.9) 0%, rgba(11,10,8,0.82) 100%)", backdropFilter: "blur(14px)", boxShadow: "0 24px 60px rgba(0,0,0,0.38)", overflow: "hidden" }}>
-          <div style={{ padding: "16px 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-              <div>
-                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: 6 }}>
-                  Selected store
-                </div>
-                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 24, lineHeight: 1.05, color: "var(--color-text-primary)" }}>
-                  {selectedStore ? (selectedStore.name || `${selectedStore.city || selectedStore.state} store`) : "Pick a store"}
-                </div>
-              </div>
-              {selectedStore?.matchingDrops.length ? (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 999, background: "rgba(196,148,58,0.12)", border: "1px solid rgba(196,148,58,0.22)", color: "var(--color-accent-amber)", fontFamily: "var(--font-jetbrains)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                  <Sparkles size={11} />
-                  {selectedStore.matchingDrops.length} signal
-                </div>
-              ) : null}
-            </div>
+        {mode === "bottle" && bottleMarkers.map((marker) => {
+          const radius = marker.quantity ? Math.max(8, Math.min(20, 6 + Math.sqrt(marker.quantity))) : 10;
+          return (
+            <CircleMarker
+              key={marker.id}
+              center={[marker.lat, marker.lng]}
+              radius={radius}
+              pathOptions={{
+                fillColor: "#D4920B",
+                fillOpacity: 0.78,
+                color: "rgba(255,255,255,0.26)",
+                weight: 1.5,
+              }}
+            />
+          );
+        })}
 
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.55 }}>
-              {selectedStore?.address || "Address unavailable"}
-              {selectedStore ? <><br />{[selectedStore.city, selectedStore.state].filter(Boolean).join(", ")}</> : null}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
-              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><Route size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Distance</span></div>
-                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.distanceMiles != null ? formatDistanceMiles(selectedStore.distanceMiles) : "--"}</div>
-              </div>
-              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><Clock3 size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Recent drops</span></div>
-                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.recentDrops.length ?? 0}</div>
-              </div>
-              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "10px 10px 9px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-tertiary)", marginBottom: 6 }}><MapPinned size={12} /><span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>Status</span></div>
-                <div style={{ fontFamily: "var(--font-playfair)", fontSize: 20, color: "var(--color-text-primary)" }}>{selectedStore?.matchingDrops.length ? "Hot" : "Quiet"}</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ padding: "14px 16px 16px", maxHeight: 240, overflowY: "auto" }}>
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
-              Matching drops
-            </div>
-            {selectedStore && selectedStoreVisibleDrops.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {selectedStoreVisibleDrops.map((drop, index) => (
-                  <div key={`${selectedStore.id}-detail-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div>
-                      <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)", lineHeight: 1.35 }}>
-                        {cleanBrandName(drop.brand_name)}
-                      </div>
-                      <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 4 }}>
-                        {drop.event_type.replace(/_/g, " ")}
-                      </div>
-                    </div>
-                    <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)", whiteSpace: "nowrap" }}>
-                      {formatRelativeTime(drop.timestamp)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", padding: "12px 12px", fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-tertiary)", lineHeight: 1.55 }}>
-                {selectedStore ? "No recent matching drops for the current bottle filters. Try widening the hunt radius or clearing bottle filters." : "Pick a store on the left and the detail panel will lock onto it."}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <MapContainer center={mapCenter} zoom={7} scrollWheelZoom style={{ width: "100%", height: "100%", minHeight: 540, background: "#0D0B07" }}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-          <FlyToLocation center={mapCenter} />
-          {storesWithDrops.filter((store) => store.lat != null && store.lng != null).slice(0, 200).map((store) => {
-            const isSelected = store.id === selectedStore?.id;
-            const hasSignal = store.matchingDrops.length > 0;
-            return (
-              <CircleMarker
-                key={store.id}
-                center={[store.lat!, store.lng!]}
-                radius={isSelected ? 11 : hasSignal ? 8 : 6}
-                pathOptions={{
-                  fillColor: markerFill(isSelected, hasSignal),
-                  fillOpacity: isSelected ? 0.98 : hasSignal ? 0.88 : 0.55,
-                  color: markerStroke(hasSignal),
-                  weight: isSelected ? 2 : 1,
-                }}
-                eventHandlers={{ click: () => setSelectedStoreId(store.id) }}
-              />
-            );
-          })}
-        </MapContainer>
-      </div>
+        {mode === "store" && visibleStores.map((store) => (
+          <CircleMarker
+            key={store.id}
+            center={[store.lat!, store.lng!]}
+            radius={selectedStoreId === store.id ? 11 : 8}
+            pathOptions={{
+              fillColor: "#D4920B",
+              fillOpacity: selectedStoreId === store.id ? 0.92 : 0.72,
+              color: "rgba(255,255,255,0.24)",
+              weight: selectedStoreId === store.id ? 2 : 1,
+            }}
+            eventHandlers={{ click: () => { setSelectedStoreId(store.id); setShowOlderStoreData(false); } }}
+          />
+        ))}
+      </MapContainer>
     </div>
   );
 }
