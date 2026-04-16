@@ -1,6 +1,7 @@
 export interface Bottle {
   id: string;
   name: string;
+  canonical_key?: string;
   distillery: string;
   tier: "unicorn" | "allocated" | "limited";
   msrp: number;

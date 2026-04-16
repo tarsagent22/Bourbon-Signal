@@ -6,6 +6,7 @@ import type { Bottle } from "@/data/bottles";
 interface EngineBottle {
   id: string;
   name: string;
+  canonical_key?: string;
   state: string;
   tier: string;
   msrp: number;
@@ -28,6 +29,7 @@ export function useBottles() {
         const mapped: Bottle[] = (data.bottles || []).map((b: EngineBottle) => ({
           id: b.id,
           name: b.name,
+          canonical_key: b.canonical_key || undefined,
           distillery: b.distillery || "Unknown",
           tier: (b.tier as Bottle["tier"]) || "limited",
           msrp: b.msrp || 0,

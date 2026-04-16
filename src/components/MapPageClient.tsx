@@ -10,6 +10,7 @@ import type { Bottle } from "@/data/bottles";
 import type { Store } from "@/hooks/useStores";
 import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
+import { candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 type FinderMode = "bottle" | "store";
 type FinderState = "ALL" | "NC" | "VA" | "PA";
@@ -45,22 +46,8 @@ function normalize(value?: string | null) {
 
 function stripBottleName(value?: string | null) {
   return normalize(value)
-    .replace(/\.75l|1\.00l|1\.75l|750ml|375ml|50ml/gi, "")
-    .replace(/single barrel america 250 comm\. ed\./gi, "single barrel")
-    .replace(/\(ncabc btb\)/gi, "")
-    .replace(/private/gi, "")
-    .replace(/\*/g, "")
-    .replace(/\b(straight|whiskey|whisky|bourbon|rye|barrel|proof|single|small|batch|reserve|special|edition|series|private|select|release|finish|finished|toasted|cask|strength|american)\b/gi, "")
-    .replace(/\b(7y|8y|9y|10y|11y|12y|13y|14y|15y|16y|17y|18y|21y|23y|25y|30y)\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function tokenizeBottleName(value?: string | null) {
-  return stripBottleName(value)
-    .split(/\s+/)
-    .map((part) => part.trim())
-    .filter((part) => part.length >= 3);
 }
 
 function isWithinLastDays(timestamp?: string, days: number = 30) {
@@ -72,22 +59,8 @@ function isWithinLastDays(timestamp?: string, days: number = 30) {
 
 function bottleMatchesQuery(candidate: string, selectedBottle: Bottle) {
   const candidateNorm = stripBottleName(candidate);
-  const bottleName = stripBottleName(selectedBottle.name);
-  const bottleId = stripBottleName(selectedBottle.id);
-  const bottleTokens = new Set([
-    ...tokenizeBottleName(selectedBottle.name),
-    ...tokenizeBottleName(selectedBottle.id),
-  ]);
-  const candidateTokens = tokenizeBottleName(candidate);
-  const sharedTokens = candidateTokens.filter((token) => bottleTokens.has(token));
-
-  return (
-    candidateNorm.includes(bottleName) ||
-    bottleName.includes(candidateNorm) ||
-    candidateNorm.includes(bottleId) ||
-    bottleId.includes(candidateNorm) ||
-    (sharedTokens.length >= 2 && candidateTokens.length > 0)
-  );
+  const aliases = candidateBottleKeys(selectedBottle.name);
+  return aliases.some((alias) => alias && (candidateNorm.includes(alias) || alias.includes(candidateNorm)));
 }
 
 function getStoreLookupKeys(store: Store) {
@@ -436,7 +409,7 @@ export default function MapPageClient() {
     return drops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => isWithinLastDays(drop.timestamp, 30))
-      .filter((drop) => bottleMatchesQuery(getDisplayName(drop), selectedBottle) || bottleMatchesQuery(drop.brand_name || "", selectedBottle))
+      .filter((drop) => dropMatchesBottle(drop, selectedBottle) || bottleMatchesQuery(getDisplayName(drop), selectedBottle))
       .slice(0, 40);
   }, [drops, selectedBottle, stateFilter]);
 
