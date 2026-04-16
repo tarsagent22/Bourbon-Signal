@@ -392,11 +392,56 @@ export default function MapPageClient() {
               <Radar size={14} />
               Finder
             </div>
-            <h1>Find the bottle. Scan the board. Hunt like you mean it.</h1>
+            <h1>{mode === "bottle" ? "Search a bottle. See where it is moving." : "Search a board. See what is actually hitting."}</h1>
             <p>
-              We killed the gimmick map and kept the useful part. Finder gives members two lenses on the same signal network,
-              bottle-first when you know what you want, board-first when you want to see what is moving near you.
+              {mode === "bottle"
+                ? "Pick a bottle, narrow the state, and we’ll show the boards and stores where it has actually moved recently."
+                : "Pick your board or store, then see the bottles, drops, and recent movement tied to that location."}
             </p>
+
+            <div className="finder-tool-shell">
+              <div className="finder-lens-row">
+                <button
+                  type="button"
+                  className={`finder-lens ${mode === "bottle" ? "active" : ""}`}
+                  onClick={() => setMode("bottle")}
+                >
+                  <Sparkles size={15} />
+                  Find a Bottle
+                </button>
+                <button
+                  type="button"
+                  className={`finder-lens ${mode === "store" ? "active" : ""}`}
+                  onClick={() => setMode("store")}
+                >
+                  <Warehouse size={15} />
+                  Scan a Board
+                </button>
+              </div>
+
+              <div className="finder-search-wrap hero-search">
+                <Search size={16} color="var(--color-text-tertiary)" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
+                  className="finder-search-input"
+                />
+              </div>
+
+              <div className="finder-state-row hero-states">
+                {STATE_OPTIONS.map((state) => (
+                  <button
+                    key={state}
+                    type="button"
+                    className={`finder-state-chip ${stateFilter === state ? "active" : ""}`}
+                    onClick={() => setStateFilter(state)}
+                  >
+                    {state === "ALL" ? "All states" : state}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="finder-summary-grid">
@@ -426,50 +471,8 @@ export default function MapPageClient() {
           transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           className="finder-panel finder-controls"
         >
-          <div className="finder-lens-row">
-            <button
-              type="button"
-              className={`finder-lens ${mode === "bottle" ? "active" : ""}`}
-              onClick={() => setMode("bottle")}
-            >
-              <Sparkles size={15} />
-              Find a Bottle
-            </button>
-            <button
-              type="button"
-              className={`finder-lens ${mode === "store" ? "active" : ""}`}
-              onClick={() => setMode("store")}
-            >
-              <Warehouse size={15} />
-              Scan a Board
-            </button>
-          </div>
-
-          <div className="finder-search-wrap">
-            <Search size={16} color="var(--color-text-tertiary)" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
-              className="finder-search-input"
-            />
-          </div>
-
-          <div className="finder-state-row">
-            {STATE_OPTIONS.map((state) => (
-              <button
-                key={state}
-                type="button"
-                className={`finder-state-chip ${stateFilter === state ? "active" : ""}`}
-                onClick={() => setStateFilter(state)}
-              >
-                {state === "ALL" ? "All states" : state}
-              </button>
-            ))}
-          </div>
-
           <div className="finder-section-label">
-            {mode === "bottle" ? "Bottle lens" : "Board lens"}
+            {mode === "bottle" ? "Bottle matches" : "Board matches"}
           </div>
 
           <div className="finder-card-stack">

@@ -304,7 +304,7 @@ body::after {
 }
 
 .finder-hero-copy p {
-  max-width: 60ch;
+  max-width: 44ch;
   margin-top: 18px;
   color: var(--color-text-secondary);
   font-family: var(--font-dm-sans);
@@ -312,10 +312,33 @@ body::after {
   line-height: 1.7;
 }
 
+.finder-tool-shell {
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 28px;
+  border: 1px solid rgba(247, 240, 224, 0.08);
+  background: linear-gradient(180deg, rgba(21, 16, 10, 0.52) 0%, rgba(14, 11, 7, 0.66) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.finder-search-wrap.hero-search {
+  margin-top: 12px;
+  background: rgba(255,255,255,0.04);
+}
+
+.finder-state-row.hero-states {
+  margin-top: 12px;
+}
+
+.finder-state-row.hero-states .finder-state-chip {
+  background: rgba(255,255,255,0.03);
+}
+
 .finder-summary-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
+  align-self: end;
 }
 
 .finder-summary-card {
@@ -348,6 +371,14 @@ body::after {
   margin-top: 18px;
 }
 
+.finder-controls {
+  order: 2;
+}
+
+.finder-results {
+  order: 1;
+}
+
 .finder-panel {
   border-radius: 32px;
   border: 1px solid rgba(247, 240, 224, 0.08);
@@ -358,6 +389,20 @@ body::after {
 
 .finder-controls {
   padding: 18px;
+}
+
+.finder-controls .finder-search-wrap,
+.finder-controls .finder-state-row,
+.finder-controls .finder-lens-row {
+  display: none;
+}
+
+.finder-controls .finder-card-stack {
+  margin-top: 10px;
+}
+
+.finder-controls .finder-section-label {
+  margin-top: 0;
 }
 
 .finder-results {
@@ -659,6 +704,11 @@ body::after {
     padding: 38px 32px 30px;
   }
 
+  .finder-tool-shell {
+    max-width: 760px;
+    padding: 18px;
+  }
+
   .finder-main-grid {
     grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
     align-items: start;
@@ -681,6 +731,20 @@ body::after {
 
   .finder-dual-columns {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .finder-main-grid {
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  }
+
+  .finder-controls {
+    order: 1;
+  }
+
+  .finder-results {
+    order: 2;
   }
 }
 
