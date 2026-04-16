@@ -93,14 +93,51 @@ function matchesStore(drop: DropEvent, store: Store) {
   const storeAddress = normalize(drop.store_address);
   const storeCity = normalize(drop.store_city);
   const storeCounty = normalize(drop.store_county);
+  const nestedAddresses = (drop.stores || []).map((entry) => normalize(entry.store_address));
+  const nestedCities = (drop.stores || []).map((entry) => normalize(entry.city));
   const keys = getStoreLookupKeys(store);
 
   return keys.some((key) =>
     key &&
-    [boardName, storeName, storeAddress, storeCity, storeCounty].some((candidate) =>
+    [boardName, storeName, storeAddress, storeCity, storeCounty, ...nestedAddresses, ...nestedCities].some((candidate) =>
       candidate ? candidate.includes(key) || key.includes(candidate) : false
     )
   );
+}
+
+function getDropLocations(drop: DropEvent) {
+  const locations: Array<{ label: string; detail: string; precision: "store" | "board"; confidence: number }> = [];
+
+  if (drop.board_name) {
+    locations.push({
+      label: drop.board_name,
+      detail: "Shipment / board-level signal",
+      precision: "board",
+      confidence: 2,
+    });
+  }
+
+  if (drop.store_name || drop.store_address || drop.store_city) {
+    locations.push({
+      label: drop.store_name || drop.store_city || "Store signal",
+      detail: drop.store_address || [drop.store_city, drop.store_county].filter(Boolean).join(", ") || "Store-level signal",
+      precision: "store",
+      confidence: drop.store_address ? 4 : 3,
+    });
+  }
+
+  for (const entry of drop.stores || []) {
+    const label = entry.store_address || entry.city;
+    if (!label) continue;
+    locations.push({
+      label,
+      detail: entry.city || "Store-level inventory signal",
+      precision: entry.store_address ? "store" : "board",
+      confidence: entry.store_address ? 5 : 2,
+    });
+  }
+
+  return locations;
 }
 
 function FinderBottleCard({
@@ -388,13 +425,60 @@ export default function MapPageClient() {
   }, [drops, selectedBottle, stateFilter]);
 
   const matchingStoresForBottle = useMemo(() => {
-    if (!selectedBottle) return [] as Store[];
-    const relatedDrops = bottleDrops;
-    return filteredStores
-      .filter((store) => relatedDrops.some((drop) => matchesStore(drop, store)))
-      .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
+    if (!selectedBottle) return [] as Array<Store & { hitCount: number; lastSeen?: string; matchStrength: number }>;
+
+    const scored = new Map<string, Store & { hitCount: number; lastSeen?: string; matchStrength: number }>();
+
+    for (const store of filteredStores) {
+      let hitCount = 0;
+      let matchStrength = 0;
+      let lastSeen: string | undefined;
+
+      for (const drop of bottleDrops) {
+        if (!matchesStore(drop, store)) continue;
+        hitCount += 1;
+        const locations = getDropLocations(drop);
+        const localStrength = locations.reduce((best, location) => {
+          const storeKeys = getStoreLookupKeys(store);
+          const label = normalize(location.label);
+          const detail = normalize(location.detail);
+          const matched = storeKeys.some((key) => key && (label.includes(key) || key.includes(label) || detail.includes(key) || key.includes(detail)));
+          return matched ? Math.max(best, location.confidence) : best;
+        }, 1);
+        matchStrength = Math.max(matchStrength, localStrength);
+        if (!lastSeen || new Date(drop.timestamp).getTime() > new Date(lastSeen).getTime()) {
+          lastSeen = drop.timestamp;
+        }
+      }
+
+      if (hitCount > 0) {
+        scored.set(store.id, {
+          ...store,
+          hitCount,
+          lastSeen,
+          matchStrength,
+        });
+      }
+    }
+
+    return Array.from(scored.values())
+      .sort((a, b) => {
+        if (b.matchStrength !== a.matchStrength) return b.matchStrength - a.matchStrength;
+        if (b.hitCount !== a.hitCount) return b.hitCount - a.hitCount;
+        return (b.bottle_count ?? 0) - (a.bottle_count ?? 0);
+      })
       .slice(0, 8);
   }, [bottleDrops, filteredStores, selectedBottle]);
+
+  const bottleLocationInsights = useMemo(() => {
+    const exactStoreMatches = matchingStoresForBottle.filter((store) => store.precision === "store");
+    const boardMatches = matchingStoresForBottle.filter((store) => store.precision === "board");
+    return {
+      exactStoreMatches: exactStoreMatches.length,
+      boardMatches: boardMatches.length,
+      freshestHit: bottleDrops[0]?.timestamp,
+    };
+  }, [matchingStoresForBottle, bottleDrops]);
 
   const storeDrops = useMemo(() => {
     if (!selectedStore) return [];
@@ -642,15 +726,23 @@ export default function MapPageClient() {
                                   <span>
                                     {[store.city, store.state].filter(Boolean).join(", ")}
                                     {store.address ? ` · ${store.address}` : ""}
+                                    {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
                                   </span>
                                 </div>
-                                <span className="finder-row-pill">{store.precision === "board" ? "Board" : "Store"}</span>
+                                <span className="finder-row-pill">{store.precision === "board" ? `${store.hitCount} board hits` : `${store.hitCount} store hits`}</span>
                               </div>
                             ))
                           ) : (
                             <div className="finder-empty-card small">No direct board or store match yet. The bottle is tracked, but recent location linkage is thin.</div>
                           )}
                         </div>
+                        {matchingStoresForBottle.length > 0 ? (
+                          <p className="finder-footnote">
+                            {bottleLocationInsights.exactStoreMatches > 0
+                              ? `${bottleLocationInsights.exactStoreMatches} exact store matches and ${bottleLocationInsights.boardMatches} board-level leads found for this bottle.`
+                              : `${bottleLocationInsights.boardMatches} board-level leads found for this bottle. Exact store precision is thinner right now.`}
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="finder-subpanel">
