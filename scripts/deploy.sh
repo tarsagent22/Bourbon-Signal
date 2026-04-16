@@ -55,4 +55,4 @@ git push origin main
 echo "🌐 Deploying to Vercel..."
 npx vercel --prod --token "$TOKEN" --yes
 
-echo "✅ Live at proofhunt.co"
+echo "✅ Live at bourbonsignal.com"
