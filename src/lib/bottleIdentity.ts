@@ -2,33 +2,12 @@ import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
 
 const STOPWORDS = new Set([
-  "straight",
   "whiskey",
   "whisky",
-  "bourbon",
-  "rye",
-  "barrel",
-  "proof",
-  "single",
-  "small",
-  "batch",
-  "reserve",
-  "special",
-  "edition",
-  "series",
-  "private",
-  "select",
-  "release",
-  "finish",
-  "finished",
-  "toasted",
-  "cask",
-  "strength",
   "american",
   "bottled",
   "bond",
   "bottledinbond",
-  "wheated",
   "kentucky",
 ]);
 
