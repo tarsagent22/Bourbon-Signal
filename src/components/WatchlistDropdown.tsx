@@ -8,6 +8,7 @@ import { bottles } from "@/data/bottles";
 import { bottleIdFromName } from "@/lib/drops";
 import dropsData from "@/data/drops.json";
 import type { DropEvent } from "@/lib/drops";
+import { dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const TIER_DOT_COLORS: Record<string, string> = {
   unicorn: "#C4943A",
@@ -53,12 +54,7 @@ export default function WatchlistDropdown() {
     const bottle = bottles.find((b) => b.id === id);
     if (!bottle) return null;
 
-    // Find most recent drop for this bottle
-    const nameLower = bottle.name.toLowerCase();
-    const matchingDrops = drops.filter((d) =>
-      d.brand_name.toLowerCase().includes(nameLower) ||
-      nameLower.includes(d.brand_name.toLowerCase().replace(/\s*(700ml|750ml|1\.00l)\s*/gi, "").trim())
-    );
+    const matchingDrops = drops.filter((d) => dropMatchesBottle(d, bottle));
     const latestDrop = matchingDrops.length > 0
       ? matchingDrops.reduce((a, b) =>
           new Date(a.timestamp) > new Date(b.timestamp) ? a : b

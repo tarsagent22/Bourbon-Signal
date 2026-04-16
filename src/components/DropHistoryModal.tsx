@@ -6,6 +6,7 @@ import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
 import { getDisplayName, formatRelativeTime, cleanCountyName, TIER_CONFIG } from "@/lib/drops";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { dropMatchesBottle } from "@/lib/bottleIdentity";
 
 interface DropHistoryModalProps {
   bottle: Bottle;
@@ -103,15 +104,7 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
   }, [isOpen]);
 
   const recentDrops = useMemo(() => {
-    // Match drops by name — use fuzzy matching (contains) to handle name variants
-    const bottleName = bottle.name.toLowerCase().replace(/['']/g, "").trim();
-    let filtered = allDrops.filter((d) => {
-      const dropName = getDisplayName(d).toLowerCase().replace(/['']/g, "").trim();
-      // Exact match or significant substring match
-      return dropName === bottleName || 
-        dropName.includes(bottleName) || 
-        bottleName.includes(dropName);
-    });
+    let filtered = allDrops.filter((d) => dropMatchesBottle(d, bottle));
 
     // TODO: When preferences.states is populated (user has set area preferences),
     // this filter will narrow results to their preferred states.

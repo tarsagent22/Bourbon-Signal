@@ -15,16 +15,17 @@ import { isInStockNow, isSeenThisWeek } from "@/lib/availability";
 import dropsData from "@/data/drops.json";
 import { getDisplayName } from "@/lib/drops";
 import type { DropEvent } from "@/lib/drops";
+import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const FREE_VISIBLE_COUNT = 6;
 
-// Build a lookup: normalized bottle name → most recent matching drop
+// Build a lookup: canonical bottle key → most recent matching drop
 function buildLastSeenLookup(drops: DropEvent[]): Map<string, { timestamp: string; location: string }> {
   const map = new Map<string, { timestamp: string; location: string }>();
   for (const event of drops) {
-    const name = getDisplayName(event).toLowerCase().trim();
-    if (!name || name === "unknown bottle") continue;
-    const existing = map.get(name);
+    const key = canonicalBottleKey(getDisplayName(event));
+    if (!key) continue;
+    const existing = map.get(key);
     if (!existing || event.timestamp > existing.timestamp) {
       let location = "";
       if (event.stores && event.stores.length > 0 && event.stores[0].city) {
@@ -32,7 +33,7 @@ function buildLastSeenLookup(drops: DropEvent[]): Map<string, { timestamp: strin
       } else if (event.state) {
         location = event.state;
       }
-      map.set(name, { timestamp: event.timestamp, location });
+      map.set(key, { timestamp: event.timestamp, location });
     }
   }
   return map;
@@ -357,18 +358,8 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                   ? getBlurAmount(globalIndex)
                   : 0;
 
-                // Find last-seen from drops data using partial name match
-                const bottleNameNorm = bottle.name.toLowerCase().trim();
-                let lastSeenInfo: { timestamp: string; location: string } | undefined;
-                lastSeenInfo = lastSeenLookup.get(bottleNameNorm);
-                if (!lastSeenInfo) {
-                  for (const [key, val] of lastSeenLookup) {
-                    if (bottleNameNorm.includes(key) || key.includes(bottleNameNorm)) {
-                      lastSeenInfo = val;
-                      break;
-                    }
-                  }
-                }
+                const bottleKey = bottle.canonical_key || canonicalBottleKey(bottle.name);
+                const lastSeenInfo: { timestamp: string; location: string } | undefined = lastSeenLookup.get(bottleKey);
 
                 return (
                   <BottleCard

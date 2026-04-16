@@ -4,9 +4,10 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { motion, useInView } from "framer-motion";
 import { Crown } from "lucide-react";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
-import { type DropEvent, getDisplayName } from "@/lib/drops";
+import { type DropEvent } from "@/lib/drops";
 import { INITIAL_WATCHLIST } from "@/components/sections/DashboardSidebar";
 import { useStats } from "@/lib/useEngineData";
+import { canonicalBottleKey, getDropIdentityKeys } from "@/lib/bottleIdentity";
 
 interface DashboardStatsProps {
   drops: DropEvent[];
@@ -125,12 +126,12 @@ export default function DashboardStats({ drops }: DashboardStatsProps) {
     const recentDrops = drops.filter(
       (d) => new Date(d.timestamp).getTime() > sevenDaysAgo
     );
-    const watchlistNames = INITIAL_WATCHLIST.map((w) => w.name.toLowerCase());
+    const watchlistNames = INITIAL_WATCHLIST.map((w) => canonicalBottleKey(w.name)).filter(Boolean);
     const matchedNames = new Set<string>();
     for (const drop of recentDrops) {
-      const name = getDisplayName(drop).toLowerCase();
+      const dropKeys = getDropIdentityKeys(drop);
       for (const wName of watchlistNames) {
-        if (name.includes(wName) || wName.includes(name)) {
+        if (dropKeys.includes(wName)) {
           matchedNames.add(wName);
         }
       }

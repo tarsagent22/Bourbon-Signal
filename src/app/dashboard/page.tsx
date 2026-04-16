@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import type { Bottle } from "@/data/bottles";
 import type { AreaPreferences } from "@/app/api/user/preferences/route";
+import { canonicalBottleKey } from "@/lib/bottleIdentity";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -40,21 +41,6 @@ interface StoreSelectionState {
   storeIds: string[];
 }
 
-function normalizeBottleName(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/small batch\s*\d+/g, "small batch")
-    .replace(/single barrel\s*\d+/g, "single barrel")
-    .replace(/private barrel\s*\d+/g, "private barrel")
-    .replace(/batch proof\s*\d+/g, "batch proof")
-    .replace(/\bproof\s*\d+/g, "proof")
-    .replace(/\b(375ml|750ml|1l|1\.75l)\b/g, " ")
-    .replace(/\b(ncabc|nc abc|va abc|fwgs|state-specific|north carolina|virginia|pennsylvania)\b/g, " ")
-    .replace(/\b(\d+)\b$/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 function isWhiskeyProduct(name: string) {
   const normalized = name.toLowerCase();
@@ -417,7 +403,7 @@ export default function DashboardPage() {
 
     for (const bottle of bottles) {
       if (!isWhiskeyProduct(bottle.name)) continue;
-      const canonicalKey = normalizeBottleName(bottle.name);
+      const canonicalKey = bottle.canonical_key || canonicalBottleKey(bottle.name);
       const existing = grouped.get(canonicalKey);
       if (!existing) {
         grouped.set(canonicalKey, {
