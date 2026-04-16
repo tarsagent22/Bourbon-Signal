@@ -1,40 +1,694 @@
 "use client";
 
-import { useMemo } from "react";
-import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Search, Radar, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
 import { useBottles } from "@/hooks/useBottles";
 import { useDrops } from "@/hooks/useDrops";
+import type { Bottle } from "@/data/bottles";
+import type { Store } from "@/hooks/useStores";
+import type { DropEvent } from "@/lib/drops";
+import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 
-const Map = dynamic(() => import("@/components/HuntMap"), {
-  ssr: false,
-  loading: () => (
-    <div style={{ minHeight: "calc(100vh - 140px)", borderRadius: 24, border: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: 15, color: "var(--color-text-tertiary)" }}>
-        Loading live store map...
-      </p>
-    </div>
-  ),
-});
+type FinderMode = "bottle" | "store";
+type FinderState = "ALL" | "NC" | "VA" | "PA";
+
+const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA"];
+
+const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
+  unicorn: {
+    label: "Unicorn",
+    color: "#F2C14E",
+    glow: "rgba(242, 193, 78, 0.22)",
+  },
+  allocated: {
+    label: "Allocated",
+    color: "#D4920B",
+    glow: "rgba(212, 146, 11, 0.2)",
+  },
+  limited: {
+    label: "Limited",
+    color: "#8A8078",
+    glow: "rgba(138, 128, 120, 0.16)",
+  },
+};
+
+function formatPrice(value?: number | null) {
+  if (!value || Number.isNaN(value)) return "MSRP unavailable";
+  return `$${Math.round(value)}`;
+}
+
+function normalize(value?: string | null) {
+  return (value || "").toLowerCase().trim();
+}
+
+function getStoreLookupKeys(store: Store) {
+  return [
+    store.name,
+    store.displayLabel,
+    store.district,
+    store.city,
+    store.county,
+    store.address,
+  ]
+    .filter(Boolean)
+    .map((value) => normalize(value));
+}
+
+function matchesStore(drop: DropEvent, store: Store) {
+  const boardName = normalize(drop.board_name);
+  const storeName = normalize(drop.store_name);
+  const storeAddress = normalize(drop.store_address);
+  const storeCity = normalize(drop.store_city);
+  const storeCounty = normalize(drop.store_county);
+  const keys = getStoreLookupKeys(store);
+
+  return keys.some((key) =>
+    key &&
+    [boardName, storeName, storeAddress, storeCity, storeCounty].some((candidate) =>
+      candidate ? candidate.includes(key) || key.includes(candidate) : false
+    )
+  );
+}
+
+function FinderBottleCard({
+  bottle,
+  active,
+  onClick,
+  reduceMotion,
+}: {
+  bottle: Bottle;
+  active: boolean;
+  onClick: () => void;
+  reduceMotion: boolean;
+}) {
+  const tier = tierStyles[bottle.tier] ?? tierStyles.limited;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={reduceMotion ? undefined : { y: -3, scale: 1.01 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+      style={{
+        textAlign: "left",
+        width: "100%",
+        padding: "18px 18px 16px",
+        borderRadius: 24,
+        border: active
+          ? `1px solid ${tier.color}`
+          : "1px solid rgba(247, 240, 224, 0.08)",
+        background: active
+          ? `linear-gradient(180deg, rgba(34, 24, 15, 0.96) 0%, rgba(24, 18, 11, 0.98) 100%)`
+          : "linear-gradient(180deg, rgba(24, 18, 11, 0.92) 0%, rgba(17, 13, 8, 0.96) 100%)",
+        boxShadow: active
+          ? `0 0 0 1px ${tier.glow}, 0 24px 60px rgba(0,0,0,0.34)`
+          : "0 14px 36px rgba(0,0,0,0.26)",
+        cursor: "pointer",
+        transition: "border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
+        <div>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: tier.glow,
+              border: `1px solid ${tier.glow}`,
+              color: tier.color,
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              marginBottom: 12,
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: tier.color,
+                boxShadow: `0 0 12px ${tier.glow}`,
+              }}
+            />
+            {tier.label}
+          </div>
+          <h3
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontSize: "clamp(1.05rem, 2vw, 1.35rem)",
+              lineHeight: 1.1,
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {bottle.name}
+          </h3>
+          <p
+            style={{
+              marginTop: 6,
+              color: "var(--color-text-secondary)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 14,
+            }}
+          >
+            {bottle.distillery || "Distillery unavailable"}
+          </p>
+        </div>
+        <ChevronRight size={18} color={active ? tier.color : "var(--color-text-tertiary)"} />
+      </div>
+
+      <div
+        style={{
+          marginTop: 16,
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 10,
+        }}
+      >
+        <div>
+          <div className="finder-eyebrow">MSRP</div>
+          <div className="finder-stat">{formatPrice(bottle.msrp)}</div>
+        </div>
+        <div>
+          <div className="finder-eyebrow">Signals</div>
+          <div className="finder-stat">{bottle.drop_count_30d ?? 0}/30d</div>
+        </div>
+        <div>
+          <div className="finder-eyebrow">State</div>
+          <div className="finder-stat">{bottle.state ?? "Multi"}</div>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
+function FinderStoreCard({
+  store,
+  active,
+  onClick,
+  reduceMotion,
+}: {
+  store: Store;
+  active: boolean;
+  onClick: () => void;
+  reduceMotion: boolean;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={reduceMotion ? undefined : { y: -3, scale: 1.01 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+      style={{
+        textAlign: "left",
+        width: "100%",
+        padding: "18px 18px 16px",
+        borderRadius: 24,
+        border: active
+          ? "1px solid rgba(212, 146, 11, 0.8)"
+          : "1px solid rgba(247, 240, 224, 0.08)",
+        background: active
+          ? "linear-gradient(180deg, rgba(34, 24, 15, 0.96) 0%, rgba(24, 18, 11, 0.98) 100%)"
+          : "linear-gradient(180deg, rgba(24, 18, 11, 0.92) 0%, rgba(17, 13, 8, 0.96) 100%)",
+        boxShadow: active
+          ? "0 0 0 1px rgba(212,146,11,0.18), 0 24px 60px rgba(0,0,0,0.34)"
+          : "0 14px 36px rgba(0,0,0,0.26)",
+        cursor: "pointer",
+        transition: "border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
+        <div>
+          <div className="finder-mode-pill">{store.precision === "board" ? "Board view" : "Store view"}</div>
+          <h3
+            style={{
+              marginTop: 12,
+              fontFamily: "var(--font-fraunces)",
+              fontSize: "clamp(1rem, 2vw, 1.25rem)",
+              lineHeight: 1.15,
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {store.displayLabel}
+          </h3>
+          <p
+            style={{
+              marginTop: 8,
+              color: "var(--color-text-secondary)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: 14,
+            }}
+          >
+            {[store.city, store.state].filter(Boolean).join(", ")}
+            {store.address ? ` · ${store.address}` : ""}
+          </p>
+        </div>
+        <ChevronRight size={18} color={active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)"} />
+      </div>
+
+      <div
+        style={{
+          marginTop: 16,
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 10,
+        }}
+      >
+        <div>
+          <div className="finder-eyebrow">Coverage</div>
+          <div className="finder-stat">{store.state}</div>
+        </div>
+        <div>
+          <div className="finder-eyebrow">Signals</div>
+          <div className="finder-stat">{store.bottle_count ?? 0}</div>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
 
 export default function MapPageClient() {
+  const reduceMotion = useReducedMotion();
   const { stores, loading: storesLoading } = useStores();
   const { bottles, loading: bottlesLoading } = useBottles();
   const { drops, loading: dropsLoading } = useDrops();
 
-  const ready = useMemo(() => !storesLoading && !bottlesLoading && !dropsLoading, [storesLoading, bottlesLoading, dropsLoading]);
+  const [mode, setMode] = useState<FinderMode>("bottle");
+  const [stateFilter, setStateFilter] = useState<FinderState>("ALL");
+  const [query, setQuery] = useState("");
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+
+  const ready = useMemo(
+    () => !storesLoading && !bottlesLoading && !dropsLoading,
+    [storesLoading, bottlesLoading, dropsLoading]
+  );
+
+  const filteredBottles = useMemo(() => {
+    const q = normalize(query);
+    return bottles
+      .filter((bottle) => stateFilter === "ALL" || bottle.state === stateFilter)
+      .filter((bottle) => {
+        if (!q) return true;
+        return [bottle.name, bottle.distillery, bottle.tier, bottle.state]
+          .filter(Boolean)
+          .some((value) => normalize(String(value)).includes(q));
+      })
+      .sort((a, b) => {
+        const aScore = (a.drop_count_30d ?? 0) + (a.tier === "unicorn" ? 50 : a.tier === "allocated" ? 25 : 10);
+        const bScore = (b.drop_count_30d ?? 0) + (b.tier === "unicorn" ? 50 : b.tier === "allocated" ? 25 : 10);
+        return bScore - aScore;
+      });
+  }, [bottles, query, stateFilter]);
+
+  const filteredStores = useMemo(() => {
+    const q = normalize(query);
+    return stores
+      .filter((store) => stateFilter === "ALL" || store.state === stateFilter)
+      .filter((store) => {
+        if (!q) return true;
+        return getStoreLookupKeys(store).some((value) => value.includes(q));
+      })
+      .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0));
+  }, [stores, query, stateFilter]);
+
+  const selectedBottle = useMemo(() => {
+    if (!filteredBottles.length) return null;
+    return filteredBottles.find((bottle) => bottle.id === selectedBottleId) ?? filteredBottles[0];
+  }, [filteredBottles, selectedBottleId]);
+
+  const selectedStore = useMemo(() => {
+    if (!filteredStores.length) return null;
+    return filteredStores.find((store) => store.id === selectedStoreId) ?? filteredStores[0];
+  }, [filteredStores, selectedStoreId]);
+
+  const bottleDrops = useMemo(() => {
+    if (!selectedBottle) return [];
+    const bottleName = normalize(selectedBottle.name);
+    return drops
+      .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
+      .filter((drop) => normalize(getDisplayName(drop)).includes(bottleName) || bottleName.includes(normalize(getDisplayName(drop))))
+      .slice(0, 12);
+  }, [drops, selectedBottle, stateFilter]);
+
+  const matchingStoresForBottle = useMemo(() => {
+    if (!selectedBottle) return [] as Store[];
+    const relatedDrops = bottleDrops;
+    return filteredStores
+      .filter((store) => relatedDrops.some((drop) => matchesStore(drop, store)))
+      .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
+      .slice(0, 8);
+  }, [bottleDrops, filteredStores, selectedBottle]);
+
+  const storeDrops = useMemo(() => {
+    if (!selectedStore) return [];
+    return drops
+      .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
+      .filter((drop) => matchesStore(drop, selectedStore))
+      .slice(0, 12);
+  }, [drops, selectedStore, stateFilter]);
+
+  const topBottlesAtStore = useMemo(() => {
+    const counts = new Map<string, { bottle: string; count: number; rarity: string }>();
+    for (const drop of storeDrops) {
+      const bottle = getDisplayName(drop);
+      const existing = counts.get(bottle) ?? { bottle, count: 0, rarity: drop.rarity_tier };
+      existing.count += 1;
+      const rarityRank = { unicorn: 3, allocated: 2, limited: 1 } as Record<string, number>;
+      if ((rarityRank[drop.rarity_tier] ?? 0) > (rarityRank[existing.rarity] ?? 0)) existing.rarity = drop.rarity_tier;
+      counts.set(bottle, existing);
+    }
+
+    return Array.from(counts.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [storeDrops]);
+
+  const summary = useMemo(() => {
+    return {
+      stores: filteredStores.length,
+      bottles: filteredBottles.length,
+      liveSignals: drops.length,
+    };
+  }, [filteredBottles.length, filteredStores.length, drops.length]);
 
   return (
-    <section style={{ maxWidth: 1600, margin: "0 auto", padding: "0 clamp(12px, 2vw, 24px) 24px" }}>
-      {ready ? (
-        <Map stores={stores} bottles={bottles} drops={drops} />
-      ) : (
-        <div style={{ minHeight: "calc(100vh - 140px)", borderRadius: 24, border: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: 15, color: "var(--color-text-tertiary)" }}>
-            Loading live store map...
-          </p>
-        </div>
-      )}
+    <section className="finder-shell">
+      <div className="finder-hero-wrap">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="finder-hero"
+        >
+          <div className="finder-hero-copy">
+            <div className="finder-kicker">
+              <Radar size={14} />
+              Finder
+            </div>
+            <h1>Find the bottle. Scan the board. Hunt like you mean it.</h1>
+            <p>
+              We killed the gimmick map and kept the useful part. Finder gives members two lenses on the same signal network,
+              bottle-first when you know what you want, board-first when you want to see what is moving near you.
+            </p>
+          </div>
+
+          <div className="finder-summary-grid">
+            <div className="finder-summary-card">
+              <span className="finder-eyebrow">Boards / stores</span>
+              <strong>{summary.stores}</strong>
+              <span>live searchable locations</span>
+            </div>
+            <div className="finder-summary-card">
+              <span className="finder-eyebrow">Tracked bottles</span>
+              <strong>{summary.bottles}</strong>
+              <span>ranked by signal density</span>
+            </div>
+            <div className="finder-summary-card">
+              <span className="finder-eyebrow">Live signals</span>
+              <strong>{summary.liveSignals}</strong>
+              <span>recent shipment and in-store events</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="finder-main-grid">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, x: -18 }}
+          animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="finder-panel finder-controls"
+        >
+          <div className="finder-lens-row">
+            <button
+              type="button"
+              className={`finder-lens ${mode === "bottle" ? "active" : ""}`}
+              onClick={() => setMode("bottle")}
+            >
+              <Sparkles size={15} />
+              Find a Bottle
+            </button>
+            <button
+              type="button"
+              className={`finder-lens ${mode === "store" ? "active" : ""}`}
+              onClick={() => setMode("store")}
+            >
+              <Warehouse size={15} />
+              Scan a Board
+            </button>
+          </div>
+
+          <div className="finder-search-wrap">
+            <Search size={16} color="var(--color-text-tertiary)" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
+              className="finder-search-input"
+            />
+          </div>
+
+          <div className="finder-state-row">
+            {STATE_OPTIONS.map((state) => (
+              <button
+                key={state}
+                type="button"
+                className={`finder-state-chip ${stateFilter === state ? "active" : ""}`}
+                onClick={() => setStateFilter(state)}
+              >
+                {state === "ALL" ? "All states" : state}
+              </button>
+            ))}
+          </div>
+
+          <div className="finder-section-label">
+            {mode === "bottle" ? "Bottle lens" : "Board lens"}
+          </div>
+
+          <div className="finder-card-stack">
+            {ready ? (
+              mode === "bottle" ? (
+                filteredBottles.slice(0, 8).map((bottle) => (
+                  <FinderBottleCard
+                    key={bottle.id}
+                    bottle={bottle}
+                    active={(selectedBottle?.id ?? filteredBottles[0]?.id) === bottle.id}
+                    onClick={() => setSelectedBottleId(bottle.id)}
+                    reduceMotion={!!reduceMotion}
+                  />
+                ))
+              ) : (
+                filteredStores.slice(0, 8).map((store) => (
+                  <FinderStoreCard
+                    key={store.id}
+                    store={store}
+                    active={(selectedStore?.id ?? filteredStores[0]?.id) === store.id}
+                    onClick={() => setSelectedStoreId(store.id)}
+                    reduceMotion={!!reduceMotion}
+                  />
+                ))
+              )
+            ) : (
+              <div className="finder-empty-card">Loading live finder data…</div>
+            )}
+
+            {ready && ((mode === "bottle" && filteredBottles.length === 0) || (mode === "store" && filteredStores.length === 0)) ? (
+              <div className="finder-empty-card">No matches. Try a looser search or change the state lens.</div>
+            ) : null}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, x: 18 }}
+          animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          className="finder-panel finder-results"
+        >
+          <AnimatePresence mode="wait">
+            {mode === "bottle" ? (
+              <motion.div
+                key={`bottle-${selectedBottle?.id ?? "empty"}`}
+                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {selectedBottle ? (
+                  <>
+                    <div className="finder-result-hero bottle">
+                      <div>
+                        <div className="finder-mode-pill">Bottle lens active</div>
+                        <h2>{selectedBottle.name}</h2>
+                        <p>
+                          Search by bottle when the mission is specific. We surface the most relevant boards and stores where this bottle has moved recently,
+                          without pretending we know more geography than we do.
+                        </p>
+                      </div>
+                      <div className="finder-highlight-orb">
+                        <div>
+                          <span className="finder-eyebrow">30-day activity</span>
+                          <strong>{selectedBottle.drop_count_30d ?? 0}</strong>
+                          <span>signals tracked</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="finder-dual-columns">
+                      <div className="finder-subpanel">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Likely locations</span>
+                            <h3>Boards and stores with recent movement</h3>
+                          </div>
+                          <MapPin size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {matchingStoresForBottle.length > 0 ? (
+                            matchingStoresForBottle.map((store) => (
+                              <div key={store.id} className="finder-list-row">
+                                <div>
+                                  <strong>{store.displayLabel}</strong>
+                                  <span>
+                                    {[store.city, store.state].filter(Boolean).join(", ")}
+                                    {store.address ? ` · ${store.address}` : ""}
+                                  </span>
+                                </div>
+                                <span className="finder-row-pill">{store.precision === "board" ? "Board" : "Store"}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="finder-empty-card small">No direct board or store match yet. The bottle is tracked, but recent location linkage is thin.</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="finder-subpanel">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Recent bottle signals</span>
+                            <h3>Latest shipments and in-store hits</h3>
+                          </div>
+                          <Clock3 size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {bottleDrops.length > 0 ? (
+                            bottleDrops.map((drop, index) => (
+                              <div key={`${drop.timestamp}-${index}`} className="finder-list-row">
+                                <div>
+                                  <strong>{drop.board_name || drop.store_city || drop.store_name || "Location signal"}</strong>
+                                  <span>
+                                    {drop.store_address || drop.store_city || drop.store_county || "Location detail unavailable"}
+                                  </span>
+                                </div>
+                                <span className="finder-row-pill">{formatRelativeTime(drop.timestamp)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="finder-empty-card small">No recent signal events for this bottle in the current state lens.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="finder-empty-card">No bottles found in this lens yet.</div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`store-${selectedStore?.id ?? "empty"}`}
+                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {selectedStore ? (
+                  <>
+                    <div className="finder-result-hero store">
+                      <div>
+                        <div className="finder-mode-pill">Board lens active</div>
+                        <h2>{selectedStore.displayLabel}</h2>
+                        <p>
+                          Search by board or store when you want to monitor your territory. This view shows what is actually moving through that location,
+                          not just where a pin happened to land.
+                        </p>
+                      </div>
+                      <div className="finder-highlight-orb">
+                        <div>
+                          <span className="finder-eyebrow">Signal density</span>
+                          <strong>{selectedStore.bottle_count ?? 0}</strong>
+                          <span>events tied to this location</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="finder-dual-columns">
+                      <div className="finder-subpanel">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Bottle movement</span>
+                            <h3>Most active bottles here</h3>
+                          </div>
+                          <Sparkles size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {topBottlesAtStore.length > 0 ? (
+                            topBottlesAtStore.map((item) => (
+                              <div key={item.bottle} className="finder-list-row">
+                                <div>
+                                  <strong>{item.bottle}</strong>
+                                  <span>Repeated signal activity at this location</span>
+                                </div>
+                                <span className="finder-row-pill">{item.count} hits</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="finder-empty-card small">Not enough recent structured activity to rank bottles here yet.</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="finder-subpanel">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Recent location signals</span>
+                            <h3>Latest drops tied to this board or store</h3>
+                          </div>
+                          <Clock3 size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {storeDrops.length > 0 ? (
+                            storeDrops.map((drop, index) => (
+                              <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
+                                <div>
+                                  <strong>{getDisplayName(drop)}</strong>
+                                  <span>{drop.event_type.replaceAll("_", " ")}</span>
+                                </div>
+                                <span className="finder-row-pill">{formatRelativeTime(drop.timestamp)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="finder-empty-card small">No recent live drops tied to this location in the current state lens.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="finder-empty-card">No boards or stores found in this lens yet.</div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </section>
   );
 }
