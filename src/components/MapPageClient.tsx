@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Search, Radar, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
@@ -41,6 +41,37 @@ function formatPrice(value?: number | null) {
 
 function normalize(value?: string | null) {
   return (value || "").toLowerCase().trim();
+}
+
+function stripBottleName(value?: string | null) {
+  return normalize(value)
+    .replace(/\.75l|1\.00l|1\.75l|750ml|375ml|50ml/gi, "")
+    .replace(/single barrel america 250 comm\. ed\./gi, "single barrel")
+    .replace(/\(ncabc btb\)/gi, "")
+    .replace(/private/gi, "")
+    .replace(/\*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isWithinLastDays(timestamp?: string, days: number = 30) {
+  if (!timestamp) return false;
+  const ts = new Date(timestamp).getTime();
+  if (Number.isNaN(ts)) return false;
+  return Date.now() - ts <= days * 24 * 60 * 60 * 1000;
+}
+
+function bottleMatchesQuery(candidate: string, selectedBottle: Bottle) {
+  const candidateNorm = stripBottleName(candidate);
+  const bottleName = stripBottleName(selectedBottle.name);
+  const bottleId = stripBottleName(selectedBottle.id);
+
+  return (
+    candidateNorm.includes(bottleName) ||
+    bottleName.includes(candidateNorm) ||
+    candidateNorm.includes(bottleId) ||
+    bottleId.includes(candidateNorm)
+  );
 }
 
 function getStoreLookupKeys(store: Store) {
@@ -284,6 +315,7 @@ export default function MapPageClient() {
   const [query, setQuery] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const ready = useMemo(
     () => !storesLoading && !bottlesLoading && !dropsLoading,
@@ -323,18 +355,36 @@ export default function MapPageClient() {
     return filteredBottles.find((bottle) => bottle.id === selectedBottleId) ?? filteredBottles[0];
   }, [filteredBottles, selectedBottleId]);
 
+  useEffect(() => {
+    if (mode === "bottle" && !selectedBottleId && filteredBottles[0]) {
+      setSelectedBottleId(filteredBottles[0].id);
+    }
+    if (mode === "store" && !selectedStoreId && filteredStores[0]) {
+      setSelectedStoreId(filteredStores[0].id);
+    }
+  }, [mode, filteredBottles, filteredStores, selectedBottleId, selectedStoreId]);
+
   const selectedStore = useMemo(() => {
     if (!filteredStores.length) return null;
     return filteredStores.find((store) => store.id === selectedStoreId) ?? filteredStores[0];
   }, [filteredStores, selectedStoreId]);
 
+  const bottleSuggestions = useMemo(() => {
+    if (mode !== "bottle") return [] as Bottle[];
+    const q = normalize(query);
+    if (!q) return filteredBottles.slice(0, 8);
+    return filteredBottles
+      .filter((bottle) => stripBottleName(bottle.name).includes(stripBottleName(q)) || stripBottleName(q).includes(stripBottleName(bottle.name)))
+      .slice(0, 8);
+  }, [filteredBottles, mode, query]);
+
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
-    const bottleName = normalize(selectedBottle.name);
     return drops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
-      .filter((drop) => normalize(getDisplayName(drop)).includes(bottleName) || bottleName.includes(normalize(getDisplayName(drop))))
-      .slice(0, 12);
+      .filter((drop) => isWithinLastDays(drop.timestamp, 30))
+      .filter((drop) => bottleMatchesQuery(getDisplayName(drop), selectedBottle) || bottleMatchesQuery(drop.brand_name || "", selectedBottle))
+      .slice(0, 40);
   }, [drops, selectedBottle, stateFilter]);
 
   const matchingStoresForBottle = useMemo(() => {
@@ -419,14 +469,45 @@ export default function MapPageClient() {
                 </button>
               </div>
 
-              <div className="finder-search-wrap hero-search">
-                <Search size={16} color="var(--color-text-tertiary)" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
-                  className="finder-search-input"
-                />
+              <div className="finder-search-region">
+                <div className="finder-search-wrap hero-search">
+                  <Search size={16} color="var(--color-text-tertiary)" />
+                  <input
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      if (mode === "bottle") setShowSuggestions(true);
+                    }}
+                    onFocus={() => {
+                      if (mode === "bottle") setShowSuggestions(true);
+                    }}
+                    placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
+                    className="finder-search-input"
+                  />
+                </div>
+
+                {mode === "bottle" && showSuggestions && bottleSuggestions.length > 0 ? (
+                  <div className="finder-suggestions">
+                    {bottleSuggestions.map((bottle) => (
+                      <button
+                        key={bottle.id}
+                        type="button"
+                        className="finder-suggestion"
+                        onClick={() => {
+                          setQuery(bottle.name);
+                          setSelectedBottleId(bottle.id);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <div>
+                          <strong>{bottle.name}</strong>
+                          <span>{bottle.distillery || "Distillery unavailable"}</span>
+                        </div>
+                        <span className="finder-row-pill">{bottle.drop_count_30d ?? 0} hits</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="finder-state-row hero-states">
@@ -597,6 +678,9 @@ export default function MapPageClient() {
                             <div className="finder-empty-card small">No recent signal events for this bottle in the current state lens.</div>
                           )}
                         </div>
+                        {bottleDrops.length > 0 ? (
+                          <p className="finder-footnote">Showing up to 30 days of drop history for this bottle so the page proves the signal exists, even when the freshest hit is a little older.</p>
+                        ) : null}
                       </div>
                     </div>
                   </>
