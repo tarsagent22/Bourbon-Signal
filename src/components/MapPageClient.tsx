@@ -98,9 +98,10 @@ function getDropLocations(drop: DropEvent) {
   const locations: Array<{ label: string; detail: string; precision: "store" | "board"; confidence: number }> = [];
 
   if (drop.board_name) {
+    const boardLead = drop.board_name;
     locations.push({
-      label: drop.board_name,
-      detail: "Shipment / board-level signal",
+      label: boardLead,
+      detail: `Board shipment lead${drop.state ? ` · ${drop.state}` : ""}`,
       precision: "board",
       confidence: 2,
     });
@@ -120,13 +121,20 @@ function getDropLocations(drop: DropEvent) {
     if (!label) continue;
     locations.push({
       label,
-      detail: entry.city || "Store-level inventory signal",
+      detail: entry.store_address ? `${entry.city || "Store"} inventory signal` : `${entry.city || "Board"} inventory lead`,
       precision: entry.store_address ? "store" : "board",
       confidence: entry.store_address ? 5 : 2,
     });
   }
 
   return locations;
+}
+
+function getSignalQuality(drop: DropEvent) {
+  if (drop.store_address) return { label: "Exact store", score: 3 };
+  if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store inventory", score: 3 };
+  if (drop.board_name) return { label: "Board shipment lead", score: 2 };
+  return { label: "Weak signal", score: 1 };
 }
 
 function FinderBottleCard({
@@ -410,6 +418,12 @@ export default function MapPageClient() {
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => isWithinLastDays(drop.timestamp, 30))
       .filter((drop) => dropMatchesBottle(drop, selectedBottle) || bottleMatchesQuery(getDisplayName(drop), selectedBottle))
+      .sort((a, b) => {
+        const qa = getSignalQuality(a).score;
+        const qb = getSignalQuality(b).score;
+        if (qb !== qa) return qb - qa;
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      })
       .slice(0, 40);
   }, [drops, selectedBottle, stateFilter]);
 
@@ -749,10 +763,10 @@ export default function MapPageClient() {
                                 <div>
                                   <strong>{drop.board_name || drop.store_city || drop.store_name || "Location signal"}</strong>
                                   <span>
-                                    {drop.store_address || drop.store_city || drop.store_county || "Location detail unavailable"}
+                                    {drop.store_address || drop.store_city || drop.store_county || getDropLocations(drop)[0]?.detail || "Signal captured"}
                                   </span>
                                 </div>
-                                <span className="finder-row-pill">{formatRelativeTime(drop.timestamp)}</span>
+                                <span className="finder-row-pill">{getSignalQuality(drop).label} · {formatRelativeTime(drop.timestamp)}</span>
                               </div>
                             ))
                           ) : (
