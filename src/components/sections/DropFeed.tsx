@@ -23,6 +23,8 @@ interface DropsResponse {
   drops: DropEvent[];
   total: number;
   lastUpdated: string;
+  fallback?: boolean;
+  error?: string;
 }
 
 const MOCK_DROPS: DropEvent[] = [
@@ -826,7 +828,7 @@ export default function DropFeed() {
                   marginBottom: 0,
                 }}
               >
-                Real-time bottle intel from monitored state activity.
+                Recent bottle movement with the newest valid drops always kept on screen.
               </p>
             </div>
             {hasAreaPrefs && (
@@ -927,6 +929,22 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Feed rows */}
+          {data?.fallback && (
+            <div
+              style={{
+                marginBottom: "18px",
+                padding: "12px 14px",
+                borderRadius: "12px",
+                border: "1px solid rgba(212,146,11,0.16)",
+                background: "rgba(212,146,11,0.05)",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                color: "rgba(245,237,214,0.65)",
+              }}
+            >
+              Fresh scan was thin, so this feed is holding on the most recent valid drops instead of going blank.
+            </div>
+          )}
           {error && !data ? (
             <div style={{ position: "relative" }}>
               <div

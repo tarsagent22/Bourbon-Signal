@@ -748,37 +748,73 @@ export default function MapPageClient() {
                       <div className="finder-subpanel">
                         <div className="finder-subpanel-head">
                           <div>
-                            <span className="finder-eyebrow">Likely locations</span>
-                            <h3>Boards and stores with recent movement</h3>
+                            <span className="finder-eyebrow">Exact store intel</span>
+                            <h3>Precise store-level evidence</h3>
                           </div>
                           <MapPin size={16} color="var(--color-accent-amber)" />
                         </div>
                         <div className="finder-list">
-                          {matchingStoresForBottle.length > 0 ? (
-                            matchingStoresForBottle.map((store) => (
-                              <div key={store.id} className="finder-list-row">
-                                <div>
-                                  <strong>{store.displayLabel}</strong>
-                                  <span>
-                                    {[store.city, store.state].filter(Boolean).join(", ")}
-                                    {store.address ? ` · ${store.address}` : ""}
-                                    {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
-                                  </span>
+                          {matchingStoresForBottle.filter((store) => store.precision === "store").length > 0 ? (
+                            matchingStoresForBottle
+                              .filter((store) => store.precision === "store")
+                              .map((store) => (
+                                <div key={store.id} className="finder-list-row">
+                                  <div>
+                                    <strong>{store.displayLabel}</strong>
+                                    <span>
+                                      {[store.city, store.state].filter(Boolean).join(", ")}
+                                      {store.address ? ` · ${store.address}` : ""}
+                                      {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
+                                    </span>
+                                  </div>
+                                  <span className="finder-row-pill">{store.hitCount} store hits</span>
                                 </div>
-                                <span className="finder-row-pill">{store.precision === "board" ? `${store.hitCount} board hits` : `${store.hitCount} store hits`}</span>
-                              </div>
-                            ))
+                              ))
                           ) : (
-                            <div className="finder-empty-card small">No direct board or store match yet. The bottle is tracked, but recent location linkage is thin.</div>
+                            <div className="finder-empty-card small">No exact store intel yet for this bottle in the current lens.</div>
                           )}
                         </div>
-                        {matchingStoresForBottle.length > 0 ? (
-                          <p className="finder-footnote">
-                            {bottleLocationInsights.exactStoreMatches > 0
-                              ? `${bottleLocationInsights.exactStoreMatches} exact store hits and ${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days.`
-                              : `${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days. Exact store precision is thinner right now.`}
-                          </p>
-                        ) : null}
+                        <p className="finder-footnote">
+                          {bottleLocationInsights.exactStoreMatches > 0
+                            ? `${bottleLocationInsights.exactStoreMatches} precise store-level hits in the last 30 days.`
+                            : "No exact store precision yet. This bottle is currently resolving through broader movement signals."}
+                        </p>
+                      </div>
+
+                      <div className="finder-subpanel">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Board shipment leads</span>
+                            <h3>Broader movement worth watching</h3>
+                          </div>
+                          <MapPin size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {matchingStoresForBottle.filter((store) => store.precision === "board").length > 0 ? (
+                            matchingStoresForBottle
+                              .filter((store) => store.precision === "board")
+                              .map((store) => (
+                                <div key={store.id} className="finder-list-row">
+                                  <div>
+                                    <strong>{store.displayLabel}</strong>
+                                    <span>
+                                      {[store.city, store.state].filter(Boolean).join(", ")}
+                                      {store.address ? ` · ${store.address}` : ""}
+                                      {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
+                                    </span>
+                                  </div>
+                                  <span className="finder-row-pill">{store.hitCount} board hits</span>
+                                </div>
+                              ))
+                          ) : (
+                            <div className="finder-empty-card small">No board shipment leads surfaced for this bottle in the current lens.</div>
+                          )}
+                        </div>
+                        <p className="finder-footnote">
+                          {bottleLocationInsights.boardMatches > 0
+                            ? `${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days.`
+                            : "No board shipment leads surfaced in the current lens."}
+                        </p>
                       </div>
 
                       <div className="finder-subpanel">
