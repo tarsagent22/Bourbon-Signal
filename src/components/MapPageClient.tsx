@@ -241,8 +241,8 @@ function FinderBottleCard({
           <div className="finder-stat">{formatPrice(bottle.msrp)}</div>
         </div>
         <div>
-          <div className="finder-eyebrow">Signals</div>
-          <div className="finder-stat">{bottle.drop_count_30d ?? 0}/30d</div>
+          <div className="finder-eyebrow">Intel</div>
+          <div className="finder-stat">{bottle.actionable_count_30d ?? 0}/30d</div>
         </div>
         <div>
           <div className="finder-eyebrow">State</div>
@@ -474,14 +474,18 @@ export default function MapPageClient() {
   }, [bottleDrops, filteredStores, selectedBottle]);
 
   const bottleLocationInsights = useMemo(() => {
-    const exactStoreMatches = matchingStoresForBottle.filter((store) => store.precision === "store");
-    const boardMatches = matchingStoresForBottle.filter((store) => store.precision === "board");
+    const exactStoreMatches = selectedBottle?.exact_store_hits_30d ?? matchingStoresForBottle.filter((store) => store.precision === "store").length;
+    const boardMatches = selectedBottle?.board_leads_30d ?? matchingStoresForBottle.filter((store) => store.precision === "board").length;
+    const actionableCount = selectedBottle?.actionable_count_30d ?? exactStoreMatches + boardMatches;
+    const signalVolume = selectedBottle?.signal_volume_30d ?? bottleDrops.length;
     return {
-      exactStoreMatches: exactStoreMatches.length,
-      boardMatches: boardMatches.length,
+      exactStoreMatches,
+      boardMatches,
+      actionableCount,
+      signalVolume,
       freshestHit: bottleDrops[0]?.timestamp,
     };
-  }, [matchingStoresForBottle, bottleDrops]);
+  }, [matchingStoresForBottle, bottleDrops, selectedBottle]);
 
   const storeDrops = useMemo(() => {
     if (!selectedStore) return [];
@@ -698,16 +702,45 @@ export default function MapPageClient() {
                         <div className="finder-mode-pill">Bottle lens active</div>
                         <h2>{selectedBottle.name}</h2>
                         <p>
-                          Search by bottle when the mission is specific. We surface the most relevant boards and stores where this bottle has moved recently,
-                          without pretending we know more geography than we do.
+                          Search by bottle when the mission is specific. We separate raw activity from huntable intel, so the page tells you how much motion exists and how much of it is actually actionable.
                         </p>
                       </div>
                       <div className="finder-highlight-orb">
                         <div>
-                          <span className="finder-eyebrow">30-day activity</span>
-                          <strong>{selectedBottle.drop_count_30d ?? 0}</strong>
-                          <span>signals tracked</span>
+                          <span className="finder-eyebrow">Actionable intel</span>
+                          <strong>{bottleLocationInsights.actionableCount}</strong>
+                          <span>{bottleLocationInsights.signalVolume} total signals / 30d</span>
                         </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                        gap: 12,
+                        marginBottom: 18,
+                      }}
+                    >
+                      <div className="finder-summary-card">
+                        <span className="finder-eyebrow">Signal volume</span>
+                        <strong>{bottleLocationInsights.signalVolume}</strong>
+                        <span>total tracked activity</span>
+                      </div>
+                      <div className="finder-summary-card">
+                        <span className="finder-eyebrow">Actionable intel</span>
+                        <strong>{bottleLocationInsights.actionableCount}</strong>
+                        <span>huntable location leads</span>
+                      </div>
+                      <div className="finder-summary-card">
+                        <span className="finder-eyebrow">Exact store hits</span>
+                        <strong>{bottleLocationInsights.exactStoreMatches}</strong>
+                        <span>precise store-level evidence</span>
+                      </div>
+                      <div className="finder-summary-card">
+                        <span className="finder-eyebrow">Board leads</span>
+                        <strong>{bottleLocationInsights.boardMatches}</strong>
+                        <span>shipment / board signals</span>
                       </div>
                     </div>
 
@@ -742,8 +775,8 @@ export default function MapPageClient() {
                         {matchingStoresForBottle.length > 0 ? (
                           <p className="finder-footnote">
                             {bottleLocationInsights.exactStoreMatches > 0
-                              ? `${bottleLocationInsights.exactStoreMatches} exact store matches and ${bottleLocationInsights.boardMatches} board-level leads found for this bottle.`
-                              : `${bottleLocationInsights.boardMatches} board-level leads found for this bottle. Exact store precision is thinner right now.`}
+                              ? `${bottleLocationInsights.exactStoreMatches} exact store hits and ${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days.`
+                              : `${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days. Exact store precision is thinner right now.`}
                           </p>
                         ) : null}
                       </div>

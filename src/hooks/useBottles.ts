@@ -15,6 +15,10 @@ interface EngineBottle {
   limited_availability: boolean;
   last_drop: string | null;
   drop_count_30d: number;
+  signal_volume_30d?: number;
+  actionable_count_30d?: number;
+  exact_store_hits_30d?: number;
+  board_leads_30d?: number;
 }
 
 export function useBottles() {
@@ -39,7 +43,10 @@ export function useBottles() {
           has_inventory: b.has_inventory || false,
           last_drop: b.last_drop || null,
           drop_count_30d: b.drop_count_30d || 0,
-          // These fields aren't in the engine yet — leave undefined
+          signal_volume_30d: b.signal_volume_30d || 0,
+          actionable_count_30d: b.actionable_count_30d || 0,
+          exact_store_hits_30d: b.exact_store_hits_30d || 0,
+          board_leads_30d: b.board_leads_30d || 0,
           secondary: undefined,
           proof: undefined,
           ageStatement: undefined,

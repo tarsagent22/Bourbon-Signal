@@ -16,6 +16,10 @@ export interface Bottle {
   has_inventory?: boolean;
   last_drop?: string | null;
   drop_count_30d?: number;
+  signal_volume_30d?: number;
+  actionable_count_30d?: number;
+  exact_store_hits_30d?: number;
+  board_leads_30d?: number;
 }
 
 export interface BottlePricing {
