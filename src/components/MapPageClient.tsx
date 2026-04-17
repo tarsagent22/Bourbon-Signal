@@ -702,45 +702,19 @@ export default function MapPageClient() {
                         <div className="finder-mode-pill">Bottle lens active</div>
                         <h2>{selectedBottle.name}</h2>
                         <p>
-                          Search by bottle when the mission is specific. We separate raw activity from huntable intel, so the page tells you how much motion exists and how much of it is actually actionable.
+                          {bottleLocationInsights.exactStoreMatches > 0
+                            ? "We found recent exact locations for this bottle. Start with the freshest store hits below."
+                            : bottleLocationInsights.boardMatches > 0
+                              ? "No exact store hit yet. These are the most recent boards or areas where this bottle moved, so they’re your best places to watch."
+                              : "We don’t have a recent exact location for this bottle yet. Check back after the next live scan."}
                         </p>
                       </div>
                       <div className="finder-highlight-orb">
                         <div>
-                          <span className="finder-eyebrow">Actionable intel</span>
-                          <strong>{bottleLocationInsights.actionableCount}</strong>
-                          <span>{bottleLocationInsights.signalVolume} total signals / 30d</span>
+                          <span className="finder-eyebrow">Where to look</span>
+                          <strong>{bottleLocationInsights.exactStoreMatches > 0 ? bottleLocationInsights.exactStoreMatches : bottleLocationInsights.boardMatches}</strong>
+                          <span>{bottleLocationInsights.exactStoreMatches > 0 ? "recent exact locations" : "recent areas to watch"}</span>
                         </div>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                        gap: 12,
-                        marginBottom: 18,
-                      }}
-                    >
-                      <div className="finder-summary-card">
-                        <span className="finder-eyebrow">Signal volume</span>
-                        <strong>{bottleLocationInsights.signalVolume}</strong>
-                        <span>total tracked activity</span>
-                      </div>
-                      <div className="finder-summary-card">
-                        <span className="finder-eyebrow">Actionable intel</span>
-                        <strong>{bottleLocationInsights.actionableCount}</strong>
-                        <span>huntable location leads</span>
-                      </div>
-                      <div className="finder-summary-card">
-                        <span className="finder-eyebrow">Exact store hits</span>
-                        <strong>{bottleLocationInsights.exactStoreMatches}</strong>
-                        <span>precise store-level evidence</span>
-                      </div>
-                      <div className="finder-summary-card">
-                        <span className="finder-eyebrow">Board leads</span>
-                        <strong>{bottleLocationInsights.boardMatches}</strong>
-                        <span>shipment / board signals</span>
                       </div>
                     </div>
 
@@ -776,8 +750,8 @@ export default function MapPageClient() {
                         </div>
                         <p className="finder-footnote">
                           {bottleLocationInsights.exactStoreMatches > 0
-                            ? `${bottleLocationInsights.exactStoreMatches} precise store-level hits in the last 30 days.`
-                            : "No exact store precision yet. This bottle is currently resolving through broader movement signals."}
+                            ? "These are the freshest exact places this bottle was seen."
+                            : "No exact store location yet for this bottle in the current lens."}
                         </p>
                       </div>
 
@@ -812,8 +786,8 @@ export default function MapPageClient() {
                         </div>
                         <p className="finder-footnote">
                           {bottleLocationInsights.boardMatches > 0
-                            ? `${bottleLocationInsights.boardMatches} board shipment leads in the last 30 days.`
-                            : "No board shipment leads surfaced in the current lens."}
+                            ? "These are the most recent broader locations where the bottle moved, even if we do not have a precise store hit yet."
+                            : "No broader movement leads surfaced in the current lens."}
                         </p>
                       </div>
 

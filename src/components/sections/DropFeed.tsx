@@ -710,10 +710,15 @@ export default function DropFeed() {
   // Check if area prefs are active
   const hasAreaPrefs = areaPrefs.states.length > 0;
 
+  // Never let the homepage feed go blank if we have recent valid drops.
+  const fallbackFeed = filteredGrouped.length > 0 ? filteredGrouped : grouped;
+  const feedWasRelaxed = filteredByArea.length === 0 && fallbackFeed.length > 0;
+  const finalFeed = filteredByArea.length > 0 ? filteredByArea : fallbackFeed;
+
   // Limit displayed drops to 8; only last 2 are blurred
   const MAX_DISPLAYED = 8;
-  const displayedGrouped = filteredByArea.slice(0, MAX_DISPLAYED);
-  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, filteredByArea.length - MAX_DISPLAYED) : 0;
+  const displayedGrouped = finalFeed.slice(0, MAX_DISPLAYED);
+  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - MAX_DISPLAYED) : 0;
   const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
   const minutes = Math.floor(secondsUntilRefresh / 60);
   const seconds = secondsUntilRefresh % 60;
@@ -929,7 +934,7 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Feed rows */}
-          {data?.fallback && (
+          {(data?.fallback || feedWasRelaxed) && (
             <div
               style={{
                 marginBottom: "18px",
@@ -942,7 +947,9 @@ export default function DropFeed() {
                 color: "rgba(245,237,214,0.65)",
               }}
             >
-              Fresh scan was thin, so this feed is holding on the most recent valid drops instead of going blank.
+              {data?.fallback
+                ? "Fresh scan was thin, so this feed is holding on the most recent valid drops instead of going blank."
+                : "Your current filters were too narrow, so we’re showing the newest valid drops instead of an empty feed."}
             </div>
           )}
           {error && !data ? (
