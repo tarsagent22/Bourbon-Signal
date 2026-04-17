@@ -224,10 +224,10 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
   const hasDetails = details.length > 0 || drop.locations.length > 0;
 
-  // Blur wall logic — free users: blur last 2 of 8. Paid members: no blur
-  const isBlurred = isFreeUser && index >= 6;
-  const blurAmount = index === 6 ? "1.5px" : "3px";
-  const blurOpacity = index === 6 ? 0.7 : 0.5;
+  // Blur wall logic — free users: 5 clear, #6 half blur, #7 full blur
+  const isBlurred = isFreeUser && index >= 5;
+  const blurAmount = index === 5 ? "1.5px" : "3px";
+  const blurOpacity = index === 5 ? 0.72 : 0.45;
 
   return (
     <motion.div
@@ -590,9 +590,10 @@ export default function DropFeed() {
   const shouldReduceMotion = useReducedMotion();
 
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, memberTier } = useAuth();
   const { prefs: areaPrefs } = useAreaPreferences();
-  const isFreeUser = !isSignedIn;
+  const isPaidUser = memberTier === "monthly" || memberTier === "annual" || memberTier === "founder" || memberTier === "lifetime";
+  const isFreeUser = !isPaidUser;
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
@@ -603,6 +604,7 @@ export default function DropFeed() {
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
+  const [showMoreCount, setShowMoreCount] = useState(0);
 
   const fetchDrops = useCallback(async () => {
     try {
@@ -715,10 +717,12 @@ export default function DropFeed() {
   const feedWasRelaxed = filteredByArea.length === 0 && fallbackFeed.length > 0;
   const finalFeed = filteredByArea.length > 0 ? filteredByArea : fallbackFeed;
 
-  // Limit displayed drops to 8; only last 2 are blurred
-  const MAX_DISPLAYED = 8;
-  const displayedGrouped = finalFeed.slice(0, MAX_DISPLAYED);
-  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - MAX_DISPLAYED) : 0;
+  const baseVisibleCount = isPaidUser ? 10 : 7;
+  const paidVisibleCount = baseVisibleCount + (isPaidUser ? showMoreCount * 10 : 0);
+  const maxPaidShowMore = 3;
+  const canShowMore = isPaidUser && showMoreCount < maxPaidShowMore && finalFeed.length > paidVisibleCount;
+  const displayedGrouped = finalFeed.slice(0, isPaidUser ? paidVisibleCount : baseVisibleCount);
+  const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
   const minutes = Math.floor(secondsUntilRefresh / 60);
   const seconds = secondsUntilRefresh % 60;
@@ -994,20 +998,50 @@ export default function DropFeed() {
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <AnimatePresence mode="popLayout">
-                {displayedGrouped.map((drop, index) => (
-                  <FeedRow
-                    key={drop.id}
-                    drop={drop}
-                    isNew={newIds.has(drop.id)}
-                    index={index}
-                    isFreeUser={isFreeUser}
-                  />
-                ))}
-              </AnimatePresence>
+              <div
+                style={isPaidUser && showMoreCount > 0 ? {
+                  maxHeight: "980px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
+                } : undefined}
+              >
+                <AnimatePresence mode="popLayout">
+                  {displayedGrouped.map((drop, index) => (
+                    <FeedRow
+                      key={drop.id}
+                      drop={drop}
+                      isNew={newIds.has(drop.id)}
+                      index={index}
+                      isFreeUser={isFreeUser}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {canShowMore && (
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "18px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreCount((prev) => Math.min(prev + 1, maxPaidShowMore))}
+                    style={{
+                      padding: "10px 18px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(212,146,11,0.28)",
+                      background: "rgba(212,146,11,0.08)",
+                      color: "var(--color-cream)",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Show more
+                  </button>
+                </div>
+              )}
 
               {/* Gradient overlay over blurred rows — only for free users */}
-              {isFreeUser && displayedGrouped.length > 6 && (
+              {isFreeUser && displayedGrouped.length > 5 && (
                 <div
                   style={{
                     position: "absolute",
@@ -1033,7 +1067,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked in real time` : "Updated every 15 minutes"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked in real time` : isPaidUser ? "Paid members can expand deeper into recent history" : "Updated every 15 minutes"}
               </p>
             </div>
           )}
