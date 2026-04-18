@@ -36,12 +36,12 @@ export function canonicalBottleKey(value?: string | null) {
   return tokens.join(" ");
 }
 
-export function candidateBottleKeys(value?: string | null) {
+export function aliasBottleKeys(value?: string | null) {
   const base = canonicalBottleKey(value);
   const tokens = tokenizeBottleIdentity(value);
   const out = new Set<string>();
   if (base) out.add(base);
-  if (tokens.length >= 2) {
+  if (tokens.length >= 3) {
     for (let i = 0; i < tokens.length; i++) {
       const subset = tokens.filter((_, idx) => idx !== i).sort().join(" ");
       if (subset) out.add(subset);
@@ -50,18 +50,25 @@ export function candidateBottleKeys(value?: string | null) {
   return Array.from(out);
 }
 
+export function candidateBottleKeys(value?: string | null) {
+  return aliasBottleKeys(value);
+}
+
 export function getBottleIdentityKeys(bottle: Pick<Bottle, "id" | "name">) {
   const keys = new Set<string>([
-    ...candidateBottleKeys(bottle.name),
-    ...candidateBottleKeys(bottle.id),
+    canonicalBottleKey(bottle.name),
+    ...aliasBottleKeys(bottle.name),
+    ...aliasBottleKeys(bottle.id),
   ]);
   return Array.from(keys).filter(Boolean);
 }
 
 export function getDropIdentityKeys(drop: Pick<DropEvent, "brand_name" | "tracked_brand_name">) {
   const keys = new Set<string>([
-    ...candidateBottleKeys(drop.brand_name),
-    ...candidateBottleKeys(drop.tracked_brand_name),
+    canonicalBottleKey(drop.brand_name),
+    canonicalBottleKey(drop.tracked_brand_name),
+    ...aliasBottleKeys(drop.brand_name),
+    ...aliasBottleKeys(drop.tracked_brand_name),
   ]);
   return Array.from(keys).filter(Boolean);
 }
