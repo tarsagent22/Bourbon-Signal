@@ -1,7 +1,13 @@
 export interface Bottle {
   id: string;
   name: string;
+  canonical_id?: string;
+  canonical_name?: string;
   canonical_key?: string;
+  states?: string[];
+  state_ids?: Record<string, string[]>;
+  state_aliases?: Record<string, string[]>;
+  search_aliases?: string[];
   distillery: string;
   tier: "unicorn" | "allocated" | "limited";
   msrp: number;

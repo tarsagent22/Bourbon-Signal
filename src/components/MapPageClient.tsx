@@ -10,7 +10,7 @@ import type { Bottle } from "@/data/bottles";
 import type { Store } from "@/hooks/useStores";
 import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
-import { candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
+import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 type FinderMode = "bottle" | "store";
 type FinderState = "ALL" | "NC" | "VA" | "PA";
@@ -57,10 +57,43 @@ function isWithinLastDays(timestamp?: string, days: number = 30) {
   return Date.now() - ts <= days * 24 * 60 * 60 * 1000;
 }
 
+function getBottleCanonicalKeys(selectedBottle: Bottle) {
+  const values = [
+    selectedBottle.name,
+    selectedBottle.canonical_name,
+    ...(selectedBottle.search_aliases || []),
+    ...Object.values(selectedBottle.state_aliases || {}).flat(),
+  ].filter(Boolean);
+
+  return Array.from(
+    new Set(
+      values.flatMap((value) => {
+        const raw = String(value);
+        return [canonicalBottleKey(raw), ...candidateBottleKeys(raw)].filter(Boolean);
+      })
+    )
+  );
+}
+
 function bottleMatchesQuery(candidate: string, selectedBottle: Bottle) {
   const candidateNorm = stripBottleName(candidate);
-  const aliases = candidateBottleKeys(selectedBottle.name);
+  const aliases = getBottleCanonicalKeys(selectedBottle);
   return aliases.some((alias) => alias && (candidateNorm.includes(alias) || alias.includes(candidateNorm)));
+}
+
+function dropMatchesCanonicalBottle(drop: DropEvent, selectedBottle: Bottle) {
+  const dropValues = [drop.brand_name, drop.tracked_brand_name, getDisplayName(drop)].filter(Boolean);
+  const dropKeys = new Set(
+    dropValues.flatMap((value) => {
+      const raw = String(value);
+      return [canonicalBottleKey(raw), ...candidateBottleKeys(raw)].filter(Boolean);
+    })
+  );
+  const bottleKeys = new Set(getBottleCanonicalKeys(selectedBottle));
+  for (const key of dropKeys) {
+    if (bottleKeys.has(key)) return true;
+  }
+  return false;
 }
 
 function getStoreLookupKeys(store: Store) {
@@ -246,7 +279,7 @@ function FinderBottleCard({
         </div>
         <div>
           <div className="finder-eyebrow">State</div>
-          <div className="finder-stat">{bottle.state ?? "Multi"}</div>
+          <div className="finder-stat">{bottle.states?.join(", ") || bottle.state || "Multi"}</div>
         </div>
       </div>
     </motion.button>
@@ -359,10 +392,18 @@ export default function MapPageClient() {
   const filteredBottles = useMemo(() => {
     const q = normalize(query);
     return bottles
-      .filter((bottle) => stateFilter === "ALL" || bottle.state === stateFilter)
+      .filter((bottle) => stateFilter === "ALL" || bottle.state === stateFilter || bottle.states?.includes(stateFilter))
       .filter((bottle) => {
         if (!q) return true;
-        return [bottle.name, bottle.distillery, bottle.tier, bottle.state]
+        return [
+          bottle.name,
+          bottle.canonical_name,
+          bottle.distillery,
+          bottle.tier,
+          bottle.state,
+          ...(bottle.search_aliases || []),
+          ...Object.values(bottle.state_aliases || {}).flat(),
+        ]
           .filter(Boolean)
           .some((value) => normalize(String(value)).includes(q));
       })
@@ -417,7 +458,7 @@ export default function MapPageClient() {
     return drops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => isWithinLastDays(drop.timestamp, 30))
-      .filter((drop) => dropMatchesBottle(drop, selectedBottle) || bottleMatchesQuery(getDisplayName(drop), selectedBottle))
+      .filter((drop) => dropMatchesCanonicalBottle(drop, selectedBottle) || dropMatchesBottle(drop, selectedBottle) || bottleMatchesQuery(getDisplayName(drop), selectedBottle))
       .sort((a, b) => {
         const qa = getSignalQuality(a).score;
         const qb = getSignalQuality(b).score;

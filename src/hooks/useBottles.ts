@@ -6,8 +6,14 @@ import type { Bottle } from "@/data/bottles";
 interface EngineBottle {
   id: string;
   name: string;
+  canonical_id?: string;
+  canonical_name?: string;
   canonical_key?: string;
-  state: string;
+  states?: string[];
+  state_ids?: Record<string, string[]>;
+  state_aliases?: Record<string, string[]>;
+  search_aliases?: string[];
+  state?: string;
   tier: string;
   msrp: number;
   distillery: string;
@@ -31,9 +37,15 @@ export function useBottles() {
       .then((res) => res.json())
       .then((data) => {
         const mapped: Bottle[] = (data.bottles || []).map((b: EngineBottle) => ({
-          id: b.id,
-          name: b.name,
+          id: b.canonical_id || b.id,
+          name: b.canonical_name || b.name,
+          canonical_id: b.canonical_id || undefined,
+          canonical_name: b.canonical_name || undefined,
           canonical_key: b.canonical_key || undefined,
+          states: b.states || undefined,
+          state_ids: b.state_ids || undefined,
+          state_aliases: b.state_aliases || undefined,
+          search_aliases: b.search_aliases || undefined,
           distillery: b.distillery || "Unknown",
           tier: (b.tier as Bottle["tier"]) || "limited",
           msrp: b.msrp || 0,
