@@ -533,12 +533,8 @@ export default function MapPageClient() {
               <Radar size={14} />
               Finder
             </div>
-            <h1>{mode === "bottle" ? "Search a bottle. See where it is moving." : "Search a board. See what is actually hitting."}</h1>
-            <p>
-              {mode === "bottle"
-                ? "Pick a bottle, narrow the state, and we’ll show the boards and stores where it has actually moved recently."
-                : "Pick your board or store, then see the bottles, drops, and recent movement tied to that location."}
-            </p>
+            <h1>Bottle Finder</h1>
+            <p>Pick a bottle or a location and we'll give you the most precise data available to help you find what you're looking for</p>
 
             <div className="finder-tool-shell">
               <div className="finder-lens-row">
@@ -548,7 +544,7 @@ export default function MapPageClient() {
                   onClick={() => setMode("bottle")}
                 >
                   <Sparkles size={15} />
-                  Find a Bottle
+                  Find a bottle
                 </button>
                 <button
                   type="button"
@@ -556,7 +552,7 @@ export default function MapPageClient() {
                   onClick={() => setMode("store")}
                 >
                   <Warehouse size={15} />
-                  Scan a Board
+                  Scan a location
                 </button>
               </div>
 
@@ -572,7 +568,7 @@ export default function MapPageClient() {
                     onFocus={() => {
                       if (mode === "bottle") setShowSuggestions(true);
                     }}
-                    placeholder={mode === "bottle" ? "Search bottle, distillery, or tier" : "Search board, store, city, or county"}
+                    placeholder={mode === "bottle" ? "Search bottle or distiller" : "Search board, store, city, or county"}
                     className="finder-search-input"
                   />
                 </div>
@@ -594,7 +590,7 @@ export default function MapPageClient() {
                           <strong>{bottle.name}</strong>
                           <span>{bottle.distillery || "Distillery unavailable"}</span>
                         </div>
-                        <span className="finder-row-pill">{bottle.drop_count_30d ?? 0} hits</span>
+                        <span className="finder-row-pill">Select</span>
                       </button>
                     ))}
                   </div>
@@ -616,70 +612,10 @@ export default function MapPageClient() {
             </div>
           </div>
 
-          <div className="finder-summary-grid">
-            <div className="finder-summary-card">
-              <span className="finder-eyebrow">Boards / stores</span>
-              <strong>{summary.stores}</strong>
-              <span>live searchable locations</span>
-            </div>
-            <div className="finder-summary-card">
-              <span className="finder-eyebrow">Tracked bottles</span>
-              <strong>{summary.bottles}</strong>
-              <span>ranked by signal density</span>
-            </div>
-            <div className="finder-summary-card">
-              <span className="finder-eyebrow">Live signals</span>
-              <strong>{summary.liveSignals}</strong>
-              <span>recent shipment and in-store events</span>
-            </div>
-          </div>
         </motion.div>
       </div>
 
-      <div className="finder-main-grid">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, x: -18 }}
-          animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="finder-panel finder-controls"
-        >
-          <div className="finder-section-label">
-            {mode === "bottle" ? "Bottle matches" : "Board matches"}
-          </div>
-
-          <div className="finder-card-stack">
-            {ready ? (
-              mode === "bottle" ? (
-                filteredBottles.slice(0, 8).map((bottle) => (
-                  <FinderBottleCard
-                    key={bottle.id}
-                    bottle={bottle}
-                    active={(selectedBottle?.id ?? filteredBottles[0]?.id) === bottle.id}
-                    onClick={() => setSelectedBottleId(bottle.id)}
-                    reduceMotion={!!reduceMotion}
-                  />
-                ))
-              ) : (
-                filteredStores.slice(0, 8).map((store) => (
-                  <FinderStoreCard
-                    key={store.id}
-                    store={store}
-                    active={(selectedStore?.id ?? filteredStores[0]?.id) === store.id}
-                    onClick={() => setSelectedStoreId(store.id)}
-                    reduceMotion={!!reduceMotion}
-                  />
-                ))
-              )
-            ) : (
-              <div className="finder-empty-card">Loading live finder data…</div>
-            )}
-
-            {ready && ((mode === "bottle" && filteredBottles.length === 0) || (mode === "store" && filteredStores.length === 0)) ? (
-              <div className="finder-empty-card">No matches. Try a looser search or change the state lens.</div>
-            ) : null}
-          </div>
-        </motion.div>
-
+      <div className="finder-main-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, x: 18 }}
           animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
@@ -699,7 +635,6 @@ export default function MapPageClient() {
                   <>
                     <div className="finder-result-hero bottle">
                       <div>
-                        <div className="finder-mode-pill">Bottle lens active</div>
                         <h2>{selectedBottle.name}</h2>
                         <p>
                           {bottleLocationInsights.exactStoreMatches > 0
@@ -838,7 +773,6 @@ export default function MapPageClient() {
                   <>
                     <div className="finder-result-hero store">
                       <div>
-                        <div className="finder-mode-pill">Board lens active</div>
                         <h2>{selectedStore.displayLabel}</h2>
                         <p>
                           Search by board or store when you want to monitor your territory. This view shows what is actually moving through that location,
