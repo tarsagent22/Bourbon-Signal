@@ -786,7 +786,7 @@ export default function DropFeed() {
             transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {[
-              { label: "Coverage", value: "NC • VA • PA" },
+              { label: "Coverage", value: "NC • VA • PA • IN" },
               { label: "Updated", value: timerIsStale ? "stalled" : data?.lastUpdated ? "live" : "checking" },
               { label: "Next refresh", value: refreshLabel },
               { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },

@@ -13,9 +13,9 @@ import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 type FinderMode = "bottle" | "store";
-type FinderState = "ALL" | "NC" | "VA" | "PA";
+type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN";
 
-const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA"];
+const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA", "IN"];
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {

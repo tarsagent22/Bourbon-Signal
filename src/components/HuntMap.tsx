@@ -92,7 +92,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
   const [bottleSearch, setBottleSearch] = useState("");
   const [selectedBottleIds, setSelectedBottleIds] = useState<string[]>([]);
   const [locationQuery, setLocationQuery] = useState("");
-  const [selectedState, setSelectedState] = useState("NC");
+  const [selectedState, setSelectedState] = useState("IN");
   const [daysBack, setDaysBack] = useState(7);
   const [areaCenter, setAreaCenter] = useState<LatLngExpression>([35.5, -79.0]);
   const [mapZoom, setMapZoom] = useState(6);
@@ -262,6 +262,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ display: "grid", gridTemplateColumns: "140px 1fr auto", gap: 8 }}>
                 <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
+                  <option value="IN">Indiana</option>
                   <option value="NC">North Carolina</option>
                   <option value="VA">Virginia</option>
                   <option value="PA">Pennsylvania</option>

@@ -23,6 +23,8 @@ const EMPTY_PREFS: AreaPreferences = {
   paStores: [],
 };
 
+const SIMPLE_STATE_CODES = ["NC", "VA", "PA", "IN"] as const;
+
 interface NotificationPreferences {
   sms: boolean;
   email: boolean;
@@ -116,6 +118,7 @@ function makeStateLabel(code: string) {
   if (code === "NC") return "North Carolina";
   if (code === "VA") return "Virginia";
   if (code === "PA") return "Pennsylvania";
+  if (code === "IN") return "Indiana";
   return code;
 }
 
@@ -999,7 +1002,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
-                    {["NC", "VA", "PA"].map((state) => {
+                    {SIMPLE_STATE_CODES.map((state) => {
                       const active = localPrefs.states.includes(state);
                     return (
                       <button

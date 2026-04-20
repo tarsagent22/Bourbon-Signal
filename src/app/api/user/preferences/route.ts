@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export interface AreaPreferences {
-  states: string[];       // ["NC", "VA", "PA"]
+  states: string[];       // ["NC", "VA", "PA", "IN"]
   ncBoards: string[];     // ["Wake", "Durham", "Mecklenburg"] — empty = all
   vaCities: string[];     // ["Richmond", "Roanoke"] — empty = all
   paCounties: string[];   // ["Allegheny", "Philadelphia"] — empty = all

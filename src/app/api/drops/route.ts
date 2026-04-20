@@ -11,6 +11,7 @@ function normalizeDropsPayload(data: Record<string, unknown>) {
     Pennsylvania: "PA",
     "North Carolina": "NC",
     Virginia: "VA",
+    Indiana: "IN",
     Utah: "UT",
     Texas: "TX",
     Ohio: "OH",
