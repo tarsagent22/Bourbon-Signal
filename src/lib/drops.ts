@@ -46,6 +46,24 @@ export interface GroupedDrop {
   locations: DropLocation[];
 }
 
+function isRealDropEvent(event: DropEvent): boolean {
+  const eventType = (event.event_type || '').toLowerCase();
+  const hasLocation = !!(
+    event.store_address ||
+    event.store_city ||
+    event.store_county ||
+    event.store_name ||
+    event.board_name ||
+    (event.stores && event.stores.length > 0) ||
+    (event.store_details && event.store_details.length > 0)
+  );
+
+  if (!hasLocation) return false;
+  if (eventType === 'new_allocation') return false;
+  if (eventType === 'allocation_assigned') return false;
+  return true;
+}
+
 export function cleanBrandName(name: string): string {
   if (!name) return "Unknown";
   if (/^\d+$/.test(name)) return "";
@@ -153,6 +171,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
   };
 
   for (const event of drops) {
+    if (!isRealDropEvent(event)) continue;
     const displayName = getDisplayName(event);
     if (displayName === "Unknown Bottle") continue;
 
@@ -245,7 +264,7 @@ export function getEventDescription(drop: GroupedDrop): string {
       return `Restocked${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "allocation_assigned": {
-      return "Allocation assigned";
+      return "Allocated to a location";
     }
     case "in_stock": {
       // PA store-level event
@@ -258,7 +277,7 @@ export function getEventDescription(drop: GroupedDrop): string {
       return "\u2192 PA stores";
     }
     case "new_allocation": {
-      return "New PA allocation";
+      return "New allocation posted";
     }
     case "restock": {
       const loc = drop.counties[0] || (drop.board_name ?? "");

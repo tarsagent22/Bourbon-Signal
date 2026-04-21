@@ -799,7 +799,7 @@ export default function MapPageClient() {
                     </div>
                   </>
                 ) : (
-                  <div className="finder-empty-card">No bottles found in this lens yet.</div>
+                  <div className="finder-empty-card">No bottle matches in this state yet. Try Weller, Stagg, Blanton's, or Buffalo Trace, or switch to All states.</div>
                 )}
               </motion.div>
             ) : (
@@ -882,7 +882,7 @@ export default function MapPageClient() {
                     </div>
                   </>
                 ) : (
-                  <div className="finder-empty-card">No boards or stores found in this lens yet.</div>
+                  <div className="finder-empty-card">No location matches in this state yet. Search a board, county, city, or store name, or switch to All states.</div>
                 )}
               </motion.div>
             )}

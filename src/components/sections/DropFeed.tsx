@@ -724,9 +724,6 @@ export default function DropFeed() {
   const displayedGrouped = finalFeed.slice(0, isPaidUser ? paidVisibleCount : baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
-  const minutes = Math.floor(secondsUntilRefresh / 60);
-  const seconds = secondsUntilRefresh % 60;
-  const refreshLabel = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
   return (
     <section
@@ -787,8 +784,7 @@ export default function DropFeed() {
           >
             {[
               { label: "Coverage", value: "NC • VA • PA • IN" },
-              { label: "Updated", value: timerIsStale ? "stalled" : data?.lastUpdated ? "live" : "checking" },
-              { label: "Next refresh", value: refreshLabel },
+              { label: "Feed status", value: timerIsStale ? "Refreshing" : data?.lastUpdated ? "Live" : "Checking" },
               { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },
             ].map((item, idx) => (
               <div
@@ -802,7 +798,7 @@ export default function DropFeed() {
               >
                 <span style={{ color: "rgba(245,237,214,0.42)" }}>{item.label}</span>
                 <span style={{ color: "var(--color-cream)", fontWeight: 600 }}>{item.value}</span>
-                {idx < 3 && <span style={{ color: "rgba(245,237,214,0.18)" }}>•</span>}
+                {idx < 2 && <span style={{ color: "rgba(245,237,214,0.18)" }}>•</span>}
               </div>
             ))}
           </motion.div>
@@ -837,7 +833,7 @@ export default function DropFeed() {
                   marginBottom: 0,
                 }}
               >
-                Recent bottle movement with the newest valid drops always kept on screen.
+                Recent real drop signals, filtered to actual movement with usable location context.
               </p>
             </div>
             {hasAreaPrefs && (
@@ -875,7 +871,7 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            Unlock maps, dashboards, and deeper bottle intel with member access.
+            Track the latest real bottle movement, then unlock deeper hunt intel with member access.
           </motion.div>
 
           {/* Divider */}
@@ -970,7 +966,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.65)",
                 }}
               >
-                Live feed is temporarily unavailable — showing recent sample activity so you can preview the product experience.
+                Live feed is temporarily unavailable, so this preview is showing sample activity instead of live drop signals.
               </div>
               <AnimatePresence mode="popLayout">
                 {groupDrops(MOCK_DROPS).map((drop, index) => (
@@ -1067,7 +1063,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked in real time` : isPaidUser ? "Paid members can expand deeper into recent history" : "Updated every 15 minutes"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more recent signals tracked` : isPaidUser ? "Paid members can expand deeper into recent history" : "Live feed updates automatically"}
               </p>
             </div>
           )}

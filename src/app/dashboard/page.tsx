@@ -1432,8 +1432,8 @@ export default function DashboardPage() {
 
         <StepShell
           step="03"
-          title="Set up notifications"
-          subtitle="Choose how Bourbon Signal should notify you when a bottle signal matches your watchlist and hunting territory. This is preference UI for now, and the delivery wiring comes next."
+          title="Notification preferences"
+          subtitle="Choose how Bourbon Signal should contact you when a bottle signal matches your watchlist and hunting territory. Save the channels you want ready to go."
         >
           <div
             style={{
@@ -1535,10 +1535,10 @@ export default function DashboardPage() {
             >
               <div>
                 <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                  Alert preview
+                  Preference summary
                 </h3>
                 <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
-                  This is how your preferences stack right now. Delivery channels are still UI-only for the moment, but this is the control flow we will wire next.
+                  This is the current alert scope based on the bottles, territory, and channels you selected.
                 </p>
               </div>
 
