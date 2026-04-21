@@ -113,29 +113,32 @@ export default function HeroSection() {
 
         <ScrollReveal delay={125}>
           <div
-            className="flex flex-wrap items-center justify-center gap-2"
+            className="flex flex-wrap items-center justify-center gap-3"
             style={{ marginBottom: "18px" }}
           >
             {[
               "Live drop feed",
-              "Hunt map",
-              "Bottle + store targeting",
-              "Alerts layer coming next",
+              "Bottle Finder",
+              "Custom Alerts",
+              "+More coming soon",
             ].map((pill) => (
               <span
                 key={pill}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "8px 12px",
-                  borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(10,8,6,0.32)",
-                  backdropFilter: "blur(8px)",
-                  color: "rgba(245, 237, 214, 0.78)",
+                  justifyContent: "center",
+                  padding: "9px 16px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(212,146,11,0.16)",
+                  background: "linear-gradient(180deg, rgba(28,22,16,0.82) 0%, rgba(14,11,8,0.72) 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 24px rgba(0,0,0,0.22)",
+                  color: "rgba(245, 237, 214, 0.88)",
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: 12,
-                  fontWeight: 500,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
                 }}
               >
                 {pill}
