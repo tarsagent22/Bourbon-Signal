@@ -26,9 +26,7 @@ const EMPTY_PREFS: AreaPreferences = {
 const SIMPLE_STATE_CODES = ["NC", "VA", "PA", "IN"] as const;
 
 interface NotificationPreferences {
-  sms: boolean;
   email: boolean;
-  site: boolean;
 }
 
 interface AlertPreviewState {
@@ -389,9 +387,7 @@ export default function DashboardPage() {
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
-    sms: false,
     email: true,
-    site: true,
   });
   const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
     sending: false,
@@ -674,7 +670,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSaveNotifications = () => {
+  const handleSaveNotifications = async () => {
     setSavedNotifications(true);
     setTimeout(() => setSavedNotifications(false), 2200);
   };
@@ -1490,19 +1486,14 @@ export default function DashboardPage() {
                 gap: "12px",
               }}
             >
-              {[
-                { key: "sms", title: "SMS", note: "Fastest tap on the shoulder when you are away from the app." },
-                { key: "email", title: "Email", note: "Best for a readable trail of bottle signals and hunt recaps." },
-                { key: "site", title: "Site notifications", note: "Catch alerts in the dashboard when you are already in the product." },
-              ].map((channel) => {
-                const active = notificationPrefs[channel.key as keyof NotificationPreferences];
+              {(() => {
+                const active = notificationPrefs.email;
                 return (
                   <button
-                    key={channel.key}
                     onClick={() =>
                       setNotificationPrefs((prev) => ({
                         ...prev,
-                        [channel.key]: !prev[channel.key as keyof NotificationPreferences],
+                        email: !prev.email,
                       }))
                     }
                     style={{
@@ -1522,10 +1513,10 @@ export default function DashboardPage() {
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
                       <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                        {channel.title}
+                        Email alerts
                       </span>
                       <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                        {channel.note}
+                        Get bottle alerts in your inbox when something in your watchlist hits the territory you selected.
                       </span>
                     </div>
                     <span
@@ -1555,7 +1546,7 @@ export default function DashboardPage() {
                     </span>
                   </button>
                 );
-              })}
+              })()}
             </div>
 
             <div
@@ -1606,10 +1597,7 @@ export default function DashboardPage() {
                     Delivery channels
                   </p>
                   <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                    {Object.entries(notificationPrefs)
-                      .filter(([, active]) => active)
-                      .map(([key]) => key.toUpperCase())
-                      .join(", ") || "None selected yet."}
+                    {notificationPrefs.email ? "Email alerts are on." : "Email alerts are off."}
                   </p>
                 </div>
               </div>
@@ -1647,7 +1635,7 @@ export default function DashboardPage() {
                     Premium email preview
                   </p>
                   <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
-                    Send yourself the new paid-member alert template and see exactly what the inbox experience feels like.
+                    Send a sample alert to your inbox and check the exact member email experience before the next real drop hits.
                   </p>
                 </div>
 
