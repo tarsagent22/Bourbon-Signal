@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
-import SetLocationButton from "@/components/SetLocationButton";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
@@ -119,7 +118,6 @@ export default function Navigation() {
 
         {/* Right side */}
         <div className="hidden md:flex items-center gap-4" style={{ marginRight: "10px" }}>
-          <SetLocationButton compact />
           {mounted && isSignedIn ? (
             <>
               {/* Upgrade nudge — only for free tier, stays in nav */}
@@ -243,46 +241,6 @@ export default function Navigation() {
                           </span>
                         )}
                       </div>
-
-                      {/* Divider */}
-                      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
-
-                      {/* Menu items */}
-                      {[
-                        { label: "My Hunt Areas", href: "/dashboard", icon: "🎯" },
-                      ].map((item) => (
-                        <a
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setProfileOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            padding: "11px 16px",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            color: "var(--color-text-secondary)",
-                            textDecoration: "none",
-                            transition: "all 150ms ease",
-                            borderLeft: "2px solid transparent",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = "var(--color-cream)";
-                            e.currentTarget.style.background = "rgba(196,148,58,0.06)";
-                            e.currentTarget.style.borderLeftColor = "var(--color-accent-amber)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = "var(--color-text-secondary)";
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.borderLeftColor = "transparent";
-                          }}
-                        >
-                          <span style={{ fontSize: "14px", width: "18px", textAlign: "center" }}>{item.icon}</span>
-                          {item.label}
-                        </a>
-                      ))}
 
                       {/* Divider */}
                       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
@@ -422,24 +380,6 @@ export default function Navigation() {
                 <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)", marginBottom: "8px" }}>
                   {userDisplayName}
                 </p>
-                {[
-                  { label: "My Hunt Areas", href: "/dashboard" },
-                ].map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "16px",
-                      fontWeight: 500,
-                      color: "var(--color-text-secondary)",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {item.label}
-                  </a>
-                ))}
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
                   style={{
