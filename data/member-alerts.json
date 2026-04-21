@@ -1,0 +1,21 @@
+[
+  {
+    "id": "dXNlcl8zQ2VERFVjcTZubzNrSHN5ZU9NNUFkb1d5WUY6dXNlcl8zQ2VERFVjcTZubzNrSHN5ZU9NNUFkb1d5WUY6OmJsYW50b24ncyBvcmlnaW5hbCBzaW5nbGUgYmFycmVsOjpwaGFzZTMtdGVzdC1zdG9yZS0xMTI6MjAyNi0wNC0yMVQxNjoyODowNS44Mjla",
+    "userId": "user_3CeDDUcq6no3kHsyeOM5AdoWyYF",
+    "dedupeKey": "user_3CeDDUcq6no3kHsyeOM5AdoWyYF::blanton's original single barrel::phase3-test-store-112",
+    "bottleName": "Blanton's Original Single Barrel",
+    "state": "NC",
+    "storeLabel": "ABC Store 112, Charlotte",
+    "matchedArea": "Charlotte",
+    "eventType": "in_store",
+    "rarityTier": "allocated",
+    "quantity": 2,
+    "score": 105,
+    "priorityClass": "major",
+    "createdAt": "2026-04-21T16:28:05.829Z",
+    "readAt": null,
+    "archivedAt": null,
+    "emailDeliveredAt": "2026-04-21T16:28:06.777Z",
+    "emailModeAtSend": "major_only"
+  }
+]
