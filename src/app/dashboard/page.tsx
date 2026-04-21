@@ -12,8 +12,9 @@ import { useWatchlistStore } from "@/lib/watchlist";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import type { Bottle } from "@/data/bottles";
-import type { AreaPreferences } from "@/app/api/user/preferences/route";
+import type { AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey } from "@/lib/bottleIdentity";
+import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -24,10 +25,6 @@ const EMPTY_PREFS: AreaPreferences = {
 };
 
 const SIMPLE_STATE_CODES = ["NC", "VA", "PA", "IN"] as const;
-
-interface NotificationPreferences {
-  email: boolean;
-}
 
 interface AlertPreviewState {
   sending: boolean;
@@ -386,9 +383,7 @@ export default function DashboardPage() {
   const [localPrefs, setLocalPrefs] = useState<AreaPreferences>(EMPTY_PREFS);
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
-  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
-    email: true,
-  });
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
   const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
     sending: false,
     success: false,
@@ -430,7 +425,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!mounted) return;
-    setLocalPrefs(isSignedIn ? prefs : EMPTY_PREFS);
+    setLocalPrefs(isSignedIn ? prefs.areaPreferences : EMPTY_PREFS);
+    setNotificationPrefs(isSignedIn ? prefs.notificationPreferences : getDefaultNotificationPreferences());
   }, [prefs, isSignedIn, mounted]);
 
   const bottleOptions = useMemo<BottleOption[]>(() => {
@@ -658,21 +654,22 @@ export default function DashboardPage() {
     });
   };
 
-  const handleSaveLocations = async () => {
+  const handleSaveAlertSetup = async () => {
     if (!isSignedIn) return;
     setSavingLocations(true);
     try {
-      await savePreferences(localPrefs);
+      const nextPrefs: UserAlertPreferences = {
+        areaPreferences: localPrefs,
+        notificationPreferences: notificationPrefs,
+      };
+      await savePreferences(nextPrefs);
       setSavedLocations(true);
+      setSavedNotifications(true);
       setTimeout(() => setSavedLocations(false), 2200);
+      setTimeout(() => setSavedNotifications(false), 2200);
     } finally {
       setSavingLocations(false);
     }
-  };
-
-  const handleSaveNotifications = async () => {
-    setSavedNotifications(true);
-    setTimeout(() => setSavedNotifications(false), 2200);
   };
 
   return (
@@ -1439,7 +1436,7 @@ export default function DashboardPage() {
 
                 <div style={{ display: "flex", justifyContent: "flex-start" }}>
                   <button
-                    onClick={handleSaveLocations}
+                    onClick={handleSaveAlertSetup}
                     disabled={!isSignedIn || savingLocations}
                     style={{
                       padding: "12px 18px",
@@ -1454,7 +1451,7 @@ export default function DashboardPage() {
                       opacity: !isSignedIn || savingLocations ? 0.7 : 1,
                     }}
                   >
-                    {!isSignedIn ? "Sign in to save locations" : savingLocations ? "Saving…" : savedLocations ? "Saved ✓" : "Save location setup"}
+                    {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedLocations ? "Saved ✓" : "Save alert setup"}
                   </button>
                 </div>
               </div>
@@ -1487,68 +1484,225 @@ export default function DashboardPage() {
               }}
             >
               {(() => {
-                const active = notificationPrefs.email;
+                const onSiteActive = notificationPrefs.onSite.enabled;
+                const emailActive = notificationPrefs.email.enabled;
+                const smsActive = notificationPrefs.sms.enabled;
+
                 return (
-                  <button
-                    onClick={() =>
-                      setNotificationPrefs((prev) => ({
-                        ...prev,
-                        email: !prev.email,
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      borderRadius: "14px",
-                      border: active ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                      background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                      padding: "16px",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "12px",
-                      alignItems: "center",
-                      minHeight: "112px",
-                    }}
-                  >
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
-                      <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                        Email alerts
-                      </span>
-                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                        Get bottle alerts in your inbox when something in your watchlist hits the territory you selected.
-                      </span>
-                    </div>
-                    <span
+                  <>
+                    <button
+                      onClick={() =>
+                        setNotificationPrefs((prev) => ({
+                          ...prev,
+                          onSite: { enabled: !prev.onSite.enabled },
+                        }))
+                      }
                       style={{
-                        width: "46px",
-                        height: "28px",
-                        borderRadius: "999px",
-                        background: active ? "rgba(196,148,58,0.24)" : "rgba(255,255,255,0.10)",
-                        border: active ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                        position: "relative",
-                        flexShrink: 0,
-                        alignSelf: "center",
+                        width: "100%",
+                        borderRadius: "14px",
+                        border: onSiteActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                        background: onSiteActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                        padding: "16px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        alignItems: "center",
+                        minHeight: "112px",
                       }}
                     >
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
+                        <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
+                          On-site alerts
+                        </span>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+                          See matching alerts in your Bourbon Signal inbox from anywhere on the site.
+                        </span>
+                      </div>
                       <span
                         style={{
-                          position: "absolute",
-                          top: "3px",
-                          left: active ? "22px" : "3px",
-                          width: "20px",
-                          height: "20px",
-                          borderRadius: "50%",
-                          background: active ? "var(--color-accent-amber)" : "rgba(255,255,255,0.45)",
-                          transition: "left 180ms ease",
+                          width: "46px",
+                          height: "28px",
+                          borderRadius: "999px",
+                          background: onSiteActive ? "rgba(196,148,58,0.24)" : "rgba(255,255,255,0.10)",
+                          border: onSiteActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                          position: "relative",
+                          flexShrink: 0,
+                          alignSelf: "center",
                         }}
-                      />
-                    </span>
-                  </button>
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "3px",
+                            left: onSiteActive ? "22px" : "3px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            background: onSiteActive ? "var(--color-accent-amber)" : "rgba(255,255,255,0.45)",
+                            transition: "left 180ms ease",
+                          }}
+                        />
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setNotificationPrefs((prev) => ({
+                          ...prev,
+                          email: { ...prev.email, enabled: !prev.email.enabled },
+                        }))
+                      }
+                      style={{
+                        width: "100%",
+                        borderRadius: "14px",
+                        border: emailActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                        background: emailActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                        padding: "16px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        alignItems: "center",
+                        minHeight: "112px",
+                      }}
+                    >
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
+                        <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
+                          Email alerts
+                        </span>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+                          Use email for either every matching alert, only major hits, or a calmer daily roundup.
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          width: "46px",
+                          height: "28px",
+                          borderRadius: "999px",
+                          background: emailActive ? "rgba(196,148,58,0.24)" : "rgba(255,255,255,0.10)",
+                          border: emailActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                          position: "relative",
+                          flexShrink: 0,
+                          alignSelf: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "3px",
+                            left: emailActive ? "22px" : "3px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            background: emailActive ? "var(--color-accent-amber)" : "rgba(255,255,255,0.45)",
+                            transition: "left 180ms ease",
+                          }}
+                        />
+                      </span>
+                    </button>
+
+                    {emailActive ? (
+                      <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.12)", background: "rgba(255,255,255,0.03)", padding: "16px" }}>
+                        <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                          Email delivery
+                        </p>
+                        <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
+                          {[
+                            { value: "all", label: "Instant, all matches", note: "Every alert that matches your watchlist and territory." },
+                            { value: "major_only", label: "Instant, major hits only", note: "Only the strongest, most urgent matches hit your inbox." },
+                            { value: "daily_roundup", label: "Daily roundup", note: "Save alerts for a calmer digest instead of immediate email." },
+                          ].map((option) => {
+                            const selected = notificationPrefs.email.mode === option.value;
+                            return (
+                              <button
+                                key={option.value}
+                                onClick={() =>
+                                  setNotificationPrefs((prev) => ({
+                                    ...prev,
+                                    email: { ...prev.email, mode: option.value as typeof prev.email.mode },
+                                  }))
+                                }
+                                style={{
+                                  textAlign: "left",
+                                  borderRadius: "12px",
+                                  border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                                  background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)",
+                                  padding: "12px 14px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 700, color: "var(--color-text-primary)" }}>{option.label}</div>
+                                <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{option.note}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <button
+                      disabled
+                      style={{
+                        width: "100%",
+                        borderRadius: "14px",
+                        border: smsActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                        background: smsActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                        padding: "16px",
+                        cursor: "not-allowed",
+                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        alignItems: "center",
+                        minHeight: "112px",
+                        opacity: 0.72,
+                      }}
+                    >
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
+                            SMS alerts
+                          </span>
+                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase", border: "1px solid rgba(196,148,58,0.22)", borderRadius: "999px", padding: "4px 8px" }}>
+                            Coming soon
+                          </span>
+                        </div>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+                          Fastest channel for urgent drops once phone delivery is live.
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          width: "46px",
+                          height: "28px",
+                          borderRadius: "999px",
+                          background: "rgba(255,255,255,0.10)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          position: "relative",
+                          flexShrink: 0,
+                          alignSelf: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "3px",
+                            left: "3px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            background: "rgba(255,255,255,0.45)",
+                          }}
+                        />
+                      </span>
+                    </button>
+                  </>
                 );
               })()}
             </div>
-
             <div
               style={{
                 background: "rgba(11,9,7,0.56)",
@@ -1597,14 +1751,17 @@ export default function DashboardPage() {
                     Delivery channels
                   </p>
                   <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                    {notificationPrefs.email ? "Email alerts are on." : "Email alerts are off."}
+                    {[
+                      notificationPrefs.onSite.enabled ? "On-site" : null,
+                      notificationPrefs.email.enabled ? `Email (${notificationPrefs.email.mode === "all" ? "all matches" : notificationPrefs.email.mode === "major_only" ? "major hits" : "daily roundup"})` : null,
+                      notificationPrefs.sms.enabled ? "SMS" : null,
+                    ].filter(Boolean).join(", ") || "No alert channels selected yet."}
                   </p>
                 </div>
               </div>
 
               <div>
                 <button
-                  onClick={handleSaveNotifications}
                   style={{
                     padding: "12px 18px",
                     borderRadius: "12px",
@@ -1617,7 +1774,7 @@ export default function DashboardPage() {
                     cursor: "pointer",
                   }}
                 >
-                  {savedNotifications ? "Saved ✓" : "Save notification preferences"}
+                  {savedNotifications ? "Saved ✓" : "Notification preferences are part of the master save below"}
                 </button>
               </div>
 
@@ -1641,21 +1798,21 @@ export default function DashboardPage() {
 
                 <button
                   onClick={sendPreviewEmail}
-                  disabled={!isSignedIn || !notificationPrefs.email || alertPreview.sending}
+                  disabled={!isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending}
                   style={{
                     padding: "12px 18px",
                     borderRadius: "999px",
                     border: "1px solid rgba(196,148,58,0.24)",
-                    background: !isSignedIn || !notificationPrefs.email || alertPreview.sending
+                    background: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
                       ? "rgba(255,255,255,0.05)"
                       : "linear-gradient(135deg, rgba(196,148,58,0.18) 0%, rgba(196,148,58,0.08) 100%)",
-                    color: !isSignedIn || !notificationPrefs.email || alertPreview.sending
+                    color: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
                       ? "var(--color-text-tertiary)"
                       : "var(--color-accent-amber)",
                     fontFamily: "var(--font-dm-sans)",
                     fontWeight: 700,
                     fontSize: "14px",
-                    cursor: !isSignedIn || !notificationPrefs.email || alertPreview.sending ? "not-allowed" : "pointer",
+                    cursor: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "not-allowed" : "pointer",
                     textAlign: "left",
                   }}
                 >

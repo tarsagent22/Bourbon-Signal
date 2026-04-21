@@ -2,22 +2,25 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import type { AreaPreferences } from "@/app/api/user/preferences/route";
+import type { UserAlertPreferences } from "@/app/api/user/preferences/route";
+import { getDefaultNotificationPreferences } from "@/lib/notification-preferences";
 
-const EMPTY_PREFS: AreaPreferences = {
-  states: [],
-  ncBoards: [],
-  vaCities: [],
-  paCounties: [],
-  paStores: [],
+const EMPTY_PREFS: UserAlertPreferences = {
+  areaPreferences: {
+    states: [],
+    ncBoards: [],
+    vaCities: [],
+    paCounties: [],
+    paStores: [],
+  },
+  notificationPreferences: getDefaultNotificationPreferences(),
 };
 
-// In-memory cache so we don't re-fetch on every render
-let cachedPrefs: AreaPreferences | null = null;
+let cachedPrefs: UserAlertPreferences | null = null;
 
 export function useAreaPreferences() {
   const { isSignedIn } = useUser();
-  const [prefs, setPrefs] = useState<AreaPreferences>(cachedPrefs ?? EMPTY_PREFS);
+  const [prefs, setPrefs] = useState<UserAlertPreferences>(cachedPrefs ?? EMPTY_PREFS);
   const [loading, setLoading] = useState(false);
 
   const fetchPrefs = useCallback(async () => {
@@ -29,19 +32,18 @@ export function useAreaPreferences() {
     try {
       const res = await fetch("/api/user/preferences");
       if (res.ok) {
-        const data: AreaPreferences = await res.json();
+        const data: UserAlertPreferences = await res.json();
         cachedPrefs = data;
         setPrefs(data);
       }
     } catch {
-      // silently fall back to empty prefs
+      setPrefs(EMPTY_PREFS);
     } finally {
       setLoading(false);
     }
   }, [isSignedIn]);
 
   useEffect(() => {
-    // If we already have a cached value, use it immediately (no loading flash)
     if (cachedPrefs !== null) {
       setPrefs(cachedPrefs);
       return;
@@ -49,7 +51,7 @@ export function useAreaPreferences() {
     fetchPrefs();
   }, [fetchPrefs]);
 
-  const savePreferences = useCallback(async (newPrefs: AreaPreferences) => {
+  const savePreferences = useCallback(async (newPrefs: UserAlertPreferences) => {
     setPrefs(newPrefs);
     cachedPrefs = newPrefs;
     const res = await fetch("/api/user/preferences", {

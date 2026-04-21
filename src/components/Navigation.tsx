@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
+import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
@@ -120,6 +121,8 @@ export default function Navigation() {
         <div className="hidden md:flex items-center gap-4" style={{ marginRight: "10px" }}>
           {mounted && isSignedIn ? (
             <>
+              <MemberAlertsBell />
+
               {/* Upgrade nudge — only for free tier, stays in nav */}
               {memberTier === null && (
                 <a

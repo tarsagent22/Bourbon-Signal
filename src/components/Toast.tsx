@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Bookmark, BookmarkX, Filter, Info } from "lucide-react";
+import { Bell, Bookmark, BookmarkX, Filter, Info } from "lucide-react";
 import { useToastStore } from "@/lib/toast";
 import type { Toast as ToastType } from "@/lib/toast";
 
@@ -10,6 +10,7 @@ const iconMap = {
   "bookmark-x": BookmarkX,
   filter: Filter,
   info: Info,
+  bell: Bell,
 };
 
 function ToastItem({ toast }: { toast: ToastType }) {

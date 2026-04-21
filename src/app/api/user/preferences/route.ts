@@ -1,32 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import {
+  getDefaultNotificationPreferences,
+  normalizeNotificationPreferences,
+  type NotificationPreferences,
+} from "@/lib/notification-preferences";
 
 export interface AreaPreferences {
-  states: string[];       // ["NC", "VA", "PA", "IN"]
-  ncBoards: string[];     // ["Wake", "Durham", "Mecklenburg"] — empty = all
-  vaCities: string[];     // ["Richmond", "Roanoke"] — empty = all
-  paCounties: string[];   // ["Allegheny", "Philadelphia"] — empty = all
-  paStores: string[];     // store IDs like ["0215", "0222"] — empty = all stores in selected counties
+  states: string[];
+  ncBoards: string[];
+  vaCities: string[];
+  paCounties: string[];
+  paStores: string[];
+}
+
+export interface UserAlertPreferences {
+  areaPreferences: AreaPreferences;
+  notificationPreferences: NotificationPreferences;
+}
+
+const EMPTY_AREA_PREFERENCES: AreaPreferences = {
+  states: [],
+  ncBoards: [],
+  vaCities: [],
+  paCounties: [],
+  paStores: [],
+};
+
+function normalizeAreaPreferences(input: unknown): AreaPreferences {
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+
+  const toStringArray = (value: unknown) =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+  return {
+    states: toStringArray(source.states),
+    ncBoards: toStringArray(source.ncBoards),
+    vaCities: toStringArray(source.vaCities),
+    paCounties: toStringArray(source.paCounties),
+    paStores: toStringArray(source.paStores),
+  };
+}
+
+function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
+  return {
+    areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
+    notificationPreferences: normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences),
+  };
 }
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const prefs = (user.publicMetadata?.areaPreferences as AreaPreferences) || {
-    states: [], ncBoards: [], vaCities: [], paCounties: [], paStores: [],
-  };
-  return NextResponse.json(prefs);
+  return NextResponse.json(buildResponseFromMetadata(user));
 }
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const prefs: AreaPreferences = await req.json();
+
+  const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
+  const areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? EMPTY_AREA_PREFERENCES);
+  const notificationPreferences = normalizeNotificationPreferences(
+    payload.notificationPreferences ?? getDefaultNotificationPreferences()
+  );
+
   const client = await clerkClient();
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences: prefs },
+    publicMetadata: { areaPreferences, notificationPreferences },
   });
-  return NextResponse.json({ ok: true });
+
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences });
 }

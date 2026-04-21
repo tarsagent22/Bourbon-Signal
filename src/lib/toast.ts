@@ -3,7 +3,7 @@ import { create } from "zustand";
 export interface Toast {
   id: string;
   message: string;
-  icon?: "bookmark" | "bookmark-x" | "filter" | "info";
+  icon?: "bookmark" | "bookmark-x" | "filter" | "info" | "bell";
 }
 
 interface ToastState {

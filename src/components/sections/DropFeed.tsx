@@ -591,7 +591,8 @@ export default function DropFeed() {
 
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
   const { isSignedIn, memberTier } = useAuth();
-  const { prefs: areaPrefs } = useAreaPreferences();
+  const { prefs } = useAreaPreferences();
+  const areaPrefs = prefs.areaPreferences;
   const isPaidUser = memberTier === "monthly" || memberTier === "annual" || memberTier === "founder" || memberTier === "lifetime";
   const isFreeUser = !isPaidUser;
   const [data, setData] = useState<DropsResponse | null>(null);
