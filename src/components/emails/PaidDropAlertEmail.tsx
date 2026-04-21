@@ -42,27 +42,28 @@ export function PaidDropAlertEmail({
           <Section style={topRail}>
             <Text style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
             <Text style={headline}>{bottleName}</Text>
-            <Text style={subhead}>A fresh signal just landed in your hunting territory.</Text>
+            <Text style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
           </Section>
 
           <Section style={contentWrap}>
             <Text style={paragraph}>{greeting}</Text>
             <Text style={paragraph}>
-              We picked up a new <strong style={strong}>paid-member alert</strong> for <strong style={strong}>{bottleName}</strong> at <strong style={strong}>{storeLabel}</strong>.
+              <strong style={strong}>{bottleName}</strong> just hit <strong style={strong}>{storeLabel}</strong>.
             </Text>
+            <Text style={paragraph}>This matched your <strong style={strong}>{matchedArea}</strong> alert area.</Text>
 
             <Section style={signalCard}>
               <Text style={signalLabel}>SIGNAL LOCATION</Text>
               <Text style={signalValue}>{storeLabel}</Text>
 
-              <Text style={metaLine}>Area match: {matchedArea}</Text>
+              <Text style={metaLine}>Tracked area: {matchedArea}</Text>
               <Text style={metaLine}>State: {state}</Text>
-              <Text style={metaLine}>Seen: {timestampLabel}</Text>
-              {quantityLabel ? <Text style={metaLine}>Inventory note: {quantityLabel}</Text> : null}
+              <Text style={metaLine}>Reported: {timestampLabel}</Text>
+              {quantityLabel ? <Text style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
             </Section>
 
             <Text style={paragraphMuted}>
-              This alert was sent because it matches the hunt areas in your Bourbon Signal setup. We suppress duplicate alerts for the same bottle and same store for 24 hours, so your inbox does not turn into a slot machine.
+              We will not send this same bottle and store alert again for 24 hours.
             </Text>
 
             <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
@@ -72,7 +73,7 @@ export function PaidDropAlertEmail({
             </Section>
 
             <Text style={footerCopy}>
-              Reply to this email if something looks off. A human actually reads it.
+              If this looks wrong, reply and we will check it.
             </Text>
           </Section>
         </Container>
