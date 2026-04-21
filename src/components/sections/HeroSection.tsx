@@ -113,36 +113,52 @@ export default function HeroSection() {
 
         <ScrollReveal delay={125}>
           <div
-            className="flex flex-wrap items-center justify-center gap-3"
-            style={{ marginBottom: "18px" }}
+            className="flex flex-wrap items-center justify-center"
+            style={{
+              marginBottom: "18px",
+              gap: "10px",
+              maxWidth: "760px",
+            }}
           >
             {[
               "Live drop feed",
               "Bottle Finder",
               "Custom Alerts",
-              "+More coming soon",
-            ].map((pill) => (
-              <span
-                key={pill}
+              "More coming soon",
+            ].map((item, index, arr) => (
+              <div
+                key={item}
+                className="flex items-center"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "9px 16px",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(212,146,11,0.16)",
-                  background: "linear-gradient(180deg, rgba(28,22,16,0.82) 0%, rgba(14,11,8,0.72) 100%)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 24px rgba(0,0,0,0.22)",
-                  color: "rgba(245, 237, 214, 0.88)",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
+                  gap: "10px",
                 }}
               >
-                {pill}
-              </span>
+                <span
+                  style={{
+                    color: "rgba(245, 237, 214, 0.72)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item}
+                </span>
+                {index < arr.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      color: "rgba(212,146,11,0.72)",
+                      fontSize: 10,
+                      lineHeight: 1,
+                    }}
+                  >
+                    •
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         </ScrollReveal>
