@@ -31,6 +31,12 @@ interface NotificationPreferences {
   site: boolean;
 }
 
+interface AlertPreviewState {
+  sending: boolean;
+  success: boolean;
+  error: string | null;
+}
+
 interface BottleOption {
   canonicalKey: string;
   label: string;
@@ -387,10 +393,40 @@ export default function DashboardPage() {
     email: true,
     site: true,
   });
+  const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
+    sending: false,
+    success: false,
+    error: null,
+  });
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
+
+  async function sendPreviewEmail() {
+    setAlertPreview({ sending: true, success: false, error: null });
+    try {
+      const response = await fetch("/api/alerts/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(typeof payload.error === "string" ? payload.error : "Failed to send preview email");
+      }
+
+      setAlertPreview({ sending: false, success: true, error: null });
+    } catch (error) {
+      setAlertPreview({
+        sending: false,
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to send preview email",
+      });
+    }
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -1595,6 +1631,60 @@ export default function DashboardPage() {
                 >
                   {savedNotifications ? "Saved ✓" : "Save notification preferences"}
                 </button>
+              </div>
+
+              <div
+                style={{
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                  paddingTop: "18px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div>
+                  <p style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
+                    Premium email preview
+                  </p>
+                  <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+                    Send yourself the new paid-member alert template and see exactly what the inbox experience feels like.
+                  </p>
+                </div>
+
+                <button
+                  onClick={sendPreviewEmail}
+                  disabled={!isSignedIn || !notificationPrefs.email || alertPreview.sending}
+                  style={{
+                    padding: "12px 18px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(196,148,58,0.24)",
+                    background: !isSignedIn || !notificationPrefs.email || alertPreview.sending
+                      ? "rgba(255,255,255,0.05)"
+                      : "linear-gradient(135deg, rgba(196,148,58,0.18) 0%, rgba(196,148,58,0.08) 100%)",
+                    color: !isSignedIn || !notificationPrefs.email || alertPreview.sending
+                      ? "var(--color-text-tertiary)"
+                      : "var(--color-accent-amber)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    cursor: !isSignedIn || !notificationPrefs.email || alertPreview.sending ? "not-allowed" : "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  {alertPreview.sending ? "Sending preview…" : "Send test alert email"}
+                </button>
+
+                {alertPreview.success ? (
+                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-accent-amber)" }}>
+                    Preview sent. Check your inbox.
+                  </p>
+                ) : null}
+
+                {alertPreview.error ? (
+                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>
+                    {alertPreview.error}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
