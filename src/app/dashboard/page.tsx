@@ -1760,24 +1760,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div>
-                <button
-                  style={{
-                    padding: "12px 18px",
-                    borderRadius: "12px",
-                    border: savedNotifications ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
-                    background: savedNotifications ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                    color: savedNotifications ? "#9AD4B1" : "#0D0B07",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {savedNotifications ? "Saved ✓" : "Notification preferences are part of the master save below"}
-                </button>
-              </div>
-
               <div
                 style={{
                   borderTop: "1px solid rgba(255,255,255,0.08)",
