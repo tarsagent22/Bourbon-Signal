@@ -187,6 +187,36 @@ function getSignalQuality(drop: DropEvent) {
   return { label: "Weak signal", score: 1 };
 }
 
+function summarizeDropLocation(drop: DropEvent) {
+  const nestedStore = (drop.stores || []).find((entry) => entry.store_address || entry.city);
+
+  if (drop.store_name || drop.store_address || drop.store_city) {
+    return {
+      title: drop.store_name || drop.store_city || "Store inventory hit",
+      detail: [drop.store_city, drop.state || drop.state_code].filter(Boolean).join(", ") || drop.store_address || "Store-level inventory signal",
+    };
+  }
+
+  if (nestedStore?.store_address) {
+    return {
+      title: nestedStore.city ? `${nestedStore.city} store cluster` : "Store inventory hit",
+      detail: `${nestedStore.store_address}${drop.state || drop.state_code ? ` · ${drop.state || drop.state_code}` : ""}`,
+    };
+  }
+
+  if (drop.board_name) {
+    return {
+      title: drop.board_name,
+      detail: `Board shipment lead${drop.state || drop.state_code ? ` · ${drop.state || drop.state_code}` : ""}`,
+    };
+  }
+
+  return {
+    title: getDisplayName(drop),
+    detail: drop.event_type.replaceAll("_", " "),
+  };
+}
+
 function FinderBottleCard({
   bottle,
   active,
@@ -831,23 +861,27 @@ export default function MapPageClient() {
                         </div>
                         <div className="finder-list">
                           {bottleDrops.length > 0 ? (
-                            bottleDrops.map((drop, index) => (
-                              <div key={`${drop.timestamp}-${index}`} className="finder-list-row">
-                                <div>
-                                  <strong>{drop.board_name || drop.store_city || drop.store_name || "Location signal"}</strong>
-                                  <span>
-                                    {drop.store_address || drop.store_city || drop.store_county || getDropLocations(drop)[0]?.detail || "Signal captured"}
-                                  </span>
+                            bottleDrops.slice(0, 6).map((drop, index) => {
+                              const summary = summarizeDropLocation(drop);
+                              return (
+                                <div key={`${drop.timestamp}-${index}`} className="finder-list-row finder-list-row-signal">
+                                  <div className="finder-list-row-copy">
+                                    <strong>{summary.title}</strong>
+                                    <span>{summary.detail}</span>
+                                  </div>
+                                  <div className="finder-signal-meta">
+                                    <span className="finder-row-pill">{getSignalQuality(drop).label}</span>
+                                    <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
+                                  </div>
                                 </div>
-                                <span className="finder-row-pill">{getSignalQuality(drop).label} · {formatRelativeTime(drop.timestamp)}</span>
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
                             <div className="finder-empty-card small">No recent signal events for this bottle in the current state lens.</div>
                           )}
                         </div>
                         {bottleDrops.length > 0 ? (
-                          <p className="finder-footnote">Showing up to 30 days of drop history for this bottle so the page proves the signal exists, even when the freshest hit is a little older.</p>
+                          <p className="finder-footnote">Showing the most recent useful bottle signals first, with location context that actually helps you decide where to look next.</p>
                         ) : null}
                       </div>
                     </div>
