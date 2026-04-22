@@ -4,6 +4,7 @@ import { dark } from "@clerk/themes";
 import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 import ToastContainer from "@/components/Toast";
+import { LiquidToggleFilter } from "@/components/LiquidToggle";
 
 export const metadata: Metadata = {
   title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
@@ -66,6 +67,7 @@ export default function RootLayout({
         className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
       >
         <body style={{ fontFamily: "var(--font-dm-sans)" }}>
+          <LiquidToggleFilter />
           {children}
           <ToastContainer />
         </body>

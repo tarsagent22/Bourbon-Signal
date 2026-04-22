@@ -14,6 +14,7 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import type { Bottle } from "@/data/bottles";
 import type { AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey } from "@/lib/bottleIdentity";
+import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 
 const EMPTY_PREFS: AreaPreferences = {
@@ -43,7 +44,6 @@ interface StoreSelectionState {
   mode: "all" | "custom";
   storeIds: string[];
 }
-
 
 function isWhiskeyProduct(name: string) {
   const normalized = name.toLowerCase();
@@ -115,81 +115,44 @@ function titleCase(input: string) {
   return input.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function makeStateLabel(code: string) {
-  if (code === "NC") return "North Carolina";
-  if (code === "VA") return "Virginia";
-  if (code === "PA") return "Pennsylvania";
-  if (code === "IN") return "Indiana";
-  return code;
+function canonicalizeLocationName(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function normalizeNcBoardLabel(raw: string) {
-  return raw
-    .replace(/^NC ABC\s*[—-]\s*/i, "")
-    .replace(/\bABC Board\b/gi, "")
-    .replace(/\bMunicipal\b/gi, "")
+function normalizeNcBoardLabel(value: string) {
+  return value
+    .replace(/abc/gi, "")
+    .replace(/board/gi, "")
+    .replace(/county/gi, "")
+    .replace(/[()]/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
 }
 
-function isLikelyNcBoardLabel(label: string) {
-  if (!label) return false;
-  const normalized = label.trim();
-  if (!normalized) return false;
-  if (/\d/.test(normalized)) return false;
-  if (/\b(county|address|suite|road|rd\b|street|st\b|drive|dr\b|lane|ln\b|avenue|ave\b|boulevard|blvd\b|highway|hwy\b|zip)\b/i.test(normalized)) {
-    return false;
-  }
-  return normalized.split(" ").length <= 5;
+function isLikelyNcBoardLabel(value: string) {
+  if (!value) return false;
+  if (/^store\b/i.test(value)) return false;
+  if (/\d/.test(value)) return false;
+  return value.length >= 3;
 }
 
-function StyledSelect({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLSelectElement>;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ position: "relative" }} className="md:hidden">
-      <select
-        value={value}
-        onChange={onChange}
-        style={{
-          width: "100%",
-          padding: "14px 44px 14px 16px",
-          borderRadius: "12px",
-          border: "1px solid rgba(196,148,58,0.18)",
-          background: "rgba(17, 13, 9, 0.92)",
-          color: "var(--color-cream)",
-          fontFamily: "var(--font-dm-sans)",
-          fontSize: "14px",
-          outline: "none",
-          appearance: "none",
-          WebkitAppearance: "none",
-          MozAppearance: "none",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
-        }}
-      >
-        {children}
-      </select>
-      <span
-        style={{
-          position: "absolute",
-          right: "16px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          color: "var(--color-accent-amber)",
-          fontSize: "12px",
-          pointerEvents: "none",
-        }}
-      >
-        ▾
-      </span>
-    </div>
-  );
+function formatStoreLabel(name?: string | null, city?: string | null) {
+  const trimmedName = (name || "Unnamed store").trim();
+  const trimmedCity = city?.trim();
+  return trimmedCity ? `${trimmedName} · ${trimmedCity}` : trimmedName;
+}
+
+function makeStateLabel(code: string) {
+  const labels: Record<string, string> = {
+    NC: "North Carolina",
+    VA: "Virginia",
+    PA: "Pennsylvania",
+    IN: "Indiana",
+  };
+  return labels[code] || code;
 }
 
 function StepShell({
@@ -204,150 +167,71 @@ function StepShell({
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ padding: "0 0 28px" }}>
-      <div
-        style={{
-          maxWidth: 1080,
-          margin: "0 auto",
-          padding: "0 clamp(20px, 5vw, 40px)",
-        }}
-      >
-        <div
-          style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-            border: "1px solid rgba(196,148,58,0.14)",
-            borderRadius: "18px",
-            padding: "clamp(22px, 4vw, 34px)",
-            boxShadow: "0 18px 60px rgba(0,0,0,0.24)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
+    <section
+      style={{
+        borderRadius: "22px",
+        border: "1px solid rgba(196,148,58,0.12)",
+        background: "linear-gradient(180deg, rgba(17,13,10,0.92) 0%, rgba(11,9,7,0.96) 100%)",
+        padding: "clamp(18px, 3vw, 28px)",
+        boxShadow: "inset 0 1px 0 rgba(245,237,214,0.03)",
+      }}
+    >
+      <div style={{ display: "grid", gap: "20px" }}>
+        <div style={{ display: "grid", gap: "10px" }}>
           <div
             style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(circle at top right, rgba(196,148,58,0.08) 0%, transparent 32%)",
-              pointerEvents: "none",
-            }}
-          />
-
-          <div
-            style={{
-              position: "relative",
-              zIndex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "18px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "10px",
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "11px",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--color-accent-amber)",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <span
-                style={{
-                  display: "inline-flex",
-                  width: "fit-content",
-                  alignItems: "center",
-                  gap: "8px",
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--color-accent-amber)",
-                  background: "rgba(196,148,58,0.10)",
-                  border: "1px solid rgba(196,148,58,0.22)",
-                  borderRadius: "999px",
-                  padding: "6px 12px",
-                }}
-              >
-                Step {step}
-              </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-playfair)",
-                    fontSize: "clamp(24px, 3.2vw, 34px)",
-                    fontWeight: 700,
-                    color: "var(--color-cream)",
-                    lineHeight: 1.08,
-                    margin: 0,
-                  }}
-                >
-                  {title}
-                </h2>
-                <p
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "15px",
-                    color: "var(--color-text-secondary)",
-                    lineHeight: 1.65,
-                    maxWidth: "760px",
-                    margin: 0,
-                  }}
-                >
-                  {subtitle}
-                </p>
-              </div>
-            </div>
-            {children}
+            <span>{step}</span>
+            <span style={{ width: "44px", height: "1px", background: "rgba(196,148,58,0.32)" }} />
+            <span>Alert setup</span>
+          </div>
+          <div style={{ display: "grid", gap: "8px" }}>
+            <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(28px, 4vw, 36px)", color: "var(--color-cream)", margin: 0 }}>
+              {title}
+            </h2>
+            <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "60ch" }}>
+              {subtitle}
+            </p>
           </div>
         </div>
+        {children}
       </div>
     </section>
   );
 }
 
-function WatchlistBottleCard({
-  option,
-  onRemove,
-}: {
-  option: BottleOption;
-  onRemove: () => void;
-}) {
+function BottleChip({ option, onRemove }: { option: BottleOption; onRemove: () => void }) {
   return (
     <div
       style={{
-        background: "rgba(10, 8, 5, 0.52)",
-        border: "1px solid rgba(196,148,58,0.14)",
-        borderRadius: "14px",
-        padding: "16px 18px",
-        display: "flex",
-        justifyContent: "space-between",
-        gap: "16px",
-        alignItems: "flex-start",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px 14px",
+        borderRadius: "999px",
+        border: "1px solid rgba(196,148,58,0.18)",
+        background: "rgba(196,148,58,0.08)",
+        maxWidth: "100%",
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 }}>
-        <h3
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "18px",
-            fontWeight: 700,
-            color: "var(--color-cream)",
-            lineHeight: 1.2,
-            margin: 0,
-          }}
-        >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {option.label}
-        </h3>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {option.bottle.msrp > 0 && (
-            <span
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "12px",
-                color: "var(--color-text-secondary)",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "999px",
-                padding: "4px 10px",
-              }}
-            >
-              MSRP ${option.bottle.msrp.toFixed(0)}
-            </span>
-          )}
         </div>
+        {option.bottle.distillery ? (
+          <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "2px" }}>
+            {option.bottle.distillery}
+          </div>
+        ) : null}
       </div>
       <button
         onClick={onRemove}
@@ -710,81 +594,56 @@ export default function DashboardPage() {
               <h1
                 style={{
                   fontFamily: "var(--font-playfair)",
-                  fontSize: "clamp(34px, 5vw, 52px)",
-                  fontWeight: 700,
-                  color: "var(--color-cream)",
-                  lineHeight: 1.02,
-                  marginBottom: "14px",
+                  fontSize: "clamp(42px, 6vw, 68px)",
+                  lineHeight: 0.96,
+                  color: "var(--color-text-primary)",
+                  maxWidth: 760,
+                  margin: "0 auto",
+                  letterSpacing: "-0.02em",
                 }}
               >
-                Build your hunt in three moves.
+                Build your signal stack
               </h1>
             </ScrollReveal>
-            <ScrollReveal delay={160}>
+            <ScrollReveal delay={140}>
               <p
                 style={{
+                  margin: "20px auto 0",
+                  maxWidth: 680,
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "16px",
+                  lineHeight: 1.8,
                   color: "var(--color-text-secondary)",
-                  lineHeight: 1.7,
-                  maxWidth: "640px",
-                  margin: "0 auto",
                 }}
               >
-                Pick the bottles you care about, narrow the territory you actually hunt, then choose how you want Bourbon Signal to tap you on the shoulder.
+                Choose the bottles you chase, the territory you hunt, and the alert channels you want live.
               </p>
             </ScrollReveal>
           </div>
         </section>
 
-        <StepShell
-          step="01"
-          title="Pick your bottles"
-          subtitle="Add bottles you want alerts for. This list is deduped so you are not sorting through the same bottle repeated for different states or inventory variants."
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-              gap: "22px",
-            }}
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px) 80px", display: "grid", gap: "22px" }}>
+          <StepShell
+            step="01"
+            title="Bottle watchlist"
+            subtitle="Add the bottles you actually want Bourbon Signal to track. Your watchlist is the first filter that decides what deserves your attention."
           >
-            <div
-              style={{
-                background: "rgba(11,9,7,0.56)",
-                border: "1px solid rgba(196,148,58,0.12)",
-                borderRadius: "14px",
-                padding: "18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <label
-                  htmlFor="bottle-search"
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: "var(--color-text-tertiary)",
-                  }}
-                >
-                  Bottle search
+            <div style={{ display: "grid", gap: "18px" }}>
+              <div style={{ display: "grid", gap: "14px" }}>
+                <label htmlFor="watchlist-search" style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  Search bottles
                 </label>
                 <input
-                  id="bottle-search"
+                  id="watchlist-search"
                   value={bottleQuery}
                   onChange={(event) => setBottleQuery(event.target.value)}
-                  placeholder="Search bottle name or distillery"
+                  placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(196,148,58,0.18)",
-                    background: "rgba(255,255,255,0.04)",
+                    padding: "16px 18px",
+                    borderRadius: "18px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)",
                     color: "var(--color-text-primary)",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "15px",
@@ -793,1029 +652,542 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div
-                style={{
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  background: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(0, 1fr) auto",
-                    padding: "12px 14px",
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: "var(--color-text-tertiary)",
-                  }}
-                >
-                  <span>Bottle library</span>
-                  <span>{filteredBottleOptions.length} options</span>
-                </div>
-                <div style={{ maxHeight: "420px", overflowY: "auto" }}>
-                  {loading ? (
-                    <div style={{ padding: "22px 16px", color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)" }}>
-                      Loading bottles…
-                    </div>
-                  ) : filteredBottleOptions.length === 0 ? (
-                    <div style={{ padding: "22px 16px", color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)" }}>
-                      Nothing matched that search.
-                    </div>
-                  ) : (
-                    filteredBottleOptions.slice(0, 160).map((option) => (
-                      <div
-                        key={option.canonicalKey}
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "minmax(0,1fr) auto",
-                          gap: "12px",
-                          alignItems: "center",
-                          padding: "14px 16px",
-                          borderBottom: "1px solid rgba(255,255,255,0.06)",
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontFamily: "var(--font-playfair)",
-                              fontSize: "18px",
-                              color: "var(--color-cream)",
-                              lineHeight: 1.18,
-                              marginBottom: "4px",
-                            }}
-                          >
-                            {option.label}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: "var(--font-dm-sans)",
-                              fontSize: "13px",
-                              color: "var(--color-text-secondary)",
-                            }}
-                          >
-                            {option.bottle.msrp > 0 ? `MSRP $${option.bottle.msrp.toFixed(0)}` : "Track this bottle across your hunt area"}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => addBottleOption(option)}
-                          style={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "999px",
-                            border: "1px solid rgba(196,148,58,0.25)",
-                            background: "rgba(196,148,58,0.10)",
-                            color: "var(--color-accent-amber)",
-                            fontSize: "22px",
-                            lineHeight: 1,
-                            cursor: "pointer",
-                          }}
-                          aria-label={`Add ${option.label}`}
-                        >
-                          +
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: "rgba(11,9,7,0.56)",
-                border: "1px solid rgba(196,148,58,0.12)",
-                borderRadius: "14px",
-                padding: "18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <div>
-                  <h3
-                    style={{
-                      fontFamily: "var(--font-playfair)",
-                      fontSize: "22px",
-                      color: "var(--color-cream)",
-                      margin: 0,
-                    }}
-                  >
-                    Watchlist
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      color: "var(--color-text-secondary)",
-                      margin: "6px 0 0",
-                    }}
-                  >
-                    The bottles that should trigger alerts for you.
-                  </p>
-                </div>
-                <span
-                  style={{
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: "11px",
-                    color: "var(--color-accent-amber)",
-                    background: "rgba(196,148,58,0.10)",
-                    border: "1px solid rgba(196,148,58,0.2)",
-                    borderRadius: "999px",
-                    padding: "6px 10px",
-                  }}
-                >
-                  {watchedBottleOptions.length} selected
-                </span>
-              </div>
-
-              {watchedBottleOptions.length === 0 ? (
-                <div
-                  style={{
-                    padding: "18px",
-                    borderRadius: "12px",
-                    border: "1px dashed rgba(255,255,255,0.16)",
-                    color: "var(--color-text-tertiary)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "14px",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Start with the bottles you would actually drop what you are doing to chase. Keep this focused.
-                </div>
-              ) : (
-                <div style={{ display: "grid", gap: "12px" }}>
+              {watchedBottleOptions.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
                   {watchedBottleOptions.map((option) => (
-                    <WatchlistBottleCard
-                      key={option.canonicalKey}
-                      option={option}
-                      onRemove={() => removeBottleOption(option)}
-                    />
+                    <BottleChip key={option.canonicalKey} option={option} onRemove={() => removeBottleOption(option)} />
                   ))}
                 </div>
+              ) : (
+                <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+                  Your watchlist is empty. Add the bottles that make you leave dinner early.
+                </div>
               )}
-            </div>
-          </div>
-        </StepShell>
 
-        <StepShell
-          step="02"
-          title="Set your location"
-          subtitle="Pick the states you hunt in first, then refine only as far as the available data allows. North Carolina drills into boards, Virginia drills into cities and then stores, and Pennsylvania drills into counties and then stores."
-        >
-          <div style={{ display: "grid", gap: "18px" }}>
-            {!isSignedIn && (
-              <div
-                style={{
-                  padding: "14px 16px",
-                  borderRadius: "12px",
-                  border: "1px solid rgba(196,148,58,0.18)",
-                  background: "rgba(196,148,58,0.08)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <p
+              <div style={{ display: "grid", gap: "10px" }}>
+                {filteredBottleOptions.slice(0, 10).map((option) => (
+                  <button
+                    key={option.canonicalKey}
+                    onClick={() => addBottleOption(option)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "16px 18px",
+                      borderRadius: "18px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "rgba(255,255,255,0.03)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
+                    <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </StepShell>
+
+          <StepShell
+            step="02"
+            title="Hunt territory"
+            subtitle="Tell Bourbon Signal where your hunt is real. That way alerts stay useful instead of turning into ambient noise."
+          >
+            <div style={{ display: "grid", gap: "18px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {SIMPLE_STATE_CODES.map((stateCode) => {
+                  const active = localPrefs.states.includes(stateCode);
+                  return (
+                    <button
+                      key={stateCode}
+                      onClick={() => toggleState(stateCode)}
+                      style={{
+                        padding: "12px 16px",
+                        borderRadius: "999px",
+                        border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                        background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
+                        color: active ? "var(--color-cream)" : "var(--color-text-secondary)",
+                        fontFamily: "var(--font-dm-sans)",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {makeStateLabel(stateCode)}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {localPrefs.states.map((stateCode) => {
+                const collapsed = collapsedStates[stateCode] ?? false;
+                return (
+                  <div key={stateCode} style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", overflow: "hidden" }}>
+                    <button
+                      onClick={() => toggleStateCollapsed(stateCode)}
+                      style={{ width: "100%", padding: "16px 18px", background: "none", border: "none", color: "var(--color-text-primary)", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                    >
+                      <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px" }}>{makeStateLabel(stateCode)}</span>
+                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)" }}>{collapsed ? "Expand" : "Hide"}</span>
+                    </button>
+                    {!collapsed ? (
+                      <div style={{ padding: "0 18px 18px", display: "grid", gap: "12px" }}>
+                        {stateCode === "NC" && ncBoards.map((board) => {
+                          const active = localPrefs.ncBoards.includes(board);
+                          return (
+                            <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>
+                          );
+                        })}
+                        {stateCode === "VA" && vaCities.map((city) => {
+                          const active = localPrefs.vaCities.includes(city);
+                          return (
+                            <div key={city} style={{ display: "grid", gap: "10px" }}>
+                              <button onClick={() => updateStateDetail("VA", city)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{city}</button>
+                              {active ? (
+                                <div style={{ display: "grid", gap: "8px", paddingLeft: "12px" }}>
+                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <button onClick={() => updateVaSelectionMode(city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
+                                    <button onClick={() => updateVaSelectionMode(city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Custom</button>
+                                  </div>
+                                  {vaStoreSelections[city]?.mode === "custom" ? (vaStoresByCity.get(city) ?? []).map((store) => {
+                                    const storeId = store.id || store.name || `${city}-store`;
+                                    const selected = vaStoreSelections[city]?.storeIds.includes(storeId) ?? false;
+                                    return <button key={storeId} onClick={() => toggleVaStore(city, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                  }) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                        {stateCode === "PA" && paCounties.map((county) => {
+                          const active = localPrefs.paCounties.includes(county);
+                          return (
+                            <div key={county} style={{ display: "grid", gap: "10px" }}>
+                              <button onClick={() => updateStateDetail("PA", county)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{county}</button>
+                              {active ? (
+                                <div style={{ display: "grid", gap: "8px", paddingLeft: "12px" }}>
+                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <button onClick={() => updatePaSelectionMode(county, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
+                                    <button onClick={() => updatePaSelectionMode(county, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Custom</button>
+                                  </div>
+                                  {paStoreSelections[county]?.mode === "custom" ? (paStoresByCounty.get(county) ?? []).map((store) => {
+                                    const storeId = store.id || store.name || `${county}-store`;
+                                    const selected = paStoreSelections[county]?.storeIds.includes(storeId) ?? false;
+                                    return <button key={storeId} onClick={() => togglePaCountyStore(county, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                  }) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <button
+                  onClick={handleSaveAlertSetup}
+                  disabled={!isSignedIn || savingLocations}
                   style={{
-                    margin: 0,
+                    padding: "12px 18px",
+                    borderRadius: "12px",
+                    border: savedLocations ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
+                    background: savedLocations ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: savedLocations ? "#9AD4B1" : "#0D0B07",
                     fontFamily: "var(--font-dm-sans)",
+                    fontWeight: 700,
                     fontSize: "14px",
-                    color: "var(--color-text-secondary)",
+                    cursor: !isSignedIn || savingLocations ? "not-allowed" : "pointer",
+                    opacity: !isSignedIn || savingLocations ? 0.7 : 1,
                   }}
                 >
-                  Build your hunt flow here now. To save location settings to your account, sign in first.
-                </p>
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  <Link href="/sign-up?redirect_url=/dashboard" style={{ color: "#0D0B07", background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)", padding: "10px 14px", borderRadius: "10px", textDecoration: "none", fontFamily: "var(--font-dm-sans)", fontWeight: 700, fontSize: "13px" }}>
-                    Create account
-                  </Link>
-                  <Link href="/sign-in?redirect_url=/dashboard" style={{ color: "var(--color-accent-amber)", border: "1px solid rgba(196,148,58,0.25)", background: "rgba(255,255,255,0.03)", padding: "10px 14px", borderRadius: "10px", textDecoration: "none", fontFamily: "var(--font-dm-sans)", fontWeight: 600, fontSize: "13px" }}>
-                    Sign in
-                  </Link>
-                </div>
+                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedLocations ? "Saved ✓" : "Save alert setup"}
+                </button>
               </div>
-            )}
+            </div>
+          </StepShell>
 
-            <div style={{ display: "grid", gap: "18px" }}>
+          <StepShell
+            step="03"
+            title="Notification preferences"
+            subtitle="Choose how Bourbon Signal should contact you when a bottle signal matches your watchlist and hunting territory. Save the channels you want ready to go."
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                gap: "18px",
+                alignItems: "start",
+              }}
+            >
               <div
                 style={{
                   background: "rgba(11,9,7,0.56)",
                   border: "1px solid rgba(196,148,58,0.12)",
-                  borderRadius: "14px",
+                  borderRadius: "22px",
                   padding: "18px",
                   display: "flex",
                   flexDirection: "column",
                   gap: "14px",
+                  boxShadow: "inset 0 1px 0 rgba(245,237,214,0.03)",
                 }}
               >
-                  <div>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "13px",
-                        fontWeight: 700,
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                        color: "var(--color-text-tertiary)",
-                      }}
-                    >
-                      States you hunt in
-                    </p>
-                  </div>
+                {(() => {
+                  const onSiteActive = notificationPrefs.onSite.enabled;
+                  const emailActive = notificationPrefs.email.enabled;
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
-                    {SIMPLE_STATE_CODES.map((state) => {
-                      const active = localPrefs.states.includes(state);
-                    return (
+                  return (
+                    <>
                       <button
-                        key={state}
-                        onClick={() => toggleState(state)}
+                        onClick={() =>
+                          setNotificationPrefs((prev) => ({
+                            ...prev,
+                            onSite: { enabled: !prev.onSite.enabled },
+                          }))
+                        }
                         style={{
                           width: "100%",
-                          padding: "14px 16px",
-                          borderRadius: "14px",
-                          border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                          background: active ? "rgba(196,148,58,0.14)" : "rgba(255,255,255,0.04)",
-                          color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                          fontFamily: "var(--font-dm-sans)",
-                          fontWeight: 700,
-                          fontSize: "14px",
+                          borderRadius: "18px",
+                          border: onSiteActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
+                          background: onSiteActive
+                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
+                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
+                          boxShadow: onSiteActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                          padding: "18px",
                           cursor: "pointer",
                           textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "14px",
+                          alignItems: "center",
+                          minHeight: "120px",
+                          position: "relative",
+                          overflow: "hidden",
                         }}
                       >
-                        {makeStateLabel(state)}
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: onSiteActive
+                              ? "radial-gradient(circle at top right, rgba(212,146,11,0.18), transparent 34%)"
+                              : "none",
+                            pointerEvents: "none",
+                          }}
+                        />
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
+                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
+                            On-site alerts
+                          </span>
+                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
+                            See matching alerts in your Bourbon Signal inbox from anywhere on the site.
+                          </span>
+                        </div>
+                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+                          <LiquidToggle
+                            checked={onSiteActive}
+                            onCheckedChange={(checked) =>
+                              setNotificationPrefs((prev) => ({
+                                ...prev,
+                                onSite: { enabled: checked },
+                              }))
+                            }
+                          />
+                        </div>
                       </button>
-                    );
-                  })}
-                  </div>
 
-                {localPrefs.states.length === 0 ? (
-                  <div style={{ padding: "18px", borderRadius: "12px", border: "1px dashed rgba(255,255,255,0.16)", color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", lineHeight: 1.7 }}>
-                    Pick the states you actually hunt in. Then Bourbon Signal will let you refine each state down to the most specific level the data supports.
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gap: "16px" }}>
-                    {localPrefs.states.includes("NC") && (
-                      <div
+                      <button
+                        onClick={() =>
+                          setNotificationPrefs((prev) => ({
+                            ...prev,
+                            email: { ...prev.email, enabled: !prev.email.enabled },
+                          }))
+                        }
                         style={{
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          background: "rgba(255,255,255,0.03)",
+                          width: "100%",
+                          borderRadius: "18px",
+                          border: emailActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
+                          background: emailActive
+                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
+                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
+                          boxShadow: emailActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                          padding: "18px",
+                          cursor: "pointer",
+                          textAlign: "left",
                           display: "flex",
-                          flexDirection: "column",
-                          gap: "12px",
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
-                          <div>
-                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                              North Carolina
-                            </h3>
-                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                              NC data is currently board-level, so this is the most specific filter we provide for this state
-                            </p>
-                          </div>
-                          <button onClick={() => toggleStateCollapsed("NC")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                            {collapsedStates.NC ? "Expand" : "Collapse"}
-                          </button>
-                        </div>
-                        {!collapsedStates.NC && (
-                          <>
-                            <StyledSelect
-                              value=""
-                              onChange={(event) => {
-                                if (!event.target.value) return;
-                                updateStateDetail("NC", event.target.value);
-                                event.currentTarget.value = "";
-                              }}
-                            >
-                              <option value="">Add board</option>
-                              {ncBoards.filter((board) => !localPrefs.ncBoards.includes(board)).map((board) => (
-                                <option key={board} value={board}>
-                                  {board}
-                                </option>
-                              ))}
-                            </StyledSelect>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                              {ncBoards.map((board) => {
-                                const active = localPrefs.ncBoards.includes(board);
-                                return (
-                                  <button
-                                    key={board}
-                                    onClick={() => updateStateDetail("NC", board)}
-                                    style={{
-                                      padding: "8px 12px",
-                                      borderRadius: "999px",
-                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                      fontFamily: "var(--font-dm-sans)",
-                                      fontSize: "13px",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    {board}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            {localPrefs.ncBoards.length > 0 && (
-                              <div style={{ display: "grid", gap: "8px" }} className="md:hidden">
-                                {localPrefs.ncBoards.map((board) => (
-                                  <button
-                                    key={board}
-                                    onClick={() => updateStateDetail("NC", board)}
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      width: "100%",
-                                      borderRadius: "10px",
-                                      border: "1px solid rgba(196,148,58,0.18)",
-                                      background: "rgba(196,148,58,0.08)",
-                                      padding: "12px 14px",
-                                      color: "var(--color-text-primary)",
-                                      fontFamily: "var(--font-dm-sans)",
-                                      fontSize: "14px",
-                                      cursor: "pointer",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <span>{board}</span>
-                                    <span style={{ color: "var(--color-text-tertiary)", fontSize: "18px" }}>×</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {localPrefs.states.includes("VA") && (
-                      <div
-                        style={{
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          background: "rgba(255,255,255,0.03)",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "12px",
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
-                          <div>
-                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                              Virginia
-                            </h3>
-                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                              First pick the cities you hunt in, then drill all the way down to specific VA ABC stores if you want to stay tight.
-                            </p>
-                          </div>
-                          <button onClick={() => toggleStateCollapsed("VA")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                            {collapsedStates.VA ? "Expand" : "Collapse"}
-                          </button>
-                        </div>
-                        {!collapsedStates.VA && (
-                          <>
-                            <StyledSelect
-                              value=""
-                              onChange={(event) => {
-                                if (!event.target.value) return;
-                                updateStateDetail("VA", event.target.value);
-                                event.currentTarget.value = "";
-                              }}
-                            >
-                              <option value="">Add city</option>
-                              {vaCities.filter((city) => !localPrefs.vaCities.includes(city)).map((city) => (
-                                <option key={city} value={city}>
-                                  {city}
-                                </option>
-                              ))}
-                            </StyledSelect>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                              {vaCities.slice(0, 120).map((city) => {
-                                const active = localPrefs.vaCities.includes(city);
-                                return (
-                                  <button
-                                    key={city}
-                                    onClick={() => updateStateDetail("VA", city)}
-                                    style={{
-                                      padding: "8px 12px",
-                                      borderRadius: "999px",
-                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                      fontFamily: "var(--font-dm-sans)",
-                                      fontSize: "13px",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    {city}
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            {localPrefs.vaCities.length > 0 && (
-                              <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
-                                {localPrefs.vaCities.map((city) => {
-                                  const cityStores = vaStoresByCity.get(city) ?? [];
-                                  const selection = vaStoreSelections[city] ?? { mode: "all", storeIds: cityStores.map((store) => store.id) };
-                                  if (cityStores.length === 0) return null;
-                                  return (
-                                    <div key={city} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                                        <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                          {city} stores
-                                        </p>
-                                        <button
-                                          onClick={() => updateVaSelectionMode(city, selection.mode === "all" ? "custom" : "all")}
-                                          style={{
-                                            borderRadius: "999px",
-                                            border: "1px solid rgba(196,148,58,0.24)",
-                                            background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                            color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                            padding: "8px 12px",
-                                            fontFamily: "var(--font-dm-sans)",
-                                            fontSize: "12px",
-                                            fontWeight: 700,
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          Track all stores
-                                        </button>
-                                      </div>
-                                      <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                        {cityStores.map((store) => {
-                                          const active = selection.mode === "all" || selection.storeIds.includes(store.id);
-                                          return (
-                                            <button
-                                              key={store.id}
-                                              onClick={() => toggleVaStore(city, store.id)}
-                                              style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                borderRadius: "10px",
-                                                border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.06)",
-                                                background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.03)",
-                                                padding: "10px 12px",
-                                                cursor: "pointer",
-                                                textAlign: "left",
-                                              }}
-                                            >
-                                              <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                                                {store.name} {store.address ? `• ${store.address}` : ""}
-                                              </span>
-                                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
-                                                {active ? "✓" : "×"}
-                                              </span>
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {localPrefs.states.includes("PA") && (
-                      <div
-                        style={{
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          background: "rgba(255,255,255,0.03)",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "12px",
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
-                          <div>
-                            <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                              Pennsylvania
-                            </h3>
-                            <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                              Pick counties first, then keep going to the exact Fine Wine & Good Spirits stores you care about.
-                            </p>
-                          </div>
-                          <button onClick={() => toggleStateCollapsed("PA")} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                            {collapsedStates.PA ? "Expand" : "Collapse"}
-                          </button>
-                        </div>
-                        {!collapsedStates.PA && (
-                          <>
-                            <StyledSelect
-                              value=""
-                              onChange={(event) => {
-                                if (!event.target.value) return;
-                                updateStateDetail("PA", event.target.value);
-                                event.currentTarget.value = "";
-                              }}
-                            >
-                              <option value="">Add county</option>
-                              {paCounties.filter((county) => !localPrefs.paCounties.includes(county)).map((county) => (
-                                <option key={county} value={county}>
-                                  {county}
-                                </option>
-                              ))}
-                            </StyledSelect>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }} className="hidden md:flex">
-                              {paCounties.map((county) => {
-                                const active = localPrefs.paCounties.includes(county);
-                                return (
-                                  <button
-                                    key={county}
-                                    onClick={() => updateStateDetail("PA", county)}
-                                    style={{
-                                      padding: "8px 12px",
-                                      borderRadius: "999px",
-                                      border: active ? "1px solid rgba(196,148,58,0.45)" : "1px solid rgba(255,255,255,0.1)",
-                                      background: active ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                      color: active ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                      fontFamily: "var(--font-dm-sans)",
-                                      fontSize: "13px",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    {county}
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            {localPrefs.paCounties.length > 0 && (
-                              <div style={{ display: "grid", gap: "12px" }} className="md:hidden">
-                                {localPrefs.paCounties.map((county) => {
-                                  const countyStores = paStoresByCounty.get(county) ?? [];
-                                  const selection = paStoreSelections[county] ?? { mode: "all", storeIds: countyStores.map((store) => store.id) };
-                                  if (countyStores.length === 0) return null;
-                                  return (
-                                    <div key={county} style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.14)", padding: "14px" }}>
-                                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                                        <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                                          {county} County stores
-                                        </p>
-                                        <button
-                                          onClick={() => updatePaSelectionMode(county, selection.mode === "all" ? "custom" : "all")}
-                                          style={{
-                                            borderRadius: "999px",
-                                            border: "1px solid rgba(196,148,58,0.24)",
-                                            background: selection.mode === "all" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.04)",
-                                            color: selection.mode === "all" ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
-                                            padding: "8px 12px",
-                                            fontFamily: "var(--font-dm-sans)",
-                                            fontSize: "12px",
-                                            fontWeight: 700,
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          Track all stores
-                                        </button>
-                                      </div>
-                                      <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                        {countyStores.map((store) => {
-                                          const active = selection.mode === "all" || selection.storeIds.includes(store.id);
-                                          return (
-                                            <button
-                                              key={store.id}
-                                              onClick={() => togglePaCountyStore(county, store.id)}
-                                              style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                gap: "12px",
-                                                width: "100%",
-                                                borderRadius: "10px",
-                                                border: active ? "1px solid rgba(196,148,58,0.36)" : "1px solid rgba(255,255,255,0.06)",
-                                                background: active ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                                                padding: "10px 12px",
-                                                cursor: "pointer",
-                                                textAlign: "left",
-                                              }}
-                                            >
-                                              <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-                                                {store.name} {store.address ? `• ${store.address}` : ""}
-                                              </span>
-                                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "16px", color: active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>
-                                                {active ? "✓" : "×"}
-                                              </span>
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                  <button
-                    onClick={handleSaveAlertSetup}
-                    disabled={!isSignedIn || savingLocations}
-                    style={{
-                      padding: "12px 18px",
-                      borderRadius: "12px",
-                      border: savedLocations ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
-                      background: savedLocations ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                      color: savedLocations ? "#9AD4B1" : "#0D0B07",
-                      fontFamily: "var(--font-dm-sans)",
-                      fontWeight: 700,
-                      fontSize: "14px",
-                      cursor: !isSignedIn || savingLocations ? "not-allowed" : "pointer",
-                      opacity: !isSignedIn || savingLocations ? 0.7 : 1,
-                    }}
-                  >
-                    {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedLocations ? "Saved ✓" : "Save alert setup"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </StepShell>
-
-        <StepShell
-          step="03"
-          title="Notification preferences"
-          subtitle="Choose how Bourbon Signal should contact you when a bottle signal matches your watchlist and hunting territory. Save the channels you want ready to go."
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-              gap: "18px",
-              alignItems: "start",
-            }}
-          >
-            <div
-              style={{
-                background: "rgba(11,9,7,0.56)",
-                border: "1px solid rgba(196,148,58,0.12)",
-                borderRadius: "14px",
-                padding: "18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-            >
-              {(() => {
-                const onSiteActive = notificationPrefs.onSite.enabled;
-                const emailActive = notificationPrefs.email.enabled;
-                const smsActive = notificationPrefs.sms.enabled;
-
-                return (
-                  <>
-                    <button
-                      onClick={() =>
-                        setNotificationPrefs((prev) => ({
-                          ...prev,
-                          onSite: { enabled: !prev.onSite.enabled },
-                        }))
-                      }
-                      style={{
-                        width: "100%",
-                        borderRadius: "14px",
-                        border: onSiteActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                        background: onSiteActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                        padding: "16px",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        alignItems: "center",
-                        minHeight: "112px",
-                      }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
-                        <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                          On-site alerts
-                        </span>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                          See matching alerts in your Bourbon Signal inbox from anywhere on the site.
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          width: "46px",
-                          height: "28px",
-                          borderRadius: "999px",
-                          background: onSiteActive ? "rgba(196,148,58,0.24)" : "rgba(255,255,255,0.10)",
-                          border: onSiteActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                          justifyContent: "space-between",
+                          gap: "14px",
+                          alignItems: "center",
+                          minHeight: "120px",
                           position: "relative",
-                          flexShrink: 0,
-                          alignSelf: "center",
+                          overflow: "hidden",
                         }}
                       >
-                        <span
+                        <div
                           style={{
                             position: "absolute",
-                            top: "3px",
-                            left: onSiteActive ? "22px" : "3px",
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "50%",
-                            background: onSiteActive ? "var(--color-accent-amber)" : "rgba(255,255,255,0.45)",
-                            transition: "left 180ms ease",
+                            inset: 0,
+                            background: emailActive
+                              ? "radial-gradient(circle at top right, rgba(212,146,11,0.18), transparent 34%)"
+                              : "none",
+                            pointerEvents: "none",
                           }}
                         />
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        setNotificationPrefs((prev) => ({
-                          ...prev,
-                          email: { ...prev.email, enabled: !prev.email.enabled },
-                        }))
-                      }
-                      style={{
-                        width: "100%",
-                        borderRadius: "14px",
-                        border: emailActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                        background: emailActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                        padding: "16px",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        alignItems: "center",
-                        minHeight: "112px",
-                      }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
-                        <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                          Email alerts
-                        </span>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                          Use email for either every matching alert, only major hits, or a calmer daily roundup.
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          width: "46px",
-                          height: "28px",
-                          borderRadius: "999px",
-                          background: emailActive ? "rgba(196,148,58,0.24)" : "rgba(255,255,255,0.10)",
-                          border: emailActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                          position: "relative",
-                          flexShrink: 0,
-                          alignSelf: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            position: "absolute",
-                            top: "3px",
-                            left: emailActive ? "22px" : "3px",
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "50%",
-                            background: emailActive ? "var(--color-accent-amber)" : "rgba(255,255,255,0.45)",
-                            transition: "left 180ms ease",
-                          }}
-                        />
-                      </span>
-                    </button>
-
-                    {emailActive ? (
-                      <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.12)", background: "rgba(255,255,255,0.03)", padding: "16px" }}>
-                        <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                          Email delivery
-                        </p>
-                        <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-                          {[
-                            { value: "all", label: "Instant, all matches", note: "Every alert that matches your watchlist and territory." },
-                            { value: "major_only", label: "Instant, major hits only", note: "Only the strongest, most urgent matches hit your inbox." },
-                            { value: "daily_roundup", label: "Daily roundup", note: "Save alerts for a calmer digest instead of immediate email." },
-                          ].map((option) => {
-                            const selected = notificationPrefs.email.mode === option.value;
-                            return (
-                              <button
-                                key={option.value}
-                                onClick={() =>
-                                  setNotificationPrefs((prev) => ({
-                                    ...prev,
-                                    email: { ...prev.email, mode: option.value as typeof prev.email.mode },
-                                  }))
-                                }
-                                style={{
-                                  textAlign: "left",
-                                  borderRadius: "12px",
-                                  border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
-                                  background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)",
-                                  padding: "12px 14px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 700, color: "var(--color-text-primary)" }}>{option.label}</div>
-                                <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{option.note}</div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <button
-                      disabled
-                      style={{
-                        width: "100%",
-                        borderRadius: "14px",
-                        border: smsActive ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                        background: smsActive ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)",
-                        padding: "16px",
-                        cursor: "not-allowed",
-                        textAlign: "left",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        alignItems: "center",
-                        minHeight: "112px",
-                        opacity: 0.72,
-                      }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                            SMS alerts
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
+                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
+                            Email alerts
                           </span>
-                          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase", border: "1px solid rgba(196,148,58,0.22)", borderRadius: "999px", padding: "4px 8px" }}>
-                            Coming soon
+                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
+                            Use email for either every matching alert, only major hits, or a calmer daily roundup.
                           </span>
                         </div>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                          Fastest channel for urgent drops once phone delivery is live.
-                        </span>
-                      </div>
-                      <span
+                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+                          <LiquidToggle
+                            checked={emailActive}
+                            onCheckedChange={(checked) =>
+                              setNotificationPrefs((prev) => ({
+                                ...prev,
+                                email: { ...prev.email, enabled: checked },
+                              }))
+                            }
+                          />
+                        </div>
+                      </button>
+
+                      {emailActive ? (
+                        <div style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(180deg, rgba(22,18,14,0.98) 0%, rgba(14,11,8,0.98) 100%)", padding: "18px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+                          <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                            Delivery profile
+                          </p>
+                          <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
+                            {[
+                              { value: "all", label: "All signals", note: "Every matching bottle alert, right away.", eyebrow: "FULL SPEED" },
+                              { value: "major_only", label: "Major hits", note: "Only the strongest, most urgent matches hit your inbox.", eyebrow: "RECOMMENDED" },
+                              { value: "daily_roundup", label: "Roundup", note: "Keep the inbox calm with a daily digest.", eyebrow: "LOWER VOLUME" },
+                            ].map((option) => {
+                              const selected = notificationPrefs.email.mode === option.value;
+                              return (
+                                <button
+                                  key={option.value}
+                                  onClick={() =>
+                                    setNotificationPrefs((prev) => ({
+                                      ...prev,
+                                      email: { ...prev.email, mode: option.value as typeof prev.email.mode },
+                                    }))
+                                  }
+                                  style={{
+                                    textAlign: "left",
+                                    borderRadius: "16px",
+                                    border: selected ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
+                                    background: selected
+                                      ? "linear-gradient(180deg, rgba(47,33,18,0.96) 0%, rgba(24,18,12,0.96) 100%)"
+                                      : "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)",
+                                    boxShadow: selected ? "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)" : "none",
+                                    padding: "14px 16px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: selected ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>{option.eyebrow}</div>
+                                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
+                                  <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{option.note}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <button
+                        disabled
                         style={{
-                          width: "46px",
-                          height: "28px",
-                          borderRadius: "999px",
-                          background: "rgba(255,255,255,0.10)",
+                          width: "100%",
+                          borderRadius: "18px",
                           border: "1px solid rgba(255,255,255,0.08)",
-                          position: "relative",
-                          flexShrink: 0,
-                          alignSelf: "center",
+                          background: "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
+                          padding: "18px",
+                          cursor: "not-allowed",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "14px",
+                          alignItems: "center",
+                          minHeight: "120px",
+                          opacity: 0.72,
                         }}
                       >
-                        <span
-                          style={{
-                            position: "absolute",
-                            top: "3px",
-                            left: "3px",
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "50%",
-                            background: "rgba(255,255,255,0.45)",
-                          }}
-                        />
-                      </span>
-                    </button>
-                  </>
-                );
-              })()}
-            </div>
-            <div
-              style={{
-                background: "rgba(11,9,7,0.56)",
-                border: "1px solid rgba(196,148,58,0.12)",
-                borderRadius: "14px",
-                padding: "18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
-              <div>
-                <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>
-                  Preference summary
-                </h3>
-                <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
-                  This is the current alert scope based on the bottles, territory, and channels you selected.
-                </p>
-              </div>
-
-              <div style={{ display: "grid", gap: "12px" }}>
-                <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "16px" }}>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Watchlist scope
-                  </p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                    {watchedBottleOptions.length > 0
-                      ? `${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} will trigger alerts.`
-                      : "No bottles selected yet. Add bottles in Step 1 to make this useful."}
-                  </p>
-                </div>
-
-                <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "16px" }}>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Territory
-                  </p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                    {localPrefs.states.length > 0
-                      ? `Alerts will be scoped to ${localPrefs.states.map(makeStateLabel).join(", ")}.`
-                      : "No hunt territory selected yet. Add a state in Step 2."}
-                  </p>
-                </div>
-
-                <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "16px" }}>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Delivery channels
-                  </p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                    {[
-                      notificationPrefs.onSite.enabled ? "On-site" : null,
-                      notificationPrefs.email.enabled ? `Email (${notificationPrefs.email.mode === "all" ? "all matches" : notificationPrefs.email.mode === "major_only" ? "major hits" : "daily roundup"})` : null,
-                      notificationPrefs.sms.enabled ? "SMS" : null,
-                    ].filter(Boolean).join(", ") || "No alert channels selected yet."}
-                  </p>
-                </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
+                              SMS alerts
+                            </span>
+                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase", border: "1px solid rgba(196,148,58,0.22)", borderRadius: "999px", padding: "4px 8px" }}>
+                              Coming soon
+                            </span>
+                          </div>
+                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
+                            Fastest channel for urgent drops once phone delivery is live.
+                          </span>
+                        </div>
+                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+                          <LiquidToggle checked={false} disabled />
+                        </div>
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
 
               <div
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.08)",
-                  paddingTop: "18px",
+                  background: "linear-gradient(180deg, rgba(18,14,10,0.96) 0%, rgba(11,9,7,0.96) 100%)",
+                  border: "1px solid rgba(196,148,58,0.14)",
+                  borderRadius: "22px",
+                  padding: "22px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "10px",
+                  gap: "16px",
+                  boxShadow: "inset 0 1px 0 rgba(239,192,80,0.04)",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
-                <div>
-                  <p style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>
-                    Premium email preview
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "radial-gradient(circle at top right, rgba(212,146,11,0.14), transparent 36%)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <div style={{ position: "relative" }}>
+                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    Signal setup snapshot
                   </p>
-                  <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
-                    Send a sample alert to your inbox and check the exact member email experience before the next real drop hits.
+                  <h3 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "30px", color: "var(--color-cream)" }}>
+                    Preference summary
+                  </h3>
+                  <p style={{ margin: "10px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "42ch" }}>
+                    Your watchlist, territory, and delivery choices combine here into one live alert setup snapshot.
                   </p>
                 </div>
 
-                <button
-                  onClick={sendPreviewEmail}
-                  disabled={!isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", position: "relative" }}>
+                  {[
+                    { label: "Bottles", value: String(watchedBottleOptions.length) },
+                    { label: "States", value: String(localPrefs.states.length) },
+                    { label: "Channels", value: String([
+                      notificationPrefs.onSite.enabled,
+                      notificationPrefs.email.enabled,
+                      notificationPrefs.sms.enabled,
+                    ].filter(Boolean).length) },
+                  ].map((item) => (
+                    <div key={item.label} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{item.label}</div>
+                      <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)" }}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "grid", gap: "12px", position: "relative" }}>
+                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
+                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      Watchlist scope
+                    </p>
+                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
+                      {watchedBottleOptions.length > 0
+                        ? `${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} will trigger alerts.`
+                        : "Watchlist not set. Add bottles in Step 1 to start tracking signals."}
+                    </p>
+                  </div>
+
+                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
+                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      Territory
+                    </p>
+                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
+                      {localPrefs.states.length > 0
+                        ? `Alerts will be scoped to ${localPrefs.states.map(makeStateLabel).join(", ")}.`
+                        : "Territory not set. Choose where you hunt so alerts stay relevant."}
+                    </p>
+                  </div>
+
+                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
+                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      Delivery channels
+                    </p>
+                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
+                      {[
+                        notificationPrefs.onSite.enabled ? "On-site" : null,
+                        notificationPrefs.email.enabled ? `Email (${notificationPrefs.email.mode === "all" ? "all signals" : notificationPrefs.email.mode === "major_only" ? "major hits" : "roundup"})` : null,
+                        notificationPrefs.sms.enabled ? "SMS" : null,
+                      ].filter(Boolean).join(", ") || "No alert channels selected yet."}
+                    </p>
+                  </div>
+                </div>
+
+                <div
                   style={{
-                    padding: "12px 18px",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(196,148,58,0.24)",
-                    background: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
-                      ? "rgba(255,255,255,0.05)"
-                      : "linear-gradient(135deg, rgba(196,148,58,0.18) 0%, rgba(196,148,58,0.08) 100%)",
-                    color: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
-                      ? "var(--color-text-tertiary)"
-                      : "var(--color-accent-amber)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    cursor: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "not-allowed" : "pointer",
-                    textAlign: "left",
+                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                    paddingTop: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    position: "relative",
                   }}
                 >
-                  {alertPreview.sending ? "Sending preview…" : "Send test alert email"}
-                </button>
+                  <div>
+                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                      Member email
+                    </p>
+                    <p style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>
+                      Premium email preview
+                    </p>
+                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "38ch" }}>
+                      Send a sample alert to your inbox and see exactly what the member email experience feels like before the next real drop hits.
+                    </p>
+                  </div>
 
-                {alertPreview.success ? (
-                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-accent-amber)" }}>
-                    Preview sent. Check your inbox.
-                  </p>
-                ) : null}
+                  <button
+                    onClick={sendPreviewEmail}
+                    disabled={!isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending}
+                    style={{
+                      padding: "14px 20px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(196,148,58,0.28)",
+                      background: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
+                        ? "rgba(255,255,255,0.05)"
+                        : "linear-gradient(135deg, rgba(68,48,26,0.95) 0%, rgba(38,28,16,0.95) 100%)",
+                      color: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
+                        ? "var(--color-text-tertiary)"
+                        : "var(--color-accent-gold)",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      cursor: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "not-allowed" : "pointer",
+                      textAlign: "left",
+                      boxShadow: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "none" : "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)",
+                    }}
+                  >
+                    {alertPreview.sending ? "Sending preview…" : "Send test alert email"}
+                  </button>
 
-                {alertPreview.error ? (
-                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>
-                    {alertPreview.error}
-                  </p>
-                ) : null}
+                  {alertPreview.success ? (
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-accent-amber)" }}>
+                      Preview sent. Check your inbox.
+                    </p>
+                  ) : null}
+
+                  {alertPreview.error ? (
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>
+                      {alertPreview.error}
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
-          </div>
-        </StepShell>
+          </StepShell>
+        </div>
       </motion.main>
       <Footer />
     </div>
