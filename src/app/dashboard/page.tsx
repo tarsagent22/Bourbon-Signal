@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -53,6 +53,12 @@ interface TerritoryCardConfig {
   summary: string;
   selectedCount: number;
   totalCount: number;
+}
+
+interface TerritoryDropdownState {
+  stateCode: string;
+  scope: "primary" | "secondary";
+  value?: string;
 }
 
 function isWhiskeyProduct(name: string) {
@@ -288,6 +294,8 @@ export default function DashboardPage() {
   const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
+  const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
+  const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -598,6 +606,19 @@ export default function DashboardPage() {
     });
   };
 
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!territoryDropdownRef.current) return;
+      if (event.target instanceof Node && territoryDropdownRef.current.contains(event.target)) return;
+      setTerritoryDropdown(null);
+    }
+
+    if (territoryDropdown) {
+      document.addEventListener("mousedown", handlePointerDown);
+      return () => document.removeEventListener("mousedown", handlePointerDown);
+    }
+  }, [territoryDropdown]);
+
   const handleSaveAlertSetup = async () => {
     if (!isSignedIn) return;
     setSavingLocations(true);
@@ -806,133 +827,149 @@ export default function DashboardPage() {
               </div>
 
               {localPrefs.states.length > 0 ? (
-                <div style={{ display: "grid", gap: "14px" }}>
+                <div ref={territoryDropdownRef} style={{ display: "grid", gap: "14px" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
                     {territoryCards
                       .filter((card) => localPrefs.states.includes(card.stateCode))
                       .map((card) => {
-                        const expanded = !(collapsedStates[card.stateCode] ?? true);
+                        const dropdownOpen = territoryDropdown?.stateCode === card.stateCode;
+                        const selectedSummary = card.stateCode === "NC"
+                          ? localPrefs.ncBoards.slice(0, 2).join(", ")
+                          : card.stateCode === "VA"
+                            ? localPrefs.vaCities.slice(0, 2).join(", ")
+                            : card.stateCode === "PA"
+                              ? localPrefs.paCounties.slice(0, 2).join(", ")
+                              : localPrefs.states.includes("IN") ? "Statewide" : "None";
                         return (
-                          <button
-                            key={card.stateCode}
-                            onClick={() => toggleStateCollapsed(card.stateCode)}
-                            style={{
-                              textAlign: "left",
-                              borderRadius: "18px",
-                              border: expanded ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
-                              background: expanded ? "linear-gradient(180deg, rgba(47,33,18,0.65) 0%, rgba(22,18,14,0.96) 100%)" : "rgba(255,255,255,0.03)",
-                              padding: "16px",
-                              cursor: "pointer",
-                              display: "grid",
-                              gap: "8px",
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{card.label}</span>
-                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: expanded ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                                {expanded ? "Editing" : "Open"}
-                              </span>
-                            </div>
-                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
-                              {card.summary}
-                            </div>
-                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-primary)", fontWeight: 700 }}>
-                              {card.selectedCount} selected {card.detailLabel}
-                              {card.totalCount > 1 ? ` · ${card.totalCount} available` : ""}
-                            </div>
-                          </button>
+                          <div key={card.stateCode} style={{ position: "relative" }}>
+                            <button
+                              onClick={() => setTerritoryDropdown((prev) => prev?.stateCode === card.stateCode ? null : { stateCode: card.stateCode, scope: "primary" })}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                borderRadius: "18px",
+                                border: dropdownOpen ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                                background: dropdownOpen ? "linear-gradient(180deg, rgba(47,33,18,0.65) 0%, rgba(22,18,14,0.96) 100%)" : "rgba(255,255,255,0.03)",
+                                padding: "16px",
+                                cursor: "pointer",
+                                display: "grid",
+                                gap: "8px",
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{card.label}</span>
+                                <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: dropdownOpen ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                                  {dropdownOpen ? "Open" : "Choose"}
+                                </span>
+                              </div>
+                              <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+                                {card.summary}
+                              </div>
+                              <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-primary)", fontWeight: 700 }}>
+                                {card.selectedCount} selected {card.detailLabel}
+                              </div>
+                              <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>
+                                {selectedSummary || "Nothing selected yet"}
+                              </div>
+                            </button>
+
+                            {dropdownOpen ? (
+                              <div style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, right: 0, zIndex: 40, borderRadius: "20px", border: "1px solid rgba(196,148,58,0.18)", background: "linear-gradient(180deg, rgba(18,14,10,0.98) 0%, rgba(11,9,7,0.98) 100%)", boxShadow: "0 28px 80px rgba(0,0,0,0.42)", padding: "14px", backdropFilter: "blur(18px)" }}>
+                                <div style={{ display: "grid", gap: "10px" }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                                      {card.stateCode === "NC" ? "Choose boards" : card.stateCode === "VA" ? "Choose cities" : card.stateCode === "PA" ? "Choose counties" : "Statewide coverage"}
+                                    </div>
+                                    <button onClick={() => setTerritoryDropdown(null)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Done</button>
+                                  </div>
+
+                                  {card.stateCode === "NC" ? (
+                                    <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
+                                      {ncBoards.map((board) => {
+                                        const active = localPrefs.ncBoards.includes(board);
+                                        return <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>;
+                                      })}
+                                    </div>
+                                  ) : null}
+
+                                  {card.stateCode === "VA" ? (
+                                    territoryDropdown.scope === "secondary" && territoryDropdown.value ? (
+                                      <div style={{ display: "grid", gap: "10px" }}>
+                                        <button onClick={() => setTerritoryDropdown({ stateCode: "VA", scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>← Back to cities</button>
+                                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                          <button onClick={() => updateVaSelectionMode(territoryDropdown.value!, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[territoryDropdown.value!]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[territoryDropdown.value!]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
+                                          <button onClick={() => updateVaSelectionMode(territoryDropdown.value!, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[territoryDropdown.value!]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[territoryDropdown.value!]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
+                                        </div>
+                                        {vaStoreSelections[territoryDropdown.value!]?.mode === "custom" ? (
+                                          <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
+                                            {(vaStoresByCity.get(territoryDropdown.value!) ?? []).map((store) => {
+                                              const storeId = store.id || store.name || `${territoryDropdown.value}-store`;
+                                              const selected = vaStoreSelections[territoryDropdown.value!]?.storeIds.includes(storeId) ?? false;
+                                              return <button key={storeId} onClick={() => toggleVaStore(territoryDropdown.value!, storeId)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                            })}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : (
+                                      <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
+                                        {vaCities.map((city) => {
+                                          const active = localPrefs.vaCities.includes(city);
+                                          return (
+                                            <div key={city} style={{ display: "grid", gap: "8px" }}>
+                                              <button onClick={() => updateStateDetail("VA", city)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{city}</button>
+                                              {active ? <button onClick={() => setTerritoryDropdown({ stateCode: "VA", scope: "secondary", value: city })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Refine stores</button> : null}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )
+                                  ) : null}
+
+                                  {card.stateCode === "PA" ? (
+                                    territoryDropdown.scope === "secondary" && territoryDropdown.value ? (
+                                      <div style={{ display: "grid", gap: "10px" }}>
+                                        <button onClick={() => setTerritoryDropdown({ stateCode: "PA", scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>← Back to counties</button>
+                                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                          <button onClick={() => updatePaSelectionMode(territoryDropdown.value!, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[territoryDropdown.value!]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[territoryDropdown.value!]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
+                                          <button onClick={() => updatePaSelectionMode(territoryDropdown.value!, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[territoryDropdown.value!]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[territoryDropdown.value!]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
+                                        </div>
+                                        {paStoreSelections[territoryDropdown.value!]?.mode === "custom" ? (
+                                          <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
+                                            {(paStoresByCounty.get(territoryDropdown.value!) ?? []).map((store) => {
+                                              const storeId = store.id || store.name || `${territoryDropdown.value}-store`;
+                                              const selected = paStoreSelections[territoryDropdown.value!]?.storeIds.includes(storeId) ?? false;
+                                              return <button key={storeId} onClick={() => togglePaCountyStore(territoryDropdown.value!, storeId)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                            })}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : (
+                                      <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
+                                        {paCounties.map((county) => {
+                                          const active = localPrefs.paCounties.includes(county);
+                                          return (
+                                            <div key={county} style={{ display: "grid", gap: "8px" }}>
+                                              <button onClick={() => updateStateDetail("PA", county)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{county}</button>
+                                              {active ? <button onClick={() => setTerritoryDropdown({ stateCode: "PA", scope: "secondary", value: county })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Refine stores</button> : null}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )
+                                  ) : null}
+
+                                  {card.stateCode === "IN" ? (
+                                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, padding: "8px 4px" }}>
+                                      Indiana is currently handled at the state level. Store-level narrowing can come later once coverage is richer.
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
                         );
                       })}
                   </div>
-
-                  {localPrefs.states.map((stateCode) => {
-                    const expanded = !(collapsedStates[stateCode] ?? true);
-                    if (!expanded) return null;
-                    return (
-                      <div key={stateCode} style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(180deg, rgba(22,18,14,0.96) 0%, rgba(14,11,8,0.96) 100%)", padding: "18px", display: "grid", gap: "12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                          <div>
-                            <div style={{ fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{makeStateLabel(stateCode)}</div>
-                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "4px" }}>
-                              {stateCode === "NC" ? "Board-first selection keeps this tight." : stateCode === "VA" ? "Choose cities first. Only drop to store-level when you need to be surgical." : stateCode === "PA" ? "County-first keeps the flow sane. Only pick stores for a truly narrow hunt." : "State-wide coverage for now."}
-                            </div>
-                          </div>
-                          <button onClick={() => toggleStateCollapsed(stateCode)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "8px 12px", cursor: "pointer" }}>Done</button>
-                        </div>
-
-                        {stateCode === "NC" ? (
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
-                            {ncBoards.map((board) => {
-                              const active = localPrefs.ncBoards.includes(board);
-                              return (
-                                <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-
-                        {stateCode === "VA" ? (
-                          <div style={{ display: "grid", gap: "10px" }}>
-                            {vaCities.map((city) => {
-                              const active = localPrefs.vaCities.includes(city);
-                              return (
-                                <div key={city} style={{ borderRadius: "16px", border: active ? "1px solid rgba(196,148,58,0.22)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.06)" : "rgba(255,255,255,0.02)", padding: "12px" }}>
-                                  <button onClick={() => updateStateDetail("VA", city)} style={{ width: "100%", padding: 0, background: "none", border: "none", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontWeight: 700, fontSize: "14px" }}>{city}</button>
-                                  {active ? (
-                                    <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                        <button onClick={() => updateVaSelectionMode(city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores in {city}</button>
-                                        <button onClick={() => updateVaSelectionMode(city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
-                                      </div>
-                                      {vaStoreSelections[city]?.mode === "custom" ? (
-                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
-                                          {(vaStoresByCity.get(city) ?? []).map((store) => {
-                                            const storeId = store.id || store.name || `${city}-store`;
-                                            const selected = vaStoreSelections[city]?.storeIds.includes(storeId) ?? false;
-                                            return <button key={storeId} onClick={() => toggleVaStore(city, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
-                                          })}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-
-                        {stateCode === "PA" ? (
-                          <div style={{ display: "grid", gap: "10px" }}>
-                            {paCounties.map((county) => {
-                              const active = localPrefs.paCounties.includes(county);
-                              return (
-                                <div key={county} style={{ borderRadius: "16px", border: active ? "1px solid rgba(196,148,58,0.22)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.06)" : "rgba(255,255,255,0.02)", padding: "12px" }}>
-                                  <button onClick={() => updateStateDetail("PA", county)} style={{ width: "100%", padding: 0, background: "none", border: "none", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontWeight: 700, fontSize: "14px" }}>{county}</button>
-                                  {active ? (
-                                    <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                        <button onClick={() => updatePaSelectionMode(county, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores in {county}</button>
-                                        <button onClick={() => updatePaSelectionMode(county, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
-                                      </div>
-                                      {paStoreSelections[county]?.mode === "custom" ? (
-                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
-                                          {(paStoresByCounty.get(county) ?? []).map((store) => {
-                                            const storeId = store.id || store.name || `${county}-store`;
-                                            const selected = paStoreSelections[county]?.storeIds.includes(storeId) ?? false;
-                                            return <button key={storeId} onClick={() => togglePaCountyStore(county, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
-                                          })}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
                 </div>
               ) : null}
 

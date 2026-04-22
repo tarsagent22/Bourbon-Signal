@@ -250,7 +250,8 @@ body::after {
 
 .finder-hero-wrap {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 5;
   border: 1px solid rgba(247, 240, 224, 0.08);
   border-radius: 36px;
   background:
@@ -276,6 +277,8 @@ body::after {
   grid-template-columns: 1fr;
   gap: 28px;
   padding: 28px 20px 24px;
+  overflow: visible;
+  z-index: 6;
 }
 
 .finder-kicker,
@@ -319,6 +322,9 @@ body::after {
   border: 1px solid rgba(247, 240, 224, 0.08);
   background: linear-gradient(180deg, rgba(21, 16, 10, 0.52) 0%, rgba(14, 11, 7, 0.66) 100%);
   backdrop-filter: blur(10px);
+  position: relative;
+  overflow: visible;
+  z-index: 7;
 }
 
 .finder-search-region {
@@ -336,13 +342,13 @@ body::after {
   top: calc(100% + 10px);
   left: 0;
   right: 0;
-  z-index: 30;
+  z-index: 120;
   display: grid;
   gap: 8px;
   padding: 10px;
   border-radius: 24px;
   border: 1px solid rgba(247,240,224,0.08);
-  background: rgba(14, 11, 7, 0.96);
+  background: rgba(14, 11, 7, 0.98);
   box-shadow: 0 24px 60px rgba(0,0,0,0.34);
   backdrop-filter: blur(18px);
 }
@@ -765,6 +771,7 @@ body::after {
   .finder-tool-shell {
     max-width: 760px;
     padding: 18px;
+    overflow: visible;
   }
 
   .finder-main-grid {
