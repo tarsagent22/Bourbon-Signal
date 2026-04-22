@@ -16,6 +16,7 @@ import type { AreaPreferences, UserAlertPreferences } from "@/app/api/user/prefe
 import { canonicalBottleKey } from "@/lib/bottleIdentity";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
+import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -43,6 +44,15 @@ interface BottleOption {
 interface StoreSelectionState {
   mode: "all" | "custom";
   storeIds: string[];
+}
+
+interface TerritoryCardConfig {
+  stateCode: string;
+  label: string;
+  detailLabel: string;
+  summary: string;
+  selectedCount: number;
+  totalCount: number;
 }
 
 function isWhiskeyProduct(name: string) {
@@ -277,6 +287,7 @@ export default function DashboardPage() {
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
+  const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -368,12 +379,26 @@ export default function DashboardPage() {
     return bottleOptions.filter((option) => {
       if (selectedCanonicalKeys.has(option.canonicalKey)) return false;
       if (!query) return true;
-      return (
-        option.label.toLowerCase().includes(query) ||
-        option.bottle.distillery.toLowerCase().includes(query)
-      );
+      return [
+        option.label,
+        option.bottle.distillery,
+        ...(option.bottle.search_aliases || []),
+        ...Object.values(option.bottle.state_aliases || {}).flat(),
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
     });
   }, [bottleOptions, bottleQuery, selectedCanonicalKeys]);
+
+  const suggestedBottleOptions = useMemo(() => {
+    const pool = getRotatingBottleSuggestions(
+      bottleOptions.map((option) => option.bottle),
+      suggestionSeed,
+      5
+    );
+    const ids = new Set(pool.map((bottle) => bottle.id));
+    return bottleOptions.filter((option) => ids.has(option.bottle.id) && !selectedCanonicalKeys.has(option.canonicalKey));
+  }, [bottleOptions, selectedCanonicalKeys, suggestionSeed]);
 
   const ncBoards = useMemo(() => {
     return Array.from(
@@ -434,6 +459,41 @@ export default function DashboardPage() {
     }
     return grouped;
   }, [stores]);
+
+  const territoryCards = useMemo<TerritoryCardConfig[]>(() => ([
+    {
+      stateCode: "NC",
+      label: "North Carolina",
+      detailLabel: "boards",
+      summary: "Pick the boards you realistically chase.",
+      selectedCount: localPrefs.ncBoards.length,
+      totalCount: ncBoards.length,
+    },
+    {
+      stateCode: "VA",
+      label: "Virginia",
+      detailLabel: "cities",
+      summary: "Start at the city level, then narrow to stores only when needed.",
+      selectedCount: localPrefs.vaCities.length,
+      totalCount: vaCities.length,
+    },
+    {
+      stateCode: "PA",
+      label: "Pennsylvania",
+      detailLabel: "counties",
+      summary: "Choose counties first, then drop to store-level only when your hunt is that precise.",
+      selectedCount: localPrefs.paCounties.length,
+      totalCount: paCounties.length,
+    },
+    {
+      stateCode: "IN",
+      label: "Indiana",
+      detailLabel: "coverage",
+      summary: "Indiana is still broad coverage for now. Pick the state and save, then we’ll refine it as coverage matures.",
+      selectedCount: localPrefs.states.includes("IN") ? 1 : 0,
+      totalCount: 1,
+    },
+  ]), [localPrefs.ncBoards.length, localPrefs.paCounties.length, localPrefs.states, localPrefs.vaCities.length, ncBoards.length, paCounties.length, vaCities.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -636,6 +696,7 @@ export default function DashboardPage() {
                 <input
                   id="watchlist-search"
                   value={bottleQuery}
+                  onFocus={() => setSuggestionSeed((prev) => prev + 1)}
                   onChange={(event) => setBottleQuery(event.target.value)}
                   placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
                   style={{
@@ -663,6 +724,32 @@ export default function DashboardPage() {
                   Your watchlist is empty. Add the bottles that make you leave dinner early.
                 </div>
               )}
+
+              {!bottleQuery.trim() && suggestedBottleOptions.length > 0 ? (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Popular right now
+                  </div>
+                  {suggestedBottleOptions.map((option) => (
+                    <button
+                      key={`suggested-${option.canonicalKey}`}
+                      onClick={() => addBottleOption(option)}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "14px 16px",
+                        borderRadius: "16px",
+                        border: "1px solid rgba(196,148,58,0.16)",
+                        background: "linear-gradient(180deg, rgba(47,33,18,0.55) 0%, rgba(22,18,14,0.92) 100%)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>{option.label}</div>
+                      <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
 
               <div style={{ display: "grid", gap: "10px" }}>
                 {filteredBottleOptions.slice(0, 10).map((option) => (
@@ -718,72 +805,136 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              {localPrefs.states.map((stateCode) => {
-                const collapsed = collapsedStates[stateCode] ?? false;
-                return (
-                  <div key={stateCode} style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", overflow: "hidden" }}>
-                    <button
-                      onClick={() => toggleStateCollapsed(stateCode)}
-                      style={{ width: "100%", padding: "16px 18px", background: "none", border: "none", color: "var(--color-text-primary)", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                    >
-                      <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px" }}>{makeStateLabel(stateCode)}</span>
-                      <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)" }}>{collapsed ? "Expand" : "Hide"}</span>
-                    </button>
-                    {!collapsed ? (
-                      <div style={{ padding: "0 18px 18px", display: "grid", gap: "12px" }}>
-                        {stateCode === "NC" && ncBoards.map((board) => {
-                          const active = localPrefs.ncBoards.includes(board);
-                          return (
-                            <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>
-                          );
-                        })}
-                        {stateCode === "VA" && vaCities.map((city) => {
-                          const active = localPrefs.vaCities.includes(city);
-                          return (
-                            <div key={city} style={{ display: "grid", gap: "10px" }}>
-                              <button onClick={() => updateStateDetail("VA", city)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{city}</button>
-                              {active ? (
-                                <div style={{ display: "grid", gap: "8px", paddingLeft: "12px" }}>
-                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                    <button onClick={() => updateVaSelectionMode(city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
-                                    <button onClick={() => updateVaSelectionMode(city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Custom</button>
-                                  </div>
-                                  {vaStoreSelections[city]?.mode === "custom" ? (vaStoresByCity.get(city) ?? []).map((store) => {
-                                    const storeId = store.id || store.name || `${city}-store`;
-                                    const selected = vaStoreSelections[city]?.storeIds.includes(storeId) ?? false;
-                                    return <button key={storeId} onClick={() => toggleVaStore(city, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
-                                  }) : null}
-                                </div>
-                              ) : null}
+              {localPrefs.states.length > 0 ? (
+                <div style={{ display: "grid", gap: "14px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+                    {territoryCards
+                      .filter((card) => localPrefs.states.includes(card.stateCode))
+                      .map((card) => {
+                        const expanded = !(collapsedStates[card.stateCode] ?? true);
+                        return (
+                          <button
+                            key={card.stateCode}
+                            onClick={() => toggleStateCollapsed(card.stateCode)}
+                            style={{
+                              textAlign: "left",
+                              borderRadius: "18px",
+                              border: expanded ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                              background: expanded ? "linear-gradient(180deg, rgba(47,33,18,0.65) 0%, rgba(22,18,14,0.96) 100%)" : "rgba(255,255,255,0.03)",
+                              padding: "16px",
+                              cursor: "pointer",
+                              display: "grid",
+                              gap: "8px",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                              <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{card.label}</span>
+                              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: expanded ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                                {expanded ? "Editing" : "Open"}
+                              </span>
                             </div>
-                          );
-                        })}
-                        {stateCode === "PA" && paCounties.map((county) => {
-                          const active = localPrefs.paCounties.includes(county);
-                          return (
-                            <div key={county} style={{ display: "grid", gap: "10px" }}>
-                              <button onClick={() => updateStateDetail("PA", county)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{county}</button>
-                              {active ? (
-                                <div style={{ display: "grid", gap: "8px", paddingLeft: "12px" }}>
-                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                    <button onClick={() => updatePaSelectionMode(county, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
-                                    <button onClick={() => updatePaSelectionMode(county, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Custom</button>
-                                  </div>
-                                  {paStoreSelections[county]?.mode === "custom" ? (paStoresByCounty.get(county) ?? []).map((store) => {
-                                    const storeId = store.id || store.name || `${county}-store`;
-                                    const selected = paStoreSelections[county]?.storeIds.includes(storeId) ?? false;
-                                    return <button key={storeId} onClick={() => togglePaCountyStore(county, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
-                                  }) : null}
-                                </div>
-                              ) : null}
+                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+                              {card.summary}
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : null}
+                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-primary)", fontWeight: 700 }}>
+                              {card.selectedCount} selected {card.detailLabel}
+                              {card.totalCount > 1 ? ` · ${card.totalCount} available` : ""}
+                            </div>
+                          </button>
+                        );
+                      })}
                   </div>
-                );
-              })}
+
+                  {localPrefs.states.map((stateCode) => {
+                    const expanded = !(collapsedStates[stateCode] ?? true);
+                    if (!expanded) return null;
+                    return (
+                      <div key={stateCode} style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(180deg, rgba(22,18,14,0.96) 0%, rgba(14,11,8,0.96) 100%)", padding: "18px", display: "grid", gap: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{makeStateLabel(stateCode)}</div>
+                            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "4px" }}>
+                              {stateCode === "NC" ? "Board-first selection keeps this tight." : stateCode === "VA" ? "Choose cities first. Only drop to store-level when you need to be surgical." : stateCode === "PA" ? "County-first keeps the flow sane. Only pick stores for a truly narrow hunt." : "State-wide coverage for now."}
+                            </div>
+                          </div>
+                          <button onClick={() => toggleStateCollapsed(stateCode)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "8px 12px", cursor: "pointer" }}>Done</button>
+                        </div>
+
+                        {stateCode === "NC" ? (
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
+                            {ncBoards.map((board) => {
+                              const active = localPrefs.ncBoards.includes(board);
+                              return (
+                                <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        {stateCode === "VA" ? (
+                          <div style={{ display: "grid", gap: "10px" }}>
+                            {vaCities.map((city) => {
+                              const active = localPrefs.vaCities.includes(city);
+                              return (
+                                <div key={city} style={{ borderRadius: "16px", border: active ? "1px solid rgba(196,148,58,0.22)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.06)" : "rgba(255,255,255,0.02)", padding: "12px" }}>
+                                  <button onClick={() => updateStateDetail("VA", city)} style={{ width: "100%", padding: 0, background: "none", border: "none", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontWeight: 700, fontSize: "14px" }}>{city}</button>
+                                  {active ? (
+                                    <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                        <button onClick={() => updateVaSelectionMode(city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores in {city}</button>
+                                        <button onClick={() => updateVaSelectionMode(city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: vaStoreSelections[city]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: vaStoreSelections[city]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
+                                      </div>
+                                      {vaStoreSelections[city]?.mode === "custom" ? (
+                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
+                                          {(vaStoresByCity.get(city) ?? []).map((store) => {
+                                            const storeId = store.id || store.name || `${city}-store`;
+                                            const selected = vaStoreSelections[city]?.storeIds.includes(storeId) ?? false;
+                                            return <button key={storeId} onClick={() => toggleVaStore(city, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                          })}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        {stateCode === "PA" ? (
+                          <div style={{ display: "grid", gap: "10px" }}>
+                            {paCounties.map((county) => {
+                              const active = localPrefs.paCounties.includes(county);
+                              return (
+                                <div key={county} style={{ borderRadius: "16px", border: active ? "1px solid rgba(196,148,58,0.22)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.06)" : "rgba(255,255,255,0.02)", padding: "12px" }}>
+                                  <button onClick={() => updateStateDetail("PA", county)} style={{ width: "100%", padding: 0, background: "none", border: "none", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontWeight: 700, fontSize: "14px" }}>{county}</button>
+                                  {active ? (
+                                    <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+                                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                        <button onClick={() => updatePaSelectionMode(county, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores in {county}</button>
+                                        <button onClick={() => updatePaSelectionMode(county, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: paStoreSelections[county]?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: paStoreSelections[county]?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
+                                      </div>
+                                      {paStoreSelections[county]?.mode === "custom" ? (
+                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
+                                          {(paStoresByCounty.get(county) ?? []).map((store) => {
+                                            const storeId = store.id || store.name || `${county}-store`;
+                                            const selected = paStoreSelections[county]?.storeIds.includes(storeId) ?? false;
+                                            return <button key={storeId} onClick={() => togglePaCountyStore(county, storeId)} style={{ padding: "10px 12px", borderRadius: "12px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                          })}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
 
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <button
@@ -962,9 +1113,9 @@ export default function DashboardPage() {
                           </p>
                           <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
                             {[
-                              { value: "all", label: "All signals", note: "Every matching bottle alert, right away.", eyebrow: "FULL SPEED" },
+                              { value: "all", label: "All signals", note: "Every matching bottle alert, right away.", eyebrow: "ALWAYS ON" },
                               { value: "major_only", label: "Major hits", note: "Only the strongest, most urgent matches hit your inbox.", eyebrow: "RECOMMENDED" },
-                              { value: "daily_roundup", label: "Roundup", note: "Keep the inbox calm with a daily digest.", eyebrow: "LOWER VOLUME" },
+                              { value: "daily_roundup", label: "Roundup", note: "Keep the inbox calm with a daily digest.", eyebrow: "DIGEST MODE" },
                             ].map((option) => {
                               const selected = notificationPrefs.email.mode === option.value;
                               return (

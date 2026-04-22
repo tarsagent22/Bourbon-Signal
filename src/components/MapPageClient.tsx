@@ -11,6 +11,7 @@ import type { Store } from "@/hooks/useStores";
 import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
+import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
 
 type FinderMode = "bottle" | "store";
 type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN";
@@ -383,6 +384,7 @@ export default function MapPageClient() {
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
 
   const ready = useMemo(
     () => !storesLoading && !bottlesLoading && !dropsLoading,
@@ -447,11 +449,23 @@ export default function MapPageClient() {
   const bottleSuggestions = useMemo(() => {
     if (mode !== "bottle") return [] as Bottle[];
     const q = normalize(query);
-    if (!q) return filteredBottles.slice(0, 8);
+    if (!q) return getRotatingBottleSuggestions(filteredBottles, suggestionSeed, 5);
     return filteredBottles
-      .filter((bottle) => stripBottleName(bottle.name).includes(stripBottleName(q)) || stripBottleName(q).includes(stripBottleName(bottle.name)))
+      .filter((bottle) => {
+        const needle = stripBottleName(q);
+        const haystack = [
+          bottle.name,
+          bottle.canonical_name,
+          bottle.distillery,
+          ...(bottle.search_aliases || []),
+          ...Object.values(bottle.state_aliases || {}).flat(),
+        ]
+          .filter(Boolean)
+          .map((value) => stripBottleName(String(value)));
+        return haystack.some((value) => value.includes(needle) || needle.includes(value));
+      })
       .slice(0, 8);
-  }, [filteredBottles, mode, query]);
+  }, [filteredBottles, mode, query, suggestionSeed]);
 
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
@@ -607,7 +621,10 @@ export default function MapPageClient() {
                       if (mode === "bottle") setShowSuggestions(true);
                     }}
                     onFocus={() => {
-                      if (mode === "bottle") setShowSuggestions(true);
+                      if (mode === "bottle") {
+                        setSuggestionSeed((prev) => prev + 1);
+                        setShowSuggestions(true);
+                      }
                     }}
                     placeholder={mode === "bottle" ? "Search bottle or distiller" : "Search board, store, city, or county"}
                     className="finder-search-input"
