@@ -708,27 +708,47 @@ export default function MapPageClient() {
               >
                 {selectedBottle ? (
                   <>
-                    <div className="finder-result-hero bottle finder-result-hero-balanced">
-                      <div>
-                        <h2>{selectedBottle.name}</h2>
-                        <p>
-                          {bottleLocationInsights.exactStoreMatches > 0
-                            ? "We found recent exact locations for this bottle. Start with the freshest store hits below."
-                            : bottleLocationInsights.boardMatches > 0
-                              ? "No exact store hit yet. These are the most recent boards or areas where this bottle moved, so they’re your best places to watch."
-                              : "We don’t have a recent exact location for this bottle yet. Check back after the next live scan."}
-                        </p>
-                      </div>
-                      <div className="finder-highlight-orb">
+                    <div className="finder-overview-grid">
+                      <div className="finder-result-hero bottle finder-result-hero-main">
                         <div>
-                          <span className="finder-eyebrow">Where to look</span>
-                          <strong>{bottleLocationInsights.exactStoreMatches > 0 ? bottleLocationInsights.exactStoreMatches : bottleLocationInsights.boardMatches}</strong>
-                          <span>{bottleLocationInsights.exactStoreMatches > 0 ? "recent exact locations" : "recent areas to watch"}</span>
+                          <h2>{selectedBottle.name}</h2>
+                          <p>
+                            {bottleLocationInsights.exactStoreMatches > 0
+                              ? "We found recent exact locations for this bottle. Start with the freshest store hits below."
+                              : bottleLocationInsights.boardMatches > 0
+                                ? "No exact store hit yet. These are the most recent boards or areas where this bottle moved, so they’re your best places to watch."
+                                : "We don’t have a recent exact location for this bottle yet. Check back after the next live scan."}
+                          </p>
+                        </div>
+                        <div className="finder-highlight-orb finder-highlight-orb-main">
+                          <div>
+                            <span className="finder-eyebrow">Where to look</span>
+                            <strong>{bottleLocationInsights.exactStoreMatches > 0 ? bottleLocationInsights.exactStoreMatches : bottleLocationInsights.boardMatches}</strong>
+                            <span>{bottleLocationInsights.exactStoreMatches > 0 ? "recent exact locations" : "recent areas to watch"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="finder-overview-stats">
+                        <div className="finder-stat-card">
+                          <span className="finder-eyebrow">Exact store hits</span>
+                          <strong>{bottleLocationInsights.exactStoreMatches}</strong>
+                          <span>fresh store-level matches in the current lens</span>
+                        </div>
+                        <div className="finder-stat-card">
+                          <span className="finder-eyebrow">Board leads</span>
+                          <strong>{bottleLocationInsights.boardMatches}</strong>
+                          <span>broader movements worth watching</span>
+                        </div>
+                        <div className="finder-stat-card">
+                          <span className="finder-eyebrow">Signal volume</span>
+                          <strong>{bottleLocationInsights.signalVolume}</strong>
+                          <span>signals captured in the last 30 days</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="finder-dual-columns finder-dual-columns-balanced">
+                    <div className="finder-dual-columns finder-dual-columns-balanced finder-bottle-sections">
                       <div className="finder-subpanel finder-subpanel-primary">
                         <div className="finder-subpanel-head">
                           <div>
