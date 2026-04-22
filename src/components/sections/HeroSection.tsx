@@ -63,7 +63,7 @@ export default function HeroSection() {
 
       {/* Content overlay — vertically centered */}
       <div
-        className="absolute z-[3] px-12 sm:px-16 md:px-24 lg:px-32 max-w-[900px] mx-auto"
+        className="absolute z-[3] px-6 sm:px-12 md:px-24 lg:px-32 max-w-[900px] mx-auto"
         style={{
           top: "50%",
           left: "50%",
@@ -105,6 +105,7 @@ export default function HeroSection() {
               color: "var(--color-text-secondary)",
               textShadow: "0 2px 12px rgba(0,0,0,0.8)",
               marginBottom: "18px",
+              paddingInline: "8px",
             }}
           >
             Find the allocated bourbon you&apos;re looking for with alerts as soon as bottles start moving.
