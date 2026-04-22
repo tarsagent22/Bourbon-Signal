@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import type { MemberAlertRecord } from "@/lib/notification-preferences";
 import { useToastStore } from "@/lib/toast";
@@ -15,7 +16,27 @@ const EMPTY_RESPONSE: AlertsResponse = {
   unreadCount: 0,
 };
 
+const TOASTED_ALERT_STORAGE_KEY = "bourbon-signal:toasted-alert-ids";
+
+function getToastedAlertIds() {
+  if (typeof window === "undefined") return new Set<string>();
+  try {
+    const raw = window.sessionStorage.getItem(TOASTED_ALERT_STORAGE_KEY);
+    if (!raw) return new Set<string>();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function persistToastedAlertIds(ids: Set<string>) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(TOASTED_ALERT_STORAGE_KEY, JSON.stringify(Array.from(ids)));
+}
+
 export function useMemberAlerts(polling = false) {
+  const pathname = usePathname();
   const { isSignedIn, memberTier } = useAuth();
   const [data, setData] = useState<AlertsResponse>(EMPTY_RESPONSE);
   const [loading, setLoading] = useState(false);
@@ -35,18 +56,30 @@ export function useMemberAlerts(polling = false) {
       const res = await fetch("/api/alerts", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to load alerts");
       const payload = (await res.json()) as AlertsResponse;
-      const nextUnreadIds = payload.alerts.filter((alert) => !alert.readAt && !alert.archivedAt).map((alert) => alert.id);
+      const unreadAlerts = payload.alerts.filter((alert) => !alert.readAt && !alert.archivedAt);
+      const nextUnreadIds = unreadAlerts.map((alert) => alert.id);
+
       if (polling) {
-        const unseen = payload.alerts.filter((alert) => !alert.readAt && !alert.archivedAt && !seenAlertIds.current.has(alert.id));
-        unseen.slice(0, 2).forEach((alert) => addToast(`${alert.bottleName} hit ${alert.storeLabel}`, "bell"));
+        const toastedIds = getToastedAlertIds();
+        const unseen = unreadAlerts.filter((alert) => !seenAlertIds.current.has(alert.id) && !toastedIds.has(alert.id));
+        const shouldToastOnBoot = pathname === "/dashboard" && seenAlertIds.current.size === 0 && toastedIds.size === 0;
+        const toastTargets = shouldToastOnBoot ? unreadAlerts.slice(0, 1) : unseen.slice(0, 2);
+
+        toastTargets.forEach((alert) => {
+          addToast(`${alert.bottleName} hit ${alert.storeLabel}`, "bell");
+          toastedIds.add(alert.id);
+        });
+
+        persistToastedAlertIds(toastedIds);
       }
+
       seenAlertIds.current = new Set(nextUnreadIds);
       setData(payload);
       return payload;
     } finally {
       setLoading(false);
     }
-  }, [isEligible]);
+  }, [addToast, isEligible, pathname, polling]);
 
   useEffect(() => {
     fetchAlerts().catch(() => undefined);

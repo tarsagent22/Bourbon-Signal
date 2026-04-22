@@ -243,7 +243,7 @@ body::after {
 }
 
 .finder-shell {
-  width: min(1560px, calc(100% - 24px));
+  width: min(1380px, calc(100% - 24px));
   margin: 0 auto;
   padding: 0 0 40px;
 }
@@ -317,14 +317,15 @@ body::after {
 
 .finder-tool-shell {
   margin-top: 22px;
-  padding: 16px;
+  padding: 20px;
   border-radius: 28px;
   border: 1px solid rgba(247, 240, 224, 0.08);
-  background: linear-gradient(180deg, rgba(21, 16, 10, 0.52) 0%, rgba(14, 11, 7, 0.66) 100%);
+  background: linear-gradient(180deg, rgba(21, 16, 10, 0.7) 0%, rgba(14, 11, 7, 0.82) 100%);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: visible;
   z-index: 7;
+  max-width: 780px;
 }
 
 .finder-search-region {
@@ -472,6 +473,10 @@ body::after {
 .finder-results {
   padding: 18px;
   min-height: 720px;
+}
+
+.finder-main-grid-single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .finder-lens-row {
@@ -653,6 +658,25 @@ body::after {
   text-align: center;
 }
 
+.finder-result-hero-balanced {
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, 280px);
+  gap: 24px;
+}
+
+.finder-dual-columns-balanced {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.finder-subpanel-primary,
+.finder-subpanel-secondary {
+  min-height: 100%;
+}
+
+.finder-subpanel-full {
+  grid-column: 1 / -1;
+}
+
 .finder-highlight-orb strong {
   display: block;
   margin-top: 8px;
@@ -763,20 +787,24 @@ body::after {
 
 @media (min-width: 900px) {
   .finder-hero {
-    grid-template-columns: minmax(0, 1.35fr) minmax(340px, 440px);
+    grid-template-columns: 1fr;
     gap: 36px;
-    padding: 38px 32px 30px;
+    padding: 42px 36px 34px;
   }
 
   .finder-tool-shell {
-    max-width: 760px;
-    padding: 18px;
+    max-width: 860px;
+    padding: 20px;
     overflow: visible;
   }
 
   .finder-main-grid {
     grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
     align-items: start;
+  }
+
+  .finder-main-grid-single {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .finder-controls {
@@ -786,15 +814,20 @@ body::after {
   }
 
   .finder-results {
-    padding: 22px;
+    padding: 26px;
   }
 
   .finder-result-hero {
     grid-template-columns: minmax(0, 1.2fr) 240px;
-    padding: 24px;
+    padding: 28px;
   }
 
-  .finder-dual-columns {
+  .finder-result-hero-balanced {
+    grid-template-columns: minmax(0, 1.55fr) minmax(240px, 300px);
+  }
+
+  .finder-dual-columns,
+  .finder-dual-columns-balanced {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -817,6 +850,15 @@ body::after {
   .finder-suggestions {
     position: static;
     margin-top: 10px;
+  }
+
+  .finder-result-hero-balanced,
+  .finder-dual-columns-balanced {
+    grid-template-columns: 1fr;
+  }
+
+  .finder-highlight-orb {
+    min-height: 150px;
   }
 }
 

@@ -398,11 +398,11 @@ export default function BottleCard({
           {watching ? (
             <>
               <span>Watching</span>
-              <span style={{ fontSize: "14px" }}>✓</span>
+              <span style={{ fontSize: "14px", display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✓</span>
             </>
           ) : (
             <>
-              <span style={{ fontSize: "14px" }}>+</span>
+              <span style={{ fontSize: "14px", display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1, width: "14px", height: "14px", transform: "translateY(-0.5px)" }}>+</span>
               <span>Add to Hunt</span>
             </>
           )}

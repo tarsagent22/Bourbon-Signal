@@ -3,9 +3,10 @@ import type { Bottle } from "@/data/bottles";
 export const POPULAR_BOTTLE_PICKS = [
   "Weller Special Reserve",
   "Stagg Bourbon",
-  "Blanton's Single Barrel",
+  "Blanton's",
   "E.H. Taylor Small Batch",
-  "Eagle Rare 10 Year",
+  "Eagle Rare",
+  "Buffalo Trace",
   "Weller Antique 107",
   "Booker's Bourbon",
   "Elijah Craig Barrel Proof",
@@ -24,7 +25,13 @@ export const POPULAR_BOTTLE_PICKS = [
 ] as const;
 
 function normalize(value?: string | null) {
-  return (value || "").toLowerCase().trim();
+  return (value || "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/\b(single barrel|straight bourbon|bourbon whiskey|whiskey|small batch|literal|liter|750|750ml|1l|1 00l|1\.00l|10 year|10yr|year)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function scoreBottlePopularity(bottle: Bottle) {

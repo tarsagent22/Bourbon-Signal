@@ -66,6 +66,22 @@ function getBottleCanonicalKeys(selectedBottle: Bottle) {
     ...Object.values(selectedBottle.state_aliases || {}).flat(),
   ].filter(Boolean);
 
+  if (selectedBottle.name === "Blanton's") {
+    values.push("Blanton's Bourbon", "Blanton's Single Barrel");
+  }
+
+  if (selectedBottle.name === "Buffalo Trace") {
+    values.push("Buffalo Trace Bourbon", "Buffalo Trace Bourbon Whiskey", "Buffalo Trace Liter", "Buffalo Trace 1L");
+  }
+
+  if (selectedBottle.name === "Eagle Rare") {
+    values.push("Eagle Rare 10 Year", "Eagle Rare 10Y");
+  }
+
+  if (selectedBottle.name === "E.H. Taylor Small Batch") {
+    values.push("EH Taylor Small Batch", "E.H. Taylor Small Batch Bourbon");
+  }
+
   return Array.from(
     new Set(
       values.flatMap((value) => {
@@ -405,13 +421,14 @@ export default function MapPageClient() {
           bottle.state,
           ...(bottle.search_aliases || []),
           ...Object.values(bottle.state_aliases || {}).flat(),
+          ...getBottleCanonicalKeys(bottle),
         ]
           .filter(Boolean)
           .some((value) => normalize(String(value)).includes(q));
       })
       .sort((a, b) => {
-        const aScore = (a.drop_count_30d ?? 0) + (a.tier === "unicorn" ? 50 : a.tier === "allocated" ? 25 : 10);
-        const bScore = (b.drop_count_30d ?? 0) + (b.tier === "unicorn" ? 50 : b.tier === "allocated" ? 25 : 10);
+        const aScore = (a.actionable_count_30d ?? 0) * 3 + (a.drop_count_30d ?? 0) + (a.tier === "unicorn" ? 50 : a.tier === "allocated" ? 25 : 10);
+        const bScore = (b.actionable_count_30d ?? 0) * 3 + (b.drop_count_30d ?? 0) + (b.tier === "unicorn" ? 50 : b.tier === "allocated" ? 25 : 10);
         return bScore - aScore;
       });
   }, [bottles, query, stateFilter]);
@@ -673,7 +690,7 @@ export default function MapPageClient() {
         </motion.div>
       </div>
 
-      <div className="finder-main-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+      <div className="finder-main-grid finder-main-grid-single">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, x: 18 }}
           animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
@@ -691,7 +708,7 @@ export default function MapPageClient() {
               >
                 {selectedBottle ? (
                   <>
-                    <div className="finder-result-hero bottle">
+                    <div className="finder-result-hero bottle finder-result-hero-balanced">
                       <div>
                         <h2>{selectedBottle.name}</h2>
                         <p>
@@ -711,8 +728,8 @@ export default function MapPageClient() {
                       </div>
                     </div>
 
-                    <div className="finder-dual-columns">
-                      <div className="finder-subpanel">
+                    <div className="finder-dual-columns finder-dual-columns-balanced">
+                      <div className="finder-subpanel finder-subpanel-primary">
                         <div className="finder-subpanel-head">
                           <div>
                             <span className="finder-eyebrow">Exact store intel</span>
@@ -748,7 +765,7 @@ export default function MapPageClient() {
                         </p>
                       </div>
 
-                      <div className="finder-subpanel">
+                      <div className="finder-subpanel finder-subpanel-secondary">
                         <div className="finder-subpanel-head">
                           <div>
                             <span className="finder-eyebrow">Board shipment leads</span>
@@ -784,7 +801,7 @@ export default function MapPageClient() {
                         </p>
                       </div>
 
-                      <div className="finder-subpanel">
+                      <div className="finder-subpanel finder-subpanel-full">
                         <div className="finder-subpanel-head">
                           <div>
                             <span className="finder-eyebrow">Recent bottle signals</span>
