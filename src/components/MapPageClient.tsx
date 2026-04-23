@@ -188,20 +188,48 @@ function getSignalQuality(drop: DropEvent) {
   return { label: "Weak signal", score: 1 };
 }
 
+function extractStoreAddressParts(address?: string | null) {
+  if (!address) return { line1: null as string | null, locality: null as string | null };
+  const trimmed = address.trim().replace(/\s+/g, " ");
+  const zipMatch = trimmed.match(/^(.*?)([A-Za-z .'-]+,\s*[A-Z]{2}\s*\d{5})$/);
+  if (zipMatch) {
+    return {
+      line1: zipMatch[1].trim().replace(/\s+(?=[A-Za-z])/g, " "),
+      locality: zipMatch[2].trim(),
+    };
+  }
+  const parts = trimmed.split(",");
+  if (parts.length >= 2) {
+    return {
+      line1: parts[0].trim(),
+      locality: parts.slice(1).join(",").trim(),
+    };
+  }
+  return { line1: trimmed, locality: null };
+}
+
 function summarizeDropLocation(drop: DropEvent) {
   const nestedStore = (drop.stores || []).find((entry) => entry.store_address || entry.city);
 
   if (drop.store_name || drop.store_address || drop.store_city) {
+    const addressParts = extractStoreAddressParts(drop.store_address);
     return {
-      title: drop.store_name || drop.store_city || "Store inventory hit",
-      detail: [drop.store_city, drop.state || drop.state_code].filter(Boolean).join(", ") || drop.store_address || "Store-level inventory signal",
+      title: drop.store_name || addressParts.line1 || drop.store_city || "Store inventory hit",
+      detail:
+        [addressParts.locality, drop.store_city, drop.state || drop.state_code]
+          .filter(Boolean)
+          .join(" · ") || drop.store_address || "Store-level inventory signal",
     };
   }
 
   if (nestedStore?.store_address) {
+    const addressParts = extractStoreAddressParts(nestedStore.store_address);
     return {
-      title: nestedStore.city ? `${nestedStore.city} store cluster` : "Store inventory hit",
-      detail: `${nestedStore.store_address}${drop.state || drop.state_code ? ` · ${drop.state || drop.state_code}` : ""}`,
+      title: addressParts.line1 || (nestedStore.city ? `${nestedStore.city} store cluster` : "Store inventory hit"),
+      detail:
+        [addressParts.locality, nestedStore.city, drop.state || drop.state_code]
+          .filter(Boolean)
+          .join(" · ") || nestedStore.store_address,
     };
   }
 
