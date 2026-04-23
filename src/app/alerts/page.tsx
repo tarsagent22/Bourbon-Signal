@@ -34,7 +34,7 @@ export default function AlertsPage() {
               Your signal inbox
             </h1>
             <p style={{ margin: "12px 0 0", maxWidth: "680px", fontFamily: "var(--font-dm-sans)", fontSize: "15px", lineHeight: 1.8, color: "var(--color-text-secondary)" }}>
-              This is where your on-site alerts live. New drops stay here until you read or archive them, so you can move across the site without losing the thread.
+              This is your live beta alert inbox. New drops stay here until you read or archive them, so you can move across the site without losing the thread.
             </p>
           </div>
           {unreadCount > 0 ? (
@@ -59,7 +59,7 @@ export default function AlertsPage() {
 
         {!isEligible ? (
           <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "22px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-            Alert inbox is available for paid members. Upgrade and turn on on-site alerts to keep your drop signals in one place.
+            Alert inbox is available for paid members. Upgrade and turn on the live beta on-site inbox to keep your drop signals in one place.
           </div>
         ) : (
           <>

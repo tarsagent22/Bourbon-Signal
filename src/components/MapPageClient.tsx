@@ -6,6 +6,7 @@ import { Search, Radar, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from
 import { useStores } from "@/hooks/useStores";
 import { useBottles } from "@/hooks/useBottles";
 import { useDrops } from "@/hooks/useDrops";
+import { useWatchlistStore } from "@/lib/watchlist";
 import type { Bottle } from "@/data/bottles";
 import type { Store } from "@/hooks/useStores";
 import type { DropEvent } from "@/lib/drops";
@@ -422,7 +423,8 @@ export default function MapPageClient() {
   const reduceMotion = useReducedMotion();
   const { stores, loading: storesLoading } = useStores();
   const { bottles, loading: bottlesLoading } = useBottles();
-  const { drops, loading: dropsLoading } = useDrops();
+  const { drops, loading: dropsLoading } = useDrops({ limit: 120 });
+  const watchlist = useWatchlistStore((state) => state.watchedBottles);
 
   const [mode, setMode] = useState<FinderMode>("bottle");
   const [stateFilter, setStateFilter] = useState<FinderState>("ALL");
@@ -431,6 +433,21 @@ export default function MapPageClient() {
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [historyQuery, setHistoryQuery] = useState<{ bottle?: string; store?: string; state?: string }>({});
+
+  const {
+    drops: historyDrops,
+    loading: historyLoading,
+    total: historyTotal,
+    hasMore: historyHasMore,
+  } = useDrops({
+    limit: 20,
+    offset: historyOffset,
+    bottle: historyQuery.bottle,
+    store: historyQuery.store,
+    state: historyQuery.state,
+  });
 
   const ready = useMemo(
     () => !storesLoading && !bottlesLoading && !dropsLoading,
@@ -492,6 +509,26 @@ export default function MapPageClient() {
     if (!filteredStores.length) return null;
     return filteredStores.find((store) => store.id === selectedStoreId) ?? filteredStores[0];
   }, [filteredStores, selectedStoreId]);
+
+  useEffect(() => {
+    if (mode === "bottle" && selectedBottle) {
+      setHistoryOffset(0);
+      setHistoryQuery({
+        bottle: selectedBottle.name,
+        state: stateFilter === "ALL" ? undefined : stateFilter,
+      });
+    }
+  }, [mode, selectedBottle, stateFilter]);
+
+  useEffect(() => {
+    if (mode === "store" && selectedStore) {
+      setHistoryOffset(0);
+      setHistoryQuery({
+        store: selectedStore.city || selectedStore.displayLabel || selectedStore.name,
+        state: stateFilter === "ALL" ? undefined : stateFilter,
+      });
+    }
+  }, [mode, selectedStore, stateFilter]);
 
   const bottleSuggestions = useMemo(() => {
     if (mode !== "bottle") return [] as Bottle[];
@@ -618,8 +655,9 @@ export default function MapPageClient() {
       stores: filteredStores.length,
       bottles: filteredBottles.length,
       liveSignals: drops.length,
+      watchlist: watchlist.length,
     };
-  }, [filteredBottles.length, filteredStores.length, drops.length]);
+  }, [filteredBottles.length, filteredStores.length, drops.length, watchlist.length]);
 
   return (
     <section className="finder-shell">
@@ -775,10 +813,54 @@ export default function MapPageClient() {
                           <strong>{bottleLocationInsights.signalVolume}</strong>
                           <span>signals captured in the last 30 days</span>
                         </div>
+                        <div className="finder-stat-card">
+                          <span className="finder-eyebrow">History loaded</span>
+                          <strong>{historyTotal}</strong>
+                          <span>historical matches available for this bottle</span>
+                        </div>
                       </div>
                     </div>
 
                     <div className="finder-dual-columns finder-dual-columns-balanced finder-bottle-sections">
+                      <div className="finder-subpanel finder-subpanel-secondary">
+                        <div className="finder-subpanel-head">
+                          <div>
+                            <span className="finder-eyebrow">Historical movement</span>
+                            <h3>Older drop history</h3>
+                          </div>
+                          <Clock3 size={16} color="var(--color-accent-amber)" />
+                        </div>
+                        <div className="finder-list">
+                          {historyDrops.length > 0 ? (
+                            historyDrops.map((drop, index) => {
+                              const location = summarizeDropLocation(drop);
+                              return (
+                                <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
+                                  <div className="finder-list-row-copy">
+                                    <strong>{getDisplayName(drop)}</strong>
+                                    <span>{location.title} · {location.detail}</span>
+                                  </div>
+                                  <div className="finder-signal-meta">
+                                    <span className="finder-row-pill">{drop.state || drop.state_code || 'NC'}</span>
+                                    <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="finder-empty-card small">{historyLoading ? 'Loading bottle history…' : 'No historical matches yet for this bottle.'}</div>
+                          )}
+                        </div>
+                        {historyHasMore ? (
+                          <button
+                            type="button"
+                            className="finder-load-more"
+                            onClick={() => setHistoryOffset((prev) => prev + 20)}
+                          >
+                            Load older bottle history
+                          </button>
+                        ) : null}
+                      </div>
                       <div className="finder-subpanel finder-subpanel-primary">
                         <div className="finder-subpanel-head">
                           <div>
@@ -952,20 +1034,32 @@ export default function MapPageClient() {
                           <Clock3 size={16} color="var(--color-accent-amber)" />
                         </div>
                         <div className="finder-list">
-                          {storeDrops.length > 0 ? (
-                            storeDrops.map((drop, index) => (
+                          {historyDrops.length > 0 ? (
+                            historyDrops.map((drop, index) => (
                               <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
-                                <div>
+                                <div className="finder-list-row-copy">
                                   <strong>{getDisplayName(drop)}</strong>
-                                  <span>{drop.event_type.replaceAll("_", " ")}</span>
+                                  <span>{summarizeDropLocation(drop).detail}</span>
                                 </div>
-                                <span className="finder-row-pill">{formatRelativeTime(drop.timestamp)}</span>
+                                <div className="finder-signal-meta">
+                                  <span className="finder-row-pill">{drop.event_type.replaceAll("_", " ")}</span>
+                                  <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
+                                </div>
                               </div>
                             ))
                           ) : (
-                            <div className="finder-empty-card small">No recent live drops tied to this location in the current state lens.</div>
+                            <div className="finder-empty-card small">{historyLoading ? 'Loading store history…' : 'No recent or historical drops tied to this location in the current state lens.'}</div>
                           )}
                         </div>
+                        {historyHasMore ? (
+                          <button
+                            type="button"
+                            className="finder-load-more"
+                            onClick={() => setHistoryOffset((prev) => prev + 20)}
+                          >
+                            Load older location history
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </>

@@ -108,7 +108,7 @@ export default function HeroSection() {
               paddingInline: "8px",
             }}
           >
-            Find the allocated bourbon you&apos;re looking for with alerts as soon as bottles start moving.
+            Track real bottle movement across live state data, build a bottle-plus-territory hunt, and get live beta alerts when your targets start showing up.
           </p>
         </ScrollReveal>
 
@@ -122,10 +122,10 @@ export default function HeroSection() {
             }}
           >
             {[
-              "Live drop feed",
+              "NC · VA · PA · IN live coverage",
               "Bottle Finder",
-              "Custom Alerts",
-              "More coming soon",
+              "Live beta alerts",
+              "Historical drop search",
             ].map((item, index, arr) => (
               <div
                 key={item}

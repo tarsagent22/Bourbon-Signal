@@ -23,6 +23,9 @@ interface DropsResponse {
   drops: DropEvent[];
   total: number;
   lastUpdated: string;
+  limit?: number;
+  offset?: number;
+  hasMore?: boolean;
   fallback?: boolean;
   error?: string;
 }
@@ -606,10 +609,11 @@ export default function DropFeed() {
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
   const [showMoreCount, setShowMoreCount] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchDrops = useCallback(async () => {
     try {
-      const res = await fetch("/api/drops");
+      const res = await fetch("/api/drops?limit=50");
       if (!res.ok) throw new Error("fetch failed");
       const json: DropsResponse = await res.json();
       setError(false);
@@ -639,6 +643,7 @@ export default function DropFeed() {
 
       setData(json);
       setGrouped(newGrouped);
+      setShowMoreCount(0);
       const nowIso = new Date().toISOString();
       setLastFetch(nowIso);
       setSecondsUntilRefresh(POLL_INTERVAL_SECONDS);
@@ -646,6 +651,33 @@ export default function DropFeed() {
       setError(true);
     }
   }, []);
+
+  const fetchOlderDrops = useCallback(async () => {
+    if (!isPaidUser || isLoadingMore) return;
+    const nextOffset = grouped.length;
+    if (data && data.total <= nextOffset) return;
+
+    setIsLoadingMore(true);
+    try {
+      const res = await fetch(`/api/drops?limit=50&offset=${nextOffset}`);
+      if (!res.ok) throw new Error("fetch failed");
+      const json: DropsResponse = await res.json();
+      const sourceDrops = json.drops.length > 0 ? json.drops : [];
+      if (!sourceDrops.length) return;
+
+      setGrouped((prev) => {
+        const existing = new Set(prev.map((drop) => drop.id));
+        const nextGrouped = groupDrops(sourceDrops).filter((drop) => !existing.has(drop.id));
+        return [...prev, ...nextGrouped];
+      });
+      setData((prev) => prev ? { ...prev, total: json.total, hasMore: json.hasMore, offset: 0, limit: 50 } : json);
+      setShowMoreCount((prev) => prev + 1);
+    } catch {
+      setError(true);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [data, grouped.length, isLoadingMore, isPaidUser]);
 
   useEffect(() => {
     fetchDrops();
@@ -718,11 +750,9 @@ export default function DropFeed() {
   const feedWasRelaxed = filteredByArea.length === 0 && fallbackFeed.length > 0;
   const finalFeed = filteredByArea.length > 0 ? filteredByArea : fallbackFeed;
 
-  const baseVisibleCount = isPaidUser ? 10 : 7;
-  const paidVisibleCount = baseVisibleCount + (isPaidUser ? showMoreCount * 10 : 0);
-  const maxPaidShowMore = 3;
-  const canShowMore = isPaidUser && showMoreCount < maxPaidShowMore && finalFeed.length > paidVisibleCount;
-  const displayedGrouped = finalFeed.slice(0, isPaidUser ? paidVisibleCount : baseVisibleCount);
+  const baseVisibleCount = isPaidUser ? Math.max(10, grouped.length || 10) : 7;
+  const canShowMore = isPaidUser && !hasSelectedStates && activeTiers.size === 0 && !hasAreaPrefs && !!data?.hasMore;
+  const displayedGrouped = finalFeed.slice(0, isPaidUser ? baseVisibleCount : baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
 
@@ -1019,7 +1049,8 @@ export default function DropFeed() {
                 <div style={{ display: "flex", justifyContent: "center", marginTop: "18px" }}>
                   <button
                     type="button"
-                    onClick={() => setShowMoreCount((prev) => Math.min(prev + 1, maxPaidShowMore))}
+                    onClick={() => fetchOlderDrops()}
+                    disabled={isLoadingMore}
                     style={{
                       padding: "10px 18px",
                       borderRadius: "999px",
@@ -1029,10 +1060,11 @@ export default function DropFeed() {
                       fontFamily: "var(--font-dm-sans)",
                       fontSize: "13px",
                       fontWeight: 600,
-                      cursor: "pointer",
+                      cursor: isLoadingMore ? "progress" : "pointer",
+                      opacity: isLoadingMore ? 0.7 : 1,
                     }}
                   >
-                    Show more
+                    {isLoadingMore ? "Loading older drops…" : "Show older drops"}
                   </button>
                 </div>
               )}

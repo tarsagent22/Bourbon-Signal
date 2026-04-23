@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bookmark } from "lucide-react";
 import { useWatchlistStore } from "@/lib/watchlist";
-import { bottles } from "@/data/bottles";
+import { useBottles } from "@/hooks/useBottles";
+import { useDrops } from "@/hooks/useDrops";
 import { bottleIdFromName } from "@/lib/drops";
-import dropsData from "@/data/drops.json";
-import type { DropEvent } from "@/lib/drops";
 import { dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const TIER_DOT_COLORS: Record<string, string> = {
@@ -34,6 +33,8 @@ export default function WatchlistDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const watchedBottles = useWatchlistStore((s) => s.watchedBottles);
+  const { bottles } = useBottles();
+  const { drops } = useDrops({ limit: 200 });
 
   // Close on outside click
   useEffect(() => {
@@ -47,11 +48,8 @@ export default function WatchlistDropdown() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Build watched bottle info by cross-referencing with drops
-  const drops = (dropsData as { drops: DropEvent[] }).drops;
-
-  const watchedItems = watchedBottles.map((id) => {
-    const bottle = bottles.find((b) => b.id === id);
+  const watchedItems = useMemo(() => watchedBottles.map((id) => {
+    const bottle = bottles.find((b) => b.id === id || b.canonical_id === id);
     if (!bottle) return null;
 
     const matchingDrops = drops.filter((d) => dropMatchesBottle(d, bottle));
@@ -74,7 +72,7 @@ export default function WatchlistDropdown() {
     tier: string;
     lastDrop: string | null;
     hasNewDrop: boolean;
-  }[];
+  }[], [watchedBottles, bottles, drops]);
 
   const newDropCount = watchedItems.filter((w) => w.hasNewDrop).length;
 

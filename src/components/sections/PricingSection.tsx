@@ -14,8 +14,8 @@ const standardFeatures = [
 ];
 
 const alertFeatures = [
-  "Member alerts layer rolling out next",
-  "Designed for bottle-specific, store-aware notifications",
+  "Live beta alert inbox for bottle-plus-territory matches",
+  "Bottle-specific, store-aware notifications with delivery controls",
 ];
 
 const founderExclusives = [
