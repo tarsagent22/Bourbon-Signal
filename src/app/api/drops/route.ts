@@ -50,11 +50,26 @@ function writeCachedPayload(data: Record<string, unknown>) {
   }
 }
 
-export async function GET() {
-  const cached = readCachedPayload();
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const state = url.searchParams.get("state")?.toUpperCase();
+  const limit = url.searchParams.get("limit");
+  const offset = url.searchParams.get("offset");
+  const bottle = url.searchParams.get("bottle");
+  const store = url.searchParams.get("store");
+  const cacheKey = [state || "all", limit || "50", offset || "0", bottle || "", store || ""].join("__");
+  const shouldUseCache = !state && !bottle && !store && (!limit || limit === "50") && (!offset || offset === "0");
+  const cached = shouldUseCache ? readCachedPayload() : null;
 
   try {
-    const res = await fetch(ENGINE_URL, {
+    const engineUrl = new URL(ENGINE_URL);
+    if (state) engineUrl.searchParams.set("state", state);
+    if (limit) engineUrl.searchParams.set("limit", limit);
+    if (offset) engineUrl.searchParams.set("offset", offset);
+    if (bottle) engineUrl.searchParams.set("bottle", bottle);
+    if (store) engineUrl.searchParams.set("store", store);
+
+    const res = await fetch(engineUrl.toString(), {
       next: { revalidate: 60 },
       headers: { "User-Agent": "bourbonsignal-web/1.0" },
     });
@@ -67,9 +82,9 @@ export async function GET() {
     const data = normalizeDropsPayload(raw);
 
     if (Array.isArray(data.drops) && data.drops.length > 0) {
-      writeCachedPayload(data);
+      if (shouldUseCache) writeCachedPayload(data);
       return NextResponse.json(data, {
-        headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" },
+        headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300", "X-Drops-Cache-Key": cacheKey },
       });
     }
 
