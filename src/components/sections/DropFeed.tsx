@@ -637,10 +637,9 @@ export default function DropFeed() {
   const shouldReduceMotion = useReducedMotion();
 
   const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
-  const { isSignedIn, memberTier } = useAuth();
+  const { isSignedIn, memberTier, isPaidUser } = useAuth();
   const { prefs } = useAreaPreferences();
   const areaPrefs = prefs.areaPreferences;
-  const isPaidUser = memberTier === "monthly" || memberTier === "annual" || memberTier === "founder" || memberTier === "lifetime";
   const isFreeUser = !isPaidUser;
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);

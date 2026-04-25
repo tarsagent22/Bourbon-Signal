@@ -2,18 +2,28 @@
 
 import { useUser, useClerk } from "@clerk/nextjs";
 
+const PAID_TIERS = new Set([
+  "standard",
+  "bottled-in-bond",
+  "monthly",
+  "annual",
+  "founder",
+  "lifetime",
+]);
+
 export function useAuth() {
   const { isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
 
-  // Tier is null until Stripe confirms payment via webhook + user metadata
-  // TODO: Read from Clerk user.publicMetadata.tier once webhook writes it
-  const memberTier = (isSignedIn && user?.publicMetadata?.tier as string) || null;
+  const rawTier = typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
+  const memberTier = isSignedIn ? rawTier : null;
+  const isPaidUser = !!memberTier && PAID_TIERS.has(memberTier);
 
   return {
     isSignedIn: !!isSignedIn,
     memberTier,
-    memberNumber: 0, // will be assigned later
+    isPaidUser,
+    memberNumber: 0,
     user,
     signIn: () => openSignIn(),
     signOut: () => signOut(),
