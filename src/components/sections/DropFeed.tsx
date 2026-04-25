@@ -218,11 +218,26 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
   // Build detail fields
   const details: { label: string; value: string }[] = [];
+  if (drop.signalLabel) {
+    details.push({ label: "Signal", value: drop.signalLabel });
+  }
+  if (drop.event_type === "new_shipment" && drop.board_name) {
+    details.push({ label: "Board", value: drop.board_name });
+  }
   if (drop.retail_price && drop.retail_price > 0) {
     details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
   }
   if (drop.quantity_shipped && drop.quantity_shipped > 0) {
-    details.push({ label: "Quantity", value: `${drop.quantity_shipped} cases` });
+    details.push({ label: "Shipped", value: `${drop.quantity_shipped} case${drop.quantity_shipped === 1 ? "" : "s"}` });
+  }
+  if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
+    details.push({ label: "In stock", value: `${drop.quantity_in_stock} bottle${drop.quantity_in_stock === 1 ? "" : "s"}` });
+  }
+  if (drop.locations.length > 0) {
+    details.push({
+      label: drop.event_type === "new_shipment" ? "Destinations" : "Locations",
+      value: `${drop.locations.length} ${drop.locations.length === 1 ? "location" : "locations"}`,
+    });
   }
 
   const hasDetails = details.length > 0 || drop.locations.length > 0;
@@ -306,6 +321,26 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 }}
               >
                 {drop.state}
+              </span>
+            )}
+            {drop.signalLabel && (
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color: "rgba(212,146,11,0.8)",
+                  background: "rgba(212,146,11,0.08)",
+                  border: "1px solid rgba(212,146,11,0.18)",
+                  padding: "1px 6px",
+                  borderRadius: "999px",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  textTransform: "uppercase",
+                }}
+              >
+                {drop.signalLabel}
               </span>
             )}
             <span
@@ -485,31 +520,40 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                       {drop.state ? `${drop.state} signal` : "Signal"}
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
-                      {visibleLocations.map((location: DropLocation) => (
-                        <div
-                          key={`${location.label}-${location.address ?? ""}`}
-                          style={{
-                            padding: "10px 12px",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(245,237,214,0.08)",
-                            background: "rgba(245,237,214,0.03)",
-                          }}
-                        >
-                          <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
-                            <CountyLink county={location.label}>{location.label}</CountyLink>
+                      {visibleLocations.map((location: DropLocation) => {
+                        const destinationLabel = drop.event_type === "new_shipment" ? "Board destination" : "Store";
+                        const secondaryLine = location.address || location.boardName;
+                        return (
+                          <div
+                            key={`${location.label}-${location.address ?? ""}`}
+                            style={{
+                              padding: "10px 12px",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(245,237,214,0.08)",
+                              background: "rgba(245,237,214,0.03)",
+                            }}
+                          >
+                            <div style={{ color: "rgba(245,237,214,0.35)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "10px", fontFamily: "var(--font-jetbrains)" }}>
+                              {destinationLabel}
+                            </div>
+                            <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
+                              <CountyLink county={location.label}>{location.label}</CountyLink>
+                            </div>
+                            {secondaryLine && (
+                              <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>
+                                {secondaryLine}
+                              </div>
+                            )}
+                            {location.quantity && (
+                              <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
+                                {drop.event_type === "new_shipment"
+                                  ? `${location.quantity} case${location.quantity === 1 ? "" : "s"} shipped`
+                                  : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} seen`}
+                              </div>
+                            )}
                           </div>
-                          {(location.address || location.boardName) && (
-                            <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>
-                              {location.address || location.boardName}
-                            </div>
-                          )}
-                          {location.quantity && (
-                            <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
-                              {location.quantity} spotted
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                       {isFreeUser && hiddenLocationCount > 0 && (
                         <div
                           style={{

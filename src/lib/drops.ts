@@ -41,8 +41,10 @@ export interface GroupedDrop {
   store_address?: string;
   retail_price?: number | null;
   quantity_shipped?: number;
+  quantity_in_stock?: number;
   state?: string;
   id: string;
+  signalLabel?: string;
   locations: DropLocation[];
 }
 
@@ -149,25 +151,66 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
   const SIX_HOURS = 6 * 60 * 60 * 1000;
   const groups: Map<string, GroupedDrop> = new Map();
 
-  const getLocation = (ev: DropEvent): DropLocation | null => {
+  const getLocation = (ev: DropEvent): DropLocation[] => {
+    const locations: DropLocation[] = [];
+    const boardName = cleanCountyName(ev.board_name || "");
+    const singleQuantity = ev.quantity_in_stock ?? ev.quantity_shipped ?? ev.quantity;
+
+    if (ev.store_details?.length) {
+      for (const detail of ev.store_details) {
+        const city = detail.city?.trim();
+        const county = detail.county?.trim();
+        const label = detail.name?.trim() || (city ? (county ? `${city} (${county} Co.)` : city) : undefined);
+        if (!label) continue;
+        locations.push({
+          label,
+          city,
+          boardName: boardName || undefined,
+          quantity: detail.qty > 0 ? detail.qty : undefined,
+        });
+      }
+    }
+
+    if (ev.stores?.length) {
+      for (const store of ev.stores) {
+        const address = store.store_address?.trim();
+        const city = store.city?.trim();
+        const label = city || address;
+        if (!label) continue;
+        const qty = store.quantity ?? store.qty;
+        locations.push({
+          label,
+          city,
+          address,
+          boardName: boardName || undefined,
+          quantity: qty && qty > 0 ? qty : undefined,
+        });
+      }
+    }
+
     const city = ev.store_city?.trim();
     const address = ev.store_address?.trim();
-    const boardName = cleanCountyName(ev.board_name || "");
-    const quantity = ev.quantity_in_stock ?? ev.quantity_shipped ?? ev.quantity;
-
     const primaryLabel = city
       ? (ev.store_county ? `${city} (${ev.store_county} Co.)` : city)
       : boardName || address;
 
-    if (!primaryLabel) return null;
+    if (primaryLabel) {
+      locations.push({
+        label: primaryLabel,
+        city,
+        address,
+        boardName: boardName || ev.board_name,
+        quantity: singleQuantity && singleQuantity > 0 ? singleQuantity : undefined,
+      });
+    }
 
-    return {
-      label: primaryLabel,
-      city,
-      address,
-      boardName: boardName || ev.board_name,
-      quantity: quantity && quantity > 0 ? quantity : undefined,
-    };
+    const deduped: DropLocation[] = [];
+    for (const location of locations) {
+      if (!deduped.some((loc) => loc.label === location.label && loc.address === location.address && loc.quantity === location.quantity)) {
+        deduped.push(location);
+      }
+    }
+    return deduped;
   };
 
   for (const event of drops) {
@@ -180,14 +223,16 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${bucket}`;
 
     const existing = groups.get(groupKey);
-    const location = getLocation(event);
+    const locations = getLocation(event);
 
     if (existing) {
-      if (location && !existing.locations.some((loc) => loc.label === location.label && loc.address === location.address)) {
-        existing.locations.push(location);
-      }
-      if (location && !existing.counties.includes(location.label)) {
-        existing.counties.push(location.label);
+      for (const location of locations) {
+        if (!existing.locations.some((loc) => loc.label === location.label && loc.address === location.address && loc.quantity === location.quantity)) {
+          existing.locations.push(location);
+        }
+        if (!existing.counties.includes(location.label)) {
+          existing.counties.push(location.label);
+        }
       }
       if (event.timestamp > existing.timestamp) {
         existing.timestamp = event.timestamp;
@@ -196,7 +241,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_shipped;
       }
       if (event.quantity_in_stock) {
-        existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_in_stock;
+        existing.quantity_in_stock = (existing.quantity_in_stock || 0) + event.quantity_in_stock;
       }
       const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
       if ((rarityOrder[event.rarity_tier] || 0) > (rarityOrder[existing.rarity_tier] || 0)) {
@@ -211,14 +256,23 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         event_type: event.event_type,
         rarity_tier: event.rarity_tier,
         timestamp: event.timestamp,
-        counties: location ? [location.label] : [],
+        counties: locations.map((location) => location.label),
         board_name: event.board_name || event.store_city,
         store_address: event.store_address,
         retail_price: event.retail_price,
-        quantity_shipped: event.quantity_shipped ?? event.quantity_in_stock,
-        state: event.state || (event.state_code === 'PA' ? 'PA' : undefined),
+        quantity_shipped: event.quantity_shipped ?? event.quantity,
+        quantity_in_stock: event.quantity_in_stock,
+        state: event.state || event.state_code,
         id: groupKey,
-        locations: location ? [location] : [],
+        signalLabel:
+          event.event_type === "new_shipment"
+            ? "Board shipment"
+            : event.event_type === "store_stock_increase"
+              ? "Stock increase"
+              : event.event_type === "in_store" || event.event_type === "in_stock"
+                ? "In store"
+                : undefined,
+        locations,
       });
     }
   }
