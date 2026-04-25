@@ -602,7 +602,7 @@ export default function DropFeed() {
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [lastFetch, setLastFetch] = useState<string>("");
-  const POLL_INTERVAL_SECONDS = 30;
+  const POLL_INTERVAL_SECONDS = 120;
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(POLL_INTERVAL_SECONDS);
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);

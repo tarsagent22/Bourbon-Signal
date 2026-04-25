@@ -8,7 +8,7 @@ import { useMemberAlerts } from "@/hooks/useMemberAlerts";
 
 export default function MemberAlertsBell() {
   const [open, setOpen] = useState(false);
-  const { alerts, unreadCount, isEligible, loading, markRead, markAllRead, archive } = useMemberAlerts(true);
+  const { alerts, unreadCount, isEligible, loading, markRead, markAllRead, archive } = useMemberAlerts(open);
 
   const recentAlerts = useMemo(() => alerts.filter((alert) => !alert.archivedAt).slice(0, 6), [alerts]);
 

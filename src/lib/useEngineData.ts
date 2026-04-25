@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const REFETCH_INTERVAL = 60_000; // 60 seconds
+const REFETCH_INTERVAL = 5 * 60_000; // 5 minutes
 
 interface EngineBottle {
   id: string;
@@ -59,7 +59,7 @@ function useFetch<T>(url: string, fallback: T) {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(url, { cache: "force-cache" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);
