@@ -15,9 +15,9 @@ import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/li
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
 
 type FinderMode = "bottle" | "store";
-type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN";
+type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN" | "KY";
 
-const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA", "IN"];
+const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA", "IN", "KY"];
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
@@ -182,6 +182,15 @@ function getDropLocations(drop: DropEvent) {
 }
 
 function getSignalQuality(drop: DropEvent) {
+  if (drop.state === "KY" || drop.state_code === "KY") {
+    const scope = String(drop.availability_scope || "");
+    const confidence = String(drop.confidence_tier || "");
+    if (confidence === "exact_today_distillery") return { label: "Official distillery today", score: 3 };
+    if (confidence === "official_release_live") return { label: "Official release live", score: 3 };
+    if (confidence === "official_window_open" || scope === "release_window") return { label: "Official pickup window", score: 2 };
+    if (confidence === "official_announcement") return { label: "Official announcement", score: 2 };
+    return { label: "Distillery signal", score: 2 };
+  }
   if (drop.store_address) return { label: "Exact store", score: 3 };
   if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store inventory", score: 3 };
   if (drop.board_name) return { label: "Board shipment lead", score: 2 };
@@ -210,6 +219,29 @@ function extractStoreAddressParts(address?: string | null) {
 
 function summarizeDropLocation(drop: DropEvent) {
   const nestedStore = (drop.stores || []).find((entry) => entry.store_address || entry.city);
+
+  if (drop.state === "KY" || drop.state_code === "KY") {
+    const venue = drop.store_name || drop.store_city || "Kentucky distillery";
+    const scope = String(drop.availability_scope || "");
+    const program = (drop as any).program_name as string | undefined;
+    const detail = [
+      program,
+      scope === "release_window"
+        ? "Pickup or entry window"
+        : scope === "distillery"
+          ? "Available at distillery"
+          : scope === "announcement"
+            ? "Official release notice"
+            : scope === "venue"
+              ? "Venue notice"
+              : "Kentucky signal",
+      drop.state || drop.state_code,
+    ].filter(Boolean).join(" · ");
+    return {
+      title: venue,
+      detail,
+    };
+  }
 
   if (drop.store_name || drop.store_address || drop.store_city) {
     const addressParts = extractStoreAddressParts(drop.store_address);

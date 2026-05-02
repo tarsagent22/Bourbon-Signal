@@ -16,6 +16,9 @@ interface DropHistoryModalProps {
 
 /** Derive a short location label from a drop event */
 function getDropLocation(drop: DropEvent): string {
+  if ((drop.state === "KY" || drop.state_code === "KY") && (drop.store_name || drop.store_city)) {
+    return [drop.store_name || drop.store_city, "KY"].filter(Boolean).join(", ");
+  }
   if (drop.state === "VA" && drop.stores && drop.stores.length > 0) {
     const firstStore = drop.stores[0];
     const city = firstStore.city
@@ -32,6 +35,14 @@ function getDropLocation(drop: DropEvent): string {
 
 /** Derive a store/board display name from a drop event */
 function getStoreName(drop: DropEvent): string {
+  // KY distillery / pickup events
+  if (drop.state_code === "KY" || drop.state === "KY") {
+    const program = (drop as any).program_name as string | undefined;
+    if (drop.store_name && program) return `${drop.store_name} · ${program}`;
+    if (drop.store_name) return drop.store_name;
+    if (drop.store_city) return `KY — ${drop.store_city}`;
+    return program || "Kentucky release";
+  }
   // PA store-level events
   if (drop.state_code === "PA" || drop.state === "PA") {
     const confidence = (drop as any).confidence_tier as string | undefined;

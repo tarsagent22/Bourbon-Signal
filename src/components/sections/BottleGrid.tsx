@@ -107,7 +107,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 24;
 
-  // Build last-seen lookup from static drops data
+  // Build last-seen lookup from bundled drops as a fallback. Live bottle data remains primary.
   const lastSeenLookup = useMemo(
     () => buildLastSeenLookup((dropsData as { drops: DropEvent[] }).drops),
     []
@@ -161,9 +161,11 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   // Filter bottles by state preferences first
   const stateFilteredBottles = useMemo(() => {
     if (!hasSelectedStates || selectedStates.length === 0) return propBottles;
-    return propBottles.filter(
-      (b) => !b.state || selectedStates.includes(b.state)
-    );
+    return propBottles.filter((b) => {
+      const bottleStates = Array.isArray(b.states) && b.states.length > 0 ? b.states : (b.state ? [b.state] : []);
+      if (bottleStates.length === 0) return true;
+      return bottleStates.some((state) => selectedStates.includes(state));
+    });
   }, [propBottles, selectedStates, hasSelectedStates]);
 
   const filteredBottles = useMemo(() => {
@@ -179,9 +181,10 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
         break;
       case "my-states":
         if (hasSelectedStates && selectedStates.length > 0) {
-          result = result.filter(
-            (b) => b.state && selectedStates.includes(b.state)
-          );
+          result = result.filter((b) => {
+            const bottleStates = Array.isArray(b.states) && b.states.length > 0 ? b.states : (b.state ? [b.state] : []);
+            return bottleStates.some((state) => selectedStates.includes(state));
+          });
         }
         break;
     }

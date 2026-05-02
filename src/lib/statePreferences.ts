@@ -14,6 +14,7 @@ export const AVAILABLE_STATES = [
   { code: "VA", name: "Virginia", active: true },
   { code: "PA", name: "Pennsylvania", active: true },
   { code: "IN", name: "Indiana", active: true },
+  { code: "KY", name: "Kentucky", active: true },
   { code: "UT", name: "Utah", active: false, comingSoon: true },
 ] as const;
 

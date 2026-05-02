@@ -153,6 +153,13 @@ function SkeletonRow() {
 }
 
 function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
+  if (drop.state === "KY") {
+    if (drop.confidenceTier === "exact_today_distillery") return { label: "KY today", tone: "exact" };
+    if (drop.confidenceTier === "official_release_live") return { label: "KY live", tone: "online" };
+    if (drop.confidenceTier === "official_window_open" || drop.availabilityScope === "release_window") return { label: "KY window", tone: "online" };
+    if (drop.confidenceTier === "official_announcement" || drop.confidenceTier === "venue_signal") return { label: "KY official", tone: "listing" };
+    return null;
+  }
   if (drop.state !== "PA") return null;
   if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
     return { label: "PA exact", tone: "exact" };
@@ -167,6 +174,22 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
 }
 
 function getEventDescription(drop: GroupedDrop): string {
+  if (drop.state === "KY") {
+    switch (drop.event_type) {
+      case "in_stock":
+        return "Available at distillery";
+      case "in_store":
+        return "Pickup window open";
+      case "new_allocation":
+        return "Entry window open";
+      case "allocation_assigned":
+        return "Winner notice";
+      case "restock":
+        return "Official update";
+      default:
+        return "Kentucky release signal";
+    }
+  }
   switch (drop.event_type) {
     case "new_shipment": {
       if (drop.counties.length > 1) {
