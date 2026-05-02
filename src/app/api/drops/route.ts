@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const ENGINE_URL = "https://engine.bourbonsignal.com/drops";
-const CACHE_DIR = join(process.cwd(), ".cache");
-const CACHE_PATH = join(CACHE_DIR, "drops-latest.json");
+const CACHE_DIR = join(process.cwd(), ".cache", "drops");
+const DEFAULT_CACHE_PATH = join(CACHE_DIR, "default.json");
+const FETCH_TIMEOUT_MS = 8000;
 
 function normalizeDropsPayload(data: Record<string, unknown>) {
   const STATE_MAP: Record<string, string> = {
@@ -32,19 +34,31 @@ function normalizeDropsPayload(data: Record<string, unknown>) {
   };
 }
 
-function readCachedPayload() {
-  try {
-    if (!existsSync(CACHE_PATH)) return null;
-    return JSON.parse(readFileSync(CACHE_PATH, "utf-8"));
-  } catch {
-    return null;
-  }
+function getCachePath(cacheKey: string) {
+  const digest = createHash("sha1").update(cacheKey).digest("hex");
+  return join(CACHE_DIR, `${digest}.json`);
 }
 
-function writeCachedPayload(data: Record<string, unknown>) {
+function readCachedPayload(cacheKey: string) {
+  const paths = [getCachePath(cacheKey), DEFAULT_CACHE_PATH];
+  for (const filePath of paths) {
+    try {
+      if (!existsSync(filePath)) continue;
+      return JSON.parse(readFileSync(filePath, "utf-8"));
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function writeCachedPayload(cacheKey: string, data: Record<string, unknown>) {
   try {
     if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
-    writeFileSync(CACHE_PATH, JSON.stringify(data));
+    writeFileSync(getCachePath(cacheKey), JSON.stringify(data));
+    if (cacheKey === "all__50__0____") {
+      writeFileSync(DEFAULT_CACHE_PATH, JSON.stringify(data));
+    }
   } catch (err) {
     console.error("[api/drops] Failed to write cache:", err);
   }
@@ -58,8 +72,8 @@ export async function GET(request: Request) {
   const bottle = url.searchParams.get("bottle");
   const store = url.searchParams.get("store");
   const cacheKey = [state || "all", limit || "50", offset || "0", bottle || "", store || ""].join("__");
-  const shouldUseCache = !state && !bottle && !store && (!limit || limit === "50") && (!offset || offset === "0");
-  const cached = shouldUseCache ? readCachedPayload() : null;
+  const shouldUseDefaultCache = !state && !bottle && !store && (!limit || limit === "50") && (!offset || offset === "0");
+  const cached = readCachedPayload(cacheKey);
 
   try {
     const engineUrl = new URL(ENGINE_URL);
@@ -69,10 +83,16 @@ export async function GET(request: Request) {
     if (bottle) engineUrl.searchParams.set("bottle", bottle);
     if (store) engineUrl.searchParams.set("store", store);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
     const res = await fetch(engineUrl.toString(), {
       next: { revalidate: 60 },
       headers: { "User-Agent": "bourbonsignal-web/1.0" },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!res.ok) {
       throw new Error(`Engine returned ${res.status}`);
@@ -82,9 +102,13 @@ export async function GET(request: Request) {
     const data = normalizeDropsPayload(raw);
 
     if (Array.isArray(data.drops) && data.drops.length > 0) {
-      if (shouldUseCache) writeCachedPayload(data);
+      writeCachedPayload(cacheKey, data);
       return NextResponse.json(data, {
-        headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300", "X-Drops-Cache-Key": cacheKey },
+        headers: {
+          "Cache-Control": "s-maxage=60, stale-while-revalidate=300",
+          "X-Drops-Cache-Key": cacheKey,
+          "X-Drops-Source": "engine",
+        },
       });
     }
 
@@ -95,12 +119,22 @@ export async function GET(request: Request) {
           fallback: true,
           error: "Fresh engine payload was empty, serving last known valid drops",
         },
-        { headers: { "Cache-Control": "s-maxage=30, stale-while-revalidate=300" } }
+        {
+          headers: {
+            "Cache-Control": "s-maxage=30, stale-while-revalidate=300",
+            "X-Drops-Cache-Key": cacheKey,
+            "X-Drops-Source": shouldUseDefaultCache ? "default-cache-fallback" : "query-cache-fallback",
+          },
+        }
       );
     }
 
     return NextResponse.json(data, {
-      headers: { "Cache-Control": "s-maxage=30, stale-while-revalidate=120" },
+      headers: {
+        "Cache-Control": "s-maxage=30, stale-while-revalidate=120",
+        "X-Drops-Cache-Key": cacheKey,
+        "X-Drops-Source": "engine-empty",
+      },
     });
   } catch (err) {
     console.error("[api/drops] Error fetching from engine:", err);
@@ -112,7 +146,13 @@ export async function GET(request: Request) {
           fallback: true,
           error: "Feed temporarily unavailable, serving last known valid drops",
         },
-        { headers: { "Cache-Control": "s-maxage=30, stale-while-revalidate=300" } }
+        {
+          headers: {
+            "Cache-Control": "s-maxage=30, stale-while-revalidate=300",
+            "X-Drops-Cache-Key": cacheKey,
+            "X-Drops-Source": shouldUseDefaultCache ? "default-cache-fallback" : "query-cache-fallback",
+          },
+        }
       );
     }
 
@@ -123,7 +163,14 @@ export async function GET(request: Request) {
         lastUpdated: new Date().toISOString(),
         error: "Feed temporarily unavailable",
       },
-      { status: 500, headers: { "Cache-Control": "no-store" } }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "s-maxage=15, stale-while-revalidate=60",
+          "X-Drops-Cache-Key": cacheKey,
+          "X-Drops-Source": "empty-fallback",
+        },
+      }
     );
   }
 }
