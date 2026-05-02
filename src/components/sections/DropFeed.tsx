@@ -152,6 +152,20 @@ function SkeletonRow() {
   );
 }
 
+function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
+  if (drop.state !== "PA") return null;
+  if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
+    return { label: "PA exact", tone: "exact" };
+  }
+  if (drop.confidenceTier === "online_positive") {
+    return { label: "PA online", tone: "online" };
+  }
+  if (drop.confidenceTier === "listing_only") {
+    return { label: "PA listing", tone: "listing" };
+  }
+  return null;
+}
+
 function getEventDescription(drop: GroupedDrop): string {
   switch (drop.event_type) {
     case "new_shipment": {
@@ -218,8 +232,12 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
   // Build detail fields
   const details: { label: string; value: string }[] = [];
+  const confidenceBadge = getConfidenceBadge(drop);
   if (drop.signalLabel) {
     details.push({ label: "Signal", value: drop.signalLabel });
+  }
+  if (confidenceBadge) {
+    details.push({ label: "Confidence", value: confidenceBadge.label });
   }
   if (drop.event_type === "new_shipment" && drop.board_name) {
     details.push({ label: "Board", value: drop.board_name });
@@ -341,6 +359,41 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 }}
               >
                 {drop.signalLabel}
+              </span>
+            )}
+            {confidenceBadge && (
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color:
+                    confidenceBadge.tone === "exact"
+                      ? "rgba(110,231,183,0.95)"
+                      : confidenceBadge.tone === "online"
+                        ? "rgba(125,211,252,0.95)"
+                        : "rgba(245,237,214,0.7)",
+                  background:
+                    confidenceBadge.tone === "exact"
+                      ? "rgba(110,231,183,0.12)"
+                      : confidenceBadge.tone === "online"
+                        ? "rgba(125,211,252,0.12)"
+                        : "rgba(245,237,214,0.08)",
+                  border:
+                    confidenceBadge.tone === "exact"
+                      ? "1px solid rgba(110,231,183,0.24)"
+                      : confidenceBadge.tone === "online"
+                        ? "1px solid rgba(125,211,252,0.22)"
+                        : "1px solid rgba(245,237,214,0.14)",
+                  padding: "1px 6px",
+                  borderRadius: "999px",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  textTransform: "uppercase",
+                }}
+              >
+                {confidenceBadge.label}
               </span>
             )}
             <span

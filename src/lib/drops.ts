@@ -19,6 +19,12 @@ export interface DropEvent {
   state?: string;
   state_code?: string;
   source?: string;
+  exact_store?: boolean;
+  availability_scope?: "exact" | "page" | "online" | string;
+  confidence_tier?: "exact_store" | "online_positive" | "listing_only" | string;
+  online_orderable_quantity?: number | null;
+  online_in_stock_quantity?: number | null;
+  online_stock_status?: string | null;
   stores?: { store_address?: string; store_id?: string; city?: string; quantity?: number; qty?: number }[];
   store_details?: { id: string; name?: string; city?: string; county?: string; qty: number }[];
 }
@@ -45,6 +51,10 @@ export interface GroupedDrop {
   state?: string;
   id: string;
   signalLabel?: string;
+  confidenceTier?: "exact_store" | "online_positive" | "listing_only" | string;
+  availabilityScope?: "exact" | "page" | "online" | string;
+  exactStore?: boolean;
+  onlineInStockQuantity?: number | null;
   locations: DropLocation[];
 }
 
@@ -250,6 +260,18 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (event.retail_price && !existing.retail_price) {
         existing.retail_price = event.retail_price;
       }
+      if (!existing.confidenceTier && event.confidence_tier) {
+        existing.confidenceTier = event.confidence_tier;
+      }
+      if (!existing.availabilityScope && event.availability_scope) {
+        existing.availabilityScope = event.availability_scope;
+      }
+      if (!existing.exactStore && event.exact_store) {
+        existing.exactStore = event.exact_store;
+      }
+      if ((existing.onlineInStockQuantity == null || existing.onlineInStockQuantity === 0) && event.online_in_stock_quantity != null) {
+        existing.onlineInStockQuantity = event.online_in_stock_quantity;
+      }
     } else {
       groups.set(groupKey, {
         displayName,
@@ -272,6 +294,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
               : event.event_type === "in_store" || event.event_type === "in_stock"
                 ? "In store"
                 : undefined,
+        confidenceTier: event.confidence_tier,
+        availabilityScope: event.availability_scope,
+        exactStore: event.exact_store,
+        onlineInStockQuantity: event.online_in_stock_quantity ?? null,
         locations,
       });
     }

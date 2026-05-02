@@ -34,10 +34,11 @@ function getDropLocation(drop: DropEvent): string {
 function getStoreName(drop: DropEvent): string {
   // PA store-level events
   if (drop.state_code === "PA" || drop.state === "PA") {
-    if (drop.store_name) return drop.store_name;
-    if (drop.store_city) return `PA — ${drop.store_city}`;
+    const confidence = (drop as any).confidence_tier as string | undefined;
+    if (drop.store_name) return confidence === 'exact_store' ? `${drop.store_name} · exact` : drop.store_name;
+    if (drop.store_city) return confidence === 'exact_store' ? `PA — ${drop.store_city} · exact` : `PA — ${drop.store_city}`;
     if ((drop as any).stores_in_stock) return `${(drop as any).stores_in_stock} PA stores`;
-    return "Pennsylvania ABC Store";
+    return confidence === 'online_positive' ? "Pennsylvania online-positive" : "Pennsylvania ABC Store";
   }
   // VA events
   if ((drop.state === "VA" || (drop as any).state_code === "VA") && drop.stores && drop.stores.length > 0) {
