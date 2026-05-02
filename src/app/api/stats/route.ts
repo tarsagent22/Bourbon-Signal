@@ -46,7 +46,11 @@ export async function GET() {
 
     const data = await res.json();
 
-    if ((data.total_bottles ?? 0) > 0 || (data.total_stores ?? 0) > 0 || (data.states_covered ?? 0) > 0) {
+    const statesCoveredCount = Array.isArray(data.states_covered)
+      ? data.states_covered.length
+      : Number(data.states_covered ?? 0);
+
+    if ((data.total_bottles ?? 0) > 0 || (data.total_stores ?? 0) > 0 || statesCoveredCount > 0) {
       writeCachedPayload(data);
       return NextResponse.json(data, {
         headers: {
