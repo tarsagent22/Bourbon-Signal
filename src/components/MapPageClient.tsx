@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Search, Radar, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
@@ -13,6 +13,7 @@ import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
+import { useStatePreferences } from "@/lib/statePreferences";
 
 type FinderMode = "bottle" | "store";
 type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN" | "KY";
@@ -485,6 +486,9 @@ export default function MapPageClient() {
   const { bottles, loading: bottlesLoading } = useBottles();
   const { drops, loading: dropsLoading } = useDrops({ limit: 120 });
   const watchlist = useWatchlistStore((state) => state.watchedBottles);
+  const huntTargets = useWatchlistStore((state) => state.huntTargets);
+  const selectedStates = useStatePreferences((state) => state.selectedStates);
+  const hasSelectedStates = useStatePreferences((state) => state.hasSelectedStates);
 
   const [mode, setMode] = useState<FinderMode>("bottle");
   const [stateFilter, setStateFilter] = useState<FinderState>("ALL");
@@ -495,6 +499,7 @@ export default function MapPageClient() {
   const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
   const [historyOffset, setHistoryOffset] = useState(0);
   const [historyQuery, setHistoryQuery] = useState<{ bottle?: string; store?: string; state?: string }>({});
+  const searchRegionRef = useRef<HTMLDivElement | null>(null);
 
   const {
     drops: historyDrops,
@@ -590,10 +595,26 @@ export default function MapPageClient() {
     }
   }, [mode, selectedStore, stateFilter]);
 
+  const preferredStateSet = useMemo(() => new Set(selectedStates), [selectedStates]);
+
+  const recommendedBottles = useMemo(() => {
+    const pool = filteredBottles.filter((bottle) => {
+      if (!hasSelectedStates || preferredStateSet.size === 0) return true;
+      return bottle.state ? preferredStateSet.has(bottle.state) : (bottle.states || []).some((state) => preferredStateSet.has(state));
+    });
+
+    const watched = pool.filter((bottle) => watchlist.includes(bottle.id));
+    const hunted = pool.filter((bottle) => huntTargets.some((target) => target.bottleId === bottle.id && !watchlist.includes(bottle.id)));
+    const rotatingSource = pool.filter((bottle) => !watchlist.includes(bottle.id) && !huntTargets.some((target) => target.bottleId === bottle.id));
+    const rotating = getRotatingBottleSuggestions(rotatingSource.length ? rotatingSource : pool, suggestionSeed, 6);
+
+    return Array.from(new Map([...watched, ...hunted, ...rotating].map((bottle) => [bottle.id, bottle])).values()).slice(0, 6);
+  }, [filteredBottles, hasSelectedStates, huntTargets, preferredStateSet, suggestionSeed, watchlist]);
+
   const bottleSuggestions = useMemo(() => {
     if (mode !== "bottle") return [] as Bottle[];
     const q = normalize(query);
-    if (!q) return getRotatingBottleSuggestions(filteredBottles, suggestionSeed, 5);
+    if (!q) return recommendedBottles;
     return filteredBottles
       .filter((bottle) => {
         const needle = stripBottleName(q);
@@ -609,7 +630,24 @@ export default function MapPageClient() {
         return haystack.some((value) => value.includes(needle) || needle.includes(value));
       })
       .slice(0, 8);
-  }, [filteredBottles, mode, query, suggestionSeed]);
+  }, [filteredBottles, mode, query, recommendedBottles]);
+
+  const locationSuggestions = useMemo(() => {
+    if (mode !== "store") return [] as Store[];
+    const q = normalize(query);
+    if (q) {
+      return filteredStores
+        .filter((store) => getStoreLookupKeys(store).some((value) => value.includes(q) || q.includes(value)))
+        .slice(0, 8);
+    }
+
+    if (!hasSelectedStates || preferredStateSet.size === 0) return [] as Store[];
+
+    return filteredStores
+      .filter((store) => preferredStateSet.has(store.state))
+      .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
+      .slice(0, 6);
+  }, [filteredStores, hasSelectedStates, mode, preferredStateSet, query]);
 
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
@@ -719,6 +757,34 @@ export default function MapPageClient() {
     };
   }, [filteredBottles.length, filteredStores.length, drops.length, watchlist.length]);
 
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!searchRegionRef.current?.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  const submitSearch = () => {
+    if (mode === "bottle") {
+      const match = bottleSuggestions[0] ?? filteredBottles[0];
+      if (match) {
+        setQuery(match.name);
+        setSelectedBottleId(match.id);
+      }
+    } else {
+      const match = locationSuggestions[0] ?? filteredStores[0];
+      if (match) {
+        setQuery(match.displayLabel ?? match.name ?? "");
+        setSelectedStoreId(match.id);
+      }
+    }
+    setShowSuggestions(false);
+  };
+
   return (
     <section className="finder-shell">
       <div className="finder-hero-wrap">
@@ -756,28 +822,36 @@ export default function MapPageClient() {
                 </button>
               </div>
 
-              <div className="finder-search-region">
-                <div className="finder-search-wrap hero-search">
+              <div className="finder-search-region" ref={searchRegionRef}>
+                <form
+                  className="finder-search-wrap hero-search"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitSearch();
+                  }}
+                >
                   <Search size={16} color="var(--color-text-tertiary)" />
                   <input
                     value={query}
                     onChange={(e) => {
                       setQuery(e.target.value);
-                      if (mode === "bottle") setShowSuggestions(true);
+                      setShowSuggestions(true);
                     }}
                     onFocus={() => {
-                      if (mode === "bottle") {
-                        setSuggestionSeed((prev) => prev + 1);
-                        setShowSuggestions(true);
-                      }
+                      setSuggestionSeed((prev) => prev + 1);
+                      setShowSuggestions(true);
                     }}
                     placeholder={mode === "bottle" ? "Search bottle or distiller" : "Search board, store, city, or county"}
                     className="finder-search-input"
                   />
-                </div>
+                  <button type="submit" className="finder-search-submit">
+                    Search
+                  </button>
+                </form>
 
-                {mode === "bottle" && showSuggestions && bottleSuggestions.length > 0 ? (
+                {showSuggestions && mode === "bottle" && bottleSuggestions.length > 0 ? (
                   <div className="finder-suggestions">
+                    {!normalize(query) ? <div className="finder-suggestion-label">Recommended bottles</div> : null}
                     {bottleSuggestions.map((bottle) => (
                       <button
                         key={bottle.id}
@@ -792,6 +866,30 @@ export default function MapPageClient() {
                         <div>
                           <strong>{bottle.name}</strong>
                           <span>{bottle.distillery || "Distillery unavailable"}</span>
+                        </div>
+                        <span className="finder-row-pill">Select</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
+                {showSuggestions && mode === "store" && locationSuggestions.length > 0 ? (
+                  <div className="finder-suggestions">
+                    {!normalize(query) ? <div className="finder-suggestion-label">Recommended locations</div> : null}
+                    {locationSuggestions.map((store) => (
+                      <button
+                        key={store.id}
+                        type="button"
+                        className="finder-suggestion"
+                        onClick={() => {
+                          setQuery(store.displayLabel ?? store.name ?? "");
+                          setSelectedStoreId(store.id);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <div>
+                          <strong>{store.displayLabel || store.name}</strong>
+                          <span>{[store.city, store.state].filter(Boolean).join(", ") || store.address || "Location"}</span>
                         </div>
                         <span className="finder-row-pill">Select</span>
                       </button>

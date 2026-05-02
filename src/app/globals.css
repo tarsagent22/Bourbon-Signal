@@ -563,7 +563,43 @@ body::after {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 16px;
+  padding: 0 10px 0 16px;
+}
+
+.finder-search-submit {
+  appearance: none;
+  border: 1px solid rgba(212,146,11,0.24);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(212,146,11,0.22) 0%, rgba(184,115,51,0.18) 100%);
+  color: var(--color-text-primary);
+  font-family: var(--font-dm-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.finder-search-submit:hover,
+.finder-search-submit:focus-visible {
+  border-color: rgba(212,146,11,0.5);
+  background: linear-gradient(180deg, rgba(212,146,11,0.32) 0%, rgba(184,115,51,0.24) 100%);
+  outline: none;
+}
+
+.finder-search-submit:active {
+  transform: translateY(1px);
+}
+
+.finder-suggestion-label {
+  padding: 2px 6px 8px;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-dm-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .finder-search-wrap:focus-within {
