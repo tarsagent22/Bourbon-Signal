@@ -933,7 +933,7 @@ export default function DropFeed() {
             transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {[
-              { label: "Coverage", value: "NC • VA • PA • IN" },
+              { label: "Coverage", value: "Drop Feed" },
               { label: "Feed status", value: timerIsStale ? "Refreshing" : data?.lastUpdated ? "Live" : "Checking" },
               { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },
             ].map((item, idx) => (

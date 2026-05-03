@@ -452,8 +452,10 @@ function FinderStoreCard({
               fontSize: 14,
             }}
           >
-            {[store.city, store.state].filter(Boolean).join(", ")}
-            {store.address ? ` · ${store.address}` : ""}
+            {store.precision === "board"
+              ? [store.county || store.city, store.state].filter(Boolean).join(", ")
+              : [store.city, store.state].filter(Boolean).join(", ")}
+            {store.precision !== "board" && store.address ? ` · ${store.address}` : ""}
           </p>
         </div>
         <ChevronRight size={18} color={active ? "var(--color-accent-amber)" : "var(--color-text-tertiary)"} />
@@ -589,7 +591,10 @@ export default function MapPageClient() {
     if (mode === "store" && selectedStore) {
       setHistoryOffset(0);
       setHistoryQuery({
-        store: selectedStore.city || selectedStore.displayLabel || selectedStore.name,
+        store:
+          selectedStore.precision === "board"
+            ? selectedStore.displayLabel || selectedStore.name || selectedStore.county || selectedStore.city
+            : selectedStore.address || selectedStore.displayLabel || selectedStore.name || selectedStore.city,
         state: stateFilter === "ALL" ? undefined : stateFilter,
       });
     }
@@ -800,14 +805,18 @@ export default function MapPageClient() {
               Finder
             </div>
             <h1>Bottle Finder</h1>
-            <p>Pick a bottle or a location and we'll give you the most precise data available to help you find what you're looking for</p>
+            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Find the bourbon you're looking for with trustworthy signals at your fingertips.</p>
 
             <div className="finder-tool-shell">
               <div className="finder-lens-row">
                 <button
                   type="button"
                   className={`finder-lens ${mode === "bottle" ? "active" : ""}`}
-                  onClick={() => setMode("bottle")}
+                  onClick={() => {
+                    setMode("bottle");
+                    setQuery("");
+                    setShowSuggestions(false);
+                  }}
                 >
                   <Sparkles size={15} />
                   Find a bottle
@@ -815,7 +824,11 @@ export default function MapPageClient() {
                 <button
                   type="button"
                   className={`finder-lens ${mode === "store" ? "active" : ""}`}
-                  onClick={() => setMode("store")}
+                  onClick={() => {
+                    setMode("store");
+                    setQuery("");
+                    setShowSuggestions(false);
+                  }}
                 >
                   <Warehouse size={15} />
                   Scan a location
@@ -889,7 +902,11 @@ export default function MapPageClient() {
                       >
                         <div>
                           <strong>{store.displayLabel || store.name}</strong>
-                          <span>{[store.city, store.state].filter(Boolean).join(", ") || store.address || "Location"}</span>
+                          <span>
+                            {store.precision === "board"
+                              ? [store.county || store.city, store.state].filter(Boolean).join(", ") || "Board"
+                              : [store.city, store.state].filter(Boolean).join(", ") || store.address || "Location"}
+                          </span>
                         </div>
                         <span className="finder-row-pill">Select</span>
                       </button>
