@@ -2,21 +2,39 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fadeUpVariant } from "@/lib/animations";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export default function EmailCapture() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-  };
+    setError(null);
+    setIsSubmitting(true);
 
-  const handleStateLink = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(typeof data.error === "string" ? data.error : "Something went wrong. Try again.");
+        return;
+      }
+
+      setSubmitted(true);
+      setEmail("");
+    } catch {
+      setError("Something went wrong. Try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -38,7 +56,6 @@ export default function EmailCapture() {
         }}
       >
         <ScrollReveal>
-          {/* Headline */}
           <h2
             style={{
               fontFamily: "var(--font-playfair)",
@@ -53,7 +70,6 @@ export default function EmailCapture() {
             Get a free weekly drop digest.
           </h2>
 
-          {/* Subtext */}
           <p
             style={{
               fontFamily: "var(--font-dm-sans)",
@@ -68,7 +84,6 @@ export default function EmailCapture() {
             No spam. Unsubscribe anytime.
           </p>
 
-          {/* Form / Thank-you swap */}
           <AnimatePresence mode="wait">
             {!submitted ? (
               <motion.form
@@ -93,11 +108,12 @@ export default function EmailCapture() {
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
                   style={{
                     flex: "1 1 220px",
                     padding: "12px 16px",
                     borderRadius: "8px",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    border: `1px solid ${error ? "rgba(220,80,80,0.65)" : "rgba(255,255,255,0.1)"}`,
                     background: "rgba(255,255,255,0.05)",
                     color: "var(--color-text-primary)",
                     fontFamily: "var(--font-dm-sans)",
@@ -105,16 +121,10 @@ export default function EmailCapture() {
                     outline: "none",
                     transition: "border-color 0.2s",
                   }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "var(--color-accent-amber)";
-                    e.target.style.outline = "none";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                  }}
                 />
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   style={{
                     padding: "12px 24px",
                     borderRadius: "8px",
@@ -124,28 +134,27 @@ export default function EmailCapture() {
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "14px",
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: isSubmitting ? "default" : "pointer",
                     flexShrink: 0,
                     boxShadow: "0 4px 20px rgba(196,148,58,0.25)",
-                    transition: "box-shadow 0.2s, transform 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 28px rgba(196,148,58,0.45)";
-                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 20px rgba(196,148,58,0.25)";
-                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-                  }}
-                  onMouseDown={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)";
-                  }}
-                  onMouseUp={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+                    opacity: isSubmitting ? 0.7 : 1,
                   }}
                 >
-                  Subscribe
+                  {isSubmitting ? "Subscribing..." : "Subscribe"}
                 </button>
+                {error ? (
+                  <p
+                    style={{
+                      width: "100%",
+                      margin: "4px 0 0",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "13px",
+                      color: "#ff9b9b",
+                    }}
+                  >
+                    {error}
+                  </p>
+                ) : null}
               </motion.form>
             ) : (
               <motion.div
@@ -171,7 +180,7 @@ export default function EmailCapture() {
                     margin: 0,
                   }}
                 >
-                  🥃 Thanks! You&apos;re on the list.
+                  🥃 Thanks, you&apos;re on the list.
                 </p>
                 <p
                   style={{
@@ -186,8 +195,6 @@ export default function EmailCapture() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Secondary link removed */}
         </ScrollReveal>
       </div>
     </section>

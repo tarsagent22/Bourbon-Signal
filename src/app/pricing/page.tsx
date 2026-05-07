@@ -133,7 +133,7 @@ function PricingPageContent() {
                   textAlign: "center",
                 }}
               >
-                100 founding spots. $69. Lifetime.
+                Bottled in Bond is $39 one time. Standard Proof is $5/mo or $40/yr.
               </p>
             </ScrollReveal>
 
@@ -168,7 +168,7 @@ function PricingPageContent() {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  Claim Your Spot — $39
+                  Claim Your Founder Spot — $39
                 </button>
                 <p
                   style={{
@@ -178,7 +178,7 @@ function PricingPageContent() {
                     textAlign: "center",
                   }}
                 >
-                  7-day money-back guarantee. Cancel anytime.
+                  One-time founder pricing. Standard subscriptions can cancel anytime.
                 </p>
               </div>
             </ScrollReveal>

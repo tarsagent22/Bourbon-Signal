@@ -17,22 +17,22 @@ interface FeatureCategory {
 
 const categories: FeatureCategory[] = [
   {
-    label: "Alerts & Tracking",
+    label: "Signals & Access",
     features: [
-      { name: "Drop feed (Limited tier, delayed)", free: true, standard: true, bib: true },
-      { name: "Drop feed (all tiers, real-time)", free: false, standard: true, bib: true },
+      { name: "Public drop feed", free: true, standard: true, bib: true },
+      { name: "Live member drop feed", free: false, standard: true, bib: true },
       { name: "Weekly email digest", free: true, standard: true, bib: true },
-      { name: "Personalized email drop alerts", free: false, standard: true, bib: true },
-      { name: "Personalized watchlist", free: false, standard: true, bib: true },
-      { name: "Store filtering by area", free: false, standard: true, bib: true },
+      { name: "Custom bottle alerts", free: false, standard: true, bib: true },
+      { name: "Personal watchlist dashboard", free: false, standard: true, bib: true },
+      { name: "Bottle Finder", free: false, standard: true, bib: true },
     ],
   },
   {
     label: "Intelligence",
     features: [
-      { name: "Bottle Library (MSRP + pricing)", free: true, standard: true, bib: true },
-      { name: "Hunt Map with store data (coming soon)", free: false, standard: true, bib: true },
-      { name: "Member Dashboard (coming soon)", free: false, standard: true, bib: true },
+      { name: "Bottle pricing and reference intel", free: true, standard: true, bib: true },
+      { name: "Cleaner member-level feed access", free: false, standard: true, bib: true },
+      { name: "Watchlist-driven workflow", free: false, standard: true, bib: true },
       { name: "Secondary market pricing", free: false, standard: true, bib: true },
     ],
   },

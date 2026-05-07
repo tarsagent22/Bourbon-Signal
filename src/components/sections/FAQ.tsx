@@ -19,12 +19,12 @@ const faqs: FAQItem[] = [
   {
     question: "What states do you cover?",
     answer:
-      "We currently track allocated bourbon in North Carolina, Virginia, Pennsylvania, and Indiana. Utah is next.",
+      "We currently track live bourbon signals across North Carolina, Virginia, Pennsylvania, Indiana, Tennessee, Illinois, and Kentucky. Signal depth varies by state, and we only surface what we can support honestly.",
   },
   {
     question: "What's the difference between Standard and Bottled in Bond?",
     answer:
-      "Standard Proof is $5/mo (or $40/year). You pick the bottles you're hunting, set the stores you'll drive to, and we email you the moment something drops — personalized, no noise. Bottled in Bond is a one-time $39 lifetime membership with the same personalized alerts forever, plus exclusive founding perks — numbered glassware, private group, and 2× drawing entries.",
+      "Standard Proof is $5/mo or $40/year. It gives you the live member drop feed, your personal dashboard and watchlist, custom alerts for the bottles you care about, and the Bottle Finder. Bottled in Bond is a one-time $39 founder membership with that same access included, plus the founding perks and no recurring bill.",
   },
   {
     question: "What does Bottled in Bond mean?",
