@@ -8,9 +8,8 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import { stores } from "@/data/stores";
-import dropsData from "@/data/drops.json";
-import { cleanBrandName } from "@/lib/drops";
+import { useStores } from "@/hooks/useStores";
+import { useDrops } from "@/hooks/useDrops";
 
 interface Drop {
   timestamp: string;
@@ -18,45 +17,32 @@ interface Drop {
   brand_name: string;
   store_address?: string;
   board_name?: string;
+  store_name?: string;
+  store_city?: string;
+  state?: string;
   rarity_tier: string;
 }
 
-function normalizeAddr(addr: string): string {
-  return addr.replace(/\.\s*/g, ". ").replace(/\s{2,}/g, " ").trim().toLowerCase();
+function normalizeAddr(addr?: string): string {
+  return (addr || "").replace(/\.\s*/g, ". ").replace(/\s{2,}/g, " ").trim().toLowerCase();
 }
 
-function computeHotStores(allDrops: Drop[]) {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+function computeHotStores(allDrops: Drop[], stores: ReturnType<typeof useStores>["stores"]) {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  // Build drop map by normalized address
-  const dropsByAddr: Record<string, { rarity_tier: string; timestamp: string }[]> = {};
+  const dropsByLookup: Record<string, { rarity_tier: string; timestamp: string }[]> = {};
   for (const drop of allDrops) {
-    if (drop.event_type === "in_store" && drop.store_address) {
-      const norm = normalizeAddr(drop.store_address);
-      if (!dropsByAddr[norm]) dropsByAddr[norm] = [];
-      dropsByAddr[norm].push({ rarity_tier: drop.rarity_tier, timestamp: drop.timestamp });
-    }
-  }
+    if (new Date(drop.timestamp) < thirtyDaysAgo) continue;
+    const keys = [
+      normalizeAddr(drop.store_address),
+      normalizeAddr(drop.store_name),
+      normalizeAddr(drop.board_name),
+      normalizeAddr([drop.store_city, drop.state].filter(Boolean).join(" ")),
+    ].filter(Boolean);
 
-  // Also map shipments to stores
-  const boardToStore: Record<string, typeof stores[0]> = {};
-  for (const store of stores) {
-    const countyLower = store.county.toLowerCase();
-    const cityLower = store.city.toLowerCase();
-    boardToStore[countyLower] = store;
-    boardToStore[cityLower] = store;
-    boardToStore[`${cityLower} abc board`] = store;
-    boardToStore[`${countyLower} abc board`] = store;
-  }
-
-  for (const drop of allDrops) {
-    if (drop.event_type === "new_shipment" && drop.board_name) {
-      const matched = boardToStore[drop.board_name.toLowerCase()];
-      if (matched) {
-        const norm = normalizeAddr(matched.address);
-        if (!dropsByAddr[norm]) dropsByAddr[norm] = [];
-        dropsByAddr[norm].push({ rarity_tier: drop.rarity_tier, timestamp: drop.timestamp });
-      }
+    for (const key of keys) {
+      dropsByLookup[key] ??= [];
+      dropsByLookup[key].push({ rarity_tier: drop.rarity_tier, timestamp: drop.timestamp });
     }
   }
 
@@ -64,14 +50,19 @@ function computeHotStores(allDrops: Drop[]) {
   const hotStores: { lat: number; lng: number; tier: string }[] = [];
 
   for (const store of stores) {
-    const norm = normalizeAddr(store.address);
-    const storeDrops = dropsByAddr[norm] || [];
-    const recentDrops = storeDrops.filter((d) => new Date(d.timestamp) >= sevenDaysAgo);
-    if (recentDrops.length > 0) {
+    if (!store.isMappable || store.lat == null || store.lng == null) continue;
+    const keys = [
+      normalizeAddr(store.address),
+      normalizeAddr(store.name),
+      normalizeAddr(store.displayLabel),
+      normalizeAddr([store.city, store.state].filter(Boolean).join(" ")),
+    ].filter(Boolean);
+    const storeDrops = keys.flatMap((key) => dropsByLookup[key] || []);
+    if (storeDrops.length > 0) {
       activeCount++;
       const tierOrder = ["unicorn", "allocated", "limited"];
       const highestTier = tierOrder.find((t) =>
-        recentDrops.some((d) => d.rarity_tier === t)
+        storeDrops.some((d) => d.rarity_tier === t)
       ) || "limited";
       hotStores.push({ lat: store.lat, lng: store.lng, tier: highestTier });
     }
@@ -87,9 +78,11 @@ const tierFillMap: Record<string, string> = {
 };
 
 export default function DashboardMiniMap() {
+  const { stores } = useStores();
+  const { drops } = useDrops({ limit: 1000 });
   const { hotStores, activeCount } = useMemo(
-    () => computeHotStores(dropsData.drops as Drop[]),
-    []
+    () => computeHotStores(drops as Drop[], stores),
+    [drops, stores]
   );
 
   return (
@@ -108,8 +101,8 @@ export default function DashboardMiniMap() {
         }}
       >
         <MapContainer
-          center={[35.55, -79.85]}
-          zoom={7}
+          center={[39.5, -84.5]}
+          zoom={5}
           scrollWheelZoom={false}
           dragging={false}
           zoomControl={false}
@@ -138,7 +131,6 @@ export default function DashboardMiniMap() {
         </MapContainer>
       </div>
 
-      {/* Footer */}
       <div
         className="flex items-center justify-between"
         style={{

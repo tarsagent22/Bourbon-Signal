@@ -1,0 +1,11 @@
+# Generated engine outputs
+out/
+
+# Local browser/session scratch and reverse-engineering captures
+research/scratch/
+tmp_*
+chunk-*.js
+
+# Runtime caches
+.DS_Store
+Thumbs.db

@@ -3,13 +3,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Filter } from "lucide-react";
 import DataFreshness from "@/components/DataFreshness";
-import dropsData from "@/data/drops.json";
 
 interface MapOverlayLeftProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
   activeToday: number;
   dropsThisWeek: number;
+  lastUpdated?: string;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -42,6 +42,7 @@ export default function MapOverlayLeft({
   onFilterChange,
   activeToday,
   dropsThisWeek,
+  lastUpdated,
   isOpen,
   onToggle,
 }: MapOverlayLeftProps) {
@@ -97,6 +98,7 @@ export default function MapOverlayLeft({
           onFilterChange={onFilterChange}
           activeToday={activeToday}
           dropsThisWeek={dropsThisWeek}
+          lastUpdated={lastUpdated}
         />
       </div>
 
@@ -159,6 +161,7 @@ export default function MapOverlayLeft({
                 onFilterChange={onFilterChange}
                 activeToday={activeToday}
                 dropsThisWeek={dropsThisWeek}
+                lastUpdated={lastUpdated}
               />
             </motion.div>
           </>
@@ -173,11 +176,13 @@ function PanelContent({
   onFilterChange,
   activeToday,
   dropsThisWeek,
+  lastUpdated,
 }: {
   activeFilter: string;
   onFilterChange: (f: string) => void;
   activeToday: number;
   dropsThisWeek: number;
+  lastUpdated?: string;
 }) {
   return (
     <>
@@ -342,7 +347,7 @@ function PanelContent({
           {dropsThisWeek} drops this week
         </div>
         <div style={{ marginTop: 4 }}>
-          <DataFreshness lastUpdated={(dropsData as { lastUpdated: string }).lastUpdated} />
+          <DataFreshness lastUpdated={lastUpdated || new Date().toISOString()} />
         </div>
       </div>
     </>

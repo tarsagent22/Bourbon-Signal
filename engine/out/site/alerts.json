@@ -1,0 +1,32 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "generatedAt": "2026-05-26T02:49:20.311Z",
+  "count": 1,
+  "alerts": [
+    {
+      "id": "aea9c30737370cf1",
+      "action": "watch_alert_candidate",
+      "score": 93,
+      "state": "PA",
+      "bottle": null,
+      "tier": null,
+      "eventType": "release_document_signal",
+      "source": "PLCB search portal",
+      "sourceUrl": "https://www.lcb.pa.gov/pages/search.aspx",
+      "locationPrecision": "statewide_policy",
+      "locationName": "Pennsylvania FWGS / PLCB",
+      "storeName": null,
+      "storeAddress": null,
+      "quantity": 0,
+      "availabilityStatus": null,
+      "availabilityLabel": null,
+      "warehouseQty": 0,
+      "price": 0,
+      "confidence": 0.58,
+      "policyMode": "store_aggregate_until_pickup_api",
+      "inventorySemantics": "FWGS search/Oracle Commerce data exposes result/availability aggregates. Store-specific pickup inventory still needs fulfillment/store API extraction.",
+      "reason": "New statewide_policy release_document_signal signal for unknown bottle in PA.",
+      "evidence": "Popular links Public Meetings Employment Holiday Hours Licensee Online Order Portal (LOOP) Ready-to-Drink Cocktails (RTDC) Responsible Alcohol Management Program (RAMP) Philadelphia 250 Permit Applications Ordering Wine & Spirits Virtual Licensing Hearings Topics of interest 2024-25 PLCB Budget Hearing 2024-25 Annual Report Right to Know Law Wine Expanded Permits Direct Wine Shipping Quick links Press Releases Search Licensees Legal Advisory Opinions Work for Us Know When."
+    }
+  ]
+}

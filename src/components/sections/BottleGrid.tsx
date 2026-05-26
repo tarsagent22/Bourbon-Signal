@@ -12,32 +12,9 @@ import { useAuth } from "@/lib/auth";
 import { useStatePreferences } from "@/lib/statePreferences";
 import { useWatchlistStore } from "@/lib/watchlist";
 import { isInStockNow, isSeenThisWeek } from "@/lib/availability";
-import dropsData from "@/data/drops.json";
-import { getDisplayName } from "@/lib/drops";
-import type { DropEvent } from "@/lib/drops";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const FREE_VISIBLE_COUNT = 6;
-
-// Build a lookup: canonical bottle key → most recent matching drop
-function buildLastSeenLookup(drops: DropEvent[]): Map<string, { timestamp: string; location: string }> {
-  const map = new Map<string, { timestamp: string; location: string }>();
-  for (const event of drops) {
-    const key = canonicalBottleKey(getDisplayName(event));
-    if (!key) continue;
-    const existing = map.get(key);
-    if (!existing || event.timestamp > existing.timestamp) {
-      let location = "";
-      if (event.stores && event.stores.length > 0 && event.stores[0].city) {
-        location = `${event.stores[0].city.replace(/\b\w/g, (c) => c.toUpperCase())}, ${event.state || ""}`.trim().replace(/,$/, "");
-      } else if (event.state) {
-        location = event.state;
-      }
-      map.set(key, { timestamp: event.timestamp, location });
-    }
-  }
-  return map;
-}
 
 function sortBottles(list: Bottle[], sortBy: string): Bottle[] {
   const sorted = [...list];
@@ -106,12 +83,6 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 24;
-
-  // Build last-seen lookup from bundled drops as a fallback. Live bottle data remains primary.
-  const lastSeenLookup = useMemo(
-    () => buildLastSeenLookup((dropsData as { drops: DropEvent[] }).drops),
-    []
-  );
 
   // Sync URL search params on mount
   useEffect(() => {
@@ -361,9 +332,6 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                   ? getBlurAmount(globalIndex)
                   : 0;
 
-                const bottleKey = bottle.canonical_key || canonicalBottleKey(bottle.name);
-                const lastSeenInfo: { timestamp: string; location: string } | undefined = lastSeenLookup.get(bottleKey);
-
                 return (
                   <BottleCard
                     key={bottle.id}
@@ -373,8 +341,8 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                     blurAmount={blurAmount}
                     isFreeUser={IS_FREE_USER}
                     isHighlighted={highlightId === bottle.id}
-                    lastSeenTimestamp={lastSeenInfo?.timestamp}
-                    lastSeenLocation={lastSeenInfo?.location}
+                    lastSeenTimestamp={bottle.last_drop || bottle.lastSeen}
+                    lastSeenLocation={bottle.state || bottle.states?.[0]}
                   />
                 );
               })}

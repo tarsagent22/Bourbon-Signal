@@ -1,0 +1,91 @@
+{
+  "notes": "Official-source/search-index rare signal seeds used only when a state source is WAF-protected, PDF-only, or policy/calendar-based. These are not claimed as live inventory unless signalType says inventory.",
+  "states": {
+    "OH": [
+      { "bottle": "Rare Character Limited Release Straight Bourbon", "signalType": "official_product_page", "source": "https://www.ohlq.com/liquor/whiskey/american/blend/rare-character-limited-release-straight-bourbon", "evidence": "OHLQ indexed product page for Rare Character Limited Release Straight Bourbon with availability-map UX." },
+      { "bottle": "Maker's Mark Wood Finishing Series", "signalType": "official_product_page", "source": "https://www.ohlq.com/liquor/whiskey/american/bourbon/makers-mark-limited-release-wood-finishing-series", "evidence": "OHLQ indexed product page for Maker's Mark Limited Release Wood Finishing Series; product page exposes proof/size/code and availability map." },
+      { "bottle": "Yellowstone Limited Edition", "signalType": "official_product_page", "source": "https://www.ohlq.com/liquor/whiskey/american/bourbon/yellowstone-limited-edition-2025", "evidence": "OHLQ indexed product page for Yellowstone Limited Edition 2025 with choose-location/view-availability-map UX." }
+    ],
+    "OR": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "searchable_locator_watch", "source": "https://www.oregonliquorsearch.com/", "evidence": "Oregon Liquor Search is a state locator for distilled spirits and stores that carry them; collector verifies locator surface. Bottle is high-priority watchlist target for this source." },
+      { "bottle": "Eagle Rare 10 Year", "signalType": "searchable_locator_watch", "source": "https://www.oregonliquorsearch.com/", "evidence": "Oregon Liquor Search supports brand/category/store search; Eagle Rare is tracked as allocated watchlist target." },
+      { "bottle": "Weller Antique 107", "signalType": "searchable_locator_watch", "source": "https://www.oregonliquorsearch.com/", "evidence": "Oregon Liquor Search supports product/store lookup; Weller Antique 107 is tracked as allocated watchlist target." }
+    ],
+    "IA": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "public_product_row", "source": "https://data.iowa.gov/resource/gckp-fe7r.json", "evidence": "Iowa ABD public liquor product row includes BLANTONS BOURBON with May 2026 date." },
+      { "bottle": "Old Fitzgerald Bottled-in-Bond Decanter Series", "signalType": "public_product_row", "source": "https://data.iowa.gov/resource/gckp-fe7r.json", "evidence": "Iowa ABD public product rows include OLD FITZGERALD BIB 10 YR DECANTER and OLD FITZGERALD 7YR BIB BOURBON." },
+      { "bottle": "Baker's 13 Year Single Barrel", "signalType": "public_product_watch", "source": "https://data.iowa.gov/resource/gckp-fe7r.json", "evidence": "Iowa ABD structured product catalog supports exact bottle watch; Baker's 13 remains rare watchlist target even if not present in latest sample." }
+    ],
+    "UT": [
+      { "bottle": "Elijah Craig Single Barrel 15 Year", "signalType": "allocated_page_match", "source": "https://abs.utah.gov/shop-products/allocatedandrare/", "evidence": "Utah allocated/rare page matched Elijah Craig Single Barrel 15Y during collector run." },
+      { "bottle": "Eagle Rare 10 Year", "signalType": "allocated_page_match", "source": "https://abs.utah.gov/shop-products/allocatedandrare/", "evidence": "Utah allocated/rare page text matched Eagle Rare during collector run." },
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "allocated_page_match", "source": "https://abs.utah.gov/shop-products/allocatedandrare/", "evidence": "Utah allocated/rare page text matched Blanton during collector run." }
+    ],
+    "AL": [
+      { "bottle": "George T. Stagg", "signalType": "allocated_pdf_row", "source": "https://www.alabcboard.gov/sites/default/files/inline-files/Web_6.pdf", "evidence": "Alabama ABC indexed allocated/whiskey release PDF lists George T Stagg at $149.99." },
+      { "bottle": "William Larue Weller", "signalType": "allocated_pdf_row", "source": "https://www.alabcboard.gov/sites/default/files/inline-files/Web_6.pdf", "evidence": "Alabama ABC indexed allocated/whiskey release PDF lists William Larue Weller at $149.99." },
+      { "bottle": "Blanton's Straight From The Barrel", "signalType": "allocated_pdf_row", "source": "https://www.alabcboard.gov/sites/default/files/inline-files/Web_6.pdf", "evidence": "Alabama ABC indexed allocated/whiskey release PDF lists Blanton's Straight from the Barrel at $159.99." }
+    ],
+    "VA": [
+      { "bottle": "E.H. Taylor Barrel Proof", "signalType": "limited_availability_index", "source": "https://www.abc.virginia.gov/products/limited-availability", "evidence": "Virginia ABC limited availability page is indexed with E H Taylor Straight Rye Barrel Proof / limited bottles; official policy says limited inventory does not show online before release." },
+      { "bottle": "Old Fitzgerald Bottled-in-Bond Decanter Series", "signalType": "official_product_page", "source": "https://www.abc.virginia.gov/products/bourbon/old-fitzgerald-bottled-in-bond-decanter", "evidence": "Virginia ABC indexed product page exists for Old Fitzgerald Bottled In Bond Decanter." },
+      { "bottle": "A. Smith Bowman Cask Strength", "signalType": "barrel_pick_watch", "source": "https://www.abc.virginia.gov/products/limited-availability/barrel-picks", "evidence": "Virginia ABC maintains barrel-pick/limited production pages; A. Smith Bowman Cask Strength is Virginia-relevant rare watchlist target." }
+    ],
+    "PA": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "store_pickup_catalog_watch", "source": "https://www.finewineandgoodspirits.com/search?Ntt=bourbon", "evidence": "FWGS search source produced product/search and inventory-surface signal; Blanton's is high-priority catalog watch target." },
+      { "bottle": "Eagle Rare 10 Year", "signalType": "store_pickup_catalog_watch", "source": "https://www.finewineandgoodspirits.com/search?Ntt=bourbon", "evidence": "FWGS supports statewide retail/ecomm search and store pickup; Eagle Rare is allocated watchlist target." },
+      { "bottle": "Weller Special Reserve", "signalType": "lottery_catalog_watch", "source": "https://www.finewineandgoodspirits.com/faq", "evidence": "FWGS FAQ/source confirms limited-release/lottery retail model; Weller Special Reserve is tracked as allocated bottle." }
+    ],
+    "ID": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "special_release_page_match", "source": "https://idaholiquor.com/special-releases/", "evidence": "Idaho special releases source matched Blanton during collector run/search-index path." },
+      { "bottle": "Eagle Rare 10 Year", "signalType": "special_release_page_match", "source": "https://idaholiquor.com/special-releases/", "evidence": "Idaho special releases source matched Eagle Rare during collector run/search-index path." },
+      { "bottle": "Willett Family Estate", "signalType": "special_release_page_match", "source": "https://idaholiquor.com/special-releases/", "evidence": "Idaho special releases source matched Willett Family Estate during collector run." }
+    ],
+    "NC": [
+      { "bottle": "E.H. Taylor Barrel Proof", "signalType": "allocated_list_match", "source": "https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open", "evidence": "NC public allocated/limited distribution list matched E.H. Taylor Jr. Barrel Proof during collector run." },
+      { "bottle": "Willett Family Estate", "signalType": "allocated_list_match", "source": "https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open", "evidence": "NC allocated/limited distribution list matched Willett Family Estate during collector run." },
+      { "bottle": "Elijah Craig Toasted Barrel", "signalType": "allocated_list_match", "source": "https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open", "evidence": "NC allocated/limited distribution list matched Elijah Craig Toasted Barrel during collector run." }
+    ],
+    "NH": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "limited_release_drawing_watch", "source": "https://www.liquorandwineoutlets.com/Limited-Release-Drawing", "evidence": "NHLC has limited release drawing and special limited release category; Blanton's is high-priority drawing watch target." },
+      { "bottle": "Weller 12 Year", "signalType": "limited_release_drawing_watch", "source": "https://www.liquorandwineoutlets.com/Limited-Release-Drawing", "evidence": "NHLC limited release drawing page is the correct source class for rare Weller releases." },
+      { "bottle": "George T. Stagg", "signalType": "limited_release_drawing_watch", "source": "https://www.liquorandwineoutlets.com/Limited-Release-Drawing", "evidence": "NHLC limited release drawing page is the correct source class for BTAC/rare spirits." }
+    ],
+    "MD-MONTGOMERY": [
+      { "bottle": "Blanton's Original Single Barrel", "signalType": "HAL_program_watch", "source": "https://www.montgomerycountymd.gov/ABS/HAL/", "evidence": "Montgomery County ABS has a Highly Allocated Liquor program; Blanton's is tracked as HAL watchlist target." },
+      { "bottle": "Eagle Rare 10 Year", "signalType": "HAL_program_watch", "source": "https://www.montgomerycountymd.gov/ABS/HAL/", "evidence": "Montgomery County ABS HAL source is valid for annual/monthly allocated bottle monitoring." },
+      { "bottle": "Weller Antique 107", "signalType": "HAL_program_watch", "source": "https://www.montgomerycountymd.gov/ABS/HAL/", "evidence": "Montgomery County ABS HAL source is valid for Weller allocated bottle monitoring." }
+    ],
+    "ME": [
+      { "bottle": "George T. Stagg", "signalType": "lottery_page_match", "source": "https://www.mainespirits.com/2026-limited-release-spirits-lottery", "evidence": "Maine Spirits 2026 limited release lottery index mentions George T. Stagg." },
+      { "bottle": "Thomas H. Handy Sazerac Rye", "signalType": "lottery_page_match", "source": "https://www.mainespirits.com/2026-limited-release-spirits-lottery", "evidence": "Maine Spirits 2026 limited release lottery index mentions Thomas H. Handy Rye Whiskey." },
+      { "bottle": "Pappy Van Winkle 23 Year", "signalType": "lottery_archive_match", "source": "https://www.mainespirits.com/2023-limited-release-spirits-lottery", "evidence": "Maine Spirits archived lottery index mentions Pappy Van Winkle 23 Year Bourbon." }
+    ],
+    "VT": [
+      { "bottle": "Baker's 7 Year Single Barrel", "signalType": "price_pdf_row", "source": "https://www.802spirits.com/sites/spirits/files/documents/PricingReportSalesJuly_0.pdf", "evidence": "802Spirits indexed pricing PDF includes Baker's 7YR Bourbon 750ML with sale/regular price fields." },
+      { "bottle": "Wild Turkey Longbranch", "signalType": "price_pdf_row", "source": "https://www.802spirits.com/sites/spirits/files/documents/Pricing_Current_Sales.pdf", "evidence": "802Spirits indexed current sales price list includes Wild Turkey Longbranch." },
+      { "bottle": "Redemption High Rye Bourbon", "signalType": "price_pdf_row", "source": "https://www.802spirits.com/sites/spirits/files/documents/Pricing_Current_Sales.pdf", "evidence": "802Spirits indexed current sales price list includes Redemption High Rye Bourbon." }
+    ],
+    "MI": [
+      { "bottle": "Bardstown Bourbon Discovery Series", "signalType": "price_book_pdf_row", "source": "https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/2-1-26-RETAIL-PRICE-CHANGES-PDF.pdf", "evidence": "Michigan MLCC indexed price-book PDF includes Bardstown Discovery Series #11." },
+      { "bottle": "Barrell Bourbon Batch", "signalType": "price_book_pdf_row", "source": "https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/2-1-26-RETAIL-PRICE-CHANGES-PDF.pdf", "evidence": "Michigan MLCC indexed price-book results include Barrell Bourbon batches." },
+      { "bottle": "Penelope Four Grain Bourbon", "signalType": "price_book_pdf_row", "source": "https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/2-1-26-RETAIL-PRICE-CHANGES-PDF.pdf", "evidence": "Michigan MLCC indexed retail price-change PDF includes Penelope Four Grain Straight Bourbon." }
+    ],
+    "MT": [
+      { "bottle": "Undammed Thief Creek Straight Bourbon", "signalType": "state_price_book_watch", "source": "https://revenuefiles.mt.gov/files/ABCD/Agency-Liquor-Stores/Product-Information/Price-Books/Aug-Oct-2025/Aug-Oct-2025-Price-Book.pdf", "evidence": "Montana DOR maintains state price-book PDFs; search-index also found Montana-made bourbon products. Needs PDF extraction for exact row confirmation." },
+      { "bottle": "Wyoming Whiskey Single Barrel Bourbon", "signalType": "state_price_book_watch", "source": "https://revenuefiles.mt.gov/files/ABCD/Agency-Liquor-Stores/Product-Information/Price-Books/Aug-Oct-2025/Aug-Oct-2025-Price-Book.pdf", "evidence": "Montana state price-book PDF is the usable public route for product rows; this bottle is a regional sought-after watch target pending PDF text extraction." },
+      { "bottle": "Frey Ranch Farm Strength Bourbon", "signalType": "state_price_book_watch", "source": "https://revenuefiles.mt.gov/files/ABCD/Agency-Liquor-Stores/Product-Information/Price-Books/Aug-Oct-2025/Aug-Oct-2025-Price-Book.pdf", "evidence": "Montana DOR confirms warehouse/product classification; price-book PDF route is the best available public product source." }
+    ],
+    "WV": [
+      { "bottle": "WhistlePig 6 Year Single Barrel Rye", "signalType": "barrel_pick_page_match", "source": "https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0", "evidence": "WV ABCA barrel-pick page search index mentions Whistle Pig Six Year single barrel rye." },
+      { "bottle": "Maker's Mark Wood Finishing Series", "signalType": "barrel_pick_page_match", "source": "https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0", "evidence": "WV barrel-pick source matched Maker during collector run." },
+      { "bottle": "A. Smith Bowman Cask Strength", "signalType": "barrel_pick_watch", "source": "https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0", "evidence": "WV ABCA barrel-pick page is a useful rare/single-barrel monitoring route." }
+    ],
+    "WY": [
+      { "bottle": "Wyoming Whiskey Single Barrel Bourbon", "signalType": "official_product_page", "source": "https://liquor365.wyo.gov/wyoming-whiskey-single-barrel-bourbon-whiskey-6pk/750ml/5637158170.p", "evidence": "Wyoming Liquor indexed official product page for Wyoming Whiskey Single Barrel Bourbon Whiskey 6Pk/750ML." },
+      { "bottle": "Wyoming Whiskey Wilderness Bourbon", "signalType": "official_product_page", "source": "https://liquor365.wyo.gov/wyoming-whiskey-wilderness-bourbon-whiskey-6pk/750ml/5637160038.p", "evidence": "Wyoming Liquor indexed official product page for Wyoming Whiskey Wilderness Bourbon Whiskey 6Pk/750ML." },
+      { "bottle": "Wyoming Whiskey Distillery Reserve Straight Bourbon", "signalType": "official_product_page", "source": "https://liquor365.wyo.gov/wyoming-whiskey-distillery-reserve-straight-bourbon-6pk/750m/5637160708.p", "evidence": "Wyoming Liquor indexed official product page for Wyoming Whiskey Distillery Reserve Straight Bourbon." }
+    ],
+    "MS": []
+  }
+}

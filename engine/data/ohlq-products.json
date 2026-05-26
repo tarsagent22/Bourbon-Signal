@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Eagle Rare 10 Year",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/eagle-rare-10-year",
+    "sku": "2880b",
+    "isExclusive": false
+  },
+  {
+    "name": "Blanton's Single Barrel",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/blantons-single-barrel",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Buffalo Trace Kentucky Straight Bourbon Whiskey",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/buffalo-trace-kentucky-straight-bourbon-whiskey",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Weller Special Reserve",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/weller-special-reserve?sku=9535b",
+    "sku": "9535b",
+    "isExclusive": false
+  }
+]

@@ -1,0 +1,26 @@
+$ErrorActionPreference = 'Continue'
+
+$EngineDir = 'C:\Users\chand\Projects\Proof\engine'
+$LogDir = Join-Path $EngineDir 'out\logs'
+New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+$LogPath = Join-Path $LogDir 'scheduled-refresh.log'
+$Node = 'node'
+
+function Write-RefreshLog($Message) {
+  $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+  Add-Content -Path $LogPath -Value "[$timestamp] $Message"
+}
+
+try {
+  Set-Location $EngineDir
+  Write-RefreshLog 'Starting scheduled Bourbon Signal engine refresh.'
+  $env:BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES = if ($env:BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES) { $env:BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES } else { '15' }
+  $env:BOURBON_SIGNAL_HISTORY_DAYS = if ($env:BOURBON_SIGNAL_HISTORY_DAYS) { $env:BOURBON_SIGNAL_HISTORY_DAYS } else { '30' }
+  & $Node 'src/refresh-site.mjs' *>> $LogPath
+  $code = $LASTEXITCODE
+  Write-RefreshLog "Finished scheduled refresh with exit code $code."
+  exit $code
+} catch {
+  Write-RefreshLog "Scheduled refresh failed: $($_.Exception.Message)"
+  exit 1
+}

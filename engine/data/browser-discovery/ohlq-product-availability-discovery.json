@@ -1,0 +1,36 @@
+{
+  "source": "OHLQ browser/CDP discovery",
+  "capturedAt": "2026-05-25T19:20:00Z",
+  "productPage": "https://www.ohlq.com/liquor/whiskey/american/bourbon/eagle-rare-10-year",
+  "productName": "Eagle Rare 10 Year",
+  "sku": "2880b",
+  "endpoint": "/api/product-availability/{skuLower}",
+  "requiredHeader": "RequestVerificationToken",
+  "tokenSource": "document.documentElement.dataset.csrfToken from browser-rendered OHLQ page",
+  "requiredSession": "Browser-rendered OHLQ session; direct Node fetch to page/API is Cloudflare-gated and tokenless API calls return HTTP 400.",
+  "query": {
+    "isExclusive": "false",
+    "sortByAvailability": "true",
+    "sku": "2880b",
+    "location": "optional lat,lng; changes sort/distance ordering"
+  },
+  "browserProbeResults": [
+    { "name": "no token", "status": 400, "inventoryCount": null },
+    { "name": "RequestVerificationToken", "status": 200, "contentType": "application/json; charset=utf-8", "inventoryCount": 576 },
+    { "name": "RequestVerificationToken + location=39.9612,-82.9988", "status": 200, "contentType": "application/json; charset=utf-8", "inventoryCount": 576 },
+    { "name": "sortByAvailability=false + RequestVerificationToken", "status": 200, "contentType": "application/json; charset=utf-8", "inventoryCount": 576 }
+  ],
+  "bundleEvidence": {
+    "chunk": "chunk-7264-2190d56cc3a60d05e9ae.js",
+    "module": "18707",
+    "function": "Oz",
+    "codeShape": "GET `${T5}/product-availability/${sku.toLowerCase()}` with URLSearchParams({ isExclusive, sortByAvailability, sku, location })"
+  },
+  "sampleInventories": [
+    { "AgencyId": 20626, "AgencyName": "Marino's Beverage Depot", "VariantCode": "2880b", "City": "Sylvania", "Zip": "43560", "Latitude": 41.7111065, "Longitude": -83.6811613, "I": "3:d2cbad71ff333de67d07ec676e352ab7f38248eb69c942950157220607c55e84", "LastModified": "2026-05-25T18:55:24Z", "LimitOne": false, "PickupAvailable": false, "DeliveryAvailable": false, "Url": "https://www.ohlq.com/locations/marinos-beverage-depot-5829-monroe-st" },
+    { "AgencyId": 30754, "AgencyName": "Alum Creek Carry Out", "VariantCode": "2880b", "City": "Columbus", "Zip": "43207", "Latitude": 39.881071, "Longitude": -82.931461, "I": "3:d2cbad71ff333de67d07ec676e352ab7f38248eb69c942950157220607c55e84", "LastModified": "2026-05-25T18:58:38Z", "LimitOne": false, "PickupAvailable": false, "DeliveryAvailable": false, "Url": "https://www.ohlq.com/locations/alum-creek-carry-out-4275-alum-creek-dr" },
+    { "AgencyId": 40917, "AgencyName": "Minotti's Wine and Spirits", "VariantCode": "2880b", "City": "Fairview Park", "Zip": "44126", "Latitude": 41.4482787, "Longitude": -81.847779, "I": "3:d2cbad71ff333de67d07ec676e352ab7f38248eb69c942950157220607c55e84", "LastModified": "2026-05-25T18:59:31Z", "LimitOne": false, "PickupAvailable": false, "DeliveryAvailable": false, "Url": "https://www.ohlq.com/locations/minottis-wine-and-spirits-20550-lorain-rd" },
+    { "AgencyId": 40954, "AgencyName": "28th Street Supermarket", "VariantCode": "2880b", "City": "Cleveland", "Zip": "44115", "Latitude": 41.4963437, "Longitude": -81.6368993, "I": "3:d2cbad71ff333de67d07ec676e352ab7f38248eb69c942950157220607c55e84", "LastModified": "2026-05-25T18:59:39Z", "LimitOne": false, "PickupAvailable": false, "DeliveryAvailable": false, "Url": "https://www.ohlq.com/locations/28th-street-supermarket-2747-cedar-ave" },
+    { "AgencyId": 10100, "AgencyName": "Jungle Jim's", "VariantCode": "2880b", "City": "Cincinnati", "Zip": "45245", "Latitude": 39.0932755, "Longitude": -84.2735183, "I": "3:5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9", "LastModified": "2026-05-25T18:56:26Z", "LimitOne": false, "PickupAvailable": false, "DeliveryAvailable": false, "Url": "https://www.ohlq.com/locations/jungle-jims-4450-eastgate-s-dr" }
+  ]
+}

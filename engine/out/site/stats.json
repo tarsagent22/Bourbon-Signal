@@ -1,0 +1,19 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "generatedAt": "2026-05-26T02:49:20.311Z",
+  "engineGeneratedAt": "2026-05-26T02:49:18.383Z",
+  "stateCount": 18,
+  "signalCount": 3270,
+  "historicalSignalCount": 37836,
+  "historyDays": 30,
+  "snapshotCount": 63,
+  "bottleCount": 68,
+  "bibleRecordCount": 112,
+  "storeCount": 933,
+  "dropCount": 4605,
+  "alertCandidateCount": 1,
+  "roadblockCount": 46,
+  "statesAtTargetPrecision": 13,
+  "rareStatesVerified": 17,
+  "sourceCaveat": "Standalone engine export only. Candidate alerts are not sent to users until app integration and alert policy are explicitly enabled."
+}

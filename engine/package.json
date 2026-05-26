@@ -1,0 +1,26 @@
+﻿{
+    "name":  "bourbon-signal-engine",
+    "version":  "0.1.0",
+    "private":  true,
+    "type":  "module",
+    "description":  "Standalone Bourbon Signal state-data engine foundation. Not wired into the live site.",
+    "scripts":  {
+                    "run":  "node src/run.mjs",
+                    "probe":  "node src/probe.mjs",
+                    "bible":  "node src/build-bible.mjs",
+                    "rare":  "node src/rare-report.mjs",
+                    "location":  "node src/location-report.mjs",
+                    "operational":  "node src/operational-report.mjs",
+                    "export:site":  "node src/export-site-contract.mjs",
+                    "repeatability":  "node src/repeatability-check.mjs",
+                    "quality":  "node src/quality-audit.mjs",
+                    "verify:pristine":  "npm run export:site \u0026\u0026 npm run repeatability \u0026\u0026 npm run export:site \u0026\u0026 npm run quality \u0026\u0026 npm test",
+                    "ohlq":  "node src/ohlq-browser-collector.mjs",
+                    "ohlq:discover":  "node src/ohlq-browser-collector.mjs --discover",
+                    "browser:discover":  "node src/browser-source-discovery.mjs",
+                    "or":  "node src/or-browser-collector.mjs",
+                    "bible-report":  "node src/bible-report.mjs",
+                    "test":  "node src/verify.mjs",
+                    "refresh:site":  "node src/refresh-site.mjs"
+                }
+}

@@ -1,0 +1,934 @@
+{
+  "notes": "Curated additions gathered from state source rows/search-index evidence during the second hardening pass. Keep distinct expressions separate when proof, age, mash bill, or annual batch matters.",
+  "families": [
+    {
+      "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+      "aliases": [
+        "HEAVEN HILL BOTTLED-IN-BOND 7YR",
+        "Heaven Hill 7YR BIB",
+        "Heaven Hill 7 Year Bottled in Bond"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Early Times Bottled-in-Bond",
+      "aliases": [
+        "EARLY TIMES BOTTLED IN BOND",
+        "EARLY TIMES BOTTLE IN BOND",
+        "Early Times BiB"
+      ],
+      "tier": "limited",
+      "producer": "Sazerac",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Redwood Empire Grizzly Beast Bottled-in-Bond",
+      "aliases": [
+        "REDWOOD EMPIRE BOTTLED IN BOND GRIZZLY BEAST BOURBON",
+        "Grizzly Beast Bourbon",
+        "Redwood Empire Grizzly Beast"
+      ],
+      "tier": "limited",
+      "producer": "Redwood Empire",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Bardstown Bourbon Origin Series Bottled-in-Bond",
+      "aliases": [
+        "BARDSTOWN BOURBON ORIGIN SERIES BOTTLED IN BOND",
+        "Bardstown Origin Bottled in Bond",
+        "Bardstown Origin BiB"
+      ],
+      "tier": "limited",
+      "producer": "Bardstown Bourbon Company",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Bardstown Bourbon Origin Series High Wheat",
+      "aliases": [
+        "BARDSTOWN BOURBON ORIGIN SERIES HIGH WHEAT",
+        "Bardstown High Wheat",
+        "Bardstown Origin High Wheat"
+      ],
+      "tier": "limited",
+      "producer": "Bardstown Bourbon Company",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
+      "aliases": [
+        "BARDSTOWN BOURBON ORIGIN SERIES KENTUCKY STRAIGHT BOURBON WH",
+        "Bardstown Origin Kentucky Straight Bourbon",
+        "Bardstown Origin Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Bardstown Bourbon Company",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Bardstown Bourbon Discovery Series",
+      "aliases": [
+        "BARDSTOWN DISCOVERY SERIES",
+        "Bardstown Discovery",
+        "Bardstown Discovery Series #11"
+      ],
+      "tier": "limited",
+      "producer": "Bardstown Bourbon Company",
+      "sourceStates": [
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Ben Holladay 6 Year Missouri Bourbon",
+      "aliases": [
+        "BEN HOLLADAY 6YR MO BOURBON",
+        "Ben Holladay 6YR",
+        "Ben Holladay Missouri Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "McCormick Distilling",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Holladay Soft Red Wheat Bottled-in-Bond",
+      "aliases": [
+        "HOLLADAY SOFT RED WHEAT BOURBON WHISKEY 6YR BIB",
+        "Holladay Soft Red Wheat",
+        "Holladay Soft Red Wheat 6YR BiB"
+      ],
+      "tier": "limited",
+      "producer": "McCormick Distilling",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Old Fitzgerald Bottled-in-Bond Decanter Series",
+      "aliases": [
+        "OLD FITZGERALD BIB 10 YR DECANTER",
+        "OLD FITZGERALD 7YR BIB BOURBON",
+        "Old Fitzgerald Bottled In Bond Decanter",
+        "Old Fitz Decanter",
+        "Old Fitz BIB Decanter"
+      ],
+      "tier": "unicorn",
+      "producer": "Heaven Hill",
+      "sourceStates": [
+        "IA",
+        "VA"
+      ]
+    },
+    {
+      "canonical": "New Riff Bottled-in-Bond Bourbon",
+      "aliases": [
+        "NEW RIFF BOTTLED IN BOND BOURBON",
+        "New Riff BiB Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "New Riff",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Hard Truth Sweet Mash Wheated Bourbon Bottled-in-Bond",
+      "aliases": [
+        "HARD TRUTH SWEET MASH WHEATED BOURBON - BOTTLED IN BOND",
+        "Hard Truth Wheated Bourbon BiB"
+      ],
+      "tier": "limited",
+      "producer": "Hard Truth",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Baker's 7 Year Single Barrel",
+      "aliases": [
+        "BAKERS 7YR",
+        "Baker's 7YR",
+        "Bakers 7 Year",
+        "Baker's Bourbon 7 Year"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Baker's High Rye Bourbon",
+      "aliases": [
+        "BAKERS HIGH RYE BOURBON",
+        "Baker's High Rye"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Baker's 13 Year Single Barrel",
+      "aliases": [
+        "Bakers 13",
+        "Baker's 13",
+        "Baker's 13 Year Single Barrel"
+      ],
+      "tier": "allocated",
+      "producer": "Jim Beam",
+      "sourceStates": [
+        "seed"
+      ]
+    },
+    {
+      "canonical": "Basil Hayden 10 Year",
+      "aliases": [
+        "BASIL HAYDEN 10YR",
+        "Basil Hayden 10",
+        "Basil Hayden's 10 Year"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Barrell Bourbon Batch",
+      "aliases": [
+        "BARRELL BOURBON BATCH 036",
+        "BARRELL BOURBON BATCH 037",
+        "Barrell Bourbon Batch #36",
+        "Barrell Bourbon Batch #37"
+      ],
+      "tier": "limited",
+      "producer": "Barrell Craft Spirits",
+      "sourceStates": [
+        "IA",
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Barrell Bourbon New Year",
+      "aliases": [
+        "BARRELL BOURBON NEW YEAR",
+        "Barrell New Year Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Barrell Craft Spirits",
+      "sourceStates": [
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Barrell Bourbon Cask Finish Series Amburana",
+      "aliases": [
+        "BARRELL BOURBON CFS: AMBURANA",
+        "Barrell Amburana",
+        "Barrell Bourbon Amburana"
+      ],
+      "tier": "limited",
+      "producer": "Barrell Craft Spirits",
+      "sourceStates": [
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Blade and Bow Bourbon",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Kentucky Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Diageo",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Bowman Brothers Small Batch Bourbon",
+      "aliases": [
+        "BOWMAN BROTHERS BOURBON",
+        "Bowman Brothers",
+        "Bowman Brothers Small Batch"
+      ],
+      "tier": "limited",
+      "producer": "A. Smith Bowman",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Brothers Bond Cask Strength Bourbon",
+      "aliases": [
+        "BROTHERS BOND CASK STRENGTH WHISKEY",
+        "Brother's Bond Cask Strength",
+        "Brothers Bond Cask Strength"
+      ],
+      "tier": "limited",
+      "producer": "Brother's Bond",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "Penelope Four Grain Bourbon",
+      "aliases": [
+        "PENELOPE FOUR GRAIN STRAIT BBN",
+        "Penelope Four Grain",
+        "Penelope Four Grain Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Penelope Bourbon",
+      "sourceStates": [
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Penelope Valencia",
+      "aliases": [
+        "Penelope Valencia",
+        "Penelope Valencia Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Penelope Bourbon",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Yellowstone Toasted Bourbon",
+      "aliases": [
+        "YELLOWSTONE SPECIAL FIN TOASTD",
+        "Yellowstone Special Fin Toasted",
+        "Yellowstone Toasted"
+      ],
+      "tier": "limited",
+      "producer": "Limestone Branch",
+      "sourceStates": [
+        "MI"
+      ]
+    },
+    {
+      "canonical": "Yellowstone Limited Edition",
+      "aliases": [
+        "Yellowstone Limited Edition",
+        "Yellowstone Limited Edition 2025"
+      ],
+      "tier": "limited",
+      "producer": "Limestone Branch",
+      "sourceStates": [
+        "OH"
+      ]
+    },
+    {
+      "canonical": "WhistlePig PiggyBack 6 Year Bourbon",
+      "aliases": [
+        "WHISTLEPIG 6YR PIGGYBACK BOURBON MINI",
+        "WhistlePig 6YR PiggyBack Bourbon",
+        "PiggyBack Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "WhistlePig",
+      "sourceStates": [
+        "IA"
+      ]
+    },
+    {
+      "canonical": "WhistlePig 6 Year Single Barrel Rye",
+      "aliases": [
+        "Whistle Pig Six Year single barrel rye",
+        "WhistlePig 6 Year Single Barrel Rye"
+      ],
+      "tier": "limited",
+      "producer": "WhistlePig",
+      "sourceStates": [
+        "WV"
+      ]
+    },
+    {
+      "canonical": "Redemption High Rye Bourbon",
+      "aliases": [
+        "Redemption High Rye Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Redemption",
+      "sourceStates": [
+        "VT"
+      ]
+    },
+    {
+      "canonical": "Bulleit Bourbon",
+      "aliases": [
+        "BULLEIT BOURBON",
+        "Bulleit Kentucky Straight Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Diageo",
+      "sourceStates": [
+        "VT"
+      ]
+    },
+    {
+      "canonical": "Wild Turkey Longbranch",
+      "aliases": [
+        "Wild Turkey Longbranch",
+        "Longbranch Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Wild Turkey",
+      "sourceStates": [
+        "VT"
+      ]
+    },
+    {
+      "canonical": "Rare Character Limited Release Straight Bourbon",
+      "aliases": [
+        "RARE CHARACTER LIMITED RELEASE STRAIGHT BOURBON",
+        "Rare Character Straight Bourbon",
+        "Rare Character Limited Release"
+      ],
+      "tier": "allocated",
+      "producer": "Rare Character",
+      "sourceStates": [
+        "OH"
+      ]
+    },
+    {
+      "canonical": "Thomas H. Handy Sazerac Rye",
+      "aliases": [
+        "Thomas H Handy Rye",
+        "Thomas H. Handy Rye Whiskey",
+        "THH",
+        "Handy Rye Whiskey"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "ME"
+      ]
+    },
+    {
+      "canonical": "William Larue Weller",
+      "aliases": [
+        "William Larue Weller Bourbon",
+        "WLW",
+        "W.L. Weller William Larue"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Sazerac 18 Year Rye",
+      "aliases": [
+        "Sazerac 18",
+        "Sazerac 18 Year",
+        "Sazerac 18 Year Rye Whiskey"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "E.H. Taylor Warehouse C Bourbon",
+      "aliases": [
+        "E.H. Taylor, Jr. Warehouse C Bourbon",
+        "EH Taylor Warehouse C",
+        "Colonel E.H. Taylor Warehouse C"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "E.H. Taylor Warehouse C Tornado Surviving",
+      "aliases": [
+        "EH Taylor Tornado Surviving",
+        "E.H. Taylor Tornado Surviving",
+        "Colonel E.H. Taylor Tornado Surviving"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Michter's Toasted Barrel Finish Bourbon",
+      "aliases": [
+        "Michters Toasted Bourbon",
+        "Michter's Toasted Bourbon",
+        "Michter's Toasted Barrel Bourbon"
+      ],
+      "tier": "allocated",
+      "producer": "Michter's",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Michter's Barrel Strength Rye",
+      "aliases": [
+        "Michters Barrel Strength Rye",
+        "Michter's BS Rye",
+        "Michter's Barrel Strength Rye"
+      ],
+      "tier": "allocated",
+      "producer": "Michter's",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Peerless Double Oak Bourbon",
+      "aliases": [
+        "Peerless Double Oak",
+        "Kentucky Peerless Double Oak Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Kentucky Peerless",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Peerless Double Oak Rye",
+      "aliases": [
+        "Peerless Double Oak Rye",
+        "Kentucky Peerless Double Oak Rye"
+      ],
+      "tier": "limited",
+      "producer": "Kentucky Peerless",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Jack Daniel's Coy Hill",
+      "aliases": [
+        "Jack Daniels Coy Hill",
+        "JD Coy Hill",
+        "Coy Hill"
+      ],
+      "tier": "unicorn",
+      "producer": "Jack Daniel's",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Jack Daniel's Twice Barreled Heritage Barrel Rye",
+      "aliases": [
+        "JD Twice Barreled Rye",
+        "Jack Daniels Twice Barreled Rye",
+        "Jack Daniel's Heritage Barrel Rye"
+      ],
+      "tier": "allocated",
+      "producer": "Jack Daniel's",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Frey Ranch Farm Strength Bourbon",
+      "aliases": [
+        "Frey Ranch Farm Strength",
+        "Frey Ranch Barrel Strength Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Frey Ranch",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Smoke Wagon Uncut Unfiltered",
+      "aliases": [
+        "Smoke Wagon UCUF",
+        "Smoke Wagon Uncut",
+        "Smoke Wagon Uncut the Younger"
+      ],
+      "tier": "limited",
+      "producer": "Nevada H&C Distilling",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Green River Full Proof Bourbon",
+      "aliases": [
+        "Green River Full Proof",
+        "Green River Full Proof Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Green River",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Found North Batch",
+      "aliases": [
+        "Found North Batch",
+        "Found North Whisky Batch"
+      ],
+      "tier": "limited",
+      "producer": "Found North",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "A. Smith Bowman Abraham Bowman",
+      "aliases": [
+        "Abraham Bowman",
+        "A Smith Bowman Abraham Bowman",
+        "Bowman Abraham Bowman"
+      ],
+      "tier": "unicorn",
+      "producer": "A. Smith Bowman",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Woodford Reserve Master's Collection",
+      "aliases": [
+        "Woodford Masters Collection",
+        "Woodford Master's Collection",
+        "Woodford Reserve Masters"
+      ],
+      "tier": "limited",
+      "producer": "Woodford Reserve",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "2XO Icon Series",
+      "aliases": [
+        "2XO Icon Series",
+        "2XO Bourbon Icon"
+      ],
+      "tier": "limited",
+      "producer": "2XO",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Casey Jones Wheated Bourbon",
+      "aliases": [
+        "Casey Jones Wheated Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Casey Jones",
+      "sourceStates": [
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Undammed Thief Creek Straight Bourbon",
+      "aliases": [
+        "UNDAMMED THIEF CREEK STRAIGHT BOURBON",
+        "Thief Creek Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Undammed Spirits",
+      "sourceStates": [
+        "MT"
+      ]
+    },
+    {
+      "canonical": "Wyoming Whiskey Single Barrel Bourbon",
+      "aliases": [
+        "Wyoming Whiskey Single Barrel Bourbon Whiskey",
+        "Wyoming Whiskey Single Barrel Bourbon Whiskey 6Pk/750ML"
+      ],
+      "tier": "limited",
+      "producer": "Wyoming Whiskey",
+      "sourceStates": [
+        "WY",
+        "MT"
+      ]
+    },
+    {
+      "canonical": "Wyoming Whiskey Wilderness Bourbon",
+      "aliases": [
+        "Wyoming Whiskey Wilderness Bourbon Whiskey",
+        "Wyoming Whiskey Wilderness Bourbon Whiskey 6Pk/750ML"
+      ],
+      "tier": "limited",
+      "producer": "Wyoming Whiskey",
+      "sourceStates": [
+        "WY"
+      ]
+    },
+    {
+      "canonical": "Wyoming Whiskey Distillery Reserve Straight Bourbon",
+      "aliases": [
+        "Wyoming Whiskey Distillery Reserve Straight Bourbon 6Pk",
+        "Wyoming Whiskey Distillery Reserve"
+      ],
+      "tier": "limited",
+      "producer": "Wyoming Whiskey",
+      "sourceStates": [
+        "WY"
+      ]
+    },
+    {
+      "canonical": "Blanton's Straight From The Barrel",
+      "aliases": [
+        "Blanton's SFTB",
+        "Blantons Straight From The Barrel",
+        "BLANTON'S STRAIGHT FROM THE BARREL"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "AL"
+      ]
+    },
+    {
+      "canonical": "Blanton's Gold",
+      "aliases": [
+        "Blanton Gold",
+        "BLANTON'S GOLD BOURBON",
+        "Blantons Gold"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "AL"
+      ]
+    },
+    {
+      "canonical": "Double Eagle Very Rare",
+      "aliases": [
+        "DOUBLE EAGLE VERY RARE SINGLE BARREL BOURBON",
+        "Double Eagle Very Rare Single Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "AL"
+      ]
+    },
+    {
+      "canonical": "Elijah Craig Toasted Barrel",
+      "aliases": [
+        "Elijah Craig Toasted Barrel Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "sourceStates": [
+        "NC"
+      ]
+    },
+    {
+      "canonical": "Eagle Rare",
+      "aliases": [
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10Y",
+        "EAGLE RARE 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller Special Reserve",
+      "aliases": [
+        "W.L. Weller Special Reserve",
+        "Weller SR",
+        "WL Weller SR"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller 12 Year",
+      "aliases": [
+        "Weller 12",
+        "W.L. Weller 12",
+        "Weller Twelve"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "George T. Stagg",
+      "aliases": [
+        "George T Stagg",
+        "GTS"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Willett Family Estate",
+      "aliases": [
+        "Willett Family Estate Bourbon",
+        "Willett Family Estate Rye"
+      ],
+      "tier": "allocated",
+      "producer": "Willett",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "E.H. Taylor Barrel Proof",
+      "aliases": [
+        "EH Taylor Barrel Proof",
+        "E.H. Taylor Jr. Barrel Proof",
+        "E H Taylor Barrel Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Pappy Van Winkle 23 Year",
+      "aliases": [
+        "Pappy 23",
+        "PVW 23"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Eagle Rare 17 Year",
+      "aliases": [
+        "Eagle Rare 17",
+        "BTAC Eagle Rare 17"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller Antique 107",
+      "aliases": [
+        "Old Weller Antique",
+        "W.L. Weller Antique 107",
+        "Weller 107",
+        "OWA"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller Full Proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller CYPB",
+      "aliases": [
+        "Weller C.Y.P.B.",
+        "W.L. Weller CYPB",
+        "Craft Your Perfect Bourbon"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    },
+    {
+      "canonical": "Weller Single Barrel",
+      "aliases": [
+        "W.L. Weller Single Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "site",
+        "watchlist"
+      ]
+    }
+  ],
+  "verifiedAliasNotes": [
+    {
+      "canonical": "Blanton's Original Single Barrel",
+      "note": "Blanton's, Blantons, Blanton's Bourbon, and Blanton's Single Barrel are normalized to the Original Single Barrel record unless a state source explicitly says Gold, SFTB, Red, etc."
+    },
+    {
+      "canonical": "Stagg",
+      "note": "Stagg Jr. and Stagg are normalized together; George T. Stagg remains a separate BTAC record."
+    },
+    {
+      "canonical": "Baker's High Rye Bourbon",
+      "note": "Kept distinct from Baker's 7 Year Single Barrel and Baker's 13 Year because High Rye is a different expression."
+    },
+    {
+      "canonical": "Old Fitzgerald Bottled-in-Bond Decanter Series",
+      "note": "Age-specific decanter releases are grouped under the Decanter Series for alert matching while preserving rawName in signals."
+    }
+  ]
+}

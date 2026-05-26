@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { readMemberAlerts, writeMemberAlerts } from "@/lib/member-alerts-store";
+import { readSiteExport } from "@/lib/site-engine-contract";
 
 export async function GET() {
   const { userId } = await auth();
@@ -11,9 +12,21 @@ export async function GET() {
     .filter((alert) => alert.userId === userId)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
+  let candidateAlerts: unknown[] = [];
+  try {
+    const engineAlertsPayload = readSiteExport("alerts");
+    candidateAlerts = Array.isArray(engineAlertsPayload?.alerts) ? engineAlertsPayload.alerts : [];
+  } catch (err) {
+    console.error("[api/alerts] Error reading engine alert candidates:", err);
+  }
+
   return NextResponse.json({
     alerts: userAlerts,
     unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length,
+    candidateAlerts,
+    candidateAlertCount: candidateAlerts.length,
+    alertDeliveryEnabled: false,
+    alertPolicyNote: "Engine candidates are exposed for test-safe UI integration only; user delivery remains disabled until explicitly enabled.",
   });
 }
 
