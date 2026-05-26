@@ -897,7 +897,7 @@ export default function DropFeed() {
   const canShowMore = isPaidUser && !hasSelectedStates && activeTiers.size === 0 && !hasAreaPrefs && !!data?.hasMore;
   const displayedGrouped = finalFeed.slice(0, isPaidUser ? baseVisibleCount : baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
-  const timerIsStale = !!data?.lastUpdated && Date.now() - new Date(data.lastUpdated).getTime() > POLL_INTERVAL_SECONDS * 1000 * 3;
+  const hasFeedData = !!data?.lastUpdated;
 
   return (
     <section
@@ -958,7 +958,7 @@ export default function DropFeed() {
           >
             {[
               { label: "Coverage", value: "Drop Feed" },
-              { label: "Feed status", value: timerIsStale ? "Refreshing" : data?.lastUpdated ? "Live" : "Checking" },
+              { label: "Feed status", value: hasFeedData ? "Recent scan" : "Checking" },
               { label: "Inventory signals", value: data ? `${data.total.toLocaleString()}+` : "1,000+" },
             ].map((item, idx) => (
               <div
