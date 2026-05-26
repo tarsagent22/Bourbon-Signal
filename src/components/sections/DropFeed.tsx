@@ -178,6 +178,14 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
 }
 
 function getEventDescription(drop: GroupedDrop): string {
+  if (drop.signalLabel) {
+    if (drop.locations.length > 1) {
+      return `${drop.locations.length} locations`;
+    }
+    const loc = drop.locations[0]?.label || cleanCountyName(drop.store_address || drop.board_name || "");
+    return loc || "Recent positive signal";
+  }
+
   if (drop.state === "KY") {
     switch (drop.event_type) {
       case "in_stock":
@@ -212,11 +220,27 @@ function getEventDescription(drop: GroupedDrop): string {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
       return `In store${loc ? ` \u00B7 ${loc}` : ""}`;
     }
+    case "store_delivery_snapshot": {
+      const loc = cleanCountyName(drop.store_address || drop.board_name || "");
+      return `Store delivery${loc ? ` \u00B7 ${loc}` : ""}`;
+    }
+    case "store_inventory_result": {
+      const loc = cleanCountyName(drop.store_address || drop.board_name || "");
+      return `In stock${loc ? ` \u00B7 ${loc}` : ""}`;
+    }
+    case "browser_assisted_store_inventory_limited_supply": {
+      const loc = cleanCountyName(drop.store_address || drop.board_name || "");
+      return `Limited supply${loc ? ` \u00B7 ${loc}` : ""}`;
+    }
+    case "browser_assisted_store_inventory_in_stock": {
+      const loc = cleanCountyName(drop.store_address || drop.board_name || "");
+      return `In stock${loc ? ` \u00B7 ${loc}` : ""}`;
+    }
     case "allocation_assigned": {
       return "Allocation assigned";
     }
     default:
-      return drop.event_type;
+      return "Recent bottle signal";
   }
 }
 
