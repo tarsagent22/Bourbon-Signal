@@ -269,6 +269,9 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
   const description = getEventDescription(drop);
   const stateLabel = drop.displayState || formatStateLabel(drop.state);
+  const primaryLocation = drop.locations[0]?.label || description;
+  const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
+  const signalLabel = drop.signalLabel || "Bottle signal";
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const multColors = MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
@@ -330,9 +333,158 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           : {}),
       }}
     >
+      {/* Mobile card */}
+      <div
+        className="md:hidden"
+        onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
+        style={{
+          position: "relative",
+          marginBottom: "12px",
+          padding: "15px 15px 14px",
+          borderRadius: "22px",
+          border: `1px solid ${glowing && index === 0 ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
+          background:
+            index === 0
+              ? "linear-gradient(145deg, rgba(196,148,58,0.14) 0%, rgba(31,22,12,0.94) 42%, rgba(12,10,7,0.96) 100%)"
+              : "linear-gradient(145deg, rgba(245,237,214,0.055) 0%, rgba(24,18,12,0.92) 44%, rgba(11,9,7,0.94) 100%)",
+          boxShadow: index === 0 ? "0 18px 42px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.045)" : "0 14px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.035)",
+          overflow: "hidden",
+          cursor: hasDetails ? "pointer" : "default",
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: "3px",
+            background: tier.borderColor,
+            opacity: index === 0 ? 1 : 0.72,
+          }}
+        />
+
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2" style={{ marginBottom: "8px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
+                  fontWeight: 800,
+                  letterSpacing: "0.09em",
+                  textTransform: "uppercase",
+                  color: signalLabel === "In stock" ? "rgba(110,231,183,0.96)" : "rgba(212,146,11,0.96)",
+                  background: signalLabel === "In stock" ? "rgba(110,231,183,0.10)" : "rgba(212,146,11,0.10)",
+                  border: signalLabel === "In stock" ? "1px solid rgba(110,231,183,0.20)" : "1px solid rgba(212,146,11,0.22)",
+                  borderRadius: "999px",
+                  padding: "4px 8px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {signalLabel}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "rgba(245,237,214,0.42)",
+                }}
+              >
+                {stateLabel}
+              </span>
+            </div>
+
+            <div
+              style={{
+                fontFamily: "var(--font-playfair)",
+                fontSize: "21px",
+                fontWeight: 700,
+                color: "var(--color-cream)",
+                lineHeight: 1.08,
+                letterSpacing: "-0.015em",
+              }}
+            >
+              {drop.displayName}
+            </div>
+          </div>
+
+          <div style={{ textAlign: "right", flexShrink: 0, paddingTop: "1px" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
+              {formatRelativeTime(drop.timestamp)}
+            </div>
+            {hasPricing && (
+              <div style={{ marginTop: "8px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "rgba(245,237,214,0.58)", whiteSpace: "nowrap" }}>
+                ${pricing.msrp} MSRP
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="flex items-center justify-between gap-3"
+          style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(245,237,214,0.07)" }}
+        >
+          <div className="min-w-0">
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.43)", marginBottom: "2px" }}>
+              {drop.signalCategory === "delivery" ? "Delivery area" : "Availability"}
+            </div>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 650, color: "rgba(245,237,214,0.86)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {locationSummary}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
+            <span style={{ ...(tier.pillStyle as React.CSSProperties), fontSize: "8px", padding: "4px 8px" }}>
+              {tier.label}
+            </span>
+            {confidenceBadge && (
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "8px",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "rgba(110,231,183,0.86)",
+                  background: "rgba(110,231,183,0.075)",
+                  border: "1px solid rgba(110,231,183,0.16)",
+                  borderRadius: "999px",
+                  padding: "4px 7px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Store-level
+              </span>
+            )}
+          </div>
+        </div>
+
+        {pricing.secondary && (
+          <div
+            style={{
+              marginTop: "11px",
+              padding: "9px 10px",
+              borderRadius: "14px",
+              background: "rgba(196,148,58,0.075)",
+              border: "1px solid rgba(196,148,58,0.13)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "12px",
+              color: "rgba(245,237,214,0.62)",
+            }}
+          >
+            {isFreeUser ? "Member intel: market value and deeper location context" : `Market intel: ${pricing.secondary}`}
+          </div>
+        )}
+      </div>
+
       {/* Main row */}
       <div
-        className="flex items-center"
+        className="hidden md:flex items-center"
         style={{
           padding: "16px 20px",
           borderLeft: `3px solid ${tier.borderColor}`,
@@ -927,6 +1079,31 @@ export default function DropFeed() {
           0%, 100% { box-shadow: inset 3px 0 0 rgba(196,148,58,0.4), 0 0 0 rgba(196,148,58,0); }
           50% { box-shadow: inset 3px 0 0 rgba(196,148,58,1), 0 0 20px rgba(196,148,58,0.15); }
         }
+        @media (max-width: 767px) {
+          #drops { padding-top: 18px !important; }
+          .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
+          .dropfeed-trust {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px !important;
+            margin-bottom: 18px !important;
+            padding: 12px !important;
+            border: 1px solid rgba(245,237,214,0.075) !important;
+            border-radius: 18px !important;
+            background: rgba(245,237,214,0.025) !important;
+          }
+          .dropfeed-trust > div { display: block !important; }
+          .dropfeed-trust > div:last-child { grid-column: span 2; }
+          .dropfeed-trust span:first-child { display:block; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+          .dropfeed-trust span:nth-child(2) { font-size: 13px; }
+          .dropfeed-trust span:nth-child(3) { display:none; }
+          .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
+          .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 30ch; }
+          .dropfeed-nudge { display:none; }
+          .dropfeed-filter-row { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 18px !important; margin-left: -2px; scrollbar-width: none; }
+          .dropfeed-filter-row::-webkit-scrollbar { display:none; }
+          .dropfeed-detail-panel { padding: 4px 2px 14px 8px !important; }
+        }
       `}</style>
 
       <div
@@ -941,11 +1118,11 @@ export default function DropFeed() {
         }}
       />
 
-      <div style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px", position: "relative", zIndex: 1 }}>
+      <div className="dropfeed-shell" style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px", position: "relative", zIndex: 1 }}>
         <div>
           {/* Trust row */}
           <motion.div
-            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+            className="dropfeed-trust flex flex-wrap items-center gap-x-4 gap-y-2"
             style={{
               marginBottom: "16px",
               paddingBottom: "14px",
@@ -987,6 +1164,7 @@ export default function DropFeed() {
           >
             <div>
               <h2
+                className="dropfeed-title"
                 style={{
                   fontFamily: "var(--font-playfair)",
                   fontSize: "32px",
@@ -999,6 +1177,7 @@ export default function DropFeed() {
                 Live Drop Feed
               </h2>
               <p
+                className="dropfeed-subcopy"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "13px",
@@ -1033,6 +1212,7 @@ export default function DropFeed() {
 
           {/* Premium member nudge */}
           <motion.div
+            className="dropfeed-nudge"
             style={{
               marginTop: "14px",
               marginBottom: "16px",
@@ -1053,7 +1233,7 @@ export default function DropFeed() {
 
           {/* Filters row: Tier filter pills */}
           <motion.div
-            className="flex items-center flex-wrap gap-2"
+            className="dropfeed-filter-row flex items-center flex-wrap gap-2"
             style={{ paddingBottom: "16px" }}
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
             whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -1129,6 +1309,7 @@ export default function DropFeed() {
           {error && !data ? (
             <div style={{ position: "relative" }}>
               <div
+                className="dropfeed-detail-panel"
                 style={{
                   marginBottom: "18px",
                   padding: "12px 14px",
