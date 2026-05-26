@@ -467,17 +467,15 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
         {pricing.secondary && (
           <div
             style={{
-              marginTop: "11px",
-              padding: "9px 10px",
-              borderRadius: "14px",
-              background: "rgba(196,148,58,0.075)",
-              border: "1px solid rgba(196,148,58,0.13)",
+              marginTop: "10px",
               fontFamily: "var(--font-dm-sans)",
-              fontSize: "12px",
-              color: "rgba(245,237,214,0.62)",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "rgba(212,146,11,0.74)",
+              letterSpacing: "0.01em",
             }}
           >
-            {isFreeUser ? "Member intel: market value and deeper location context" : `Market intel: ${pricing.secondary}`}
+            {isFreeUser ? "Market intel locked 🔒" : `Market intel: ${pricing.secondary}`}
           </div>
         )}
       </div>
@@ -1056,6 +1054,7 @@ export default function DropFeed() {
       id="drops"
       style={{
         backgroundColor: "var(--color-bg-warm)",
+        scrollMarginTop: "88px",
         paddingTop: "24px",
         paddingBottom: "64px",
         width: "100%",
