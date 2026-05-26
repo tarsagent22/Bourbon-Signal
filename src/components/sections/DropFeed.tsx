@@ -10,6 +10,7 @@ import {
   groupDrops,
   formatRelativeTime,
   cleanCountyName,
+  formatStateLabel,
   lookupPricing,
   TIER_CONFIG,
   MULTIPLIER_COLORS,
@@ -153,6 +154,9 @@ function SkeletonRow() {
 }
 
 function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
+  if (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level") {
+    return { label: "Store-level", tone: "exact" };
+  }
   if (drop.state === "KY") {
     if (drop.confidenceTier === "exact_today_distillery") return { label: "KY today", tone: "exact" };
     if (drop.confidenceTier === "official_release_live") return { label: "KY live", tone: "online" };
@@ -240,6 +244,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const [glowing, setGlowing] = useState(isNew);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
   const description = getEventDescription(drop);
+  const stateLabel = drop.displayState || formatStateLabel(drop.state);
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const multColors = MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
@@ -285,7 +290,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
   // Blur wall logic — free users: 5 clear, #6 half blur, #7 full blur
   const isBlurred = isFreeUser && index >= 5;
-  const blurAmount = index === 5 ? "1.5px" : "3px";
   const blurOpacity = index === 5 ? 0.72 : 0.45;
 
   return (
@@ -295,7 +299,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
       animate={{ opacity: isBlurred ? blurOpacity : 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
-        filter: isBlurred ? `blur(${blurAmount})` : "none",
+        filter: "none",
         pointerEvents: isBlurred ? "none" : "auto",
         ...(glowing && index === 0
           ? { animation: "newDropGlow 2s ease infinite" }
@@ -345,7 +349,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
             {/* State badge */}
-            {drop.state && (
+            {stateLabel && (
               <span
                 style={{
                   fontFamily: "var(--font-jetbrains)",
@@ -361,7 +365,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                   flexShrink: 0,
                 }}
               >
-                {drop.state}
+                {stateLabel}
               </span>
             )}
             {drop.signalLabel && (
@@ -463,7 +467,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
               >
                 MSRP ${pricing.msrp}
               </span>
-              {/* Secondary price — blurred for free users only */}
+              {/* Secondary price — locked for free users only */}
               {pricing.secondary && (
                 <div className="flex items-center gap-1.5" style={{ marginTop: "2px" }}>
                   <span
@@ -473,11 +477,10 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                       fontWeight: 600,
                       color: "var(--color-accent-amber)",
                       whiteSpace: "nowrap",
-                      filter: isFreeUser ? "blur(4px)" : "none",
                       userSelect: isFreeUser ? "none" : "auto",
                     }}
                   >
-                    {pricing.secondary}
+                    {isFreeUser ? "Member intel" : pricing.secondary}
                   </span>
                   {/* Lock icon — only show for free users */}
                   {isFreeUser && (
@@ -505,11 +508,10 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                         borderRadius: "8px",
                         padding: "1px 6px",
                         whiteSpace: "nowrap",
-                        filter: isFreeUser ? "blur(3px)" : "none",
                         userSelect: isFreeUser ? "none" : "auto",
                       }}
                     >
-                      {pricing.multiplier}x
+                      {isFreeUser ? "PRO" : `${pricing.multiplier}x`}
                     </span>
                   )}
                 </div>
@@ -593,11 +595,11 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                         fontFamily: "var(--font-jetbrains)",
                       }}
                     >
-                      {drop.state ? `${drop.state} signal` : "Signal"}
+                      {stateLabel ? `${stateLabel} signal` : "Signal"}
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       {visibleLocations.map((location: DropLocation) => {
-                        const destinationLabel = drop.event_type === "new_shipment" ? "Board destination" : "Store";
+                        const destinationLabel = drop.signalCategory === "delivery" ? "Delivery location" : "Store / source";
                         const secondaryLine = location.address || location.boardName;
                         return (
                           <div
@@ -641,13 +643,12 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                         >
                           <div
                             style={{
-                              filter: "blur(4px)",
                               userSelect: "none",
                               color: "rgba(245,237,214,0.45)",
                               marginBottom: "8px",
                             }}
                           >
-                            Hidden member locations
+                            Additional member locations
                           </div>
                           <div style={{ color: "var(--color-accent-amber)", fontWeight: 600 }}>
                             Become a member to see {hiddenLocationCount === 1 ? "the other location" : `the other ${hiddenLocationCount} locations`}
@@ -669,12 +670,11 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                     <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>Secondary:</span>
                     <span
                       style={{
-                        filter: isFreeUser ? "blur(4px)" : "none",
                         userSelect: isFreeUser ? "none" : "auto",
                         color: "var(--color-accent-amber)",
                       }}
                     >
-                      {pricing.secondary}
+                      {isFreeUser ? "Member intel" : pricing.secondary}
                     </span>
                     <span
                       style={{
@@ -935,7 +935,7 @@ export default function DropFeed() {
             {[
               { label: "Coverage", value: "Drop Feed" },
               { label: "Feed status", value: timerIsStale ? "Refreshing" : data?.lastUpdated ? "Live" : "Checking" },
-              { label: "Drops tracked", value: data ? `${data.total.toLocaleString()}+` : "3,400+" },
+              { label: "Inventory signals", value: data ? `${data.total.toLocaleString()}+` : "1,000+" },
             ].map((item, idx) => (
               <div
                 key={item.label}
@@ -983,7 +983,7 @@ export default function DropFeed() {
                   marginBottom: 0,
                 }}
               >
-                Recent real drop signals, filtered to actual movement with usable location context.
+                Recent positive bottle signals only — no out-of-stock rows, lotteries, or raw source noise.
               </p>
             </div>
             {hasAreaPrefs && (
@@ -1021,7 +1021,7 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            Track the latest real bottle movement, then unlock deeper hunt intel with member access.
+            Track store-level availability and delivery signals, then unlock deeper hunt intel with member access.
           </motion.div>
 
           {/* Divider */}
@@ -1215,7 +1215,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more recent signals tracked` : isPaidUser ? "Paid members can expand deeper into recent history" : "Live feed updates automatically"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more positive signals tracked` : isPaidUser ? "Paid members can expand deeper into recent history" : "Live feed updates automatically"}
               </p>
             </div>
           )}

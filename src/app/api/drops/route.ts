@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 
 function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
@@ -12,11 +12,16 @@ export async function GET(request: Request) {
   const offset = Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const bottle = url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = url.searchParams.get("store")?.toLowerCase().trim();
+  const include = url.searchParams.get("include")?.toLowerCase().trim();
 
   try {
     const exportPayload = readSiteExport("drops");
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
     let drops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+
+    if (include !== "all") {
+      drops = drops.filter((drop) => isUserFacingDropSignal(drop));
+    }
 
     if (state) {
       drops = drops.filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);

@@ -22,6 +22,13 @@ export interface DropEvent {
   exact_store?: boolean;
   availability_scope?: "exact" | "page" | "online" | string;
   confidence_tier?: "exact_store" | "online_positive" | "listing_only" | string;
+  location_precision?: string;
+  can_alert_as_inventory?: boolean;
+  signal_label?: string;
+  signal_category?: string;
+  display_state?: string;
+  display_location?: string;
+  is_user_facing_drop?: boolean;
   online_orderable_quantity?: number | null;
   online_in_stock_quantity?: number | null;
   online_stock_status?: string | null;
@@ -55,11 +62,17 @@ export interface GroupedDrop {
   availabilityScope?: "exact" | "page" | "online" | string;
   exactStore?: boolean;
   onlineInStockQuantity?: number | null;
+  locationPrecision?: string;
+  canAlertAsInventory?: boolean;
+  signalCategory?: string;
+  displayState?: string;
   locations: DropLocation[];
 }
 
 function isRealDropEvent(event: DropEvent): boolean {
   const eventType = (event.event_type || '').toLowerCase();
+  const locationPrecision = (event.location_precision || event.availability_scope || '').toLowerCase();
+  const quantity = event.quantity_in_stock ?? event.quantity ?? 0;
   const hasLocation = !!(
     event.store_address ||
     event.store_city ||
@@ -71,8 +84,15 @@ function isRealDropEvent(event: DropEvent): boolean {
   );
 
   if (!hasLocation) return false;
+  if (event.is_user_facing_drop === false) return false;
+  if (eventType.includes('out_of_stock')) return false;
+  if (eventType.includes('lottery')) return false;
+  if (eventType.includes('county_allocated')) return false;
+  if (eventType.includes('allocated_release')) return false;
+  if (locationPrecision === 'board_county' || locationPrecision === 'statewide_catalog' || locationPrecision === 'statewide_policy') return false;
   if (eventType === 'new_allocation') return false;
   if (eventType === 'allocation_assigned') return false;
+  if (eventType === 'store_inventory_result' && quantity <= 0 && !event.can_alert_as_inventory) return false;
   return true;
 }
 
@@ -157,13 +177,31 @@ export function cleanCountyName(board: string): string {
     .trim();
 }
 
+export function formatStateLabel(state?: string): string {
+  if (!state) return "";
+  if (state === "MD-MONTGOMERY") return "Montgomery, MD";
+  return state;
+}
+
+function getPublicSignalLabel(event: DropEvent): string | undefined {
+  if (event.signal_label) return event.signal_label;
+  const eventType = (event.event_type || "").toLowerCase();
+  if (eventType.includes("limited_supply")) return "Limited supply";
+  if (eventType.includes("in_stock")) return "In stock";
+  if (eventType === "store_delivery_snapshot") return "Store delivery";
+  if (eventType === "store_inventory_result") return "In stock";
+  if (eventType === "new_shipment") return "Shipment";
+  if (eventType === "store_stock_increase") return "Stock increase";
+  return undefined;
+}
+
 export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
   const SIX_HOURS = 6 * 60 * 60 * 1000;
   const groups: Map<string, GroupedDrop> = new Map();
 
   const getLocation = (ev: DropEvent): DropLocation[] => {
     const locations: DropLocation[] = [];
-    const boardName = cleanCountyName(ev.board_name || "");
+    const boardName = cleanCountyName(ev.display_location || ev.board_name || "");
     const singleQuantity = ev.quantity_in_stock ?? ev.quantity_shipped ?? ev.quantity;
 
     if (ev.store_details?.length) {
@@ -200,9 +238,9 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 
     const city = ev.store_city?.trim();
     const address = ev.store_address?.trim();
-    const primaryLabel = city
+    const primaryLabel = ev.display_location || (city
       ? (ev.store_county ? `${city} (${ev.store_county} Co.)` : city)
-      : boardName || address;
+      : boardName || address);
 
     if (primaryLabel) {
       locations.push({
@@ -263,11 +301,17 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.confidenceTier && event.confidence_tier) {
         existing.confidenceTier = event.confidence_tier;
       }
+      if (!existing.signalLabel) {
+        existing.signalLabel = getPublicSignalLabel(event);
+      }
       if (!existing.availabilityScope && event.availability_scope) {
         existing.availabilityScope = event.availability_scope;
       }
       if (!existing.exactStore && event.exact_store) {
         existing.exactStore = event.exact_store;
+      }
+      if (!existing.canAlertAsInventory && event.can_alert_as_inventory) {
+        existing.canAlertAsInventory = event.can_alert_as_inventory;
       }
       if ((existing.onlineInStockQuantity == null || existing.onlineInStockQuantity === 0) && event.online_in_stock_quantity != null) {
         existing.onlineInStockQuantity = event.online_in_stock_quantity;
@@ -286,18 +330,15 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         quantity_in_stock: event.quantity_in_stock,
         state: event.state || event.state_code,
         id: groupKey,
-        signalLabel:
-          event.event_type === "new_shipment"
-            ? "Board shipment"
-            : event.event_type === "store_stock_increase"
-              ? "Stock increase"
-              : event.event_type === "in_store" || event.event_type === "in_stock"
-                ? "In store"
-                : undefined,
+        signalLabel: getPublicSignalLabel(event),
         confidenceTier: event.confidence_tier,
         availabilityScope: event.availability_scope,
         exactStore: event.exact_store,
         onlineInStockQuantity: event.online_in_stock_quantity ?? null,
+        locationPrecision: event.location_precision,
+        canAlertAsInventory: event.can_alert_as_inventory,
+        signalCategory: event.signal_category,
+        displayState: event.display_state || formatStateLabel(event.state || event.state_code),
         locations,
       });
     }
@@ -325,6 +366,11 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 }
 
 export function getEventDescription(drop: GroupedDrop): string {
+  if (drop.signalLabel) {
+    if (drop.locations.length > 1) return `${drop.signalLabel} · ${drop.locations.length} locations`;
+    const location = drop.locations[0]?.label || drop.board_name || "";
+    return `${drop.signalLabel}${location ? ` · ${location}` : ""}`;
+  }
   switch (drop.event_type) {
     case "new_shipment": {
       if (drop.counties.length > 1) {
