@@ -1097,7 +1097,7 @@ export default function DashboardPage() {
           ) : null}
 
           <StepShell
-            step="04"
+            step={alertMode === "specific_bottles" ? "04" : "03"}
             title="Notification preferences"
             subtitle="Choose where Bourbon Signal should send matching alerts, and how loud email should be."
           >
@@ -1380,44 +1380,6 @@ export default function DashboardPage() {
                   ))}
                 </div>
 
-                <div style={{ display: "grid", gap: "12px", position: "relative" }}>
-                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
-                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      Alert type
-                    </p>
-                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                      {alertMode === "anything_notable"
-                        ? "Anything notable in your selected area can trigger alerts. Your watchlist is optional in this mode."
-                        : watchedBottleOptions.length > 0
-                          ? `${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} will trigger alerts in your selected area.`
-                          : "Watchlist not set. Add bottles in Step 1 to start tracking specific bottle alerts."}
-                    </p>
-                  </div>
-
-                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
-                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      Territory
-                    </p>
-                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                      {localPrefs.states.length > 0
-                        ? `Alerts will be scoped to ${localPrefs.states.map(makeStateLabel).join(", ")}.`
-                        : "Territory not set. Choose where you hunt so alerts stay relevant."}
-                    </p>
-                  </div>
-
-                  <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
-                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      Delivery channels
-                    </p>
-                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                      {[
-                        notificationPrefs.onSite.enabled ? "On-site inbox" : null,
-                        notificationPrefs.email.enabled ? `Email (${notificationPrefs.email.mode === "all" ? "all signals" : notificationPrefs.email.mode === "major_only" ? "major hits" : "roundup"})` : null,
-                        notificationPrefs.sms.enabled ? "SMS" : null,
-                      ].filter(Boolean).join(", ") || "No alert channels selected yet."}
-                    </p>
-                  </div>
-                </div>
 
                 <div
                   style={{
