@@ -197,26 +197,6 @@ function getAccuracyBadge(drop: GroupedDrop): { label: string; caption: string; 
   return { label: "Positive", caption: "Noise-filtered", tone: "positive" };
 }
 
-function getFreshnessLabel(timestamp?: string) {
-  if (!timestamp) return "Checking";
-  const diffMs = Date.now() - new Date(timestamp).getTime();
-  if (!Number.isFinite(diffMs)) return "Checking";
-  const diffMin = Math.max(0, Math.floor(diffMs / 60000));
-  if (diffMin < 2) return "Live now";
-  if (diffMin < 60) return `${diffMin}m fresh`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h fresh`;
-  return `${Math.floor(diffHr / 24)}d fresh`;
-}
-
-function getScanIntegrityLabel(grouped: GroupedDrop[], total?: number) {
-  if (!grouped.length) return "Verifying";
-  const exactCount = grouped.filter((drop) => getAccuracyBadge(drop).tone === "exact").length;
-  if (exactCount >= Math.ceil(grouped.length * 0.6)) return `${exactCount} store-level`;
-  if (total && total > grouped.length) return `${total.toLocaleString()} filtered`;
-  return `${grouped.length} vetted`;
-}
-
 function getEventDescription(drop: GroupedDrop): string {
   if (drop.signalLabel) {
     if (drop.locations.length > 1) {
@@ -562,7 +542,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           }}
         >
           <span>{accuracyBadge.caption}</span>
-          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for evidence" : "Evidence shown"}</span>
+          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for more" : "More shown"}</span>
         </div>
 
         {pricing.secondary && (
@@ -1153,8 +1133,6 @@ export default function DropFeed() {
   const canShowMore = isPaidUser && !hasSelectedStates && activeTiers.size === 0 && !hasAreaPrefs && !!data?.hasMore;
   const displayedGrouped = finalFeed.slice(0, isPaidUser ? baseVisibleCount : baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
-  const hasFeedData = !!data?.lastUpdated;
-  const latestSignalAt = grouped[0]?.timestamp || data?.lastUpdated || lastFetch;
   const dropCountsByState = grouped.reduce((counts, drop) => {
     const state = drop.state || "NC";
     counts.set(state, (counts.get(state) || 0) + 1);
@@ -1197,21 +1175,6 @@ export default function DropFeed() {
         @media (max-width: 767px) {
           #drops { padding-top: 18px !important; }
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
-          .dropfeed-trust {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px !important;
-            margin-bottom: 18px !important;
-            padding: 12px !important;
-            border: 1px solid rgba(245,237,214,0.075) !important;
-            border-radius: 18px !important;
-            background: rgba(245,237,214,0.025) !important;
-          }
-          .dropfeed-trust > div { display: block !important; }
-          .dropfeed-trust > div:last-child { grid-column: span 2; }
-          .dropfeed-trust span:first-child { display:block; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-          .dropfeed-trust span:nth-child(2) { font-size: 13px; }
-          .dropfeed-trust span:nth-child(3) { display:none; }
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 30ch; }
           .dropfeed-nudge { display:none; }
@@ -1235,40 +1198,6 @@ export default function DropFeed() {
 
       <div className="dropfeed-shell" style={{ width: "100%", maxWidth: "680px", paddingLeft: "16px", paddingRight: "16px", position: "relative", zIndex: 1 }}>
         <div>
-          {/* Trust row */}
-          <motion.div
-            className="dropfeed-trust flex flex-wrap items-center gap-x-4 gap-y-2"
-            style={{
-              marginBottom: "16px",
-              paddingBottom: "14px",
-              borderBottom: "1px solid rgba(245,237,214,0.08)",
-            }}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            {[
-              { label: "Latest signal", value: hasFeedData ? getFreshnessLabel(latestSignalAt) : "Checking" },
-              { label: "Accuracy filter", value: "Positive only" },
-              { label: "Evidence", value: getScanIntegrityLabel(grouped, data?.total) },
-            ].map((item, idx) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-2"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  color: "rgba(245,237,214,0.72)",
-                }}
-              >
-                <span style={{ color: "rgba(245,237,214,0.42)" }}>{item.label}</span>
-                <span style={{ color: "var(--color-cream)", fontWeight: 600 }}>{item.value}</span>
-                {idx < 2 && <span style={{ color: "rgba(245,237,214,0.18)" }}>•</span>}
-              </div>
-            ))}
-          </motion.div>
-
           {/* Header row */}
           <motion.div
             className="flex items-center justify-between gap-4"
