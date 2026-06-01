@@ -298,7 +298,7 @@ export default function DashboardPage() {
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
-  const [alertMode, setAlertMode] = useState<AlertMode>("specific_bottles");
+  const [alertMode, setAlertMode] = useState<AlertMode>("anything_notable");
   const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
     sending: false,
     success: false,
@@ -345,7 +345,7 @@ export default function DashboardPage() {
     if (!mounted) return;
     setLocalPrefs(isSignedIn ? prefs.areaPreferences : EMPTY_PREFS);
     setNotificationPrefs(isSignedIn ? prefs.notificationPreferences : getDefaultNotificationPreferences());
-    setAlertMode(isSignedIn ? prefs.alertMode ?? "specific_bottles" : "specific_bottles");
+    setAlertMode(isSignedIn ? prefs.alertMode ?? "anything_notable" : "anything_notable");
   }, [prefs, isSignedIn, mounted]);
 
   const bottleOptions = useMemo<BottleOption[]>(() => {
@@ -745,101 +745,8 @@ export default function DashboardPage() {
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px) 80px", display: "grid", gap: "22px" }}>
           <StepShell
             step="01"
-            title="Bottle watchlist"
-            subtitle="Add the bottles you actually want Bourbon Signal to track. Your watchlist is the first filter that decides what deserves your attention."
-          >
-            <div style={{ display: "grid", gap: "18px" }}>
-              <div style={{ display: "grid", gap: "14px" }}>
-                <label htmlFor="watchlist-search" style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  Search bottles
-                </label>
-                <input
-                  id="watchlist-search"
-                  value={bottleQuery}
-                  onChange={(event) => setBottleQuery(event.target.value)}
-                  placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
-                  style={{
-                    width: "100%",
-                    padding: "16px 18px",
-                    borderRadius: "18px",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    background: "rgba(255,255,255,0.03)",
-                    color: "var(--color-text-primary)",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "15px",
-                    outline: "none",
-                  }}
-                />
-              </div>
-
-              {watchedBottleOptions.length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
-                  {watchedBottleOptions.map((option) => (
-                    <BottleChip key={option.canonicalKey} option={option} onRemove={() => removeBottleOption(option)} />
-                  ))}
-                </div>
-              ) : (
-                <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  Your watchlist is empty. Add the bottles that make you leave dinner early.
-                </div>
-              )}
-
-              {!bottleQuery.trim() && suggestedBottleOptions.length > 0 ? (
-                <div style={{ display: "grid", gap: "10px" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Popular right now
-                  </div>
-                  {suggestedBottleOptions.map((option) => (
-                    <button
-                      key={`suggested-${option.canonicalKey}`}
-                      onClick={() => addBottleOption(option)}
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "14px 16px",
-                        borderRadius: "16px",
-                        border: "1px solid rgba(196,148,58,0.24)",
-                        background: "linear-gradient(180deg, rgba(55,39,21,0.66) 0%, rgba(22,18,14,0.94) 100%)",
-                        boxShadow: "0 0 22px rgba(196,148,58,0.10)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>{option.label}</div>
-                      <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              {bottleQuery.trim() ? (
-                <div style={{ display: "grid", gap: "10px" }}>
-                  {filteredBottleOptions.slice(0, 10).map((option) => (
-                  <button
-                    key={option.canonicalKey}
-                    onClick={() => addBottleOption(option)}
-                    style={{
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "16px 18px",
-                      borderRadius: "18px",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      background: "rgba(255,255,255,0.03)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
-                    <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
-                  </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </StepShell>
-
-          <StepShell
-            step="02"
-            title="Hunt territory"
-            subtitle="Tell Bourbon Signal where your hunt is real. That way alerts stay useful instead of turning into ambient noise."
+            title="Choose your area"
+            subtitle="Pick the state, board, city, or store area you actually care about first. Everything else keys off this territory."
           >
             <div style={{ display: "grid", gap: "18px" }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -1042,11 +949,10 @@ export default function DashboardPage() {
           </StepShell>
 
           <StepShell
-            step="03"
-            title="Alert type & notifications"
-            subtitle="Choose whether Bourbon Signal watches specific bottles or anything notable in your selected area, then pick how you want to hear about it."
+            step="02"
+            title="Choose what to watch"
+            subtitle="Start broad with anything notable nearby, or narrow alerts to bottles you pick yourself."
           >
-            <div style={{ display: "grid", gap: "18px" }}>
               <div style={{ display: "grid", gap: "12px" }}>
                 <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                   Alert me about
@@ -1054,14 +960,14 @@ export default function DashboardPage() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "12px" }}>
                   {[
                     {
-                      value: "specific_bottles" as AlertMode,
-                      label: "Specific bottles I choose",
-                      note: "Best when you know exactly what you're chasing. Alerts require a watchlist match in your selected area.",
-                    },
-                    {
                       value: "anything_notable" as AlertMode,
                       label: "Anything notable in my area",
                       note: "Best when you care about your local board, city, or store. Alerts can fire for allocated, limited, unicorn, shipment, or verified inventory signals nearby.",
+                    },
+                    {
+                      value: "specific_bottles" as AlertMode,
+                      label: "Specific bottles I choose",
+                      note: "Best when you know exactly what you're chasing. Alerts require a watchlist match in your selected area.",
                     },
                   ].map((option) => {
                     const selected = alertMode === option.value;
@@ -1093,7 +999,109 @@ export default function DashboardPage() {
                   })}
                 </div>
               </div>
+          </StepShell>
 
+          {alertMode === "specific_bottles" ? (
+          <StepShell
+            step="03"
+            title="Bottle watchlist"
+            subtitle="Add bottles only when you want alerts limited to specific names in your selected area."
+          >
+            <div style={{ display: "grid", gap: "18px" }}>
+              <div style={{ display: "grid", gap: "14px" }}>
+                <label htmlFor="watchlist-search" style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  Search bottles
+                </label>
+                <input
+                  id="watchlist-search"
+                  value={bottleQuery}
+                  onChange={(event) => setBottleQuery(event.target.value)}
+                  placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
+                  style={{
+                    width: "100%",
+                    padding: "16px 18px",
+                    borderRadius: "18px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)",
+                    color: "var(--color-text-primary)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "15px",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              {watchedBottleOptions.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                  {watchedBottleOptions.map((option) => (
+                    <BottleChip key={option.canonicalKey} option={option} onRemove={() => removeBottleOption(option)} />
+                  ))}
+                </div>
+              ) : (
+                <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+                  Your watchlist is empty. Add the bottles that make you leave dinner early.
+                </div>
+              )}
+
+              {!bottleQuery.trim() && suggestedBottleOptions.length > 0 ? (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Popular right now
+                  </div>
+                  {suggestedBottleOptions.map((option) => (
+                    <button
+                      key={`suggested-${option.canonicalKey}`}
+                      onClick={() => addBottleOption(option)}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "14px 16px",
+                        borderRadius: "16px",
+                        border: "1px solid rgba(196,148,58,0.24)",
+                        background: "linear-gradient(180deg, rgba(55,39,21,0.66) 0%, rgba(22,18,14,0.94) 100%)",
+                        boxShadow: "0 0 22px rgba(196,148,58,0.10)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>{option.label}</div>
+                      <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {bottleQuery.trim() ? (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {filteredBottleOptions.slice(0, 10).map((option) => (
+                  <button
+                    key={option.canonicalKey}
+                    onClick={() => addBottleOption(option)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "16px 18px",
+                      borderRadius: "18px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "rgba(255,255,255,0.03)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
+                    <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
+                  </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </StepShell>
+          ) : null}
+
+          <StepShell
+            step="04"
+            title="Notification preferences"
+            subtitle="Choose where Bourbon Signal should send matching alerts, and how loud email should be."
+          >
+            <div style={{ display: "grid", gap: "18px" }}>
               <div
                 style={{
                   display: "grid",

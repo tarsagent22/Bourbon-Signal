@@ -14,7 +14,7 @@ const EMPTY_PREFS: UserAlertPreferences = {
     paStores: [],
   },
   notificationPreferences: getDefaultNotificationPreferences(),
-  alertMode: "specific_bottles",
+  alertMode: "anything_notable",
 };
 
 let cachedPrefs: UserAlertPreferences | null = null;

@@ -31,7 +31,7 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
 };
 
 function normalizeAlertMode(input: unknown): AlertMode {
-  return input === "anything_notable" ? "anything_notable" : "specific_bottles";
+  return input === "specific_bottles" ? "specific_bottles" : "anything_notable";
 }
 
 function normalizeAreaPreferences(input: unknown): AreaPreferences {
