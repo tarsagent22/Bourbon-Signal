@@ -19,7 +19,7 @@ import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
-import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
+import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -286,6 +286,7 @@ export default function DashboardPage() {
   const { bottles, loading } = useBottles();
   const { stores } = useStores();
   const { drops: recentDrops } = useDrops({ limit: 120 });
+  const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn } = useAuth();
   const { prefs, savePreferences } = useAreaPreferences();
@@ -306,7 +307,7 @@ export default function DashboardPage() {
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [vaStoreSelections, setVaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
   const [paStoreSelections, setPaStoreSelections] = useState<Record<string, StoreSelectionState>>({});
-  const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
+
   const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -412,30 +413,31 @@ export default function DashboardPage() {
   }, [bottleOptions, bottleQuery, selectedCanonicalKeys]);
 
   const suggestedBottleOptions = useMemo(() => {
-    const pool = getRotatingBottleSuggestions(
-      bottleOptions.map((option) => option.bottle),
-      suggestionSeed,
-      5
-    );
+    const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
     const ids = new Set(pool.map((bottle) => bottle.id));
     return bottleOptions.filter((option) => ids.has(option.bottle.id) && !selectedCanonicalKeys.has(option.canonicalKey));
-  }, [bottleOptions, selectedCanonicalKeys, suggestionSeed]);
+  }, [bottleOptions, selectedCanonicalKeys]);
 
   const ncBoards = useMemo(() => {
-    return Array.from(
-      new Set(
-        stores.flatMap((store) => {
-          if (store.state !== "NC") return [];
-          const raw = store.district || store.id || store.name || "";
-          if (!raw) return [];
-          const label = normalizeNcBoardLabel(raw);
-          return isLikelyNcBoardLabel(label) ? [label] : [];
-        })
-      )
-    )
-      .filter(Boolean)
-      .sort();
-  }, [stores]);
+    const boardNames = new Set<string>();
+
+    const addBoard = (raw?: string | null) => {
+      if (!raw) return;
+      const label = normalizeNcBoardLabel(raw);
+      if (isLikelyNcBoardLabel(label)) boardNames.add(label);
+    };
+
+    for (const store of stores) {
+      if (store.state !== "NC" && store.state !== "North Carolina") continue;
+      addBoard(store.district || store.county || store.name || store.displayLabel);
+    }
+
+    for (const drop of ncDrops) {
+      addBoard(drop.board_name || drop.store_county);
+    }
+
+    return Array.from(boardNames).sort();
+  }, [stores, ncDrops]);
 
   const vaCities = useMemo(() => {
     return Array.from(
@@ -751,7 +753,6 @@ export default function DashboardPage() {
                 <input
                   id="watchlist-search"
                   value={bottleQuery}
-                  onFocus={() => setSuggestionSeed((prev) => prev + 1)}
                   onChange={(event) => setBottleQuery(event.target.value)}
                   placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
                   style={{
@@ -794,8 +795,9 @@ export default function DashboardPage() {
                         textAlign: "left",
                         padding: "14px 16px",
                         borderRadius: "16px",
-                        border: "1px solid rgba(196,148,58,0.16)",
-                        background: "linear-gradient(180deg, rgba(47,33,18,0.55) 0%, rgba(22,18,14,0.92) 100%)",
+                        border: "1px solid rgba(196,148,58,0.24)",
+                        background: "linear-gradient(180deg, rgba(55,39,21,0.66) 0%, rgba(22,18,14,0.94) 100%)",
+                        boxShadow: "0 0 22px rgba(196,148,58,0.10)",
                         cursor: "pointer",
                       }}
                     >
@@ -806,8 +808,9 @@ export default function DashboardPage() {
                 </div>
               ) : null}
 
-              <div style={{ display: "grid", gap: "10px" }}>
-                {filteredBottleOptions.slice(0, 10).map((option) => (
+              {bottleQuery.trim() ? (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {filteredBottleOptions.slice(0, 10).map((option) => (
                   <button
                     key={option.canonicalKey}
                     onClick={() => addBottleOption(option)}
@@ -824,8 +827,9 @@ export default function DashboardPage() {
                     <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
                     <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
                   </button>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </StepShell>
 
@@ -892,8 +896,8 @@ export default function DashboardPage() {
                             >
                               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                                 <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{card.label}</span>
-                                <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: dropdownOpen ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                                  {dropdownOpen ? "Open" : "Choose"}
+                                <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: dropdownOpen ? "#17110a" : "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: "999px", border: dropdownOpen ? "1px solid rgba(196,148,58,0.36)" : "1px solid rgba(196,148,58,0.32)", background: dropdownOpen ? "var(--color-accent-amber)" : "rgba(196,148,58,0.14)", padding: "8px 11px", boxShadow: dropdownOpen ? "0 0 18px rgba(196,148,58,0.22)" : "0 0 16px rgba(196,148,58,0.12)" }}>
+                                  {dropdownOpen ? "Open" : "Choose ▾"}
                                 </span>
                               </div>
                               <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
@@ -919,10 +923,14 @@ export default function DashboardPage() {
 
                                   {card.stateCode === "NC" ? (
                                     <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
-                                      {ncBoards.map((board) => {
+                                      {ncBoards.length > 0 ? ncBoards.map((board) => {
                                         const active = localPrefs.ncBoards.includes(board);
                                         return <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>;
-                                      })}
+                                      }) : (
+                                        <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+                                          No North Carolina boards are loaded yet. Try refreshing in a moment.
+                                        </div>
+                                      )}
                                     </div>
                                   ) : null}
 
