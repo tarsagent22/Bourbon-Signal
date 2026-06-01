@@ -10,6 +10,8 @@ const EMPTY_PREFS: UserAlertPreferences = {
     states: [],
     ncBoards: [],
     vaCities: [],
+    ohCities: [],
+    iaCities: [],
     paCounties: [],
     paStores: [],
   },

@@ -10,6 +10,8 @@ export interface AreaPreferences {
   states: string[];
   ncBoards: string[];
   vaCities: string[];
+  ohCities: string[];
+  iaCities: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -26,6 +28,8 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   states: [],
   ncBoards: [],
   vaCities: [],
+  ohCities: [],
+  iaCities: [],
   paCounties: [],
   paStores: [],
 };
@@ -40,12 +44,16 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const toStringArray = (value: unknown) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
+  const supportedStates = new Set(["NC", "VA", "OH", "IA", "MD-MONTGOMERY"]);
+
   return {
-    states: toStringArray(source.states),
+    states: toStringArray(source.states).filter((state) => supportedStates.has(state)),
     ncBoards: toStringArray(source.ncBoards),
     vaCities: toStringArray(source.vaCities),
-    paCounties: toStringArray(source.paCounties),
-    paStores: toStringArray(source.paStores),
+    ohCities: toStringArray(source.ohCities),
+    iaCities: toStringArray(source.iaCities),
+    paCounties: [],
+    paStores: [],
   };
 }
 
