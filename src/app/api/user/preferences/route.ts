@@ -14,9 +14,12 @@ export interface AreaPreferences {
   paStores: string[];
 }
 
+export type AlertMode = "specific_bottles" | "anything_notable";
+
 export interface UserAlertPreferences {
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
+  alertMode: AlertMode;
 }
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -26,6 +29,10 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   paCounties: [],
   paStores: [],
 };
+
+function normalizeAlertMode(input: unknown): AlertMode {
+  return input === "anything_notable" ? "anything_notable" : "specific_bottles";
+}
 
 function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
@@ -46,6 +53,7 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
   return {
     areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
     notificationPreferences: normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences),
+    alertMode: normalizeAlertMode(user.publicMetadata?.alertMode),
   };
 }
 
@@ -67,11 +75,12 @@ export async function POST(req: NextRequest) {
   const notificationPreferences = normalizeNotificationPreferences(
     payload.notificationPreferences ?? getDefaultNotificationPreferences()
   );
+  const alertMode = normalizeAlertMode(payload.alertMode);
 
   const client = await clerkClient();
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences },
+    publicMetadata: { areaPreferences, notificationPreferences, alertMode },
   });
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode });
 }

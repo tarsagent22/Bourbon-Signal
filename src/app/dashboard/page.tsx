@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
-import type { AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
+import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
@@ -298,6 +298,7 @@ export default function DashboardPage() {
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
+  const [alertMode, setAlertMode] = useState<AlertMode>("specific_bottles");
   const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
     sending: false,
     success: false,
@@ -344,6 +345,7 @@ export default function DashboardPage() {
     if (!mounted) return;
     setLocalPrefs(isSignedIn ? prefs.areaPreferences : EMPTY_PREFS);
     setNotificationPrefs(isSignedIn ? prefs.notificationPreferences : getDefaultNotificationPreferences());
+    setAlertMode(isSignedIn ? prefs.alertMode ?? "specific_bottles" : "specific_bottles");
   }, [prefs, isSignedIn, mounted]);
 
   const bottleOptions = useMemo<BottleOption[]>(() => {
@@ -662,6 +664,7 @@ export default function DashboardPage() {
       const nextPrefs: UserAlertPreferences = {
         areaPreferences: localPrefs,
         notificationPreferences: notificationPrefs,
+        alertMode,
       };
       await savePreferences(nextPrefs);
       setSavedLocations(true);
@@ -1040,12 +1043,60 @@ export default function DashboardPage() {
 
           <StepShell
             step="03"
-            title="Notification preferences"
-            subtitle="Choose how Bourbon Signal should contact you when a bottle signal matches your watchlist and hunting territory. Save the channels you want ready to go."
+            title="Alert type & notifications"
+            subtitle="Choose whether Bourbon Signal watches specific bottles or anything notable in your selected area, then pick how you want to hear about it."
           >
-            <div
-              style={{
-                display: "grid",
+            <div style={{ display: "grid", gap: "18px" }}>
+              <div style={{ display: "grid", gap: "12px" }}>
+                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  Alert me about
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "12px" }}>
+                  {[
+                    {
+                      value: "specific_bottles" as AlertMode,
+                      label: "Specific bottles I choose",
+                      note: "Best when you know exactly what you're chasing. Alerts require a watchlist match in your selected area.",
+                    },
+                    {
+                      value: "anything_notable" as AlertMode,
+                      label: "Anything notable in my area",
+                      note: "Best when you care about your local board, city, or store. Alerts can fire for allocated, limited, unicorn, shipment, or verified inventory signals nearby.",
+                    },
+                  ].map((option) => {
+                    const selected = alertMode === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => setAlertMode(option.value)}
+                        style={{
+                          textAlign: "left",
+                          borderRadius: "18px",
+                          border: selected ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
+                          background: selected
+                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
+                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
+                          boxShadow: selected ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                          padding: "18px",
+                          cursor: "pointer",
+                          display: "grid",
+                          gap: "8px",
+                        }}
+                      >
+                        <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{option.label}</span>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{option.note}</span>
+                        <span style={{ justifySelf: "start", marginTop: "4px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: selected ? "#17110a" : "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.28)", background: selected ? "var(--color-accent-amber)" : "rgba(196,148,58,0.10)", padding: "6px 9px" }}>
+                          {selected ? "Selected" : "Choose"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
                 gap: "18px",
                 alignItems: "start",
@@ -1304,6 +1355,7 @@ export default function DashboardPage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", position: "relative" }}>
                   {[
+                    { label: "Alert type", value: alertMode === "anything_notable" ? "Notable" : "Bottles" },
                     { label: "Watched bottles", value: String(watchedBottleOptions.length) },
                     { label: "Recent matched signals", value: String(watchlistSignals.length) },
                     { label: "States", value: String(localPrefs.states.length) },
@@ -1323,12 +1375,14 @@ export default function DashboardPage() {
                 <div style={{ display: "grid", gap: "12px", position: "relative" }}>
                   <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%)", padding: "16px" }}>
                     <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      Watchlist scope
+                      Alert type
                     </p>
                     <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
-                      {watchedBottleOptions.length > 0
-                        ? `${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} will trigger alerts.`
-                        : "Watchlist not set. Add bottles in Step 1 to start tracking signals."}
+                      {alertMode === "anything_notable"
+                        ? "Anything notable in your selected area can trigger alerts. Your watchlist is optional in this mode."
+                        : watchedBottleOptions.length > 0
+                          ? `${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} will trigger alerts in your selected area.`
+                          : "Watchlist not set. Add bottles in Step 1 to start tracking specific bottle alerts."}
                     </p>
                   </div>
 
@@ -1415,6 +1469,28 @@ export default function DashboardPage() {
                     </p>
                   ) : null}
                 </div>
+              </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <button
+                  onClick={handleSaveAlertSetup}
+                  disabled={!isSignedIn || savingLocations}
+                  style={{
+                    padding: "12px 18px",
+                    borderRadius: "12px",
+                    border: savedNotifications ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
+                    background: savedNotifications ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: savedNotifications ? "#9AD4B1" : "#0D0B07",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    cursor: !isSignedIn || savingLocations ? "not-allowed" : "pointer",
+                    opacity: !isSignedIn || savingLocations ? 0.7 : 1,
+                  }}
+                >
+                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : "Save alert setup"}
+                </button>
               </div>
             </div>
           </StepShell>
