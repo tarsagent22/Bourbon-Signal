@@ -190,32 +190,10 @@ Start Hunting
               <ArrowRight size={16} />
             </a>
 
-            <a
-              href="#drops"
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "15px",
-                fontWeight: 500,
-                color: "rgba(245, 237, 214, 0.6)",
-                textDecoration: "none",
-                cursor: "pointer",
-                transition: "color 200ms",
-                padding: "14px 16px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "rgba(245, 237, 214, 0.9)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "rgba(245, 237, 214, 0.6)";
-              }}
-            >
-              See Live Signal ↓
-            </a>
           </div>
         </ScrollReveal>
       </div>
 
-      {/* Scroll indicator removed — ↓ is inline with "See Live Drops" */}
     </section>
   );
 }

@@ -16,7 +16,7 @@ import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
 import type { AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
-import { formatRelativeTime, getDisplayName } from "@/lib/drops";
+import { getDisplayName } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
@@ -30,23 +30,6 @@ const EMPTY_PREFS: AreaPreferences = {
 };
 
 const SIMPLE_STATE_CODES = ["NC", "VA", "PA", "IN"] as const;
-const SOUTHEAST_READINESS_CODES = ["VA", "NC", "MD-MONTGOMERY", "AL", "WV", "MS", "GA", "KY", "TN", "FL"];
-
-const COVERAGE_TIER_LABELS: Record<string, string> = {
-  live_store_inventory: "Live store inventory",
-  shipment_drop_intelligence: "Shipment / drop radar",
-  catalog_watch: "Catalog watch",
-  policy_source_discovery: "Policy / source discovery",
-};
-
-const PRECISION_LABELS: Record<string, string> = {
-  store_level: "Store-level",
-  store_aggregate: "Store aggregate",
-  board_county: "Board / county",
-  board_warehouse: "Board warehouse",
-  statewide_catalog: "Statewide catalog",
-  statewide_policy: "Statewide policy",
-};
 
 interface AlertPreviewState {
   sending: boolean;
@@ -79,31 +62,6 @@ interface TerritoryDropdownState {
   stateCode: string;
   scope: "primary" | "secondary";
   value?: string;
-}
-
-interface BestSignalCard {
-  id: string;
-  bucket: string;
-  state: string;
-  title: string;
-  location: string;
-  signalLabel: string;
-  source?: string;
-  sourceUrl?: string;
-  quantity?: number;
-  summary: string;
-  canAlertAsInventory?: boolean;
-  locationPrecision?: string;
-}
-
-interface ReadinessCard {
-  state: string;
-  label: string;
-  coverageTier: string;
-  signalCount: number;
-  bestLocationPrecision: string;
-  testerValue: string;
-  status: string;
 }
 
 function isWhiskeyProduct(name: string) {
@@ -222,36 +180,6 @@ function makeStateLabel(code: string) {
     "MD-MONTGOMERY": "Montgomery, MD",
   };
   return labels[code] || code;
-}
-
-function formatCoverageTier(tier?: string) {
-  if (!tier) return "Source watch";
-  return COVERAGE_TIER_LABELS[tier] || tier.replace(/_/g, " ");
-}
-
-function formatPrecision(precision?: string) {
-  if (!precision) return "Precision varies";
-  return PRECISION_LABELS[precision] || precision.replace(/_/g, " ");
-}
-
-function signalBucketLabel(bucket: string) {
-  const labels: Record<string, string> = {
-    vaStoreInventory: "VA live shelf signals",
-    ncShipmentAndWarehouse: "NC warehouse radar",
-    alReleaseIntel: "AL release intel",
-    wvBarrelPicks: "WV barrel-pick watch",
-    tnSourceDiscovery: "TN source discovery",
-    mdMontgomeryInventory: "Montgomery ABS aggregate",
-  };
-  return labels[bucket] || bucket.replace(/([A-Z])/g, " $1").trim();
-}
-
-function bestSignalLabel(signal: BestSignalCard) {
-  if (signal.canAlertAsInventory) return "Inventory signal";
-  const precision = signal.locationPrecision?.toLowerCase();
-  if (precision === "board_warehouse") return "Warehouse radar";
-  if (precision === "store_aggregate") return "Aggregate inventory";
-  return "Research signal";
 }
 
 function StepShell({
@@ -573,99 +501,6 @@ export default function DashboardPage() {
     }));
   }, [mounted, watchedBottleOptions, recentDrops, bottles]);
 
-  const southeastReadinessCards = useMemo<ReadinessCard[]>(() => {
-    const notes = engineStats.southeastReadiness?.stateNotes ?? {};
-    const coverageStates = engineStats.stateCoverage?.states ?? [];
-
-    return SOUTHEAST_READINESS_CODES.map((state) => {
-      const note = notes[state];
-      const coverage = coverageStates.find((item) => item.state === state);
-      const coverageTier = note?.coverageTier || coverage?.coverageTier || "catalog_watch";
-      return {
-        state,
-        label: note?.label || coverage?.label || makeStateLabel(state),
-        coverageTier,
-        signalCount: note?.signalCount ?? coverage?.signalCount ?? 0,
-        bestLocationPrecision: note?.bestLocationPrecision || coverage?.bestLocationPrecision || "statewide_catalog",
-        testerValue: note?.testerValue || (coverageTier === "live_store_inventory"
-          ? "Store-level signals where the public source supports them."
-          : coverageTier === "shipment_drop_intelligence"
-            ? "Useful shipment or release leads, not guaranteed shelf stock."
-            : "Useful source context, not bottle-level store availability."),
-        status: note?.status || coverage?.status || "watching",
-      };
-    });
-  }, [engineStats.southeastReadiness?.stateNotes, engineStats.stateCoverage?.states]);
-
-  const todayBestSignals = useMemo<BestSignalCard[]>(() => {
-    const statsSignals = engineStats.southeastReadiness?.bestCurrentSignals ?? {};
-    const cards: BestSignalCard[] = [];
-    const seen = new Set<string>();
-
-    for (const [bucket, signals] of Object.entries(statsSignals)) {
-      for (const signal of signals.slice(0, bucket === "vaStoreInventory" ? 3 : 2)) {
-        const state = signal.state || "";
-        if (state === "SC") continue;
-        const title = signal.bottle || signal.rawName || `${makeStateLabel(state)} source watch`;
-        const key = `${bucket}|${state}|${title}|${signal.locationName}|${signal.quantity ?? ""}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        cards.push({
-          id: signal.id ? `${bucket}-${signal.id}-${cards.length}` : `${bucket}-${cards.length}`,
-          bucket: signalBucketLabel(bucket),
-          state,
-          title,
-          location: signal.locationName || makeStateLabel(state),
-          signalLabel: signal.canAlertAsInventory ? "Inventory" : signal.locationPrecision === "board_warehouse" ? "Warehouse radar" : "Source watch",
-          source: signal.source,
-          sourceUrl: signal.sourceUrl,
-          quantity: signal.quantity && signal.quantity > 0 ? signal.quantity : undefined,
-          summary: signal.summary || "Source signal from the latest engine export.",
-          canAlertAsInventory: signal.canAlertAsInventory,
-          locationPrecision: signal.locationPrecision,
-        });
-      }
-    }
-
-    for (const drop of recentDrops.slice(0, 30)) {
-      const state = drop.state || drop.state_code || "";
-      if (!SOUTHEAST_READINESS_CODES.includes(state) || state === "SC") continue;
-      const title = getDisplayName(drop);
-      if (!title || title === "Unknown Bottle") continue;
-      const key = `drop|${state}|${title}|${drop.display_location || drop.store_name || drop.store_city || drop.board_name}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const quantity = drop.quantity_in_stock ?? drop.quantity_shipped ?? drop.quantity;
-      cards.push({
-        id: `${drop.timestamp}-${state}-${cards.length}`,
-        bucket: "Recent user-facing drop",
-        state,
-        title,
-        location: drop.display_location || drop.store_name || drop.store_city || drop.board_name || makeStateLabel(state),
-        signalLabel: drop.signal_label || (drop.can_alert_as_inventory ? "Inventory" : "Drop radar"),
-        source: drop.source,
-        sourceUrl: drop.sourceUrl,
-        quantity: quantity && quantity > 0 ? quantity : undefined,
-        summary: `${drop.signal_label || "Signal"}${drop.display_location || drop.store_city || drop.board_name ? ` at ${drop.display_location || drop.store_city || drop.board_name}` : ""}. Observed ${formatRelativeTime(drop.timestamp)}.`,
-        canAlertAsInventory: drop.can_alert_as_inventory,
-        locationPrecision: drop.location_precision,
-      });
-      if (cards.length >= 10) break;
-    }
-
-    const rank = (card: BestSignalCard) => {
-      let score = 0;
-      if (card.canAlertAsInventory) score += 50;
-      if (card.state === "VA" || card.state === "NC" || card.state === "MD-MONTGOMERY") score += 20;
-      if (card.locationPrecision === "store_level") score += 16;
-      if (card.locationPrecision === "store_aggregate") score += 10;
-      if (card.locationPrecision === "board_warehouse") score += 8;
-      if (card.quantity) score += Math.min(12, Math.log10(card.quantity + 1) * 6);
-      return score;
-    };
-
-    return cards.sort((a, b) => rank(b) - rank(a)).slice(0, 8);
-  }, [engineStats.southeastReadiness?.bestCurrentSignals, recentDrops]);
 
   const territoryCards = useMemo<TerritoryCardConfig[]>(() => ([
     {
@@ -956,124 +791,6 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section
-            style={{
-              borderRadius: "24px",
-              border: "1px solid rgba(196,148,58,0.16)",
-              background: "linear-gradient(180deg, rgba(18,14,10,0.94) 0%, rgba(10,8,6,0.98) 100%)",
-              padding: "clamp(20px, 3vw, 28px)",
-              boxShadow: "0 18px 48px rgba(0,0,0,0.22)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div style={{ maxWidth: "650px" }}>
-                <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-accent-amber)" }}>
-                  Southeast readiness
-                </p>
-                <h2 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "clamp(30px, 5vw, 42px)", color: "var(--color-cream)" }}>
-                  What is actually useful for testers now
-                </h2>
-                <p style={{ margin: "12px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "15px", lineHeight: 1.8, color: "var(--color-text-secondary)" }}>
-                  Bourbon Signal separates live inventory from shipment radar and source-discovery work, so weak public data does not get dressed up as shelf availability.
-                </p>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(82px, 1fr))", gap: "10px", minWidth: "260px" }}>
-                <div style={{ padding: "12px", borderRadius: "16px", background: "rgba(196,148,58,0.08)", border: "1px solid rgba(196,148,58,0.18)" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Signals</div>
-                  <div style={{ marginTop: "6px", fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{engineStats.signalCount ?? engineStats.drops_today}</div>
-                </div>
-                <div style={{ padding: "12px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>States</div>
-                  <div style={{ marginTop: "6px", fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{engineStats.stateCount ?? engineStats.states_covered}</div>
-                </div>
-                <div style={{ padding: "12px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Health</div>
-                  <div style={{ marginTop: "8px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 800, color: (engineStats.refreshHealth?.failedStateCount || engineStats.refreshHealth?.degradedStateCount) ? "#f3c46f" : "#b7e4c7" }}>
-                    {(engineStats.refreshHealth?.failedStateCount || engineStats.refreshHealth?.degradedStateCount) ? "Degraded" : "Clean"}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", marginTop: "22px" }}>
-              {southeastReadinessCards.map((card) => (
-                <div key={card.state} style={{ borderRadius: "18px", border: card.coverageTier === "live_store_inventory" ? "1px solid rgba(74,222,128,0.22)" : "1px solid rgba(255,255,255,0.07)", background: card.coverageTier === "live_store_inventory" ? "linear-gradient(180deg, rgba(34,80,49,0.20) 0%, rgba(255,255,255,0.025) 100%)" : "rgba(255,255,255,0.025)", padding: "16px", display: "grid", gap: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start" }}>
-                    <div>
-                      <div style={{ fontFamily: "var(--font-playfair)", fontSize: "23px", color: "var(--color-cream)" }}>{card.label}</div>
-                      <div style={{ marginTop: "4px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: card.coverageTier === "live_store_inventory" ? "#b7e4c7" : "var(--color-accent-amber)" }}>
-                        {formatCoverageTier(card.coverageTier)}
-                      </div>
-                    </div>
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)", textAlign: "right" }}>{card.signalCount}</div>
-                  </div>
-                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.7, color: "var(--color-text-secondary)" }}>{card.testerValue}</p>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <span style={{ padding: "6px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{formatPrecision(card.bestLocationPrecision)}</span>
-                    <span style={{ padding: "6px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{card.status}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section
-            style={{
-              borderRadius: "24px",
-              border: "1px solid rgba(196,148,58,0.18)",
-              background: "linear-gradient(180deg, rgba(24,18,11,0.94) 0%, rgba(12,9,7,0.98) 100%)",
-              padding: "clamp(20px, 3vw, 28px)",
-              boxShadow: "0 18px 48px rgba(0,0,0,0.24)",
-            }}
-          >
-            <div style={{ display: "grid", gap: "10px", maxWidth: "720px" }}>
-              <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-accent-amber)" }}>
-                Today's best signals
-              </p>
-              <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "clamp(30px, 5vw, 42px)", color: "var(--color-cream)" }}>
-                The short list worth looking at first
-              </h2>
-              <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "15px", lineHeight: 1.8, color: "var(--color-text-secondary)" }}>
-                A tester-facing feed from the engine's existing stats and drops exports: high-confidence inventory when available, then warehouse/release radar clearly labeled as leads.
-              </p>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "12px", marginTop: "22px" }}>
-              {todayBestSignals.length > 0 ? todayBestSignals.map((signal) => (
-                <article key={signal.id} style={{ borderRadius: "18px", border: signal.canAlertAsInventory ? "1px solid rgba(74,222,128,0.24)" : "1px solid rgba(196,148,58,0.14)", background: signal.canAlertAsInventory ? "linear-gradient(180deg, rgba(34,80,49,0.18) 0%, rgba(255,255,255,0.025) 100%)" : "rgba(255,255,255,0.025)", padding: "16px", display: "grid", gap: "12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: signal.canAlertAsInventory ? "#b7e4c7" : "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{signalBucketLabel(signal.bucket) === signal.bucket ? signal.bucket : signal.bucket}</div>
-                      <h3 style={{ margin: "7px 0 0", fontFamily: "var(--font-playfair)", fontSize: "24px", lineHeight: 1.1, color: "var(--color-cream)" }}>{signal.title}</h3>
-                    </div>
-                    <span style={{ padding: "7px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-secondary)", letterSpacing: "0.08em" }}>{signal.state}</span>
-                  </div>
-
-                  <div style={{ display: "grid", gap: "6px" }}>
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", fontWeight: 800 }}>{signal.location}</div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      <span style={{ padding: "6px 9px", borderRadius: "999px", background: "rgba(196,148,58,0.08)", border: "1px solid rgba(196,148,58,0.14)", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{bestSignalLabel(signal)}</span>
-                      <span style={{ padding: "6px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{formatPrecision(signal.locationPrecision)}</span>
-                      {signal.quantity ? <span style={{ padding: "6px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{signal.quantity.toLocaleString()} units</span> : null}
-                    </div>
-                  </div>
-
-                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.7, color: "var(--color-text-secondary)" }}>{signal.summary}</p>
-                  {signal.sourceUrl ? (
-                    <Link href={signal.sourceUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-accent-amber)", textDecoration: "none", fontWeight: 800 }}>
-                      View source{signal.source ? ` · ${signal.source}` : ""}
-                    </Link>
-                  ) : signal.source ? (
-                    <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)" }}>Source: {signal.source}</div>
-                  ) : null}
-                </article>
-              )) : (
-                <div style={{ gridColumn: "1 / -1", borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  The engine export is available, but there are no Southeast-facing best signals in the current payload yet.
-                </div>
-              )}
-            </div>
-          </section>
 
           <StepShell
             step="01"

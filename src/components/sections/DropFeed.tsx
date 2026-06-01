@@ -90,6 +90,21 @@ const MOCK_DROPS: DropEvent[] = [
   },
 ];
 
+function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
+  const rows: GroupedDrop[] = [];
+  for (const drop of drops) {
+    const row = groupDrops([drop], 1)[0];
+    if (!row) continue;
+    rows.push({
+      ...row,
+      id: [row.id, drop.timestamp, drop.store_id, drop.store_address, drop.display_location, drop.sourceUrl].filter(Boolean).join("|"),
+    });
+  }
+  return rows
+    .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
+    .slice(0, limit);
+}
+
 // --- Components ---
 
 function SkeletonRow() {
@@ -998,7 +1013,7 @@ export default function DropFeed() {
       setError(false);
 
       const sourceDrops = json.drops.length > 0 ? json.drops : MOCK_DROPS;
-      const newGrouped = groupDrops(sourceDrops);
+      const newGrouped = latestSignalRows(sourceDrops, 50);
 
       if (!isFirstLoad.current) {
         const incoming = new Set<string>();
@@ -1046,7 +1061,7 @@ export default function DropFeed() {
 
       setGrouped((prev) => {
         const existing = new Set(prev.map((drop) => drop.id));
-        const nextGrouped = groupDrops(sourceDrops).filter((drop) => !existing.has(drop.id));
+        const nextGrouped = latestSignalRows(sourceDrops, 50).filter((drop) => !existing.has(drop.id));
         return [...prev, ...nextGrouped];
       });
       setData((prev) => prev ? { ...prev, total: json.total, hasMore: json.hasMore, offset: 0, limit: 50 } : json);
@@ -1124,10 +1139,13 @@ export default function DropFeed() {
   // Check if area prefs are active
   const hasAreaPrefs = areaPrefs.states.length > 0;
 
-  // Never let the homepage feed go blank if we have recent valid drops.
+  // Always keep at least five recent signals visible, even if filters are narrow.
+  const minimumVisibleSignals = 5;
   const fallbackFeed = filteredGrouped.length > 0 ? filteredGrouped : grouped;
-  const feedWasRelaxed = filteredByArea.length === 0 && fallbackFeed.length > 0;
-  const finalFeed = filteredByArea.length > 0 ? filteredByArea : fallbackFeed;
+  const feedWasRelaxed = filteredByArea.length < minimumVisibleSignals && grouped.length > filteredByArea.length;
+  const finalFeed = filteredByArea.length >= minimumVisibleSignals
+    ? filteredByArea
+    : [...filteredByArea, ...grouped.filter((drop) => !filteredByArea.some((visible) => visible.id === drop.id))].slice(0, Math.max(minimumVisibleSignals, filteredByArea.length || fallbackFeed.length));
 
   const baseVisibleCount = isPaidUser ? Math.max(10, grouped.length || 10) : 7;
   const canShowMore = isPaidUser && !hasSelectedStates && activeTiers.size === 0 && !hasAreaPrefs && !!data?.hasMore;
