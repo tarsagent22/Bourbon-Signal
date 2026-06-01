@@ -44,12 +44,12 @@ function uniqueHistoricalSignals(snapshots, currentSignals) {
   const byKey = new Map();
   for (const snapshot of snapshots) {
     for (const signal of snapshot.signals || []) {
-      const key = [signal.key, signal.observedAt || snapshot.generatedAt, signal.quantity || 0, signal.availabilityStatus || '', signal.price || 0].join('|');
+      const key = [signal.key || signal.id || signal.sourceSignalId, signal.observedAt || snapshot.generatedAt, signal.quantity || 0, signal.availabilityStatus || '', signal.price || 0].join('|');
       byKey.set(key, signal);
     }
   }
   for (const signal of currentSignals || []) {
-    const key = [signal.key, signal.observedAt || '', signal.quantity || 0, signal.availabilityStatus || '', signal.price || 0].join('|');
+    const key = [signal.key || signal.id || signal.sourceSignalId, signal.observedAt || '', signal.quantity || 0, signal.availabilityStatus || '', signal.price || 0].join('|');
     byKey.set(key, signal);
   }
   return [...byKey.values()];
@@ -237,6 +237,7 @@ function dropPriority(signal) {
   if (type === 'nc_board_shipment_snapshot') return 64;
   if (signal.state === 'VA' && type === 'store_inventory_result') return 62;
   if (type === 'nc_statewide_warehouse_stock') return 58;
+  if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 66;
   if (signal.canAlertAsInventory) return 50;
   if (/store_delivery_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
@@ -252,13 +253,22 @@ function isSafePublicSignal(signal) {
 }
 
 function buildDrops(signals, bible) {
+  const seenSourceIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => findBibleRecord(s, bible))
     .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
-    .slice(0, 10000)
-    .map((signal) => publicSignal(signal, bible));
+    .filter((s) => {
+      const sourceId = s.key || s.id || s.sourceSignalId;
+      if (!sourceId) return true;
+      if (seenSourceIds.has(sourceId)) return false;
+      seenSourceIds.add(sourceId);
+      return true;
+    })
+    .map((signal) => publicSignal(signal, bible))
+    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.locationName, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.locationName, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
+    .slice(0, 10000);
 }
 
 function buildAlerts(alerts) {

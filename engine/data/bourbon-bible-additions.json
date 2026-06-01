@@ -121,16 +121,19 @@
     {
       "canonical": "Old Fitzgerald Bottled-in-Bond Decanter Series",
       "aliases": [
-        "OLD FITZGERALD BIB 10 YR DECANTER",
         "OLD FITZGERALD 7YR BIB BOURBON",
-        "Old Fitzgerald Bottled In Bond Decanter",
+        "OLD FITZGERALD BIB 10 YR DECANTER",
+        "Old Fitz BIB Decanter",
         "Old Fitz Decanter",
-        "Old Fitz BIB Decanter"
+        "Old Fitzgerald Bottled In Bond Decanter",
+        "Old Fitzgerald Straight Bourbon 7 Year Bottled In Bond",
+        "Old Fitzgerald Straight Bourbon 7 Year Old Bottled in Bond"
       ],
       "tier": "unicorn",
       "producer": "Heaven Hill",
       "sourceStates": [
         "IA",
+        "PA",
         "VA"
       ]
     },
@@ -910,6 +913,68 @@
       "sourceStates": [
         "site",
         "watchlist"
+      ]
+    },
+    {
+      "canonical": "Willett Pot Still Reserve Small Batch Straight Bourbon",
+      "aliases": [
+        "Willett Pot Still Reserve Bourbon",
+        "Willett Pot Still Reserve Small Batch Straight Bourbon",
+        "Willett Pot Still Reserve Straight Bourbon Small Batch"
+      ],
+      "tier": "limited",
+      "producer": "Willett Family Estate",
+      "sourceStates": [
+        "PA"
+      ]
+    },
+    {
+      "canonical": "Michter's US 1 Straight Bourbon Small Batch",
+      "aliases": [
+        "Michter's US 1 Straight Bourbon Small Batch",
+        "Michters US 1 Straight Bourbon Small Batch",
+        "Michter's Small Batch Bourbon",
+        "Michters Small Batch Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Michter's",
+      "sourceStates": [
+        "PA"
+      ]
+    },
+    {
+      "canonical": "Michter's US 1 American Whiskey",
+      "aliases": [
+        "Michter's US 1 American Whiskey",
+        "Michters US 1 American Whiskey"
+      ],
+      "tier": "limited",
+      "producer": "Michter's",
+      "sourceStates": [
+        "PA"
+      ]
+    },
+    {
+      "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+      "aliases": [
+        "Wild Turkey Rare Breed Bourbon",
+        "Wild Turkey Rare Breed Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Wild Turkey",
+      "sourceStates": [
+        "PA"
+      ]
+    },
+    {
+      "canonical": "Bird Gang Bourbon",
+      "aliases": [
+        "Bird Gang Bourbon"
+      ],
+      "tier": "standard",
+      "producer": null,
+      "sourceStates": [
+        "PA"
       ]
     }
   ],

@@ -551,60 +551,139 @@ async function collectVirginia(config, bible) {
   return { signals, roadblocks };
 }
 
+const PA_SEARCH_TERMS = [
+  'buffalo trace bourbon', 'weller bourbon', 'blanton bourbon', 'eagle rare bourbon', 'stagg bourbon',
+  'old fitzgerald bourbon', 'old fitzgerald bottled in bond', 'willett bourbon', 'michter bourbon',
+  'eh taylor bourbon', 'elmer t lee bourbon'
+];
+
+const PA_BOURBON_RE = /bourbon|straight rye|american whiskey|michter|willett|buffalo trace|eagle rare|weller|blanton|stagg|old fitz|fitzgerald|e\.?h\.?\s*taylor|elmer t|colonel\s*taylor/i;
+const PA_EXCLUDE_RE = /cream|cocktail|wine|cabernet|chardonnay|sauvignon|cava|grenache|merlot|vodka|gin|rum|tequila|liqueur|ready to drink|flavored whiskey|black cherry/i;
+
+function paDecodePage(text) {
+  return htmlAttrDecode(safePercentDecode(text));
+}
+
+function paAttr(block, key) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return block.match(new RegExp(`"${escaped}":\\["([^"]*)"\\]`))?.[1] || null;
+}
+
+function paInventoryMap(decoded) {
+  const map = new Map();
+  for (const match of decoded.matchAll(/"([0-9]{8,9})":\{"default":\{([^}]+)\}\}/g)) {
+    const sku = match[1];
+    const body = match[2];
+    const qty = Number(body.match(/"inStockQuantity":(\d+)/)?.[1] || body.match(/"orderableQuantity":(\d+)/)?.[1] || 0) || 0;
+    const stockStatus = body.match(/"stockStatus":"([^"]+)"/)?.[1] || null;
+    const prior = map.get(sku);
+    if (!prior || qty > prior.inStockQuantity || (stockStatus === 'IN_STOCK' && prior.stockStatus !== 'IN_STOCK')) {
+      map.set(sku, { sku, stockStatus, inStockQuantity: qty, orderableQuantity: Number(body.match(/"orderableQuantity":(\d+)/)?.[1] || 0) || 0 });
+    }
+  }
+  return map;
+}
+
+function paProductRows(decoded) {
+  const inventory = paInventoryMap(decoded);
+  const rows = [];
+  for (const match of decoded.matchAll(/"attributes":\{[\s\S]*?\}\}/g)) {
+    const block = match[0];
+    if (!block.includes('product.displayName')) continue;
+    const sku = paAttr(block, 'product.repositoryId') || paAttr(block, 'sku.repositoryId') || paAttr(block, 'sku.listingId');
+    const name = paAttr(block, 'product.displayName');
+    const brand = paAttr(block, 'product.brand');
+    const category = paAttr(block, 'parentCategory.displayName');
+    const type = paAttr(block, 'B2CProduct.x_type');
+    const route = paAttr(block, 'product.route');
+    if (!sku || !name) continue;
+    const searchable = `${name} ${brand || ''} ${category || ''} ${type || ''}`;
+    if (!PA_BOURBON_RE.test(searchable) || PA_EXCLUDE_RE.test(searchable)) continue;
+    rows.push({
+      sku,
+      name,
+      brand,
+      category,
+      type,
+      route,
+      price: Number(paAttr(block, 'sku.activePrice') || paAttr(block, 'product.salePrice') || paAttr(block, 'product.listPrice') || 0) || null,
+      onlineAvailable: paAttr(block, 'product.b2c_onlineAvailable') || null,
+      bopisDisabled: paAttr(block, 'B2CProduct.b2c_disableBopis') || null,
+      highlyAllocated: paAttr(block, 'B2CProduct.b2c_highlyAllocatedProduct') || null,
+      lotteryProduct: paAttr(block, 'B2CProduct.b2c_lotteryProduct') || null,
+      inventory: inventory.get(sku) || { sku, stockStatus: null, inStockQuantity: 0, orderableQuantity: 0 }
+    });
+  }
+  return rows;
+}
+
 async function collectPennsylvania(config, bible) {
   const signals = [], roadblocks = [];
-  const url = 'https://www.finewineandgoodspirits.com/search?Ntt=bourbon';
-  try {
-    const res = await textFetch(url);
-    if (!res.ok) {
-      roadblocks.push({ state: config.id, source: 'FWGS search hydration', url, status: res.status, error: 'Search page did not load', nextRoute: 'Use browser/network extraction for Oracle Commerce search and pickup APIs.' });
-      return { signals, roadblocks };
+  const seen = new Set();
+
+  for (const term of PA_SEARCH_TERMS) {
+    const searchUrl = `https://www.finewineandgoodspirits.com/search?Ntt=${encodeURIComponent(term)}`;
+    try {
+      const res = await textFetch(searchUrl, { timeoutMs: 22000 });
+      if (!res.ok) {
+        roadblocks.push({ state: config.id, source: 'FWGS Oracle Commerce search hydration', url: searchUrl, status: res.status, error: res.error || 'Search page did not load', nextRoute: 'Use browser/network extraction for Oracle Commerce search and pickup APIs.' });
+        continue;
+      }
+      const decoded = paDecodePage(res.text);
+      const pageCount = Number(decoded.match(/PRODUCTS\s*\(\s*(?:<!--\s*-->\s*)?(\d+)/i)?.[1] || decoded.match(/"totalMatchingRecords":(\d+)/i)?.[1] || 0) || 0;
+      const rows = paProductRows(decoded);
+      if (!rows.length && pageCount > 0) {
+        roadblocks.push({ state: config.id, source: 'FWGS Oracle Commerce search hydration', url: searchUrl, status: res.status, error: `Search returned ${pageCount} result(s), but no focused bourbon rows survived parser filters.`, nextRoute: 'Inspect product attributes/filters for this search term and update PA_BOURBON_RE/PA_EXCLUDE_RE if appropriate.' });
+      }
+
+      for (const row of rows) {
+        const key = row.sku;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const { base } = signalBase(config.id, 'FWGS Oracle Commerce product/inventory hydration', row.route ? `https://www.finewineandgoodspirits.com${row.route}` : searchUrl, row.name, bible);
+        const qty = Math.max(row.inventory.inStockQuantity || 0, row.inventory.orderableQuantity || 0);
+        const inStock = row.inventory.stockStatus === 'IN_STOCK' || qty > 0;
+        const allocated = row.highlyAllocated === 'Y' || row.lotteryProduct === 'Y' || RARE_RE.test(row.name);
+        signals.push({
+          id: stableId([config.id, 'fwgs-hydrated-product', row.sku, row.inventory.stockStatus, qty, row.price]),
+          ...base,
+          confidence: Math.max(allocated ? 0.72 : 0.66, base.confidence),
+          eventType: inStock ? 'store_inventory_aggregate' : allocated ? 'allocated_product_watch' : 'product_catalog_watch',
+          locationPrecision: 'store_aggregate',
+          locationName: 'Pennsylvania FWGS statewide search',
+          stateCode: 'PA',
+          quantity: qty,
+          availabilityStatus: row.inventory.stockStatus || (inStock ? 'IN_STOCK' : 'UNKNOWN'),
+          availabilityLabel: row.inventory.stockStatus === 'IN_STOCK' ? 'In stock in FWGS online/statewide inventory' : row.inventory.stockStatus === 'OUT_OF_STOCK' ? 'Out of stock in FWGS online/statewide inventory' : null,
+          price: row.price,
+          observedAt: base.fetchedAt,
+          evidence: `FWGS Oracle Commerce hydration lists ${row.name} (${row.sku})${row.price ? ` at $${row.price}` : ''} with status ${row.inventory.stockStatus || 'unknown'}${qty ? ` and ${qty} orderable/in-stock unit(s)` : ''}. This is statewide FWGS online/search inventory, not per-store shelf inventory; store-specific pickup still needs fulfillment/store API extraction.`,
+          raw: { ...row, term, pageCount, precisionCaveat: 'FWGS statewide/search aggregate; not per-store pickup inventory.' }
+        });
+      }
+
+      if (pageCount && !rows.length) {
+        const { base } = signalBase(config.id, 'FWGS Oracle Commerce product search count', searchUrl, term, bible);
+        signals.push({
+          id: stableId([config.id, 'fwgs-search-count', term, pageCount]),
+          ...base,
+          eventType: 'product_search_count',
+          locationPrecision: 'store_aggregate',
+          locationName: 'Pennsylvania FWGS statewide search',
+          stateCode: 'PA',
+          quantity: pageCount,
+          observedAt: base.fetchedAt,
+          evidence: `FWGS product search returned ${pageCount} result(s) for ${term}; no focused bourbon inventory row was parsed from the hydrated payload.`,
+          raw: { term, pageCount }
+        });
+      }
+    } catch (error) {
+      roadblocks.push({ state: config.id, source: 'FWGS Oracle Commerce search hydration', url: searchUrl, status: 0, error: error.message, nextRoute: 'Retry through browser/network extraction.' });
     }
-    const decoded = safePercentDecode(res.text);
-    for (const term of TRACKED_TERMS.PA) {
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const facetRe = new RegExp(`\\{\\"count\\":(\\d+),\\"link\\":\\"([^\\"]+)\\",\\"label\\":\\"(${escaped})\\"`, 'i');
-      const match = decoded.match(facetRe);
-      if (!match) continue;
-      const count = Number(match[1]) || null;
-      const link = htmlAttrDecode(match[2]).replace(/\\u0026/g, '&');
-      const { base } = signalBase(config.id, 'FWGS Oracle Commerce search facet', url, term, bible);
-      signals.push({
-        id: stableId([config.id, 'fwgs-facet', term, count, link]),
-        ...base,
-        eventType: 'store_pickup_search_aggregate',
-        locationPrecision: 'store_aggregate',
-        locationName: 'Pennsylvania FWGS statewide search',
-        quantity: count,
-        observedAt: base.fetchedAt,
-        evidence: `FWGS search hydration exposes ${count ?? 'unknown'} in-stock/search result(s) for ${term}; store pickup/store-detail inventory still needs Oracle Commerce API extraction.`,
-        raw: { term, count, link }
-      });
-    }
-    for (const term of TRACKED_TERMS.PA) {
-      const searchUrl = `https://www.finewineandgoodspirits.com/search?Ntt=${encodeURIComponent(term.toLowerCase())}`;
-      const termRes = await textFetch(searchUrl);
-      if (!termRes.ok) continue;
-      const count = Number(termRes.text.match(/PRODUCTS\s*\(\s*(?:<!--\s*-->\s*)?(\d+)/i)?.[1] || 0);
-      if (!count) continue;
-      const { base } = signalBase(config.id, 'FWGS Oracle Commerce product search count', searchUrl, term, bible);
-      signals.push({
-        id: stableId([config.id, 'fwgs-search-count', term, count]),
-        ...base,
-        eventType: 'store_pickup_search_count',
-        locationPrecision: 'store_aggregate',
-        locationName: 'Pennsylvania FWGS statewide search',
-        quantity: count,
-        observedAt: base.fetchedAt,
-        evidence: `FWGS product search returned ${count} product result(s) for ${term}; visible page offers “View products available for: Shipping”, but store-specific pickup inventory still needs Oracle Commerce store/fulfillment API extraction.`,
-        raw: { term, count }
-      });
-    }
-    if (!signals.length) {
-      roadblocks.push({ state: config.id, source: 'FWGS search hydration', url, status: res.status, error: 'Loaded FWGS search but no tracked rare brand facets parsed', nextRoute: 'Inspect Oracle Commerce /ccstore and Endeca search payloads in browser.' });
-    }
-  } catch (error) {
-    roadblocks.push({ state: config.id, source: 'FWGS search hydration', url, status: 0, error: error.message, nextRoute: 'Retry through browser/network extraction.' });
+  }
+
+  if (!signals.some((signal) => signal.eventType === 'store_inventory_aggregate')) {
+    roadblocks.push({ state: config.id, source: 'FWGS Oracle Commerce inventory hydration', url: 'https://www.finewineandgoodspirits.com/search', status: 200, error: 'No positive focused bourbon inventory aggregates parsed from FWGS search hydration.', nextRoute: 'Capture selected-store fulfillment/API calls to move from statewide online inventory to county/store pickup rows.' });
   }
   return { signals, roadblocks };
 }
