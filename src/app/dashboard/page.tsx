@@ -738,60 +738,6 @@ export default function DashboardPage() {
         </section>
 
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px) 80px", display: "grid", gap: "22px" }}>
-          <section
-            style={{
-              borderRadius: "24px",
-              border: "1px solid rgba(196,148,58,0.18)",
-              background: "linear-gradient(180deg, rgba(24,18,11,0.94) 0%, rgba(14,10,7,0.98) 100%)",
-              padding: "24px",
-              boxShadow: "0 18px 48px rgba(0,0,0,0.26)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", alignItems: "flex-start" }}>
-              <div style={{ maxWidth: "620px" }}>
-                <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--color-accent-amber)" }}>
-                  Your hunt right now
-                </p>
-                <h2 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "clamp(30px, 5vw, 42px)", color: "var(--color-cream)" }}>
-                  Immediate payoff, not just setup
-                </h2>
-                <p style={{ margin: "12px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "15px", lineHeight: 1.8, color: "var(--color-text-secondary)" }}>
-                  Your watchlist is live, your territory stack is saved, and these are the freshest signals Bourbon Signal can already connect to the bottles you care about.
-                </p>
-              </div>
-              <div style={{ display: "grid", gap: "10px", minWidth: "180px" }}>
-                <div style={{ padding: "12px 14px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Watched bottles</div>
-                  <div style={{ marginTop: "6px", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)" }}>{watchedBottleOptions.length}</div>
-                </div>
-                <div style={{ padding: "12px 14px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Recent matched signals</div>
-                  <div style={{ marginTop: "6px", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)" }}>{watchlistSignals.length}</div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
-              {watchlistSignals.length > 0 ? watchlistSignals.map((signal, index) => (
-                <div key={`${signal.bottle}-${signal.timestamp}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", padding: "14px 16px", borderRadius: "18px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)" }}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{signal.bottle}</div>
-                    <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)" }}>{signal.location}</div>
-                  </div>
-                  <div style={{ display: "grid", gap: "4px", justifyItems: "end" }}>
-                    <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{signal.state}</span>
-                    <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-tertiary)" }}>{new Date(signal.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
-                  </div>
-                </div>
-              )) : (
-                <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  No fresh watchlist matches surfaced in the latest live window yet. Add more bottles or widen your territory to make the feed start working for you.
-                </div>
-              )}
-            </div>
-          </section>
-
-
           <StepShell
             step="01"
             title="Bottle watchlist"
@@ -1344,13 +1290,14 @@ export default function DashboardPage() {
                     Preference summary
                   </h3>
                   <p style={{ margin: "10px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "42ch" }}>
-                    Your watchlist, territory, and delivery choices combine here into one live beta alert setup snapshot.
+                    Your watchlist, territory, and delivery choices combine here into one alert setup snapshot.
                   </p>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", position: "relative" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", position: "relative" }}>
                   {[
-                    { label: "Bottles", value: String(watchedBottleOptions.length) },
+                    { label: "Watched bottles", value: String(watchedBottleOptions.length) },
+                    { label: "Recent matched signals", value: String(watchlistSignals.length) },
                     { label: "States", value: String(localPrefs.states.length) },
                     { label: "Channels", value: String([
                       notificationPrefs.onSite.enabled,
@@ -1394,7 +1341,7 @@ export default function DashboardPage() {
                     </p>
                     <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.7 }}>
                       {[
-                        notificationPrefs.onSite.enabled ? "On-site inbox (live beta)" : null,
+                        notificationPrefs.onSite.enabled ? "On-site inbox" : null,
                         notificationPrefs.email.enabled ? `Email (${notificationPrefs.email.mode === "all" ? "all signals" : notificationPrefs.email.mode === "major_only" ? "major hits" : "roundup"})` : null,
                         notificationPrefs.sms.enabled ? "SMS" : null,
                       ].filter(Boolean).join(", ") || "No alert channels selected yet."}
@@ -1420,7 +1367,7 @@ export default function DashboardPage() {
                       Premium email preview
                     </p>
                     <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "38ch" }}>
-                      Send a sample alert to your inbox and see exactly what the live beta email experience feels like before the next real drop hits.
+                      Send a sample alert to your inbox and see exactly what the email experience feels like before the next real drop hits.
                     </p>
                   </div>
 
