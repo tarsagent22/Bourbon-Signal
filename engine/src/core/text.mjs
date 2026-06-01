@@ -78,3 +78,7 @@ export function extractLinks(html, baseUrl) {
 export function findPdfLinks(html, baseUrl) {
   return extractLinks(html, baseUrl).filter((link) => /\.pdf($|[?#])/i.test(link.href) || /pdf/i.test(link.label));
 }
+
+export function findDocumentLinks(html, baseUrl) {
+  return extractLinks(html, baseUrl).filter((link) => /\.(pdf|xls|xlsx|csv)($|[?#])/i.test(link.href) || /\b(pdf|xls|xlsx|csv|spreadsheet|price list|license report)\b/i.test(link.label));
+}

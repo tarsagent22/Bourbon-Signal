@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
@@ -10,16 +7,7 @@ import { useAuth } from "@/lib/auth";
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 function SettingsPageContent() {
-  const router = useRouter();
-  const clerkAuth = useClerkAuth();
   const { user, signOut } = useAuth();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!clerkAuth.sessionId) {
-      router.push("/sign-in");
-    }
-  }, [clerkAuth.sessionId, router]);
 
   const userEmail =
     user?.emailAddresses?.[0]?.emailAddress || "";

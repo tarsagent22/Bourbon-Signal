@@ -32,9 +32,9 @@ function ScrollToTopButton() {
           style={{
             width: "40px",
             height: "40px",
-            backgroundColor: "var(--color-accent-amber)",
-            border: "none",
-            boxShadow: "0 4px 12px rgba(212, 146, 11, 0.3)",
+            background: "linear-gradient(145deg, rgba(212,146,11,0.96), rgba(242,193,78,0.92))",
+            border: "1px solid rgba(255,255,255,0.16)",
+            boxShadow: "0 10px 28px rgba(0,0,0,0.36), 0 0 22px rgba(212,146,11,0.18)",
           }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}

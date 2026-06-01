@@ -3,8 +3,12 @@ import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite } 
 
 export async function GET() {
   try {
-    const exportPayload = readSiteExport("stores");
-    const rawStores = Array.isArray(exportPayload?.stores) ? exportPayload.stores : [];
+    const exportPayload = readSiteExport("locations") ?? readSiteExport("stores");
+    const rawStores = Array.isArray(exportPayload?.locations)
+      ? exportPayload.locations
+      : Array.isArray(exportPayload?.stores)
+        ? exportPayload.stores
+        : [];
     const stores = rawStores.map((store) => normalizeStoreForSite(store as Record<string, unknown>));
 
     return NextResponse.json(

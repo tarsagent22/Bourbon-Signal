@@ -13,12 +13,10 @@ import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
-import { useStatePreferences } from "@/lib/statePreferences";
+import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 
 type FinderMode = "bottle" | "store";
-type FinderState = "ALL" | "NC" | "VA" | "PA" | "IN" | "KY";
-
-const STATE_OPTIONS: FinderState[] = ["ALL", "NC", "VA", "PA", "IN", "KY"];
+type FinderState = string;
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
@@ -64,6 +62,9 @@ function getBottleCanonicalKeys(selectedBottle: Bottle) {
   const values = [
     selectedBottle.name,
     selectedBottle.canonical_name,
+    selectedBottle.canonical_id,
+    selectedBottle.canonical_key,
+    ...(selectedBottle.aliases || []),
     ...(selectedBottle.search_aliases || []),
     ...Object.values(selectedBottle.state_aliases || {}).flat(),
   ].filter(Boolean);
@@ -183,6 +184,9 @@ function getDropLocations(drop: DropEvent) {
 }
 
 function getSignalQuality(drop: DropEvent) {
+  if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
+    return { label: "Verified store-level", score: 4 };
+  }
   if (drop.state === "KY" || drop.state_code === "KY") {
     const scope = String(drop.availability_scope || "");
     const confidence = String(drop.confidence_tier || "");
@@ -196,6 +200,69 @@ function getSignalQuality(drop: DropEvent) {
   if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store inventory", score: 3 };
   if (drop.board_name) return { label: "Board shipment lead", score: 2 };
   return { label: "Weak signal", score: 1 };
+}
+
+function getTrustBadge(drop?: DropEvent | null) {
+  if (!drop) return { label: "Verifying", detail: "No current evidence yet", tone: "muted" as const };
+  if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
+    return { label: "Verified", detail: "Store-level positive evidence", tone: "exact" as const };
+  }
+  if (drop.state === "KY" || drop.state_code === "KY" || String(drop.confidence_tier || "").startsWith("official")) {
+    return { label: "Official", detail: "Source-confirmed release signal", tone: "official" as const };
+  }
+  return { label: "Positive", detail: "Noise-filtered bottle signal", tone: "positive" as const };
+}
+
+function formatFreshness(timestamp?: string | null) {
+  if (!timestamp) return "No recent signal";
+  return `Confirmed ${formatRelativeTime(timestamp)}`;
+}
+
+function getDropKey(drop: DropEvent, index: number = 0) {
+  return [drop.brand_name, drop.tracked_brand_name, drop.timestamp, drop.store_name, drop.store_address, drop.board_name, index].filter(Boolean).join("|");
+}
+
+function getStateName(code?: string | null) {
+  return AVAILABLE_STATES.find((state) => state.code === code)?.name || code || "State";
+}
+
+function getBottleAmount(drop: DropEvent) {
+  const quantity = drop.quantity_shipped ?? drop.quantity_in_stock ?? drop.quantity;
+  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) return "Bottle spotted";
+  return `${quantity} bottle${quantity === 1 ? "" : "s"}`;
+}
+
+function getShortLocation(drop: DropEvent, fallback: string) {
+  const city = drop.store_city || drop.store_county || drop.board_name;
+  const state = drop.state || drop.state_code;
+  return [city, state].filter(Boolean).join(", ") || fallback;
+}
+
+function getHumanSignalDetail(drop: DropEvent) {
+  const state = drop.state || drop.state_code;
+  const amount = getBottleAmount(drop);
+
+  if (state === "VA") {
+    return `${amount} shown in Virginia ABC inventory.`;
+  }
+
+  if (state === "IA") {
+    return `${amount} in Iowa store delivery data.`;
+  }
+
+  if (state === "PA") {
+    return `${amount} matched in Pennsylvania availability data.`;
+  }
+
+  if (state === "KY") {
+    return "Official Kentucky release signal.";
+  }
+
+  if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
+    return `${amount} matched at this location.`;
+  }
+
+  return "Recent movement signal for this area.";
 }
 
 function extractStoreAddressParts(address?: string | null) {
@@ -501,6 +568,7 @@ export default function MapPageClient() {
   const [suggestionSeed, setSuggestionSeed] = useState(() => Math.floor(Date.now() / (1000 * 60 * 30)));
   const [historyOffset, setHistoryOffset] = useState(0);
   const [historyQuery, setHistoryQuery] = useState<{ bottle?: string; store?: string; state?: string }>({});
+  const [selectedSignalKey, setSelectedSignalKey] = useState<string | null>(null);
   const searchRegionRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -509,7 +577,7 @@ export default function MapPageClient() {
     total: historyTotal,
     hasMore: historyHasMore,
   } = useDrops({
-    limit: 20,
+    limit: 200,
     offset: historyOffset,
     bottle: historyQuery.bottle,
     store: historyQuery.store,
@@ -520,6 +588,31 @@ export default function MapPageClient() {
     () => !storesLoading && !bottlesLoading && !dropsLoading,
     [storesLoading, bottlesLoading, dropsLoading]
   );
+
+  const stateOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const drop of drops) {
+      const state = drop.state || drop.state_code;
+      if (state) counts.set(state, (counts.get(state) || 0) + 1);
+    }
+    for (const bottle of bottles) for (const state of bottle.states || (bottle.state ? [bottle.state] : [])) counts.set(state, counts.get(state) || 0);
+    for (const store of stores) if (store.state) counts.set(store.state, (counts.get(store.state) || 0) + 1);
+
+    const activeStates = AVAILABLE_STATES
+      .filter((state) => !("comingSoon" in state && state.comingSoon))
+      .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }));
+
+    const dynamicStates = [...counts.keys()]
+      .filter((code) => !activeStates.some((state) => state.code === code))
+      .sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0))
+      .map((code) => ({ code, name: getStateName(code), count: counts.get(code) || 0 }));
+
+    return [
+      { code: "ALL", name: "All states", count: drops.length },
+      ...activeStates,
+      ...dynamicStates,
+    ];
+  }, [bottles, drops, stores]);
 
   const filteredBottles = useMemo(() => {
     const q = normalize(query);
@@ -656,7 +749,8 @@ export default function MapPageClient() {
 
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
-    return drops
+    const sourceDrops = historyQuery.bottle && historyDrops.length > 0 ? historyDrops : drops;
+    return sourceDrops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => isWithinLastDays(drop.timestamp, 30))
       .filter((drop) => dropMatchesCanonicalBottle(drop, selectedBottle) || dropMatchesBottle(drop, selectedBottle) || bottleMatchesQuery(getDisplayName(drop), selectedBottle))
@@ -667,7 +761,7 @@ export default function MapPageClient() {
         return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       })
       .slice(0, 40);
-  }, [drops, selectedBottle, stateFilter]);
+  }, [drops, historyDrops, historyQuery.bottle, selectedBottle, stateFilter]);
 
   const matchingStoresForBottle = useMemo(() => {
     if (!selectedBottle) return [] as Array<Store & { hitCount: number; lastSeen?: string; matchStrength: number }>;
@@ -715,6 +809,16 @@ export default function MapPageClient() {
       .slice(0, 8);
   }, [bottleDrops, filteredStores, selectedBottle]);
 
+  const exactBottleSignals = useMemo(
+    () => bottleDrops.filter((drop) => getSignalQuality(drop).score >= 3).slice(0, 3),
+    [bottleDrops]
+  );
+
+  const broaderBottleSignals = useMemo(
+    () => bottleDrops.filter((drop) => getSignalQuality(drop).score < 3).slice(0, 3),
+    [bottleDrops]
+  );
+
   const bottleLocationInsights = useMemo(() => {
     const exactStoreMatches = selectedBottle?.exact_store_hits_30d ?? matchingStoresForBottle.filter((store) => store.precision === "store").length;
     const boardMatches = selectedBottle?.board_leads_30d ?? matchingStoresForBottle.filter((store) => store.precision === "board").length;
@@ -729,13 +833,26 @@ export default function MapPageClient() {
     };
   }, [matchingStoresForBottle, bottleDrops, selectedBottle]);
 
+  const bestBottleSignal = bottleDrops[0] ?? null;
+  const selectedBottleSignal = useMemo(() => {
+    if (!bottleDrops.length) return null;
+    if (selectedSignalKey) {
+      const match = bottleDrops.find((drop, index) => getDropKey(drop, index) === selectedSignalKey);
+      if (match) return match;
+    }
+    return bottleDrops[0];
+  }, [bottleDrops, selectedSignalKey]);
+  const selectedBottleSignalSummary = selectedBottleSignal ? summarizeDropLocation(selectedBottleSignal) : null;
+  const bottleTrust = getTrustBadge(bestBottleSignal);
+
   const storeDrops = useMemo(() => {
     if (!selectedStore) return [];
-    return drops
+    const sourceDrops = historyQuery.store && historyDrops.length > 0 ? historyDrops : drops;
+    return sourceDrops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => matchesStore(drop, selectedStore))
       .slice(0, 12);
-  }, [drops, selectedStore, stateFilter]);
+  }, [drops, historyDrops, historyQuery.store, selectedStore, stateFilter]);
 
   const topBottlesAtStore = useMemo(() => {
     const counts = new Map<string, { bottle: string; count: number; rarity: string }>();
@@ -752,6 +869,9 @@ export default function MapPageClient() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
   }, [storeDrops]);
+
+  const bestStoreSignal = storeDrops[0] ?? null;
+  const storeTrust = getTrustBadge(bestStoreSignal);
 
   const summary = useMemo(() => {
     return {
@@ -857,6 +977,22 @@ export default function MapPageClient() {
                     placeholder={mode === "bottle" ? "Search bottle or distiller" : "Search board, store, city, or county"}
                     className="finder-search-input"
                   />
+                  {query ? (
+                    <button
+                      type="button"
+                      className="finder-search-clear"
+                      aria-label="Clear search"
+                      onClick={() => {
+                        setQuery("");
+                        setSelectedBottleId(null);
+                        setSelectedStoreId(null);
+                        setSelectedSignalKey(null);
+                        setShowSuggestions(true);
+                      }}
+                    >
+                      ×
+                    </button>
+                  ) : null}
                   <button type="submit" className="finder-search-submit">
                     Search
                   </button>
@@ -906,6 +1042,7 @@ export default function MapPageClient() {
                             {store.precision === "board"
                               ? [store.county || store.city, store.state].filter(Boolean).join(", ") || "Board"
                               : [store.city, store.state].filter(Boolean).join(", ") || store.address || "Location"}
+                            {store.hasSignals ? " · signals found" : " · ready for future hits"}
                           </span>
                         </div>
                         <span className="finder-row-pill">Select</span>
@@ -915,18 +1052,20 @@ export default function MapPageClient() {
                 ) : null}
               </div>
 
-              <div className="finder-state-row hero-states">
-                {STATE_OPTIONS.map((state) => (
-                  <button
-                    key={state}
-                    type="button"
-                    className={`finder-state-chip ${stateFilter === state ? "active" : ""}`}
-                    onClick={() => setStateFilter(state)}
-                  >
-                    {state === "ALL" ? "All states" : state}
-                  </button>
-                ))}
-              </div>
+              <label className="finder-state-select-wrap">
+                <span>Search area</span>
+                <select
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
+                  className="finder-state-select"
+                >
+                  {stateOptions.map((state) => (
+                    <option key={state.code} value={state.code}>
+                      {state.code === "ALL" ? "All states" : `${state.name} (${state.code})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
 
@@ -952,196 +1091,93 @@ export default function MapPageClient() {
                 {selectedBottle ? (
                   <>
                     <div className="finder-overview-grid">
-                      <div className="finder-result-hero bottle finder-result-hero-main">
+                      <div className="finder-result-hero bottle finder-result-hero-main simple">
                         <div>
+                          <div className={`finder-trust-pill ${bottleTrust.tone}`}>
+                            <span>{bottleTrust.label}</span>
+                            <small>{formatFreshness(bestBottleSignal?.timestamp)}</small>
+                          </div>
                           <h2>{selectedBottle.name}</h2>
                           <p>
-                            {bottleLocationInsights.exactStoreMatches > 0
-                              ? "We found recent exact locations for this bottle. Start with the freshest store hits below."
-                              : bottleLocationInsights.boardMatches > 0
-                                ? "No exact store hit yet. These are the most recent boards or areas where this bottle moved, so they’re your best places to watch."
-                                : "We don’t have a recent exact location for this bottle yet. Check back after the next live scan."}
+                            {exactBottleSignals.length > 0
+                              ? `Found ${exactBottleSignals.length} recent store hit${exactBottleSignals.length === 1 ? "" : "s"}.`
+                              : broaderBottleSignals.length > 0
+                                ? `No exact store hit yet. Showing ${broaderBottleSignals.length} area lead${broaderBottleSignals.length === 1 ? "" : "s"}.`
+                                : "No current location signal in this search area."}
                           </p>
                         </div>
-                        <div className="finder-highlight-orb finder-highlight-orb-main">
+                      </div>
+
+                      <div className="finder-where-panel simple">
+                        <div className="finder-subpanel-head compact">
                           <div>
                             <span className="finder-eyebrow">Where to look</span>
-                            <strong>{bottleLocationInsights.exactStoreMatches > 0 ? bottleLocationInsights.exactStoreMatches : bottleLocationInsights.boardMatches}</strong>
-                            <span>{bottleLocationInsights.exactStoreMatches > 0 ? "recent exact locations" : "recent areas to watch"}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="finder-overview-stats">
-                        <div className="finder-stat-card">
-                          <span className="finder-eyebrow">Exact store hits</span>
-                          <strong>{bottleLocationInsights.exactStoreMatches}</strong>
-                          <span>fresh store-level matches in the current lens</span>
-                        </div>
-                        <div className="finder-stat-card">
-                          <span className="finder-eyebrow">Board leads</span>
-                          <strong>{bottleLocationInsights.boardMatches}</strong>
-                          <span>broader movements worth watching</span>
-                        </div>
-                        <div className="finder-stat-card">
-                          <span className="finder-eyebrow">Signal volume</span>
-                          <strong>{bottleLocationInsights.signalVolume}</strong>
-                          <span>signals captured in the last 30 days</span>
-                        </div>
-                        <div className="finder-stat-card">
-                          <span className="finder-eyebrow">History loaded</span>
-                          <strong>{historyTotal}</strong>
-                          <span>historical matches available for this bottle</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="finder-dual-columns finder-dual-columns-balanced finder-bottle-sections">
-                      <div className="finder-subpanel finder-subpanel-secondary">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Historical movement</span>
-                            <h3>Older drop history</h3>
-                          </div>
-                          <Clock3 size={16} color="var(--color-accent-amber)" />
-                        </div>
-                        <div className="finder-list">
-                          {historyDrops.length > 0 ? (
-                            historyDrops.map((drop, index) => {
-                              const location = summarizeDropLocation(drop);
-                              return (
-                                <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
-                                  <div className="finder-list-row-copy">
-                                    <strong>{getDisplayName(drop)}</strong>
-                                    <span>{location.title} · {location.detail}</span>
-                                  </div>
-                                  <div className="finder-signal-meta">
-                                    <span className="finder-row-pill">{drop.state || drop.state_code || 'NC'}</span>
-                                    <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className="finder-empty-card small">{historyLoading ? 'Loading bottle history…' : 'No historical matches yet for this bottle.'}</div>
-                          )}
-                        </div>
-                        {historyHasMore ? (
-                          <button
-                            type="button"
-                            className="finder-load-more"
-                            onClick={() => setHistoryOffset((prev) => prev + 20)}
-                          >
-                            Load older bottle history
-                          </button>
-                        ) : null}
-                      </div>
-                      <div className="finder-subpanel finder-subpanel-primary">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Exact store intel</span>
-                            <h3>Precise store-level evidence</h3>
+                            <h3>{stateFilter === "ALL" ? "Best current leads" : getStateName(stateFilter)}</h3>
                           </div>
                           <MapPin size={16} color="var(--color-accent-amber)" />
                         </div>
-                        <div className="finder-list">
-                          {matchingStoresForBottle.filter((store) => store.precision === "store").length > 0 ? (
-                            matchingStoresForBottle
-                              .filter((store) => store.precision === "store")
-                              .map((store) => (
-                                <div key={store.id} className="finder-list-row">
-                                  <div>
-                                    <strong>{store.displayLabel}</strong>
-                                    <span>
-                                      {[store.city, store.state].filter(Boolean).join(", ")}
-                                      {store.address ? ` · ${store.address}` : ""}
-                                      {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
-                                    </span>
-                                  </div>
-                                  <span className="finder-row-pill">{store.hitCount} store hits</span>
-                                </div>
-                              ))
-                          ) : (
-                            <div className="finder-empty-card small">No exact store intel yet for this bottle in the current lens.</div>
-                          )}
-                        </div>
-                        <p className="finder-footnote">
-                          {bottleLocationInsights.exactStoreMatches > 0
-                            ? "These are the freshest exact places this bottle was seen."
-                            : "No exact store location yet for this bottle in the current lens."}
-                        </p>
-                      </div>
 
-                      <div className="finder-subpanel finder-subpanel-secondary">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Board shipment leads</span>
-                            <h3>Broader movement worth watching</h3>
+                        {exactBottleSignals.length > 0 ? (
+                          <div className="finder-where-section">
+                            <div className="finder-where-list">
+                              {exactBottleSignals.map((drop) => {
+                                const location = summarizeDropLocation(drop);
+                                const key = getDropKey(drop, bottleDrops.indexOf(drop));
+                                const active = selectedSignalKey === key;
+                                return (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    className={`finder-where-row clickable ${active ? "active" : ""}`}
+                                    onClick={() => setSelectedSignalKey(active ? null : key)}
+                                  >
+                                    <div>
+                                      <strong>{location.title}</strong>
+                                      <span>{getShortLocation(drop, location.detail)}</span>
+                                      {active ? <em>{getHumanSignalDetail(drop)}</em> : null}
+                                    </div>
+                                    <small>{getBottleAmount(drop)} · {formatRelativeTime(drop.timestamp)}</small>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <MapPin size={16} color="var(--color-accent-amber)" />
-                        </div>
-                        <div className="finder-list">
-                          {matchingStoresForBottle.filter((store) => store.precision === "board").length > 0 ? (
-                            matchingStoresForBottle
-                              .filter((store) => store.precision === "board")
-                              .map((store) => (
-                                <div key={store.id} className="finder-list-row">
-                                  <div>
-                                    <strong>{store.displayLabel}</strong>
-                                    <span>
-                                      {[store.city, store.state].filter(Boolean).join(", ")}
-                                      {store.address ? ` · ${store.address}` : ""}
-                                      {store.lastSeen ? ` · ${formatRelativeTime(store.lastSeen)}` : ""}
-                                    </span>
-                                  </div>
-                                  <span className="finder-row-pill">{store.hitCount} board hits</span>
-                                </div>
-                              ))
-                          ) : (
-                            <div className="finder-empty-card small">No board shipment leads surfaced for this bottle in the current lens.</div>
-                          )}
-                        </div>
-                        <p className="finder-footnote">
-                          {bottleLocationInsights.boardMatches > 0
-                            ? "These are the most recent broader locations where the bottle moved, even if we do not have a precise store hit yet."
-                            : "No broader movement leads surfaced in the current lens."}
-                        </p>
-                      </div>
+                        ) : null}
 
-                      <div className="finder-subpanel finder-subpanel-full">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Recent bottle signals</span>
-                            <h3>Latest shipments and in-store hits</h3>
+                        {broaderBottleSignals.length > 0 ? (
+                          <div className="finder-where-section">
+                            {exactBottleSignals.length > 0 ? <div className="finder-where-label">Area leads</div> : null}
+                            <div className="finder-where-list">
+                              {broaderBottleSignals.map((drop) => {
+                                const location = summarizeDropLocation(drop);
+                                const key = getDropKey(drop, bottleDrops.indexOf(drop));
+                                const active = selectedSignalKey === key;
+                                return (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    className={`finder-where-row clickable softer ${active ? "active" : ""}`}
+                                    onClick={() => setSelectedSignalKey(active ? null : key)}
+                                  >
+                                    <div>
+                                      <strong>{location.title}</strong>
+                                      <span>{getShortLocation(drop, location.detail)}</span>
+                                      {active ? <em>{getHumanSignalDetail(drop)}</em> : null}
+                                    </div>
+                                    <small>{formatRelativeTime(drop.timestamp)}</small>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <Clock3 size={16} color="var(--color-accent-amber)" />
-                        </div>
-                        <div className="finder-list">
-                          {bottleDrops.length > 0 ? (
-                            bottleDrops.slice(0, 6).map((drop, index) => {
-                              const summary = summarizeDropLocation(drop);
-                              return (
-                                <div key={`${drop.timestamp}-${index}`} className="finder-list-row finder-list-row-signal">
-                                  <div className="finder-list-row-copy">
-                                    <strong>{summary.title}</strong>
-                                    <span>{summary.detail}</span>
-                                  </div>
-                                  <div className="finder-signal-meta">
-                                    <span className="finder-row-pill">{getSignalQuality(drop).label}</span>
-                                    <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className="finder-empty-card small">No recent signal events for this bottle in the current state lens.</div>
-                          )}
-                        </div>
-                        {bottleDrops.length > 0 ? (
-                          <p className="finder-footnote">Showing the most recent useful bottle signals first, with location context that actually helps you decide where to look next.</p>
+                        ) : null}
+
+                        {exactBottleSignals.length === 0 && broaderBottleSignals.length === 0 ? (
+                          <div className="finder-empty-card small">Try All states or another nearby market.</div>
                         ) : null}
                       </div>
                     </div>
+
                   </>
                 ) : (
                   <div className="finder-empty-card">No bottle matches in this state yet. Try Weller, Stagg, Blanton's, or Buffalo Trace, or switch to All states.</div>
@@ -1159,17 +1195,29 @@ export default function MapPageClient() {
                   <>
                     <div className="finder-result-hero store">
                       <div>
+                        <div className={`finder-trust-pill ${storeTrust.tone}`}>
+                          <span>{selectedStore.hasSignals ? storeTrust.label : "Preloaded"}</span>
+                          <small>{selectedStore.hasSignals ? formatFreshness(bestStoreSignal?.timestamp) : "No bottle hit yet"}</small>
+                        </div>
                         <h2>{selectedStore.displayLabel}</h2>
                         <p>
-                          Search by board or store when you want to monitor your territory. This view shows what is actually moving through that location,
-                          not just where a pin happened to land.
+                          {selectedStore.hasSignals
+                            ? "This view ranks the bottles actually tied to this board or store, with verified store evidence separated from broader watch signals."
+                            : "This board or store is already in the location bible, so future bottle signals have a place to land as soon as the engine sees them."}
+                        </p>
+                        <p className="finder-evidence-line">
+                          {bestStoreSignal
+                            ? getHumanSignalDetail(bestStoreSignal)
+                            : selectedStore.source
+                              ? `Source loaded: ${selectedStore.source}`
+                              : storeTrust.detail}
                         </p>
                       </div>
                       <div className="finder-highlight-orb">
                         <div>
-                          <span className="finder-eyebrow">Signal density</span>
+                          <span className="finder-eyebrow">Location intel</span>
                           <strong>{selectedStore.bottle_count ?? 0}</strong>
-                          <span>events tied to this location</span>
+                          <span>{selectedStore.hasSignals ? "positive signals tied to this location" : "signals so far — watching this location"}</span>
                         </div>
                       </div>
                     </div>
@@ -1195,7 +1243,11 @@ export default function MapPageClient() {
                               </div>
                             ))
                           ) : (
-                            <div className="finder-empty-card small">Not enough recent structured activity to rank bottles here yet.</div>
+                            <div className="finder-empty-card small">
+                              {selectedStore.hasSignals
+                                ? "Not enough recent structured activity to rank bottles here yet."
+                                : "No bottle movement has hit this location yet. It is preloaded and searchable for future signals."}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1215,15 +1267,16 @@ export default function MapPageClient() {
                                 <div className="finder-list-row-copy">
                                   <strong>{getDisplayName(drop)}</strong>
                                   <span>{summarizeDropLocation(drop).detail}</span>
+                                  <em>{getHumanSignalDetail(drop)}</em>
                                 </div>
                                 <div className="finder-signal-meta">
-                                  <span className="finder-row-pill">{drop.event_type.replaceAll("_", " ")}</span>
-                                  <span className="finder-signal-time">{formatRelativeTime(drop.timestamp)}</span>
+                                  <span className="finder-row-pill">{getSignalQuality(drop).label}</span>
+                                  <span className="finder-signal-time">{formatFreshness(drop.timestamp)}</span>
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <div className="finder-empty-card small">{historyLoading ? 'Loading store history…' : 'No recent or historical drops tied to this location in the current state lens.'}</div>
+                            <div className="finder-empty-card small">{historyLoading ? 'Loading store history…' : selectedStore.hasSignals ? 'No recent or historical drops tied to this location in the current state lens.' : 'Location bible entry is ready; no drops have landed here yet.'}</div>
                           )}
                         </div>
                         {historyHasMore ? (

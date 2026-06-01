@@ -8,6 +8,8 @@ const LOCK = path.join(OUT, 'refresh.lock.json');
 const STATUS = path.join(OUT, 'site-refresh-status.json');
 const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS || 25 * 60_000);
 const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 15);
+const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS || 15 * 60_000);
+const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
 const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
 const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -26,11 +28,12 @@ async function acquireLock() {
   const lock = await readJson(LOCK);
   if (lock?.startedAt) {
     const age = Date.now() - new Date(lock.startedAt).getTime();
-    if (age >= 0 && age < LOCK_STALE_MS) {
+    const pidAlive = lock.pid ? (() => { try { process.kill(lock.pid, 0); return true; } catch { return false; } })() : false;
+    if (pidAlive && age >= 0 && age < LOCK_STALE_MS) {
       console.log(`Another refresh appears active (pid=${lock.pid}, age=${Math.round(age / 1000)}s). Skipping.`);
       return false;
     }
-    console.warn(`Ignoring stale refresh lock (pid=${lock.pid}, age=${Math.round(age / 1000)}s).`);
+    console.warn(`Ignoring stale refresh lock (pid=${lock.pid}, alive=${pidAlive}, age=${Math.round(age / 1000)}s).`);
   }
   await writeFile(LOCK, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }, null, 2));
   return true;
@@ -40,9 +43,10 @@ async function releaseLock() {
   await rm(LOCK, { force: true });
 }
 
-function runNode(script, args = []) {
+function runNode(script, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
+    const timeoutMs = Number(options.timeoutMs || STEP_TIMEOUT_MS);
     const child = spawn(process.execPath, [script, ...args], {
       cwd: ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -51,10 +55,19 @@ function runNode(script, args = []) {
     });
     let stdout = '';
     let stderr = '';
+    const timer = timeoutMs > 0 ? setTimeout(() => {
+      const message = `${script} timed out after ${Math.round(timeoutMs / 1000)}s`;
+      stderr += `\n${message}\n`;
+      try { child.kill(); } catch {}
+      reject(Object.assign(new Error(message), {
+        result: { script, args, code: 'timeout', startedAt, finishedAt: new Date().toISOString(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) }
+      }));
+    }, timeoutMs) : null;
     child.stdout.on('data', (chunk) => { stdout += chunk.toString(); process.stdout.write(chunk); });
     child.stderr.on('data', (chunk) => { stderr += chunk.toString(); process.stderr.write(chunk); });
-    child.on('error', reject);
+    child.on('error', (error) => { if (timer) clearTimeout(timer); reject(error); });
     child.on('close', (code) => {
+      if (timer) clearTimeout(timer);
       const finishedAt = new Date().toISOString();
       const result = { script, args, code, startedAt, finishedAt, stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) };
       if (code === 0) resolve(result);
@@ -103,8 +116,9 @@ async function ensureHeadlessCdp() {
 
 async function shouldRunBrowserCollectors() {
   const last = await readJson(STATUS);
-  if (!last?.lastBrowserRefreshAt) return true;
-  const ageMs = Date.now() - new Date(last.lastBrowserRefreshAt).getTime();
+  const lastBrowserActivityAt = last?.lastBrowserRefreshAt || last?.lastBrowserAttemptAt;
+  if (!lastBrowserActivityAt) return true;
+  const ageMs = Date.now() - new Date(lastBrowserActivityAt).getTime();
   return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
 }
 
@@ -116,6 +130,7 @@ async function main() {
   const steps = [];
   const warnings = [];
   let lastBrowserRefreshAt = (await readJson(STATUS))?.lastBrowserRefreshAt || null;
+  let lastBrowserAttemptAt = (await readJson(STATUS))?.lastBrowserAttemptAt || null;
 
   try {
     if (await shouldRunBrowserCollectors()) {
@@ -123,6 +138,7 @@ async function main() {
       // controlled cadence, then every 5-minute base run folds the newest artifacts into the site export.
       let browserOk = false;
       let launchedBrowser = null;
+      lastBrowserAttemptAt = new Date().toISOString();
       try {
         const hadExistingCdp = await cdpReady();
         launchedBrowser = await ensureHeadlessCdp();
@@ -134,7 +150,7 @@ async function main() {
         }
         for (const script of browserScripts) {
           try {
-            steps.push(await runNode(script));
+            steps.push(await runNode(script, [], { timeoutMs: BROWSER_STEP_TIMEOUT_MS }));
             browserOk = true;
           } catch (error) {
             warnings.push(`${script}: ${error.message}`);
@@ -165,6 +181,7 @@ async function main() {
       cadenceMinutes: 5,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
       lastBrowserRefreshAt,
+      lastBrowserAttemptAt,
       warnings,
       steps: steps.map((s) => ({ script: s.script, args: s.args, code: s.code, startedAt: s.startedAt, finishedAt: s.finishedAt }))
     }, null, 2));
@@ -179,6 +196,7 @@ async function main() {
       cadenceMinutes: 5,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
       lastBrowserRefreshAt,
+      lastBrowserAttemptAt,
       error: error.message,
       warnings,
       failed,

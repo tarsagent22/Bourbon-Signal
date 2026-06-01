@@ -9,7 +9,7 @@ export const STATE_CONFIDENCE_POLICY = {
   VA: { maxAlertMode: 'normal_product_store_only', inventorySemantics: 'Virginia normal products may expose store availability. Limited availability inventory is intentionally hidden before release and must stay watch/policy only.', defaultCadence: 'daily-60m' },
   PA: { maxAlertMode: 'store_aggregate_until_pickup_api', inventorySemantics: 'FWGS search/Oracle Commerce data exposes result/availability aggregates. Store-specific pickup inventory still needs fulfillment/store API extraction.', defaultCadence: '15-60m' },
   ID: { maxAlertMode: 'release_watch', inventorySemantics: 'Idaho public sources are catalog/special-release/allocated context. Store-level quantity route not found.', defaultCadence: 'daily' },
-  NC: { maxAlertMode: 'alert_county_store_inventory', inventorySemantics: 'County boards vary. Wake ABC exposes store-level inventory/search blocks; state warehouse/list pages are separate context.', defaultCadence: '15-60m' },
+  NC: { maxAlertMode: 'alert_county_store_inventory', inventorySemantics: 'NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory.', defaultCadence: '15-60m' },
   NH: { maxAlertMode: 'watch_until_browser_api', inventorySemantics: 'NHLC site is Cloudflare-gated to raw fetch. Treat as watch/catalog until browser/API extraction yields outlet rows.', defaultCadence: 'daily-60m' },
   'MD-MONTGOMERY': { maxAlertMode: 'alert_county_product_or_store_when_available', inventorySemantics: 'Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted.', defaultCadence: 'daily-60m' },
   ME: { maxAlertMode: 'watch_until_browser_api', inventorySemantics: 'Maine Spirits finder is Cloudflare/browser dependent. Treat current signals as catalog/lottery/watch only.', defaultCadence: 'daily-weekly' },
@@ -18,13 +18,19 @@ export const STATE_CONFIDENCE_POLICY = {
   MT: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Montana public sources are price book/agency store context. Public store-level inventory not located.', defaultCadence: 'weekly' },
   WV: { maxAlertMode: 'catalog_release_watch', inventorySemantics: 'WV sources are product/search/release context. No live store inventory route found.', defaultCadence: 'daily-weekly' },
   WY: { maxAlertMode: 'wholesale_catalog_watch', inventorySemantics: 'Wyoming public data is wholesale/product-level. No consumer store inventory found.', defaultCadence: 'monthly-weekly' },
-  MS: { maxAlertMode: 'policy_only', inventorySemantics: 'Mississippi public sources expose vendor/product policy only. Do not produce bottle/store alerts until a bottle-level public feed is found.', defaultCadence: 'monthly-weekly' }
+  MS: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Mississippi public sources expose monthly SPA/bailment price-change PDFs plus vendor/product policy. Treat as product/price-change intelligence, not live store inventory.', defaultCadence: 'monthly-weekly' },
+  KY: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Kentucky ABC official public surfaces found so far are active-brand/licensing context, not consumer store inventory. Treat Kentucky as product/brand watch only until a bottle-level public feed is found.', defaultCadence: 'weekly-monthly' },
+  TN: { maxAlertMode: 'license_document_watch', inventorySemantics: 'Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources.', defaultCadence: 'weekly-monthly' },
+  SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability.', defaultCadence: 'weekly-monthly' },
+  GA: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Georgia DOR official pages expose brand/label registration guidance, active alcohol license reports, and shipment reporting context. Treat as source-discovery/catalog infrastructure, not consumer bottle inventory.', defaultCadence: 'weekly-monthly' },
+  FL: { maxAlertMode: 'policy_only', inventorySemantics: 'Florida ABT official pages expose licensing/quota-license lottery context, not bourbon product availability.', defaultCadence: 'weekly-monthly' }
 };
 
 const EVENT_WEIGHTS = [
   [/store_delivery_snapshot/i, 0.24],
   [/store_inventory_result|store_inventory/i, 0.24],
   [/store_pickup|store_aggregate/i, 0.15],
+  [/board_shipment|stock_shipped|shipment_snapshot/i, 0.16],
   [/board_inventory_aggregate|warehouse/i, 0.13],
   [/county_allocated_product_row|county_product_row/i, 0.11],
   [/allocated|limited|lottery|release/i, 0.08],
@@ -42,6 +48,7 @@ const MODE_CAPS = {
   watch_until_browser_api: 0.56,
   release_watch: 0.68,
   catalog_price_watch: 0.58,
+  license_document_watch: 0.48,
   catalog_release_watch: 0.58,
   wholesale_catalog_watch: 0.5,
   store_aggregate_until_pickup_api: 0.76,

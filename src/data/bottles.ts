@@ -4,6 +4,7 @@ export interface Bottle {
   canonical_id?: string;
   canonical_name?: string;
   canonical_key?: string;
+  aliases?: string[];
   states?: string[];
   state_ids?: Record<string, string[]>;
   state_aliases?: Record<string, string[]>;

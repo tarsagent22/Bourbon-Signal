@@ -54,26 +54,45 @@ export function candidateBottleKeys(value?: string | null) {
   return aliasBottleKeys(value);
 }
 
-export function getBottleIdentityKeys(bottle: Pick<Bottle, "id" | "name">) {
+type BottleIdentityInput = Pick<Bottle, "id" | "name"> & Partial<Pick<Bottle, "canonical_id" | "canonical_name" | "canonical_key" | "aliases" | "search_aliases" | "state_aliases">>;
+type DropIdentityInput = Pick<DropEvent, "brand_name" | "tracked_brand_name"> & Partial<Pick<DropEvent, "bottle_id" | "canonical_id" | "canonical_name" | "canonical_key" | "raw_name" | "aliases">>;
+
+export function getBottleIdentityKeys(bottle: BottleIdentityInput) {
   const keys = new Set<string>([
+    bottle.id,
+    bottle.canonical_id,
+    bottle.canonical_key,
     canonicalBottleKey(bottle.name),
+    canonicalBottleKey(bottle.canonical_name),
     ...aliasBottleKeys(bottle.name),
+    ...aliasBottleKeys(bottle.canonical_name),
     ...aliasBottleKeys(bottle.id),
-  ]);
+    ...(bottle.aliases || []).flatMap(aliasBottleKeys),
+    ...(bottle.search_aliases || []).flatMap(aliasBottleKeys),
+    ...Object.values(bottle.state_aliases || {}).flat().flatMap(aliasBottleKeys),
+  ].filter(Boolean) as string[]);
   return Array.from(keys).filter(Boolean);
 }
 
-export function getDropIdentityKeys(drop: Pick<DropEvent, "brand_name" | "tracked_brand_name">) {
+export function getDropIdentityKeys(drop: DropIdentityInput) {
   const keys = new Set<string>([
+    drop.bottle_id,
+    drop.canonical_id,
+    drop.canonical_key,
     canonicalBottleKey(drop.brand_name),
     canonicalBottleKey(drop.tracked_brand_name),
+    canonicalBottleKey(drop.canonical_name),
+    canonicalBottleKey(drop.raw_name),
     ...aliasBottleKeys(drop.brand_name),
     ...aliasBottleKeys(drop.tracked_brand_name),
-  ]);
+    ...aliasBottleKeys(drop.canonical_name),
+    ...aliasBottleKeys(drop.raw_name),
+    ...(drop.aliases || []).flatMap(aliasBottleKeys),
+  ].filter(Boolean) as string[]);
   return Array.from(keys).filter(Boolean);
 }
 
-export function dropMatchesBottle(drop: Pick<DropEvent, "brand_name" | "tracked_brand_name">, bottle: Pick<Bottle, "id" | "name">) {
+export function dropMatchesBottle(drop: DropIdentityInput, bottle: BottleIdentityInput) {
   const bottleKeys = new Set(getBottleIdentityKeys(bottle));
   const dropKeys = getDropIdentityKeys(drop);
   return dropKeys.some((key) => bottleKeys.has(key));

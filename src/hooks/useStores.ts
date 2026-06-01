@@ -24,13 +24,15 @@ export function useStores() {
     let cancelled = false;
     setLoading(true);
 
-    fetch("/api/stores")
+    fetch("/api/locations")
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        // Engine returns { stores: [...] } or raw array
+        // Engine returns { locations: [...] }, { stores: [...] }, or raw array
         const raw: Record<string, unknown>[] = Array.isArray(data)
           ? data
+          : Array.isArray(data?.locations)
+          ? data.locations
           : Array.isArray(data?.stores)
           ? data.stores
           : [];

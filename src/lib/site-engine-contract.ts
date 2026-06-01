@@ -6,7 +6,7 @@ const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
 
 type JsonRecord = Record<string, unknown>;
 
-export function readSiteExport(name: "alerts" | "bottles" | "drops" | "stats" | "stores") {
+export function readSiteExport(name: "alerts" | "bottles" | "drops" | "locations" | "nc-intelligence" | "stats" | "stores") {
   const filePath = join(SITE_EXPORT_DIR, `${name}.json`);
   if (!existsSync(filePath)) {
     return null;
@@ -55,12 +55,18 @@ function asBoolean(value: unknown) {
 
 export function normalizeBottleForSite(bottle: JsonRecord) {
   const states = Array.isArray(bottle.states) ? bottle.states.map(String) : [];
+  const aliases = Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [];
   const inventorySignalCount = asNumber(bottle.inventorySignalCount);
   const signalCount = asNumber(bottle.signalCount);
   const tier = asString(bottle.tier, "limited");
 
   return {
     ...bottle,
+    id: asString(bottle.canonical_id, asString(bottle.id)),
+    canonical_id: asString(bottle.canonical_id, asString(bottle.id)),
+    canonical_name: asString(bottle.canonical_name, asString(bottle.name)),
+    canonical_key: asString(bottle.canonical_key),
+    aliases,
     state: states[0] ?? "",
     states,
     distillery: asString(bottle.producer, asString(bottle.distillery, "Unknown")),
@@ -77,12 +83,22 @@ export function normalizeBottleForSite(bottle: JsonRecord) {
 }
 
 export function normalizeStoreForSite(store: JsonRecord) {
+  const signalCount = asNumber(store.signalCount, asNumber(store.bottle_count));
   return {
     ...store,
     lat: asOptionalNumber(store.lat),
     lng: asOptionalNumber(store.lng),
     district: asString(store.district),
-    bottle_count: asNumber(store.signalCount, asNumber(store.bottle_count)),
+    type: asString(store.type, asString(store.locationType, "store")),
+    locationType: asString(store.locationType, asString(store.type, "store")),
+    precision: asString(store.precision, asString(store.locationPrecision, "store_level")),
+    sourceUrl: asString(store.sourceUrl),
+    inventoryCapability: asString(store.inventoryCapability),
+    searchable: store.searchable !== false,
+    collectorAttached: asBoolean(store.collectorAttached),
+    hasSignals: asBoolean(store.hasSignals) || signalCount > 0,
+    signalCount,
+    bottle_count: signalCount,
   };
 }
 
@@ -97,6 +113,12 @@ export function normalizeDropForSite(drop: JsonRecord) {
 
   return {
     ...drop,
+    bottle_id: asString(drop.canonicalId, asString(drop.bottleId)),
+    canonical_id: asString(drop.canonicalId, asString(drop.bottleId)),
+    canonical_name: asString(drop.canonicalName, asString(drop.bottleName, "Unknown Bottle")),
+    canonical_key: asString(drop.canonicalKey),
+    raw_name: asString(drop.rawName),
+    aliases: Array.isArray(drop.aliases) ? drop.aliases.map(String) : [],
     timestamp: asString(drop.observedAt, new Date().toISOString()),
     event_type: type,
     brand_name: asString(drop.bottleName, "Unknown Bottle"),
@@ -107,7 +129,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_county: asString(drop.county) || undefined,
     store_name: asString(drop.storeName) || undefined,
     store_id: asString(drop.storeId) || undefined,
-    quantity_in_stock: quantity || undefined,
+    quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
+    quantity_shipped: type === "nc_board_shipment_snapshot" ? quantity || undefined : undefined,
     quantity: quantity || undefined,
     rarity_tier: asString(drop.tier, "limited"),
     retail_price: asNumber(drop.price) || null,
@@ -115,8 +138,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
     exact_store: locationPrecision === "store_level",
-    availability_scope: locationPrecision === "store_level" ? "exact" : "page",
-    confidence_tier: canAlertAsInventory ? "exact_store" : "listing_only",
+    availability_scope: locationPrecision === "store_level" ? "exact" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    confidence_tier: canAlertAsInventory ? "exact_store" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
     signal_label: signalLabel,
@@ -151,9 +174,11 @@ export function isUserFacingDropSignal(drop: {
   if (type.includes("out_of_stock") || type.includes("out-of-stock")) return false;
   if (type.includes("lottery")) return false;
   if (type.includes("allocated_release") || type.includes("statewide_policy")) return false;
-  if (type.includes("county_allocated") || precision === "board_county") return false;
+  if (type.includes("county_allocated")) return false;
   if (type.includes("catalog") || precision === "statewide_catalog") return false;
 
+  if (type === "nc_board_shipment_snapshot") return quantity > 0;
+  if (type === "nc_statewide_warehouse_stock") return quantity > 0;
   if (canAlert && precision === "store_level") return true;
   if (type === "store_delivery_snapshot") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
@@ -167,6 +192,8 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
   const normalized = type.toLowerCase();
   if (normalized.includes("limited_supply")) return "inventory";
   if (normalized.includes("in_stock")) return "inventory";
+  if (normalized === "nc_board_shipment_snapshot") return "delivery";
+  if (normalized === "nc_statewide_warehouse_stock") return "warehouse";
   if (normalized === "store_delivery_snapshot") return "delivery";
   if (normalized === "store_inventory_result" && (quantity > 0 || canAlertAsInventory)) return "inventory";
   if (locationPrecision === "store_level" && canAlertAsInventory) return "inventory";
@@ -176,6 +203,8 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
 function getPublicSignalLabel(type: string, locationPrecision: string, quantity: number, canAlertAsInventory: boolean) {
   const category = getPublicSignalCategory(type, locationPrecision, quantity, canAlertAsInventory);
   const normalized = type.toLowerCase();
+  if (normalized === "nc_board_shipment_snapshot") return "Board shipment";
+  if (normalized === "nc_statewide_warehouse_stock") return "Warehouse radar";
   if (normalized.includes("limited_supply")) return "Limited supply";
   if (normalized.includes("in_stock")) return "In stock";
   if (category === "delivery") return "Store delivery";
@@ -192,6 +221,7 @@ function getPublicLocationLabel(state: string, locationName: string, city: strin
   if (state === "MD-MONTGOMERY") return "Montgomery County, MD";
   if (city && county) return `${city} (${county} Co.)`;
   if (city) return city;
+  if (county && /abc board/i.test(county)) return county;
   if (county) return `${county} County`;
   return locationName;
 }

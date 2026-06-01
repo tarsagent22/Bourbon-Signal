@@ -9,6 +9,7 @@ interface EngineBottle {
   canonical_id?: string;
   canonical_name?: string;
   canonical_key?: string;
+  aliases?: string[];
   states?: string[];
   state_ids?: Record<string, string[]>;
   state_aliases?: Record<string, string[]>;
@@ -42,6 +43,7 @@ export function useBottles() {
           canonical_id: b.canonical_id || undefined,
           canonical_name: b.canonical_name || undefined,
           canonical_key: b.canonical_key || undefined,
+          aliases: b.aliases || undefined,
           states: b.states || undefined,
           state_ids: b.state_ids || undefined,
           state_aliases: b.state_aliases || undefined,

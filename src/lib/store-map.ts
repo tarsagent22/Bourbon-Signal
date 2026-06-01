@@ -10,6 +10,14 @@ export interface MapStoreRecord {
   lng?: number;
   district?: string;
   bottle_count?: number;
+  signalCount?: number;
+  locationType?: string;
+  inventoryCapability?: string;
+  source?: string;
+  sourceUrl?: string;
+  collectorAttached?: boolean;
+  hasSignals?: boolean;
+  searchable?: boolean;
   isMappable: boolean;
   precision: "store" | "board";
   displayLabel: string;
@@ -33,13 +41,26 @@ export function normalizeMapStore(raw: Record<string, unknown>): MapStoreRecord 
   const lat = typeof raw.lat === "number" ? raw.lat : undefined;
   const lng = typeof raw.lng === "number" ? raw.lng : undefined;
   const rawName = typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : undefined;
+  const locationType = typeof raw.locationType === "string" ? raw.locationType : typeof raw.type === "string" ? raw.type : undefined;
+  const source = typeof raw.source === "string" ? raw.source : undefined;
+  const sourceUrl = typeof raw.sourceUrl === "string" ? raw.sourceUrl : undefined;
+  const inventoryCapability = typeof raw.inventoryCapability === "string" ? raw.inventoryCapability : undefined;
+  const signalCount =
+    typeof raw.signalCount === "number"
+      ? raw.signalCount
+      : typeof raw.bottle_count === "number"
+        ? raw.bottle_count
+        : undefined;
 
   const isMappable = Boolean(address && lat != null && lng != null);
   const looksLikeBoard = Boolean(
-    (rawName && /\babc\b|\bboard\b/i.test(rawName)) ||
-    (district && /\babc\b|\bboard\b/i.test(district))
+    locationType === "state_board" ||
+      locationType === "county_board" ||
+      locationType === "area" ||
+      (rawName && /\babc\b|\bboard\b|\babs\b|\bolcc\b|\bohlq\b|\bdabs\b|\bplcb\b/i.test(rawName)) ||
+      (district && /\babc\b|\bboard\b/i.test(district))
   );
-  const precision = looksLikeBoard ? "board" : isMappable ? "store" : "board";
+  const precision = locationType === "store" || (isMappable && !looksLikeBoard) ? "store" : "board";
   const displayLabel = rawName || address || district || county || [city, state].filter(Boolean).join(", ") || String(raw.id ?? "Unknown store");
 
   return {
@@ -53,7 +74,15 @@ export function normalizeMapStore(raw: Record<string, unknown>): MapStoreRecord 
     lat,
     lng,
     district,
-    bottle_count: typeof raw.bottle_count === "number" ? raw.bottle_count : undefined,
+    bottle_count: signalCount,
+    signalCount,
+    locationType,
+    inventoryCapability,
+    source,
+    sourceUrl,
+    collectorAttached: raw.collectorAttached === true,
+    hasSignals: raw.hasSignals === true || Boolean(signalCount && signalCount > 0),
+    searchable: raw.searchable !== false,
     isMappable,
     precision,
     displayLabel,

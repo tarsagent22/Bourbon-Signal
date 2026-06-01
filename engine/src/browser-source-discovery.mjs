@@ -1,4 +1,4 @@
-import { STATE_SOURCES } from './state-sources.mjs';
+import { ALL_STATE_SOURCES } from './state-sources.mjs';
 import { BrowserPage, DEFAULT_CDP_URL, getOrCreateTarget, sleep, writeJson } from './core/browser-session.mjs';
 
 const STATE_IDS = (process.env.BROWSER_DISCOVERY_STATES || process.argv.find((a) => a.startsWith('--states='))?.split('=')[1] || 'OR,PA,NH,MD-MONTGOMERY,ME')
@@ -91,7 +91,7 @@ async function main() {
   const summaries = [];
   try {
     for (const id of STATE_IDS) {
-      const config = STATE_SOURCES.find((s) => s.id === id);
+      const config = ALL_STATE_SOURCES.find((s) => s.id === id);
       if (!config) throw new Error(`Unknown state id: ${id}`);
       const result = await discoverState(page, config);
       summaries.push({ state: result.state, renderedPageCount: result.renderedPageCount, endpointCandidateCount: result.endpointCandidateCount, productLinkCount: result.productLinkCount, roadblockCount: result.roadblocks.length });

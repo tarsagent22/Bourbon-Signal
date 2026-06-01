@@ -16,7 +16,7 @@ import {
   MULTIPLIER_COLORS,
 } from "@/lib/drops";
 import DataFreshness from "@/components/DataFreshness";
-import { useStatePreferences } from "@/lib/statePreferences";
+import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 
@@ -164,6 +164,10 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
     if (drop.confidenceTier === "official_announcement" || drop.confidenceTier === "venue_signal") return { label: "KY official", tone: "listing" };
     return null;
   }
+  if (drop.state === "NC") {
+    if (drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board") return { label: "NC board", tone: "online" };
+    if (drop.event_type === "nc_statewide_warehouse_stock" || drop.availabilityScope === "warehouse") return { label: "NC radar", tone: "listing" };
+  }
   if (drop.state !== "PA") return null;
   if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
     return { label: "PA exact", tone: "exact" };
@@ -175,6 +179,42 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
     return { label: "PA listing", tone: "listing" };
   }
   return null;
+}
+
+function getAccuracyBadge(drop: GroupedDrop): { label: string; caption: string; tone: "exact" | "official" | "positive" } {
+  if (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level") {
+    return { label: "Verified", caption: "Store-level positive", tone: "exact" };
+  }
+
+  if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) {
+    return { label: "Official", caption: "Source-confirmed", tone: "official" };
+  }
+
+  if (drop.state === "NC" && (drop.event_type === "nc_board_shipment_snapshot" || drop.event_type === "nc_statewide_warehouse_stock")) {
+    return { label: "Official", caption: drop.event_type === "nc_board_shipment_snapshot" ? "Board-level shipment" : "Warehouse radar", tone: "official" };
+  }
+
+  return { label: "Positive", caption: "Noise-filtered", tone: "positive" };
+}
+
+function getFreshnessLabel(timestamp?: string) {
+  if (!timestamp) return "Checking";
+  const diffMs = Date.now() - new Date(timestamp).getTime();
+  if (!Number.isFinite(diffMs)) return "Checking";
+  const diffMin = Math.max(0, Math.floor(diffMs / 60000));
+  if (diffMin < 2) return "Live now";
+  if (diffMin < 60) return `${diffMin}m fresh`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h fresh`;
+  return `${Math.floor(diffHr / 24)}d fresh`;
+}
+
+function getScanIntegrityLabel(grouped: GroupedDrop[], total?: number) {
+  if (!grouped.length) return "Verifying";
+  const exactCount = grouped.filter((drop) => getAccuracyBadge(drop).tone === "exact").length;
+  if (exactCount >= Math.ceil(grouped.length * 0.6)) return `${exactCount} store-level`;
+  if (total && total > grouped.length) return `${total.toLocaleString()} filtered`;
+  return `${grouped.length} vetted`;
 }
 
 function getEventDescription(drop: GroupedDrop): string {
@@ -203,6 +243,13 @@ function getEventDescription(drop: GroupedDrop): string {
     }
   }
   switch (drop.event_type) {
+    case "nc_board_shipment_snapshot": {
+      const loc = cleanCountyName(drop.board_name || drop.locations[0]?.label || "");
+      return `Board shipment${loc ? ` · ${loc}` : ""}`;
+    }
+    case "nc_statewide_warehouse_stock": {
+      return "NC warehouse radar";
+    }
     case "new_shipment": {
       if (drop.counties.length > 1) {
         return `\u2192 ${drop.counties.length} NC counties`;
@@ -288,27 +335,34 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   // Build detail fields
   const details: { label: string; value: string }[] = [];
   const confidenceBadge = getConfidenceBadge(drop);
+  const accuracyBadge = getAccuracyBadge(drop);
   if (drop.signalLabel) {
     details.push({ label: "Signal", value: drop.signalLabel });
   }
   if (confidenceBadge) {
     details.push({ label: "Confidence", value: confidenceBadge.label });
   }
-  if (drop.event_type === "new_shipment" && drop.board_name) {
+  if ((drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot") && drop.board_name) {
     details.push({ label: "Board", value: drop.board_name });
+  }
+  if (drop.event_type === "nc_board_shipment_snapshot") {
+    details.push({ label: "Precision", value: "Board-level shipment, store unknown" });
+  }
+  if (drop.event_type === "nc_statewide_warehouse_stock") {
+    details.push({ label: "Precision", value: "Statewide warehouse radar, board/store unknown" });
   }
   if (drop.retail_price && drop.retail_price > 0) {
     details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
   }
   if (drop.quantity_shipped && drop.quantity_shipped > 0) {
-    details.push({ label: "Shipped", value: `${drop.quantity_shipped} case${drop.quantity_shipped === 1 ? "" : "s"}` });
+    details.push({ label: drop.event_type === "nc_board_shipment_snapshot" ? "Board received" : "Shipped", value: `${drop.quantity_shipped} unit${drop.quantity_shipped === 1 ? "" : "s"}` });
   }
   if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
-    details.push({ label: "In stock", value: `${drop.quantity_in_stock} bottle${drop.quantity_in_stock === 1 ? "" : "s"}` });
+    details.push({ label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "In stock", value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}` });
   }
   if (drop.locations.length > 0) {
     details.push({
-      label: drop.event_type === "new_shipment" ? "Destinations" : "Locations",
+      label: drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot" ? "Destinations" : "Locations",
       value: `${drop.locations.length} ${drop.locations.length === 1 ? "location" : "locations"}`,
     });
   }
@@ -389,6 +443,38 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 style={{
                   fontFamily: "var(--font-jetbrains)",
                   fontSize: "9px",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color:
+                    accuracyBadge.tone === "exact"
+                      ? "rgba(110,231,183,0.96)"
+                      : accuracyBadge.tone === "official"
+                        ? "rgba(125,211,252,0.95)"
+                        : "rgba(245,237,214,0.56)",
+                  background:
+                    accuracyBadge.tone === "exact"
+                      ? "rgba(110,231,183,0.09)"
+                      : accuracyBadge.tone === "official"
+                        ? "rgba(125,211,252,0.09)"
+                        : "rgba(245,237,214,0.055)",
+                  border:
+                    accuracyBadge.tone === "exact"
+                      ? "1px solid rgba(110,231,183,0.18)"
+                      : accuracyBadge.tone === "official"
+                        ? "1px solid rgba(125,211,252,0.18)"
+                        : "1px solid rgba(245,237,214,0.10)",
+                  borderRadius: "999px",
+                  padding: "4px 8px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {accuracyBadge.label}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: "9px",
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
@@ -415,7 +501,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
           <div style={{ textAlign: "right", flexShrink: 0, paddingTop: "1px" }}>
             <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
-              {formatRelativeTime(drop.timestamp)}
+              Confirmed {formatRelativeTime(drop.timestamp)}
             </div>
             {hasPricing && (
               <div style={{ marginTop: "8px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "rgba(245,237,214,0.58)", whiteSpace: "nowrap" }}>
@@ -458,10 +544,25 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                   whiteSpace: "nowrap",
                 }}
               >
-                Store-level
+                {confidenceBadge.label}
               </span>
             )}
           </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "10px",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: "11px",
+            color: "rgba(245,237,214,0.45)",
+          }}
+        >
+          <span>{accuracyBadge.caption}</span>
+          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for evidence" : "Evidence shown"}</span>
         </div>
 
         {pricing.secondary && (
@@ -715,7 +816,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 marginTop: "3px",
               }}
             >
-              {formatRelativeTime(drop.timestamp)}
+              Confirmed {formatRelativeTime(drop.timestamp)}
             </span>
           )}
         </div>
@@ -733,7 +834,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
               whiteSpace: "nowrap",
             }}
           >
-            {formatRelativeTime(drop.timestamp)}
+            Confirmed {formatRelativeTime(drop.timestamp)}
           </span>
         </div>
       </div>
@@ -886,7 +987,12 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 export default function DropFeed() {
   const shouldReduceMotion = useReducedMotion();
 
-  const { selectedStates: preferredStates, hasSelectedStates } = useStatePreferences();
+  const {
+    selectedStates: preferredStates,
+    hasSelectedStates,
+    setSelectedStates,
+    clearPreferences,
+  } = useStatePreferences();
   const { isSignedIn, memberTier, isPaidUser } = useAuth();
   const { prefs } = useAreaPreferences();
   const areaPrefs = prefs.areaPreferences;
@@ -1048,6 +1154,16 @@ export default function DropFeed() {
   const displayedGrouped = finalFeed.slice(0, isPaidUser ? baseVisibleCount : baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const hasFeedData = !!data?.lastUpdated;
+  const latestSignalAt = grouped[0]?.timestamp || data?.lastUpdated || lastFetch;
+  const dropCountsByState = grouped.reduce((counts, drop) => {
+    const state = drop.state || "NC";
+    counts.set(state, (counts.get(state) || 0) + 1);
+    return counts;
+  }, new Map<string, number>());
+  const feedStateOptions = AVAILABLE_STATES.filter((state) => !("comingSoon" in state && state.comingSoon));
+  const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
+    ? "Showing all supported states"
+    : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
 
   return (
     <section
@@ -1133,9 +1249,9 @@ export default function DropFeed() {
             transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {[
-              { label: "Coverage", value: "Drop Feed" },
-              { label: "Feed status", value: hasFeedData ? "Recent scan" : "Checking" },
-              { label: "Inventory signals", value: data ? `${data.total.toLocaleString()}+` : "1,000+" },
+              { label: "Latest signal", value: hasFeedData ? getFreshnessLabel(latestSignalAt) : "Checking" },
+              { label: "Accuracy filter", value: "Positive only" },
+              { label: "Evidence", value: getScanIntegrityLabel(grouped, data?.total) },
             ].map((item, idx) => (
               <div
                 key={item.label}
@@ -1185,7 +1301,7 @@ export default function DropFeed() {
                   marginBottom: 0,
                 }}
               >
-                Recent positive bottle signals only — no out-of-stock rows, lotteries, or raw source noise.
+                Source-filtered positive bottle signals with freshness and evidence level shown on every card.
               </p>
             </div>
             {hasAreaPrefs && (
@@ -1224,11 +1340,60 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            Track store-level availability and delivery signals, then unlock deeper hunt intel with member access.
+            Built to avoid false alarms: out-of-stock rows, lottery pages, statewide catalog noise, and weak allocation chatter are filtered before they reach this feed.
           </motion.div>
 
           {/* Divider */}
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
+
+          <motion.div
+            className="dropfeed-state-panel"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-70px" }}
+            transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <div className="dropfeed-state-panel-head">
+              <div>
+                <span>State coverage</span>
+                <strong>{stateFilterSummary}</strong>
+              </div>
+              {hasSelectedStates && preferredStates.length > 0 ? (
+                <button type="button" onClick={clearPreferences}>Show all</button>
+              ) : null}
+            </div>
+            <div className="dropfeed-state-chips" aria-label="Filter drop feed by state">
+              <button
+                type="button"
+                className={`dropfeed-state-chip ${!hasSelectedStates || preferredStates.length === 0 ? "active" : ""}`}
+                onClick={clearPreferences}
+                aria-pressed={!hasSelectedStates || preferredStates.length === 0}
+              >
+                <strong>All</strong>
+                <span>Every active market</span>
+                <em>{grouped.length}</em>
+              </button>
+              {feedStateOptions.map((state) => {
+                const active = hasSelectedStates && preferredStates.includes(state.code);
+                const nextStates = active
+                  ? preferredStates.filter((code) => code !== state.code)
+                  : [...preferredStates, state.code];
+                return (
+                  <button
+                    key={state.code}
+                    type="button"
+                    className={`dropfeed-state-chip ${active ? "active" : ""}`}
+                    onClick={() => setSelectedStates(nextStates)}
+                    aria-pressed={active}
+                  >
+                    <strong>{state.code}</strong>
+                    <span>{state.name}</span>
+                    <em>{dropCountsByState.get(state.code) || 0}</em>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
 
           {/* Filters row: Tier filter pills */}
           <motion.div
@@ -1241,11 +1406,13 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
+              { tier: "all", label: "All signals", activeBg: "rgba(245,237,214,0.13)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.035)", inactiveColor: "rgba(245,237,214,0.5)", border: "1px solid rgba(245,237,214,0.12)" },
               { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
               { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.3)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.06)", inactiveColor: "rgba(184,115,51,0.45)", border: "1px solid rgba(184,115,51,0.2)" },
               { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.22)", activeColor: "#AAAAAA", inactiveBg: "rgba(138,138,138,0.05)", inactiveColor: "rgba(138,138,138,0.4)", border: "1px solid rgba(138,138,138,0.18)" },
             ].map((pill) => {
-              const isActive = activeTiers.has(pill.tier);
+              const isAll = pill.tier === "all";
+              const isActive = isAll ? activeTiers.size === 0 : activeTiers.has(pill.tier);
               return (
                 <motion.button
                   key={pill.tier}
@@ -1254,6 +1421,10 @@ export default function DropFeed() {
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.45, delay: 0.06 + (pill.tier === "unicorn" ? 0 : pill.tier === "allocated" ? 0.05 : 0.1), ease: [0.25, 0.1, 0.25, 1] }}
                   onClick={() => {
+                    if (isAll) {
+                      setActiveTiers(new Set());
+                      return;
+                    }
                     setActiveTiers((prev) => {
                       const next = new Set(prev);
                       if (next.has(pill.tier)) {
@@ -1267,7 +1438,7 @@ export default function DropFeed() {
                   style={{
                     background: isActive ? pill.activeBg : pill.inactiveBg,
                     color: isActive ? pill.activeColor : pill.inactiveColor,
-                    border: isActive ? `1px solid ${pill.tier === "unicorn" ? "rgba(196,148,58,0.6)" : pill.tier === "allocated" ? "rgba(184,115,51,0.45)" : "rgba(138,138,138,0.4)"}` : pill.border,
+                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.22)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.6)" : pill.tier === "allocated" ? "rgba(184,115,51,0.45)" : "rgba(138,138,138,0.4)"}` : pill.border,
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "13px",
                     fontWeight: 600,
@@ -1277,7 +1448,7 @@ export default function DropFeed() {
                     whiteSpace: "nowrap" as const,
                     cursor: "pointer",
                     transition: "background 150ms, color 150ms, border-color 150ms",
-                    boxShadow: isActive && pill.tier === "unicorn" ? "0 0 8px rgba(196,148,58,0.2)" : "none",
+                    boxShadow: isActive ? (pill.tier === "unicorn" ? "0 0 8px rgba(196,148,58,0.2)" : "inset 0 1px 0 rgba(255,255,255,0.045)") : "none",
                   }}
                 >
                   {pill.label}

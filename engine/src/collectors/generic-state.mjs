@@ -1,4 +1,4 @@
-import { findPdfLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
+import { findDocumentLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { fetchWithMeta, tryParseJson } from '../core/fetcher.mjs';
 import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
@@ -11,18 +11,24 @@ const SIGNAL_TERMS = [
   'elijah craig', 'old forester', 'king of kentucky', 'russell', 'four roses', 'booker', 'maker'
 ];
 
-function classifySignal(source, response, text, matchedBottles, pdfLinks) {
+function classifySignal(source, response, text, matchedBottles, documentLinks) {
   const lower = text.toLowerCase();
   const hasInventory = /inventory|in stock|availability|available at|store locator|locations? carry|quantity|qty/i.test(text);
   const hasRelease = /allocated|limited release|lottery|drawing|monthly|quarterly|release program|barrel pick|special release/i.test(text);
+  const priceDocumentCount = documentLinks.filter((link) => /price|spa|bailment|brand|label/i.test(`${link.href} ${link.label}`)).length;
+  const licenseDocumentCount = documentLinks.filter((link) => /license|licensing|permit|applicant|wholesaler|shipper/i.test(`${link.href} ${link.label}`)).length;
+  const hasPriceDocument = /price|spa|bailment|brand|label/i.test(text) || priceDocumentCount > 0;
+  const hasLicenseDocument = /license|licensing|permit|applicant|wholesaler|shipper/i.test(text) || licenseDocumentCount > 0;
   const hasCatalog = /product|price|catalog|search|spirits|bourbon/i.test(text);
 
   if (!response.ok) return 'roadblock';
   if (matchedBottles.length > 0 && hasInventory) return 'bottle_inventory_signal';
   if (matchedBottles.length > 0 && hasRelease) return 'allocated_release_signal';
   if (matchedBottles.length > 0) return 'bottle_catalog_signal';
-  if (pdfLinks.length > 0 && hasRelease) return 'release_document_signal';
-  if (pdfLinks.length > 0) return 'document_signal';
+  if (documentLinks.length > 0 && hasRelease) return 'release_document_signal';
+  if (documentLinks.length > 0 && hasLicenseDocument && licenseDocumentCount >= priceDocumentCount) return 'license_document_signal';
+  if (documentLinks.length > 0 && hasPriceDocument) return 'product_price_document_signal';
+  if (documentLinks.length > 0) return 'document_signal';
   if (hasInventory) return 'inventory_surface_signal';
   if (hasRelease) return 'release_surface_signal';
   if (hasCatalog) return 'catalog_surface_signal';
@@ -225,8 +231,8 @@ export async function collectState(config, bible) {
     const json = contentIsJson ? tryParseJson(response.text) : null;
     const text = json ? JSON.stringify(json).slice(0, 500000) : stripHtml(response.text);
     const matchedBottles = bible.scanText(text);
-    const pdfLinks = json ? [] : findPdfLinks(response.text, response.url).slice(0, 30);
-    const kind = classifySignal(source, response, text, matchedBottles, pdfLinks);
+    const documentLinks = json ? [] : findDocumentLinks(response.text, response.url).slice(0, 30);
+    const kind = classifySignal(source, response, text, matchedBottles, documentLinks);
 
     if (!response.ok) {
       roadblocks.push({
@@ -242,7 +248,7 @@ export async function collectState(config, bible) {
     const jsonRecords = json ? recordsFromJson(source, json, bible, config.id) : [];
     signals.push(...jsonRecords);
 
-    if (matchedBottles.length || pdfLinks.length || response.ok) {
+    if (matchedBottles.length || documentLinks.length || response.ok) {
       signals.push({
         id: stableId([config.id, source.url, kind, response.status]),
         state: config.id,
@@ -253,9 +259,9 @@ export async function collectState(config, bible) {
         canonicalName: matchedBottles[0]?.canonical || null,
         matchedBottleCount: matchedBottles.length,
         matchedBottles: matchedBottles.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
-        documentLinks: pdfLinks,
+        documentLinks,
         readableSummary: summarizeText(text, matchedBottles),
-        confidence: kind === 'roadblock' ? 0 : matchedBottles.length ? 0.75 : pdfLinks.length ? 0.55 : 0.35,
+        confidence: kind === 'roadblock' ? 0 : matchedBottles.length ? 0.75 : documentLinks.length ? 0.55 : 0.35,
         locationPrecision: kind.includes('inventory') ? 'store_aggregate' : kind.includes('release') ? 'statewide_policy' : 'statewide_catalog',
         locationName: config.label,
         fetchedAt: new Date().toISOString()
@@ -272,7 +278,8 @@ export async function collectState(config, bible) {
       elapsedMs: response.elapsedMs,
       signalType: kind,
       matchedBottleCount: matchedBottles.length,
-      pdfLinkCount: pdfLinks.length,
+      pdfLinkCount: documentLinks.filter((link) => /\.pdf($|[?#])/i.test(link.href)).length,
+      documentLinkCount: documentLinks.length,
       error: response.error
     });
   }
@@ -302,6 +309,8 @@ export async function collectState(config, bible) {
   const fallbackHints = FALLBACK_HINTS[config.id] || [];
   for (const hint of fallbackHints) {
     const matchedBottles = bible.scanText(hint.text);
+    const isDocumentHint = /document|pdf|price|spa|xlsx|license_report/i.test(`${hint.type} ${hint.url} ${hint.label}`);
+    const hintDocumentLinks = isDocumentHint ? [{ href: hint.url, label: hint.label }] : [];
     signals.push({
       id: stableId([config.id, hint.url, hint.type, hint.text]),
       state: config.id,
@@ -312,7 +321,7 @@ export async function collectState(config, bible) {
       canonicalName: matchedBottles[0]?.canonical || null,
       matchedBottleCount: matchedBottles.length,
       matchedBottles: matchedBottles.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
-      documentLinks: /\.pdf($|[?#])/i.test(hint.url) ? [{ href: hint.url, label: hint.label }] : [],
+      documentLinks: hintDocumentLinks,
       readableSummary: hint.text,
       confidence: hint.type.includes('policy') || hint.type.includes('context') ? 0.5 : 0.65,
       locationPrecision: hint.type.includes('inventory') ? 'store_aggregate' : hint.type.includes('HAL') || hint.type.includes('allocated') ? 'board_county' : 'statewide_catalog',
@@ -331,7 +340,8 @@ export async function collectState(config, bible) {
       elapsedMs: 0,
       signalType: hint.type,
       matchedBottleCount: matchedBottles.length,
-      pdfLinkCount: /\.pdf($|[?#])/i.test(hint.url) ? 1 : 0,
+      pdfLinkCount: hintDocumentLinks.filter((link) => /\.pdf($|[?#])/i.test(link.href)).length,
+      documentLinkCount: hintDocumentLinks.length,
       error: null,
       fallback: true
     });
@@ -391,6 +401,6 @@ export async function collectState(config, bible) {
     sources: sourceReports,
     signals: dedupedSignals,
     roadblocks,
-    status: sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
+    status: sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
   };
 }

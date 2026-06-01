@@ -1,6 +1,12 @@
 export interface DropEvent {
   timestamp: string;
   event_type: string;
+  bottle_id?: string;
+  canonical_id?: string;
+  canonical_name?: string;
+  canonical_key?: string;
+  raw_name?: string;
+  aliases?: string[];
   brand_name: string;
   tracked_brand_name?: string;
   board_name?: string;
@@ -19,6 +25,10 @@ export interface DropEvent {
   state?: string;
   state_code?: string;
   source?: string;
+  sourceUrl?: string;
+  evidence?: string | null;
+  inventorySemantics?: string | null;
+  canAlertAsWatch?: boolean;
   exact_store?: boolean;
   availability_scope?: "exact" | "page" | "online" | string;
   confidence_tier?: "exact_store" | "online_positive" | "listing_only" | string;
@@ -89,6 +99,8 @@ function isRealDropEvent(event: DropEvent): boolean {
   if (eventType.includes('lottery')) return false;
   if (eventType.includes('county_allocated')) return false;
   if (eventType.includes('allocated_release')) return false;
+  if (eventType === 'nc_board_shipment_snapshot') return quantity > 0;
+  if (eventType === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (locationPrecision === 'board_county' || locationPrecision === 'statewide_catalog' || locationPrecision === 'statewide_policy') return false;
   if (eventType === 'new_allocation') return false;
   if (eventType === 'allocation_assigned') return false;
@@ -141,6 +153,7 @@ function toTitleCase(str: string): string {
 }
 
 export function getDisplayName(event: DropEvent): string {
+  if (event.canonical_name) return cleanBrandName(event.canonical_name);
   const cleaned = cleanBrandName(event.brand_name);
   if (!cleaned && event.tracked_brand_name) {
     return cleanBrandName(event.tracked_brand_name);
@@ -187,6 +200,8 @@ function getPublicSignalLabel(event: DropEvent): string | undefined {
   if (event.signal_label) return event.signal_label;
   const eventType = (event.event_type || "").toLowerCase();
   if (eventType.includes("limited_supply")) return "Limited supply";
+  if (eventType === "nc_board_shipment_snapshot") return "Board shipment";
+  if (eventType === "nc_statewide_warehouse_stock") return "Warehouse radar";
   if (eventType.includes("in_stock")) return "In stock";
   if (eventType === "store_delivery_snapshot") return "Store delivery";
   if (eventType === "store_inventory_result") return "In stock";

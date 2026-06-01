@@ -5,6 +5,10 @@ function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
 }
 
+function arrayIncludesNeedle(value: unknown, needle: string) {
+  return Array.isArray(value) && value.some((item) => includesNeedle(item, needle));
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
@@ -28,7 +32,16 @@ export async function GET(request: Request) {
     }
 
     if (bottle) {
-      drops = drops.filter((drop) => includesNeedle(drop.brand_name, bottle) || includesNeedle(drop.tracked_brand_name, bottle));
+      drops = drops.filter(
+        (drop) =>
+          includesNeedle(drop.brand_name, bottle) ||
+          includesNeedle(drop.tracked_brand_name, bottle) ||
+          includesNeedle(drop.canonical_name, bottle) ||
+          includesNeedle(drop.raw_name, bottle) ||
+          includesNeedle(drop.bottle_id, bottle) ||
+          includesNeedle(drop.canonical_id, bottle) ||
+          arrayIncludesNeedle(drop.aliases, bottle)
+      );
     }
 
     if (store) {

@@ -1,6 +1,6 @@
 ﻿{
   "families": [
-    { "canonical": "Blanton's Original Single Barrel", "aliases": ["Blanton's", "Blantons", "Blanton's Bourbon", "Blanton's Single Barrel", "Blanton's Original", "Blanton Gold", "Blanton's Gold", "Blanton's Straight From The Barrel", "Blanton SFTB"], "tier": "allocated", "producer": "Buffalo Trace" },
+    { "canonical": "Blanton's Original Single Barrel", "aliases": ["Blanton", "Blanton's", "Blantons", "Blanton's Bourbon", "Blanton's Single Barrel", "Blanton's Original"], "tier": "allocated", "producer": "Buffalo Trace" },
     { "canonical": "Buffalo Trace Bourbon", "aliases": ["Buffalo Trace", "Buffalo Trace KY Straight Bourbon", "Buffalo Trace Kentucky Straight Bourbon", "Buffalo Trace Liter"], "tier": "allocated", "producer": "Buffalo Trace" },
     { "canonical": "Eagle Rare 10 Year", "aliases": ["Eagle Rare", "Eagle Rare 10Y", "Eagle Rare 10 Yr"], "tier": "allocated", "producer": "Buffalo Trace" },
     { "canonical": "Weller Special Reserve", "aliases": ["W.L. Weller Special Reserve", "WL Weller SR", "Weller SR"], "tier": "allocated", "producer": "Buffalo Trace" },
@@ -53,6 +53,7 @@
     { "canonical": "New Riff 8 Year Bourbon", "aliases": ["New Riff 8Y", "New Riff 8 Year"], "tier": "limited", "producer": "New Riff" },
     { "canonical": "Sazerac Rye", "aliases": ["Baby Saz", "Sazerac Rye 6", "Sazerac Rye 1.75L"], "tier": "limited", "producer": "Buffalo Trace" },
     { "canonical": "1792 Full Proof", "aliases": ["1792 FP", "Barton 1792 Full Proof"], "tier": "allocated", "producer": "Barton" },
+    { "canonical": "1792 Small Batch", "aliases": ["1792 Small Batch Bourbon", "Barton 1792 Small Batch", "1792 Bourbon"], "tier": "core", "producer": "Barton" },
     { "canonical": "1792 Sweet Wheat", "aliases": ["Sweet Wheat", "1792 SW"], "tier": "allocated", "producer": "Barton" }
   ]
 }

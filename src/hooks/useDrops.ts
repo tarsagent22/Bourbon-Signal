@@ -34,20 +34,20 @@ function buildQuery(options: UseDropsOptions) {
 }
 
 export function useDrops(options: UseDropsOptions = {}) {
-  const cacheable = !options.limit && !options.offset && !options.bottle && !options.store && !options.state;
+  const endpoint = useMemo(() => buildQuery(options), [options.limit, options.offset, options.bottle, options.store, options.state]);
+  const cacheable = endpoint === "/api/drops";
   const [response, setResponse] = useState<DropsResponse | null>(cacheable ? cachedDefaultResponse : null);
   const [loading, setLoading] = useState(cacheable ? cachedDefaultResponse === null : true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDrops = useCallback(async () => {
-    const endpoint = buildQuery(options);
     const res = await fetch(endpoint);
     if (!res.ok) throw new Error("Failed to load drops");
     const data = (await res.json()) as DropsResponse;
     if (cacheable) cachedDefaultResponse = data;
     setResponse(data);
     return data;
-  }, [cacheable, options]);
+  }, [cacheable, endpoint]);
 
   useEffect(() => {
     if (cacheable && cachedDefaultResponse !== null) {

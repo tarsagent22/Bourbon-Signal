@@ -49,6 +49,58 @@ interface StatsResponse {
   unicorn_count: number;
   allocated_count: number;
   by_state: Record<string, unknown>;
+  stateCount?: number;
+  signalCount?: number;
+  dropCount?: number;
+  locationCount?: number;
+  refreshHealth?: {
+    degradedStateCount?: number;
+    staleStateCount?: number;
+    failedStateCount?: number;
+  };
+  stateCoverage?: {
+    counts?: Record<string, number>;
+    states?: Array<{
+      state: string;
+      label?: string;
+      tier?: string;
+      status?: string;
+      signalCount?: number;
+      targetLocationPrecision?: string;
+      bestLocationPrecision?: string;
+      strategy?: string;
+      coverageTier?: string;
+    }>;
+  };
+  southeastReadiness?: {
+    generatedAt?: string;
+    focusStates?: string[];
+    counts?: Record<string, number>;
+    stateNotes?: Record<string, {
+      label?: string;
+      status?: string;
+      coverageTier?: string;
+      signalCount?: number;
+      bestLocationPrecision?: string;
+      testerValue?: string;
+    }>;
+    bestCurrentSignals?: Record<string, Array<{
+      id?: string;
+      state?: string;
+      type?: string;
+      source?: string;
+      sourceUrl?: string;
+      bottle?: string | null;
+      rawName?: string | null;
+      locationPrecision?: string;
+      locationName?: string;
+      quantity?: number;
+      confidence?: number;
+      canAlertAsInventory?: boolean;
+      canAlertAsWatch?: boolean;
+      summary?: string;
+    }>>;
+  };
 }
 
 function useFetch<T>(url: string, fallback: T) {

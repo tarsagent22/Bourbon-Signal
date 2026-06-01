@@ -6,7 +6,7 @@ const ROOT = path.resolve('..');
 const OUT = path.resolve('out');
 
 async function readJson(file, fallback) {
-  try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+  try { return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')); } catch { return fallback; }
 }
 
 function extractSiteBottleNames(source) {
@@ -22,15 +22,21 @@ function addRecord(records, rawName, meta = {}) {
   if (!normalized || normalized.length < 3) return;
   const key = fingerprintName(normalized) || normalized.toLowerCase();
   if (!key || key.length < 2) return;
-  const existing = records.get(key);
+
+  const aliasKeys = [normalized, ...(meta.aliases || [])]
+    .map((alias) => fingerprintName(alias) || normalizeBottleName(alias).toLowerCase())
+    .filter((aliasKey) => aliasKey && aliasKey.length >= 2);
+  const existingKey = [key, ...aliasKeys].find((candidate) => records.has(candidate));
+  const existing = existingKey ? records.get(existingKey) : null;
   if (existing) {
     existing.aliases = [...new Set([...existing.aliases, normalized, ...(meta.aliases || [])])].sort();
     existing.sources = [...new Set([...existing.sources, ...(meta.sources || [])])];
     if (meta.tier && existing.tier === 'unknown') existing.tier = meta.tier;
     if (meta.producer && !existing.producer) existing.producer = meta.producer;
+    for (const aliasKey of aliasKeys) records.set(aliasKey, existing);
     return;
   }
-  records.set(key, {
+  const record = {
     id: `bb_${stableId([key])}`,
     canonical: meta.canonical || titleCase(normalized),
     normalizedKey: key,
@@ -38,7 +44,9 @@ function addRecord(records, rawName, meta = {}) {
     tier: meta.tier || 'unknown',
     producer: meta.producer || null,
     sources: [...new Set(meta.sources || [])]
-  });
+  };
+  records.set(key, record);
+  for (const aliasKey of aliasKeys) records.set(aliasKey, record);
 }
 
 async function main() {
@@ -73,11 +81,12 @@ async function main() {
     for (const drop of oldDrops.drops || []) addRecord(records, drop.tracked_brand_name || drop.brand_name, { sources: ['site:old-drops'] });
   } catch {}
 
+  const uniqueRecords = [...new Map([...records.values()].map((record) => [record.id, record])).values()];
   const bible = {
     generatedAt: new Date().toISOString(),
-    count: records.size,
+    count: uniqueRecords.length,
     verifiedAliasNotes,
-    records: [...records.values()].sort((a, b) => a.canonical.localeCompare(b.canonical))
+    records: uniqueRecords.sort((a, b) => a.canonical.localeCompare(b.canonical))
   };
   await writeFile(path.join(OUT, 'bourbon-bible.json'), JSON.stringify(bible, null, 2));
   console.log(`Built bourbon bible with ${bible.count} canonical records.`);

@@ -26,7 +26,12 @@ export const LOCATION_PROFILES = {
   MT: { target: 'statewide_catalog', note: 'Montana price book/agency store list; no public store-level inventory located.' },
   WV: { target: 'statewide_catalog', note: 'WV ABCA search/barrel-pick pages are statewide product/release signals; no public store inventory located.' },
   WY: { target: 'statewide_catalog', note: 'Wyoming Liquor Division product pages are wholesale/product-level; no consumer store inventory found.' },
-  MS: { target: 'statewide_policy', note: 'Mississippi ABC public pages expose vendor/product policy, not bottle/store inventory.' }
+  MS: { target: 'statewide_catalog', note: 'Mississippi ABC public pages expose SPA/bailment price-change PDFs and vendor/product policy, not bottle/store inventory.' },
+  KY: { target: 'statewide_catalog', note: 'Kentucky ABC has active-brand/licensing surfaces but no official consumer store inventory or allocation feed found.' },
+  TN: { target: 'statewide_policy', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, not consumer inventory.' },
+  SC: { target: 'statewide_policy', note: 'South Carolina DOR ABL pages expose liquor licensing/regulatory context, not bottle/store inventory.' },
+  GA: { target: 'statewide_catalog', note: 'Georgia DOR brand/label and active-license pages expose registration/license context, not public consumer bottle availability.' },
+  FL: { target: 'statewide_policy', note: 'Florida ABT quota/license pages expose regulatory/lottery context, not bourbon inventory.' }
 };
 
 export function precisionRank(level) {

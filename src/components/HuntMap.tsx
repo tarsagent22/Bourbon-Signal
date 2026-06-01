@@ -8,7 +8,8 @@ import { Search, X } from "lucide-react";
 import type { Store } from "@/hooks/useStores";
 import type { Bottle } from "@/data/bottles";
 import type { DropEvent } from "@/lib/drops";
-import { cleanBrandName, formatRelativeTime } from "@/lib/drops";
+import { cleanBrandName, formatRelativeTime, getDisplayName } from "@/lib/drops";
+import { dropMatchesBottle } from "@/lib/bottleIdentity";
 import { ZIP_CENTROIDS } from "@/data/zip-centroids";
 
 interface HuntMapProps {
@@ -124,9 +125,9 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
       .slice(0, 10);
   }, [bottleOptions, bottleSearch, selectedBottleIds]);
 
-  const selectedBottleNames = useMemo(
-    () => new Set(selectedBottleIds.map((id) => bottleOptions.find((option) => option.id === id)?.canonicalName).filter(Boolean)),
-    [selectedBottleIds, bottleOptions]
+  const selectedBottles = useMemo(
+    () => selectedBottleIds.map((id) => bottles.find((bottle) => bottle.id === id)).filter(Boolean) as Bottle[],
+    [selectedBottleIds, bottles]
   );
 
   const areaPoint = useMemo(() => ({ lat: (areaCenter as [number, number])[0], lng: (areaCenter as [number, number])[1] }), [areaCenter]);
@@ -144,12 +145,12 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
     return drops.filter((drop) => {
       const time = new Date(drop.timestamp).getTime();
       if (time < cutoff) return false;
-      if (mode === "bottle" && selectedBottleNames.size > 0) {
-        return selectedBottleNames.has(normalizeName(drop.brand_name));
+      if (mode === "bottle" && selectedBottles.length > 0) {
+        return selectedBottles.some((bottle) => dropMatchesBottle(drop, bottle));
       }
       return true;
     });
-  }, [drops, daysBack, mode, selectedBottleNames]);
+  }, [drops, daysBack, mode, selectedBottles]);
 
   const bottleMarkers = useMemo<DropMarker[]>(() => {
     if (mode !== "bottle") return [];
@@ -163,7 +164,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
           id: `${drop.brand_name}-${drop.timestamp}-${index}`,
           lat,
           lng,
-          label: cleanBrandName(drop.brand_name),
+          label: getDisplayName(drop),
           quantity: drop.quantity_shipped ?? drop.quantity_in_stock ?? drop.quantity ?? null,
           timestamp: drop.timestamp,
           storeName: drop.store_name,
@@ -277,7 +278,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
                   <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
                     {recentStoreDrops.length > 0 ? recentStoreDrops.slice(0, 8).map((drop, index) => (
                       <div key={`${selectedStore.id}-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{cleanBrandName(drop.brand_name)}</span>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{getDisplayName(drop)}</span>
                         <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)" }}>{formatRelativeTime(drop.timestamp)}</span>
                       </div>
                     )) : (
@@ -287,7 +288,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
                     )}
                     {showOlderStoreData && olderStoreDrops.map((drop, index) => (
                       <div key={`${selectedStore.id}-older-${index}-${drop.timestamp}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{cleanBrandName(drop.brand_name)}</span>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "var(--color-text-primary)" }}>{getDisplayName(drop)}</span>
                         <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 11, color: "var(--color-accent-amber)" }}>{formatRelativeTime(drop.timestamp)}</span>
                       </div>
                     ))}

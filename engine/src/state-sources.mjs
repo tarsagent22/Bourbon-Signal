@@ -1,4 +1,4 @@
-﻿export const STATE_SOURCES = [
+export const ALL_STATE_SOURCES = [
   {
     id: 'OH', label: 'Ohio OHLQ', tier: 'A', strategy: 'inventory_locator', cadence: '15-60m',
     value: 'OHLQ catalog and store availability; strong bourbon-hunter value when availability map is accessible.',
@@ -14,8 +14,10 @@
     ]
   },
   {
-    id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'daily-60m',
-    value: 'State liquor search plus monthly product/price list. Best as store-level locator with freshness caveat.',
+    id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'paused',
+    active: false,
+    disabledReason: 'Paused for production: Oregon Liquor Search/API currently times out and exports zero user-facing drops; keep as research-only until store-level rows are reliable again.',
+    value: 'Research-only for now. State liquor search and monthly product/price list exist, but current refresh does not produce useful user-facing drops.',
     sources: [
       { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search' },
       { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
@@ -97,13 +99,16 @@
   },
   {
     id: 'NC', label: 'North Carolina ABC + county boards', tier: 'B', strategy: 'warehouse_plus_county_board_inventory', cadence: '15-60m',
-    value: 'State warehouse/product data plus county-board inventory where available. Fragmented, but very high user value.',
+    value: 'State warehouse/product data plus county-board inventory where available. Fragmented, but very high user value; prioritize high-signal county boards over adding weak private-market states.',
     sources: [
       { kind: 'html', url: 'https://abc2.nc.gov/Search/Product', label: 'NC product search' },
       { kind: 'html', url: 'https://abc2.nc.gov/StoresBoards/Stocks', label: 'NC warehouse stock status' },
       { kind: 'html', url: 'https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open', label: 'Public allocated/limited distribution list' },
       { kind: 'html', url: 'https://wakeabc.com/search-our-inventory/', label: 'Wake County ABC inventory' },
-      { kind: 'html', url: 'https://www.meckabc.com/product-search', label: 'Mecklenburg ABC product search' }
+      { kind: 'html', url: 'https://www.meckabc.com/store_operations/specialty_products_lottery.php', label: 'Mecklenburg specialty products lottery' },
+      { kind: 'html', url: 'https://www.newhanovercountyabc.com/bourbon-blast/', label: 'New Hanover Bourbon Blast / allocated notifications' },
+      { kind: 'html', url: 'https://www.newhanovercountyabc.com/barrels/', label: 'New Hanover barrel picks' },
+      { kind: 'html', url: 'https://www.newhanovercountyabc.com/sales/', label: 'New Hanover monthly sale items' }
     ],
     apiCandidates: []
   },
@@ -121,8 +126,9 @@
   },
   {
     id: 'MD-MONTGOMERY', label: 'Montgomery County ABS', tier: 'B', strategy: 'county_inventory_and_HAL', cadence: 'daily-60m',
-    value: 'County-only but strong product search and monthly highly allocated liquor program.',
+    value: 'County-only but unusually strong: open daily product inventory/pricing dataset plus monthly highly allocated liquor program.',
     sources: [
+      { kind: 'json', url: 'https://data.montgomerycountymd.gov/resource/ib5t-5ncy.json?$query=select%20code%2Ccategory%2Cdescription%2Csize%2Ctotalinventory%2Cprice%2Csaleprice%2Csaleenddate%20where%20lower(category)%20like%20%27%25bourbon%25%27%20limit%20500', label: 'ABS Store Inventory and Sale Items open data' },
       { kind: 'html', url: 'https://www2.montgomerycountymd.gov/abssearch/default.aspx', label: 'ABS product search' },
       { kind: 'html', url: 'https://www.montgomerycountymd.gov/ABS/HAL/', label: 'Highly allocated liquor program' },
       { kind: 'html', url: 'https://www.montgomerycountymd.gov/ABS/Stores/', label: 'ABS stores' }
@@ -193,11 +199,72 @@
   {
     id: 'MS', label: 'Mississippi ABC', tier: 'C', strategy: 'vendor_warehouse_policy_watch', cadence: 'monthly-weekly',
     value: 'Weak public consumer signal; useful for policy/product intelligence until better public data is found.',
+    rareSignalTarget: false,
     sources: [
+      { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/past-price-changes-spas', label: 'Past price changes and SPAs' },
       { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/vendor-information', label: 'ABC vendor information' },
-      { kind: 'html', url: 'https://www.dor.ms.gov/abc/product-registration', label: 'Product registration' },
-      { kind: 'html', url: 'https://www.dor.ms.gov/abc', label: 'Mississippi ABC' }
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/June%202026%20SPAs.pdf', label: 'June 2026 SPA price list PDF' },
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/June%202026%20Bailment%20Price%20Changes.pdf', label: 'June 2026 bailment price changes PDF' }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'KY', label: 'Kentucky ABC', tier: 'C', strategy: 'license_and_active_brand_watch', cadence: 'weekly-monthly',
+    value: 'High bourbon relevance but weak consumer availability data; useful for active-brand/licensing intelligence and Kentucky-only release watch.',
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://abc.ky.gov/', label: 'Kentucky ABC homepage' },
+      { kind: 'html', url: 'https://abc.ky.gov/Licensing/Pages/default.aspx', label: 'Kentucky ABC licensing / active brands portal' },
+      { kind: 'html', url: 'https://abc.ky.gov/new_docs.aspx?cat=80', label: 'Kentucky ABC forms and guidance' }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'TN', label: 'Tennessee ABC', tier: 'C', strategy: 'license_and_policy_watch', cadence: 'weekly-monthly',
+    value: 'Private retail market with limited official consumer availability data; useful for license/policy monitoring and public-source feasibility tracking.',
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://www.tn.gov/abc.html', label: 'Tennessee ABC homepage' },
+      { kind: 'html', url: 'https://www.tn.gov/abc/licensing.html', label: 'Tennessee ABC licensing' },
+      { kind: 'html', url: 'https://www.tn.gov/abc/public-information-and-forms.html', label: 'Tennessee ABC public information and forms' }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'SC', label: 'South Carolina DOR ABL', tier: 'C', strategy: 'license_and_regulatory_watch', cadence: 'weekly-monthly',
+    value: 'Private retail market; official pages expose liquor licensing and regulatory context, not public bottle/store inventory.',
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
+      { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl', label: 'South Carolina alcohol beverage licensing' }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'GA', label: 'Georgia DOR Alcohol', tier: 'C', strategy: 'shipment_report_and_license_watch', cadence: 'weekly-monthly',
+    value: 'Private retail market; official DOR pages expose alcohol shipment reporting and licensing, but not consumer bottle inventory.',
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-shipment-reports', label: 'Georgia alcohol shipment reports' },
+      { kind: 'html', url: 'https://dor.georgia.gov/brand-label-registration', label: 'Georgia brand and label registration' },
+      { kind: 'html', url: 'https://dor.georgia.gov/active-alcohol-licenses', label: 'Georgia active alcohol licenses' },
+      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-tobacco', label: 'Georgia alcohol and tobacco' },
+      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-licenses-permits', label: 'Georgia alcohol licenses and permits' }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'FL', label: 'Florida ABT', tier: 'C', strategy: 'license_lottery_and_policy_watch', cadence: 'weekly-monthly',
+    value: 'Private retail market; official ABT pages expose quota/license lottery and regulatory data, not public bourbon availability.',
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/', label: 'Florida ABT homepage' },
+      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/quota-license-information/', label: 'Florida quota license information' },
+      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/licensing/', label: 'Florida ABT licensing' }
     ],
     apiCandidates: []
   }
 ];
+
+export const STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active !== false);
+export const DISABLED_STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active === false);
