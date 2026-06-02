@@ -1,21 +1,21 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T16:23:34.655Z",
-  "engineGeneratedAt": "2026-06-02T16:20:56.876Z",
+  "generatedAt": "2026-06-02T16:41:09.345Z",
+  "engineGeneratedAt": "2026-06-02T16:40:05.798Z",
   "stateCount": 22,
-  "signalCount": 7186,
-  "historicalSignalCount": 1111917,
+  "signalCount": 7188,
+  "historicalSignalCount": 1115740,
   "historyDays": 30,
-  "snapshotCount": 1194,
+  "snapshotCount": 1196,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 1411,
-  "locationCount": 7282,
+  "locationCount": 7284,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1667,
   "dropCount": 8096,
-  "alertCandidateCount": 6,
-  "roadblockCount": 51,
+  "alertCandidateCount": 5,
+  "roadblockCount": 49,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -109,8 +109,8 @@
         "label": "Idaho State Liquor Division",
         "tier": "B",
         "status": "useful",
-        "signalCount": 2,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 0,
         "targetLocationPrecision": "board_county",
         "bestLocationPrecision": "store_aggregate",
         "strategy": "catalog_limited_release_watch",
@@ -299,7 +299,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-02T16:23:34.656Z",
+    "generatedAt": "2026-06-02T16:41:09.346Z",
     "focusStates": [
       "AL",
       "VA",
@@ -542,11 +542,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 781,
+          "quantity": 778,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 781 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-2 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 778 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-3 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -606,11 +606,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 451,
+          "quantity": 445,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 451 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-446 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 445 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-6 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "42112660bd6fdf81",
@@ -622,11 +622,11 @@
           "rawName": "E.H. Taylor Jr. Small Batch",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 437,
+          "quantity": 436,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 437 unit(s) available statewide for E.H. Taylor Jr. Small Batch (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 436 unit(s) available statewide for E.H. Taylor Jr. Small Batch (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "4c7a3a7b9617e7af",

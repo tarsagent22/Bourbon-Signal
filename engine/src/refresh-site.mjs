@@ -17,6 +17,7 @@ const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_M
 const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
 const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 12 * 60_000);
 const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 8 * 60_000);
+const DEPLOY_RETRIES = Number(process.env.BOURBON_SIGNAL_DEPLOY_RETRIES || 3);
 const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
 const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -28,6 +29,10 @@ async function readJson(file, fallback = null) {
 
 async function exists(file) {
   try { await stat(file); return true; } catch { return false; }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function acquireLock() {
@@ -95,6 +100,7 @@ function runCommand(command, args = [], options = {}) {
       cwd: options.cwd || ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
       env: options.env || process.env,
+      shell: process.platform === 'win32',
       windowsHide: true
     });
     let stdout = '';
@@ -176,7 +182,20 @@ async function maybeDeploySite() {
   }
 
   const vercel = process.platform === 'win32' ? 'vercel.cmd' : 'vercel';
-  const result = await runCommand(vercel, ['--prod', '--yes'], { cwd: PROJECT_ROOT, timeoutMs: DEPLOY_TIMEOUT_MS });
+  let result = null;
+  const deployErrors = [];
+  for (let attempt = 1; attempt <= DEPLOY_RETRIES; attempt += 1) {
+    try {
+      result = await runCommand(vercel, ['--prod', '--yes'], { cwd: PROJECT_ROOT, timeoutMs: DEPLOY_TIMEOUT_MS });
+      break;
+    } catch (error) {
+      deployErrors.push({ attempt, message: error.message, result: error.result || null });
+      if (attempt >= DEPLOY_RETRIES) throw Object.assign(error, { deployErrors });
+      const delayMs = Math.min(120_000, 15_000 * attempt);
+      console.warn(`Site auto-deploy attempt ${attempt}/${DEPLOY_RETRIES} failed; retrying in ${Math.round(delayMs / 1000)}s: ${error.message}`);
+      await sleep(delayMs);
+    }
+  }
   const output = `${result.stdout}\n${result.stderr}`;
   const deploymentUrl = output.match(/https:\/\/[^\s]+\.vercel\.app/)?.[0] || previous.lastDeploymentUrl || null;
   const deployed = {
@@ -185,6 +204,7 @@ async function maybeDeploySite() {
     deployedAt: new Date().toISOString(),
     lastDeployAt: new Date().toISOString(),
     lastDeploymentUrl: deploymentUrl,
+    deploymentAttempts: deployErrors,
     deploymentResult: { code: result.code, startedAt: result.startedAt, finishedAt: result.finishedAt, stdout: result.stdout.slice(-2000), stderr: result.stderr.slice(-2000) }
   };
   await writeFile(DEPLOY_STATUS, JSON.stringify(deployed, null, 2));
