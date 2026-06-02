@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T21:35:12.493Z",
-  "count": 2486,
+  "generatedAt": "2026-06-02T21:56:39.341Z",
+  "count": 2489,
   "stores": [
     {
       "id": "4ec5c4c05339a3ff",
@@ -20680,6 +20680,48 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
+    },
+    {
+      "id": "wise-guys:6085e68850996f7ec643a6bd",
+      "sourceStoreId": "wise-guys:6085e68850996f7ec643a6bd",
+      "state": "IN",
+      "name": "Wise Guys Discount Liquors - Chesterton",
+      "address": "504 E County Road 1100 North, Chesterton, IN 46304, USA",
+      "city": "Chesterton",
+      "county": "Porter County",
+      "zip": "46304",
+      "lat": 41.5952817,
+      "lng": -87.04614839999999,
+      "source": "Wise Guys Discount Liquors CityHive store locator",
+      "signalCount": 1
+    },
+    {
+      "id": "wise-guys:60803cb5ad4b017e711ec6fa",
+      "sourceStoreId": "wise-guys:60803cb5ad4b017e711ec6fa",
+      "state": "IN",
+      "name": "Wise Guys Discount Liquors - Hobart",
+      "address": "1634 E 80th Ave, Merrillville, IN 46410, USA",
+      "city": "Merrillville",
+      "county": "Lake County",
+      "zip": "46410",
+      "lat": 41.4716231,
+      "lng": -87.3167897,
+      "source": "Wise Guys Discount Liquors CityHive store locator",
+      "signalCount": 1
+    },
+    {
+      "id": "wise-guys:5eb1dc10054c392621980908",
+      "sourceStoreId": "wise-guys:5eb1dc10054c392621980908",
+      "state": "IN",
+      "name": "Wise Guys Discount Liquors - Valparaiso",
+      "address": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
+      "city": "Valparaiso",
+      "county": null,
+      "zip": "46383",
+      "lat": 41.4624416,
+      "lng": -87.0866222,
+      "source": "Wise Guys Discount Liquors CityHive store inventory",
+      "signalCount": 34
     },
     {
       "id": "DL4901139",

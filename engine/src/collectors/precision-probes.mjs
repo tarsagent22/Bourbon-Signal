@@ -41,6 +41,7 @@ const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 6
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
+const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
 const IN_CITYHIVE_SOURCES = [
   {
     id: 'big-red',
@@ -61,6 +62,16 @@ const IN_CITYHIVE_SOURCES = [
       'https://capncork.com/shop/?subtype=Bourbon',
       'https://capncork.com/pages/friday-night-flyer',
       'https://capncork.com/events'
+    ]
+  },
+  {
+    id: 'wise-guys',
+    chainName: 'Wise Guys Discount Liquors',
+    sourceLabel: 'Wise Guys Discount Liquors CityHive store inventory',
+    baseUrl: 'https://shop.wiseguysliquors.com',
+    urls: [
+      'https://shop.wiseguysliquors.com/shop/?subtype=bourbon',
+      'https://shop.wiseguysliquors.com/events'
     ]
   }
 ];
@@ -389,6 +400,10 @@ async function collectIndianaCityHive(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   const cache = await readIndianaCityHiveCache();
+  const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
+  if (cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
+    return { signals: cachedIndianaCityHiveSignals(cache, observedAt), roadblocks: cache.roadblocks || [] };
+  }
   const seenPageFirstProducts = new Set();
   const seenProductOptions = new Set();
   const seenStores = new Set();
