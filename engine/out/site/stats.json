@@ -1,21 +1,21 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T16:41:09.345Z",
-  "engineGeneratedAt": "2026-06-02T16:40:05.798Z",
+  "generatedAt": "2026-06-02T17:41:12.508Z",
+  "engineGeneratedAt": "2026-06-02T17:40:08.218Z",
   "stateCount": 22,
-  "signalCount": 7188,
-  "historicalSignalCount": 1115740,
+  "signalCount": 7189,
+  "historicalSignalCount": 1127947,
   "historyDays": 30,
-  "snapshotCount": 1196,
+  "snapshotCount": 1204,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 1411,
-  "locationCount": 7284,
+  "locationCount": 4047,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1667,
   "dropCount": 8096,
-  "alertCandidateCount": 5,
-  "roadblockCount": 49,
+  "alertCandidateCount": 2,
+  "roadblockCount": 48,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -253,8 +253,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -299,7 +299,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-02T16:41:09.346Z",
+    "generatedAt": "2026-06-02T17:41:12.510Z",
     "focusStates": [
       "AL",
       "VA",
@@ -371,7 +371,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 3,
+        "signalCount": 4,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -546,7 +546,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 778 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-3 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 778 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -610,7 +610,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 445 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-6 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 445 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "42112660bd6fdf81",
@@ -626,7 +626,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 436 unit(s) available statewide for E.H. Taylor Jr. Small Batch (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 436 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "4c7a3a7b9617e7af",

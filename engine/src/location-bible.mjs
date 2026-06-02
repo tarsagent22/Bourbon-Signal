@@ -119,6 +119,9 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     if (!isStore && !isBoard) continue;
 
     const location = makeLocation({
+      id: isStore
+        ? (signal.storeId ? String(signal.storeId) : stableId(['store', signal.state, signal.storeName || signal.locationName, signal.storeAddress || signal.city || signal.county]))
+        : undefined,
       state: signal.state,
       type: isStore ? 'store' : signal.county ? 'county_board' : 'area',
       name: signal.storeName || signal.locationName || (signal.county ? `${signal.county} County` : signal.city),

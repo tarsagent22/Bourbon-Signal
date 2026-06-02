@@ -160,9 +160,21 @@ function isLikelyNcBoardLabel(value: string) {
   return value.length >= 3;
 }
 
-function formatStoreLabel(name?: string | null, city?: string | null) {
-  const trimmedName = (name || "Unnamed store").trim();
-  const trimmedCity = city?.trim();
+function isSelectableStoreLocation(store: { id?: string | null; name?: string | null; state?: string | null; city?: string | null; county?: string | null; precision?: string | null }) {
+  return Boolean(store.id && store.name && store.precision === "store" && store.state && (store.city || store.county));
+}
+
+function storePhysicalKey(store: { id?: string | null; name?: string | null; state?: string | null; city?: string | null; county?: string | null; address?: string | null }) {
+  return [store.state, store.name, store.address, store.city, store.county]
+    .map((part) => String(part || "").toLowerCase().replace(/[^a-z0-9]+/g, "").trim())
+    .join("|");
+}
+
+function formatStoreLabel(store: { name?: string | null; city?: string | null; address?: string | null }) {
+  const trimmedName = (store.name || "Unnamed store").trim();
+  const trimmedAddress = store.address?.trim();
+  const trimmedCity = store.city?.trim();
+  if (trimmedAddress) return `${trimmedName} · ${trimmedAddress}`;
   return trimmedCity ? `${trimmedName} · ${trimmedCity}` : trimmedName;
 }
 
@@ -310,6 +322,7 @@ export default function DashboardPage() {
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [storeSelections, setStoreSelections] = useState<Record<string, StoreSelectionState>>({});
+  const [loadedSignedOutDefaults, setLoadedSignedOutDefaults] = useState(false);
 
   const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -345,10 +358,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!mounted) return;
-    setLocalPrefs(isSignedIn ? prefs.areaPreferences : EMPTY_PREFS);
-    setNotificationPrefs(isSignedIn ? prefs.notificationPreferences : getDefaultNotificationPreferences());
-    setAlertMode(isSignedIn ? prefs.alertMode ?? "anything_notable" : "anything_notable");
-  }, [prefs, isSignedIn, mounted]);
+    if (isSignedIn) {
+      setLoadedSignedOutDefaults(false);
+      setLocalPrefs(prefs.areaPreferences);
+      setNotificationPrefs(prefs.notificationPreferences);
+      setAlertMode(prefs.alertMode ?? "anything_notable");
+      return;
+    }
+    if (!loadedSignedOutDefaults) {
+      setLocalPrefs(EMPTY_PREFS);
+      setNotificationPrefs(getDefaultNotificationPreferences());
+      setAlertMode("anything_notable");
+      setLoadedSignedOutDefaults(true);
+    }
+  }, [prefs, isSignedIn, mounted, loadedSignedOutDefaults]);
 
   const bottleOptions = useMemo<BottleOption[]>(() => {
     const grouped = new Map<string, BottleOption>();
@@ -445,42 +468,42 @@ export default function DashboardPage() {
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};
-    for (const state of ["VA", "OH", "IA"] as const) {
+    for (const state of ["VA", "OH", "IA", "PA"] as const) {
       grouped[state] = Array.from(
         new Set(
           stores.flatMap((store) => {
-            if (store.state !== state || !store.city) return [];
+            if (store.state !== state || !store.city || !isSelectableStoreLocation(store)) return [];
             return [titleCase(store.city)];
           })
         )
       ).sort();
     }
-    grouped.PA = Array.from(
-      new Set(
-        stores.flatMap((store) => {
-          if (store.state !== "PA" || !store.county) return [];
-          return [titleCase(store.county.replace(/\s+County$/i, ""))];
-        })
-      )
-    ).sort();
     return grouped;
   }, [stores]);
 
   const storesByStateCity = useMemo(() => {
     const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
+      if (!isSelectableStoreLocation(store)) continue;
       if (["VA", "OH", "IA"].includes(store.state) && store.city) {
         const city = titleCase(store.city);
         const key = `${store.state}:${city}`;
-        const existing = grouped.get(key) ?? [];
-        grouped.set(key, [...existing, store]);
+        if (!(grouped.get(key) ?? []).some((existing) => existing.id === store.id || storePhysicalKey(existing) === storePhysicalKey(store))) {
+          const existing = grouped.get(key) ?? [];
+          grouped.set(key, [...existing, store]);
+        }
       }
-      if (store.state === "PA" && store.county) {
-        const county = titleCase(store.county.replace(/\s+County$/i, ""));
-        const key = `PA:${county}`;
-        const existing = grouped.get(key) ?? [];
-        grouped.set(key, [...existing, store]);
+      if (store.state === "PA" && store.city) {
+        const city = titleCase(store.city);
+        const key = `PA:${city}`;
+        if (!(grouped.get(key) ?? []).some((existing) => existing.id === store.id || storePhysicalKey(existing) === storePhysicalKey(store))) {
+          const existing = grouped.get(key) ?? [];
+          grouped.set(key, [...existing, store]);
+        }
       }
+    }
+    for (const [key, storeList] of grouped) {
+      grouped.set(key, [...storeList].sort((a, b) => formatStoreLabel(a).localeCompare(formatStoreLabel(b))));
     }
     return grouped;
   }, [stores]);
@@ -542,8 +565,8 @@ export default function DashboardPage() {
     {
       stateCode: "PA",
       label: "Pennsylvania",
-      detailLabel: "counties",
-      summary: "FWGS pickup inventory is now available by store. Start with the counties you actually hunt.",
+      detailLabel: "cities",
+      summary: "FWGS pickup inventory is now available by store. Start with the cities you actually hunt.",
       selectedCount: localPrefs.paCounties.length,
       totalCount: citiesByState.PA?.length ?? 0,
     },
@@ -858,7 +881,7 @@ export default function DashboardPage() {
                                 <div style={{ display: "grid", gap: "10px" }}>
                                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                                     <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                                      {card.stateCode === "NC" ? "Choose boards" : card.stateCode === "PA" ? "Choose counties" : ["VA", "OH", "IA"].includes(card.stateCode) ? "Choose cities" : "County-wide coverage"}
+                                      {card.stateCode === "NC" ? "Choose boards" : ["VA", "OH", "IA", "PA"].includes(card.stateCode) ? "Choose cities" : "County-wide coverage"}
                                     </div>
                                     <button onClick={() => setTerritoryDropdown(null)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Done</button>
                                   </div>
@@ -884,7 +907,7 @@ export default function DashboardPage() {
                                         const selection = storeSelections[selectionKey];
                                         return (
                                           <div style={{ display: "grid", gap: "10px" }}>
-                                            <button onClick={() => setTerritoryDropdown({ stateCode: card.stateCode, scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Back to {card.stateCode === "PA" ? "counties" : "cities"}</button>
+                                            <button onClick={() => setTerritoryDropdown({ stateCode: card.stateCode, scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Back to cities</button>
                                             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                               <button onClick={() => updateStoreSelectionMode(card.stateCode, city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: selection?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: selection?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
                                               <button onClick={() => updateStoreSelectionMode(card.stateCode, city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: selection?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: selection?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
@@ -894,7 +917,7 @@ export default function DashboardPage() {
                                                 {(storesByStateCity.get(selectionKey) ?? []).map((store) => {
                                                   const storeId = store.id || store.name || city + "-store";
                                                   const selected = selection?.storeIds.includes(storeId) ?? false;
-                                                  return <button key={storeId} onClick={() => toggleStore(card.stateCode, city, storeId)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store.name, store.city)}</button>;
+                                                  return <button key={storeId} onClick={() => toggleStore(card.stateCode, city, storeId)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: selected ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: selected ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: selected ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{formatStoreLabel(store)}</button>;
                                                 })}
                                               </div>
                                             ) : null}

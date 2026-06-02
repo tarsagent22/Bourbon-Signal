@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T16:41:09.345Z",
+  "generatedAt": "2026-06-02T17:41:12.508Z",
   "count": 1411,
   "stores": [
     {
@@ -914,11 +914,11 @@
       "signalCount": 1
     },
     {
-      "id": "57646f241a5ea05e",
+      "id": "50c8de1fdf936519",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,
@@ -928,11 +928,11 @@
       "signalCount": 1
     },
     {
-      "id": "50c8de1fdf936519",
+      "id": "57646f241a5ea05e",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,

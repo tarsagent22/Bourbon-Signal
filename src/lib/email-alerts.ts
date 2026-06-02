@@ -88,6 +88,7 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
   if (state === "PA") {
     const storeId = (drop.store_id || "").trim();
     const county = (drop.store_county || "").trim();
+    const city = (drop.store_city || "").trim();
 
     if (prefs.paStores.length > 0) {
       const matchedStore = prefs.paStores.find((candidate) => candidate === storeId);
@@ -96,10 +97,13 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
         : { matched: false };
     }
 
-    if (prefs.paCounties.length === 0) return { matched: true, matchedState: state, matchedArea: county || "Pennsylvania" };
-    const matchedCounty = prefs.paCounties.find((candidate) => candidate.toLowerCase() === county.toLowerCase());
-    return matchedCounty
-      ? { matched: true, matchedState: state, matchedArea: matchedCounty }
+    if (prefs.paCounties.length === 0) return { matched: true, matchedState: state, matchedArea: city || county || "Pennsylvania" };
+    const matchedArea = prefs.paCounties.find((candidate) => {
+      const normalized = candidate.toLowerCase();
+      return normalized === county.toLowerCase() || normalized === city.toLowerCase();
+    });
+    return matchedArea
+      ? { matched: true, matchedState: state, matchedArea }
       : { matched: false };
   }
 
