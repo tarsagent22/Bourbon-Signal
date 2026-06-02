@@ -18,6 +18,7 @@ export const LOCATION_PROFILES = {
   PA: { target: 'store_level', note: 'FWGS has retail/store pickup inventory; bot-protected route requires browser/network extraction.' },
   ID: { target: 'board_county', note: 'Idaho publishes catalog/special releases; public store quantity route not yet found.' },
   NC: { target: 'store_level', note: 'NC is fragmented by county board; Wake ABC publicly exposes store/quantity results, while state source gives allocated list/warehouse context.' },
+  IN: { target: 'store_level', note: 'Indiana is a private retail market. ATC public permit lookup can provide active package-store coverage at store/city/ZIP precision; bottle inventory requires retailer-specific shop/inventory surfaces.' },
   NH: { target: 'store_level', note: 'NHLC product/outlet site likely has catalog/outlet data but Cloudflare blocks raw fetch.' },
   'MD-MONTGOMERY': { target: 'store_level', note: 'Montgomery ABS product search has ASP.NET autocomplete and store inventory modal; product POST/viewstate drilldown remains.' },
   ME: { target: 'store_level', note: 'Maine Spirits finder is Cloudflare-blocked; lottery pages remain statewide until browser/API extraction.' },

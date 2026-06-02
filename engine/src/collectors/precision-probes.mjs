@@ -33,6 +33,11 @@ const VIRGINIA_INVALID_ORIGIN_STORES = new Set(['63', '74', '123', '208', '215',
 const VIRGINIA_STORES_ARCGIS_URL = "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1/query?where=UPPER(LandmkName)%20LIKE%20%27%25ABC%25%27&outFields=*&returnGeometry=false&f=json";
 const VIRGINIA_CACHE_PATH = 'out/cache/VA-storeNearby-signals.json';
 const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX_AGE_MS || 7 * 24 * 60 * 60_000);
+const IN_ATC_SEARCH_URL = 'https://mylicense.in.gov/everification/Search.aspx?facility=Y';
+const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults.aspx';
+const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
+const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
+const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
 
 const OHLQ_SHA256_AVAILABILITY_BUCKETS = {
   '3:1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464': { value: -1, status: 'not_available', label: 'Not Available', positive: false },
@@ -93,12 +98,157 @@ async function textFetch(url, options = {}) {
       body: options.body,
       signal: controller.signal
     });
-    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', text: await res.text(), error: null };
+    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', text: await res.text(), error: null };
   } catch (error) {
     return { ok: false, status: 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
   } finally {
     if (timeout) clearTimeout(timeout);
   }
+}
+
+function decodeHtml(value = '') {
+  return String(value)
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#8217;|&rsquo;|&apos;/g, "'")
+    .replace(/&#8211;|&#8212;|&ndash;|&mdash;/g, '-')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function aspNetHiddenValue(html, name) {
+  return html.match(new RegExp(`name=["']${name}["'][^>]*value=["']([^"']*)`, 'i'))?.[1] || '';
+}
+
+function cityZipFromIndianaPermitList(value = '') {
+  const clean = decodeHtml(value);
+  const match = clean.match(/^(.*?)(?:,?\s+)?IN\s+(\d{5}(?:-\d{4})?)$/i);
+  if (!match) return { city: clean || null, zip: null };
+  return { city: titleCase(match[1]), zip: match[2] };
+}
+
+function parseIndianaAtcRows(html) {
+  const anchors = [...html.matchAll(/<a id="datagrid_results__ctl\d+_name" href="(Details\.aspx\?result=([^"]+))" target="_blank">([\s\S]*?)<\/a>/gi)];
+  const rows = [];
+  for (let i = 0; i < anchors.length; i++) {
+    const anchor = anchors[i];
+    const start = anchor.index || 0;
+    const end = anchors[i + 1]?.index || html.indexOf('</table>', start + 1000);
+    const chunk = html.slice(start, end > start ? end : start + 2500);
+    const spans = [...chunk.matchAll(/<td><span>([\s\S]*?)<\/span><\/td>/gi)].map((m) => decodeHtml(m[1]));
+    const [permitNumber, profession, licenseType, status, cityZipRaw] = spans;
+    const { city, zip } = cityZipFromIndianaPermitList(cityZipRaw);
+    const resultId = anchor[2];
+    const name = decodeHtml(anchor[3]);
+    if (!name || !permitNumber) continue;
+    rows.push({
+      resultId,
+      detailPath: anchor[1],
+      name: titleCase(name),
+      rawName: name,
+      permitNumber,
+      profession,
+      licenseType,
+      status,
+      city,
+      zip,
+      state: 'IN'
+    });
+  }
+  return rows;
+}
+
+function pagerTargets(html) {
+  return [...html.matchAll(/javascript:__doPostBack\(&#39;(datagrid_results\$_ctl\d+\$_ctl\d+)&#39;,&#39;&#39;\)/g)]
+    .map((m) => decodeHtml(m[1]))
+    .filter((target) => !/\$_ctl0$/.test(target));
+}
+
+async function collectIndianaAtcPackageStores() {
+  const first = await textFetch(IN_ATC_SEARCH_URL, { headers: { accept: 'text/html,*/*' } });
+  if (!first.ok) throw new Error(`Indiana ATC search page HTTP ${first.status}: ${first.error || first.text.slice(0, 120)}`);
+  const cookie = first.rawSetCookie || '';
+  const searchParams = new URLSearchParams();
+  for (const name of ['__VIEWSTATE', '__VIEWSTATEGENERATOR', '__EVENTVALIDATION']) searchParams.set(name, aspNetHiddenValue(first.text, name));
+  searchParams.set('t_web_lookup__profession_name', 'Alcoholic Beverage');
+  searchParams.set('t_web_lookup__license_type_name', 'Beer Wine & Liquor - Package Store');
+  searchParams.set('t_web_lookup__license_status_name', 'Active');
+  searchParams.set('t_web_lookup__addr_state', 'IN');
+  searchParams.set('sch_button', 'Search');
+  searchParams.set('recaptcha', '');
+
+  async function post(url, body, referer) {
+    const res = await fetch(url, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'user-agent': 'Mozilla/5.0 (BourbonSignal research)',
+        accept: 'text/html,*/*',
+        'content-type': 'application/x-www-form-urlencoded',
+        referer,
+        ...(cookie ? { cookie } : {})
+      },
+      body
+    });
+    return { ok: res.ok, status: res.status, url: res.url, text: await res.text() };
+  }
+
+  let pageHtml = (await post(IN_ATC_SEARCH_URL, searchParams, IN_ATC_SEARCH_URL)).text;
+  const pages = [];
+  const byPermit = new Map();
+
+  for (let page = 1; page <= IN_ATC_MAX_PAGES; page++) {
+    const rows = parseIndianaAtcRows(pageHtml);
+    pages.push({ page, rowCount: rows.length, firstPermit: rows[0]?.permitNumber || null, firstName: rows[0]?.name || null });
+    for (const row of rows) byPermit.set(row.permitNumber, row);
+    const targets = pagerTargets(pageHtml);
+    const nextTarget = targets.find((target) => target.endsWith(`$_ctl${page}`));
+    if (!nextTarget || !rows.length) break;
+    const pageParams = new URLSearchParams();
+    for (const name of ['__VIEWSTATE', '__VIEWSTATEGENERATOR', '__EVENTVALIDATION']) pageParams.set(name, aspNetHiddenValue(pageHtml, name));
+    pageParams.set('__EVENTTARGET', nextTarget);
+    pageParams.set('__EVENTARGUMENT', '');
+    await sleep(250);
+    pageHtml = (await post(IN_ATC_RESULTS_URL, pageParams, IN_ATC_RESULTS_URL)).text;
+  }
+
+  const stores = [...byPermit.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)) || String(a.permitNumber).localeCompare(String(b.permitNumber)));
+  const artifact = {
+    generatedAt: new Date().toISOString(),
+    source: 'Indiana ATC public facility permit search',
+    sourceUrl: IN_ATC_SEARCH_URL,
+    query: { profession: 'Alcoholic Beverage', licenseType: 'Beer Wine & Liquor - Package Store', status: 'Active', state: 'IN' },
+    pageCount: pages.length,
+    storeCount: stores.length,
+    pages,
+    stores
+  };
+  await mkdir(path.dirname(IN_ATC_ARTIFACT_PATH), { recursive: true });
+  await writeFile(IN_ATC_ARTIFACT_PATH, JSON.stringify(artifact, null, 2));
+  return artifact;
+}
+
+function parseIndianaBourbonWorldAllocated(text) {
+  const cleanText = decodeHtml(stripHtml(text));
+  const start = cleanText.search(/Current rare\s*&\s*allocated bottles:/i);
+  if (start < 0) return [];
+  const endCandidates = [
+    cleanText.indexOf('NOTE:', start),
+    cleanText.indexOf('TO FINALIZE ENTRY', start),
+    cleanText.indexOf('Honest, straightforward', start)
+  ].filter((idx) => idx > start);
+  const end = endCandidates.length ? Math.min(...endCandidates) : Math.min(cleanText.length, start + 1800);
+  const section = cleanText.slice(start, end);
+  const itemRe = /([A-Z0-9][A-Za-z0-9 .'’&-]+?)(?:\s+(?:750|375|1\.75L|1L))?\s*[–-]\s*\$([0-9,.]+)\s*[–-]\s*(\d+)\s*bottles?/gi;
+  return [...section.matchAll(itemRe)].map((match) => ({
+    rawName: decodeHtml(match[1]).replace(/[’]/g, "'").trim(),
+    price: Number(String(match[2]).replace(/,/g, '')) || null,
+    quantity: Number(match[3]) || 0,
+    rawLine: decodeHtml(match[0]).trim()
+  }));
 }
 
 async function virginiaStoreNumbers() {
@@ -141,10 +291,119 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IA') return collectIowa(config, bible, existingSignals);
   if (config.id === 'UT') return collectUtah(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectWakeNc);
+  if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
   return { signals: [], roadblocks: [] };
+}
+
+async function collectIndiana(config, bible) {
+  const signals = [], roadblocks = [];
+  try {
+    const artifact = await collectIndianaAtcPackageStores();
+    const observedAt = artifact.generatedAt;
+    for (const store of artifact.stores || []) {
+      signals.push({
+        id: stableId([config.id, 'atc-package-store-permit', store.permitNumber]),
+        state: config.id,
+        sourceLabel: 'Indiana ATC public facility permit search',
+        sourceUrl: `${IN_ATC_SEARCH_URL}#${encodeURIComponent(store.permitNumber)}`,
+        rawName: store.name,
+        canonicalBottleId: null,
+        canonicalName: null,
+        confidence: 0.7,
+        eventType: 'licensed_package_store_location',
+        locationPrecision: 'store_level',
+        locationName: store.name,
+        storeName: store.name,
+        storeId: store.permitNumber,
+        storeAddress: [store.city, 'IN', store.zip].filter(Boolean).join(', ') || null,
+        city: store.city || null,
+        stateCode: 'IN',
+        postalCode: store.zip || null,
+        zip: store.zip || null,
+        quantity: 0,
+        observedAt,
+        canAlertAsInventory: false,
+        canAlertAsWatch: false,
+        inventorySemantics: 'Indiana ATC permits identify active package-store license locations. This is store coverage infrastructure, not bottle inventory or allocation evidence.',
+        evidence: `Indiana ATC public permit lookup lists ${store.name}${store.city ? ` in ${store.city}` : ''}${store.zip ? ` ${store.zip}` : ''} as Active ${store.licenseType || 'package store'} permit ${store.permitNumber}.`,
+        raw: { permit: store, artifactPath: IN_ATC_ARTIFACT_PATH }
+      });
+    }
+    roadblocks.push({
+      state: config.id,
+      source: 'Indiana bottle-level inventory',
+      url: 'https://www.in.gov/atc/public-records/',
+      status: 'private_market_no_control_inventory',
+      error: 'Indiana ATC exposes license/permit data, not public bottle inventory. Retailer-specific inventory/catalog collectors are required for bottle alerts.',
+      nextRoute: 'Prioritize Big Red/Bourbon World, Total Wine, Cap n Cork, Crown Liquors, and other Indiana retailer shop endpoints for bottle-level inventory/watch extraction.'
+    });
+
+    const bourbonWorld = await textFetch(IN_BOURBON_WORLD_URL, { headers: { accept: 'text/html,*/*' } });
+    if (bourbonWorld.ok) {
+      const allocatedItems = parseIndianaBourbonWorldAllocated(bourbonWorld.text)
+        .filter((item) => RARE_RE.test(item.rawName) || /van winkle|blanton|buffalo trace/i.test(item.rawName));
+      for (const item of allocatedItems) {
+        const { match, record } = bottleMatch(item.rawName, bible);
+        if (!record) continue;
+        signals.push({
+          id: stableId([config.id, 'bourbon-world-allocated-raffle', record.id, item.rawName, item.quantity, item.price]),
+          state: config.id,
+          sourceLabel: 'Bourbon World / Big Red monthly rare & allocated bottle list',
+          sourceUrl: IN_BOURBON_WORLD_URL,
+          rawName: item.rawName,
+          canonicalBottleId: record.id,
+          canonicalName: record.canonical,
+          confidence: Math.max(0.78, match?.confidence || 0.45),
+          eventType: 'retailer_allocated_raffle_item',
+          locationPrecision: 'store_aggregate',
+          locationName: 'Big Red Liquors / Bourbon World Indiana locations',
+          storeName: null,
+          storeAddress: null,
+          stateCode: 'IN',
+          quantity: item.quantity,
+          price: item.price,
+          observedAt,
+          canAlertAsInventory: false,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Bourbon World lists monthly rare/allocated raffle bottles across Big Red Liquors, Vine & Table, and Cap n Cork locations. This is an actionable retailer watch signal, not guaranteed shelf inventory.',
+          evidence: `${item.rawName} appears on Bourbon World's current rare/allocated bottle list with ${item.quantity} bottle${item.quantity === 1 ? '' : 's'}${item.price ? ` at $${item.price.toFixed(2)}` : ''}. Winners are drawn from VIP entrants; verify details with Bourbon World/Big Red.`,
+          raw: { item, source: 'bourbonworld_current_rare_allocated_bottles' }
+        });
+      }
+      if (!allocatedItems.length) {
+        roadblocks.push({
+          state: config.id,
+          source: 'Bourbon World rare/allocated bottle list',
+          url: IN_BOURBON_WORLD_URL,
+          status: 'reachable_no_allocated_items_parsed',
+          error: 'Bourbon World page loaded, but the expected Current rare & allocated bottles section was missing or changed shape.',
+          nextRoute: 'Inspect rendered page text and update the Indiana Bourbon World parser.'
+        });
+      }
+    } else {
+      roadblocks.push({
+        state: config.id,
+        source: 'Bourbon World rare/allocated bottle list',
+        url: IN_BOURBON_WORLD_URL,
+        status: bourbonWorld.status || 0,
+        error: bourbonWorld.error || `HTTP ${bourbonWorld.status}`,
+        nextRoute: 'Retry Bourbon World with browser-assisted fetch or inspect Big Red shop endpoints for allocated-list data.'
+      });
+    }
+  } catch (error) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Indiana ATC public facility permit search',
+      url: IN_ATC_SEARCH_URL,
+      status: 0,
+      error: error instanceof Error ? error.message : String(error),
+      nextRoute: 'Inspect ASP.NET form fields/session cookie handling, then retry the active package-store permit search.'
+    });
+  }
+  return { signals, roadblocks };
 }
 
 async function collectOregon(config, bible) {

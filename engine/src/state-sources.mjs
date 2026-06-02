@@ -113,6 +113,17 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
+    id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_inventory_watch', cadence: 'daily-60m',
+    value: 'Indiana is a private retail market, not a control-state inventory board. Strong v1 value is statewide active package-store coverage from the public ATC permit lookup plus retailer catalog/inventory watch surfaces such as Big Red/Bourbon World; do not present ATC permits as bottle inventory.',
+    sources: [
+      { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search' },
+      { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance' },
+      { kind: 'html', url: 'https://bigredliquors.com/shop/product-groups/pages/bourbon-world?order=&subtype=Bourbon&state=Indiana', label: 'Big Red Liquors Bourbon World Indiana bourbon catalog' },
+      { kind: 'html', url: 'https://bigredliquors.com/pages/barrel-select', label: 'Big Red Liquors barrel select stores' }
+    ],
+    apiCandidates: []
+  },
+  {
     id: 'NH', label: 'New Hampshire Liquor & Wine Outlets', tier: 'B', strategy: 'catalog_and_limited_release_category', cadence: 'daily-60m',
     value: 'State outlet catalog and special/limited release categories. Good travel/cross-border value.',
     sources: [

@@ -1,34 +1,35 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T17:41:12.508Z",
-  "engineGeneratedAt": "2026-06-02T17:40:08.218Z",
-  "stateCount": 22,
-  "signalCount": 7189,
-  "historicalSignalCount": 1127947,
+  "generatedAt": "2026-06-02T19:07:33.900Z",
+  "engineGeneratedAt": "2026-06-02T19:04:49.472Z",
+  "stateCount": 23,
+  "signalCount": 8181,
+  "historicalSignalCount": 1151389,
   "historyDays": 30,
-  "snapshotCount": 1204,
+  "snapshotCount": 1216,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 1411,
-  "locationCount": 4047,
+  "storeCount": 2404,
+  "locationCount": 5044,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1667,
-  "dropCount": 8096,
-  "alertCandidateCount": 2,
-  "roadblockCount": 48,
+  "dropCount": 8104,
+  "alertCandidateCount": 7,
+  "roadblockCount": 50,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
     "failedStateCount": 0,
     "degradedStates": []
   },
-  "statesAtTargetPrecision": 18,
+  "statesAtTargetPrecision": 19,
   "rareStatesVerified": 16,
   "stateCoverage": {
     "counts": {
       "live_store_inventory": 5,
       "catalog_watch": 11,
       "policy_source_discovery": 2,
+      "store_location_watch": 1,
       "shipment_drop_intelligence": 4
     },
     "states": [
@@ -37,7 +38,7 @@
         "label": "Ohio OHLQ",
         "tier": "A",
         "status": "useful",
-        "signalCount": 248,
+        "signalCount": 237,
         "roadblockCount": 7,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -97,7 +98,7 @@
         "label": "Pennsylvania FWGS / PLCB",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1571,
+        "signalCount": 1569,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -127,6 +128,18 @@
         "bestLocationPrecision": "store_level",
         "strategy": "warehouse_plus_county_board_inventory",
         "coverageTier": "live_store_inventory"
+      },
+      {
+        "state": "IN",
+        "label": "Indiana ATC + retailer inventory watch",
+        "tier": "B",
+        "status": "useful",
+        "signalCount": 1006,
+        "roadblockCount": 1,
+        "targetLocationPrecision": "store_level",
+        "bestLocationPrecision": "store_level",
+        "strategy": "license_spine_plus_retailer_inventory_watch",
+        "coverageTier": "store_location_watch"
       },
       {
         "state": "NH",
@@ -253,8 +266,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 1,
+        "signalCount": 3,
+        "roadblockCount": 2,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -299,7 +312,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-02T17:41:12.510Z",
+    "generatedAt": "2026-06-02T19:07:33.901Z",
     "focusStates": [
       "AL",
       "VA",
@@ -371,7 +384,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 4,
+        "signalCount": 3,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },

@@ -250,6 +250,7 @@ function dropPriority(signal) {
 
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
+  if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && type !== 'retailer_allocated_raffle_item') return false;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
     if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
@@ -314,6 +315,7 @@ function stateCoverageTier(state) {
   const strategy = String(state.strategy || '');
   const status = String(state.status || '');
   if (/failed|blocked/i.test(status)) return 'blocked';
+  if (/license_spine/i.test(strategy)) return 'store_location_watch';
   if (precision === 'store_level') return 'live_store_inventory';
   if (/shipment|warehouse|board_inventory|public_data_portal/i.test(strategy) || precision === 'board_warehouse' || precision === 'board_county') return 'shipment_drop_intelligence';
   if (/catalog|price|brand|product|wholesale_listing/i.test(strategy) || precision === 'statewide_catalog') return 'catalog_watch';
@@ -379,6 +381,7 @@ function buildSoutheastReadiness(summary, signals) {
     signalCount: state.signalCount,
     bestLocationPrecision: state.bestLocationPrecision,
     testerValue: state.coverageTier === 'live_store_inventory' ? 'Live/store inventory where public source permits.'
+      : state.coverageTier === 'store_location_watch' ? 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.'
       : state.coverageTier === 'shipment_drop_intelligence' ? 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.'
       : state.coverageTier === 'catalog_watch' ? 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.'
       : 'Policy/source-discovery only.'
