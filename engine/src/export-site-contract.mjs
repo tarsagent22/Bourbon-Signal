@@ -9,6 +9,7 @@ const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
 const SITE_OUT = path.join(OUT, 'site');
 const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
+const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 
 async function readJson(file, fallback = null) {
@@ -133,6 +134,7 @@ function publicSignal(signal, bible) {
     locationPrecision: signal.locationPrecision,
     locationName: signal.locationName,
     storeName: signal.storeName,
+    storeId: signal.storeId,
     storeAddress: signal.storeAddress,
     city: signal.city,
     county: signal.county,
@@ -217,7 +219,8 @@ function buildBottles(signals, bible, bibleRecords = []) {
 function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
   const stores = uniqueBy(storeSignals.map((s) => ({
-    id: stableId([s.state, s.storeName || s.locationName, s.storeAddress || s.city || s.county]),
+    id: s.storeId ? String(s.storeId) : stableId([s.state, s.storeName || s.locationName, s.storeAddress || s.city || s.county]),
+    sourceStoreId: s.storeId ? String(s.storeId) : null,
     state: s.state,
     name: s.storeName || s.locationName,
     address: s.storeAddress || null,
@@ -247,6 +250,11 @@ function dropPriority(signal) {
 
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
+  if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
+    const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
+    const maxAgeMs = PA_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
+    if (!Number.isFinite(observedAt) || Date.now() - observedAt > maxAgeMs) return false;
+  }
   if (signal.state === 'NC' && (type === 'nc_board_shipment_snapshot' || type === 'nc_statewide_warehouse_stock')) {
     return NC_STRICT_SIGNAL_RE.test(String(signal.rawName || signal.canonicalName || ''));
   }
@@ -259,7 +267,7 @@ function buildDrops(signals, bible) {
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => findBibleRecord(s, bible))
     .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
-    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
+    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
       if (!sourceId) return true;

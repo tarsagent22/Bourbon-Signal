@@ -56,7 +56,8 @@ function canonicalizeSignal(signal, bible) {
   const bottleId = record?.id || signal.canonicalBottleId || null;
   const locationName = signal.storeName || signal.locationName || signal.location || signal.city || signal.county || null;
   const locationPrecision = signal.locationPrecision || 'statewide_catalog';
-  const key = [signal.state, bottleId || canonicalName || 'unknown', signal.eventType, signal.sourceLabel, locationPrecision, locationName || 'statewide'].join('|').toLowerCase();
+  const storeId = signal.storeId || signal.raw?.storeId || signal.raw?.store?.locationId || null;
+  const key = [signal.state, bottleId || canonicalName || 'unknown', signal.eventType, signal.sourceLabel, locationPrecision, storeId || locationName || 'statewide'].join('|').toLowerCase();
   const policy = confidenceForSignal(signal);
   return {
     key: stableId([key]),
@@ -73,6 +74,7 @@ function canonicalizeSignal(signal, bible) {
     locationPrecision,
     locationName,
     storeName: signal.storeName || null,
+    storeId: storeId ? String(storeId) : null,
     storeAddress: signal.storeAddress || null,
     city: signal.city || null,
     county: signal.county || null,

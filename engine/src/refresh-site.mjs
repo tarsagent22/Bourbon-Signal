@@ -10,6 +10,7 @@ const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS ||
 const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 15);
 const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS || 15 * 60_000);
 const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
+const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 12 * 60_000);
 const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
 const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -47,10 +48,14 @@ function runNode(script, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
     const timeoutMs = Number(options.timeoutMs || STEP_TIMEOUT_MS);
+    const env = { ...process.env };
+    if (script.includes('export-site-contract') && !String(env.NODE_OPTIONS || '').includes('--max-old-space-size')) {
+      env.NODE_OPTIONS = `${env.NODE_OPTIONS || ''} --max-old-space-size=8192`.trim();
+    }
     const child = spawn(process.execPath, [script, ...args], {
       cwd: ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
+      env,
       windowsHide: true
     });
     let stdout = '';
@@ -143,14 +148,15 @@ async function main() {
         const hadExistingCdp = await cdpReady();
         launchedBrowser = await ensureHeadlessCdp();
         const browserScripts = hadExistingCdp
-          ? ['src/ohlq-browser-collector.mjs', 'src/or-browser-collector.mjs']
-          : ['src/or-browser-collector.mjs'];
+          ? ['src/ohlq-browser-collector.mjs', 'src/or-browser-collector.mjs', 'src/fwgs-browser-full.mjs']
+          : ['src/or-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
         if (!hadExistingCdp) {
           warnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }
         for (const script of browserScripts) {
           try {
-            steps.push(await runNode(script, [], { timeoutMs: BROWSER_STEP_TIMEOUT_MS }));
+            const timeoutMs = script.includes('fwgs-browser-full') ? FWGS_BROWSER_STEP_TIMEOUT_MS : BROWSER_STEP_TIMEOUT_MS;
+            steps.push(await runNode(script, [], { timeoutMs }));
             browserOk = true;
           } catch (error) {
             warnings.push(`${script}: ${error.message}`);
