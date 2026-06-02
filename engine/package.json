@@ -18,6 +18,8 @@
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
     "ohlq": "node src/ohlq-browser-collector.mjs",
     "ohlq:discover": "node src/ohlq-browser-collector.mjs --discover",
+    "fwgs": "node src/fwgs-browser-collector.mjs",
+    "fwgs:full": "node src/fwgs-browser-full.mjs",
     "browser:discover": "node src/browser-source-discovery.mjs",
     "or": "node src/or-browser-collector.mjs",
     "bible-report": "node src/bible-report.mjs",

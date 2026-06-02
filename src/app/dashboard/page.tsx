@@ -31,7 +31,7 @@ const EMPTY_PREFS: AreaPreferences = {
   paStores: [],
 };
 
-const SIMPLE_STATE_CODES = ["NC", "VA", "OH", "IA", "MD-MONTGOMERY"] as const;
+const SIMPLE_STATE_CODES = ["NC", "VA", "OH", "IA", "PA", "MD-MONTGOMERY"] as const;
 
 interface AlertPreviewState {
   sending: boolean;
@@ -172,6 +172,7 @@ function makeStateLabel(code: string) {
     VA: "Virginia",
     OH: "Ohio",
     IA: "Iowa",
+    PA: "Pennsylvania",
     AL: "Alabama",
     WV: "West Virginia",
     MS: "Mississippi",
@@ -454,17 +455,32 @@ export default function DashboardPage() {
         )
       ).sort();
     }
+    grouped.PA = Array.from(
+      new Set(
+        stores.flatMap((store) => {
+          if (store.state !== "PA" || !store.county) return [];
+          return [titleCase(store.county.replace(/\s+County$/i, ""))];
+        })
+      )
+    ).sort();
     return grouped;
   }, [stores]);
 
   const storesByStateCity = useMemo(() => {
     const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
-      if (!["VA", "OH", "IA"].includes(store.state) || !store.city) continue;
-      const city = titleCase(store.city);
-      const key = `${store.state}:${city}`;
-      const existing = grouped.get(key) ?? [];
-      grouped.set(key, [...existing, store]);
+      if (["VA", "OH", "IA"].includes(store.state) && store.city) {
+        const city = titleCase(store.city);
+        const key = `${store.state}:${city}`;
+        const existing = grouped.get(key) ?? [];
+        grouped.set(key, [...existing, store]);
+      }
+      if (store.state === "PA" && store.county) {
+        const county = titleCase(store.county.replace(/\s+County$/i, ""));
+        const key = `PA:${county}`;
+        const existing = grouped.get(key) ?? [];
+        grouped.set(key, [...existing, store]);
+      }
     }
     return grouped;
   }, [stores]);
@@ -524,6 +540,14 @@ export default function DashboardPage() {
       totalCount: citiesByState.IA?.length ?? 0,
     },
     {
+      stateCode: "PA",
+      label: "Pennsylvania",
+      detailLabel: "counties",
+      summary: "FWGS pickup inventory is now available by store. Start with the counties you actually hunt.",
+      selectedCount: localPrefs.paCounties.length,
+      totalCount: citiesByState.PA?.length ?? 0,
+    },
+    {
       stateCode: "MD-MONTGOMERY",
       label: "Montgomery County, MD",
       detailLabel: "coverage",
@@ -531,7 +555,7 @@ export default function DashboardPage() {
       selectedCount: localPrefs.states.includes("MD-MONTGOMERY") ? 1 : 0,
       totalCount: 1,
     },
-  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.states, localPrefs.vaCities.length, ncBoards.length]);
+  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.states, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -552,8 +576,8 @@ export default function DashboardPage() {
         vaCities: state === "VA" && removing ? [] : prev.vaCities,
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
         iaCities: state === "IA" && removing ? [] : prev.iaCities,
-        paCounties: [],
-        paStores: [],
+        paCounties: state === "PA" && removing ? [] : prev.paCounties,
+        paStores: state === "PA" && removing ? [] : prev.paStores,
       };
     });
   };
@@ -588,6 +612,14 @@ export default function DashboardPage() {
           iaCities: has ? prev.iaCities.filter((item) => item !== value) : [...prev.iaCities, value],
         };
       }
+      if (state === "PA") {
+        const has = prev.paCounties.includes(value);
+        return {
+          ...prev,
+          paCounties: has ? prev.paCounties.filter((item) => item !== value) : [...prev.paCounties, value],
+          paStores: has ? prev.paStores.filter((storeId) => !(storesByStateCity.get(`PA:${value}`) ?? []).some((store) => store.id === storeId)) : prev.paStores,
+        };
+      }
       return prev;
     });
   };
@@ -597,6 +629,14 @@ export default function DashboardPage() {
   const updateStoreSelectionMode = (state: string, city: string, mode: "all" | "custom") => {
     const selectionKey = getStoreSelectionKey(state, city);
     const cityStores = (storesByStateCity.get(selectionKey) ?? []).map((store) => store.id);
+    if (state === "PA") {
+      setLocalPrefs((prev) => ({
+        ...prev,
+        paStores: mode === "all"
+          ? prev.paStores.filter((storeId) => !cityStores.includes(storeId))
+          : Array.from(new Set([...prev.paStores, ...(prev.paStores.filter((storeId) => cityStores.includes(storeId)))])),
+      }));
+    }
     setStoreSelections((prev) => ({
       ...prev,
       [selectionKey]: {
@@ -614,6 +654,14 @@ export default function DashboardPage() {
       const nextStoreIds = has
         ? current.storeIds.filter((id) => id !== storeId)
         : [...current.storeIds, storeId];
+      if (state === "PA") {
+        setLocalPrefs((prefs) => ({
+          ...prefs,
+          paStores: has
+            ? prefs.paStores.filter((id) => id !== storeId)
+            : Array.from(new Set([...prefs.paStores, storeId])),
+        }));
+      }
       return {
         ...prev,
         [selectionKey]: {
@@ -769,7 +817,9 @@ export default function DashboardPage() {
                               ? localPrefs.ohCities.slice(0, 2).join(", ")
                               : card.stateCode === "IA"
                                 ? localPrefs.iaCities.slice(0, 2).join(", ")
-                                : localPrefs.states.includes("MD-MONTGOMERY") ? "County-wide" : "None";
+                                : card.stateCode === "PA"
+                                  ? localPrefs.paCounties.slice(0, 2).join(", ")
+                                  : localPrefs.states.includes("MD-MONTGOMERY") ? "County-wide" : "None";
                         return (
                           <div key={card.stateCode} style={{ position: "relative" }}>
                             <button
@@ -808,7 +858,7 @@ export default function DashboardPage() {
                                 <div style={{ display: "grid", gap: "10px" }}>
                                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                                     <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                                      {card.stateCode === "NC" ? "Choose boards" : ["VA", "OH", "IA"].includes(card.stateCode) ? "Choose cities" : "County-wide coverage"}
+                                      {card.stateCode === "NC" ? "Choose boards" : card.stateCode === "PA" ? "Choose counties" : ["VA", "OH", "IA"].includes(card.stateCode) ? "Choose cities" : "County-wide coverage"}
                                     </div>
                                     <button onClick={() => setTerritoryDropdown(null)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Done</button>
                                   </div>
@@ -826,7 +876,7 @@ export default function DashboardPage() {
                                     </div>
                                   ) : null}
 
-                                  {["VA", "OH", "IA"].includes(card.stateCode) ? (
+                                  {["VA", "OH", "IA", "PA"].includes(card.stateCode) ? (
                                     territoryDropdown.scope === "secondary" && territoryDropdown.value ? (
                                       (() => {
                                         const city = territoryDropdown.value!;
@@ -834,7 +884,7 @@ export default function DashboardPage() {
                                         const selection = storeSelections[selectionKey];
                                         return (
                                           <div style={{ display: "grid", gap: "10px" }}>
-                                            <button onClick={() => setTerritoryDropdown({ stateCode: card.stateCode, scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Back to cities</button>
+                                            <button onClick={() => setTerritoryDropdown({ stateCode: card.stateCode, scope: "primary" })} style={{ justifySelf: "start", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Back to {card.stateCode === "PA" ? "counties" : "cities"}</button>
                                             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                               <button onClick={() => updateStoreSelectionMode(card.stateCode, city, "all")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: selection?.mode !== "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: selection?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>All stores</button>
                                               <button onClick={() => updateStoreSelectionMode(card.stateCode, city, "custom")} style={{ padding: "8px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: selection?.mode === "custom" ? "rgba(196,148,58,0.10)" : "rgba(255,255,255,0.03)", color: selection?.mode === "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer" }}>Pick stores</button>
@@ -854,7 +904,7 @@ export default function DashboardPage() {
                                     ) : (
                                       <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
                                         {(citiesByState[card.stateCode] ?? []).map((city) => {
-                                          const selectedCities = card.stateCode === "VA" ? localPrefs.vaCities : card.stateCode === "OH" ? localPrefs.ohCities : localPrefs.iaCities;
+                                          const selectedCities = card.stateCode === "VA" ? localPrefs.vaCities : card.stateCode === "OH" ? localPrefs.ohCities : card.stateCode === "IA" ? localPrefs.iaCities : localPrefs.paCounties;
                                           const active = selectedCities.includes(city);
                                           return (
                                             <div key={city} style={{ display: "grid", gap: "8px" }}>

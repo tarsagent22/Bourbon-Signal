@@ -621,6 +621,54 @@ async function collectPennsylvania(config, bible) {
   const signals = [], roadblocks = [];
   const seen = new Set();
 
+  try {
+    const browserRun = JSON.parse(await readFile('out/browser/fwgs-store-inventory.json', 'utf8'));
+    for (const row of browserRun.inventoryRows || []) {
+      const product = row.product || {};
+      const store = row.location || {};
+      const quantity = Number(row.quantity || 0) || 0;
+      if (!product.sku || !product.name || !store.locationId || quantity <= 0) continue;
+      const { base } = signalBase(config.id, 'FWGS store pickup inventory API browser-assisted collector', product.route ? `https://www.finewineandgoodspirits.com${product.route}` : 'out/browser/fwgs-store-inventory.json', product.name, bible);
+      signals.push({
+        id: stableId([config.id, 'fwgs-store-pickup-inventory', product.sku, store.locationId, quantity]),
+        ...base,
+        confidence: Math.max(0.78, base.confidence),
+        eventType: 'store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: store.name || `Fine Wine & Good Spirits #${store.locationId}`,
+        storeName: store.name || `Fine Wine & Good Spirits #${store.locationId}`,
+        storeId: String(store.locationId),
+        storeAddress: [store.address1, store.address2, store.city, store.stateAddress || 'PA', store.postalCode].filter(Boolean).join(', ') || null,
+        city: store.city || null,
+        county: store.county || null,
+        stateCode: store.stateAddress || 'PA',
+        postalCode: store.postalCode || null,
+        latitude: Number(store.latitude ?? 0) || null,
+        longitude: Number(store.longitude ?? 0) || null,
+        quantity,
+        price: product.price ?? null,
+        observedAt: browserRun.generatedAt || base.fetchedAt,
+        availabilityStatus: 'IN_STOCK',
+        availabilityLabel: 'Available for pickup',
+        evidence: `FWGS pickup inventory API reported ${quantity} unit(s) of ${product.name} (${product.sku}) at ${store.name || `store ${store.locationId}`}${store.city ? ` in ${store.city}` : ''}${store.county ? `, ${store.county} County` : ''}. Source route: /ccstorex/custom/v1/b2b/get-inventory with method=pickup, location=${store.locationId}.`,
+        raw: { product, store, quantity, generatedAt: browserRun.generatedAt, inventoryEndpoint: browserRun.inventoryEndpoint, browserAssisted: true }
+      });
+      seen.add(product.sku);
+    }
+    if (browserRun.summary?.positiveInventoryRowCount) {
+      roadblocks.push({
+        state: config.id,
+        source: 'FWGS direct server fetch',
+        url: 'https://www.finewineandgoodspirits.com/ccstorex/custom/v1/b2b/get-inventory',
+        status: 403,
+        error: 'Store-level PA inventory was collected through browser/CDP because raw Node fetches are Akamai/session gated.',
+        nextRoute: 'Run npm run fwgs before npm run run, or promote the FWGS browser bootstrap into the scheduled engine runner.'
+      });
+    }
+  } catch {
+    // Browser-assisted FWGS pickup inventory is optional; fall back to statewide Oracle Commerce hydration below.
+  }
+
   for (const term of PA_SEARCH_TERMS) {
     const searchUrl = `https://www.finewineandgoodspirits.com/search?Ntt=${encodeURIComponent(term)}`;
     try {

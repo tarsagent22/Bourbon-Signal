@@ -44,7 +44,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const toStringArray = (value: unknown) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
-  const supportedStates = new Set(["NC", "VA", "OH", "IA", "MD-MONTGOMERY"]);
+  const supportedStates = new Set(["NC", "VA", "OH", "IA", "PA", "MD-MONTGOMERY"]);
 
   return {
     states: toStringArray(source.states).filter((state) => supportedStates.has(state)),
@@ -52,8 +52,8 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     vaCities: toStringArray(source.vaCities),
     ohCities: toStringArray(source.ohCities),
     iaCities: toStringArray(source.iaCities),
-    paCounties: [],
-    paStores: [],
+    paCounties: toStringArray(source.paCounties),
+    paStores: toStringArray(source.paStores),
   };
 }
 

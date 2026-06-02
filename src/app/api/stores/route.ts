@@ -1,20 +1,31 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite } from "@/lib/site-engine-contract";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const state = url.searchParams.get("state")?.toUpperCase();
+
   try {
-    const exportPayload = readSiteExport("locations") ?? readSiteExport("stores");
-    const rawStores = Array.isArray(exportPayload?.locations)
-      ? exportPayload.locations
-      : Array.isArray(exportPayload?.stores)
-        ? exportPayload.stores
+    const exportPayload = readSiteExport("stores") ?? readSiteExport("locations");
+    const rawStores = Array.isArray(exportPayload?.stores)
+      ? exportPayload.stores
+      : Array.isArray(exportPayload?.locations)
+        ? exportPayload.locations
         : [];
-    const stores = rawStores.map((store) => normalizeStoreForSite(store as Record<string, unknown>));
+    let stores = rawStores.map((store) => normalizeStoreForSite(store as Record<string, unknown>));
+
+    if (state) {
+      stores = stores.filter((store) => {
+        const record = store as Record<string, unknown>;
+        return String(record.state ?? record.state_code ?? "").toUpperCase() === state;
+      });
+    }
 
     return NextResponse.json(
       {
         ...exportPayload,
         stores,
+        locations: stores,
         total: stores.length,
         states: listStates(stores),
         lastUpdated: exportPayload?.generatedAt ?? new Date().toISOString(),

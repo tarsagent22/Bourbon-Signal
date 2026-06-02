@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite } from "@/lib/site-engine-contract";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const state = url.searchParams.get("state")?.toUpperCase();
+
   try {
     const exportPayload = readSiteExport("locations") ?? readSiteExport("stores");
     const rawLocations = Array.isArray(exportPayload?.locations)
@@ -9,7 +12,14 @@ export async function GET() {
       : Array.isArray(exportPayload?.stores)
         ? exportPayload.stores
         : [];
-    const locations = rawLocations.map((location) => normalizeStoreForSite(location as Record<string, unknown>));
+    let locations = rawLocations.map((location) => normalizeStoreForSite(location as Record<string, unknown>));
+
+    if (state) {
+      locations = locations.filter((location) => {
+        const record = location as Record<string, unknown>;
+        return String(record.state ?? record.state_code ?? "").toUpperCase() === state;
+      });
+    }
 
     return NextResponse.json(
       {

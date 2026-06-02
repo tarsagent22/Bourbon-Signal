@@ -54,7 +54,17 @@ export async function GET(request: Request) {
       );
     }
 
-    drops.sort((a, b) => +new Date(String(b.timestamp)) - +new Date(String(a.timestamp)));
+    drops.sort((a, b) => {
+      const aState = String(a.state ?? a.state_code ?? "").toUpperCase();
+      const bState = String(b.state ?? b.state_code ?? "").toUpperCase();
+      if (aState === "PA" && bState === "PA" && Boolean(b.exact_store) !== Boolean(a.exact_store)) {
+        return Boolean(b.exact_store) ? 1 : -1;
+      }
+      const timeDelta = +new Date(String(b.timestamp)) - +new Date(String(a.timestamp));
+      if (timeDelta) return timeDelta;
+      if (Boolean(b.exact_store) !== Boolean(a.exact_store)) return Boolean(b.exact_store) ? 1 : -1;
+      return Number(b.quantity_in_stock || 0) - Number(a.quantity_in_stock || 0);
+    });
 
     const total = drops.length;
     const pagedDrops = drops.slice(offset, offset + limit);

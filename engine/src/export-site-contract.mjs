@@ -236,8 +236,9 @@ function dropPriority(signal) {
   const type = String(signal.eventType || '');
   if (type === 'nc_board_shipment_snapshot') return 64;
   if (signal.state === 'VA' && type === 'store_inventory_result') return 62;
+  if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') return 68;
   if (type === 'nc_statewide_warehouse_stock') return 58;
-  if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 66;
+  if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (signal.canAlertAsInventory) return 50;
   if (/store_delivery_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
