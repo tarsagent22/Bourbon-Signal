@@ -181,6 +181,7 @@ export function isUserFacingDropSignal(drop: {
   if (type === "nc_statewide_warehouse_stock") return quantity > 0;
   if (canAlert && precision === "store_level") return true;
   if (type === "store_delivery_snapshot") return quantity > 0;
+  if (type === "retailer_allocated_raffle_item") return quantity > 0;
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
@@ -195,6 +196,7 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
   if (normalized.includes("in_stock")) return "inventory";
   if (normalized === "nc_board_shipment_snapshot") return "delivery";
   if (normalized === "nc_statewide_warehouse_stock") return "warehouse";
+  if (normalized === "retailer_allocated_raffle_item") return "retailer_watch";
   if (normalized === "store_delivery_snapshot") return "delivery";
   if (normalized === "store_inventory_aggregate" && quantity > 0) return "inventory";
   if (normalized === "store_inventory_result" && (quantity > 0 || canAlertAsInventory)) return "inventory";
@@ -209,6 +211,7 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   if (normalized === "nc_statewide_warehouse_stock") return "Warehouse radar";
   if (normalized.includes("limited_supply")) return "Limited supply";
   if (normalized.includes("in_stock")) return "In stock";
+  if (normalized === "retailer_allocated_raffle_item") return "Retailer allocated watch";
   if (category === "delivery") return "Store delivery";
   if (normalized === "store_inventory_aggregate") return "Statewide inventory";
   if (category === "inventory") return quantity > 0 ? "In stock" : "Store signal";
