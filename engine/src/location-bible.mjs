@@ -171,7 +171,30 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     if (location.lastSignalAt && (!existing.lastSignalAt || location.lastSignalAt > existing.lastSignalAt)) existing.lastSignalAt = location.lastSignalAt;
   }
 
-  return [...byId.values()].sort((a, b) =>
+  const byVisibleArea = new Map();
+  for (const location of byId.values()) {
+    if (location.type === 'store' || location.locationType === 'store') {
+      byVisibleArea.set(location.id, location);
+      continue;
+    }
+    const visibleKey = [location.state, location.type || location.locationType, location.name, location.city || '', location.county || '', location.address || '']
+      .map((part) => String(part || '').toLowerCase().trim())
+      .join('|');
+    const existing = byVisibleArea.get(visibleKey);
+    if (!existing) {
+      byVisibleArea.set(visibleKey, location);
+      continue;
+    }
+    existing.signalCount += location.signalCount || 0;
+    existing.hasSignals = existing.hasSignals || location.hasSignals;
+    existing.collectorAttached = existing.collectorAttached || location.collectorAttached;
+    if (location.lastSignalAt && (!existing.lastSignalAt || location.lastSignalAt > existing.lastSignalAt)) existing.lastSignalAt = location.lastSignalAt;
+    for (const field of ['source', 'sourceUrl', 'notes']) {
+      if ((existing[field] == null || existing[field] === '') && location[field] != null) existing[field] = location[field];
+    }
+  }
+
+  return [...byVisibleArea.values()].sort((a, b) =>
     String(a.state).localeCompare(String(b.state)) ||
     String(a.type).localeCompare(String(b.type)) ||
     String(a.county || '').localeCompare(String(b.county || '')) ||
