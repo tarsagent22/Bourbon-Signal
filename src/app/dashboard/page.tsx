@@ -161,6 +161,15 @@ function isLikelyNcBoardLabel(value: string) {
   return value.length >= 3;
 }
 
+function ncBoardSourceLabel(store: { name?: string | null; county?: string | null; district?: string | null; displayLabel?: string | null; locationType?: string | null; precision?: string | null; hasSignals?: boolean }) {
+  const isStoreRecord = store.locationType === "store" || store.precision === "store";
+  if (isStoreRecord) {
+    if (!store.hasSignals) return null;
+    return store.county || store.district || null;
+  }
+  return store.district || store.county || store.name || store.displayLabel || null;
+}
+
 function isSelectableStoreLocation(store: { id?: string | null; name?: string | null; state?: string | null; city?: string | null; county?: string | null; precision?: string | null }) {
   return Boolean(store.id && store.name && store.precision === "store" && store.state && (store.city || store.county));
 }
@@ -457,7 +466,7 @@ export default function DashboardPage() {
 
     for (const store of stores) {
       if (store.state !== "NC" && store.state !== "North Carolina") continue;
-      addBoard(store.district || store.county || store.name || store.displayLabel);
+      addBoard(ncBoardSourceLabel(store));
     }
 
     for (const drop of ncDrops) {
