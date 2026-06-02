@@ -1,16 +1,22 @@
 import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 const ROOT = process.cwd();
+const PROJECT_ROOT = path.dirname(ROOT);
 const OUT = path.resolve('out');
 const LOCK = path.join(OUT, 'refresh.lock.json');
 const STATUS = path.join(OUT, 'site-refresh-status.json');
+const DEPLOY_STATUS = path.join(OUT, 'site-deploy-status.json');
 const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS || 25 * 60_000);
 const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 15);
+const AUTO_DEPLOY = process.env.BOURBON_SIGNAL_AUTO_DEPLOY === '1';
+const AUTO_DEPLOY_MINUTES = Number(process.env.BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES || 30);
 const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS || 15 * 60_000);
 const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
 const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 12 * 60_000);
+const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 8 * 60_000);
 const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
 const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -81,6 +87,110 @@ function runNode(script, args = [], options = {}) {
   });
 }
 
+function runCommand(command, args = [], options = {}) {
+  return new Promise((resolve, reject) => {
+    const startedAt = new Date().toISOString();
+    const timeoutMs = Number(options.timeoutMs || STEP_TIMEOUT_MS);
+    const child = spawn(command, args, {
+      cwd: options.cwd || ROOT,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: options.env || process.env,
+      windowsHide: true
+    });
+    let stdout = '';
+    let stderr = '';
+    const timer = timeoutMs > 0 ? setTimeout(() => {
+      const message = `${command} ${args.join(' ')} timed out after ${Math.round(timeoutMs / 1000)}s`;
+      stderr += `\n${message}\n`;
+      try { child.kill(); } catch {}
+      reject(Object.assign(new Error(message), {
+        result: { script: command, args, code: 'timeout', startedAt, finishedAt: new Date().toISOString(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) }
+      }));
+    }, timeoutMs) : null;
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); process.stdout.write(chunk); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); process.stderr.write(chunk); });
+    child.on('error', (error) => { if (timer) clearTimeout(timer); reject(error); });
+    child.on('close', (code) => {
+      if (timer) clearTimeout(timer);
+      const finishedAt = new Date().toISOString();
+      const result = { script: command, args, code, startedAt, finishedAt, stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) };
+      if (code === 0) resolve(result);
+      else reject(Object.assign(new Error(`${command} ${args.join(' ')} exited ${code}`), { result }));
+    });
+  });
+}
+
+async function paInventorySignature() {
+  const payload = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
+  const paRows = (payload.drops || [])
+    .filter((drop) => drop.state === 'PA' && drop.type === 'store_inventory_result' && drop.locationPrecision === 'store_level')
+    .map((drop) => ({
+      bottle: drop.canonicalId || drop.bottleId || drop.canonicalName || drop.bottleName,
+      storeId: drop.storeId || drop.store_id || drop.storeName || drop.locationName,
+      quantity: Number(drop.quantity || 0) || 0,
+      price: Number(drop.price || 0) || 0,
+      status: drop.availabilityStatus || null
+    }))
+    .sort((a, b) => `${a.bottle}|${a.storeId}`.localeCompare(`${b.bottle}|${b.storeId}`));
+  return {
+    hash: createHash('sha256').update(JSON.stringify(paRows)).digest('hex'),
+    rowCount: paRows.length,
+    generatedAt: payload.generatedAt || null
+  };
+}
+
+async function maybeDeploySite() {
+  const signature = await paInventorySignature();
+  const previous = await readJson(DEPLOY_STATUS, {});
+  const now = new Date().toISOString();
+  const lastDeployAt = previous.lastDeployAt || null;
+  const minutesSinceDeploy = lastDeployAt ? (Date.now() - new Date(lastDeployAt).getTime()) / 60_000 : Infinity;
+  const changed = signature.hash !== previous.paInventorySignature;
+  const eligible = AUTO_DEPLOY && changed && minutesSinceDeploy >= AUTO_DEPLOY_MINUTES;
+  const base = {
+    autoDeploy: AUTO_DEPLOY,
+    checkedAt: now,
+    changed,
+    eligible,
+    minDeployMinutes: AUTO_DEPLOY_MINUTES,
+    minutesSinceDeploy: Number.isFinite(minutesSinceDeploy) ? Math.round(minutesSinceDeploy * 10) / 10 : null,
+    paInventorySignature: signature.hash,
+    paExactStoreDropCount: signature.rowCount,
+    siteGeneratedAt: signature.generatedAt,
+    lastDeployAt: previous.lastDeployAt || null,
+    lastDeploymentUrl: previous.lastDeploymentUrl || null
+  };
+
+  if (!AUTO_DEPLOY) {
+    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'auto_deploy_disabled' }, null, 2));
+    return { ...base, skipped: true, skippedReason: 'auto_deploy_disabled' };
+  }
+  if (!changed) {
+    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'pa_inventory_unchanged' }, null, 2));
+    return { ...base, skipped: true, skippedReason: 'pa_inventory_unchanged' };
+  }
+  if (minutesSinceDeploy < AUTO_DEPLOY_MINUTES) {
+    const skippedReason = `deploy_throttled_${Math.ceil(AUTO_DEPLOY_MINUTES - minutesSinceDeploy)}m_remaining`;
+    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason }, null, 2));
+    return { ...base, skipped: true, skippedReason };
+  }
+
+  const vercel = process.platform === 'win32' ? 'vercel.cmd' : 'vercel';
+  const result = await runCommand(vercel, ['--prod', '--yes'], { cwd: PROJECT_ROOT, timeoutMs: DEPLOY_TIMEOUT_MS });
+  const output = `${result.stdout}\n${result.stderr}`;
+  const deploymentUrl = output.match(/https:\/\/[^\s]+\.vercel\.app/)?.[0] || previous.lastDeploymentUrl || null;
+  const deployed = {
+    ...base,
+    skipped: false,
+    deployedAt: new Date().toISOString(),
+    lastDeployAt: new Date().toISOString(),
+    lastDeploymentUrl: deploymentUrl,
+    deploymentResult: { code: result.code, startedAt: result.startedAt, finishedAt: result.finishedAt, stdout: result.stdout.slice(-2000), stderr: result.stderr.slice(-2000) }
+  };
+  await writeFile(DEPLOY_STATUS, JSON.stringify(deployed, null, 2));
+  return deployed;
+}
+
 async function cdpReady() {
   try {
     const res = await fetch(`${CDP_URL}/json/version`, { signal: AbortSignal.timeout(1500) });
@@ -134,6 +244,7 @@ async function main() {
 
   const steps = [];
   const warnings = [];
+  let publish = null;
   let lastBrowserRefreshAt = (await readJson(STATUS))?.lastBrowserRefreshAt || null;
   let lastBrowserAttemptAt = (await readJson(STATUS))?.lastBrowserAttemptAt || null;
 
@@ -179,6 +290,22 @@ async function main() {
     steps.push(await runNode('src/operational-report.mjs'));
     steps.push(await runNode('src/export-site-contract.mjs'));
 
+    try {
+      publish = await maybeDeploySite();
+      if (publish.skipped) console.log(`Site auto-deploy skipped: ${publish.skippedReason}`);
+      else console.log(`Site auto-deploy complete: ${publish.lastDeploymentUrl || 'production'}`);
+    } catch (error) {
+      warnings.push(`auto-deploy: ${error.message}`);
+      await writeFile(DEPLOY_STATUS, JSON.stringify({
+        autoDeploy: AUTO_DEPLOY,
+        ok: false,
+        checkedAt: new Date().toISOString(),
+        error: error.message,
+        failed: error.result || null
+      }, null, 2));
+      console.warn(`Site auto-deploy failed; refresh data remains local: ${error.message}`);
+    }
+
     const finishedAt = new Date().toISOString();
     await writeFile(STATUS, JSON.stringify({
       ok: true,
@@ -186,8 +313,11 @@ async function main() {
       finishedAt,
       cadenceMinutes: 5,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
+      autoDeploy: AUTO_DEPLOY,
+      autoDeployMinutes: AUTO_DEPLOY_MINUTES,
       lastBrowserRefreshAt,
       lastBrowserAttemptAt,
+      publish,
       warnings,
       steps: steps.map((s) => ({ script: s.script, args: s.args, code: s.code, startedAt: s.startedAt, finishedAt: s.finishedAt }))
     }, null, 2));
@@ -201,8 +331,11 @@ async function main() {
       finishedAt,
       cadenceMinutes: 5,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
+      autoDeploy: AUTO_DEPLOY,
+      autoDeployMinutes: AUTO_DEPLOY_MINUTES,
       lastBrowserRefreshAt,
       lastBrowserAttemptAt,
+      publish,
       error: error.message,
       warnings,
       failed,

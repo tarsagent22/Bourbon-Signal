@@ -251,6 +251,7 @@ function dropPriority(signal) {
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
+    if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
     const maxAgeMs = PA_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
     if (!Number.isFinite(observedAt) || Date.now() - observedAt > maxAgeMs) return false;

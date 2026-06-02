@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T15:52:05.057Z",
+  "generatedAt": "2026-06-02T16:23:34.655Z",
   "count": 1411,
   "stores": [
     {
@@ -914,11 +914,11 @@
       "signalCount": 1
     },
     {
-      "id": "50c8de1fdf936519",
+      "id": "57646f241a5ea05e",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,
@@ -928,11 +928,11 @@
       "signalCount": 1
     },
     {
-      "id": "57646f241a5ea05e",
+      "id": "50c8de1fdf936519",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,
@@ -8219,7 +8219,7 @@
       "lat": 40.448363,
       "lng": -79.986832,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "0222",
@@ -8247,7 +8247,7 @@
       "lat": -75.01257792913097,
       "lng": 40.15094889677739,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "1532",
@@ -8303,7 +8303,7 @@
       "lat": -76.31766394447732,
       "lng": 40.06246033814345,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "4004",
@@ -8317,7 +8317,7 @@
       "lat": -75.80024265978842,
       "lng": 41.27571847996155,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4508",
@@ -9227,7 +9227,7 @@
       "lat": 40.315765,
       "lng": -76.000548,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "611",
@@ -12209,7 +12209,7 @@
       "lat": 40.642569,
       "lng": -75.402736,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3916",
@@ -14897,7 +14897,7 @@
       "lat": 40.469949,
       "lng": -80.076588,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "9208",
