@@ -113,7 +113,8 @@ function safeString(value, max = 500) {
 
 function publicSignal(signal, bible) {
   const bibleRecord = findBibleRecord(signal, bible);
-  const canonicalName = bibleRecord?.canonical || signal.canonicalName || signal.rawName || null;
+  const preferRetailerName = signal.state === 'IN' && /^cityhive_store_inventory/i.test(String(signal.eventType || ''));
+  const canonicalName = preferRetailerName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = bibleRecord?.id || bottleKey(signal);
   return {
     id: signal.key || signal.sourceSignalId,
@@ -251,6 +252,7 @@ function dropPriority(signal) {
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
   if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
+  if (signal.state === 'IN' && /^cityhive_store_inventory/i.test(type) && !/bourbon|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
     if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();

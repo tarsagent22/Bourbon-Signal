@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T21:24:12.638Z",
+  "generatedAt": "2026-06-02T21:35:12.493Z",
   "count": 2486,
   "stores": [
     {
@@ -7127,7 +7127,7 @@
       "lat": 39.1615758,
       "lng": -86.53334079999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 26
+      "signalCount": 18
     },
     {
       "id": "big-red:5e92544c78e8f13c2cb1e170",
@@ -8555,7 +8555,7 @@
       "lat": 41.1293034,
       "lng": -85.1350928,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 40
+      "signalCount": 35
     },
     {
       "id": "cap-n-cork:5e8f2a1fb851035361e0f22c",

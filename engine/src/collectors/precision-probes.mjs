@@ -49,7 +49,6 @@ const IN_CITYHIVE_SOURCES = [
     baseUrl: 'https://bigredliquors.com',
     urls: [
       'https://bigredliquors.com/shop/?subtype=Bourbon',
-      'https://bigredliquors.com/shop/?subtype=Whiskey',
       'https://bigredliquors.com/shop/product-groups/pages/bourbon-world?order=&subtype=Bourbon&state=Indiana'
     ]
   },
@@ -60,7 +59,6 @@ const IN_CITYHIVE_SOURCES = [
     baseUrl: 'https://capncork.com',
     urls: [
       'https://capncork.com/shop/?subtype=Bourbon',
-      'https://capncork.com/shop/?subtype=Whiskey',
       'https://capncork.com/pages/friday-night-flyer',
       'https://capncork.com/events'
     ]
@@ -345,7 +343,7 @@ function isBourbonRelevantProduct(product, option) {
     props: option?.additional_properties,
     display: option?.option_display_data?.basic_category
   });
-  return /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(text);
+  return /bourbon|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(text);
 }
 
 async function readIndianaCityHiveCache() {
