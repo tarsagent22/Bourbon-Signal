@@ -113,13 +113,13 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_inventory_watch', cadence: 'daily-60m',
-    value: 'Indiana is a private retail market, not a control-state inventory board. Strong v1 value is statewide active package-store coverage from the public ATC permit lookup plus retailer catalog/inventory watch surfaces such as Big Red/Bourbon World; do not present ATC permits as bottle inventory.',
+    id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_store_inventory', cadence: 'daily-60m',
+    value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus CityHive retailer store inventory/watch surfaces from Big Red/Bourbon World and Cap n Cork. ATC permits must never be presented as bottle inventory.',
     sources: [
       { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search' },
       { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance' },
-      { kind: 'html', url: 'https://bigredliquors.com/shop/product-groups/pages/bourbon-world?order=&subtype=Bourbon&state=Indiana', label: 'Big Red Liquors Bourbon World Indiana bourbon catalog' },
-      { kind: 'html', url: 'https://bigredliquors.com/pages/barrel-select', label: 'Big Red Liquors barrel select stores' }
+      { kind: 'html', url: 'https://www.wiseguysliquors.com/wise-guys-events/bourbon-open-house-bourbon-lottery', label: 'Wise Guys bourbon open house / bourbon lottery' },
+      { kind: 'html', url: 'https://indianaliquor.com/our-events/', label: 'Indiana Liquor Group tasting events' }
     ],
     apiCandidates: []
   },

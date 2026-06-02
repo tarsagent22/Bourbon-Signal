@@ -25,7 +25,12 @@ const inLocations = (locationsExport.locations || []).filter((location) => locat
 const inDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'IN');
 const atcDrops = inDrops.filter((drop) => /ATC|permit/i.test(String(drop.source || '') + ' ' + String(drop.type || '')));
 const retailerWatchDrops = inDrops.filter((drop) => drop.type === 'retailer_allocated_raffle_item' && /Bourbon World|Big Red/i.test(String(drop.source || '')));
-const unsafeDrops = inDrops.filter((drop) => drop.type !== 'retailer_allocated_raffle_item');
+const cityHiveInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
+const cityHiveStoreLocations = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_location' && /CityHive/i.test(String(signal.sourceLabel || '')));
+const cityHiveDrops = inDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
+const alertableCityHiveDrops = cityHiveDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
+const eventSignals = (state.signals || []).filter((signal) => /lottery|tasting|event|release/i.test(String(signal.eventType || '') + ' ' + String(signal.sourceLabel || '') + ' ' + String(signal.readableSummary || '') + ' ' + String(signal.evidence || '')));
+const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'cityhive_store_inventory_result'].includes(drop.type));
 
 assert(state.status === 'useful' || state.status === 'reachable_needs_deeper_parser', `Unexpected IN state status: ${state.status}`);
 assert(artifact.storeCount >= 900, `Expected at least 900 active Indiana package-store permits; got ${artifact.storeCount}`);
@@ -38,6 +43,11 @@ assert(zips.size >= 300, `Expected broad Indiana ZIP coverage; got ${zips.size} 
 assert(alertablePermitSignals.length === 0, `ATC permit rows must not be alertable bottle/inventory signals; got ${alertablePermitSignals.length}`);
 assert(atcDrops.length === 0, `ATC permit rows must not create Indiana drops; got ${atcDrops.length}`);
 assert(retailerWatchDrops.length >= 5, `Expected Bourbon World retailer watch drops; got ${retailerWatchDrops.length}`);
+assert(cityHiveStoreLocations.length >= 20, `Expected CityHive retailer store-location coverage; got ${cityHiveStoreLocations.length}`);
+assert(cityHiveInventorySignals.length >= 20, `Expected CityHive positive inventory signals; got ${cityHiveInventorySignals.length}`);
+assert(cityHiveDrops.length >= 20, `Expected exported CityHive inventory drops; got ${cityHiveDrops.length}`);
+assert(alertableCityHiveDrops.length >= 10, `Expected alertable CityHive inventory drops with store/address/quantity; got ${alertableCityHiveDrops.length}`);
+assert(eventSignals.length >= 2, `Expected Indiana event/lottery/tasting signals; got ${eventSignals.length}`);
 assert(unsafeDrops.length === 0, `Unexpected non-retailer-watch Indiana drops found: ${unsafeDrops.map((drop) => `${drop.type}:${drop.bottleName}`).join(', ')}`);
 
 if (inStores.length || inLocations.length) {
@@ -54,5 +64,10 @@ console.log(JSON.stringify({
   exportedStores: inStores.length,
   exportedLocations: inLocations.length,
   exportedDrops: inDrops.length,
-  retailerWatchDrops: retailerWatchDrops.length
+  retailerWatchDrops: retailerWatchDrops.length,
+  cityHiveStoreLocations: cityHiveStoreLocations.length,
+  cityHiveInventorySignals: cityHiveInventorySignals.length,
+  cityHiveDrops: cityHiveDrops.length,
+  alertableCityHiveDrops: alertableCityHiveDrops.length,
+  eventSignals: eventSignals.length
 }, null, 2));

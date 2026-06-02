@@ -1,21 +1,21 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T19:14:04.035Z",
-  "engineGeneratedAt": "2026-06-02T19:04:49.472Z",
+  "generatedAt": "2026-06-02T21:24:12.638Z",
+  "engineGeneratedAt": "2026-06-02T21:22:52.164Z",
   "stateCount": 23,
-  "signalCount": 8181,
-  "historicalSignalCount": 1151389,
+  "signalCount": 8326,
+  "historicalSignalCount": 1188939,
   "historyDays": 30,
-  "snapshotCount": 1216,
+  "snapshotCount": 1230,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2404,
-  "locationCount": 4226,
+  "storeCount": 2486,
+  "locationCount": 4308,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 8104,
+  "dropCount": 8135,
   "alertCandidateCount": 7,
-  "roadblockCount": 50,
+  "roadblockCount": 51,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -23,13 +23,12 @@
     "degradedStates": []
   },
   "statesAtTargetPrecision": 19,
-  "rareStatesVerified": 16,
+  "rareStatesVerified": 17,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 5,
+      "live_store_inventory": 6,
       "catalog_watch": 11,
       "policy_source_discovery": 2,
-      "store_location_watch": 1,
       "shipment_drop_intelligence": 4
     },
     "states": [
@@ -38,7 +37,7 @@
         "label": "Ohio OHLQ",
         "tier": "A",
         "status": "useful",
-        "signalCount": 237,
+        "signalCount": 235,
         "roadblockCount": 7,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -134,12 +133,12 @@
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1006,
-        "roadblockCount": 1,
+        "signalCount": 1153,
+        "roadblockCount": 2,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
-        "strategy": "license_spine_plus_retailer_inventory_watch",
-        "coverageTier": "store_location_watch"
+        "strategy": "license_spine_plus_retailer_store_inventory",
+        "coverageTier": "live_store_inventory"
       },
       {
         "state": "NH",
@@ -312,7 +311,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-02T19:14:04.036Z",
+    "generatedAt": "2026-06-02T21:24:12.639Z",
     "focusStates": [
       "AL",
       "VA",
@@ -550,6 +549,22 @@
           "state": "NC",
           "type": "nc_statewide_warehouse_stock",
           "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/162395",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 871,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 871 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+        },
+        {
+          "id": "5fe622929530be5a",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
           "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/159526",
           "bottle": "Buffalo Trace Bourbon",
           "rawName": "Buffalo Trace KY Straight Bourbon",
@@ -610,22 +625,6 @@
           "summary": "NC ABC Stock Shipped Data reports 456 unit(s) of Buffalo Trace KY Straight Bourbon .75L shipped to Cumberland County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
         },
         {
-          "id": "5fe622929530be5a",
-          "state": "NC",
-          "type": "nc_statewide_warehouse_stock",
-          "source": "NC ABC Warehouse Stock Status",
-          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/162395",
-          "bottle": "Buffalo Trace Bourbon",
-          "rawName": "Buffalo Trace KY Straight Bourbon",
-          "locationPrecision": "board_warehouse",
-          "locationName": "NC ABC state warehouse",
-          "quantity": 445,
-          "confidence": 0.9,
-          "canAlertAsInventory": false,
-          "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 445 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
-        },
-        {
           "id": "42112660bd6fdf81",
           "state": "NC",
           "type": "nc_statewide_warehouse_stock",
@@ -635,11 +634,11 @@
           "rawName": "E.H. Taylor Jr. Small Batch",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 436,
+          "quantity": 435,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 436 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 435 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "4c7a3a7b9617e7af",
@@ -667,11 +666,11 @@
           "rawName": "Buffalo Trace Bourbon Cream",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 365,
+          "quantity": 364,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 365 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 364 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         }
       ],
       "alReleaseIntel": [

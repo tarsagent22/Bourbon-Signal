@@ -250,7 +250,7 @@ function dropPriority(signal) {
 
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
-  if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && type !== 'retailer_allocated_raffle_item') return false;
+  if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
     if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
@@ -315,6 +315,7 @@ function stateCoverageTier(state) {
   const strategy = String(state.strategy || '');
   const status = String(state.status || '');
   if (/failed|blocked/i.test(status)) return 'blocked';
+  if (/retailer_store_inventory/i.test(strategy) && precision === 'store_level') return 'live_store_inventory';
   if (/license_spine/i.test(strategy)) return 'store_location_watch';
   if (precision === 'store_level') return 'live_store_inventory';
   if (/shipment|warehouse|board_inventory|public_data_portal/i.test(strategy) || precision === 'board_warehouse' || precision === 'board_county') return 'shipment_drop_intelligence';

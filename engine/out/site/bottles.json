@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T19:14:04.035Z",
+  "generatedAt": "2026-06-02T21:24:12.638Z",
   "count": 139,
   "bottles": [
     {
@@ -25,7 +25,35 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:14.420Z"
+      "latestObservedAt": "2026-06-02T21:19:41.121Z"
+    },
+    {
+      "id": "bb_3bccb93448bf8456",
+      "canonical_id": "bb_3bccb93448bf8456",
+      "canonical_name": "Four Roses Limited Edition Small Batch",
+      "canonical_key": "four roses",
+      "name": "Four Roses Limited Edition Small Batch",
+      "aliases": [
+        "4 Roses Limited Edition",
+        "Four Roses LE Small Batch",
+        "Four Roses Limited Edition",
+        "Four Roses Limited Edition Small Batch"
+      ],
+      "tier": "unicorn",
+      "producer": "Four Roses",
+      "signalCount": 19,
+      "stateCount": 4,
+      "inventorySignalCount": 12,
+      "watchSignalCount": 19,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY",
+        "NC"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_a85df59577c72709",
@@ -56,7 +84,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T18:43:15.444Z"
+      "latestObservedAt": "2026-06-02T20:52:43.305Z"
     },
     {
       "id": "bb_2b5d9987117596c4",
@@ -84,7 +112,7 @@
         "NC",
         "UT"
       ],
-      "latestObservedAt": "2026-06-02T19:03:56.469Z"
+      "latestObservedAt": "2026-06-02T21:21:58.102Z"
     },
     {
       "id": "bb_cca84bbe5368acac",
@@ -110,7 +138,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:11.968Z"
+      "latestObservedAt": "2026-06-02T21:19:38.641Z"
     },
     {
       "id": "bb_b51a26135cfce9fe",
@@ -159,34 +187,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:01.877Z"
-    },
-    {
-      "id": "bb_3bccb93448bf8456",
-      "canonical_id": "bb_3bccb93448bf8456",
-      "canonical_name": "Four Roses Limited Edition Small Batch",
-      "canonical_key": "four roses",
-      "name": "Four Roses Limited Edition Small Batch",
-      "aliases": [
-        "4 Roses Limited Edition",
-        "Four Roses LE Small Batch",
-        "Four Roses Limited Edition",
-        "Four Roses Limited Edition Small Batch"
-      ],
-      "tier": "unicorn",
-      "producer": "Four Roses",
-      "signalCount": 7,
-      "stateCount": 3,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 7,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "MD-MONTGOMERY",
-        "NC"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:19:27.838Z"
     },
     {
       "id": "bb_ea6984efad655e2d",
@@ -214,7 +215,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:01.877Z"
+      "latestObservedAt": "2026-06-02T21:19:27.838Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -241,7 +242,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:14.421Z"
+      "latestObservedAt": "2026-06-02T21:19:41.121Z"
     },
     {
       "id": "bb_a3c16eb6f814785b",
@@ -267,7 +268,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:04:03.687Z"
+      "latestObservedAt": "2026-06-02T21:22:05.744Z"
     },
     {
       "id": "bb_18013da36d2e4da4",
@@ -293,7 +294,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:15.600Z"
+      "latestObservedAt": "2026-06-02T21:19:42.271Z"
     },
     {
       "id": "bb_d2b7ab7e2ebc1404",
@@ -318,7 +319,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:13.016Z"
+      "latestObservedAt": "2026-06-02T21:19:39.642Z"
     },
     {
       "id": "bb_3f2ea94bd1b6a610",
@@ -343,7 +344,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:01.877Z"
+      "latestObservedAt": "2026-06-02T21:19:27.838Z"
     },
     {
       "id": "bb_7f15783e8c144664",
@@ -369,7 +370,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:14.420Z"
+      "latestObservedAt": "2026-06-02T21:19:41.121Z"
     },
     {
       "id": "bb_064157246d06e7cd",
@@ -394,7 +395,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:14.420Z"
+      "latestObservedAt": "2026-06-02T21:19:41.121Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -420,7 +421,33 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-02T19:04:14.074Z"
+      "latestObservedAt": "2026-06-02T21:22:15.813Z"
+    },
+    {
+      "id": "bb_e7885596cd0952b8",
+      "canonical_id": "bb_e7885596cd0952b8",
+      "canonical_name": "Van Winkle Special Reserve 12 Year",
+      "canonical_key": "van winkle special 12 year",
+      "name": "Van Winkle Special Reserve 12 Year",
+      "aliases": [
+        "Lot B",
+        "Pappy Lot B",
+        "Van Winkle 12",
+        "Van Winkle Special Reserve 12 Year"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "signalCount": 2,
+      "stateCount": 2,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "store_aggregate",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "ME"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
     },
     {
       "id": "bb_ac855cd46254e92a",
@@ -445,7 +472,7 @@
       "states": [
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-02T19:04:17.729Z"
+      "latestObservedAt": "2026-06-02T21:22:19.310Z"
     },
     {
       "id": "bb_7027ba16ae56677c",
@@ -469,7 +496,7 @@
       "states": [
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-02T19:03:43.314Z"
+      "latestObservedAt": "2026-06-02T21:21:24.913Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -543,7 +570,7 @@
         "IA",
         "ID"
       ],
-      "latestObservedAt": "2026-06-02T19:02:50.818Z"
+      "latestObservedAt": "2026-06-02T21:19:18.684Z"
     },
     {
       "id": "bb_112985112371b3e9",
@@ -569,33 +596,7 @@
       "states": [
         "ME"
       ],
-      "latestObservedAt": "2026-06-02T19:04:29.437Z"
-    },
-    {
-      "id": "bb_e7885596cd0952b8",
-      "canonical_id": "bb_e7885596cd0952b8",
-      "canonical_name": "Van Winkle Special Reserve 12 Year",
-      "canonical_key": "van winkle special 12 year",
-      "name": "Van Winkle Special Reserve 12 Year",
-      "aliases": [
-        "Lot B",
-        "Pappy Lot B",
-        "Van Winkle 12",
-        "Van Winkle Special Reserve 12 Year"
-      ],
-      "tier": "unicorn",
-      "producer": "Buffalo Trace",
-      "signalCount": 2,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.56,
-      "states": [
-        "IN",
-        "ME"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:40.124Z"
+      "latestObservedAt": "2026-06-02T21:22:30.786Z"
     },
     {
       "id": "bb_40a01e5c27a36a6d",
@@ -1008,7 +1009,7 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:15.601Z"
+      "latestObservedAt": "2026-06-02T21:19:42.271Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1024,17 +1025,17 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 138,
+      "signalCount": 137,
       "stateCount": 2,
-      "inventorySignalCount": 110,
-      "watchSignalCount": 138,
+      "inventorySignalCount": 109,
+      "watchSignalCount": 137,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "NC",
         "OH"
       ],
-      "latestObservedAt": "2026-06-02T19:03:14.421Z"
+      "latestObservedAt": "2026-06-02T21:19:41.121Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1067,7 +1068,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:50.741Z"
+      "latestObservedAt": "2026-06-02T21:21:42.169Z"
     },
     {
       "id": "bb_5afa9241206ab963",
@@ -1101,7 +1102,7 @@
         "OH",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:56.469Z"
+      "latestObservedAt": "2026-06-02T21:21:58.102Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1133,7 +1134,34 @@
         "UT",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T19:04:00.205Z"
+      "latestObservedAt": "2026-06-02T21:22:02.186Z"
+    },
+    {
+      "id": "bb_be6a0afd4ba5f963",
+      "canonical_id": "bb_be6a0afd4ba5f963",
+      "canonical_name": "Elijah Craig Barrel Proof",
+      "canonical_key": "elijah craig proof",
+      "name": "Elijah Craig Barrel Proof",
+      "aliases": [
+        "ECBP",
+        "Elijah Craig BP",
+        "Elijah Craig Barrel Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "signalCount": 22,
+      "stateCount": 4,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 22,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.9,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY",
+        "NC",
+        "UT"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_15b34a1a107fafe0",
@@ -1158,7 +1186,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T18:43:15.444Z"
+      "latestObservedAt": "2026-06-02T20:52:43.305Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1183,7 +1211,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:16.727Z"
+      "latestObservedAt": "2026-06-02T21:19:43.263Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1235,7 +1263,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:15.600Z"
+      "latestObservedAt": "2026-06-02T21:19:42.271Z"
     },
     {
       "id": "bb_7991fa37cd881dba",
@@ -1264,33 +1292,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:04:03.687Z"
-    },
-    {
-      "id": "bb_be6a0afd4ba5f963",
-      "canonical_id": "bb_be6a0afd4ba5f963",
-      "canonical_name": "Elijah Craig Barrel Proof",
-      "canonical_key": "elijah craig proof",
-      "name": "Elijah Craig Barrel Proof",
-      "aliases": [
-        "ECBP",
-        "Elijah Craig BP",
-        "Elijah Craig Barrel Proof"
-      ],
-      "tier": "allocated",
-      "producer": "Heaven Hill",
-      "signalCount": 18,
-      "stateCount": 3,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 18,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.9,
-      "states": [
-        "MD-MONTGOMERY",
-        "NC",
-        "UT"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:22:05.743Z"
     },
     {
       "id": "bb_fd202575957d3cea",
@@ -1580,17 +1582,18 @@
       ],
       "tier": "limited",
       "producer": "Michter's",
-      "signalCount": 430,
-      "stateCount": 2,
-      "inventorySignalCount": 426,
-      "watchSignalCount": 430,
+      "signalCount": 431,
+      "stateCount": 3,
+      "inventorySignalCount": 427,
+      "watchSignalCount": 431,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
+        "IN",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T18:43:15.444Z"
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1614,7 +1617,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_2435a31e97c20ce7",
@@ -1639,7 +1642,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:16.727Z"
+      "latestObservedAt": "2026-06-02T21:19:43.263Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1663,7 +1666,33 @@
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T18:43:15.444Z"
+      "latestObservedAt": "2026-06-02T20:52:43.305Z"
+    },
+    {
+      "id": "bb_24c7e1719e8ded79",
+      "canonical_id": "bb_24c7e1719e8ded79",
+      "canonical_name": "Early Times Bottled-in-Bond",
+      "canonical_key": "early times bottled in bond",
+      "name": "Early Times Bottled-in-Bond",
+      "aliases": [
+        "EARLY TIMES BOTTLE IN BOND",
+        "EARLY TIMES BOTTLED IN BOND",
+        "Early Times BiB",
+        "Early Times Bottled-in-Bond"
+      ],
+      "tier": "limited",
+      "producer": "Sazerac",
+      "signalCount": 12,
+      "stateCount": 2,
+      "inventorySignalCount": 10,
+      "watchSignalCount": 12,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_f1bb80f4dc160729",
@@ -1689,7 +1718,211 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-06-02T19:02:07.012Z"
+      "latestObservedAt": "2026-06-02T21:18:49.274Z"
+    },
+    {
+      "id": "bb_a3b1732edd18ac89",
+      "canonical_id": "bb_a3b1732edd18ac89",
+      "canonical_name": "Basil Hayden 10 Year",
+      "canonical_key": "basil hayden 10 year",
+      "name": "Basil Hayden 10 Year",
+      "aliases": [
+        "BASIL HAYDEN 10YR",
+        "Basil Hayden 10",
+        "Basil Hayden 10 Year",
+        "Basil Hayden's 10 Year"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "signalCount": 7,
+      "stateCount": 3,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 7,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.8600000000000001,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_b029b9fb7d0f5783",
+      "canonical_id": "bb_b029b9fb7d0f5783",
+      "canonical_name": "Bowman Brothers Small Batch Bourbon",
+      "canonical_key": "bowman brothers",
+      "name": "Bowman Brothers Small Batch Bourbon",
+      "aliases": [
+        "BOWMAN BROTHERS BOURBON",
+        "Bowman Brothers",
+        "Bowman Brothers Small Batch",
+        "Bowman Brothers Small Batch Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "A. Smith Bowman",
+      "signalCount": 4,
+      "stateCount": 3,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 4,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_4e7a2ea067e741fd",
+      "canonical_id": "bb_4e7a2ea067e741fd",
+      "canonical_name": "New Riff 8 Year Bourbon",
+      "canonical_key": "new riff 8 year",
+      "name": "New Riff 8 Year Bourbon",
+      "aliases": [
+        "New Riff 8 Year",
+        "New Riff 8 Year Bourbon",
+        "New Riff 8Y"
+      ],
+      "tier": "limited",
+      "producer": "New Riff",
+      "signalCount": 3,
+      "stateCount": 2,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 3,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
+    },
+    {
+      "id": "bb_80e1a23c773972ad",
+      "canonical_id": "bb_80e1a23c773972ad",
+      "canonical_name": "New Riff Bottled-in-Bond Bourbon",
+      "canonical_key": "new riff bottled in bond",
+      "name": "New Riff Bottled-in-Bond Bourbon",
+      "aliases": [
+        "NEW RIFF BOTTLED IN BOND BOURBON",
+        "New Riff BiB Bourbon",
+        "New Riff Bottled-in-Bond Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "New Riff",
+      "signalCount": 2,
+      "stateCount": 2,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
+    },
+    {
+      "id": "bb_63d8202a47b5f253",
+      "canonical_id": "bb_63d8202a47b5f253",
+      "canonical_name": "Yellowstone Limited Edition",
+      "canonical_key": "yellowstone",
+      "name": "Yellowstone Limited Edition",
+      "aliases": [
+        "Yellowstone Limited Edition",
+        "Yellowstone Limited Edition 2025"
+      ],
+      "tier": "limited",
+      "producer": "Limestone Branch",
+      "signalCount": 9,
+      "stateCount": 2,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 9,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
+    },
+    {
+      "id": "bb_8924180d0cc2d853",
+      "canonical_id": "bb_8924180d0cc2d853",
+      "canonical_name": "Blade and Bow Bourbon",
+      "canonical_key": "blade and bow",
+      "name": "Blade and Bow Bourbon",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Bourbon",
+        "Blade and Bow Kentucky Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Diageo",
+      "signalCount": 3,
+      "stateCount": 2,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 3,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_d99031402ce45359",
+      "canonical_id": "bb_d99031402ce45359",
+      "canonical_name": "Elijah Craig Toasted Barrel",
+      "canonical_key": "elijah craig toasted",
+      "name": "Elijah Craig Toasted Barrel",
+      "aliases": [
+        "Elijah Craig Toasted Barrel",
+        "Elijah Craig Toasted Barrel Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "signalCount": 3,
+      "stateCount": 3,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 3,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY",
+        "UT"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_ef203a18f5f98f23",
+      "canonical_id": "bb_ef203a18f5f98f23",
+      "canonical_name": "Heaven Hill Bottled-in-Bond 7 Year",
+      "canonical_key": "heaven hill bottled in bond 7 year",
+      "name": "Heaven Hill Bottled-in-Bond 7 Year",
+      "aliases": [
+        "HEAVEN HILL BOTTLED-IN-BOND 7YR",
+        "Heaven Hill 7 Year Bottled in Bond",
+        "Heaven Hill 7YR BIB",
+        "Heaven Hill Bottled-in-Bond 7 Year"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "signalCount": 1,
+      "stateCount": 1,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 1,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
     },
     {
       "id": "bb_1f0975f2e3cbd2d5",
@@ -1891,32 +2124,6 @@
       "latestObservedAt": "2026-06-01T00:00:00.000"
     },
     {
-      "id": "bb_b029b9fb7d0f5783",
-      "canonical_id": "bb_b029b9fb7d0f5783",
-      "canonical_name": "Bowman Brothers Small Batch Bourbon",
-      "canonical_key": "bowman brothers",
-      "name": "Bowman Brothers Small Batch Bourbon",
-      "aliases": [
-        "BOWMAN BROTHERS BOURBON",
-        "Bowman Brothers",
-        "Bowman Brothers Small Batch",
-        "Bowman Brothers Small Batch Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "A. Smith Bowman",
-      "signalCount": 3,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
-    },
-    {
       "id": "bb_3661d755a4465b10",
       "canonical_id": "bb_3661d755a4465b10",
       "canonical_name": "Brothers Bond Cask Strength Bourbon",
@@ -2010,7 +2217,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-06-02T19:02:03.804Z"
+      "latestObservedAt": "2026-06-02T21:18:46.189Z"
     },
     {
       "id": "bb_c1b9f5325e7c08a4",
@@ -2026,54 +2233,6 @@
       ],
       "tier": "limited",
       "producer": "McCormick Distilling",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA"
-      ],
-      "latestObservedAt": "2026-06-01T00:00:00.000"
-    },
-    {
-      "id": "bb_4e7a2ea067e741fd",
-      "canonical_id": "bb_4e7a2ea067e741fd",
-      "canonical_name": "New Riff 8 Year Bourbon",
-      "canonical_key": "new riff 8 year",
-      "name": "New Riff 8 Year Bourbon",
-      "aliases": [
-        "New Riff 8 Year",
-        "New Riff 8 Year Bourbon",
-        "New Riff 8Y"
-      ],
-      "tier": "limited",
-      "producer": "New Riff",
-      "signalCount": 2,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA"
-      ],
-      "latestObservedAt": "2026-06-01T00:00:00.000"
-    },
-    {
-      "id": "bb_80e1a23c773972ad",
-      "canonical_id": "bb_80e1a23c773972ad",
-      "canonical_name": "New Riff Bottled-in-Bond Bourbon",
-      "canonical_key": "new riff bottled in bond",
-      "name": "New Riff Bottled-in-Bond Bourbon",
-      "aliases": [
-        "NEW RIFF BOTTLED IN BOND BOURBON",
-        "New Riff BiB Bourbon",
-        "New Riff Bottled-in-Bond Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "New Riff",
       "signalCount": 1,
       "stateCount": 1,
       "inventorySignalCount": 0,
@@ -2133,7 +2292,7 @@
         "IA",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_81c5c5c4b7d8a7b6",
@@ -2159,7 +2318,7 @@
         "IA",
         "UT"
       ],
-      "latestObservedAt": "2026-06-02T19:02:12.183Z"
+      "latestObservedAt": "2026-06-02T21:18:54.703Z"
     },
     {
       "id": "bb_8480bae3e0e97a02",
@@ -2179,29 +2338,6 @@
       "stateCount": 1,
       "inventorySignalCount": 0,
       "watchSignalCount": 2,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA"
-      ],
-      "latestObservedAt": "2026-06-01T00:00:00.000"
-    },
-    {
-      "id": "bb_63d8202a47b5f253",
-      "canonical_id": "bb_63d8202a47b5f253",
-      "canonical_name": "Yellowstone Limited Edition",
-      "canonical_key": "yellowstone",
-      "name": "Yellowstone Limited Edition",
-      "aliases": [
-        "Yellowstone Limited Edition",
-        "Yellowstone Limited Edition 2025"
-      ],
-      "tier": "limited",
-      "producer": "Limestone Branch",
-      "signalCount": 8,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 8,
       "bestLocationPrecision": "statewide_catalog",
       "bestConfidence": 0.92,
       "states": [
@@ -2258,33 +2394,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:01.877Z"
-    },
-    {
-      "id": "bb_a3b1732edd18ac89",
-      "canonical_id": "bb_a3b1732edd18ac89",
-      "canonical_name": "Basil Hayden 10 Year",
-      "canonical_key": "basil hayden 10 year",
-      "name": "Basil Hayden 10 Year",
-      "aliases": [
-        "BASIL HAYDEN 10YR",
-        "Basil Hayden 10",
-        "Basil Hayden 10 Year",
-        "Basil Hayden's 10 Year"
-      ],
-      "tier": "limited",
-      "producer": "Jim Beam",
-      "signalCount": 3,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.8600000000000001,
-      "states": [
-        "IA",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:19:27.838Z"
     },
     {
       "id": "bb_2c6200b256620774",
@@ -2335,80 +2445,6 @@
       "latestObservedAt": "2026-06-01T00:00:00.000"
     },
     {
-      "id": "bb_d99031402ce45359",
-      "canonical_id": "bb_d99031402ce45359",
-      "canonical_name": "Elijah Craig Toasted Barrel",
-      "canonical_key": "elijah craig toasted",
-      "name": "Elijah Craig Toasted Barrel",
-      "aliases": [
-        "Elijah Craig Toasted Barrel",
-        "Elijah Craig Toasted Barrel Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "Heaven Hill",
-      "signalCount": 2,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.82,
-      "states": [
-        "MD-MONTGOMERY",
-        "UT"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
-    },
-    {
-      "id": "bb_8924180d0cc2d853",
-      "canonical_id": "bb_8924180d0cc2d853",
-      "canonical_name": "Blade and Bow Bourbon",
-      "canonical_key": "blade and bow",
-      "name": "Blade and Bow Bourbon",
-      "aliases": [
-        "BLADE & BOW",
-        "Blade & Bow",
-        "Blade and Bow Bourbon",
-        "Blade and Bow Kentucky Straight Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "Diageo",
-      "signalCount": 2,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.78,
-      "states": [
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
-    },
-    {
-      "id": "bb_24c7e1719e8ded79",
-      "canonical_id": "bb_24c7e1719e8ded79",
-      "canonical_name": "Early Times Bottled-in-Bond",
-      "canonical_key": "early times bottled in bond",
-      "name": "Early Times Bottled-in-Bond",
-      "aliases": [
-        "EARLY TIMES BOTTLE IN BOND",
-        "EARLY TIMES BOTTLED IN BOND",
-        "Early Times BiB",
-        "Early Times Bottled-in-Bond"
-      ],
-      "tier": "limited",
-      "producer": "Sazerac",
-      "signalCount": 2,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.78,
-      "states": [
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
-    },
-    {
       "id": "bb_dcbadbe1cd262fe4",
       "canonical_id": "bb_dcbadbe1cd262fe4",
       "canonical_name": "Maker's Mark Wood Finishing Series",
@@ -2431,7 +2467,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:02:54.776Z"
+      "latestObservedAt": "2026-06-02T21:19:22.421Z"
     },
     {
       "id": "bb_fbdffd15c5c5d159",
@@ -2504,7 +2540,7 @@
         "MD-MONTGOMERY",
         "MI"
       ],
-      "latestObservedAt": "2026-06-02T19:04:33.551Z"
+      "latestObservedAt": "2026-06-02T21:22:35.188Z"
     },
     {
       "id": "bb_830c5f59dc58f448",
@@ -2527,7 +2563,7 @@
       "states": [
         "WV"
       ],
-      "latestObservedAt": "2026-06-02T19:04:37.614Z"
+      "latestObservedAt": "2026-06-02T21:22:39.740Z"
     },
     {
       "id": "bb_78ae1c4d3ca52afc",
@@ -2582,29 +2618,6 @@
       ],
       "tier": "limited",
       "producer": "Found North",
-      "signalCount": 0,
-      "stateCount": 0,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0,
-      "states": [],
-      "latestObservedAt": null
-    },
-    {
-      "id": "bb_ef203a18f5f98f23",
-      "canonical_id": "bb_ef203a18f5f98f23",
-      "canonical_name": "Heaven Hill Bottled-in-Bond 7 Year",
-      "canonical_key": "heaven hill bottled in bond 7 year",
-      "name": "Heaven Hill Bottled-in-Bond 7 Year",
-      "aliases": [
-        "HEAVEN HILL BOTTLED-IN-BOND 7YR",
-        "Heaven Hill 7 Year Bottled in Bond",
-        "Heaven Hill 7YR BIB",
-        "Heaven Hill Bottled-in-Bond 7 Year"
-      ],
-      "tier": "limited",
-      "producer": "Heaven Hill",
       "signalCount": 0,
       "stateCount": 0,
       "inventorySignalCount": 0,
@@ -2804,18 +2817,19 @@
       ],
       "tier": "core",
       "producer": "Barton",
-      "signalCount": 401,
-      "stateCount": 3,
-      "inventorySignalCount": 376,
-      "watchSignalCount": 401,
+      "signalCount": 403,
+      "stateCount": 4,
+      "inventorySignalCount": 378,
+      "watchSignalCount": 403,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
+        "IN",
         "MD-MONTGOMERY",
         "VA"
       ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -2837,7 +2851,125 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-02T18:43:15.444Z"
+      "latestObservedAt": "2026-06-02T20:52:43.305Z"
+    },
+    {
+      "id": "bb_13fcb09e58792e06",
+      "canonical_id": "bb_13fcb09e58792e06",
+      "canonical_name": "Bulleit Bourbon",
+      "canonical_key": "bulleit",
+      "name": "Bulleit Bourbon",
+      "aliases": [
+        "BULLEIT BOURBON",
+        "Bulleit Bourbon",
+        "Bulleit Kentucky Straight Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Diageo",
+      "signalCount": 21,
+      "stateCount": 3,
+      "inventorySignalCount": 10,
+      "watchSignalCount": 21,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_4b57850b8b8f77fd",
+      "canonical_id": "bb_4b57850b8b8f77fd",
+      "canonical_name": "Wild Turkey 101 8Y .75l",
+      "canonical_key": "wild turkey 101 8y 75l",
+      "name": "Wild Turkey 101 8Y .75l",
+      "aliases": [
+        "Wild Turkey 101 8Y .75L"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "signalCount": 7,
+      "stateCount": 2,
+      "inventorySignalCount": 6,
+      "watchSignalCount": 7,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
+    },
+    {
+      "id": "bb_c782a4dd71e5ef89",
+      "canonical_id": "bb_c782a4dd71e5ef89",
+      "canonical_name": "Woodford Reserve Batch Proof",
+      "canonical_key": "woodford proof",
+      "name": "Woodford Reserve Batch Proof",
+      "aliases": [
+        "Woodford Reserve Batch Proof"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "signalCount": 7,
+      "stateCount": 3,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 7,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
+    },
+    {
+      "id": "bb_2a3a72be37e1c233",
+      "canonical_id": "bb_2a3a72be37e1c233",
+      "canonical_name": "Wild Turkey Master",
+      "canonical_key": "wild turkey master",
+      "name": "Wild Turkey Master",
+      "aliases": [
+        "Wild Turkey Master"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "signalCount": 2,
+      "stateCount": 1,
+      "inventorySignalCount": 2,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
+    },
+    {
+      "id": "bb_bb21b6ea0533babb",
+      "canonical_id": "bb_bb21b6ea0533babb",
+      "canonical_name": "Crown Royal Chocolate",
+      "canonical_key": "crown royal chocolate",
+      "name": "Crown Royal Chocolate",
+      "aliases": [
+        "CROWN ROYAL CHOCOLATE"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "signalCount": 2,
+      "stateCount": 2,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "ID",
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
     },
     {
       "id": "bb_24a388c391f6626f",
@@ -2863,31 +2995,6 @@
         "IA"
       ],
       "latestObservedAt": "2026-06-01T00:00:00.000"
-    },
-    {
-      "id": "bb_13fcb09e58792e06",
-      "canonical_id": "bb_13fcb09e58792e06",
-      "canonical_name": "Bulleit Bourbon",
-      "canonical_key": "bulleit",
-      "name": "Bulleit Bourbon",
-      "aliases": [
-        "BULLEIT BOURBON",
-        "Bulleit Bourbon",
-        "Bulleit Kentucky Straight Bourbon"
-      ],
-      "tier": "standard",
-      "producer": "Diageo",
-      "signalCount": 11,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 11,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
     },
     {
       "id": "bb_24473260f6d7da78",
@@ -2932,7 +3039,7 @@
         "IA",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:21:34.491Z"
     },
     {
       "id": "bb_cd5d49e4d71817d0",
@@ -2976,16 +3083,41 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-02T19:03:15.599Z"
+      "latestObservedAt": "2026-06-02T21:19:42.271Z"
     },
     {
-      "id": "bb_4b57850b8b8f77fd",
-      "canonical_id": "bb_4b57850b8b8f77fd",
-      "canonical_name": "Wild Turkey 101 8Y .75l",
-      "canonical_key": "wild turkey 101 8y 75l",
-      "name": "Wild Turkey 101 8Y .75l",
+      "id": "bb_00de3ec6e1619105",
+      "canonical_id": "bb_00de3ec6e1619105",
+      "canonical_name": "Maker",
+      "canonical_key": "maker",
+      "name": "Maker",
       "aliases": [
-        "Wild Turkey 101 8Y .75L"
+        "Maker"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "signalCount": 4,
+      "stateCount": 4,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 4,
+      "bestLocationPrecision": "store_aggregate",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "OH",
+        "UT",
+        "WV"
+      ],
+      "latestObservedAt": "2026-06-02T21:22:39.740Z"
+    },
+    {
+      "id": "bb_d79eea7237ee32b2",
+      "canonical_id": "bb_d79eea7237ee32b2",
+      "canonical_name": "Thomas H. Handy",
+      "canonical_key": "thomas h handy",
+      "name": "Thomas H. Handy",
+      "aliases": [
+        "Thomas H. Handy"
       ],
       "tier": "unknown",
       "producer": null,
@@ -2994,11 +3126,11 @@
       "inventorySignalCount": 0,
       "watchSignalCount": 1,
       "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.78,
+      "bestConfidence": 0.86,
       "states": [
-        "MD-MONTGOMERY"
+        "IN"
       ],
-      "latestObservedAt": "2026-06-02T19:03:47.893Z"
+      "latestObservedAt": "2026-06-02T21:20:06.787Z"
     },
     {
       "id": "bb_dab3d03d7632a821",
@@ -3022,98 +3154,7 @@
         "MD-MONTGOMERY",
         "VT"
       ],
-      "latestObservedAt": "2026-06-02T19:04:31.599Z"
-    },
-    {
-      "id": "bb_00de3ec6e1619105",
-      "canonical_id": "bb_00de3ec6e1619105",
-      "canonical_name": "Maker",
-      "canonical_key": "maker",
-      "name": "Maker",
-      "aliases": [
-        "Maker"
-      ],
-      "tier": "unknown",
-      "producer": null,
-      "signalCount": 3,
-      "stateCount": 3,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.7799999999999999,
-      "states": [
-        "OH",
-        "UT",
-        "WV"
-      ],
-      "latestObservedAt": "2026-06-02T19:04:37.614Z"
-    },
-    {
-      "id": "bb_bb21b6ea0533babb",
-      "canonical_id": "bb_bb21b6ea0533babb",
-      "canonical_name": "Crown Royal Chocolate",
-      "canonical_key": "crown royal chocolate",
-      "name": "Crown Royal Chocolate",
-      "aliases": [
-        "CROWN ROYAL CHOCOLATE"
-      ],
-      "tier": "unknown",
-      "producer": null,
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.68,
-      "states": [
-        "ID"
-      ],
-      "latestObservedAt": "2026-06-02T19:02:43.025Z"
-    },
-    {
-      "id": "bb_c782a4dd71e5ef89",
-      "canonical_id": "bb_c782a4dd71e5ef89",
-      "canonical_name": "Woodford Reserve Batch Proof",
-      "canonical_key": "woodford proof",
-      "name": "Woodford Reserve Batch Proof",
-      "aliases": [
-        "Woodford Reserve Batch Proof"
-      ],
-      "tier": "unknown",
-      "producer": null,
-      "signalCount": 3,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.6314285714285715,
-      "states": [
-        "IA",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-01T00:00:00.000"
-    },
-    {
-      "id": "bb_d79eea7237ee32b2",
-      "canonical_id": "bb_d79eea7237ee32b2",
-      "canonical_name": "Thomas H. Handy",
-      "canonical_key": "thomas h handy",
-      "name": "Thomas H. Handy",
-      "aliases": [
-        "Thomas H. Handy"
-      ],
-      "tier": "unknown",
-      "producer": null,
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.54,
-      "states": [
-        "IN"
-      ],
-      "latestObservedAt": "2026-06-02T19:03:40.124Z"
+      "latestObservedAt": "2026-06-02T21:22:32.958Z"
     },
     {
       "id": "bb_6593beca781b533e",
@@ -3303,26 +3344,6 @@
       "name": "Old Overholt Extra Aged 12Y .75l",
       "aliases": [
         "Old Overholt Extra Aged 12Y .75L"
-      ],
-      "tier": "unknown",
-      "producer": null,
-      "signalCount": 0,
-      "stateCount": 0,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0,
-      "states": [],
-      "latestObservedAt": null
-    },
-    {
-      "id": "bb_2a3a72be37e1c233",
-      "canonical_id": "bb_2a3a72be37e1c233",
-      "canonical_name": "Wild Turkey Master",
-      "canonical_key": "wild turkey master",
-      "name": "Wild Turkey Master",
-      "aliases": [
-        "Wild Turkey Master"
       ],
       "tier": "unknown",
       "producer": null,

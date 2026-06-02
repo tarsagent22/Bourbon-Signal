@@ -36,8 +36,36 @@ const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX
 const IN_ATC_SEARCH_URL = 'https://mylicense.in.gov/everification/Search.aspx?facility=Y';
 const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults.aspx';
 const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
+const IN_CITYHIVE_ARTIFACT_PATH = 'out/browser/IN-cityhive-retailer-inventory.json';
 const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
+const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
+const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
+const IN_CITYHIVE_SOURCES = [
+  {
+    id: 'big-red',
+    chainName: 'Big Red Liquors',
+    sourceLabel: 'Big Red Liquors CityHive store inventory',
+    baseUrl: 'https://bigredliquors.com',
+    urls: [
+      'https://bigredliquors.com/shop/?subtype=Bourbon',
+      'https://bigredliquors.com/shop/?subtype=Whiskey',
+      'https://bigredliquors.com/shop/product-groups/pages/bourbon-world?order=&subtype=Bourbon&state=Indiana'
+    ]
+  },
+  {
+    id: 'cap-n-cork',
+    chainName: "Cap n' Cork",
+    sourceLabel: "Cap n' Cork CityHive store inventory",
+    baseUrl: 'https://capncork.com',
+    urls: [
+      'https://capncork.com/shop/?subtype=Bourbon',
+      'https://capncork.com/shop/?subtype=Whiskey',
+      'https://capncork.com/pages/friday-night-flyer',
+      'https://capncork.com/events'
+    ]
+  }
+];
 
 const OHLQ_SHA256_AVAILABILITY_BUCKETS = {
   '3:1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464': { value: -1, status: 'not_available', label: 'Not Available', positive: false },
@@ -251,6 +279,271 @@ function parseIndianaBourbonWorldAllocated(text) {
   }));
 }
 
+function cityHiveJsonBlobs(html) {
+  const blobs = [];
+  for (const match of html.matchAll(/JSON\.parse\(decodeURIComponent\("([^"]+)"\)\)/g)) {
+    try { blobs.push(JSON.parse(decodeURIComponent(match[1]))); } catch {}
+  }
+  return blobs;
+}
+
+function cityHiveProducts(blobs) {
+  const products = [];
+  const visit = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) { for (const child of value) visit(child); return; }
+    if (Array.isArray(value.products)) products.push(...value.products);
+    for (const child of Object.values(value)) if (child && typeof child === 'object') visit(child);
+  };
+  for (const blob of blobs) visit(blob);
+  return products;
+}
+
+function cityHiveMerchantConfigs(blobs) {
+  const configs = [];
+  const visit = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) { for (const child of value) visit(child); return; }
+    if (Array.isArray(value.merchant_configs)) configs.push(...value.merchant_configs);
+    for (const child of Object.values(value)) if (child && typeof child === 'object') visit(child);
+  };
+  for (const blob of blobs) visit(blob);
+  return configs;
+}
+
+function cityHivePageUrls(seedUrl, maxPages = IN_CITYHIVE_MAX_PAGES) {
+  const urls = [];
+  for (let page = 0; page < maxPages; page++) {
+    const url = new URL(seedUrl);
+    if (page > 0) url.searchParams.set('skip', String(page * 18));
+    urls.push(url.toString());
+  }
+  return urls;
+}
+
+function cityHiveAddressParts(address = {}) {
+  const props = address.address_properties || {};
+  const coords = address.location?.coordinates || [];
+  return {
+    fullAddress: address.full_address || props.full_address || null,
+    street: address.street_address || props.street_address || null,
+    city: address.city || props.city || null,
+    county: address.district || props.district || null,
+    zip: address.zipcode || props.zip || null,
+    state: address.state || props.state || props.province || null,
+    lat: Number(props.lat ?? coords[1]) || null,
+    lng: Number(props.lng ?? coords[0]) || null
+  };
+}
+
+function isBourbonRelevantProduct(product, option) {
+  const text = JSON.stringify({
+    name: product?.name,
+    category: product?.basic_category,
+    tags: option?.product_tags,
+    storeTags: option?.store_specific_tags,
+    props: option?.additional_properties,
+    display: option?.option_display_data?.basic_category
+  });
+  return /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(text);
+}
+
+async function readIndianaCityHiveCache() {
+  try {
+    const cache = JSON.parse(await readFile(IN_CITYHIVE_ARTIFACT_PATH, 'utf8'));
+    const generatedMs = new Date(cache.generatedAt || 0).getTime();
+    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= IN_CITYHIVE_CACHE_MAX_AGE_MS;
+    if (!fresh) return null;
+    const signals = Array.isArray(cache.signals) ? cache.signals : [];
+    const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
+    if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
+    return { ...cache, signals, roadblocks };
+  } catch {
+    return null;
+  }
+}
+
+async function writeIndianaCityHiveCache(signals, roadblocks) {
+  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    source: 'Indiana CityHive retailer inventory cache',
+    cacheMaxAgeMs: IN_CITYHIVE_CACHE_MAX_AGE_MS,
+    signalCount: signals.length,
+    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
+    signals,
+    roadblocks
+  };
+  await mkdir(path.dirname(IN_CITYHIVE_ARTIFACT_PATH), { recursive: true });
+  await writeFile(IN_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+}
+
+function cachedIndianaCityHiveSignals(cache, observedAt) {
+  return (cache?.signals || []).map((signal) => ({
+    ...signal,
+    observedAt: signal.observedAt || cache.generatedAt || observedAt,
+    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: IN_CITYHIVE_ARTIFACT_PATH }
+  }));
+}
+
+async function collectIndianaCityHive(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const cache = await readIndianaCityHiveCache();
+  const seenPageFirstProducts = new Set();
+  const seenProductOptions = new Set();
+  const seenStores = new Set();
+
+  for (const source of IN_CITYHIVE_SOURCES) {
+    let sourceBlocked = false;
+    for (const seedUrl of source.urls) {
+      if (sourceBlocked) break;
+      let emptyOrRepeatedPages = 0;
+      for (const url of cityHivePageUrls(seedUrl)) {
+        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+        if (!res.ok) {
+          roadblocks.push({
+            state: config.id,
+            source: source.sourceLabel,
+            url,
+            status: res.status || 0,
+            error: res.error || `HTTP ${res.status}`,
+            nextRoute: 'Retry the CityHive page or inspect rendered/network calls for current product JSON shape.'
+          });
+          if (res.status === 429) sourceBlocked = true;
+          break;
+        }
+        const blobs = cityHiveJsonBlobs(res.text);
+        const products = cityHiveProducts(blobs);
+        const firstKey = products.slice(0, 3).map((p) => p?.id || p?.name).join('|');
+        const repeatKey = `${source.id}|${seedUrl}|${firstKey}`;
+        if (!products.length || seenPageFirstProducts.has(repeatKey)) {
+          emptyOrRepeatedPages += 1;
+          if (emptyOrRepeatedPages >= 1) break;
+        }
+        seenPageFirstProducts.add(repeatKey);
+
+        for (const cfg of cityHiveMerchantConfigs(blobs)) {
+          const merchant = cfg?.merchant || cfg;
+          if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+          seenStores.add(`${source.id}|${merchant.id}`);
+          const a = cityHiveAddressParts(merchant.address || {});
+          if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
+          signals.push({
+            id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]),
+            state: config.id,
+            sourceLabel: `${source.chainName} CityHive store locator`,
+            sourceUrl: source.baseUrl,
+            rawName: merchant.display_name || merchant.name,
+            canonicalBottleId: null,
+            canonicalName: null,
+            confidence: 0.72,
+            eventType: 'retailer_store_location',
+            locationPrecision: 'store_level',
+            locationName: merchant.display_name || merchant.name,
+            storeName: merchant.display_name || merchant.name,
+            storeId: `${source.id}:${merchant.id}`,
+            storeAddress: a.fullAddress || [a.street, a.city, 'IN', a.zip].filter(Boolean).join(', '),
+            city: a.city,
+            county: a.county,
+            stateCode: 'IN',
+            postalCode: a.zip,
+            zip: a.zip,
+            lat: a.lat,
+            lng: a.lng,
+            quantity: 0,
+            observedAt,
+            canAlertAsInventory: false,
+            canAlertAsWatch: false,
+            inventorySemantics: `${source.chainName} CityHive store rows identify retailer locations/order-capable branches. Store rows are not bottle inventory by themselves.`,
+            evidence: `${source.chainName} CityHive configuration lists ${merchant.display_name || merchant.name}${a.fullAddress ? ` at ${a.fullAddress}` : ''}.`,
+            raw: { chain: source.id, merchant }
+          });
+        }
+
+        for (const product of products) {
+          for (const merchant of product.merchants || []) {
+            for (const option of merchant.product_options || []) {
+              if (!isBourbonRelevantProduct(product, option)) continue;
+              const key = `${source.id}|${option.merchant_id}|${option.product_id}|${option.option_id}`;
+              if (seenProductOptions.has(key)) continue;
+              seenProductOptions.add(key);
+              const rawName = option.option_display_data?.name || product.name;
+              const { match, record } = bottleMatch(rawName, bible);
+              if (!record) continue;
+              const quantity = Number(option.quantity || 0) || 0;
+              const fullAddress = option.full_address || null;
+              const city = fullAddress?.match(/,\s*([^,]+),\s*IN\s+\d{5}/i)?.[1] || null;
+              const zip = fullAddress?.match(/\bIN\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
+              const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
+              signals.push({
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.option_id, quantity, option.price]),
+                state: config.id,
+                sourceLabel: source.sourceLabel,
+                sourceUrl: option.product_url || url,
+                rawName,
+                canonicalBottleId: record.id,
+                canonicalName: record.canonical,
+                confidence: Math.max(0.78, match?.confidence || 0.5),
+                eventType: quantity > 0 ? 'cityhive_store_inventory_result' : 'cityhive_store_inventory_out_of_stock',
+                locationPrecision: 'store_level',
+                locationName: option.merchant_name || source.chainName,
+                storeName: option.merchant_name || source.chainName,
+                storeId: option.merchant_id ? `${source.id}:${option.merchant_id}` : null,
+                storeAddress: fullAddress,
+                city,
+                stateCode: 'IN',
+                postalCode: zip,
+                zip,
+                lat: Number(option.coordinates?.[1]) || null,
+                lng: Number(option.coordinates?.[0]) || null,
+                quantity,
+                price: Number(option.price || 0) || null,
+                availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
+                availabilityLabel: quantity > 0 ? 'In stock' : 'Out of stock',
+                observedAt,
+                canAlertAsInventory: quantity > 0,
+                canAlertAsWatch: true,
+                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                evidence: `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
+                raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option }
+              });
+            }
+          }
+        }
+        await sleep(450);
+      }
+    }
+  }
+
+  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
+    if (cache) {
+      signals.push(...cachedIndianaCityHiveSignals(cache, observedAt));
+      roadblocks.push({
+        state: config.id,
+        source: 'Indiana CityHive retailer inventory cache',
+        url: IN_CITYHIVE_ARTIFACT_PATH,
+        status: 'fresh_cache_fallback',
+        error: `Live CityHive fetch did not produce positive inventory rows; reused fresh cache from ${cache.generatedAt}.`,
+        nextRoute: 'Keep CityHive requests paced and retry live retailer pages on next scheduled run.'
+      });
+    } else {
+      roadblocks.push({
+        state: config.id,
+        source: 'Indiana CityHive retailer inventory pages',
+        url: IN_CITYHIVE_SOURCES.map((source) => source.baseUrl).join(', '),
+        status: 'reachable_no_inventory_rows',
+        error: 'CityHive pages were reachable but no positive bourbon/whiskey store inventory rows were parsed.',
+        nextRoute: 'Inspect embedded CityHive product JSON and pagination parameters; selected stores may simply be out of relevant products.'
+      });
+    }
+  } else {
+    await writeIndianaCityHiveCache(signals, roadblocks);
+  }
+  return { signals, roadblocks };
+}
+
 async function virginiaStoreNumbers() {
   const res = await textFetch(VIRGINIA_STORES_ARCGIS_URL, { headers: { accept: 'application/json,*/*' } });
   if (!res.ok) throw new Error(`Virginia ArcGIS store list HTTP ${res.status}`);
@@ -393,6 +686,10 @@ async function collectIndiana(config, bible) {
         nextRoute: 'Retry Bourbon World with browser-assisted fetch or inspect Big Red shop endpoints for allocated-list data.'
       });
     }
+
+    const cityHive = await collectIndianaCityHive(config, bible, observedAt);
+    signals.push(...cityHive.signals);
+    roadblocks.push(...cityHive.roadblocks);
   } catch (error) {
     roadblocks.push({
       state: config.id,
