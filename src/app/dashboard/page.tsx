@@ -145,6 +145,7 @@ function normalizeNcBoardLabel(value: string) {
     .replace(/abc/gi, "")
     .replace(/board/gi, "")
     .replace(/county/gi, "")
+    .replace(/\bstores?\b/gi, "")
     .replace(/[()]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
