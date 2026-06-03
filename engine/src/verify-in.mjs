@@ -55,24 +55,26 @@ assert(alertablePermitSignals.length === 0, `ATC permit rows must not be alertab
 assert(atcDrops.length === 0, `ATC permit rows must not create Indiana drops; got ${atcDrops.length}`);
 assert(retailerWatchDrops.length >= 5, `Expected Bourbon World retailer watch drops; got ${retailerWatchDrops.length}`);
 assert(cityHiveStoreLocations.length >= 20, `Expected CityHive retailer store-location coverage; got ${cityHiveStoreLocations.length}`);
-assert(cityHiveInventorySources.size >= 4, `Expected at least 4 CityHive inventory source chains including northern Indiana Belmont coverage; got ${cityHiveInventorySources.size}: ${[...cityHiveInventorySources].join(', ')}`);
+assert(cityHiveInventorySources.size >= 5, `Expected at least 5 CityHive inventory source chains including Belmont and Cork coverage; got ${cityHiveInventorySources.size}: ${[...cityHiveInventorySources].join(', ')}`);
 assert(cityHiveInventorySources.has('Belmont Beverage & Chalet Party Shoppe CityHive store inventory'), `Expected Belmont Beverage / Chalet Party Shoppe CityHive inventory source; got ${[...cityHiveInventorySources].join(', ')}`);
-assert(cityHiveInventorySignals.length >= 250, `Expected stronger CityHive positive inventory signals after northern Indiana expansion; got ${cityHiveInventorySignals.length}`);
+assert(cityHiveInventorySources.has('Cork Liquors CityHive store inventory'), `Expected Cork Liquors CityHive inventory source; got ${[...cityHiveInventorySources].join(', ')}`);
+assert(cityHiveInventorySignals.length >= 600, `Expected stronger CityHive positive inventory signals after broader Indiana expansion; got ${cityHiveInventorySignals.length}`);
 assert(kahnsInventorySignals.length >= 20, `Expected Kahn's Indianapolis inventory signals; got ${kahnsInventorySignals.length}`);
-assert(retailerInventoryCities.size >= 17, `Expected broader Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
-for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway']) {
+assert(retailerInventoryCities.size >= 28, `Expected broader Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
+for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway', 'Columbus']) {
   assert(retailerInventoryCities.has(city), `Expected northern Indiana retailer inventory coverage in ${city}; got ${[...retailerInventoryCities].sort().join(', ')}`);
 }
-assert(cityHiveDropSources.size >= 4, `Expected exported CityHive drops from at least 4 source chains including Belmont; got ${cityHiveDropSources.size}: ${[...cityHiveDropSources].join(', ')}`);
+assert(cityHiveDropSources.size >= 5, `Expected exported CityHive drops from at least 5 source chains including Belmont and Cork; got ${cityHiveDropSources.size}: ${[...cityHiveDropSources].join(', ')}`);
 assert(cityHiveDropSources.has('Belmont Beverage & Chalet Party Shoppe CityHive store inventory'), `Expected exported Belmont Beverage CityHive drops; got ${[...cityHiveDropSources].join(', ')}`);
-assert(cityHiveDrops.length >= 150, `Expected stronger exported CityHive inventory drops after Belmont expansion; got ${cityHiveDrops.length}`);
+assert(cityHiveDropSources.has('Cork Liquors CityHive store inventory'), `Expected exported Cork Liquors CityHive drops; got ${[...cityHiveDropSources].join(', ')}`);
+assert(cityHiveDrops.length >= 590, `Expected stronger exported CityHive inventory drops after broader Indiana expansion; got ${cityHiveDrops.length}`);
 assert(kahnsDrops.length >= 20, `Expected exported Kahn's Indianapolis inventory drops; got ${kahnsDrops.length}`);
-assert(retailerInventoryDropCities.size >= 17, `Expected exported retailer inventory drops in at least 17 cities; got ${retailerInventoryDropCities.size}: ${[...retailerInventoryDropCities].sort().join(', ')}`);
-for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway']) {
+assert(retailerInventoryDropCities.size >= 28, `Expected exported retailer inventory drops in at least 28 cities; got ${retailerInventoryDropCities.size}: ${[...retailerInventoryDropCities].sort().join(', ')}`);
+for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway', 'Columbus']) {
   assert(retailerInventoryDropCities.has(city), `Expected exported northern Indiana drops in ${city}; got ${[...retailerInventoryDropCities].sort().join(', ')}`);
 }
-assert(alertableCityHiveDrops.length >= 30, `Expected alertable CityHive inventory drops with store/address/quantity; got ${alertableCityHiveDrops.length}`);
-assert(alertableRetailerInventoryDrops.length >= 50, `Expected alertable retailer inventory drops with store/address/quantity; got ${alertableRetailerInventoryDrops.length}`);
+assert(alertableCityHiveDrops.length >= 590, `Expected alertable CityHive inventory drops with store/address/quantity; got ${alertableCityHiveDrops.length}`);
+assert(alertableRetailerInventoryDrops.length >= 615, `Expected alertable retailer inventory drops with store/address/quantity; got ${alertableRetailerInventoryDrops.length}`);
 assert(ilgTastingSignals.length >= 1, `Expected Indiana Liquor Group bourbon/whiskey tasting signals; got ${ilgTastingSignals.length}`);
 assert(ilgTastingDrops.length >= 1, `Expected exported Indiana Liquor Group tasting drops; got ${ilgTastingDrops.length}`);
 assert(eventSignals.length >= 4, `Expected Indiana event/lottery/tasting signals; got ${eventSignals.length}`);

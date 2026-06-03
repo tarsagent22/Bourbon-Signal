@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:26:18.482Z",
-  "count": 2525,
+  "generatedAt": "2026-06-03T03:40:19.424Z",
+  "count": 2526,
   "stores": [
     {
       "id": "4ec5c4c05339a3ff",
@@ -9634,6 +9634,20 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
+    },
+    {
+      "id": "cork-liquors:5eeb9ed679fc9324eac8941d",
+      "sourceStoreId": "cork-liquors:5eeb9ed679fc9324eac8941d",
+      "state": "IN",
+      "name": "Cork Liquors VI",
+      "address": "3995 25th St, Columbus, IN 47203, USA",
+      "city": "Columbus",
+      "county": null,
+      "zip": "47203",
+      "lat": 39.2230848,
+      "lng": -85.8765676,
+      "source": "Cork Liquors CityHive store inventory",
+      "signalCount": 16
     },
     {
       "id": "DL1732705",

@@ -114,12 +114,13 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_store_inventory', cadence: 'daily-60m',
-    value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus retailer store inventory/watch surfaces from Kahn\'s, Big Red/Bourbon World, Cap n Cork, Wise Guys, and Belmont Beverage/Chalet Party Shoppe. ATC permits must never be presented as bottle inventory.',
+    value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus retailer store inventory/watch surfaces from Kahn\'s, Big Red/Bourbon World, Cap n Cork, Wise Guys, Belmont Beverage/Chalet Party Shoppe, and Cork Liquors. ATC permits must never be presented as bottle inventory.',
     sources: [
       { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search' },
       { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance' },
       { kind: 'api', url: 'https://www.kahnsfinewines.com/api/trpc/product.getAll', label: 'Kahn\'s Fine Wines & Spirits in-stock bourbon API' },
       { kind: 'html', url: 'https://belmontbev.com/shop?subtype=bourbon', label: 'Belmont Beverage / Chalet Party Shoppe CityHive bourbon inventory' },
+      { kind: 'html', url: 'https://shop.corkliquor.com/spirits/bourbon', label: 'Cork Liquors CityHive bourbon inventory' },
       { kind: 'html', url: 'https://www.wiseguysliquors.com/wise-guys-events/bourbon-open-house-bourbon-lottery', label: 'Wise Guys bourbon open house / bourbon lottery' },
       { kind: 'html', url: 'https://indianaliquor.com/our-events/', label: 'Indiana Liquor Group tasting events' }
     ],

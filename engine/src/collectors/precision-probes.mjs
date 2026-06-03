@@ -108,6 +108,15 @@ const IN_CITYHIVE_SOURCES = [
       'https://belmontbev.com/shop?subtype=bourbon',
       'https://belmontbev.com/pages/shop-spirits-app'
     ]
+  },
+  {
+    id: 'cork-liquors',
+    chainName: 'Cork Liquors',
+    sourceLabel: 'Cork Liquors CityHive store inventory',
+    baseUrl: 'https://shop.corkliquor.com',
+    urls: [
+      'https://shop.corkliquor.com/spirits/bourbon'
+    ]
   }
 ];
 
