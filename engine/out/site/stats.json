@@ -1,21 +1,21 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T02:42:57.719Z",
-  "engineGeneratedAt": "2026-06-03T02:40:52.255Z",
+  "generatedAt": "2026-06-03T03:04:51.207Z",
+  "engineGeneratedAt": "2026-06-03T02:59:58.586Z",
   "stateCount": 23,
-  "signalCount": 9028,
-  "historicalSignalCount": 1286074,
+  "signalCount": 9042,
+  "historicalSignalCount": 1293326,
   "historyDays": 30,
-  "snapshotCount": 1266,
+  "snapshotCount": 1270,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2524,
-  "locationCount": 4346,
+  "storeCount": 2525,
+  "locationCount": 4347,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 8553,
-  "alertCandidateCount": 131,
-  "roadblockCount": 50,
+  "dropCount": 8663,
+  "alertCandidateCount": 0,
+  "roadblockCount": 49,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -133,7 +133,7 @@
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1857,
+        "signalCount": 1870,
         "roadblockCount": 1,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -265,8 +265,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -311,7 +311,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-03T02:42:57.720Z",
+    "generatedAt": "2026-06-03T03:04:51.208Z",
     "focusStates": [
       "AL",
       "VA",
@@ -383,7 +383,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 3,
+        "signalCount": 4,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -788,7 +788,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -804,7 +804,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "043b9c8f4cc5473e",

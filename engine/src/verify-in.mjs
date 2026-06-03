@@ -25,6 +25,8 @@ const inLocations = (locationsExport.locations || []).filter((location) => locat
 const inDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'IN');
 const atcDrops = inDrops.filter((drop) => /ATC|permit/i.test(String(drop.source || '') + ' ' + String(drop.type || '')));
 const retailerWatchDrops = inDrops.filter((drop) => drop.type === 'retailer_allocated_raffle_item' && /Bourbon World|Big Red/i.test(String(drop.source || '')));
+const ilgTastingSignals = (state.signals || []).filter((signal) => signal.eventType === 'retailer_tasting_event' && /Indiana Liquor Group/i.test(String(signal.sourceLabel || '')));
+const ilgTastingDrops = inDrops.filter((drop) => drop.type === 'retailer_tasting_event' && /Indiana Liquor Group/i.test(String(drop.source || '')));
 const cityHiveInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const kahnsInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Kahn/i.test(String(signal.sourceLabel || '')));
 const retailerInventorySignals = (state.signals || []).filter((signal) => ['cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(signal.eventType));
@@ -39,7 +41,7 @@ const cityHiveDropSources = new Set(cityHiveDrops.map((drop) => drop.source).fil
 const alertableCityHiveDrops = cityHiveDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
 const alertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
 const eventSignals = (state.signals || []).filter((signal) => /lottery|tasting|event|release/i.test(String(signal.eventType || '') + ' ' + String(signal.sourceLabel || '') + ' ' + String(signal.readableSummary || '') + ' ' + String(signal.evidence || '')));
-const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(drop.type));
+const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'retailer_tasting_event', 'cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(drop.type));
 
 assert(state.status === 'useful' || state.status === 'reachable_needs_deeper_parser', `Unexpected IN state status: ${state.status}`);
 assert(artifact.storeCount >= 900, `Expected at least 900 active Indiana package-store permits; got ${artifact.storeCount}`);
@@ -57,21 +59,23 @@ assert(cityHiveInventorySources.size >= 4, `Expected at least 4 CityHive invento
 assert(cityHiveInventorySources.has('Belmont Beverage & Chalet Party Shoppe CityHive store inventory'), `Expected Belmont Beverage / Chalet Party Shoppe CityHive inventory source; got ${[...cityHiveInventorySources].join(', ')}`);
 assert(cityHiveInventorySignals.length >= 250, `Expected stronger CityHive positive inventory signals after northern Indiana expansion; got ${cityHiveInventorySignals.length}`);
 assert(kahnsInventorySignals.length >= 20, `Expected Kahn's Indianapolis inventory signals; got ${kahnsInventorySignals.length}`);
-assert(retailerInventoryCities.size >= 13, `Expected broader Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
-for (const city of ['South Bend', 'Mishawaka', 'Elkhart']) {
+assert(retailerInventoryCities.size >= 17, `Expected broader Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
+for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway']) {
   assert(retailerInventoryCities.has(city), `Expected northern Indiana retailer inventory coverage in ${city}; got ${[...retailerInventoryCities].sort().join(', ')}`);
 }
 assert(cityHiveDropSources.size >= 4, `Expected exported CityHive drops from at least 4 source chains including Belmont; got ${cityHiveDropSources.size}: ${[...cityHiveDropSources].join(', ')}`);
 assert(cityHiveDropSources.has('Belmont Beverage & Chalet Party Shoppe CityHive store inventory'), `Expected exported Belmont Beverage CityHive drops; got ${[...cityHiveDropSources].join(', ')}`);
 assert(cityHiveDrops.length >= 150, `Expected stronger exported CityHive inventory drops after Belmont expansion; got ${cityHiveDrops.length}`);
 assert(kahnsDrops.length >= 20, `Expected exported Kahn's Indianapolis inventory drops; got ${kahnsDrops.length}`);
-assert(retailerInventoryDropCities.size >= 13, `Expected exported retailer inventory drops in at least 13 cities; got ${retailerInventoryDropCities.size}: ${[...retailerInventoryDropCities].sort().join(', ')}`);
-for (const city of ['South Bend', 'Mishawaka', 'Elkhart']) {
+assert(retailerInventoryDropCities.size >= 17, `Expected exported retailer inventory drops in at least 17 cities; got ${retailerInventoryDropCities.size}: ${[...retailerInventoryDropCities].sort().join(', ')}`);
+for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway']) {
   assert(retailerInventoryDropCities.has(city), `Expected exported northern Indiana drops in ${city}; got ${[...retailerInventoryDropCities].sort().join(', ')}`);
 }
 assert(alertableCityHiveDrops.length >= 30, `Expected alertable CityHive inventory drops with store/address/quantity; got ${alertableCityHiveDrops.length}`);
 assert(alertableRetailerInventoryDrops.length >= 50, `Expected alertable retailer inventory drops with store/address/quantity; got ${alertableRetailerInventoryDrops.length}`);
-assert(eventSignals.length >= 2, `Expected Indiana event/lottery/tasting signals; got ${eventSignals.length}`);
+assert(ilgTastingSignals.length >= 1, `Expected Indiana Liquor Group bourbon/whiskey tasting signals; got ${ilgTastingSignals.length}`);
+assert(ilgTastingDrops.length >= 1, `Expected exported Indiana Liquor Group tasting drops; got ${ilgTastingDrops.length}`);
+assert(eventSignals.length >= 4, `Expected Indiana event/lottery/tasting signals; got ${eventSignals.length}`);
 assert(unsafeDrops.length === 0, `Unexpected non-retailer-watch Indiana drops found: ${unsafeDrops.map((drop) => `${drop.type}:${drop.bottleName}`).join(', ')}`);
 
 if (inStores.length || inLocations.length) {
@@ -89,6 +93,8 @@ console.log(JSON.stringify({
   exportedLocations: inLocations.length,
   exportedDrops: inDrops.length,
   retailerWatchDrops: retailerWatchDrops.length,
+  ilgTastingSignals: ilgTastingSignals.length,
+  ilgTastingDrops: ilgTastingDrops.length,
   cityHiveStoreLocations: cityHiveStoreLocations.length,
   cityHiveInventorySources: [...cityHiveInventorySources].sort(),
   cityHiveInventorySignals: cityHiveInventorySignals.length,

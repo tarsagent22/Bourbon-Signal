@@ -39,12 +39,20 @@ const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
 const IN_CITYHIVE_ARTIFACT_PATH = 'out/browser/IN-cityhive-retailer-inventory.json';
 const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
+const INDIANA_LIQUOR_GROUP_EVENTS_URL = 'https://indianaliquor.com/our-events/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
 const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PER_STORE_MAX_PAGES || 1);
 const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 32);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
 const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|fort wayne|new haven|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|columbus|jeffersonville|new albany/i;
+const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
+  'avon', 'plainfield', 'noblesville', 'speedway',
+  'south bend', 'mishawaka', 'elkhart',
+  'lafayette', 'west lafayette', 'evansville', 'muncie', 'anderson', 'kokomo', 'columbus', 'jeffersonville', 'new albany',
+  'indianapolis', 'carmel', 'fishers', 'greenwood', 'brownsburg', 'mccordsville',
+  'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute'
+];
 const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
 const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
 const IN_KAHNS_STORE = {
@@ -314,6 +322,42 @@ function parseIndianaBourbonWorldAllocated(text) {
   }));
 }
 
+function parseIndianaLiquorGroupEvents(html) {
+  const cleanText = decodeHtml(stripHtml(html)).replace(/&#8211;|&ndash;/g, '-').replace(/\s+/g, ' ').trim();
+  const sections = [];
+  const sectionRe = /EVENT DETAILS(?:\s+CANCELLED\s+EVENT DETAILS)?\s+DATE\/TIME\/LOCATION\s+([\s\S]*?)(?=\s+EVENT DETAILS(?:\s+CANCELLED\s+EVENT DETAILS)?\s+DATE\/TIME\/LOCATION|\s+Explore Careers|$)/gi;
+  for (const match of cleanText.matchAll(sectionRe)) sections.push(match[1].trim());
+  const cityRe = /\b(NOBLESVILLE|CARMEL|HUNTINGTON|MUNCIE|MARION|RICHMOND|ELWOOD|BLUFFTON|FRANKLIN|ANDERSON|BARGERSVILLE|GAS CITY|YORKTOWN|MONTICELLO|KOKOMO|NEW CASTLE)\b/g;
+  const bourbonEventRe = /bourbon|whiskey|whisky|bulleit|maker'?s mark|traveler'?s point|remington|monk'?s road|rattle\s*&\s*snap|jim beam|knob creek|four roses/i;
+  const events = [];
+  for (const section of sections) {
+    const firstCity = section.search(cityRe);
+    if (firstCity < 0) continue;
+    const rawName = section.slice(0, firstCity).replace(/\bNEW\b/gi, '').trim();
+    if (!rawName || !bourbonEventRe.test(rawName)) continue;
+    const matches = [...section.matchAll(cityRe)];
+    for (let i = 0; i < matches.length; i++) {
+      const city = titleCase(matches[i][1]);
+      const chunkStart = matches[i].index + matches[i][0].length;
+      const chunkEnd = i + 1 < matches.length ? matches[i + 1].index : section.length;
+      const chunk = section.slice(chunkStart, chunkEnd).replace(/\bNEW\b/gi, '').trim();
+      const dateMatch = chunk.match(/\b(?:\d{1,2}\/\d{1,2}|(?:Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)(?:\s*&\s*(?:\d{1,2}\/\d{1,2}|(?:Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?))?(?:\s+\d{4})?\b/i);
+      const timeMatch = chunk.match(/\b(?:from\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*(?:-|to|&|and)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i);
+      const locationText = (dateMatch ? chunk.slice(0, dateMatch.index) : chunk).trim();
+      if (!locationText || !dateMatch) continue;
+      events.push({
+        rawName,
+        city,
+        locationText,
+        dateText: dateMatch[0],
+        timeText: timeMatch?.[0] || null,
+        rawLine: `${rawName} ${city} ${chunk}`.trim()
+      });
+    }
+  }
+  return events;
+}
+
 function cityHiveJsonBlobs(html) {
   const blobs = [];
   for (const match of html.matchAll(/JSON\.parse\(decodeURIComponent\("([^"]+)"\)\)/g)) {
@@ -383,9 +427,16 @@ function cityHiveAddressParts(address = {}) {
   };
 }
 
+function cityHivePriorityRank(merchant) {
+  const text = `${merchant.name || ''} ${merchant.city || ''} ${merchant.address || ''}`.toLowerCase().replace(/\s+/g, ' ');
+  const orderIndex = IN_CITYHIVE_PRIORITY_CITY_ORDER.findIndex((city) => text.includes(city));
+  return orderIndex >= 0 ? orderIndex : IN_CITYHIVE_PRIORITY_CITY_ORDER.length;
+}
+
 function cityHivePriorityMerchants(blobs, source) {
   const merchants = [];
   const seen = new Set();
+  let ordinal = 0;
   for (const cfg of cityHiveMerchantConfigs(blobs)) {
     const merchant = cfg?.merchant || cfg;
     if (!merchant?.id || seen.has(merchant.id)) continue;
@@ -394,9 +445,11 @@ function cityHivePriorityMerchants(blobs, source) {
     if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
     const haystack = `${merchant.display_name || merchant.name || ''} ${a.fullAddress || ''} ${a.city || ''}`;
     if (!IN_CITYHIVE_PRIORITY_CITY_RE.test(haystack)) continue;
-    merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id });
+    merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id, ordinal: ordinal++ });
   }
-  return merchants.slice(0, IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+  return merchants
+    .sort((a, b) => cityHivePriorityRank(a) - cityHivePriorityRank(b) || a.ordinal - b.ordinal)
+    .slice(0, IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
 }
 
 function isBourbonRelevantProduct(product, option) {
@@ -920,6 +973,50 @@ async function collectIndiana(config, bible) {
         status: bourbonWorld.status || 0,
         error: bourbonWorld.error || `HTTP ${bourbonWorld.status}`,
         nextRoute: 'Retry Bourbon World with browser-assisted fetch or inspect Big Red shop endpoints for allocated-list data.'
+      });
+    }
+
+    const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' } });
+    if (ilgEvents.ok) {
+      for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text)) {
+        const { match, record } = bottleMatch(event.rawName, bible);
+        if (!record) continue;
+        signals.push({
+          id: stableId([config.id, 'indiana-liquor-group-tasting-event', record.id, event.city, event.locationText, event.dateText, event.timeText]),
+          state: config.id,
+          sourceLabel: 'Indiana Liquor Group bourbon/whiskey tasting events',
+          sourceUrl: INDIANA_LIQUOR_GROUP_EVENTS_URL,
+          rawName: event.rawName,
+          canonicalBottleId: record.id,
+          canonicalName: record.canonical,
+          confidence: Math.max(0.70, match?.confidence || 0.45),
+          eventType: 'retailer_tasting_event',
+          locationPrecision: 'store_level',
+          locationName: event.locationText,
+          storeName: event.locationText,
+          storeAddress: `${event.locationText}, ${event.city}, IN`,
+          city: event.city,
+          stateCode: 'IN',
+          observedAt,
+          fetchedAt: observedAt,
+          quantity: null,
+          price: null,
+          availabilityStatus: 'retailer_event_watch',
+          canAlertAsInventory: false,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Indiana Liquor Group publishes dated store tasting events. These are actionable retailer watch/event signals, not bottle inventory.',
+          evidence: `${event.rawName} tasting/event listed by Indiana Liquor Group at ${event.locationText}, ${event.city}${event.dateText ? ` on ${event.dateText}` : ''}${event.timeText ? ` ${event.timeText}` : ''}. Verify with the retailer before driving.`,
+          raw: { source: 'indiana_liquor_group_events', event }
+        });
+      }
+    } else {
+      roadblocks.push({
+        state: config.id,
+        source: 'Indiana Liquor Group bourbon/whiskey tasting events',
+        url: INDIANA_LIQUOR_GROUP_EVENTS_URL,
+        status: ilgEvents.status || 0,
+        error: ilgEvents.error || `HTTP ${ilgEvents.status}`,
+        nextRoute: 'Retry ILG public events page and keep it as event/watch only unless it exposes specific inventory or allocated draw rows.'
       });
     }
 

@@ -270,7 +270,7 @@ function buildDrops(signals, bible) {
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => findBibleRecord(s, bible))
-    .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
+    .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|tasting|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
