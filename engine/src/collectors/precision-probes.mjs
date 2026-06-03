@@ -40,8 +40,24 @@ const IN_CITYHIVE_ARTIFACT_PATH = 'out/browser/IN-cityhive-retailer-inventory.js
 const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
+const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PER_STORE_MAX_PAGES || 1);
+const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 32);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
+const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|fort wayne|new haven|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|columbus|jeffersonville|new albany/i;
+const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
+const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
+const IN_KAHNS_STORE = {
+  id: '69',
+  name: "Kahn's Fine Wines & Spirits",
+  address: '5341 N Keystone Ave, Indianapolis, IN 46220',
+  city: 'Indianapolis',
+  zip: '46220',
+  lat: 39.8498,
+  lng: -86.1226
+};
+const IN_KAHNS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_KAHNS_MAX_PAGES || 4);
+const IN_KAHNS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_IN_KAHNS_PAGE_SIZE || 100));
 const IN_CITYHIVE_SOURCES = [
   {
     id: 'big-red',
@@ -330,6 +346,18 @@ function cityHivePageUrls(seedUrl, maxPages = IN_CITYHIVE_MAX_PAGES) {
   return urls;
 }
 
+function cityHiveMerchantPageUrls(seedUrl, merchantId, maxPages = IN_CITYHIVE_PER_STORE_MAX_PAGES) {
+  return cityHivePageUrls(seedUrl, maxPages).map((value) => {
+    const url = new URL(value);
+    url.searchParams.set('merchant-id', merchantId);
+    return url.toString();
+  });
+}
+
+function cityHiveShouldExpandMerchants(seedUrl) {
+  return /\/shop\/?\?/i.test(seedUrl);
+}
+
 function cityHiveAddressParts(address = {}) {
   const props = address.address_properties || {};
   const coords = address.location?.coordinates || [];
@@ -345,6 +373,22 @@ function cityHiveAddressParts(address = {}) {
   };
 }
 
+function cityHivePriorityMerchants(blobs, source) {
+  const merchants = [];
+  const seen = new Set();
+  for (const cfg of cityHiveMerchantConfigs(blobs)) {
+    const merchant = cfg?.merchant || cfg;
+    if (!merchant?.id || seen.has(merchant.id)) continue;
+    seen.add(merchant.id);
+    const a = cityHiveAddressParts(merchant.address || {});
+    if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
+    const haystack = `${merchant.display_name || merchant.name || ''} ${a.fullAddress || ''} ${a.city || ''}`;
+    if (!IN_CITYHIVE_PRIORITY_CITY_RE.test(haystack)) continue;
+    merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id });
+  }
+  return merchants.slice(0, IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+}
+
 function isBourbonRelevantProduct(product, option) {
   const text = JSON.stringify({
     name: product?.name,
@@ -355,6 +399,132 @@ function isBourbonRelevantProduct(product, option) {
     display: option?.option_display_data?.basic_category
   });
   return /bourbon|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(text);
+}
+
+function kahnsProductTags(product) {
+  return (product?.tags || [])
+    .map((tag) => [tag?.group?.name, tag?.tag?.name].filter(Boolean).join(': '))
+    .filter(Boolean);
+}
+
+function isKahnsBourbonRelevantProduct(product) {
+  const text = `${product?.title || ''} ${stripHtml(product?.description || '')} ${kahnsProductTags(product).join(' ')} ${product?.tags_rollup || ''}`;
+  if (/vodka|tequila|gin|rum|liqueur|seltzer|margarita|champagne|wine|beer|cognac|brandy|mezcal|ready to drink|cocktail|mint julep/i.test(text) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker/i.test(text)) return false;
+  return /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|woodford|four roses|wild turkey|elijah craig|old forester|green river|bardstown|casey jones|peerless|new riff|knob creek|bulleit|maker'?s mark/i.test(text);
+}
+
+function kahnsProductUrl(product) {
+  if (!product?.publicId) return 'https://www.kahnsfinewines.com/spirits?search=bourbon';
+  const slug = String(product.title || 'product')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'product';
+  return `https://www.kahnsfinewines.com/products/${slug}-${product.publicId}`;
+}
+
+async function fetchKahnsProducts(pageIndex) {
+  const input = {
+    hasPromo: false,
+    inStock: true,
+    categories: [IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID],
+    text: 'bourbon',
+    min_price: 0,
+    max_price: 1_000_000,
+    pagination: { pageIndex, pageSize: IN_KAHNS_PAGE_SIZE },
+    categoryContext: { publicId: IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID, slug: 'spirits' }
+  };
+  const url = `${IN_KAHNS_API_URL}?input=${encodeURIComponent(JSON.stringify({ json: input }))}`;
+  const res = await textFetch(url, { headers: { accept: 'application/json,*/*', 'x-trpc-source': 'rsc' }, timeoutMs: 24_000 });
+  if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, url, products: [], count: 0 };
+  try {
+    const json = JSON.parse(res.text);
+    const data = json?.result?.data?.json || {};
+    return { ok: true, status: res.status, url, products: data.data || [], count: Number(data.count || 0) || 0 };
+  } catch (error) {
+    return { ok: false, status: res.status, error: error instanceof Error ? error.message : String(error), url, products: [], count: 0 };
+  }
+}
+
+async function collectIndianaKahns(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  let totalCount = 0;
+  const seenProducts = new Set();
+  for (let pageIndex = 0; pageIndex < IN_KAHNS_MAX_PAGES; pageIndex++) {
+    const page = await fetchKahnsProducts(pageIndex);
+    if (!page.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: "Kahn's Fine Wines & Spirits in-stock bourbon API",
+        url: page.url || IN_KAHNS_API_URL,
+        status: page.status || 0,
+        error: page.error || "Kahn's product API did not return parseable inventory JSON.",
+        nextRoute: "Retry Kahn's Sante product.getAll endpoint with the JSON-envelope tRPC input or inspect updated app chunks."
+      });
+      break;
+    }
+    totalCount = Math.max(totalCount, page.count || 0);
+    for (const product of page.products || []) {
+      if (!product?.id || seenProducts.has(product.id)) continue;
+      seenProducts.add(product.id);
+      if (!isKahnsBourbonRelevantProduct(product)) continue;
+      const rawName = product.title || product.bigcomTitle || product.sku || "Kahn's product";
+      const { match, record } = bottleMatch(rawName, bible);
+      if (!record) continue;
+      const quantity = Math.max(0, Number(product.qtyAvailableStandalone ?? product.qtyInStock_rollup ?? 0) || 0);
+      if (quantity <= 0) continue;
+      const price = Number(product.pricePromo ?? product.price ?? 0) / 100 || null;
+      const receivedDates = (product.inventories || []).map((inv) => inv?.dateReceived).filter(Boolean).sort();
+      const latestReceived = receivedDates.at(-1) || null;
+      const tags = kahnsProductTags(product);
+      const sourceUrl = kahnsProductUrl(product);
+      signals.push({
+        id: stableId([config.id, 'kahns-store-inventory', product.id, quantity, product.pricePromo ?? product.price ?? null]),
+        state: config.id,
+        sourceLabel: "Kahn's Fine Wines & Spirits in-stock bourbon API",
+        sourceUrl,
+        rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.8, match?.confidence || 0.5),
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: IN_KAHNS_STORE.name,
+        storeName: IN_KAHNS_STORE.name,
+        storeId: `kahns:${IN_KAHNS_STORE.id}`,
+        storeAddress: IN_KAHNS_STORE.address,
+        city: IN_KAHNS_STORE.city,
+        stateCode: 'IN',
+        postalCode: IN_KAHNS_STORE.zip,
+        zip: IN_KAHNS_STORE.zip,
+        lat: IN_KAHNS_STORE.lat,
+        lng: IN_KAHNS_STORE.lng,
+        quantity,
+        price,
+        availabilityStatus: 'in_stock',
+        availabilityLabel: 'In stock',
+        observedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: "Kahn's public Sante e-commerce API reports in-stock spirits products and available standalone quantity for online/store purchase. Treat as retailer-published availability and verify before driving.",
+        evidence: `Kahn's public shop API reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}${latestReceived ? `; latest inventory receipt ${latestReceived}` : ''}.`,
+        raw: { chain: 'kahns', product: { id: product.id, publicId: product.publicId, sku: product.sku, upc: product.upc, tags, qtyInStockRollup: product.qtyInStock_rollup, qtyAvailableStandalone: product.qtyAvailableStandalone, latestReceived } }
+      });
+    }
+    if (!page.products?.length || (pageIndex + 1) * IN_KAHNS_PAGE_SIZE >= totalCount) break;
+    await sleep(300);
+  }
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: "Kahn's Fine Wines & Spirits in-stock bourbon API",
+      url: 'https://www.kahnsfinewines.com/spirits?search=bourbon',
+      status: 'reachable_no_matched_inventory',
+      error: `Kahn's product API returned ${totalCount || 'unknown'} in-stock search rows but no Bourbon Signal bottle matches survived relevance filtering.`,
+      nextRoute: "Inspect Kahn's product tags/results and tune the bourbon relevance or bottle-bible matching rules."
+    });
+  }
+  return { signals, roadblocks };
 }
 
 async function readIndianaCityHiveCache() {
@@ -396,6 +566,24 @@ function cachedIndianaCityHiveSignals(cache, observedAt) {
   }));
 }
 
+function mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt) {
+  if (!cache) return 0;
+  const liveChains = new Set(signals
+    .filter((signal) => /cityhive|retailer_store_location/i.test(String(signal.eventType || '')))
+    .map((signal) => signal.raw?.chain)
+    .filter(Boolean));
+  if (!liveChains.size) return 0;
+  const cached = cachedIndianaCityHiveSignals(cache, observedAt);
+  let added = 0;
+  for (const signal of cached) {
+    const chain = signal.raw?.chain;
+    if (!chain || liveChains.has(chain)) continue;
+    signals.push(signal);
+    added += 1;
+  }
+  return added;
+}
+
 async function collectIndianaCityHive(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -412,8 +600,11 @@ async function collectIndianaCityHive(config, bible, observedAt) {
     let sourceBlocked = false;
     for (const seedUrl of source.urls) {
       if (sourceBlocked) break;
-      let emptyOrRepeatedPages = 0;
-      for (const url of cityHivePageUrls(seedUrl)) {
+      const crawlUrls = cityHivePageUrls(seedUrl);
+      const seenCrawlUrls = new Set(crawlUrls);
+      let merchantPagesQueued = false;
+      for (let crawlIndex = 0; crawlIndex < crawlUrls.length; crawlIndex++) {
+        const url = crawlUrls[crawlIndex];
         const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
         if (!res.ok) {
           roadblocks.push({
@@ -428,13 +619,21 @@ async function collectIndianaCityHive(config, bible, observedAt) {
           break;
         }
         const blobs = cityHiveJsonBlobs(res.text);
+        if (!merchantPagesQueued && cityHiveShouldExpandMerchants(seedUrl)) {
+          merchantPagesQueued = true;
+          for (const merchant of cityHivePriorityMerchants(blobs, source)) {
+            for (const merchantUrl of cityHiveMerchantPageUrls(seedUrl, merchant.id)) {
+              if (seenCrawlUrls.has(merchantUrl)) continue;
+              seenCrawlUrls.add(merchantUrl);
+              crawlUrls.push(merchantUrl);
+            }
+          }
+        }
         const products = cityHiveProducts(blobs);
         const firstKey = products.slice(0, 3).map((p) => p?.id || p?.name).join('|');
-        const repeatKey = `${source.id}|${seedUrl}|${firstKey}`;
-        if (!products.length || seenPageFirstProducts.has(repeatKey)) {
-          emptyOrRepeatedPages += 1;
-          if (emptyOrRepeatedPages >= 1) break;
-        }
+        const selectedMerchantId = new URL(url).searchParams.get('merchant-id') || 'default';
+        const repeatKey = `${source.id}|${seedUrl}|${selectedMerchantId}|${firstKey}`;
+        if (!products.length || seenPageFirstProducts.has(repeatKey)) continue;
         seenPageFirstProducts.add(repeatKey);
 
         for (const cfg of cityHiveMerchantConfigs(blobs)) {
@@ -527,6 +726,20 @@ async function collectIndianaCityHive(config, bible, observedAt) {
         }
         await sleep(450);
       }
+    }
+  }
+
+  if (signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
+    const cacheAdded = mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt);
+    if (cacheAdded) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Indiana CityHive retailer inventory cache',
+        url: IN_CITYHIVE_ARTIFACT_PATH,
+        status: 'partial_fresh_cache_merge',
+        error: `Live CityHive fetch produced inventory but missed ${cacheAdded} cached rows from source chains that did not refresh cleanly; merged fresh cache from ${cache.generatedAt}.`,
+        nextRoute: 'Keep per-store CityHive expansion paced and let missing chains refresh on the next scheduled run.'
+      });
     }
   }
 
@@ -699,6 +912,10 @@ async function collectIndiana(config, bible) {
         nextRoute: 'Retry Bourbon World with browser-assisted fetch or inspect Big Red shop endpoints for allocated-list data.'
       });
     }
+
+    const kahns = await collectIndianaKahns(config, bible, observedAt);
+    signals.push(...kahns.signals);
+    roadblocks.push(...kahns.roadblocks);
 
     const cityHive = await collectIndianaCityHive(config, bible, observedAt);
     signals.push(...cityHive.signals);

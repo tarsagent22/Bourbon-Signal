@@ -1,36 +1,26 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-02T21:56:39.341Z",
-  "engineGeneratedAt": "2026-06-02T21:55:26.298Z",
+  "generatedAt": "2026-06-03T02:19:30.955Z",
+  "engineGeneratedAt": "2026-06-03T02:17:53.818Z",
   "stateCount": 23,
-  "signalCount": 8350,
-  "historicalSignalCount": 1205367,
+  "signalCount": 8770,
+  "historicalSignalCount": 1279098,
   "historyDays": 30,
-  "snapshotCount": 1236,
+  "snapshotCount": 1263,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2489,
   "locationCount": 4311,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 8145,
-  "alertCandidateCount": 2,
-  "roadblockCount": 50,
+  "dropCount": 8435,
+  "alertCandidateCount": 5,
+  "roadblockCount": 49,
   "refreshHealth": {
-    "degradedStateCount": 1,
-    "staleStateCount": 1,
+    "degradedStateCount": 0,
+    "staleStateCount": 0,
     "failedStateCount": 0,
-    "degradedStates": [
-      {
-        "state": "IN",
-        "label": "Indiana ATC + retailer inventory watch",
-        "status": "stale_useful",
-        "stale": true,
-        "staleReason": "IN collector exited 3221226505",
-        "previousFinishedAt": "2026-06-02T21:52:05.900Z",
-        "staleFallbackAt": "2026-06-02T21:54:09.490Z"
-      }
-    ]
+    "degradedStates": []
   },
   "statesAtTargetPrecision": 19,
   "rareStatesVerified": 17,
@@ -107,7 +97,7 @@
         "label": "Pennsylvania FWGS / PLCB",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1569,
+        "signalCount": 1563,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -142,9 +132,9 @@
         "state": "IN",
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
-        "status": "stale_useful",
-        "signalCount": 1176,
-        "roadblockCount": 2,
+        "status": "useful",
+        "signalCount": 1602,
+        "roadblockCount": 1,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "license_spine_plus_retailer_store_inventory",
@@ -321,7 +311,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-02T21:56:39.342Z",
+    "generatedAt": "2026-06-03T02:19:30.957Z",
     "focusStates": [
       "AL",
       "VA",
@@ -564,11 +554,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 871,
+          "quantity": 853,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 871 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 853 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "5fe622929530be5a",
@@ -580,11 +570,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 778,
+          "quantity": 772,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 778 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 772 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -644,11 +634,11 @@
           "rawName": "E.H. Taylor Jr. Small Batch",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 435,
+          "quantity": 432,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 435 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 432 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "4c7a3a7b9617e7af",
@@ -676,11 +666,11 @@
           "rawName": "Buffalo Trace Bourbon Cream",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 364,
+          "quantity": 363,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 364 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 363 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         }
       ],
       "alReleaseIntel": [
@@ -798,7 +788,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -814,7 +804,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "043b9c8f4cc5473e",

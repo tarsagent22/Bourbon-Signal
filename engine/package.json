@@ -18,6 +18,7 @@
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
     "verify:pa": "node src/verify-pa.mjs",
     "verify:in": "node src/verify-in.mjs",
+    "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",
     "ohlq": "node src/ohlq-browser-collector.mjs",
     "ohlq:discover": "node src/ohlq-browser-collector.mjs --discover",
