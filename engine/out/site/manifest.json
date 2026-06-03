@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:04:51.207Z",
+  "generatedAt": "2026-06-03T03:26:18.482Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -11,7 +11,7 @@
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
-  "snapshotCount": 1270,
+  "snapshotCount": 1274,
   "schemas": {
     "bottle": [
       "id",
@@ -107,6 +107,30 @@
       "inventorySemantics",
       "evidence"
     ],
-    "alert": []
+    "alert": [
+      "id",
+      "action",
+      "score",
+      "state",
+      "bottle",
+      "tier",
+      "eventType",
+      "source",
+      "sourceUrl",
+      "locationPrecision",
+      "locationName",
+      "storeName",
+      "storeAddress",
+      "quantity",
+      "availabilityStatus",
+      "availabilityLabel",
+      "warehouseQty",
+      "price",
+      "confidence",
+      "policyMode",
+      "inventorySemantics",
+      "reason",
+      "evidence"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:04:51.207Z",
+  "generatedAt": "2026-06-03T03:26:18.482Z",
   "count": 2525,
   "stores": [
     {
@@ -914,11 +914,11 @@
       "signalCount": 1
     },
     {
-      "id": "57646f241a5ea05e",
+      "id": "50c8de1fdf936519",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,
@@ -928,11 +928,11 @@
       "signalCount": 1
     },
     {
-      "id": "50c8de1fdf936519",
+      "id": "57646f241a5ea05e",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": null,
@@ -6898,12 +6898,12 @@
       "name": "Belmont Beverage of Cleveland Road",
       "address": "223 Cleveland Rd, Granger, IN 46530, USA",
       "city": "Granger",
-      "county": "St. Joseph County",
+      "county": null,
       "zip": "46530",
       "lat": 41.72358120000001,
       "lng": -86.175613,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
@@ -7094,12 +7094,12 @@
       "name": "Belmont Beverage of Roanoke",
       "address": "8930 N U.S. 24 E, Huntington, IN 46783, USA",
       "city": "Huntington",
-      "county": "Huntington County",
+      "county": null,
       "zip": "46783",
       "lat": 40.938599,
       "lng": -85.3802383,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 16
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ed1",
@@ -7108,12 +7108,12 @@
       "name": "Belmont Beverage of Roseland",
       "address": "254 N Dixie Way, Roseland, IN 46637, USA",
       "city": "Roseland",
-      "county": "St. Joseph County",
+      "county": null,
       "zip": "46637",
       "lat": 41.7186439,
       "lng": -86.24994459999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 9
     },
     {
       "id": "belmont-beverage:5ba7d342b77cb36d0a2d2ed6",
@@ -7458,12 +7458,12 @@
       "name": "Big Red #106 - Bloomington",
       "address": "1115 W 2nd St, Bloomington, IN 47403, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47403",
       "lat": 39.1610207,
       "lng": -86.5468128,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 13
     },
     {
       "id": "big-red:5e9253cf78e8f13c2cb1e164",
@@ -7472,12 +7472,12 @@
       "name": "Big Red #107 - Bloomington",
       "address": "4021 W 3rd St, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47404",
       "lat": 39.1640166,
       "lng": -86.5838371,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 11
     },
     {
       "id": "big-red:5e92544778e8f13c2cb1e168",
@@ -7486,12 +7486,12 @@
       "name": "Big Red #108 - Bloomington",
       "address": "2475 S Walnut Street Pike, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47401",
       "lat": 39.1367519,
       "lng": -86.5289068,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 9
     },
     {
       "id": "big-red:5e92544978e8f13c2cb1e16c",
@@ -7920,12 +7920,12 @@
       "name": "Big Red #218 - Brownsburg",
       "address": "40 Northfield Dr, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": "Hendricks County",
+      "county": null,
       "zip": "46112",
       "lat": 39.8579945,
       "lng": -86.3913441,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "big-red:5e9254aa78e8f13c2cb1e1ec",
@@ -7934,12 +7934,12 @@
       "name": "Big Red #219 - Brownsburg",
       "address": "1477 E US Hwy 136, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": "Hendricks County",
+      "county": null,
       "zip": "46112",
       "lat": 39.8325132,
       "lng": -86.3698682,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "big-red:60088c642806824a8bcf5a05",
@@ -7948,12 +7948,12 @@
       "name": "Big Red #220 - Brownsburg",
       "address": "8049 Ortho Ln, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": "Hendricks County",
+      "county": null,
       "zip": "46112",
       "lat": 39.8014984,
       "lng": -86.3808135,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 10
     },
     {
       "id": "big-red:5e9254ae78e8f13c2cb1e1f0",
@@ -7989,13 +7989,13 @@
       "state": "IN",
       "name": "Big Red #223 - Fishers",
       "address": "9641-9685 Olio Rd, McCordsville, IN 46055, USA",
-      "city": "Mc Cordsville",
-      "county": "Hamilton County",
+      "city": "McCordsville",
+      "county": null,
       "zip": "46055",
       "lat": 39.9290858,
       "lng": -85.9180638,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 10
     },
     {
       "id": "big-red:5e9254b578e8f13c2cb1e1fc",
@@ -8102,12 +8102,12 @@
       "name": "Big Red #231 - Westfield",
       "address": "966 E Tournament Trl, Westfield, IN 46074, USA",
       "city": "Westfield",
-      "county": "Hamilton County",
+      "county": null,
       "zip": "46074",
       "lat": 40.0440694,
       "lng": -86.14080609999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 16
     },
     {
       "id": "big-red:5e9254ca78e8f13c2cb1e21c",
@@ -8116,12 +8116,12 @@
       "name": "Big Red #233 - Greenwood",
       "address": "707 S Madison Ave p g, Greenwood, IN 46143, USA",
       "city": "Greenwood",
-      "county": "Johnson County",
+      "county": null,
       "zip": "46143",
       "lat": 39.6053,
       "lng": -86.10568409999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 14
     },
     {
       "id": "big-red:5e9254cd78e8f13c2cb1e220",
@@ -8130,12 +8130,12 @@
       "name": "Big Red #234 - Greenwood",
       "address": "816 US-31, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": "Johnson County",
+      "county": null,
       "zip": "46142",
       "lat": 39.6286916,
       "lng": -86.1235722,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 8
     },
     {
       "id": "big-red:5e9254d178e8f13c2cb1e224",
@@ -8144,12 +8144,12 @@
       "name": "Big Red #235 - Greenwood",
       "address": "172 Melody Ave b, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": "Johnson County",
+      "county": null,
       "zip": "46142",
       "lat": 39.6136857,
       "lng": -86.1569734,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 10
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -8200,12 +8200,12 @@
       "name": "Big Red #239 - Greenfield",
       "address": "1208 N State St, Greenfield, IN 46140, USA",
       "city": "Greenfield",
-      "county": "Hancock County",
+      "county": null,
       "zip": "46140",
       "lat": 39.7999793,
       "lng": -85.77004869999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 11
     },
     {
       "id": "big-red:6785622f5034132924e34f14",
@@ -8312,12 +8312,12 @@
       "name": "Big Red #615 - Fishers",
       "address": "13844 Olivia Way #102, Fishers, IN 46037, USA",
       "city": "Fishers",
-      "county": "Hamilton County",
+      "county": null,
       "zip": "46037",
       "lat": 39.9893943,
       "lng": -85.9213908,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 16
     },
     {
       "id": "big-red:5e8d58959ea14225c1e39360",
@@ -8340,12 +8340,12 @@
       "name": "Big Red #620 - Fishers",
       "address": "8808 E 116th St, Fishers, IN 46038, USA",
       "city": "Fishers",
-      "county": "Hamilton County",
+      "county": null,
       "zip": "46038",
       "lat": 39.9571948,
       "lng": -86.01364559999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "big-red:5e8d597a9a81cb4383b0d828",
@@ -8368,12 +8368,12 @@
       "name": "Big Red #626 - Greenfield",
       "address": "2222 N State St, Greenfield, IN 46140, USA",
       "city": "Greenfield",
-      "county": "Hancock County",
+      "county": null,
       "zip": "46140",
       "lat": 39.8173268,
       "lng": -85.7707095,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 13
     },
     {
       "id": "DL6430337",
@@ -9278,12 +9278,12 @@
       "name": "Chalet Party Shoppes of Caragana Court",
       "address": "2703 Caragana Ct #1, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.5558816,
       "lng": -85.7907292,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 12
     },
     {
       "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
@@ -9306,12 +9306,12 @@
       "name": "Chalet Party Shoppes of Chicago Ave",
       "address": "245 Chicago Ave, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.5887503,
       "lng": -85.8438448,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 17
     },
     {
       "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
@@ -9348,12 +9348,12 @@
       "name": "Chalet Party Shoppes of Reith BLVD",
       "address": "1830 Rieth Blvd #2, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.615844,
       "lng": -85.8933109,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 13
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",

@@ -1,20 +1,20 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:04:51.207Z",
-  "engineGeneratedAt": "2026-06-03T02:59:58.586Z",
+  "generatedAt": "2026-06-03T03:26:18.482Z",
+  "engineGeneratedAt": "2026-06-03T03:25:05.015Z",
   "stateCount": 23,
-  "signalCount": 9042,
-  "historicalSignalCount": 1293326,
+  "signalCount": 9247,
+  "historicalSignalCount": 1301605,
   "historyDays": 30,
-  "snapshotCount": 1270,
+  "snapshotCount": 1274,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2525,
   "locationCount": 4347,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 8663,
-  "alertCandidateCount": 0,
+  "dropCount": 8720,
+  "alertCandidateCount": 83,
   "roadblockCount": 49,
   "refreshHealth": {
     "degradedStateCount": 0,
@@ -133,7 +133,7 @@
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1870,
+        "signalCount": 2075,
         "roadblockCount": 1,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -311,7 +311,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-03T03:04:51.208Z",
+    "generatedAt": "2026-06-03T03:26:18.483Z",
     "focusStates": [
       "AL",
       "VA",
@@ -788,7 +788,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -804,7 +804,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "043b9c8f4cc5473e",

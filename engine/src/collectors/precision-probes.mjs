@@ -42,16 +42,17 @@ const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
 const INDIANA_LIQUOR_GROUP_EVENTS_URL = 'https://indianaliquor.com/our-events/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
 const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PER_STORE_MAX_PAGES || 1);
-const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 32);
+const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 48);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
-const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|fort wayne|new haven|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|columbus|jeffersonville|new albany/i;
+const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany/i;
 const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
-  'avon', 'plainfield', 'noblesville', 'speedway',
-  'south bend', 'mishawaka', 'elkhart',
+  'avon', 'plainfield', 'noblesville', 'speedway', 'westfield', 'greenfield',
+  'south bend', 'mishawaka', 'elkhart', 'granger', 'goshen', 'roseland', 'huntington',
   'lafayette', 'west lafayette', 'evansville', 'muncie', 'anderson', 'kokomo', 'columbus', 'jeffersonville', 'new albany',
   'indianapolis', 'carmel', 'fishers', 'greenwood', 'brownsburg', 'mccordsville',
-  'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute'
+  'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute',
+  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar'
 ];
 const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
 const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
