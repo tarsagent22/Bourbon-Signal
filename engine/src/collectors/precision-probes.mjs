@@ -89,6 +89,16 @@ const IN_CITYHIVE_SOURCES = [
       'https://shop.wiseguysliquors.com/shop/?subtype=bourbon',
       'https://shop.wiseguysliquors.com/events'
     ]
+  },
+  {
+    id: 'belmont-beverage',
+    chainName: 'Belmont Beverage & Chalet Party Shoppe',
+    sourceLabel: 'Belmont Beverage & Chalet Party Shoppe CityHive store inventory',
+    baseUrl: 'https://belmontbev.com',
+    urls: [
+      'https://belmontbev.com/shop?subtype=bourbon',
+      'https://belmontbev.com/pages/shop-spirits-app'
+    ]
   }
 ];
 
