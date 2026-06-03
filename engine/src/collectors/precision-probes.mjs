@@ -332,7 +332,33 @@ function parseIndianaBourbonWorldAllocated(text) {
   }));
 }
 
-function parseIndianaLiquorGroupEvents(html) {
+function indianaLiquorGroupEventDateIsCurrent(dateText, observedAt) {
+  const now = new Date(observedAt);
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const text = String(dateText || '').split(/\s*&\s*/)[0].trim();
+  let year = now.getUTCFullYear();
+  let month = null;
+  let day = null;
+  const slash = text.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+  if (slash) {
+    month = Number(slash[1]);
+    day = Number(slash[2]);
+    if (slash[3]) year = Number(slash[3].length === 2 ? `20${slash[3]}` : slash[3]);
+  } else {
+    const named = text.match(/\b(Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{4}))?\b/i);
+    if (named) {
+      month = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].findIndex((m) => named[1].toLowerCase().startsWith(m)) + 1;
+      day = Number(named[2]);
+      if (named[3]) year = Number(named[3]);
+    }
+  }
+  if (!month || !day) return false;
+  const eventDate = new Date(Date.UTC(year, month - 1, day));
+  const maxFuture = new Date(today.getTime() + 370 * 24 * 60 * 60_000);
+  return eventDate >= today && eventDate <= maxFuture;
+}
+
+function parseIndianaLiquorGroupEvents(html, observedAt = new Date().toISOString()) {
   const cleanText = decodeHtml(stripHtml(html)).replace(/&#8211;|&ndash;/g, '-').replace(/\s+/g, ' ').trim();
   const sections = [];
   const sectionRe = /EVENT DETAILS(?:\s+CANCELLED\s+EVENT DETAILS)?\s+DATE\/TIME\/LOCATION\s+([\s\S]*?)(?=\s+EVENT DETAILS(?:\s+CANCELLED\s+EVENT DETAILS)?\s+DATE\/TIME\/LOCATION|\s+Explore Careers|$)/gi;
@@ -354,7 +380,7 @@ function parseIndianaLiquorGroupEvents(html) {
       const dateMatch = chunk.match(/\b(?:\d{1,2}\/\d{1,2}|(?:Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)(?:\s*&\s*(?:\d{1,2}\/\d{1,2}|(?:Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?))?(?:\s+\d{4})?\b/i);
       const timeMatch = chunk.match(/\b(?:from\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*(?:-|to|&|and)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i);
       const locationText = (dateMatch ? chunk.slice(0, dateMatch.index) : chunk).trim();
-      if (!locationText || !dateMatch) continue;
+      if (!locationText || !dateMatch || !indianaLiquorGroupEventDateIsCurrent(dateMatch[0], observedAt)) continue;
       events.push({
         rawName,
         city,
@@ -988,7 +1014,7 @@ async function collectIndiana(config, bible) {
 
     const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' } });
     if (ilgEvents.ok) {
-      for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text)) {
+      for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text, observedAt)) {
         const { match, record } = bottleMatch(event.rawName, bible);
         if (!record) continue;
         signals.push({

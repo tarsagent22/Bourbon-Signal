@@ -1,12 +1,12 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:40:19.424Z",
-  "engineGeneratedAt": "2026-06-03T03:39:22.831Z",
+  "generatedAt": "2026-06-03T03:55:27.852Z",
+  "engineGeneratedAt": "2026-06-03T03:54:30.651Z",
   "stateCount": 23,
   "signalCount": 9264,
-  "historicalSignalCount": 1308970,
+  "historicalSignalCount": 1315926,
   "historyDays": 30,
-  "snapshotCount": 1277,
+  "snapshotCount": 1279,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2526,
@@ -14,7 +14,7 @@
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
   "dropCount": 8727,
-  "alertCandidateCount": 10,
+  "alertCandidateCount": 1,
   "roadblockCount": 49,
   "refreshHealth": {
     "degradedStateCount": 0,
@@ -311,7 +311,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-03T03:40:19.426Z",
+    "generatedAt": "2026-06-03T03:55:27.853Z",
     "focusStates": [
       "AL",
       "VA",

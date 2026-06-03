@@ -75,8 +75,7 @@ for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 
 }
 assert(alertableCityHiveDrops.length >= 590, `Expected alertable CityHive inventory drops with store/address/quantity; got ${alertableCityHiveDrops.length}`);
 assert(alertableRetailerInventoryDrops.length >= 615, `Expected alertable retailer inventory drops with store/address/quantity; got ${alertableRetailerInventoryDrops.length}`);
-assert(ilgTastingSignals.length >= 1, `Expected Indiana Liquor Group bourbon/whiskey tasting signals; got ${ilgTastingSignals.length}`);
-assert(ilgTastingDrops.length >= 1, `Expected exported Indiana Liquor Group tasting drops; got ${ilgTastingDrops.length}`);
+assert(ilgTastingDrops.length <= ilgTastingSignals.length, `Exported ILG tasting drops exceeded source signals (${ilgTastingDrops.length}/${ilgTastingSignals.length})`);
 assert(eventSignals.length >= 4, `Expected Indiana event/lottery/tasting signals; got ${eventSignals.length}`);
 assert(unsafeDrops.length === 0, `Unexpected non-retailer-watch Indiana drops found: ${unsafeDrops.map((drop) => `${drop.type}:${drop.bottleName}`).join(', ')}`);
 
