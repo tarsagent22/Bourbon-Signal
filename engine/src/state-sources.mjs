@@ -53,12 +53,13 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'AL', label: 'Alabama ABC', tier: 'A', strategy: 'release_calendar_and_allocated_lists', cadence: 'daily-monthly',
-    value: 'Excellent drop calendar and allocated product pages; more event intelligence than live inventory.',
+    value: 'Excellent official allocated-release intelligence: monthly PDFs expose store-level release/distribution rows with date/store/address/product/price, plus allocated product and quarterly price-book references. This is scheduled release/drop intelligence, not live shelf inventory.',
     sources: [
       { kind: 'html', url: 'https://alabcboard.gov/stores/events/limited-release-programs/monthly', label: 'Monthly limited release' },
       { kind: 'html', url: 'https://alabcboard.gov/stores/events/limited-release-programs/quarterly', label: 'Quarterly limited release' },
       { kind: 'html', url: 'https://alabcboard.gov/stores/events/limited-releases/Allocated-Spirits-List', label: 'Allocated spirits list' },
-      { kind: 'html', url: 'https://alabcboard.gov/product-management/QPL', label: 'QPL price/product list' }
+      { kind: 'html', url: 'https://alabcboard.gov/product-management/QPL', label: 'QPL price/product list' },
+      { kind: 'pdf', url: 'https://alabcboard.gov/sites/default/files/inline-files/2026%20Limited%20Release%20Schedule.pdf', label: 'Allocated delivery calendar' }
     ],
     apiCandidates: []
   },

@@ -17,6 +17,7 @@
     "quality": "node src/quality-audit.mjs",
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
     "verify:pa": "node src/verify-pa.mjs",
+    "verify:al": "node src/verify-al.mjs",
     "verify:in": "node src/verify-in.mjs",
     "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",
@@ -31,5 +32,8 @@
     "refresh:site": "node src/refresh-site.mjs",
     "verify:nc": "node src/verify-nc.mjs",
     "verify:va": "node src/verify-va.mjs"
+  },
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
   }
 }
