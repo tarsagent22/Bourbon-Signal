@@ -65,6 +65,16 @@ const IN_KAHNS_STORE = {
   lat: 39.8498,
   lng: -86.1226
 };
+const IN_PAYLESS_BARREL_SELECTIONS_URL = 'https://www.paylessliquors.info/barrel-selections';
+const IN_PAYLESS_EAST_STREET_STORE = {
+  id: 'east-street',
+  name: 'Payless Liquors - East Street',
+  address: '3825 S. East Street, Indianapolis, IN 46227',
+  city: 'Indianapolis',
+  zip: '46227',
+  lat: 39.7106,
+  lng: -86.1484
+};
 const IN_KAHNS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_KAHNS_MAX_PAGES || 4);
 const IN_KAHNS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_IN_KAHNS_PAGE_SIZE || 100));
 const IN_CITYHIVE_SOURCES = [
@@ -519,6 +529,96 @@ function kahnsProductUrl(product) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'product';
   return `https://www.kahnsfinewines.com/products/${slug}-${product.publicId}`;
+}
+
+function parsePaylessBarrelSelections(html) {
+  const listRows = [...html.matchAll(/<li[^>]*>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/gi)]
+    .map((match) => decodeHtml(stripHtml(match[1])))
+    .filter(Boolean);
+  if (listRows.length) return [...new Set(listRows.filter((line) => /bourbon|whiskey|whisky|barrel|single barrel|private|selection|rye|reserve|elijah craig|knob creek|woodford|nulu|whistlepig|rittenhouse|bulleit|jefferson|old elk|russel|russell|yellowstone|maker/i.test(line)))];
+
+  const text = stripHtml(html)
+    .replace(/\r/g, '\n')
+    .replace(/Available at our East Street location/i, '\nAvailable at our East Street location')
+    .replace(/Stop by and pick your bottle up today!/i, 'Stop by and pick your bottle up today!\n')
+    .replace(/\s+[-•]\s+/g, '\n')
+    .replace(/\n{2,}/g, '\n');
+  const rows = [];
+  for (const rawLine of text.split('\n')) {
+    const line = decodeHtml(rawLine)
+      .replace(/^[-•]\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!line || /^(Payless Liquors|Barrel Selections|Skip to Content|Home|Events|Locations|Contact)$/i.test(line)) continue;
+    if (/Available at our East Street location|Stop by and pick your bottle/i.test(line)) continue;
+    if (!/bourbon|whiskey|whisky|barrel|single barrel|private|selection|rye|reserve|elijah craig|knob creek|woodford|nulu|whistlepig|rittenhouse|bulleit|jefferson|old elk|russel|russell|yellowstone|maker/i.test(line)) continue;
+    rows.push(line);
+  }
+  return [...new Set(rows)];
+}
+
+async function collectIndianaPaylessBarrelSelections(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const res = await textFetch(IN_PAYLESS_BARREL_SELECTIONS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 18_000 });
+  if (!res.ok) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Payless Liquors East Street barrel selections page',
+      url: IN_PAYLESS_BARREL_SELECTIONS_URL,
+      status: res.status || 0,
+      error: res.error || `HTTP ${res.status}`,
+      nextRoute: 'Retry the Payless barrel selections page or inspect whether the list moved to social/newsletter channels.'
+    });
+    return { signals, roadblocks };
+  }
+  const selections = parsePaylessBarrelSelections(res.text);
+  for (const rawName of selections) {
+    const { match, record } = bottleMatch(rawName, bible);
+    if (!record) continue;
+    signals.push({
+      id: stableId([config.id, 'payless-east-street-barrel-selection', rawName]),
+      state: config.id,
+      sourceLabel: 'Payless Liquors East Street barrel selections',
+      sourceUrl: IN_PAYLESS_BARREL_SELECTIONS_URL,
+      rawName,
+      canonicalBottleId: record.id,
+      canonicalName: record.canonical,
+      confidence: Math.max(0.76, match?.confidence || 0.5),
+      eventType: 'retailer_store_inventory_result',
+      locationPrecision: 'store_level',
+      locationName: IN_PAYLESS_EAST_STREET_STORE.name,
+      storeName: IN_PAYLESS_EAST_STREET_STORE.name,
+      storeId: `payless-liquors:${IN_PAYLESS_EAST_STREET_STORE.id}`,
+      storeAddress: IN_PAYLESS_EAST_STREET_STORE.address,
+      city: IN_PAYLESS_EAST_STREET_STORE.city,
+      stateCode: 'IN',
+      postalCode: IN_PAYLESS_EAST_STREET_STORE.zip,
+      zip: IN_PAYLESS_EAST_STREET_STORE.zip,
+      lat: IN_PAYLESS_EAST_STREET_STORE.lat,
+      lng: IN_PAYLESS_EAST_STREET_STORE.lng,
+      quantity: 1,
+      availabilityStatus: 'available_store_pick',
+      availabilityLabel: 'Listed as available barrel selection',
+      observedAt,
+      canAlertAsInventory: true,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Payless publishes this as a current East Street store barrel-selection list and says the bottles are available for pickup. Treat as retailer-published store-pick availability and verify before driving.',
+      evidence: `Payless Liquors says ${rawName} is available at the East Street location in Indianapolis on its barrel selections page.`,
+      raw: { chain: 'payless-liquors', store: IN_PAYLESS_EAST_STREET_STORE, barrelSelectionPage: true }
+    });
+  }
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Payless Liquors East Street barrel selections page',
+      url: IN_PAYLESS_BARREL_SELECTIONS_URL,
+      status: 'reachable_no_matched_inventory',
+      error: `Payless barrel selections page was reachable and exposed ${selections.length} candidate rows, but none matched the Bourbon Signal bottle bible.`,
+      nextRoute: 'Review Payless store-pick names and tune bottle-bible aliases for private barrel/store-pick wording.'
+    });
+  }
+  return { signals, roadblocks };
 }
 
 async function fetchKahnsProducts(pageIndex) {
@@ -1059,6 +1159,10 @@ async function collectIndiana(config, bible) {
     const kahns = await collectIndianaKahns(config, bible, observedAt);
     signals.push(...kahns.signals);
     roadblocks.push(...kahns.roadblocks);
+
+    const payless = await collectIndianaPaylessBarrelSelections(config, bible, observedAt);
+    signals.push(...payless.signals);
+    roadblocks.push(...payless.roadblocks);
 
     const cityHive = await collectIndianaCityHive(config, bible, observedAt);
     signals.push(...cityHive.signals);

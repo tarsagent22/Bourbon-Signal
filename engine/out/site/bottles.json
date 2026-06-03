@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:55:27.852Z",
+  "generatedAt": "2026-06-03T12:54:02.490Z",
   "count": 139,
   "bottles": [
     {
@@ -17,10 +17,10 @@
       ],
       "tier": "unicorn",
       "producer": "Four Roses",
-      "signalCount": 144,
+      "signalCount": 141,
       "stateCount": 4,
-      "inventorySignalCount": 137,
-      "watchSignalCount": 144,
+      "inventorySignalCount": 134,
+      "watchSignalCount": 141,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -29,7 +29,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -43,17 +43,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 75,
+      "signalCount": 168,
       "stateCount": 2,
-      "inventorySignalCount": 19,
-      "watchSignalCount": 75,
+      "inventorySignalCount": 112,
+      "watchSignalCount": 168,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:31.087Z"
+      "latestObservedAt": "2026-06-03T12:48:57.508Z"
     },
     {
       "id": "bb_a85df59577c72709",
@@ -84,7 +84,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-03T03:47:22.073Z"
+      "latestObservedAt": "2026-06-03T12:42:56.946Z"
     },
     {
       "id": "bb_2b5d9987117596c4",
@@ -112,7 +112,7 @@
         "NC",
         "UT"
       ],
-      "latestObservedAt": "2026-06-03T03:53:39.787Z"
+      "latestObservedAt": "2026-06-03T12:50:08.389Z"
     },
     {
       "id": "bb_cca84bbe5368acac",
@@ -138,7 +138,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:29.010Z"
+      "latestObservedAt": "2026-06-03T12:48:55.058Z"
     },
     {
       "id": "bb_b51a26135cfce9fe",
@@ -187,7 +187,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:19.552Z"
+      "latestObservedAt": "2026-06-03T12:48:41.928Z"
     },
     {
       "id": "bb_ea6984efad655e2d",
@@ -215,7 +215,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:52:19.552Z"
+      "latestObservedAt": "2026-06-03T12:48:41.928Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -242,7 +242,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:31.087Z"
+      "latestObservedAt": "2026-06-03T12:48:57.508Z"
     },
     {
       "id": "bb_a3c16eb6f814785b",
@@ -268,7 +268,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:53:46.158Z"
+      "latestObservedAt": "2026-06-03T12:50:15.075Z"
     },
     {
       "id": "bb_18013da36d2e4da4",
@@ -294,7 +294,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:32.100Z"
+      "latestObservedAt": "2026-06-03T12:48:58.535Z"
     },
     {
       "id": "bb_d2b7ab7e2ebc1404",
@@ -319,7 +319,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:29.976Z"
+      "latestObservedAt": "2026-06-03T12:48:56.143Z"
     },
     {
       "id": "bb_3f2ea94bd1b6a610",
@@ -344,7 +344,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:19.552Z"
+      "latestObservedAt": "2026-06-03T12:48:41.928Z"
     },
     {
       "id": "bb_7f15783e8c144664",
@@ -370,7 +370,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:31.087Z"
+      "latestObservedAt": "2026-06-03T12:48:57.508Z"
     },
     {
       "id": "bb_064157246d06e7cd",
@@ -395,7 +395,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:31.087Z"
+      "latestObservedAt": "2026-06-03T12:48:57.508Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -421,7 +421,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:55.864Z"
+      "latestObservedAt": "2026-06-03T12:50:25.138Z"
     },
     {
       "id": "bb_e7885596cd0952b8",
@@ -447,7 +447,7 @@
         "IN",
         "ME"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_ac855cd46254e92a",
@@ -472,7 +472,7 @@
       "states": [
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:59.139Z"
+      "latestObservedAt": "2026-06-03T12:50:28.467Z"
     },
     {
       "id": "bb_7027ba16ae56677c",
@@ -496,7 +496,7 @@
       "states": [
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:27.128Z"
+      "latestObservedAt": "2026-06-03T12:49:55.479Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -570,7 +570,7 @@
         "IA",
         "ID"
       ],
-      "latestObservedAt": "2026-06-03T03:52:10.944Z"
+      "latestObservedAt": "2026-06-03T12:48:32.987Z"
     },
     {
       "id": "bb_112985112371b3e9",
@@ -596,7 +596,7 @@
       "states": [
         "ME"
       ],
-      "latestObservedAt": "2026-06-03T03:54:10.091Z"
+      "latestObservedAt": "2026-06-03T12:50:39.717Z"
     },
     {
       "id": "bb_40a01e5c27a36a6d",
@@ -998,10 +998,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 837,
+      "signalCount": 777,
       "stateCount": 3,
-      "inventorySignalCount": 371,
-      "watchSignalCount": 837,
+      "inventorySignalCount": 311,
+      "watchSignalCount": 777,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1009,7 +1009,73 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-06-03T03:52:32.100Z"
+      "latestObservedAt": "2026-06-03T12:48:58.536Z"
+    },
+    {
+      "id": "bb_5afa9241206ab963",
+      "canonical_id": "bb_5afa9241206ab963",
+      "canonical_name": "Blanton's Original Single Barrel",
+      "canonical_key": "blanton s original",
+      "name": "Blanton's Original Single Barrel",
+      "aliases": [
+        "BLANTON'S BOURBON",
+        "Blanton",
+        "Blanton's",
+        "Blanton's Bourbon",
+        "Blanton's Original",
+        "Blanton's Original Single Barrel",
+        "Blanton's Single Barrel",
+        "Blantons"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 629,
+      "stateCount": 6,
+      "inventorySignalCount": 162,
+      "watchSignalCount": 629,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY",
+        "NC",
+        "OH",
+        "VA"
+      ],
+      "latestObservedAt": "2026-06-03T12:50:08.389Z"
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical_id": "bb_d0fe561ac45db2d5",
+      "canonical_name": "Eagle Rare 10 Year",
+      "canonical_key": "eagle rare 10 year",
+      "name": "Eagle Rare 10 Year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 604,
+      "stateCount": 7,
+      "inventorySignalCount": 129,
+      "watchSignalCount": 604,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY",
+        "NC",
+        "OH",
+        "UT",
+        "VA"
+      ],
+      "latestObservedAt": "2026-06-03T12:50:11.673Z"
     },
     {
       "id": "bb_be6a0afd4ba5f963",
@@ -1036,7 +1102,7 @@
         "NC",
         "UT"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1062,7 +1128,7 @@
         "NC",
         "OH"
       ],
-      "latestObservedAt": "2026-06-03T03:52:31.087Z"
+      "latestObservedAt": "2026-06-03T12:48:57.508Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1096,73 +1162,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-03T03:53:34.508Z"
-    },
-    {
-      "id": "bb_5afa9241206ab963",
-      "canonical_id": "bb_5afa9241206ab963",
-      "canonical_name": "Blanton's Original Single Barrel",
-      "canonical_key": "blanton s original",
-      "name": "Blanton's Original Single Barrel",
-      "aliases": [
-        "BLANTON'S BOURBON",
-        "Blanton",
-        "Blanton's",
-        "Blanton's Bourbon",
-        "Blanton's Original",
-        "Blanton's Original Single Barrel",
-        "Blanton's Single Barrel",
-        "Blantons"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 532,
-      "stateCount": 6,
-      "inventorySignalCount": 65,
-      "watchSignalCount": 532,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "IN",
-        "MD-MONTGOMERY",
-        "NC",
-        "OH",
-        "VA"
-      ],
-      "latestObservedAt": "2026-06-03T03:53:39.787Z"
-    },
-    {
-      "id": "bb_d0fe561ac45db2d5",
-      "canonical_id": "bb_d0fe561ac45db2d5",
-      "canonical_name": "Eagle Rare 10 Year",
-      "canonical_key": "eagle rare 10 year",
-      "name": "Eagle Rare 10 Year",
-      "aliases": [
-        "EAGLE RARE 10Y",
-        "Eagle Rare",
-        "Eagle Rare 10 Year",
-        "Eagle Rare 10 Yr",
-        "Eagle Rare 10Y"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 502,
-      "stateCount": 7,
-      "inventorySignalCount": 27,
-      "watchSignalCount": 502,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "IN",
-        "MD-MONTGOMERY",
-        "NC",
-        "OH",
-        "UT",
-        "VA"
-      ],
-      "latestObservedAt": "2026-06-03T03:53:42.945Z"
+      "latestObservedAt": "2026-06-03T12:50:02.881Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1178,16 +1178,16 @@
       ],
       "tier": "allocated",
       "producer": "Jim Beam",
-      "signalCount": 18,
+      "signalCount": 19,
       "stateCount": 1,
-      "inventorySignalCount": 18,
-      "watchSignalCount": 18,
+      "inventorySignalCount": 19,
+      "watchSignalCount": 19,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_15b34a1a107fafe0",
@@ -1213,7 +1213,7 @@
         "IN",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1237,7 +1237,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_b7ca7cc4ab428ba8",
@@ -1261,7 +1261,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1276,17 +1276,17 @@
       ],
       "tier": "allocated",
       "producer": "Willett",
-      "signalCount": 60,
+      "signalCount": 61,
       "stateCount": 2,
       "inventorySignalCount": 1,
-      "watchSignalCount": 60,
+      "watchSignalCount": 61,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:52:33.423Z"
+      "latestObservedAt": "2026-06-03T12:48:59.570Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1338,7 +1338,7 @@
         "IA",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:32.100Z"
+      "latestObservedAt": "2026-06-03T12:48:58.535Z"
     },
     {
       "id": "bb_7991fa37cd881dba",
@@ -1367,7 +1367,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:53:46.158Z"
+      "latestObservedAt": "2026-06-03T12:50:15.075Z"
     },
     {
       "id": "bb_fd202575957d3cea",
@@ -1601,7 +1601,7 @@
         "IN",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1626,7 +1626,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_2435a31e97c20ce7",
@@ -1651,7 +1651,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:52:33.423Z"
+      "latestObservedAt": "2026-06-03T12:48:59.570Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1665,17 +1665,17 @@
       ],
       "tier": "limited",
       "producer": "Michter's",
-      "signalCount": 179,
+      "signalCount": 180,
       "stateCount": 2,
-      "inventorySignalCount": 177,
-      "watchSignalCount": 179,
+      "inventorySignalCount": 178,
+      "watchSignalCount": 180,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:47:22.073Z"
+      "latestObservedAt": "2026-06-03T12:42:56.946Z"
     },
     {
       "id": "bb_a3b1732edd18ac89",
@@ -1691,10 +1691,10 @@
       ],
       "tier": "limited",
       "producer": "Jim Beam",
-      "signalCount": 142,
+      "signalCount": 140,
       "stateCount": 3,
-      "inventorySignalCount": 139,
-      "watchSignalCount": 142,
+      "inventorySignalCount": 137,
+      "watchSignalCount": 140,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.8600000000000001,
       "states": [
@@ -1702,7 +1702,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_24c7e1719e8ded79",
@@ -1728,7 +1728,33 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
+    },
+    {
+      "id": "bb_8924180d0cc2d853",
+      "canonical_id": "bb_8924180d0cc2d853",
+      "canonical_name": "Blade and Bow Bourbon",
+      "canonical_key": "blade and bow",
+      "name": "Blade and Bow Bourbon",
+      "aliases": [
+        "BLADE & BOW",
+        "Blade & Bow",
+        "Blade and Bow Bourbon",
+        "Blade and Bow Kentucky Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Diageo",
+      "signalCount": 14,
+      "stateCount": 2,
+      "inventorySignalCount": 12,
+      "watchSignalCount": 14,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_1f0975f2e3cbd2d5",
@@ -1753,33 +1779,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
-    },
-    {
-      "id": "bb_8924180d0cc2d853",
-      "canonical_id": "bb_8924180d0cc2d853",
-      "canonical_name": "Blade and Bow Bourbon",
-      "canonical_key": "blade and bow",
-      "name": "Blade and Bow Bourbon",
-      "aliases": [
-        "BLADE & BOW",
-        "Blade & Bow",
-        "Blade and Bow Bourbon",
-        "Blade and Bow Kentucky Straight Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "Diageo",
-      "signalCount": 13,
-      "stateCount": 2,
-      "inventorySignalCount": 11,
-      "watchSignalCount": 13,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.86,
-      "states": [
-        "IN",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_f1bb80f4dc160729",
@@ -1796,17 +1796,17 @@
       ],
       "tier": "limited",
       "producer": "Jim Beam",
-      "signalCount": 9,
+      "signalCount": 11,
       "stateCount": 2,
-      "inventorySignalCount": 7,
-      "watchSignalCount": 9,
+      "inventorySignalCount": 9,
+      "watchSignalCount": 11,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_c1b9f5325e7c08a4",
@@ -1832,7 +1832,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_ef203a18f5f98f23",
@@ -1857,7 +1857,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_bf904ca5ccbb690d",
@@ -1884,7 +1884,34 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
+    },
+    {
+      "id": "bb_b029b9fb7d0f5783",
+      "canonical_id": "bb_b029b9fb7d0f5783",
+      "canonical_name": "Bowman Brothers Small Batch Bourbon",
+      "canonical_key": "bowman brothers",
+      "name": "Bowman Brothers Small Batch Bourbon",
+      "aliases": [
+        "BOWMAN BROTHERS BOURBON",
+        "Bowman Brothers",
+        "Bowman Brothers Small Batch",
+        "Bowman Brothers Small Batch Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "A. Smith Bowman",
+      "signalCount": 7,
+      "stateCount": 3,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 7,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_d99031402ce45359",
@@ -1909,34 +1936,7 @@
         "MD-MONTGOMERY",
         "UT"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
-    },
-    {
-      "id": "bb_b029b9fb7d0f5783",
-      "canonical_id": "bb_b029b9fb7d0f5783",
-      "canonical_name": "Bowman Brothers Small Batch Bourbon",
-      "canonical_key": "bowman brothers",
-      "name": "Bowman Brothers Small Batch Bourbon",
-      "aliases": [
-        "BOWMAN BROTHERS BOURBON",
-        "Bowman Brothers",
-        "Bowman Brothers Small Batch",
-        "Bowman Brothers Small Batch Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "A. Smith Bowman",
-      "signalCount": 6,
-      "stateCount": 3,
-      "inventorySignalCount": 3,
-      "watchSignalCount": 6,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "IN",
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_4e7a2ea067e741fd",
@@ -1961,7 +1961,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_ea538792278ccca7",
@@ -1987,7 +1987,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_36be0a66004a60ba",
@@ -2012,7 +2012,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_80e1a23c773972ad",
@@ -2037,7 +2037,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_63d8202a47b5f253",
@@ -2061,7 +2061,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_71c68398a83ef404",
@@ -2087,7 +2087,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_8b9546b93a7fbe72",
@@ -2112,7 +2112,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_2c6200b256620774",
@@ -2137,7 +2137,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_21f337f08eaf6bdd",
@@ -2162,7 +2162,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_9b186a3bfc444786",
@@ -2189,7 +2189,7 @@
         "MD-MONTGOMERY",
         "MI"
       ],
-      "latestObservedAt": "2026-06-03T03:54:14.157Z"
+      "latestObservedAt": "2026-06-03T12:50:43.944Z"
     },
     {
       "id": "bb_fee8a1d8ff9ca239",
@@ -2361,7 +2361,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-06-03T03:51:45.288Z"
+      "latestObservedAt": "2026-06-03T12:48:06.544Z"
     },
     {
       "id": "bb_6885046e5aeac722",
@@ -2411,7 +2411,7 @@
         "IA",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_81c5c5c4b7d8a7b6",
@@ -2437,7 +2437,7 @@
         "IA",
         "UT"
       ],
-      "latestObservedAt": "2026-06-03T03:51:52.809Z"
+      "latestObservedAt": "2026-06-03T12:48:14.024Z"
     },
     {
       "id": "bb_8480bae3e0e97a02",
@@ -2488,7 +2488,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:19.552Z"
+      "latestObservedAt": "2026-06-03T12:48:41.928Z"
     },
     {
       "id": "bb_dcbadbe1cd262fe4",
@@ -2513,7 +2513,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:14.171Z"
+      "latestObservedAt": "2026-06-03T12:48:36.617Z"
     },
     {
       "id": "bb_fbdffd15c5c5d159",
@@ -2583,7 +2583,7 @@
       "states": [
         "WV"
       ],
-      "latestObservedAt": "2026-06-03T03:54:18.671Z"
+      "latestObservedAt": "2026-06-03T12:50:48.251Z"
     },
     {
       "id": "bb_78ae1c4d3ca52afc",
@@ -2849,7 +2849,7 @@
         "MD-MONTGOMERY",
         "VA"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -2864,10 +2864,10 @@
       ],
       "tier": "standard",
       "producer": "Diageo",
-      "signalCount": 181,
+      "signalCount": 182,
       "stateCount": 3,
-      "inventorySignalCount": 169,
-      "watchSignalCount": 181,
+      "inventorySignalCount": 170,
+      "watchSignalCount": 182,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -2875,7 +2875,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -2897,7 +2897,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-03T03:47:22.073Z"
+      "latestObservedAt": "2026-06-03T12:42:56.946Z"
     },
     {
       "id": "bb_c782a4dd71e5ef89",
@@ -2910,10 +2910,10 @@
       ],
       "tier": "unknown",
       "producer": null,
-      "signalCount": 143,
+      "signalCount": 138,
       "stateCount": 3,
-      "inventorySignalCount": 140,
-      "watchSignalCount": 143,
+      "inventorySignalCount": 135,
+      "watchSignalCount": 138,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
@@ -2921,7 +2921,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_4b57850b8b8f77fd",
@@ -2934,17 +2934,17 @@
       ],
       "tier": "unknown",
       "producer": null,
-      "signalCount": 29,
+      "signalCount": 26,
       "stateCount": 2,
-      "inventorySignalCount": 28,
-      "watchSignalCount": 29,
+      "inventorySignalCount": 25,
+      "watchSignalCount": 26,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_24a388c391f6626f",
@@ -2970,7 +2970,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_24473260f6d7da78",
@@ -2993,7 +2993,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_2a3a72be37e1c233",
@@ -3015,7 +3015,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:47:30.508Z"
+      "latestObservedAt": "2026-06-03T12:39:12.771Z"
     },
     {
       "id": "bb_dab3d03d7632a821",
@@ -3040,7 +3040,7 @@
         "MD-MONTGOMERY",
         "VT"
       ],
-      "latestObservedAt": "2026-06-03T03:54:12.265Z"
+      "latestObservedAt": "2026-06-03T12:50:41.999Z"
     },
     {
       "id": "bb_768476e649819a93",
@@ -3063,7 +3063,7 @@
         "IA",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-06-03T03:53:31.501Z"
+      "latestObservedAt": "2026-06-03T12:49:59.805Z"
     },
     {
       "id": "bb_cd5d49e4d71817d0",
@@ -3107,7 +3107,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-03T03:52:32.099Z"
+      "latestObservedAt": "2026-06-03T12:48:58.535Z"
     },
     {
       "id": "bb_00de3ec6e1619105",
@@ -3120,10 +3120,10 @@
       ],
       "tier": "unknown",
       "producer": null,
-      "signalCount": 4,
+      "signalCount": 5,
       "stateCount": 4,
       "inventorySignalCount": 0,
-      "watchSignalCount": 4,
+      "watchSignalCount": 5,
       "bestLocationPrecision": "store_aggregate",
       "bestConfidence": 0.86,
       "states": [
@@ -3132,7 +3132,7 @@
         "UT",
         "WV"
       ],
-      "latestObservedAt": "2026-06-03T03:54:18.670Z"
+      "latestObservedAt": "2026-06-03T12:50:48.250Z"
     },
     {
       "id": "bb_d79eea7237ee32b2",
@@ -3154,7 +3154,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-03T03:53:13.826Z"
+      "latestObservedAt": "2026-06-03T12:49:41.841Z"
     },
     {
       "id": "bb_bb21b6ea0533babb",
@@ -3176,7 +3176,7 @@
       "states": [
         "ID"
       ],
-      "latestObservedAt": "2026-06-03T03:52:10.457Z"
+      "latestObservedAt": "2026-06-03T12:48:32.506Z"
     },
     {
       "id": "bb_6593beca781b533e",

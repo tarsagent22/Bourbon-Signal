@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-03T03:55:27.852Z",
-  "count": 2526,
+  "generatedAt": "2026-06-03T12:54:02.490Z",
+  "count": 2577,
   "stores": [
     {
       "id": "4ec5c4c05339a3ff",
@@ -32,6 +32,20 @@
       "signalCount": 1
     },
     {
+      "id": "ad64ccfd1755d010",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "821 SQ Liquor / Des Moines",
+      "address": "821 East Euclid Avenue, Des Moines, IA, 50316",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "5e5b579f3d88a9d3",
       "sourceStoreId": null,
       "state": "IA",
@@ -57,7 +71,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "e4851bdbbf505a63",
@@ -66,34 +80,6 @@
       "name": "Ainsworth Four Corners / Ainsworth",
       "address": "3112 Iowa 92, Ainsworth, IA, 52201",
       "city": "Ainsworth",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "09ab8dc92ce7d3bf",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "AJ'S LIQUOR II",
-      "address": "2515 Chamberlain, Ames, IA, 50010",
-      "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "160d29c87325eec9",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "AJ's Liquor III",
-      "address": "2401 A Chamberlain St, Ames, IA, 50010",
-      "city": "Ames",
       "county": null,
       "zip": null,
       "lat": null,
@@ -172,6 +158,34 @@
       "signalCount": 3
     },
     {
+      "id": "d220c96056463e92",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "B S Mini Mart Inc",
+      "address": "1900, Summer St, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "159122db68f7242c",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Backwater Spirits and More",
+      "address": "116 W Water St Ste D, Decorah, IA, 52101",
+      "city": "Decorah",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "5cadcb3bd1a529d5",
       "sourceStoreId": null,
       "state": "IA",
@@ -197,7 +211,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "616f7b0dbda546f6",
@@ -206,20 +220,6 @@
       "name": "Beer On Floyd / Sioux City",
       "address": "3132 Floyd Blvd, Sioux City, IA, 51108",
       "city": "Sioux City",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "0f3ef4bcd0ce6349",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Beer Thirty Denison",
-      "address": "923 4th Avenue South, Denison, IA, 51442",
-      "city": "Denison",
       "county": null,
       "zip": null,
       "lat": null,
@@ -254,6 +254,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "8933144aea73e5ac",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Best Trip",
+      "address": "1516, SE  1st St, Des Moines, IA, 50315",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "984f355ee7fecb45",
@@ -421,7 +435,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "6a4d1ecb5036bb5c",
@@ -430,6 +444,20 @@
       "name": "Brew #4 / Sioux City",
       "address": "2501 Floyd Blvd, Sioux City, IA, 51104",
       "city": "Sioux City",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "efe7a49364a182a5",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Brew Oil #26 / Pocahontas",
+      "address": "14 E Elm Ave, Pocahontas, IA, 50574",
+      "city": "Pocahontas",
       "county": null,
       "zip": null,
       "lat": null,
@@ -522,20 +550,6 @@
       "signalCount": 1
     },
     {
-      "id": "4a2321d0bc8d53ae",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "C's Liquor / Spencer",
-      "address": "719 2nd Ave W, Spencer, IA, 51301",
-      "city": "Spencer",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "9272ffc8a186441c",
       "sourceStoreId": null,
       "state": "IA",
@@ -584,20 +598,6 @@
       "name": "Casey's General Store # 2598/ Pella",
       "address": "414 S Clark Street, Pella, IA, 50219",
       "city": "Pella",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "065bdc2f7e7c46e6",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Casey's General Store #0007 / Ottumwa",
-      "address": "1001 E Main St, Ottumwa, IA, 52501",
-      "city": "Ottumwa",
       "county": null,
       "zip": null,
       "lat": null,
@@ -662,20 +662,6 @@
       "signalCount": 1
     },
     {
-      "id": "6ea70bd839176171",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Casey's General Store #2460 / Algona",
-      "address": "1414 N MAIN ST, Algona, IA, 50511",
-      "city": "Algona",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "47bff0044982051d",
       "sourceStoreId": null,
       "state": "IA",
@@ -702,6 +688,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "8615faf94ebfa76d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Casey's General Store #2640 / Pleasa",
+      "address": "1006 W Pleasant St, Pleasantville, IA, 50225",
+      "city": "Pleasantville",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "cecdcb29e48b72fc",
@@ -732,20 +732,6 @@
       "signalCount": 1
     },
     {
-      "id": "d7c52942f74e3292",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Casey's General Store #3043 / Britt",
-      "address": "576, N Main Ave, Britt, IA, 50423",
-      "city": "Britt",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "33d1ad1d5330b2b6",
       "sourceStoreId": null,
       "state": "IA",
@@ -760,12 +746,12 @@
       "signalCount": 1
     },
     {
-      "id": "72b0700910630fa4",
+      "id": "f286dc5831694cde",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Casey's General Store #3319 / Nevada",
-      "address": "1800 South B Ave, Nevada, IA, 50201",
-      "city": "Nevada",
+      "name": "Casey's General Store #3534 / Clermont",
+      "address": "74 Mill Street, Clermont, IA, 52135",
+      "city": "Clermont",
       "county": null,
       "zip": null,
       "lat": null,
@@ -780,6 +766,48 @@
       "name": "Casey's General Store #3640 / Waukee",
       "address": "870 NE Alice's Rd, Waukee, IA, 50263",
       "city": "Waukee",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "717f692ecca4a6ff",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Casey's General Store #3826 - Adel",
+      "address": "1738 Nile Kinnick S., Adel, IA, 50003",
+      "city": "Adel",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "05dbbc4b8e32f38d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Casey's General Store #51 / Humboldt",
+      "address": "907 13th St N, Humboldt, IA, 50548",
+      "city": "Humboldt",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "abed9d0ad98a068e",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Cash Saver #34 / Des Moines",
+      "address": "4121 Fleur Drive, Des Moines, IA, 50321",
+      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -830,20 +858,6 @@
       "signalCount": 1
     },
     {
-      "id": "805edcd717205995",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "City Smoke Shop / Johnston",
-      "address": "5765 Merle Hay Road, Johnston, IA, 50131",
-      "city": "Johnston",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "4f1aef7a9382e209",
       "sourceStoreId": null,
       "state": "IA",
@@ -870,6 +884,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "3d7c7c02963c0980",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Corner Mart / Marion",
+      "address": "998 8th Ave, Marion, IA, 52302",
+      "city": "Marion",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "15779d9552ef880f",
@@ -984,6 +1012,20 @@
       "signalCount": 1
     },
     {
+      "id": "bac741ba2d488621",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "D & T Gas & Food LLC / Baldwin",
+      "address": "5358 Highway 64, Baldwin, IA, 52207",
+      "city": "Baldwin",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "9822976850e97a94",
       "sourceStoreId": null,
       "state": "IA",
@@ -1012,6 +1054,20 @@
       "signalCount": 3
     },
     {
+      "id": "8ea1c38d1fc7f306",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Ding's Honk'n Holler",
+      "address": "900, E  Washington  St, Clarinda, IA, 51632",
+      "city": "Clarinda",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "955e561238f36aa8",
       "sourceStoreId": null,
       "state": "IA",
@@ -1024,6 +1080,48 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "d4be2b132751fa5d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Discount Liquor And Tobacco / Creston",
+      "address": "509 W Taylor St STE B, Creston, IA, 50801",
+      "city": "Creston",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "c4e9c0b9ef0c7c26",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Double D Liquor Store / Waukon",
+      "address": "618 Rossville Rd, Waukon, IA, 52172",
+      "city": "Waukon",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "f7e320261777aa69",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Downtown Pantry",
+      "address": "218, 6th Ave #101, Des Moines, IA, 50309",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "1469c1ce23befb80",
@@ -1082,6 +1180,20 @@
       "signalCount": 1
     },
     {
+      "id": "80f76749ceb40571",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "East Village Pantry",
+      "address": "333 E GRAND AVE, Des Moines, IA, 50309",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "9f9198817f947c97",
       "sourceStoreId": null,
       "state": "IA",
@@ -1094,6 +1206,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "6378e1536bd119df",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Easygo",
+      "address": "2723 Grand Ave, Des Moines, IA, 50312",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "746f719e40f8a3f2",
@@ -1149,7 +1275,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 5
     },
     {
       "id": "2ca2ce37de720ae5",
@@ -1250,6 +1376,20 @@
       "signalCount": 1
     },
     {
+      "id": "81d0350cabef3d99",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #048 / Clarinda",
+      "address": "115 Essie Davison Drive, Clarinda, IA, 51632",
+      "city": "Clarinda",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "1d28cca2a5e37620",
       "sourceStoreId": null,
       "state": "IA",
@@ -1270,20 +1410,6 @@
       "name": "Fareway Stores #061 / Ankeny",
       "address": "3205 North Ankeny Blvd, Ankeny, IA, 50021",
       "city": "Ankeny",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "64719fd67bc50f41",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #093 / Ames",
-      "address": "3619 Stange Rd, Ames, IA, 50010",
-      "city": "Ames",
       "county": null,
       "zip": null,
       "lat": null,
@@ -1318,6 +1444,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
+    },
+    {
+      "id": "f2bf8f30cd53ee6e",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #124 / Adel",
+      "address": "804 Nile Kinnick Dr, Adel, IA, 50003",
+      "city": "Adel",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "449c2ffa2801a378",
@@ -1390,62 +1530,6 @@
       "signalCount": 1
     },
     {
-      "id": "9b2553b5eb4fcfe6",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #189 / Ames",
-      "address": "3720 Lincoln Way, Ames, IA, 50014",
-      "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "bf31afb47fdec43d",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #386 / Ames",
-      "address": "619 Burnett Ave, Ames, IA, 50010",
-      "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "7e615995b5f7e1ba",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #395 / Webster City",
-      "address": "942  2nd St, Webster City, IA, 50595",
-      "city": "Webster City",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "c607134dafceb0e5",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #426 / Nevada",
-      "address": "1505 South B Ave, Nevada, IA, 50201",
-      "city": "Nevada",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "ec8be43c0a9eb10e",
       "sourceStoreId": null,
       "state": "IA",
@@ -1458,6 +1542,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "86de26113bd4c2b8",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #462 / Vinton",
+      "address": "501 A Ave, Vinton, IA, 52349",
+      "city": "Vinton",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "c237c108306dc204",
@@ -1474,26 +1572,26 @@
       "signalCount": 1
     },
     {
+      "id": "64761401c7b57047",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #470 / Perry",
+      "address": "1315 Willis Ave, Perry, IA, 50220",
+      "city": "Perry",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "a1077730fd0ce083",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Fareway Stores #479 / Independence",
       "address": "1400 3rd Ave SE, Independence, IA, 50644",
       "city": "Independence",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "ab4aa615ecfd0020",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #491 / Mason City",
-      "address": "400 North Delaware Ave, Mason City, IA, 50401",
-      "city": "Mason City",
       "county": null,
       "zip": null,
       "lat": null,
@@ -1558,6 +1656,20 @@
       "signalCount": 1
     },
     {
+      "id": "de6b94f5907408c1",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #589 / Decorah",
+      "address": "103 E Main, Decorah, IA, 52101",
+      "city": "Decorah",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "fe1f2112a3304507",
       "sourceStoreId": null,
       "state": "IA",
@@ -1586,6 +1698,20 @@
       "signalCount": 1
     },
     {
+      "id": "9e5750d81fbbefe4",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #648 / Ottumwa",
+      "address": "1325 Albia Rd, Ottumwa, IA, 52501",
+      "city": "Ottumwa",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "c66128601418df3b",
       "sourceStoreId": null,
       "state": "IA",
@@ -1606,20 +1732,6 @@
       "name": "Fareway Stores #699 / Osceola",
       "address": "215 S Main St, Osceola, IA, 50213",
       "city": "Osceola",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "e60b2bc934cde35a",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores #705 / Clear Lake",
-      "address": "910 Hwy 18 W, Clear Lake, IA, 50428",
-      "city": "Clear Lake",
       "county": null,
       "zip": null,
       "lat": null,
@@ -1684,6 +1796,20 @@
       "signalCount": 2
     },
     {
+      "id": "6de0e778bf347efb",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #827 / Centerville",
+      "address": "305 S 18th St, Centerville, IA, 52544",
+      "city": "Centerville",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "8441d103de4d0cca",
       "sourceStoreId": null,
       "state": "IA",
@@ -1738,6 +1864,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "18c863414db57208",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #900 / Euclid",
+      "address": "100 Euclid Ave, Des Moines, IA, 50313",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "e3b97398e53c059a",
@@ -1796,12 +1936,40 @@
       "signalCount": 1
     },
     {
+      "id": "57656dcfd57489a7",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #938 / Shenandoah",
+      "address": "1007 S Fremont St, Shenandoah, IA, 51601",
+      "city": "Shenandoah",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "6271b5a0dcf68499",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Fareway Stores #940 / Atlantic",
       "address": "301 Poplar St, Atlantic, IA, 50022",
       "city": "Atlantic",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "3fcab4c075320996",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores #941 / Greenfield",
+      "address": "212 SW Kent, Greenfield, IA, 50849",
+      "city": "Greenfield",
       "county": null,
       "zip": null,
       "lat": null,
@@ -1838,32 +2006,32 @@
       "signalCount": 1
     },
     {
-      "id": "afd8ea408d82e511",
+      "id": "897ac9e82f89fc7e",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Fareway Stores #951 / Waterloo",
-      "address": "40  W San Marnan, Waterloo, IA, 50701",
-      "city": "Waterloo",
+      "name": "Fareway Stores #980 / Knoxville",
+      "address": "1308 S Lincoln St, Knoxville, IA, 50138",
+      "city": "Knoxville",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
-      "id": "aa53cb395f655acd",
+      "id": "637acbe45cc01cee",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Fareway Stores #974 / Cedar Falls",
-      "address": "214 N Magnolia Dr, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
+      "name": "Fareway Stores #983 / Grimes",
+      "address": "351 Gateway Dr, Grimes, IA, 50111",
+      "city": "Grimes",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "8a4360b7715da240",
@@ -1922,26 +2090,26 @@
       "signalCount": 1
     },
     {
+      "id": "1d1d9caa79b5a50b",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores, Inc. #077B / Norwalk",
+      "address": "2200 Sunset Drive, Norwalk, IA, 50211",
+      "city": "Norwalk",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "946e5aeb024188c4",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Fareway Stores, Inc. #222 / Rockwell City",
       "address": "339 East High Street, Rockwell City, IA, 50579",
       "city": "Rockwell City",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "b4fc6e4ec0b9f8d6",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores, Inc. #225 / Des Moines",
-      "address": "2716 Beaver Avenue, Des Moines, IA, 50310",
-      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -1962,20 +2130,6 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 3
-    },
-    {
-      "id": "4d2ea1dec7fef2a4",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Fareway Stores, Inc. #236 / Bondurant",
-      "address": "114 Brick Street Southeast, Bondurant, IA, 50035",
-      "city": "Bondurant",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
     },
     {
       "id": "907361be97980f6f",
@@ -2034,6 +2188,20 @@
       "signalCount": 1
     },
     {
+      "id": "b41aecd9ef144e9a",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fareway Stores, Inc. #262 / Granger",
+      "address": "1901 Oak Street, Granger, IA, 50109",
+      "city": "Granger",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "98497dd3d4af1d0a",
       "sourceStoreId": null,
       "state": "IA",
@@ -2076,18 +2244,46 @@
       "signalCount": 1
     },
     {
-      "id": "b3559dd0e7c26936",
+      "id": "f66d8e376a7cec19",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Five Corners Liquor & Wine",
-      "address": "809 E 18th St, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
+      "name": "Fast Lane / Burlington",
+      "address": "1532 Osborn Street, Burlington, IA, 52601",
+      "city": "Burlington",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
+    },
+    {
+      "id": "070be38a896cd65c",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fastland LLC / Burlington",
+      "address": "130 S Roosevelt Ave, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "c6c38e5bce7f65ef",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Fire and Salt Co - Corning LLC",
+      "address": "620 Davis Avenue, Corning, IA, 50841",
+      "city": "Corning",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "38b603785755042f",
@@ -2130,6 +2326,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "9fe06b54eb89407b",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "FRANKLIN STREET FLORAL & GIFT",
+      "address": "103 Franklin St, Monona, IA, 52159",
+      "city": "Monona",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "7e314dc475512224",
@@ -2300,20 +2510,6 @@
       "signalCount": 1
     },
     {
-      "id": "f5674f20e9b62dbd",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Grand Central Depot / Estherville",
-      "address": "1031 Central Avenue, Estherville, IA, 51334",
-      "city": "Estherville",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "2963e1c4a55c16e4",
       "sourceStoreId": null,
       "state": "IA",
@@ -2328,32 +2524,60 @@
       "signalCount": 1
     },
     {
-      "id": "2c82ae27714c51e5",
+      "id": "be3a2749305118a1",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Happy's Wine & Spirits",
-      "address": "5925 University Ave, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
+      "name": "Grimes Liquor Shop / Grimes",
+      "address": "3600 Southeast Crossroads Drive, Grimes, IA, 50111",
+      "city": "Grimes",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 5
     },
     {
-      "id": "2c998d71a559d101",
+      "id": "e560609796e860fa",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Happy's Wine & Spirits Wholesale",
-      "address": "5925 University Ave STE 5, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
+      "name": "Guttenberg Tobacco and Liquor / Guttenberg",
+      "address": "531 U.S. 52, Guttenberg, IA, 52052",
+      "city": "Guttenberg",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
+    },
+    {
+      "id": "10e2b0c1e4521a0b",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "H & A Mini Mart",
+      "address": "145 University Ave, Des Moines, IA, 50314",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "2c2922d48426592d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "H and A Mini Mart /BP",
+      "address": "5901 FLEUR DR, Des Moines, IA, 50321",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "09e7f14f49b34b16",
@@ -2412,6 +2636,20 @@
       "signalCount": 1
     },
     {
+      "id": "500274cc07baa3ea",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hawks Smoke Shop / Marion",
+      "address": "1396 7th Ave, Marion, IA, 52302",
+      "city": "Marion",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
+    },
+    {
       "id": "2f8910f9f5092398",
       "sourceStoreId": null,
       "state": "IA",
@@ -2426,18 +2664,18 @@
       "signalCount": 1
     },
     {
-      "id": "f97bf811286fc96e",
+      "id": "3d1940dd631c05c9",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Hiway 20 Liquor and Tobacco / Webster City",
-      "address": "1345 2nd Street, Webster City, IA, 50595",
-      "city": "Webster City",
+      "name": "Hiway 25 Liquor / Greenfield",
+      "address": "108 Northeast 6th Street, Greenfield, IA, 50849",
+      "city": "Greenfield",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "83da1e4e0bfa7e5f",
@@ -2452,6 +2690,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "579369e4f7a11c31",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hometown Foods / Panora",
+      "address": "601 E Main, Panora, IA, 50216",
+      "city": "Panora",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "4648131088c7f958",
@@ -2480,6 +2732,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "eeb80ecc23f06656",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hometown Market / Central City",
+      "address": "9 South Avenue, Central City, IA, 52214",
+      "city": "Central City",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "b4e5dbee2c2aae66",
@@ -2522,6 +2788,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "1732ff4ac9509752",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hopkinton Mart / Hopkinton",
+      "address": "104 3rd St SE, Hopkinton, IA, 52237",
+      "city": "Hopkinton",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
     },
     {
       "id": "5fd62751cda31c1b",
@@ -2664,6 +2944,20 @@
       "signalCount": 1
     },
     {
+      "id": "4c34e7c0cf3f5139",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee #2 (1044) / Burlington",
+      "address": "3140 Agency, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "d06b710afde1080b",
       "sourceStoreId": null,
       "state": "IA",
@@ -2689,7 +2983,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "6391a45099bd9e43",
@@ -2790,54 +3084,12 @@
       "signalCount": 1
     },
     {
-      "id": "82c14f5661205474",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Dollar Fresh - Emmetsburg",
-      "address": "3402 Main Street, Emmetsburg, IA, 50536",
-      "city": "Emmetsburg",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "8c333c2107dad375",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Dollar Fresh / Nevada",
-      "address": "1622 Fawcett Parkway, Nevada, IA, 50201",
-      "city": "Nevada",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "42d54a130008e3b3",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Hy-Vee Drugstore / Davenport",
       "address": "2200 West Kimberly, Davenport, IA, 52806",
       "city": "Davenport",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "8ad8bc2648c3f6ef",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Drugstore / University / DSM",
-      "address": "4100 University Ave, Des Moines, IA, 50311",
-      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -2888,6 +3140,20 @@
       "signalCount": 1
     },
     {
+      "id": "83add06fbdc51c57",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Drugstore #6 / Cedar Rapids",
+      "address": "505 Boyson Rd NE, Cedar Rapids, IA, 52402",
+      "city": "Cedar Rapids",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 5
+    },
+    {
       "id": "9dfbf5a1f817e55c",
       "sourceStoreId": null,
       "state": "IA",
@@ -2900,6 +3166,34 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "39a113b7b867fd12",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Fast and Fresh / Cumming",
+      "address": "5237 Cumming Avenue, Cumming, IA, 50061",
+      "city": "Cumming",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "cf367466162eeb8b",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Fast and Fresh / Marion",
+      "address": "2790 7th Avenue, Marion, IA, 52302",
+      "city": "Marion",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "a3ed0a4789906fce",
@@ -2972,6 +3266,20 @@
       "signalCount": 1
     },
     {
+      "id": "a6f4a5b3eddbaa6c",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Food Store (1353) / Knoxville",
+      "address": "813 N Lincoln Ste 1, Knoxville, IA, 50138",
+      "city": "Knoxville",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "a89291dd0946af70",
       "sourceStoreId": null,
       "state": "IA",
@@ -3006,20 +3314,6 @@
       "name": "Hy-Vee Food Store (1636) / Spencer",
       "address": "819 N Grand Ave, Spencer, IA, 51301",
       "city": "Spencer",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "5995592bbf5a7a0b",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Food Store / Cedar Falls",
-      "address": "6301 University, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
       "county": null,
       "zip": null,
       "lat": null,
@@ -3168,6 +3462,20 @@
       "signalCount": 1
     },
     {
+      "id": "7578e2b7f85f7851",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Food Store #1 (1504) / Ottumwa",
+      "address": "1025 North Quincy Ave, Ottumwa, IA, 52501",
+      "city": "Ottumwa",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "03fa4ad1496a152f",
       "sourceStoreId": null,
       "state": "IA",
@@ -3238,34 +3546,6 @@
       "signalCount": 1
     },
     {
-      "id": "78ca2c44faea6d6e",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Food Store #3 (1142) / Des Moines",
-      "address": "3221 SE 14th St, Des Moines, IA, 50315",
-      "city": "Des Moines",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "a14094b20774f112",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Food Store #3 (1866) / Waterloo",
-      "address": "1422 Flammang Dr, Waterloo, IA, 50702",
-      "city": "Waterloo",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "d7b9781ae55f337d",
       "sourceStoreId": null,
       "state": "IA",
@@ -3322,6 +3602,20 @@
       "signalCount": 1
     },
     {
+      "id": "51d58f05c9eceefa",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Store / Perry",
+      "address": "1215  141 St, Perry, IA, 50220",
+      "city": "Perry",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "1e01ab34feb6a658",
       "sourceStoreId": null,
       "state": "IA",
@@ -3348,6 +3642,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "a24727664dc96c7a",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits (1038) / Boone",
+      "address": "1111  8TH ST, Boone, IA, 50036",
+      "city": "Boone",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "10483f6421659aa2",
@@ -3406,32 +3714,18 @@
       "signalCount": 1
     },
     {
-      "id": "efa43c684bf6cfbe",
+      "id": "4cd73cbf39acaf4d",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Hy-Vee Wine and Spirits / Hubbell",
-      "address": "2310 Hubbell Ave, Des Moines, IA, 50317",
-      "city": "Des Moines",
+      "name": "Hy-Vee Wine and Spirits / Shenandoah",
+      "address": "520 So Fremont, Shenandoah, IA, 51601",
+      "city": "Shenandoah",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "e1898ac8cf8e5b47",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Hy-Vee Wine and Spirits / Le Mars",
-      "address": "1201 12th Ave SW, Le Mars, IA, 51031",
-      "city": "Le Mars",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "50a22afceb91a56a",
@@ -3504,6 +3798,20 @@
       "signalCount": 3
     },
     {
+      "id": "ad0091010641bfe0",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Iowa Spirits / Burlington",
+      "address": "2107 East Agency Street, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
+    },
+    {
       "id": "67068a4236f2470d",
       "sourceStoreId": null,
       "state": "IA",
@@ -3558,6 +3866,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "b8be5c2807ac04da",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Jim and Charlies Affiliated",
+      "address": "121 North Clinton, Albia, IA, 52531",
+      "city": "Albia",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "c4bd49db5604f574",
@@ -3616,6 +3938,34 @@
       "signalCount": 1
     },
     {
+      "id": "e9cd0c3b5e42c256",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Jubilee Foods",
+      "address": "200 State St, Guthrie Center, IA, 50115",
+      "city": "Guthrie Center",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "2348ecc91a0fa7a1",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Karen's Spirits and Wine",
+      "address": "328  2nd Ave S, Fort Dodge, IA, 50501",
+      "city": "Fort Dodge",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "0abd5bd20cd96ca6",
       "sourceStoreId": null,
       "state": "IA",
@@ -3627,7 +3977,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "93151b830933a4fb",
@@ -3658,6 +4008,20 @@
       "signalCount": 1
     },
     {
+      "id": "505bb2b1d443ba7d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Kimmes Manson Country Store #10",
+      "address": "208 Main St, Manson, IA, 50563",
+      "city": "Manson",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "ad1a3b35d75d2724",
       "sourceStoreId": null,
       "state": "IA",
@@ -3686,40 +4050,12 @@
       "signalCount": 1
     },
     {
-      "id": "2c7523c2b57b3022",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Kwik Spirits #561 / Cedar Falls",
-      "address": "4116 University Ave  STE 104-105, Cedar Falls, IA, 50613",
-      "city": "Cedar Falls",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "67200e283ebde960",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Kwik Stop Liquor & Groceries Ames",
       "address": "125 6th ST, Ames, IA, 50010",
       "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "da3cf0801d7aa7e7",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Lake Liquors Wine and Spirits / Clear Lake",
-      "address": "910 N 8th St W, Clear Lake, IA, 50428",
-      "city": "Clear Lake",
       "county": null,
       "zip": null,
       "lat": null,
@@ -3854,6 +4190,20 @@
       "signalCount": 2
     },
     {
+      "id": "6ae131999f036c28",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Liquorland / Burlington",
+      "address": "600 South Main Street, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "c11a50ae97e03d1a",
       "sourceStoreId": null,
       "state": "IA",
@@ -3866,6 +4216,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "5f16ed354b0d9510",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Local Liquor / Panora",
+      "address": "603 East Main Street, Panora, IA, 50216",
+      "city": "Panora",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "e93aa361ab3ed4df",
@@ -3882,6 +4246,20 @@
       "signalCount": 1
     },
     {
+      "id": "d8bed9680c932d8f",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Lone Tree BP / Lone Tree",
+      "address": "122 S Devoe St, LoneTree, IA, 52755",
+      "city": "LoneTree",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
+    },
+    {
       "id": "ecd33b9480872ffe",
       "sourceStoreId": null,
       "state": "IA",
@@ -3894,6 +4272,48 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "43cc06a92688e16d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Lucky Pick Store LLC / Burlington",
+      "address": "1703 Mount Pleasant St, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "f7335f7033c4a760",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Luxemburg Corner Mart and Gas / Luxemburg",
+      "address": "101 West Main Street, Luxemburg, IA, 52056",
+      "city": "Luxemburg",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "9cb8b87b1880bc12",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "MAD Ave Quik Shop",
+      "address": "405, Madison Ave, Ottumwa, IA, 52501",
+      "city": "Ottumwa",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "b6f5b11165ea0cdd",
@@ -3938,54 +4358,12 @@
       "signalCount": 1
     },
     {
-      "id": "1fd1f1caaabf4271",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Mason Mart / Mason City",
-      "address": "610 S. Monroe Ave., Mason City, IA, 50401",
-      "city": "Mason City",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "63076c49866a75d9",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Maverik #5020 / Waukee",
       "address": "400 Prairie Bluff Dr, Waukee, IA, 50263",
       "city": "Waukee",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "fa045c292e94f944",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5023  /  Johnston",
-      "address": "5225 NW  86th  St, Johnston, IA, 50131",
-      "city": "Johnston",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "c2838c1802f46885",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5028 / Ames",
-      "address": "203 Welch Ave, Ames, IA, 50010",
-      "city": "Ames",
       "county": null,
       "zip": null,
       "lat": null,
@@ -4008,34 +4386,6 @@
       "signalCount": 1
     },
     {
-      "id": "2e69a861d96bb447",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5118 / Ames",
-      "address": "4510 Mortensen Rd, Ames, IA, 50014",
-      "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "49da56585c2bc951",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5266 / Des Moines",
-      "address": "4960 E Broadway Ave, Des Moines, IA, 50317",
-      "city": "Des Moines",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "dee4b0827067dd0b",
       "sourceStoreId": null,
       "state": "IA",
@@ -4050,18 +4400,46 @@
       "signalCount": 1
     },
     {
-      "id": "2ce0e637464da908",
+      "id": "c58fc4ca6f86a927",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Maverik #5299 / Ames",
-      "address": "4506 Lincoln Way, Ames, IA, 50010",
-      "city": "Ames",
+      "name": "Maverik #5283 / NW 2nd Ave",
+      "address": "5050 NW 2nd Ave, Des Moines, IA, 50313",
+      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
+    },
+    {
+      "id": "c495fc90454279a8",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Maverik #5284 / Waukee",
+      "address": "3105 Grand Prairie Parkway, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "f0daaf528b65a937",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Maverik #5298 / Waukee",
+      "address": "650 W Hickman Rd, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "f9aecd8f5aaff113",
@@ -4078,40 +4456,12 @@
       "signalCount": 1
     },
     {
-      "id": "928720183195ed0c",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5361 / Des Moines",
-      "address": "3104 University Ave, Des Moines, IA, 50311",
-      "city": "Des Moines",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "9d6f3ac44fe9e01f",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Maverik #5362 / Pleasant Hill",
       "address": "5970 Morning Star Ct, Pleasant Hill, IA, 50317",
       "city": "Pleasant Hill",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "dfe183c38c3d9001",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Maverik #5365 / Ames",
-      "address": "2801 E 13th St, Ames, IA, 50010",
-      "city": "Ames",
       "county": null,
       "zip": null,
       "lat": null,
@@ -4187,7 +4537,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "13207d6c59f324ce",
@@ -4232,12 +4582,26 @@
       "signalCount": 1
     },
     {
-      "id": "881790a27b687a08",
+      "id": "9359916c257284d1",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Merle Hay Liquor & Smoke / Des Moines",
-      "address": "3408 Merle Hay Road, Des Moines, IA, 50310",
-      "city": "Des Moines",
+      "name": "Mega Saver / Polk City",
+      "address": "303 W Broadway St, Polk City, IA, 50226",
+      "city": "Polk City",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "42d820c4a80a7a16",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Mepo Foods / Mediapolis",
+      "address": "111 Wapello St N, Mediapolis, IA, 52637",
+      "city": "Mediapolis",
       "county": null,
       "zip": null,
       "lat": null,
@@ -4258,20 +4622,6 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
-    },
-    {
-      "id": "e58151ad0efa47d5",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Mid Town Liquor & Vape / Mason City",
-      "address": "824 North Federal Avenue, Mason City, IA, 50401",
-      "city": "Mason City",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
     },
     {
       "id": "c2be98dfdb22d1d1",
@@ -4300,6 +4650,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
+    },
+    {
+      "id": "3405a1b63ee6f7d7",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "MK Minimart, Inc",
+      "address": "101 E Mt. Pleasant Street, West Burlington, IA, 52655",
+      "city": "West Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "8bca1d408b210b28",
@@ -4400,18 +4764,18 @@
       "signalCount": 3
     },
     {
-      "id": "3e3c1771c9a5c385",
+      "id": "d17d91e1bc1e48c9",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Northside Liquor and Grocery / Mason City",
-      "address": "1303 N Federal, Mason City, IA, 50401",
-      "city": "Mason City",
+      "name": "Neighborhood Tobacco Outlet / Marion",
+      "address": "2500 7th Avenue, Marion, IA, 52302",
+      "city": "Marion",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "8e2e5bf37e1baa54",
@@ -4454,6 +4818,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "027cd56d0c282c18",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Old 34 Gas & Grill / Danville",
+      "address": "305 U.S. 34 Business, Danville, IA, 52623",
+      "city": "Danville",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "71cb24dfe05f8f59",
@@ -4554,26 +4932,26 @@
       "signalCount": 1
     },
     {
+      "id": "e3b4ee57392185cf",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Polk City Liquor / Polk City",
+      "address": "201 North 3rd Street, Polk City, IA, 50226",
+      "city": "Polk City",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "3f20e8e3bd9d5334",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Porters Convenience 66 / Clinton",
       "address": "1512 Lincoln Way, Clinton, IA, 52732",
       "city": "Clinton",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "a80c906d24e8bcdc",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Price Chopper  /  Beaver #1310",
-      "address": "1819 Beaver Ave, Des Moines, IA, 50310",
-      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -4652,6 +5030,34 @@
       "signalCount": 1
     },
     {
+      "id": "e6a374210d0ca8f9",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Quik Stop  /  Burlington",
+      "address": "1812 Osborn St, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "7e8a9550645b1111",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Quillins Food Ranch / Waukon",
+      "address": "9th St SW B, Waukon, IA, 52172",
+      "city": "Waukon",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "1c595d3abee8d338",
       "sourceStoreId": null,
       "state": "IA",
@@ -4694,6 +5100,20 @@
       "signalCount": 3
     },
     {
+      "id": "f3913c20943c6f7d",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Red Oak LLC / Red Oak",
+      "address": "411 N 3rd St, Red Oak, IA, 51566",
+      "city": "Red Oak",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "f761e37326dd9232",
       "sourceStoreId": null,
       "state": "IA",
@@ -4708,26 +5128,68 @@
       "signalCount": 1
     },
     {
+      "id": "26c5ba2b0ce3fbcb",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "River Mart",
+      "address": "14562 Washington Road, West Burlington, IA, 52655",
+      "city": "West Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "c2aaed605c870fd3",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Riverside Casino And Resort",
+      "address": "3184 Highway 22, Riverside, IA, 52327",
+      "city": "Riverside",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "de62ffca9385472c",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "ROCSTOP",
+      "address": "1310 W Sheridan Ave, Shenandoah, IA, 51601",
+      "city": "Shenandoah",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "26b2876b719cedee",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Roy's Foodland",
+      "address": "105 Pearl St, Shellsburg, IA, 52332",
+      "city": "Shellsburg",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "ff05c37af941689f",
       "sourceStoreId": null,
       "state": "IA",
       "name": "Royal Liquor and Smoke / Grinnell",
       "address": "229 West Street, Grinnell, IA, 50112",
       "city": "Grinnell",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "2f123f135e1b43ef",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Royal Mart / Des Moines",
-      "address": "111 Southwest 63rd Street, Des Moines, IA, 50312",
-      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -4792,6 +5254,34 @@
       "signalCount": 1
     },
     {
+      "id": "b605666a6d7d98e6",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Shellsburg Quick Stop / Shellsburg",
+      "address": "101 Main Street Northeast, Shellsburg, IA, 52332",
+      "city": "Shellsburg",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
+    },
+    {
+      "id": "44d76f121877f790",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Sherpa Liquor & Tobacco Outlet 1 / Burlington",
+      "address": "1204 North 8th Street, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "423ddce548598d22",
       "sourceStoreId": null,
       "state": "IA",
@@ -4804,6 +5294,34 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "760dc8795986e461",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Short Stop / Boone",
+      "address": "1735 Mamie Eisenhower Ave., Boone, IA, 50036",
+      "city": "Boone",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "ba879e535bea1f22",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Sioux Food Center of Sioux Rapids",
+      "address": "621 Hwy 71, Sioux Rapids, IA, 50585",
+      "city": "Sioux Rapids",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "b7069e7ec20e2ec8",
@@ -4832,6 +5350,34 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "993ccfc765938d16",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Smartshop LLC / Des Moines",
+      "address": "4410 SE 14th St, Des Moines, IA, 50320",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "4d7469b27f93e640",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Smokin' Joe's #10 Tobacco and Liquor Outlet",
+      "address": "480 7th Ave, Marion, IA, 52302",
+      "city": "Marion",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "8aa6a1aa384993a7",
@@ -4904,6 +5450,34 @@
       "signalCount": 1
     },
     {
+      "id": "063b26bcd7a81d2a",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Smokin' Joe's #17 Tobacco and Liquor Outlet",
+      "address": "110 S Roosevelt Hwy 61, Burlington, IA, 52601",
+      "city": "Burlington",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "4c42df951d62de1c",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Smokin' Joe's #5 Tobacco and Liquor Outlet",
+      "address": "1115 Albia Rd, Ottumwa, IA, 52501",
+      "city": "Ottumwa",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "58e0c8c3e33d7d97",
       "sourceStoreId": null,
       "state": "IA",
@@ -4960,6 +5534,20 @@
       "signalCount": 1
     },
     {
+      "id": "802f604a9c88127a",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Spirit Liquor - 1 / Grimes",
+      "address": "109 1st Street, Grimes, IA, 50111",
+      "city": "Grimes",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 4
+    },
+    {
       "id": "9b151a0936736a25",
       "sourceStoreId": null,
       "state": "IA",
@@ -4974,6 +5562,34 @@
       "signalCount": 1
     },
     {
+      "id": "5d7bc6989851e814",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Springville Food Gas & Liquor Inc / Springville",
+      "address": "510 1st Avenue, Springville, IA, 52336",
+      "city": "Springville",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "56e8e796d47b83be",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "SS Khanna Group Inc / Creston",
+      "address": "804 Laurel St STE A, Creston, IA, 50801",
+      "city": "Creston",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "0c79d413d7c7af21",
       "sourceStoreId": null,
       "state": "IA",
@@ -4986,6 +5602,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "ea515af5465869fb",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Star Liquor Tobacco and Vape / Waukee",
+      "address": "23 Northeast Carefree Lane, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "07eaefdcaf7a41c3",
@@ -5086,6 +5716,20 @@
       "signalCount": 1
     },
     {
+      "id": "a87d2ea66630777b",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Sunshine Liquor & Tobacco / Des Moines",
+      "address": "2424 Southwest 9th Street, Des Moines, IA, 50315",
+      "city": "Des Moines",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
       "id": "2c79f9a9270b9a50",
       "sourceStoreId": null,
       "state": "IA",
@@ -5100,32 +5744,18 @@
       "signalCount": 1
     },
     {
-      "id": "2eeb42d2c39f90a4",
+      "id": "e9db2649328e6cb1",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Super Quick / SE 30 DM",
-      "address": "303 SE 30th St, Des Moines, IA, 50317",
+      "name": "Super Quick 2 / Hubbell",
+      "address": "1824 Hubbell Ave, Des Moines, IA, 50317",
       "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "1440157012676a35",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "Super Quick Liquor / WDM",
-      "address": "1800 22nd St, West Des Moines, IA, 50266",
-      "city": "West Des Moines",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "723866fbdf4326c4",
@@ -5198,18 +5828,18 @@
       "signalCount": 1
     },
     {
-      "id": "4b595d430c11ee24",
+      "id": "59995920710cde73",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Sycamore Convenience",
-      "address": "617 Sycamore, Waterloo, IA, 50703",
-      "city": "Waterloo",
+      "name": "Talbarahi / Boone",
+      "address": "320 W Mamie Eisenhower Ave, Boone, IA, 50036",
+      "city": "Boone",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "51cfaef41b638a29",
@@ -5226,6 +5856,20 @@
       "signalCount": 1
     },
     {
+      "id": "6b0e079193be8c9f",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "The Depot Atkins",
+      "address": "188, Parkridge Rd, Atkins, IA, 52206",
+      "city": "Atkins",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "af65eb7dab755e5a",
       "sourceStoreId": null,
       "state": "IA",
@@ -5240,26 +5884,26 @@
       "signalCount": 1
     },
     {
+      "id": "4591ba827a4bf8d4",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "The Depot Van Horne",
+      "address": "101 1st Ave, Van Horne, IA, 52346",
+      "city": "Van Horne",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
       "id": "bbdd978ecb8e4a5a",
       "sourceStoreId": null,
       "state": "IA",
       "name": "The Depot Williamsburg",
       "address": "103 Highland St, Williamsburg, IA, 52361",
       "city": "Williamsburg",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "9d8f6b18bd341c38",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "The Filling Station / Ames",
-      "address": "2400 University Blvd, Ames, IA, 50010",
-      "city": "Ames",
       "county": null,
       "zip": null,
       "lat": null,
@@ -5324,12 +5968,26 @@
       "signalCount": 1
     },
     {
-      "id": "2b16f130f1e9c1e6",
+      "id": "d34d6ffdbe90e27b",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "Tobacco Mart / Urbandale",
-      "address": "6535 Douglas Ave, Urbandale, IA, 50322",
-      "city": "Urbandale",
+      "name": "Tiger Spirits / Adel",
+      "address": "608 Greene St STE 2, Adel, IA, 50003",
+      "city": "Adel",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "d57ee17ff960e3a1",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Tobacco Hut Plus US Gas / Des Moines",
+      "address": "3000 Southwest 9th Street, Des Moines, IA, 50315",
+      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
@@ -5364,6 +6022,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "1e897f0f69fa522a",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Two Rivers / Columbus Junction",
+      "address": "213 High View Drive, Columbus Junction, IA, 52738",
+      "city": "Columbus Junction",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "0534258938d99b64",
@@ -5461,7 +6133,21 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
+    },
+    {
+      "id": "7a18ff82c18a6a72",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Vinton Liquor Tobacco and Vape / Vinton",
+      "address": "411 A Avenue, Vinton, IA, 52349",
+      "city": "Vinton",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "6a80e8c31cc35dad",
@@ -5531,7 +6217,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 6
     },
     {
       "id": "ce161409a781e9fc",
@@ -5546,6 +6232,20 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
+    },
+    {
+      "id": "aee171ac6d0ef32e",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "Westside Petro",
+      "address": "103 1st Street, Kalona, IA, 52247",
+      "city": "Kalona",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
     },
     {
       "id": "c1f0b4db73b5cb10",
@@ -5604,32 +6304,18 @@
       "signalCount": 1
     },
     {
-      "id": "a9b57c01f0f1aa37",
+      "id": "9c0837596594cdc5",
       "sourceStoreId": null,
       "state": "IA",
-      "name": "World Liquor & Tobacco",
-      "address": "1775 NW 86th St, Clive, IA, 50325",
-      "city": "Clive",
+      "name": "World Liquor & Tobacco + Vapors / Des Moines",
+      "address": "3200 Southeast 14th Street, Des Moines, IA, 50320",
+      "city": "Des Moines",
       "county": null,
       "zip": null,
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "637c4cd6577ef160",
-      "sourceStoreId": null,
-      "state": "IA",
-      "name": "World Liquor & Tobacco + Vapors / Ames",
-      "address": "111 Duff Avenue, Ames, IA, 50010",
-      "city": "Ames",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "6175ac216bb47b8f",
@@ -5638,6 +6324,20 @@
       "name": "World Liquor & Tobacco + Vapors / Stuart",
       "address": "112 North Division Street, Stuart, IA, 50250",
       "city": "Stuart",
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 3
+    },
+    {
+      "id": "b9dfd28e512cc8a0",
+      "sourceStoreId": null,
+      "state": "IA",
+      "name": "World Liquor & Tobacco Plus Vapors / Adel",
+      "address": "918 Court Street, Adel, IA, 50003",
+      "city": "Adel",
       "county": null,
       "zip": null,
       "lat": null,
@@ -8275,7 +8975,7 @@
       "lat": 39.6649957,
       "lng": -86.09783039999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 6
     },
     {
       "id": "big-red:5e8d55c9b85103730903a59b",
@@ -9059,7 +9759,7 @@
       "lat": 41.01869019999999,
       "lng": -85.1699124,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 20
+      "signalCount": 12
     },
     {
       "id": "DL4232467",
@@ -15670,6 +16370,20 @@
       "signalCount": 1
     },
     {
+      "id": "payless-liquors:east-street",
+      "sourceStoreId": "payless-liquors:east-street",
+      "state": "IN",
+      "name": "Payless Liquors - East Street",
+      "address": "3825 S. East Street, Indianapolis, IN 46227",
+      "city": "Indianapolis",
+      "county": null,
+      "zip": "46227",
+      "lat": 39.7106,
+      "lng": -86.1484,
+      "source": "Payless Liquors East Street barrel selections",
+      "signalCount": 1
+    },
+    {
       "id": "DL0609675",
       "sourceStoreId": "DL0609675",
       "state": "IN",
@@ -21351,7 +22065,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 50
+      "signalCount": 51
     },
     {
       "id": "40973",
@@ -23829,7 +24543,7 @@
       "lat": 40.448363,
       "lng": -79.986832,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "0222",
