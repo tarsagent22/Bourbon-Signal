@@ -317,9 +317,113 @@ function eventPriority(event) {
   return 30;
 }
 
+function eventSourceType(signal, category) {
+  const hay = `${signal.eventType || ''} ${signal.sourceLabel || ''} ${signal.source || ''} ${signal.sourceUrl || ''}`.toLowerCase();
+  if (/abc|abca|alcoholic beverage|liquor control|fine wine|fwgs|ohlq|virginia abc|nc board|county abc/.test(hay)) {
+    if (category === 'lottery') return 'official_lottery';
+    if (category === 'scheduled_release') return 'official_schedule';
+    return 'official_board_page';
+  }
+  if (/eventbrite|calendar|events|tasting/.test(hay)) return 'retailer_event';
+  if (/cityhive|shop|store|liquor|spirits|package/.test(hay)) return 'retailer_page';
+  return category === 'tasting' ? 'retailer_event' : 'release_watch';
+}
+
+function eventSourceLabel(sourceType) {
+  return {
+    official_lottery: 'Official lottery page',
+    official_schedule: 'Official release schedule',
+    official_board_page: 'Official ABC / control-board page',
+    retailer_event: 'Retailer event page',
+    retailer_page: 'Retailer release page',
+    release_watch: 'Release-watch source'
+  }[sourceType] || 'Release-watch source';
+}
+
+function eventStatus(value) {
+  if (!value) return 'watch_page';
+  const ts = Date.parse(value);
+  if (!Number.isFinite(ts)) return 'watch_page';
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  if (ts < now - day) return 'recent_or_past';
+  if (ts <= now + 30 * day) return 'upcoming';
+  return 'scheduled_future';
+}
+
+function normalizeEventDate(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  const parsed = Date.parse(raw);
+  if (!Number.isFinite(parsed)) return null;
+  return new Date(parsed).toISOString().slice(0, 10);
+}
+
+function inferEventDate(signal) {
+  const explicit = normalizeEventDate(signal.releaseDate || signal.eventDate || signal.raw?.releaseDate || signal.raw?.eventDate);
+  if (explicit) return explicit;
+  const hay = `${signal.availabilityLabel || ''} ${signal.evidence || ''} ${signal.inventorySemantics || ''} ${signal.raw?.title || ''}`;
+  const numeric = hay.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+  if (numeric) return normalizeEventDate(`${numeric[1]}/${numeric[2]}/${numeric[3]}`);
+  const named = hay.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2}(?:st|nd|rd|th)?(?:,)?\s+20\d{2}\b/i);
+  if (named) return normalizeEventDate(named[0].replace(/(\d{1,2})(st|nd|rd|th)/i, '$1'));
+  return null;
+}
+
+function eventFreshnessScore(signal, eventDate) {
+  const observed = Date.parse(signal.observedAt || signal.fetchedAt || 0);
+  const ageHours = Number.isFinite(observed) ? Math.max(0, (Date.now() - observed) / (60 * 60 * 1000)) : 9999;
+  let score = ageHours <= 24 ? 20 : ageHours <= 72 ? 14 : ageHours <= 168 ? 8 : 2;
+  const status = eventStatus(eventDate);
+  if (status === 'upcoming') score += 18;
+  if (status === 'scheduled_future') score += 10;
+  if (status === 'watch_page') score += 6;
+  return score;
+}
+
+const WATCH_PRODUCT_PATTERNS = [
+  ['Blanton', /\bblanton'?s?\b/i],
+  ['Weller', /\bweller\b/i],
+  ['Stagg', /\bstagg\b/i],
+  ['Eagle Rare', /\beagle rare\b/i],
+  ['Buffalo Trace', /\bbuffalo trace\b/i],
+  ['E.H. Taylor', /\b(e\.?h\.?\s*)?taylor\b/i],
+  ['Van Winkle', /\b(van winkle|pappy)\b/i],
+  ['Old Fitzgerald', /\bold fitzgerald\b/i],
+  ['Michter', /\bmichter'?s?\b/i],
+  ['Willett', /\bwillett\b/i],
+  ['Four Roses Limited Edition', /\bfour roses.*limited|limited.*four roses\b/i],
+  ['BTAC', /\b(btac|george t\.? stagg|william larue|thomas handy|sazerac 18|eagle rare 17)\b/i]
+];
+
+function detectedEventProducts(signal, drop) {
+  const hay = `${drop.bottleName || ''} ${drop.rawName || ''} ${signal.evidence || ''} ${signal.inventorySemantics || ''} ${signal.availabilityLabel || ''} ${signal.raw?.title || ''}`;
+  const detected = WATCH_PRODUCT_PATTERNS.filter(([, re]) => re.test(hay)).map(([name]) => name);
+  if (drop.bottleName && !detected.includes(drop.bottleName)) detected.unshift(drop.bottleName);
+  return [...new Set(detected)].slice(0, 8);
+}
+
+function eventActionability({ category, eventDate, sourceUrl, canAlertAsWatch, sourceType }) {
+  const status = eventStatus(eventDate);
+  if (status === 'recent_or_past') return 'watch';
+  let score = eventPriority({ category });
+  if (sourceUrl) score += 10;
+  if (eventDate) score += 14;
+  if (canAlertAsWatch) score += 6;
+  if (/official/.test(sourceType)) score += 10;
+  if (status === 'upcoming') score += 14;
+  if (status === 'recent_or_past') score -= 18;
+  if (!eventDate && !['lottery', 'barrel_pick', 'tasting'].includes(category)) return score >= 70 ? 'medium' : 'watch';
+  return score >= 88 ? 'high' : score >= 70 ? 'medium' : 'watch';
+}
+
 function publicEvent(signal, bible) {
   const drop = publicSignal(signal, bible);
   const category = eventCategory(signal);
+  const eventDate = inferEventDate(signal);
+  const sourceType = eventSourceType(signal, category);
+  const sourceTypeLabel = eventSourceLabel(sourceType);
+  const products = detectedEventProducts(signal, drop);
   const titleParts = [];
   if (drop.bottleName) titleParts.push(drop.bottleName);
   if (category === 'scheduled_release') titleParts.push('scheduled release');
@@ -334,15 +438,21 @@ function publicEvent(signal, bible) {
     title,
     category,
     eventType: drop.type,
-    eventDate: signal.releaseDate || signal.eventDate || signal.raw?.releaseDate || null,
+    eventDate,
     eventTime: signal.releaseTime || signal.eventTime || signal.raw?.releaseTime || null,
-    sourceType: category === 'scheduled_release' ? 'official_schedule' : category === 'lottery' ? 'official_lottery' : category === 'tasting' ? 'retailer_event' : 'release_watch',
+    sourceType,
+    sourceTypeLabel,
+    eventStatus: eventStatus(eventDate),
+    actionability: eventActionability({ category, eventDate, sourceUrl: drop.sourceUrl, canAlertAsWatch: drop.canAlertAsWatch, sourceType }),
+    detectedProducts: products,
+    contentSignature: stableId([drop.state, drop.type, drop.sourceUrl, drop.bottleName, drop.rawName, drop.locationName, signal.evidence, signal.inventorySemantics]),
+    eventKey: stableId([drop.state, category, drop.sourceUrl, drop.locationName, eventDate, products.join('|') || drop.bottleName || drop.rawName || title]),
     actionLabel: category === 'scheduled_release' ? 'Verify release rules before driving'
       : category === 'lottery' ? 'Check entry rules at source'
       : category === 'tasting' ? 'Check event details at source'
       : 'Monitor source for release details',
     inventoryCaveat: drop.canAlertAsInventory ? 'May indicate retailer/store inventory; verify before driving.' : 'Release/event intelligence only; not live shelf inventory.',
-    sortScore: eventPriority({ category }) + (drop.locationPrecision === 'store_level' ? 6 : 0) + (drop.canAlertAsWatch ? 4 : 0) + (drop.confidence || 0)
+    sortScore: eventPriority({ category }) + eventFreshnessScore(signal, eventDate) + (drop.locationPrecision === 'store_level' ? 6 : 0) + (drop.canAlertAsWatch ? 4 : 0) + (/official/.test(sourceType) ? 8 : 0) + (drop.confidence || 0)
   };
 }
 
@@ -354,7 +464,7 @@ function buildEvents(signals, bible) {
     .filter((signal) => findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
     .map((signal) => publicEvent(signal, bible))
     .filter((event) => {
-      const key = [event.state, event.category, event.canonicalId || event.rawName || event.title, event.sourceUrl, event.locationName, event.eventDate, event.price].join('|');
+      const key = event.eventKey || [event.state, event.category, event.canonicalId || event.rawName || event.title, event.sourceUrl, event.locationName, event.eventDate, event.price].join('|');
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
