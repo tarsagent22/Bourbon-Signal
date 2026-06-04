@@ -6,7 +6,7 @@ const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
 
 type JsonRecord = Record<string, unknown>;
 
-export function readSiteExport(name: "alerts" | "bottles" | "drops" | "locations" | "nc-intelligence" | "stats" | "stores") {
+export function readSiteExport(name: "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "stats" | "stores") {
   const filePath = join(SITE_EXPORT_DIR, `${name}.json`);
   if (!existsSync(filePath)) {
     return null;

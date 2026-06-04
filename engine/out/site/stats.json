@@ -1,21 +1,22 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T01:59:00.152Z",
-  "engineGeneratedAt": "2026-06-04T01:57:37.533Z",
+  "generatedAt": "2026-06-04T03:37:37.292Z",
+  "engineGeneratedAt": "2026-06-04T03:31:36.206Z",
   "stateCount": 23,
-  "signalCount": 10297,
-  "historicalSignalCount": 1562912,
+  "signalCount": 10325,
+  "historicalSignalCount": 1599171,
   "historyDays": 30,
-  "snapshotCount": 1385,
+  "snapshotCount": 1395,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2730,
-  "locationCount": 4554,
+  "locationCount": 4556,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 9699,
-  "alertCandidateCount": 202,
-  "roadblockCount": 51,
+  "dropCount": 9702,
+  "eventCount": 2148,
+  "alertCandidateCount": 3,
+  "roadblockCount": 50,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -121,7 +122,7 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 924,
+        "signalCount": 965,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -133,7 +134,7 @@
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
         "status": "useful",
-        "signalCount": 2083,
+        "signalCount": 2069,
         "roadblockCount": 2,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -265,8 +266,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -311,7 +312,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-04T01:59:00.153Z",
+    "generatedAt": "2026-06-04T03:37:37.295Z",
     "focusStates": [
       "AL",
       "VA",
@@ -350,7 +351,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 924,
+        "signalCount": 965,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -382,7 +383,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 3,
+        "signalCount": 4,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -803,7 +804,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -819,7 +820,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "043b9c8f4cc5473e",
@@ -845,7 +846,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
-    "boardsWithReleasePages": 8,
+    "boardsWithReleasePages": 13,
     "boardsWithInventoryPages": 5,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },

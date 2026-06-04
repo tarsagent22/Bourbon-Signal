@@ -9,8 +9,8 @@ const NC_WAREHOUSE_STOCK_URL = 'https://abc2.nc.gov/StoresBoards/Stocks';
 const NC_BOARD_LIST_URL = 'https://abc2.nc.gov/StoresBoards/BoardList';
 const NC_BOARD_HISTORY_DIR = path.join(OUT, 'history', 'nc-board-intelligence');
 const NC_WAREHOUSE_HISTORY_DIR = path.join(OUT, 'history', 'nc-warehouse');
-const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 10);
-const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 6);
+const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 30);
+const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
@@ -24,6 +24,10 @@ const STATIC_BOARD_TARGETS = [
   { boardName: 'Mecklenburg County ABC Board', urls: ['https://www.meckabc.com/store_operations/specialty_products_lottery.php', 'https://www.meckabc.com/products/index.php'], capability: 'lottery_and_product_search' },
   { boardName: 'High Point ABC Board', urls: ['https://www.highpointabc.com/products', 'https://www.highpointabc.com/pages/view-inventory'], capability: 'inventory_or_product_search_page' },
   { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/bourbon-blast/', 'https://www.newhanovercountyabc.com/barrels/', 'https://www.newhanovercountyabc.com/lottery/', 'https://nh.abcgo.app/'], capability: 'board_release_notifications' },
+  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/allocated-products/'], capability: 'allocated_product_release_page' },
+  { boardName: 'Greensboro ABC Board', urls: ['https://www.greensboroabc.com/greensboro-abc-lottery/'], capability: 'lottery_page' },
+  { boardName: 'Orange County ABC Board', urls: ['https://orangeabc.com/specialty-lottery/'], capability: 'lottery_page' },
+  { boardName: 'Cumberland County ABC Board', urls: ['https://www.cumberlandabc.com/about-3'], capability: 'special_order_and_allocation_page' },
   { boardName: 'Wayne County ABC Board', urls: ['https://wayneabc.com/allocation-policy/'], capability: 'allocation_policy' },
   { boardName: 'Weaverville ABC Board', urls: ['https://weaverville.ncabcboards.com/blog/', 'https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/'], capability: 'lottery_and_policy_posts' },
   { boardName: 'Concord ABC Board', urls: ['https://concordabcboard.com/preparing-for-bourbon-lottery/'], capability: 'lottery_page' }
@@ -174,6 +178,23 @@ function pageCapability(url, text = '', linkLabels = '') {
   if (/barrel pick|single barrel/i.test(hay)) caps.push('barrel_program_page');
   if (/news|announcement|blog|post/i.test(hay)) caps.push('news_or_announcement_page');
   return [...new Set(caps)];
+}
+
+function eventTypeForReport(report) {
+  const hay = `${report.url || ''} ${(report.capabilities || []).join(' ')}`.toLowerCase();
+  if (/lottery|raffle/.test(hay)) return 'nc_board_lottery_surface';
+  if (/barrel/.test(hay)) return 'nc_board_barrel_pick_surface';
+  if (/inventory|product_search/.test(hay)) return 'nc_board_inventory_surface';
+  if (/allocation|allocated|limited|release|drop|bourbon-blast|bourbon_blast|specialty/.test(hay)) return 'nc_board_release_surface';
+  return 'nc_board_release_surface';
+}
+
+function surfaceLabelForReport(report) {
+  const type = eventTypeForReport(report);
+  if (type === 'nc_board_lottery_surface') return 'official lottery / raffle page';
+  if (type === 'nc_board_barrel_pick_surface') return 'official barrel-pick page';
+  if (type === 'nc_board_inventory_surface') return 'official product/inventory page';
+  return 'official release-watch page';
 }
 
 function interestingLink(link) {
@@ -419,6 +440,29 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
         if (report.strongReleaseLanguage) addCapability(board, 'official_release_language_found');
 
         if (!report.ok) continue;
+        if (report.strongReleaseLanguage || report.capabilities.some((cap) => /lottery|release|drop|allocation|barrel|inventory|product_search/i.test(cap))) {
+          const eventType = eventTypeForReport(report);
+          signals.push({
+            id: stableId([config.id, 'board-release-surface', board.boardName, report.finalUrl || report.url, eventType]),
+            state: config.id,
+            sourceLabel: `NC board release watch - ${board.boardName}`,
+            sourceUrl: report.finalUrl || report.url,
+            rawName: `${board.boardName} ${surfaceLabelForReport(report)}`,
+            canonicalBottleId: null,
+            canonicalName: `${board.boardName} ${surfaceLabelForReport(report)}`,
+            confidence: eventType === 'nc_board_inventory_surface' ? 0.66 : 0.7,
+            eventType,
+            locationPrecision: eventType === 'nc_board_inventory_surface' ? 'store_aggregate' : 'board_county',
+            locationName: board.boardName,
+            county: board.boardName.replace(/\s+ABC\s+Board$/i, '').replace(/\s+County$/i, ''),
+            observedAt: new Date().toISOString(),
+            canAlertAsInventory: false,
+            canAlertAsWatch: true,
+            inventorySemantics: 'Official NC board release/event/product page discovery only; not live shelf inventory.',
+            evidence: `${board.boardName} exposes an ${surfaceLabelForReport(report)} at ${report.finalUrl || report.url}. Bourbon Signal treats this as a release-watch source surface; users should verify current rules and dates at the source.`,
+            raw: { url: report.finalUrl || report.url, capabilities: report.capabilities, precisionCaveat: 'official board source surface; event timing/product details may require page visit' }
+          });
+        }
         for (const record of matched.slice(0, 10)) {
           const inventoryLike = report.capabilities.some((cap) => /inventory|product_search/i.test(cap));
           signals.push({
@@ -434,6 +478,9 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
             locationPrecision: inventoryLike ? 'store_aggregate' : 'board_county',
             locationName: board.boardName,
             observedAt: new Date().toISOString(),
+            canAlertAsInventory: false,
+            canAlertAsWatch: true,
+            inventorySemantics: inventoryLike ? 'Board product/inventory page mention; exact store quantity unknown.' : 'Board release-page bottle mention; not live shelf inventory.',
             evidence: `${board.boardName} official website page references ${record.canonical}. This is a board website intelligence signal; exact shipment/store status requires the specific board feed or state shipment data.`,
             raw: { url: report.finalUrl || report.url, capabilities: report.capabilities, precisionCaveat: 'board website page match' }
           });

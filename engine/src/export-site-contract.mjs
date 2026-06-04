@@ -284,6 +284,85 @@ function buildDrops(signals, bible) {
     .slice(0, 10000);
 }
 
+function eventCategory(signal) {
+  const type = String(signal.eventType || signal.type || '').toLowerCase();
+  const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
+  const hay = `${type} ${source} ${signal.availabilityStatus || ''} ${signal.availabilityLabel || ''}`;
+  if (/tasting/.test(hay)) return 'tasting';
+  if (/lottery|raffle/.test(hay)) return 'lottery';
+  if (/barrel|single barrel|pick/.test(hay)) return 'barrel_pick';
+  if (/scheduled_release|limited_release_store_drop|release calendar|calendar/.test(hay)) return 'scheduled_release';
+  if (/allocated|allocation|release|drop|bourbon blast|specialty/.test(hay)) return 'release_watch';
+  if (/policy|program/.test(hay)) return 'policy_or_program';
+  return 'release_watch';
+}
+
+function isEventSignal(signal) {
+  const type = String(signal.eventType || '').toLowerCase();
+  const hay = `${type} ${signal.sourceLabel || ''} ${signal.availabilityStatus || ''} ${signal.availabilityLabel || ''} ${signal.evidence || ''}`.toLowerCase();
+  if (!type) return false;
+  if (/out_of_stock|store_inventory_out_of_stock|warehouse_out_of_stock/.test(type)) return false;
+  if (/store_inventory_result|store_inventory_aggregate|warehouse_stock|shipment_snapshot/.test(type) && !/tasting|lottery|raffle|barrel|release|allocated/.test(hay)) return false;
+  if (/release|allocated|lottery|raffle|tasting|barrel|bourbon blast|calendar|policy|program|event/.test(hay)) return true;
+  return false;
+}
+
+function eventPriority(event) {
+  const cat = event.category;
+  if (cat === 'scheduled_release') return 70;
+  if (cat === 'lottery') return 64;
+  if (cat === 'barrel_pick') return 58;
+  if (cat === 'tasting') return 52;
+  if (cat === 'release_watch') return 48;
+  return 30;
+}
+
+function publicEvent(signal, bible) {
+  const drop = publicSignal(signal, bible);
+  const category = eventCategory(signal);
+  const titleParts = [];
+  if (drop.bottleName) titleParts.push(drop.bottleName);
+  if (category === 'scheduled_release') titleParts.push('scheduled release');
+  else if (category === 'lottery') titleParts.push('lottery / raffle');
+  else if (category === 'barrel_pick') titleParts.push('barrel pick');
+  else if (category === 'tasting') titleParts.push('tasting event');
+  else titleParts.push('release watch');
+  const title = titleParts.join(' — ');
+  return {
+    ...drop,
+    eventId: drop.id || stableId([drop.state, drop.type, drop.sourceUrl, drop.bottleName, drop.locationName, drop.observedAt]),
+    title,
+    category,
+    eventType: drop.type,
+    eventDate: signal.releaseDate || signal.eventDate || signal.raw?.releaseDate || null,
+    eventTime: signal.releaseTime || signal.eventTime || signal.raw?.releaseTime || null,
+    sourceType: category === 'scheduled_release' ? 'official_schedule' : category === 'lottery' ? 'official_lottery' : category === 'tasting' ? 'retailer_event' : 'release_watch',
+    actionLabel: category === 'scheduled_release' ? 'Verify release rules before driving'
+      : category === 'lottery' ? 'Check entry rules at source'
+      : category === 'tasting' ? 'Check event details at source'
+      : 'Monitor source for release details',
+    inventoryCaveat: drop.canAlertAsInventory ? 'May indicate retailer/store inventory; verify before driving.' : 'Release/event intelligence only; not live shelf inventory.',
+    sortScore: eventPriority({ category }) + (drop.locationPrecision === 'store_level' ? 6 : 0) + (drop.canAlertAsWatch ? 4 : 0) + (drop.confidence || 0)
+  };
+}
+
+function buildEvents(signals, bible) {
+  const seen = new Set();
+  return signals
+    .filter((signal) => isSafePublicSignal(signal))
+    .filter((signal) => isEventSignal(signal))
+    .filter((signal) => findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
+    .map((signal) => publicEvent(signal, bible))
+    .filter((event) => {
+      const key = [event.state, event.category, event.canonicalId || event.rawName || event.title, event.sourceUrl, event.locationName, event.eventDate, event.price].join('|');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => b.sortScore - a.sortScore || String(b.observedAt || '').localeCompare(String(a.observedAt || '')))
+    .slice(0, 5000);
+}
+
 function buildAlerts(alerts) {
   return (alerts.candidates || []).map((c) => ({
     id: c.id,
@@ -431,6 +510,7 @@ async function main() {
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
   const drops = buildDrops(historicalSignals, bible);
+  const events = buildEvents(historicalSignals, bible);
   const alertCandidates = buildAlerts(alerts);
   const generatedAt = new Date().toISOString();
   const stateCoverage = buildStateCoverage(summary);
@@ -451,6 +531,7 @@ async function main() {
     officialLocationCount: activeOfficialLocations.length,
     preloadedLocationCount: locations.filter((location) => !location.hasSignals).length,
     dropCount: drops.length,
+    eventCount: events.length,
     alertCandidateCount: alertCandidates.length,
     roadblockCount: summary.roadblockCount || 0,
     refreshHealth: {
@@ -494,6 +575,7 @@ async function main() {
       stores: 'stores.json',
       locations: 'locations.json',
       drops: 'drops.json',
+      events: 'events.json',
       alerts: 'alerts.json',
       ncIntelligence: 'nc-intelligence.json'
     },
@@ -504,6 +586,7 @@ async function main() {
       store: Object.keys(stores[0] || {}),
       location: Object.keys(locations[0] || {}),
       drop: Object.keys(drops[0] || {}),
+      event: Object.keys(events[0] || {}),
       alert: Object.keys(alertCandidates[0] || {})
     }
   };
@@ -514,12 +597,13 @@ async function main() {
   await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: stores.length, stores }, null, 2));
   await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: locations.length, locations }, null, 2));
   await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: drops.length, drops }, null, 2));
+  await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: events.length, events }, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: alertCandidates.length, alerts: alertCandidates }, null, 2));
   if (ncIntelligenceRaw) {
     await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, ...ncIntelligenceRaw }, null, 2));
   }
 
-  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${alertCandidates.length} alert candidates -> out/site/`);
+  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${alertCandidates.length} alert candidates -> out/site/`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });

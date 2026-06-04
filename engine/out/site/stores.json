@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T01:59:00.152Z",
+  "generatedAt": "2026-06-04T03:37:37.292Z",
   "count": 2730,
   "stores": [
     {
@@ -9871,7 +9871,7 @@
       "lat": 41.6605758,
       "lng": -85.94925599999999,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea4",
@@ -10039,7 +10039,7 @@
       "lat": 41.1200388,
       "lng": -85.02365789999999,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 18
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d345b77cb36d0a2d2eef",
@@ -10081,7 +10081,7 @@
       "lat": 41.0955093,
       "lng": -85.1573343,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -10711,7 +10711,7 @@
       "lat": 39.7042641,
       "lng": -86.1484309,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "big-red:5e9254a078e8f13c2cb1e1dc",
@@ -11117,7 +11117,7 @@
       "lat": 39.6649957,
       "lng": -86.09783039999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:5e8d55c9b85103730903a59b",
@@ -11761,7 +11761,7 @@
       "lat": 41.1332513,
       "lng": -85.1028202,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
@@ -11803,7 +11803,7 @@
       "lat": 41.1745087,
       "lng": -85.1646998,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "cap-n-cork:67588ec370555c28febc51ca",

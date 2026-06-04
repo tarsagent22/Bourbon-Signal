@@ -12,7 +12,7 @@
     "location": "node src/location-report.mjs",
     "location:bible": "node src/collect-location-bible.mjs",
     "operational": "node src/operational-report.mjs",
-    "export:site": "node --max-old-space-size=8192 src/export-site-contract.mjs",
+    "export:site": "node --max-old-space-size=16384 src/export-site-contract.mjs",
     "repeatability": "node src/repeatability-check.mjs",
     "quality": "node src/quality-audit.mjs",
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
@@ -31,6 +31,7 @@
     "test": "node src/verify.mjs",
     "refresh:site": "node src/refresh-site.mjs",
     "verify:nc": "node src/verify-nc.mjs",
+    "score:nc": "node src/score-nc-user-reach.mjs",
     "verify:va": "node src/verify-va.mjs"
   },
   "dependencies": {
