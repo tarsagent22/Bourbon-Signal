@@ -886,10 +886,18 @@ async function readIndianaCityHiveCache() {
 
 async function writeIndianaCityHiveCache(signals, roadblocks) {
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextChains = indianaCityHivePositiveInventoryChains(signals);
+  const previous = await readIndianaCityHiveCache();
+  const previousChains = indianaCityHivePositiveInventoryChains(previous?.signals || []);
+  if (previousChains.size >= 3 && nextChains.size < previousChains.size) {
+    return;
+  }
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'Indiana CityHive retailer inventory cache',
     cacheMaxAgeMs: IN_CITYHIVE_CACHE_MAX_AGE_MS,
+    sourceChainCount: nextChains.size,
+    sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
     positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
@@ -908,17 +916,31 @@ function cachedIndianaCityHiveSignals(cache, observedAt) {
   }));
 }
 
+function indianaCityHiveSignalChain(signal) {
+  if (signal?.raw?.chain) return signal.raw.chain;
+  const label = String(signal?.sourceLabel || signal?.source || '');
+  const source = IN_CITYHIVE_SOURCES.find((item) => label.includes(item.chainName) || label.includes(item.sourceLabel));
+  return source?.id || null;
+}
+
+function indianaCityHivePositiveInventoryChains(signals = []) {
+  return new Set(signals
+    .filter((signal) => signal.eventType === 'cityhive_store_inventory_result')
+    .map(indianaCityHiveSignalChain)
+    .filter(Boolean));
+}
+
 function mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt) {
   if (!cache) return 0;
   const liveChains = new Set(signals
     .filter((signal) => /cityhive|retailer_store_location/i.test(String(signal.eventType || '')))
-    .map((signal) => signal.raw?.chain)
+    .map(indianaCityHiveSignalChain)
     .filter(Boolean));
   if (!liveChains.size) return 0;
   const cached = cachedIndianaCityHiveSignals(cache, observedAt);
   let added = 0;
   for (const signal of cached) {
-    const chain = signal.raw?.chain;
+    const chain = indianaCityHiveSignalChain(signal);
     if (!chain || liveChains.has(chain)) continue;
     signals.push(signal);
     added += 1;
