@@ -505,6 +505,17 @@ function buildAlerts(alerts) {
     id: c.id,
     action: c.action,
     score: c.score,
+    reliabilityScore: c.reliabilityScore ?? null,
+    eligibleForDelivery: Boolean(c.eligibleForDelivery),
+    priorityClass: c.priorityClass || 'hold',
+    deliveryChannel: c.deliveryChannel || 'review_only',
+    sendRecommendation: c.sendRecommendation || 'review_before_send',
+    freshnessHours: c.freshnessHours ?? null,
+    dedupeKey: c.dedupeKey || stableId([c.state, c.bottle, c.eventType, c.locationPrecision, c.storeId || c.storeName || c.locationName || 'regional', c.availabilityStatus || '', c.quantity || 0, c.warehouseQty || 0]),
+    matchKey: c.matchKey || stableId([c.state, c.bottle, c.locationPrecision, c.storeId || c.storeName || c.locationName || 'regional']),
+    gates: Array.isArray(c.gates) ? c.gates : [],
+    blockers: Array.isArray(c.blockers) ? c.blockers : [],
+    cautions: Array.isArray(c.cautions) ? c.cautions : [],
     state: c.state,
     bottle: c.bottle,
     tier: c.tier,
@@ -525,7 +536,8 @@ function buildAlerts(alerts) {
     inventorySemantics: safeString(c.inventorySemantics, 700),
     reason: safeString(c.reason, 700),
     evidence: safeString(c.evidence, 700)
-  }));
+  }))
+    .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0));
 }
 
 function stateCoverageTier(state) {

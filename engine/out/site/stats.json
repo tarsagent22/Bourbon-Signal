@@ -1,22 +1,22 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T19:38:49.306Z",
-  "engineGeneratedAt": "2026-06-04T19:18:21.058Z",
+  "generatedAt": "2026-06-04T20:33:50.191Z",
+  "engineGeneratedAt": "2026-06-04T20:18:25.216Z",
   "stateCount": 23,
-  "signalCount": 8580,
-  "historicalSignalCount": 1796185,
+  "signalCount": 8538,
+  "historicalSignalCount": 1805472,
   "historyDays": 30,
-  "snapshotCount": 1463,
+  "snapshotCount": 1468,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2275,
-  "locationCount": 4101,
+  "storeCount": 2257,
+  "locationCount": 4083,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 9704,
-  "eventCount": 2346,
-  "alertCandidateCount": 1,
-  "roadblockCount": 53,
+  "dropCount": 9729,
+  "eventCount": 2349,
+  "alertCandidateCount": 0,
+  "roadblockCount": 54,
   "refreshHealth": {
     "degradedStateCount": 1,
     "staleStateCount": 1,
@@ -29,7 +29,7 @@
         "stale": true,
         "staleReason": "IN timed out after 180s",
         "previousFinishedAt": "2026-06-04T04:00:23.933Z",
-        "staleFallbackAt": "2026-06-04T19:17:10.029Z"
+        "staleFallbackAt": "2026-06-04T20:17:15.317Z"
       }
     ]
   },
@@ -48,8 +48,8 @@
         "label": "Ohio OHLQ",
         "tier": "A",
         "status": "useful",
-        "signalCount": 235,
-        "roadblockCount": 7,
+        "signalCount": 191,
+        "roadblockCount": 9,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "inventory_locator",
@@ -108,7 +108,7 @@
         "label": "Pennsylvania FWGS / PLCB",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1573,
+        "signalCount": 1574,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -276,8 +276,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -322,7 +322,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-04T19:38:49.309Z",
+    "generatedAt": "2026-06-04T20:33:50.192Z",
     "focusStates": [
       "AL",
       "VA",
@@ -393,7 +393,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 3,
+        "signalCount": 4,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -564,11 +564,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 2072,
+          "quantity": 2160,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 2072 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 2160 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "5fe622929530be5a",

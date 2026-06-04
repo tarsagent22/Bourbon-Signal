@@ -150,10 +150,98 @@ function changeScore(change) {
   return Math.round(score);
 }
 
+function hoursSince(value) {
+  const ts = Date.parse(value || '');
+  if (!Number.isFinite(ts)) return null;
+  return Math.max(0, (Date.now() - ts) / (60 * 60 * 1000));
+}
+
+function quantityValue(sig) {
+  return Number(sig.quantity || 0) + Number(sig.warehouseQty || 0);
+}
+
+function changedIncrease(change, field) {
+  if (change.type !== 'changed_signal') return false;
+  return (change.fields || []).some((f) => f.field === field && Number(f.after || 0) > Number(f.before || 0));
+}
+
+function reliabilityForCandidate(change, sig, score) {
+  const gates = [];
+  const blockers = [];
+  const cautions = [];
+  const ageHours = hoursSince(sig.observedAt);
+  const precision = sig.locationPrecision || 'statewide_catalog';
+  const precisionScore = precisionRank(precision);
+  const confidence = Number(sig.confidence || 0);
+  const quantity = quantityValue(sig);
+  const isInventory = Boolean(sig.canAlertAsInventory);
+  const isWatch = Boolean(sig.canAlertAsWatch) && !isInventory;
+  const isNewOrPositive = change.type === 'new_signal'
+    || changedIncrease(change, 'quantity')
+    || changedIncrease(change, 'warehouseQty')
+    || changedIncrease(change, 'locationPrecision')
+    || (change.type === 'changed_signal' && (change.fields || []).some((f) => f.field === 'availabilityStatus' && /in_stock|limited|available|on_hand/i.test(String(f.after || ''))));
+
+  if (!sig.bottleId && !sig.canonicalName) blockers.push('missing_bottle_match');
+  else gates.push('bottle_matched');
+
+  if (change.type === 'missing_signal') blockers.push('missing_signal_not_sendable');
+  if (sig.sampleOnly) blockers.push('sample_only');
+  if (!isInventory && !sig.canAlertAsWatch) blockers.push('policy_not_alertable');
+
+  if (ageHours == null) cautions.push('unknown_freshness');
+  else if (ageHours <= 24) gates.push('fresh_24h');
+  else if (ageHours <= 72) cautions.push('fresh_72h');
+  else blockers.push('stale_observation');
+
+  if (confidence >= 0.7) gates.push('confidence_high');
+  else if (confidence >= 0.55) cautions.push('confidence_medium');
+  else blockers.push('confidence_low');
+
+  if (precisionScore >= precisionRank('store_level')) gates.push('store_level');
+  else if (precisionScore >= precisionRank('board_county')) cautions.push('regional_not_store_level');
+  else if (isInventory) cautions.push('inventory_not_store_level');
+
+  if (isInventory && quantity <= 0 && !/in_stock|limited|available|on_hand/i.test(String(sig.availabilityStatus || sig.availabilityLabel || ''))) {
+    cautions.push('no_positive_quantity');
+  }
+
+  if (!isNewOrPositive) cautions.push('not_new_or_positive_change');
+
+  const majorTier = sig.tier === 'unicorn' || sig.tier === 'allocated';
+  const eligible = blockers.length === 0
+    && isNewOrPositive
+    && (isInventory ? (confidence >= 0.62 && ageHours != null && ageHours <= 72) : (confidence >= 0.55 && ageHours != null && ageHours <= 168))
+    && score >= (majorTier ? 85 : isInventory ? 92 : 78);
+
+  const priorityClass = eligible && (score >= 115 || majorTier || precisionScore >= precisionRank('store_level')) ? 'major'
+    : eligible ? 'standard'
+      : 'hold';
+
+  const deliveryChannel = eligible && isInventory ? 'onsite_candidate'
+    : eligible && isWatch ? 'watch_candidate'
+      : 'review_only';
+
+  return {
+    reliabilityScore: Math.max(0, Math.min(100, Math.round(score * 0.45 + confidence * 45 + Math.min(20, precisionScore * 5) - blockers.length * 25 - cautions.length * 6))),
+    eligibleForDelivery: eligible,
+    priorityClass,
+    deliveryChannel,
+    freshnessHours: ageHours == null ? null : Math.round(ageHours * 10) / 10,
+    gates,
+    blockers,
+    cautions,
+    dedupeKey: stableId([sig.state, sig.bottleId || sig.canonicalName, sig.eventType, sig.sourceLabel, precision, sig.storeId || sig.locationName || 'regional', sig.availabilityStatus || '', quantity || 0]),
+    matchKey: stableId([sig.state, sig.bottleId || sig.canonicalName, sig.storeId || sig.locationName || precision]),
+    sendRecommendation: eligible ? 'send_to_matching_testers' : blockers.length ? 'do_not_send' : 'review_before_send'
+  };
+}
+
 function candidateFromChange(change, bootstrap = false) {
   const sig = change.after || change.before;
   const score = changeScore(change);
   const action = sig.canAlertAsInventory ? 'inventory_alert_candidate' : sig.canAlertAsWatch ? 'watch_alert_candidate' : 'do_not_alert_context_only';
+  const reliability = reliabilityForCandidate(change, sig, score);
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,
@@ -177,6 +265,7 @@ function candidateFromChange(change, bootstrap = false) {
     price: sig.price,
     confidence: sig.confidence,
     sampleOnly: Boolean(sig.sampleOnly),
+    ...reliability,
     policyMode: sig.policyMode,
     inventorySemantics: sig.inventorySemantics,
     locationValue: locationValue(sig),

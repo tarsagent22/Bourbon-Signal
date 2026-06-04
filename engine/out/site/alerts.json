@@ -1,32 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T19:38:49.306Z",
-  "count": 1,
-  "alerts": [
-    {
-      "id": "79c980d19e895fc8",
-      "action": "watch_alert_candidate",
-      "score": 83,
-      "state": "MD-MONTGOMERY",
-      "bottle": "Woodford Reserve Batch Proof",
-      "tier": "unknown",
-      "eventType": "catalog_row",
-      "source": "ABS Store Inventory and Sale Items open data",
-      "sourceUrl": "https://data.montgomerycountymd.gov/resource/ib5t-5ncy.json?$query=select%20code%2Ccategory%2Cdescription%2Csize%2Ctotalinventory%2Cprice%2Csaleprice%2Csaleenddate%20where%20lower(category)%20like%20%27%25bourbon%25%27%20limit%20500",
-      "locationPrecision": "statewide_catalog",
-      "locationName": null,
-      "storeName": null,
-      "storeAddress": null,
-      "quantity": 0,
-      "availabilityStatus": null,
-      "availabilityLabel": null,
-      "warehouseQty": 0,
-      "price": 21.99,
-      "confidence": 0.6314285714285715,
-      "policyMode": "alert_county_product_or_store_when_available",
-      "inventorySemantics": "Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted.",
-      "reason": "Changed signal for Woodford Reserve Batch Proof in MD-MONTGOMERY: price: 3.49 → 21.99.",
-      "evidence": "WOODFORD RESERVE BOURBON - 375ML"
-    }
-  ]
+  "generatedAt": "2026-06-04T20:33:50.191Z",
+  "count": 0,
+  "alerts": []
 }

@@ -11,6 +11,16 @@ interface AlertsResponse {
   unreadCount: number;
   candidateAlerts?: Array<Record<string, unknown>>;
   candidateAlertCount?: number;
+  reliabilitySummary?: {
+    total: number;
+    eligibleForDelivery: number;
+    reviewOnly: number;
+    major: number;
+    standard: number;
+    averageReliability: number;
+    topBlockers: Array<{ label: string; count: number }>;
+    topCautions: Array<{ label: string; count: number }>;
+  };
   alertDeliveryEnabled?: boolean;
   alertPolicyNote?: string;
 }
@@ -116,6 +126,7 @@ export function useMemberAlerts(polling = false) {
     unreadCount: data.unreadCount,
     candidateAlerts: data.candidateAlerts || [],
     candidateAlertCount: data.candidateAlertCount || 0,
+    reliabilitySummary: data.reliabilitySummary,
     alertDeliveryEnabled: data.alertDeliveryEnabled === true,
     alertPolicyNote: data.alertPolicyNote || "",
     loading,

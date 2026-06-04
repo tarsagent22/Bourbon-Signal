@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 // Temporarily keep Clerk installed but do not require sign-in while the site is being edited.
 // Re-enable route protection here when onboarding/subscriptions are ready.
-export default function middleware(_req: NextRequest) {
+export default clerkMiddleware(() => {
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
