@@ -13,7 +13,7 @@ const navLinks = [
   { label: "Events", href: "/events" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/map" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Beta Access", href: "/dashboard" },
 ];
 
 export default function Navigation() {
@@ -127,7 +127,7 @@ export default function Navigation() {
               {/* Upgrade nudge — only for free tier, stays in nav */}
               {memberTier === null && (
                 <a
-                  href="/pricing"
+                  href="/dashboard"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "12px",
@@ -303,7 +303,7 @@ export default function Navigation() {
                 Sign In
               </a>
               <a
-                href="/pricing"
+                href="/dashboard"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
@@ -322,7 +322,7 @@ export default function Navigation() {
                   (e.currentTarget.style.opacity = "1")
                 }
               >
-                Get Access
+                Join Beta
               </a>
             </>
           )}
@@ -419,7 +419,7 @@ export default function Navigation() {
                   Sign In
                 </a>
                 <a
-                  href="/pricing"
+                  href="/dashboard"
                   onClick={() => setMobileOpen(false)}
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -432,7 +432,7 @@ export default function Navigation() {
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                   }}
                 >
-                  Get Access
+                  Join Beta
                 </a>
               </>
             )}
@@ -442,3 +442,4 @@ export default function Navigation() {
     </>
   );
 }
+

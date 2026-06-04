@@ -170,7 +170,7 @@ export default function HeroSection() {
             style={{ marginBottom: "16px" }}
           >
             <a
-              href="/pricing"
+              href="/dashboard"
               className="flex items-center gap-2"
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -186,7 +186,7 @@ export default function HeroSection() {
                 boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
               }}
             >
-Start Hunting
+Join the beta
               <ArrowRight size={16} />
             </a>
 

@@ -351,6 +351,10 @@ function eventStatus(value) {
   return 'scheduled_future';
 }
 
+function isPastEventStatus(status) {
+  return status === 'recent_or_past' || status === 'archived';
+}
+
 function normalizeEventDate(value) {
   if (!value) return null;
   const raw = String(value).trim();
@@ -362,11 +366,20 @@ function normalizeEventDate(value) {
 function inferEventDate(signal) {
   const explicit = normalizeEventDate(signal.releaseDate || signal.eventDate || signal.raw?.releaseDate || signal.raw?.eventDate);
   if (explicit) return explicit;
-  const hay = `${signal.availabilityLabel || ''} ${signal.evidence || ''} ${signal.inventorySemantics || ''} ${signal.raw?.title || ''}`;
+  const hay = `${signal.availabilityLabel || ''} ${signal.evidence || ''} ${signal.inventorySemantics || ''} ${signal.raw?.title || ''} ${signal.sourceUrl || ''}`;
   const numeric = hay.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
   if (numeric) return normalizeEventDate(`${numeric[1]}/${numeric[2]}/${numeric[3]}`);
+  const urlShort = String(signal.sourceUrl || '').match(/(?:^|[^\d])(\d{1,2})[-_/](\d{1,2})[-_/](\d{2})(?:[^\d]|$)/);
+  if (urlShort) {
+    const yy = Number(urlShort[3]);
+    const year = yy >= 70 ? 1900 + yy : 2000 + yy;
+    return normalizeEventDate(`${urlShort[1]}/${urlShort[2]}/${year}`);
+  }
   const named = hay.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2}(?:st|nd|rd|th)?(?:,)?\s+20\d{2}\b/i);
   if (named) return normalizeEventDate(named[0].replace(/(\d{1,2})(st|nd|rd|th)/i, '$1'));
+  const slugText = String(signal.sourceUrl || '').replace(/[-_/%]+/g, ' ');
+  const slugNamed = slugText.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2}(?:st|nd|rd|th)?\s+20\d{2}\b/i);
+  if (slugNamed) return normalizeEventDate(slugNamed[0].replace(/(\d{1,2})(st|nd|rd|th)/i, '$1'));
   return null;
 }
 
@@ -399,13 +412,16 @@ const WATCH_PRODUCT_PATTERNS = [
 function detectedEventProducts(signal, drop) {
   const hay = `${drop.bottleName || ''} ${drop.rawName || ''} ${signal.evidence || ''} ${signal.inventorySemantics || ''} ${signal.availabilityLabel || ''} ${signal.raw?.title || ''}`;
   const detected = WATCH_PRODUCT_PATTERNS.filter(([, re]) => re.test(hay)).map(([name]) => name);
-  if (drop.bottleName && !detected.includes(drop.bottleName)) detected.unshift(drop.bottleName);
+  const looksLikeActualBottle = Boolean(drop.canonicalKey || drop.tier || drop.producer || /\b(bourbon|rye|whiskey|whisky|single barrel|barrel proof|limited edition|proof)\b/i.test(String(drop.bottleName || '')) && !/\b(board|lottery|raffle|page|calendar|program|policy|official)\b/i.test(String(drop.bottleName || '')));
+  if (looksLikeActualBottle && drop.bottleName && !detected.includes(drop.bottleName)) detected.unshift(drop.bottleName);
   return [...new Set(detected)].slice(0, 8);
 }
 
 function eventActionability({ category, eventDate, sourceUrl, canAlertAsWatch, sourceType }) {
   const status = eventStatus(eventDate);
-  if (status === 'recent_or_past') return 'watch';
+  if (isPastEventStatus(status)) return 'watch';
+  const url = String(sourceUrl || '').toLowerCase();
+  const specificWatchUrl = /lottery|raffle|allocated|allocation|release|barrel|pick|tasting|event|specialty|limited/.test(url);
   let score = eventPriority({ category });
   if (sourceUrl) score += 10;
   if (eventDate) score += 14;
@@ -413,8 +429,16 @@ function eventActionability({ category, eventDate, sourceUrl, canAlertAsWatch, s
   if (/official/.test(sourceType)) score += 10;
   if (status === 'upcoming') score += 14;
   if (status === 'recent_or_past') score -= 18;
-  if (!eventDate && !['lottery', 'barrel_pick', 'tasting'].includes(category)) return score >= 70 ? 'medium' : 'watch';
+  if (!eventDate) return category === 'lottery' && /official/.test(sourceType) && canAlertAsWatch && specificWatchUrl ? 'medium' : 'watch';
   return score >= 88 ? 'high' : score >= 70 ? 'medium' : 'watch';
+}
+
+function publicEventBottleName(drop, category) {
+  const name = drop.bottleName || drop.rawName || '';
+  if (!name) return null;
+  const isPageTitle = /\b(board|lottery|raffle|page|calendar|program|policy|official)\b/i.test(name) && !/\b(bourbon|rye|whiskey|whisky|single barrel|barrel proof)\b/i.test(name);
+  if (isPageTitle) return category === 'lottery' ? 'Official lottery / raffle page' : 'Release watch source';
+  return name;
 }
 
 function publicEvent(signal, bible) {
@@ -425,7 +449,8 @@ function publicEvent(signal, bible) {
   const sourceTypeLabel = eventSourceLabel(sourceType);
   const products = detectedEventProducts(signal, drop);
   const titleParts = [];
-  if (drop.bottleName) titleParts.push(drop.bottleName);
+  const displayBottleName = publicEventBottleName(drop, category);
+  if (displayBottleName) titleParts.push(displayBottleName);
   if (category === 'scheduled_release') titleParts.push('scheduled release');
   else if (category === 'lottery') titleParts.push('lottery / raffle');
   else if (category === 'barrel_pick') titleParts.push('barrel pick');
@@ -434,6 +459,8 @@ function publicEvent(signal, bible) {
   const title = titleParts.join(' — ');
   return {
     ...drop,
+    bottleName: displayBottleName || drop.bottleName,
+    canonicalName: displayBottleName || drop.canonicalName,
     eventId: drop.id || stableId([drop.state, drop.type, drop.sourceUrl, drop.bottleName, drop.locationName, drop.observedAt]),
     title,
     category,
@@ -446,7 +473,7 @@ function publicEvent(signal, bible) {
     actionability: eventActionability({ category, eventDate, sourceUrl: drop.sourceUrl, canAlertAsWatch: drop.canAlertAsWatch, sourceType }),
     detectedProducts: products,
     contentSignature: stableId([drop.state, drop.type, drop.sourceUrl, drop.bottleName, drop.rawName, drop.locationName, signal.evidence, signal.inventorySemantics]),
-    eventKey: stableId([drop.state, category, drop.sourceUrl, drop.locationName, eventDate, products.join('|') || drop.bottleName || drop.rawName || title]),
+    eventKey: stableId([drop.state, category, drop.sourceUrl, eventDate, products.join('|') || displayBottleName || title, drop.storeId || drop.locationName]),
     actionLabel: category === 'scheduled_release' ? 'Verify release rules before driving'
       : category === 'lottery' ? 'Check entry rules at source'
       : category === 'tasting' ? 'Check event details at source'

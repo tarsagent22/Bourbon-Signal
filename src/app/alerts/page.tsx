@@ -13,7 +13,7 @@ const tabs = [
 
 export default function AlertsPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("unread");
-  const { alerts, unreadCount, loading, isEligible, markRead, markAllRead, archive } = useMemberAlerts(true);
+  const { alerts, unreadCount, loading, isEligible, candidateAlerts, candidateAlertCount, alertDeliveryEnabled, alertPolicyNote, markRead, markAllRead, archive } = useMemberAlerts(true);
 
   const visibleAlerts = useMemo(() => {
     if (tab === "unread") return alerts.filter((alert) => !alert.readAt && !alert.archivedAt);
@@ -59,10 +59,34 @@ export default function AlertsPage() {
 
         {!isEligible ? (
           <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "22px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-            Alert inbox is available for paid members. Upgrade and turn on the live beta on-site inbox to keep your drop signals in one place.
+            Sign in to test the beta alert inbox. Payments are intentionally soft-gated while Bourbon Signal validates alert quality.
           </div>
         ) : (
           <>
+            <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "18px", marginBottom: "22px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+                <div>
+                  <strong style={{ display: "block", color: "var(--color-cream)", fontSize: 15 }}>Beta alert reliability check</strong>
+                  <span style={{ fontSize: 13 }}>{alertPolicyNote || "Engine candidates are visible for QA; external delivery remains disabled until explicitly enabled."}</span>
+                </div>
+                <span style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: 999, padding: "7px 10px", color: "var(--color-accent-amber)", fontSize: 12, fontWeight: 700 }}>
+                  {candidateAlertCount} candidates · delivery {alertDeliveryEnabled ? "on" : "off"}
+                </span>
+              </div>
+              {candidateAlerts.length ? (
+                <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+                  {candidateAlerts.slice(0, 3).map((candidate, index) => (
+                    <div key={String(candidate.id || index)} style={{ borderRadius: 12, background: "rgba(0,0,0,0.16)", padding: "10px 12px", fontSize: 13 }}>
+                      <strong style={{ color: "var(--color-cream)" }}>{String(candidate.bottle || "Bottle signal")}</strong>
+                      <span> · {String(candidate.state || "")}</span>
+                      <span> · score {String(candidate.score || "—")}</span>
+                      <div style={{ color: "var(--color-text-tertiary)", marginTop: 3 }}>{String(candidate.reason || candidate.evidence || "Candidate pending review.").slice(0, 180)}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "22px" }}>
               {tabs.map((item) => {
                 const active = item.key === tab;

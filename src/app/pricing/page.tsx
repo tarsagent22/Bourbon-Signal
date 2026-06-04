@@ -12,11 +12,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useRef } from "react";
 
+const TESTER_MODE = true;
+
 function PricingPageContent() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (TESTER_MODE) {
+      router.push("/dashboard");
+      return;
+    }
     if (!isSignedIn) {
       router.push(`/sign-in?redirect_url=/pricing`);
       return;
@@ -77,7 +83,7 @@ function PricingPageContent() {
                   textAlign: "center",
                 }}
               >
-                Choose Your Proof
+                Beta access is open.
               </h1>
             </ScrollReveal>
           </div>
@@ -133,7 +139,7 @@ function PricingPageContent() {
                   textAlign: "center",
                 }}
               >
-                Bottled in Bond is $39 one time. Standard Proof is $5/mo or $40/yr.
+                Payments are soft-gated while we validate alert reliability. Join the beta, build your watchlist, and help us tune the signals.
               </p>
             </ScrollReveal>
 
@@ -168,7 +174,7 @@ function PricingPageContent() {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  Claim Your Founder Spot — $39
+                  Open Beta Dashboard
                 </button>
                 <p
                   style={{
@@ -178,7 +184,7 @@ function PricingPageContent() {
                     textAlign: "center",
                   }}
                 >
-                  One-time founder pricing. Standard subscriptions can cancel anytime.
+                  Founder pricing will return after tester validation.
                 </p>
               </div>
             </ScrollReveal>

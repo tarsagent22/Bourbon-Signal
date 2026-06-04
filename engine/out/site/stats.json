@@ -1,12 +1,12 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T18:26:45.865Z",
-  "engineGeneratedAt": "2026-06-04T18:18:25.915Z",
+  "generatedAt": "2026-06-04T19:38:49.306Z",
+  "engineGeneratedAt": "2026-06-04T19:18:21.058Z",
   "stateCount": 23,
-  "signalCount": 8582,
-  "historicalSignalCount": 1787318,
+  "signalCount": 8580,
+  "historicalSignalCount": 1796185,
   "historyDays": 30,
-  "snapshotCount": 1459,
+  "snapshotCount": 1463,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2275,
@@ -14,12 +14,12 @@
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
   "dropCount": 9704,
-  "eventCount": 2078,
-  "alertCandidateCount": 4,
-  "roadblockCount": 52,
+  "eventCount": 2346,
+  "alertCandidateCount": 1,
+  "roadblockCount": 53,
   "refreshHealth": {
-    "degradedStateCount": 2,
-    "staleStateCount": 2,
+    "degradedStateCount": 1,
+    "staleStateCount": 1,
     "failedStateCount": 0,
     "degradedStates": [
       {
@@ -29,16 +29,7 @@
         "stale": true,
         "staleReason": "IN timed out after 180s",
         "previousFinishedAt": "2026-06-04T04:00:23.933Z",
-        "staleFallbackAt": "2026-06-04T18:17:17.052Z"
-      },
-      {
-        "state": "MI",
-        "label": "Michigan MLCC",
-        "status": "stale_useful",
-        "stale": true,
-        "staleReason": "MI collector exited 3221226505",
-        "previousFinishedAt": "2026-06-04T18:08:10.676Z",
-        "staleFallbackAt": "2026-06-04T18:18:08.347Z"
+        "staleFallbackAt": "2026-06-04T19:17:10.029Z"
       }
     ]
   },
@@ -117,7 +108,7 @@
         "label": "Pennsylvania FWGS / PLCB",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1572,
+        "signalCount": 1573,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -129,8 +120,8 @@
         "label": "Idaho State Liquor Division",
         "tier": "B",
         "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 0,
+        "signalCount": 3,
+        "roadblockCount": 1,
         "targetLocationPrecision": "board_county",
         "bestLocationPrecision": "store_aggregate",
         "strategy": "catalog_limited_release_watch",
@@ -141,7 +132,7 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 965,
+        "signalCount": 964,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -212,9 +203,9 @@
         "state": "MI",
         "label": "Michigan MLCC",
         "tier": "C",
-        "status": "stale_useful",
+        "status": "useful",
         "signalCount": 2,
-        "roadblockCount": 5,
+        "roadblockCount": 4,
         "targetLocationPrecision": "statewide_catalog",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "price_book_and_new_item_watch",
@@ -285,8 +276,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 1,
+        "signalCount": 3,
+        "roadblockCount": 2,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -331,7 +322,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-04T18:26:45.866Z",
+    "generatedAt": "2026-06-04T19:38:49.309Z",
     "focusStates": [
       "AL",
       "VA",
@@ -370,7 +361,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 965,
+        "signalCount": 964,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -402,7 +393,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 4,
+        "signalCount": 3,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -589,11 +580,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 936,
+          "quantity": 934,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 936 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 934 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "42112660bd6fdf81",
@@ -605,11 +596,11 @@
           "rawName": "E.H. Taylor Jr. Small Batch",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 766,
+          "quantity": 767,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 766 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 767 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -823,7 +814,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -839,7 +830,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "043b9c8f4cc5473e",
@@ -865,7 +856,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
-    "boardsWithReleasePages": 14,
+    "boardsWithReleasePages": 13,
     "boardsWithInventoryPages": 5,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },

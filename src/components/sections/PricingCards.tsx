@@ -21,11 +21,17 @@ const founderExclusives = [
   "2x entries in all future drawings",
 ];
 
+const TESTER_MODE = true;
+
 export default function PricingCards() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (TESTER_MODE) {
+      router.push("/dashboard");
+      return;
+    }
     if (!isSignedIn) {
       router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
       return;
@@ -69,12 +75,12 @@ export default function PricingCards() {
               </p>
 
               <div className="flex items-baseline gap-1 mb-1">
-                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "56px", fontWeight: 700, color: "var(--color-cream)" }}>$5</span>
-                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.4)" }}>/mo</span>
+                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "56px", fontWeight: 700, color: "var(--color-cream)" }}>{TESTER_MODE ? "Free" : "$5"}</span>
+                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.4)" }}>{TESTER_MODE ? "beta" : "/mo"}</span>
               </div>
 
               <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.3)", marginBottom: "28px" }}>
-                Or {STANDARD_ANNUAL_PRICE}. {STANDARD_ANNUAL_SAVINGS}.
+                {TESTER_MODE ? "Tester access is open while we validate signal quality." : `Or ${STANDARD_ANNUAL_PRICE}. ${STANDARD_ANNUAL_SAVINGS}.`}
               </p>
 
               <div style={{ display: "flex", flexDirection: "column" as const }}>
@@ -88,13 +94,13 @@ export default function PricingCards() {
 
               <div style={{ marginTop: "auto", paddingTop: "24px", display: "grid", gap: 10 }}>
                 <button onClick={() => handleCheckout("monthly")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(196,148,58,0.08)", border: "1px solid rgba(196,148,58,0.4)", color: "rgba(196,148,58,0.9)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
-                  Start monthly, {STANDARD_MONTHLY_PRICE}
+                  {TESTER_MODE ? "Open beta dashboard" : `Start monthly, ${STANDARD_MONTHLY_PRICE}`}
                 </button>
                 <button onClick={() => handleCheckout("annual")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
-                  Go annual, {STANDARD_ANNUAL_PRICE}
+                  {TESTER_MODE ? "Build alert setup" : `Go annual, ${STANDARD_ANNUAL_PRICE}`}
                 </button>
                 <p className="text-center" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.35)", marginTop: "10px" }}>
-                  Same access either way. Annual saves you money.
+                  {TESTER_MODE ? "No payment required during tester validation." : "Same access either way. Annual saves you money."}
                 </p>
               </div>
             </motion.div>
@@ -125,12 +131,12 @@ export default function PricingCards() {
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>$39</span>
-                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.5)" }}>one-time</span>
+                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>{TESTER_MODE ? "Beta" : "$39"}</span>
+                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.5)" }}>{TESTER_MODE ? "access" : "one-time"}</span>
                 </div>
 
                 <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.72)", marginBottom: "8px" }}>
-                  Founding pricing, locked in once.
+                  {TESTER_MODE ? "Help validate live signals before paid launch." : "Founding pricing, locked in once."}
                 </p>
                 <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.36)", marginBottom: "28px" }}>
                   {FOUNDER_ACCESS_LINE}
@@ -151,10 +157,10 @@ export default function PricingCards() {
 
                 <div style={{ marginTop: "auto", paddingTop: "24px" }}>
                   <button onClick={() => handleCheckout("founder")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)", color: "#1A1510", fontFamily: "var(--font-dm-sans)", fontSize: "15px", fontWeight: 700, padding: "14px", border: "none", borderRadius: "10px", textAlign: "center" }}>
-                    Claim your founder spot, $39
+                    {TESTER_MODE ? "Join tester flow" : "Claim your founder spot, $39"}
                   </button>
                   <p className="text-center" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.42)", marginTop: "10px" }}>
-                    {FOUNDING_SPOTS_REMAINING} of 100 spots remaining
+                    {TESTER_MODE ? "Founder pricing returns after beta validation." : `${FOUNDING_SPOTS_REMAINING} of 100 spots remaining`}
                   </p>
                 </div>
               </div>

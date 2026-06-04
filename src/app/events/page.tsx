@@ -101,8 +101,8 @@ function eventLocation(event: EventRow) {
 }
 
 function actionLabel(value?: string) {
-  if (value === "high") return "High-signal";
-  if (value === "medium") return "Actionable";
+  if (value === "high") return "Priority";
+  if (value === "medium") return "Actionable watch";
   return "Watch only";
 }
 
@@ -162,7 +162,18 @@ export default function EventsPage() {
   const states = useMemo(() => ["all", ...(facets?.states || [])], [facets?.states]);
   const categories = useMemo(() => ["all", ...(facets?.categories || ["scheduled_release", "lottery", "barrel_pick", "tasting", "release_watch", "policy_or_program"])], [facets?.categories]);
   const statuses = useMemo(() => ["all", ...(facets?.statuses || ["upcoming", "scheduled_future", "watch_page", "recent_or_past"])], [facets?.statuses]);
-  const priorityEvents = useMemo(() => events.filter((event) => event.actionability === "high" || event.event_status === "upcoming").slice(0, 3), [events]);
+  const priorityEvents = useMemo(() => {
+    const seen = new Set<string>();
+    return events
+      .filter((event) => event.actionability === "high" || event.event_status === "upcoming")
+      .filter((event) => {
+        const key = [event.category, event.source_url, event.bottle_name || event.title].join("|");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 3);
+  }, [events]);
   const counts = useMemo(() => {
     const byCategory: Record<string, number> = {};
     const byAction: Record<string, number> = {};
@@ -189,7 +200,7 @@ export default function EventsPage() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginTop: 28 }}>
             <Stat label={actionableOnly ? "Actionable matches" : "Visible events"} value={String(total || events.length)} />
-            <Stat label="High-signal" value={String(counts.byAction.high || 0)} />
+            <Stat label="Priority watches" value={String((counts.byAction.high || 0) + (counts.byAction.medium || 0))} />
             <Stat label="Release watch" value={String((counts.byCategory.release_watch || 0) + (counts.byCategory.lottery || 0) + (counts.byCategory.barrel_pick || 0))} />
             <Stat label="Last updated" value={lastUpdated ? new Date(lastUpdated).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—"} />
           </div>
@@ -278,11 +289,16 @@ function EventCard({ event }: { event: EventRow }) {
       </div>
       <p style={{ color: "var(--color-text-muted)", fontSize: 13, lineHeight: 1.55 }}>{eventReason(event)}</p>
       <p style={{ color: "var(--color-text-muted)", fontSize: 13, lineHeight: 1.55 }}>{event.caveat || "Verify source details before driving or entering."}</p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+        <a href={`/dashboard?watch=${encodeURIComponent(event.bottle_name || event.title || "release-watch")}&state=${encodeURIComponent(event.state || "")}`} style={{ color: "#0D0B0E", background: "linear-gradient(135deg, var(--color-accent-amber), var(--color-accent-gold))", borderRadius: 999, padding: "9px 12px", textDecoration: "none", fontSize: 12, fontWeight: 700 }}>
+          Watch this signal
+        </a>
       {event.source_url ? (
-        <a href={event.source_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", marginTop: 12, color: "var(--color-accent-amber)", textDecoration: "none", fontWeight: 600 }}>
+        <a href={event.source_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", color: "var(--color-accent-amber)", textDecoration: "none", fontWeight: 600, fontSize: 13, alignItems: "center" }}>
           View source →
         </a>
       ) : null}
+      </div>
     </article>
   );
 }

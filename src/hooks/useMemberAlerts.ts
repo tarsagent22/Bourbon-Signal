@@ -9,6 +9,10 @@ import { useToastStore } from "@/lib/toast";
 interface AlertsResponse {
   alerts: MemberAlertRecord[];
   unreadCount: number;
+  candidateAlerts?: Array<Record<string, unknown>>;
+  candidateAlertCount?: number;
+  alertDeliveryEnabled?: boolean;
+  alertPolicyNote?: string;
 }
 
 const EMPTY_RESPONSE: AlertsResponse = {
@@ -43,10 +47,11 @@ export function useMemberAlerts(polling = false) {
   const seenAlertIds = useRef<Set<string>>(new Set());
   const addToast = useToastStore((state) => state.addToast);
 
-  const isEligible = isSignedIn && !!memberTier;
+  const isEligible = isSignedIn;
+  const isPaidOrTester = isSignedIn || !!memberTier;
 
   const fetchAlerts = useCallback(async () => {
-    if (!isEligible) {
+    if (!isPaidOrTester) {
       setData(EMPTY_RESPONSE);
       return EMPTY_RESPONSE;
     }
@@ -79,19 +84,19 @@ export function useMemberAlerts(polling = false) {
     } finally {
       setLoading(false);
     }
-  }, [addToast, isEligible, pathname, polling]);
+  }, [addToast, isPaidOrTester, pathname, polling]);
 
   useEffect(() => {
     fetchAlerts().catch(() => undefined);
   }, [fetchAlerts]);
 
   useEffect(() => {
-    if (!polling || !isEligible) return;
+    if (!polling || !isPaidOrTester) return;
     const timer = window.setInterval(() => {
       fetchAlerts().catch(() => undefined);
     }, 30000);
     return () => window.clearInterval(timer);
-  }, [fetchAlerts, isEligible, polling]);
+  }, [fetchAlerts, isPaidOrTester, polling]);
 
   const mutate = useCallback(async (action: "mark_read" | "mark_all_read" | "archive", alertId?: string) => {
     if (!isEligible) return EMPTY_RESPONSE;
@@ -109,6 +114,10 @@ export function useMemberAlerts(polling = false) {
   return useMemo(() => ({
     alerts: data.alerts,
     unreadCount: data.unreadCount,
+    candidateAlerts: data.candidateAlerts || [],
+    candidateAlertCount: data.candidateAlertCount || 0,
+    alertDeliveryEnabled: data.alertDeliveryEnabled === true,
+    alertPolicyNote: data.alertPolicyNote || "",
     loading,
     isEligible,
     refresh: fetchAlerts,

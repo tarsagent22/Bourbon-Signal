@@ -2,7 +2,7 @@
 
 const footerLinks = [
   { label: "How It Works", href: "/#how-we-hunt" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Beta Access", href: "/dashboard" },
   { label: "FAQ", href: "/#faq" },
   { label: "Support", href: "mailto:tarsagent22@gmail.com?subject=Bourbon%20Signal%20Support" },
 ];
