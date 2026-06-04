@@ -15,6 +15,7 @@ import { isInStockNow, isSeenThisWeek } from "@/lib/availability";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const FREE_VISIBLE_COUNT = 6;
+const TESTER_MODE = true;
 
 function sortBottles(list: Bottle[], sortBy: string): Bottle[] {
   const sorted = [...list];
@@ -60,6 +61,10 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const { isSignedIn: clerkSignedIn } = useClerkAuth();
 
   const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+    if (TESTER_MODE) {
+      router.push("/dashboard");
+      return;
+    }
     if (!clerkSignedIn) {
       router.push(`/sign-up?redirect_url=/pricing`);
       return;
@@ -472,7 +477,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       transition: "all 200ms ease",
                     }}
                   >
-                    Start Free Trial — $5/mo
+                    Open beta dashboard
                   </button>
                   <button
                     onClick={() => handleCheckout("founder")}
@@ -491,7 +496,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       transition: "all 200ms ease",
                     }}
                   >
-                    Claim Your Spot — $39
+                    Join tester flow
                   </button>
                 </div>
               </div>

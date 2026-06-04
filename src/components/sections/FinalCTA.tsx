@@ -43,13 +43,13 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            100 founding spots. $69. Lifetime.
+            Tester access is open while we validate live signal quality.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-4">
-            <Button variant="primary">Claim Your Spot — $69</Button>
+            <Button variant="primary">Join the Beta</Button>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -57,7 +57,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              7-day money-back guarantee. Cancel anytime.
+              No payment required during tester validation.
             </p>
           </div>
         </ScrollReveal>

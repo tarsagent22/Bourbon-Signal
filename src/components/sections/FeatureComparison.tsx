@@ -224,7 +224,7 @@ export default function FeatureComparison() {
                     marginTop: "2px",
                   }}
                 >
-                  $5/mo
+                  Beta
                 </div>
               </div>
               {/* Bottled in Bond column header */}
@@ -249,7 +249,7 @@ export default function FeatureComparison() {
                     marginTop: "2px",
                   }}
                 >
-                  $39
+                  Paused
                 </div>
               </div>
             </div>

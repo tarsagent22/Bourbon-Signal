@@ -24,7 +24,7 @@ const faqs: FAQItem[] = [
   {
     question: "What's the difference between Standard and Bottled in Bond?",
     answer:
-      "Standard Proof is $5/mo or $40/year. It gives you the live member drop feed, your personal dashboard and watchlist, custom alerts for the bottles you care about, and the Bottle Finder. Bottled in Bond is a one-time $39 founder membership with that same access included, plus the founding perks and no recurring bill.",
+      "During beta, tester access is open while we validate alert quality. Standard Proof is the future paid member tier for the live member feed, dashboard, watchlist, custom alerts, and Bottle Finder. Bottled in Bond is the founder tier we plan to reopen after beta validation.",
   },
   {
     question: "What does Bottled in Bond mean?",
@@ -35,7 +35,7 @@ const faqs: FAQItem[] = [
   {
     question: "Can I cancel my subscription?",
     answer:
-      "Standard Proof members can cancel anytime — no contracts, no hassle. Bottled in Bond is a one-time purchase with lifetime access, so there's nothing to cancel.",
+      "No payment is required during tester validation. When paid tiers reopen, Standard Proof will be cancellable anytime and Bottled in Bond will remain a one-time founder purchase.",
   },
   {
     question: "What is a unicorn / allocated / limited bottle?",
