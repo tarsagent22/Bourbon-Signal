@@ -189,7 +189,7 @@ export default function FeatureComparison() {
                     letterSpacing: "0.08em",
                   }}
                 >
-                  Free
+                  Public
                 </div>
                 <div
                   style={{
@@ -199,7 +199,7 @@ export default function FeatureComparison() {
                     marginTop: "2px",
                   }}
                 >
-                  $0
+                  Preview
                 </div>
               </div>
               {/* Standard column header */}
