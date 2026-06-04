@@ -457,7 +457,7 @@ export default function BottleDetail({
                   Drop history is a members-only feature
                 </p>
                 <a
-                  href="/#pricing"
+                  href="/dashboard"
                   className="inline-block"
                   style={{
                     fontFamily: "var(--font-dm-sans)",
@@ -471,7 +471,7 @@ export default function BottleDetail({
                     padding: "10px 20px",
                   }}
                 >
-                  Unlock with Standard Proof
+                  Join tester setup
                 </a>
               </div>
             ) : history.length > 0 ? (

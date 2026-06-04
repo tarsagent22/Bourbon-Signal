@@ -57,7 +57,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              No payment required during tester validation.
+              Pricing is intentionally hidden until hard launch.
             </p>
           </div>
         </ScrollReveal>

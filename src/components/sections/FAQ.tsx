@@ -24,7 +24,7 @@ const faqs: FAQItem[] = [
   {
     question: "What's the difference between Standard and Bottled in Bond?",
     answer:
-      "During beta, tester access is open while we validate alert quality. Standard Proof is the future paid member tier for the live member feed, dashboard, watchlist, custom alerts, and Bottle Finder. Bottled in Bond is the founder tier we plan to reopen after beta validation.",
+      "During founding tester mode, full beta access is open while we validate alert quality. Standard Proof is the planned core member tier for the live feed, dashboard, watchlist, custom alerts, and Bottle Finder. Bottled in Bond is the limited founding member option we plan to open at hard launch.",
   },
   {
     question: "What does Bottled in Bond mean?",
@@ -33,9 +33,9 @@ const faqs: FAQItem[] = [
       "In bourbon, Bottled in Bond is a designation under the Bottled-in-Bond Act of 1897 — it means the whiskey was made by one distiller at one distillery in one season, aged at least four years in a federally bonded warehouse, and bottled at exactly 100 proof. It\u2019s the gold standard of authenticity and quality. We named our founding membership tier after it because it represents the same thing we offer: verified, uncut, straight from the source. Only 100 Bottled in Bond spots will ever exist.",
   },
   {
-    question: "Can I cancel my subscription?",
+    question: "Do testers pay during this phase?",
     answer:
-      "No payment is required during tester validation. When paid tiers reopen, Standard Proof will be cancellable anytime and Bottled in Bond will remain a one-time founder purchase.",
+      "No. We are hiding pricing during the founding tester phase so testers can focus on whether the alerts, dashboard, and bottle workflow are actually useful. Paid memberships come back at hard launch.",
   },
   {
     question: "What is a unicorn / allocated / limited bottle?",

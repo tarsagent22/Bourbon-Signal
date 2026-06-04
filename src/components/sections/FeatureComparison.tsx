@@ -154,7 +154,7 @@ export default function FeatureComparison() {
               marginBottom: "40px",
             }}
           >
-            Compare Plans
+            Membership Preview
           </h3>
         </ScrollReveal>
 
@@ -224,7 +224,7 @@ export default function FeatureComparison() {
                     marginTop: "2px",
                   }}
                 >
-                  Beta
+                  Planned
                 </div>
               </div>
               {/* Bottled in Bond column header */}
@@ -249,7 +249,7 @@ export default function FeatureComparison() {
                     marginTop: "2px",
                   }}
                 >
-                  Paused
+                  Teased
                 </div>
               </div>
             </div>

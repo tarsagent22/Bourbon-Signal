@@ -13,12 +13,8 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const tier = typeof user.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
-
-  if (!tier) {
-    return NextResponse.json({ error: "Paid membership required" }, { status: 403 });
-  }
-
+  // Founding tester mode: allow signed-in testers to send themselves a preview alert.
+  // Re-enable tier gating here for hard launch.
   const primaryEmail = user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId) || user.emailAddresses[0];
   if (!primaryEmail?.emailAddress) {
     return NextResponse.json({ error: "No email address found" }, { status: 400 });

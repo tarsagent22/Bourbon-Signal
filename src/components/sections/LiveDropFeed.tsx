@@ -160,16 +160,15 @@ export default function LiveDropFeed() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Bourbon Signal members see these alerts the moment they happen. You&apos;re
-            seeing them on a delay.{" "}
+            Founding testers help validate these alerts before paid memberships open.{" "}
             <a
-              href="#pricing"
+              href="/dashboard"
               style={{
                 color: "var(--color-accent-amber)",
                 textDecoration: "none",
               }}
             >
-              Get Instant Alerts →
+              Join beta setup →
             </a>
           </p>
         </motion.div>

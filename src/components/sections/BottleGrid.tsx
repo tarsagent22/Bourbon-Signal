@@ -66,7 +66,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
       return;
     }
     if (!clerkSignedIn) {
-      router.push(`/sign-up?redirect_url=/pricing`);
+      router.push(`/sign-up?redirect_url=/dashboard`);
       return;
     }
     const res = await fetch("/api/checkout", {
