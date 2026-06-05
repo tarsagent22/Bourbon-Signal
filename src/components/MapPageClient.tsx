@@ -18,6 +18,8 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 type FinderMode = "bottle" | "store";
 type FinderState = string;
 
+const FINDER_MARKET_CODES = new Set(["AL", "NC", "VA", "PA", "IN", "OH", "ME", "UT"]);
+
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
     label: "Unicorn",
@@ -567,11 +569,13 @@ export default function MapPageClient() {
   const { drops, loading: dropsLoading } = useDrops({ limit: 120 });
   const watchlist = useWatchlistStore((state) => state.watchedBottles);
   const huntTargets = useWatchlistStore((state) => state.huntTargets);
+  const addBottle = useWatchlistStore((state) => state.addBottle);
+  const removeBottle = useWatchlistStore((state) => state.removeBottle);
   const selectedStates = useStatePreferences((state) => state.selectedStates);
   const hasSelectedStates = useStatePreferences((state) => state.hasSelectedStates);
 
   const [mode, setMode] = useState<FinderMode>("bottle");
-  const [stateFilter, setStateFilter] = useState<FinderState>("ALL");
+  const [stateFilter, setStateFilter] = useState<FinderState>("AL");
   const [query, setQuery] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -610,18 +614,14 @@ export default function MapPageClient() {
     for (const store of stores) if (store.state) counts.set(store.state, (counts.get(store.state) || 0) + 1);
 
     const activeStates = AVAILABLE_STATES
-      .filter((state) => !("comingSoon" in state && state.comingSoon))
-      .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }));
-
-    const dynamicStates = [...counts.keys()]
-      .filter((code) => !activeStates.some((state) => state.code === code))
-      .sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0))
-      .map((code) => ({ code, name: getStateName(code), count: counts.get(code) || 0 }));
+      .filter((state) => FINDER_MARKET_CODES.has(state.code))
+      .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }))
+      .filter((state) => state.count > 0)
+      .sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name));
 
     return [
-      { code: "ALL", name: "All states", count: drops.length },
       ...activeStates,
-      ...dynamicStates,
+      { code: "ALL", name: "All covered states", count: drops.length },
     ];
   }, [bottles, drops, stores]);
 
@@ -668,17 +668,21 @@ export default function MapPageClient() {
   }, [filteredBottles, selectedBottleId]);
 
   useEffect(() => {
+    if (stateFilter !== "ALL" || !stateOptions.length) return;
+    const preferred = selectedStates.find((state) => stateOptions.some((option) => option.code === state && option.count > 0));
+    const firstUseful = stateOptions.find((option) => option.code !== "ALL" && option.count > 0);
+    if (preferred || firstUseful) setStateFilter((preferred || firstUseful!.code) as FinderState);
+  }, [selectedStates, stateFilter, stateOptions]);
+
+  useEffect(() => {
     if (mode === "bottle" && !selectedBottleId && filteredBottles[0]) {
       setSelectedBottleId(filteredBottles[0].id);
     }
-    if (mode === "store" && !selectedStoreId && filteredStores[0]) {
-      setSelectedStoreId(filteredStores[0].id);
-    }
-  }, [mode, filteredBottles, filteredStores, selectedBottleId, selectedStoreId]);
+  }, [mode, filteredBottles, selectedBottleId]);
 
   const selectedStore = useMemo(() => {
-    if (!filteredStores.length) return null;
-    return filteredStores.find((store) => store.id === selectedStoreId) ?? filteredStores[0];
+    if (!selectedStoreId) return null;
+    return filteredStores.find((store) => store.id === selectedStoreId) ?? null;
   }, [filteredStores, selectedStoreId]);
 
   useEffect(() => {
@@ -750,13 +754,11 @@ export default function MapPageClient() {
         .slice(0, 8);
     }
 
-    if (!hasSelectedStates || preferredStateSet.size === 0) return [] as Store[];
-
     return filteredStores
-      .filter((store) => preferredStateSet.has(store.state))
+      .filter((store) => store.hasSignals || store.precision === "store")
       .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
       .slice(0, 6);
-  }, [filteredStores, hasSelectedStates, mode, preferredStateSet, query]);
+  }, [filteredStores, mode, query]);
 
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
@@ -883,6 +885,8 @@ export default function MapPageClient() {
 
   const bestStoreSignal = storeDrops[0] ?? null;
   const storeTrust = getTrustBadge(bestStoreSignal);
+  const selectedBottleWatched = selectedBottle ? watchlist.includes(selectedBottle.id) : false;
+  const dashboardHref = "/dashboard";
 
   const summary = useMemo(() => {
     return {
@@ -912,7 +916,7 @@ export default function MapPageClient() {
         setSelectedBottleId(match.id);
       }
     } else {
-      const match = locationSuggestions[0] ?? filteredStores[0];
+      const match = locationSuggestions[0];
       if (match) {
         setQuery(match.displayLabel ?? match.name ?? "");
         setSelectedStoreId(match.id);
@@ -935,8 +939,8 @@ export default function MapPageClient() {
               <Radar size={14} />
               Finder
             </div>
-            <h1>Bottle Finder</h1>
-            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Find the bourbon you're looking for with trustworthy signals at your fingertips.</p>
+            <h1>Finder</h1>
+            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Start with a market, then search a bottle or location. Finder shows store-level hits when the source supports them and board-level leads when it doesn’t.</p>
 
             <div className="finder-tool-shell">
               <div className="finder-lens-row">
@@ -958,6 +962,7 @@ export default function MapPageClient() {
                   onClick={() => {
                     setMode("store");
                     setQuery("");
+                    setSelectedStoreId(null);
                     setShowSuggestions(false);
                   }}
                 >
@@ -1072,7 +1077,7 @@ export default function MapPageClient() {
                 >
                   {stateOptions.map((state) => (
                     <option key={state.code} value={state.code}>
-                      {state.code === "ALL" ? "All states" : `${state.name} (${state.code})`}
+                      {state.code === "ALL" ? "All covered states" : `${state.name} (${state.code})`}
                     </option>
                   ))}
                 </select>
@@ -1116,6 +1121,16 @@ export default function MapPageClient() {
                                 ? `No exact store hit yet. Showing ${broaderBottleSignals.length} area lead${broaderBottleSignals.length === 1 ? "" : "s"}.`
                                 : "No current location signal in this search area."}
                           </p>
+                          <div className="finder-action-row">
+                            <button
+                              type="button"
+                              className="finder-primary-action"
+                              onClick={() => selectedBottleWatched ? removeBottle(selectedBottle.id) : addBottle(selectedBottle.id)}
+                            >
+                              {selectedBottleWatched ? "Watching" : "Watch this bottle"}
+                            </button>
+                            <a className="finder-secondary-action" href={dashboardHref}>Alert setup</a>
+                          </div>
                         </div>
                       </div>
 
@@ -1184,14 +1199,18 @@ export default function MapPageClient() {
                         ) : null}
 
                         {exactBottleSignals.length === 0 && broaderBottleSignals.length === 0 ? (
-                          <div className="finder-empty-card small">Try All states or another nearby market.</div>
+                          <div className="finder-empty-card small">
+                            No useful lead in {stateFilter === "ALL" ? "the covered states" : getStateName(stateFilter)} yet. Try Alabama, Pennsylvania, Indiana, or search a broader bottle name.
+                          </div>
                         ) : null}
                       </div>
                     </div>
 
                   </>
                 ) : (
-                  <div className="finder-empty-card">No bottle matches in this state yet. Try Weller, Stagg, Blanton's, or Buffalo Trace, or switch to All states.</div>
+                  <div className="finder-empty-card">
+                    No bottle match in {stateFilter === "ALL" ? "the covered states" : getStateName(stateFilter)}. Try a shorter name like “Weller”, “Stagg”, “Blanton”, or switch markets.
+                  </div>
                 )}
               </motion.div>
             ) : (
@@ -1226,6 +1245,10 @@ export default function MapPageClient() {
                               ? `Source loaded: ${selectedStore.source}`
                               : storeTrust.detail}
                         </p>
+                        <div className="finder-action-row">
+                          <a className="finder-primary-action" href={dashboardHref}>Set alerts for this area</a>
+                          {selectedStore.sourceUrl ? <a className="finder-secondary-action" href={selectedStore.sourceUrl} target="_blank" rel="noreferrer">Open source</a> : null}
+                        </div>
                       </div>
                       <div className="finder-highlight-orb">
                         <div>
@@ -1306,7 +1329,19 @@ export default function MapPageClient() {
                     </div>
                   </>
                 ) : (
-                  <div className="finder-empty-card">No location matches in this state yet. Search a board, county, city, or store name, or switch to All states.</div>
+                  <div className="finder-empty-card finder-start-card">
+                    <strong>Search a location to inspect it.</strong>
+                    <span>Try a store name, city, county, or board. Good starting points: Gettysburg, Montgomery, Auburn, Indianapolis, or Wake County.</span>
+                    {locationSuggestions.length > 0 ? (
+                      <div className="finder-empty-suggestions">
+                        {locationSuggestions.slice(0, 4).map((store) => (
+                          <button key={store.id} type="button" onClick={() => { setQuery(store.displayLabel ?? store.name ?? ""); setSelectedStoreId(store.id); }}>
+                            {store.displayLabel || store.name}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 )}
               </motion.div>
             )}

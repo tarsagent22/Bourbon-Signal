@@ -11,13 +11,13 @@ import { useAuth } from "@/lib/auth";
 const navLinks = [
   { label: "Drops", href: "/#drops" },
   { label: "Dashboard", href: "/dashboard" },
-  { label: "Finder", href: "/map" },
+  { label: "Finder", href: "/finder" },
   { label: "Events", href: "/events" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isMapPage = pathname === "/map";
+  const isMapPage = pathname === "/map" || pathname === "/finder";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
