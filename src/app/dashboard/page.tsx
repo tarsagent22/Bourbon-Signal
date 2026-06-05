@@ -783,7 +783,7 @@ export default function DashboardPage() {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Build your signal stack
+                Signal Dashboard
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={140}>
@@ -797,7 +797,7 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Choose the bottles you chase, the territory you hunt, and the alert channels you want live.
+                Build your signal stack and get alerted how you want
               </p>
             </ScrollReveal>
           </div>
@@ -963,27 +963,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : null}
-
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                <button
-                  onClick={handleSaveAlertSetup}
-                  disabled={!isSignedIn || savingLocations}
-                  style={{
-                    padding: "12px 18px",
-                    borderRadius: "12px",
-                    border: savedLocations ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
-                    background: savedLocations ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                    color: savedLocations ? "#9AD4B1" : "#0D0B07",
-                    fontFamily: "var(--font-dm-sans)",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    cursor: !isSignedIn || savingLocations ? "not-allowed" : "pointer",
-                    opacity: !isSignedIn || savingLocations ? 0.7 : 1,
-                  }}
-                >
-                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedLocations ? "Saved ✓" : "Save alert setup"}
-                </button>
-              </div>
             </div>
           </StepShell>
 
@@ -1030,9 +1009,6 @@ export default function DashboardPage() {
                       >
                         <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>{option.label}</span>
                         <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{option.note}</span>
-                        <span style={{ justifySelf: "start", marginTop: "4px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: selected ? "#17110a" : "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.28)", background: selected ? "var(--color-accent-amber)" : "rgba(196,148,58,0.10)", padding: "6px 9px" }}>
-                          {selected ? "Selected" : "Choose"}
-                        </span>
                       </button>
                     );
                   })}

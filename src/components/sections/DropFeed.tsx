@@ -290,6 +290,11 @@ function getEventDescription(drop: GroupedDrop): string {
   }
 }
 
+function getPrimarySignalMeta(drop: GroupedDrop, locationSummary: string, stateLabel: string) {
+  const parts = [stateLabel, locationSummary].filter(Boolean);
+  return parts.join(" · ") || "Recent signal";
+}
+
 function TierBadge({ tier }: { tier: string }) {
   const config = TIER_CONFIG[tier] || TIER_CONFIG.limited;
   return (
@@ -317,6 +322,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const stateLabel = drop.displayState || formatStateLabel(drop.state);
   const primaryLocation = drop.locations[0]?.label || description;
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
+  const primaryMeta = getPrimarySignalMeta(drop, locationSummary, stateLabel);
   const signalLabel = drop.signalLabel || "Bottle signal";
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
@@ -337,6 +343,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   if (drop.signalLabel) {
     details.push({ label: "Signal", value: drop.signalLabel });
   }
+  details.push({ label: "Evidence", value: `${accuracyBadge.label} · ${accuracyBadge.caption}` });
   if (confidenceBadge) {
     details.push({ label: "Confidence", value: confidenceBadge.label });
   }
@@ -421,55 +428,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 style={{
                   fontFamily: "var(--font-jetbrains)",
                   fontSize: "9px",
-                  fontWeight: 800,
-                  letterSpacing: "0.09em",
-                  textTransform: "uppercase",
-                  color: signalLabel === "In stock" ? "rgba(110,231,183,0.96)" : "rgba(212,146,11,0.96)",
-                  background: signalLabel === "In stock" ? "rgba(110,231,183,0.10)" : "rgba(212,146,11,0.10)",
-                  border: signalLabel === "In stock" ? "1px solid rgba(110,231,183,0.20)" : "1px solid rgba(212,146,11,0.22)",
-                  borderRadius: "999px",
-                  padding: "4px 8px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {signalLabel}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "9px",
-                  fontWeight: 800,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color:
-                    accuracyBadge.tone === "exact"
-                      ? "rgba(110,231,183,0.96)"
-                      : accuracyBadge.tone === "official"
-                        ? "rgba(125,211,252,0.95)"
-                        : "rgba(245,237,214,0.56)",
-                  background:
-                    accuracyBadge.tone === "exact"
-                      ? "rgba(110,231,183,0.09)"
-                      : accuracyBadge.tone === "official"
-                        ? "rgba(125,211,252,0.09)"
-                        : "rgba(245,237,214,0.055)",
-                  border:
-                    accuracyBadge.tone === "exact"
-                      ? "1px solid rgba(110,231,183,0.18)"
-                      : accuracyBadge.tone === "official"
-                        ? "1px solid rgba(125,211,252,0.18)"
-                        : "1px solid rgba(245,237,214,0.10)",
-                  borderRadius: "999px",
-                  padding: "4px 8px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {accuracyBadge.label}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "9px",
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
@@ -506,42 +464,15 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           </div>
         </div>
 
-        <div
-          className="flex items-center justify-between gap-3"
-          style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(245,237,214,0.07)" }}
-        >
+        <div className="flex items-center justify-between gap-3" style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(245,237,214,0.07)" }}>
           <div className="min-w-0">
-            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.43)", marginBottom: "2px" }}>
-              {drop.signalCategory === "delivery" ? "Delivery area" : "Availability"}
-            </div>
             <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 650, color: "rgba(245,237,214,0.86)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {locationSummary}
+              {primaryMeta}
             </div>
           </div>
 
           <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-            <span style={{ ...(tier.pillStyle as React.CSSProperties), fontSize: "8px", padding: "4px 8px" }}>
-              {tier.label}
-            </span>
-            {confidenceBadge && (
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "8px",
-                  fontWeight: 800,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "rgba(110,231,183,0.86)",
-                  background: "rgba(110,231,183,0.075)",
-                  border: "1px solid rgba(110,231,183,0.16)",
-                  borderRadius: "999px",
-                  padding: "4px 7px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {confidenceBadge.label}
-              </span>
-            )}
+            {hasDetails ? <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.38)" }}>Details</span> : null}
           </div>
         </div>
 
@@ -556,8 +487,8 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
             color: "rgba(245,237,214,0.45)",
           }}
         >
-          <span>{accuracyBadge.caption}</span>
-          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for more" : "More shown"}</span>
+          <span>{signalLabel}</span>
+          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for details" : "More shown"}</span>
         </div>
 
       </div>
@@ -579,13 +510,8 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Left: tier badge */}
-        <div className="flex items-center justify-center shrink-0" style={{ width: "70px" }}>
-          <TierBadge tier={drop.rarity_tier} />
-        </div>
-
         {/* Center: name + description */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "8px" }}>
+        <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "0" }}>
           <button
             type="button"
             style={{
@@ -604,7 +530,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
             {drop.displayName}
           </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
-            {/* State badge */}
             {stateLabel && (
               <span
                 style={{
@@ -624,61 +549,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 {stateLabel}
               </span>
             )}
-            {drop.signalLabel && (
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  color: "rgba(212,146,11,0.8)",
-                  background: "rgba(212,146,11,0.08)",
-                  border: "1px solid rgba(212,146,11,0.18)",
-                  padding: "1px 6px",
-                  borderRadius: "999px",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  textTransform: "uppercase",
-                }}
-              >
-                {drop.signalLabel}
-              </span>
-            )}
-            {confidenceBadge && (
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  color:
-                    confidenceBadge.tone === "exact"
-                      ? "rgba(110,231,183,0.95)"
-                      : confidenceBadge.tone === "online"
-                        ? "rgba(125,211,252,0.95)"
-                        : "rgba(245,237,214,0.7)",
-                  background:
-                    confidenceBadge.tone === "exact"
-                      ? "rgba(110,231,183,0.12)"
-                      : confidenceBadge.tone === "online"
-                        ? "rgba(125,211,252,0.12)"
-                        : "rgba(245,237,214,0.08)",
-                  border:
-                    confidenceBadge.tone === "exact"
-                      ? "1px solid rgba(110,231,183,0.24)"
-                      : confidenceBadge.tone === "online"
-                        ? "1px solid rgba(125,211,252,0.22)"
-                        : "1px solid rgba(245,237,214,0.14)",
-                  padding: "1px 6px",
-                  borderRadius: "999px",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  textTransform: "uppercase",
-                }}
-              >
-                {confidenceBadge.label}
-              </span>
-            )}
             <span
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -687,7 +557,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 lineHeight: 1.3,
               }}
             >
-              {description}
+              {primaryMeta}
             </span>
             {/* Mobile pricing inline — visible only on small screens */}
             {hasPricing && (
@@ -1195,6 +1065,7 @@ export default function DropFeed() {
               </button>
               {feedStateOptions.map((state) => {
                 const active = hasSelectedStates && preferredStates.includes(state.code);
+                const count = dropCountsByState.get(state.code) || 0;
                 const nextStates = active
                   ? preferredStates.filter((code) => code !== state.code)
                   : [...preferredStates, state.code];
@@ -1202,13 +1073,13 @@ export default function DropFeed() {
                   <button
                     key={state.code}
                     type="button"
-                    className={`dropfeed-state-chip ${active ? "active" : ""}`}
+                    className={`dropfeed-state-chip ${active ? "active" : ""} ${count === 0 ? "quiet" : ""}`}
                     onClick={() => setSelectedStates(nextStates)}
                     aria-pressed={active}
                   >
                     <strong>{state.code}</strong>
                     <span>{state.name}</span>
-                    <em>{dropCountsByState.get(state.code) || 0}</em>
+                    <em>{count}</em>
                   </button>
                 );
               })}

@@ -265,6 +265,15 @@ function getHumanSignalDetail(drop: DropEvent) {
   return "Recent movement signal for this area.";
 }
 
+function formatFinderStoreAddress(store?: Pick<Store, "address" | "city" | "state" | "zip" | "precision"> | null) {
+  if (!store || store.precision === "board") return null;
+  const address = store.address?.trim();
+  const cityState = [store.city, store.state].filter(Boolean).join(", ");
+  if (!address) return cityState || null;
+  if (cityState && !address.toLowerCase().includes(cityState.toLowerCase())) return `${address} · ${cityState}`;
+  return address;
+}
+
 function extractStoreAddressParts(address?: string | null) {
   if (!address) return { line1: null as string | null, locality: null as string | null };
   const trimmed = address.trim().replace(/\s+/g, " ");
@@ -316,9 +325,10 @@ function summarizeDropLocation(drop: DropEvent) {
     return {
       title: drop.store_name || addressParts.line1 || drop.store_city || "Store inventory hit",
       detail:
+        drop.store_address ||
         [addressParts.locality, drop.store_city, drop.state || drop.state_code]
           .filter(Boolean)
-          .join(" · ") || drop.store_address || "Store-level inventory signal",
+          .join(" · ") || "Store-level inventory signal",
     };
   }
 
@@ -327,9 +337,10 @@ function summarizeDropLocation(drop: DropEvent) {
     return {
       title: addressParts.line1 || (nestedStore.city ? `${nestedStore.city} store cluster` : "Store inventory hit"),
       detail:
+        nestedStore.store_address ||
         [addressParts.locality, nestedStore.city, drop.state || drop.state_code]
           .filter(Boolean)
-          .join(" · ") || nestedStore.store_address,
+          .join(" · "),
     };
   }
 
@@ -1039,9 +1050,9 @@ export default function MapPageClient() {
                         <div>
                           <strong>{store.displayLabel || store.name}</strong>
                           <span>
-                            {store.precision === "board"
+                            {formatFinderStoreAddress(store) || (store.precision === "board"
                               ? [store.county || store.city, store.state].filter(Boolean).join(", ") || "Board"
-                              : [store.city, store.state].filter(Boolean).join(", ") || store.address || "Location"}
+                              : [store.city, store.state].filter(Boolean).join(", ") || store.address || "Location")}
                             {store.hasSignals ? " · signals found" : " · ready for future hits"}
                           </span>
                         </div>
@@ -1133,7 +1144,7 @@ export default function MapPageClient() {
                                   >
                                     <div>
                                       <strong>{location.title}</strong>
-                                      <span>{getShortLocation(drop, location.detail)}</span>
+                                      <span>{location.detail}</span>
                                       {active ? <em>{getHumanSignalDetail(drop)}</em> : null}
                                     </div>
                                     <small>{getBottleAmount(drop)} · {formatRelativeTime(drop.timestamp)}</small>
@@ -1161,7 +1172,7 @@ export default function MapPageClient() {
                                   >
                                     <div>
                                       <strong>{location.title}</strong>
-                                      <span>{getShortLocation(drop, location.detail)}</span>
+                                      <span>{location.detail}</span>
                                       {active ? <em>{getHumanSignalDetail(drop)}</em> : null}
                                     </div>
                                     <small>{formatRelativeTime(drop.timestamp)}</small>
@@ -1205,6 +1216,9 @@ export default function MapPageClient() {
                             ? "This view ranks the bottles actually tied to this board or store, with verified store evidence separated from broader watch signals."
                             : "This board or store is already in the location bible, so future bottle signals have a place to land as soon as the engine sees them."}
                         </p>
+                        {formatFinderStoreAddress(selectedStore) ? (
+                          <p className="finder-address-line">{formatFinderStoreAddress(selectedStore)}</p>
+                        ) : null}
                         <p className="finder-evidence-line">
                           {bestStoreSignal
                             ? getHumanSignalDetail(bestStoreSignal)
