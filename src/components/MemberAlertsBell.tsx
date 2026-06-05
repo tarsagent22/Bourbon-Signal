@@ -85,7 +85,7 @@ export default function MemberAlertsBell() {
                 <div>
                   <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>Alert inbox</div>
                   <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>
-                    Premium signals that follow you across the site.
+                    Premium drop alerts that follow you across the site.
                   </div>
                 </div>
                 {unreadCount > 0 ? (

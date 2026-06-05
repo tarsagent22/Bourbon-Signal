@@ -20,11 +20,11 @@ const steps: StepData[] = [
   },
   {
     number: "03",
-    description: "Get alerts when a signal matches your watchlist, with frequency controlled by your preferences",
+    description: "Get alerts when a drop, shipment, or inventory hit matches your watchlist, with frequency controlled by your preferences",
   },
   {
     number: "04",
-    description: "Grab the bourbon you've been looking for when an allocated-bottle signal is worth acting on",
+    description: "Grab the bourbon you've been looking for when a source-backed drop is worth acting on",
   },
 ];
 

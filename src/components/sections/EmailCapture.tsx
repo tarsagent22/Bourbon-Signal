@@ -80,7 +80,7 @@ export default function EmailCapture() {
               textAlign: "center",
             }}
           >
-            One email per week with the biggest drops, strongest bottle signals, and release notes.
+            One email per week with the biggest drops, strongest bottle leads, and release notes.
             No spam. Unsubscribe anytime.
           </p>
 

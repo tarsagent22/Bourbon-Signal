@@ -7,12 +7,12 @@ import ToastContainer from "@/components/Toast";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
 
 export const metadata: Metadata = {
-  title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-  description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
+  title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
+  description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
   metadataBase: new URL("https://bourbonsignal.com"),
   openGraph: {
-    title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-    description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
+    title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
+    description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
     url: "https://bourbonsignal.com",
     siteName: "Bourbon Signal",
     type: "website",
@@ -21,14 +21,14 @@ export const metadata: Metadata = {
         url: "https://bourbonsignal.com/hero-bg.jpg",
         width: 1200,
         height: 630,
-        alt: "Bourbon Signal — Bourbon drop signals",
+        alt: "Bourbon Signal — Bourbon drops and shipment alerts",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-    description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
+    title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
+    description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
     images: ["https://bourbonsignal.com/hero-bg.jpg"],
   },
 };

@@ -18,7 +18,8 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 type FinderMode = "bottle" | "store";
 type FinderState = string;
 
-const FINDER_MARKET_CODES = new Set(["AL", "NC", "VA", "PA", "IN", "OH", "ME", "UT"]);
+const FINDER_MARKET_CODES = new Set(["NC", "VA", "PA", "IN", "OH", "ME", "UT", "AL"]);
+const FINDER_MARKET_PRIORITY = ["NC", "VA", "PA", "IN", "OH", "ME", "UT", "AL"];
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
@@ -129,6 +130,31 @@ function getStoreLookupKeys(store: Store) {
   ]
     .filter(Boolean)
     .map((value) => normalize(value));
+}
+
+function normalizeLocationFingerprint(value?: string | null) {
+  return normalize(value).replace(/[^a-z0-9]+/g, "");
+}
+
+function storeNumber(value?: string | null) {
+  return normalize(value).match(/(?:store|#)\s*(\d{2,5})/)?.[1] || null;
+}
+
+function dropMatchesExactSelectedStore(drop: DropEvent, store: Store) {
+  if (store.precision === "board") return matchesStore(drop, store);
+
+  const selectedAddress = normalizeLocationFingerprint(store.address);
+  const selectedName = normalizeLocationFingerprint(store.name || store.displayLabel);
+  const selectedNumber = storeNumber(store.name || store.displayLabel);
+  const dropAddresses = [drop.store_address, ...(drop.stores || []).map((entry) => entry.store_address)].map(normalizeLocationFingerprint).filter(Boolean);
+  const dropNames = [drop.store_name].map(normalizeLocationFingerprint).filter(Boolean);
+  const dropNumbers = [drop.store_name].map(storeNumber).filter(Boolean);
+
+  if (selectedAddress && dropAddresses.some((candidate) => candidate === selectedAddress || candidate.includes(selectedAddress) || selectedAddress.includes(candidate))) return true;
+  if (selectedNumber && dropNumbers.includes(selectedNumber)) return true;
+  if (selectedName && dropNames.some((candidate) => candidate === selectedName || candidate.includes(selectedName) || selectedName.includes(candidate))) return true;
+
+  return false;
 }
 
 function matchesStore(drop: DropEvent, store: Store) {
@@ -615,7 +641,7 @@ export default function MapPageClient() {
   const hasSelectedStates = useStatePreferences((state) => state.hasSelectedStates);
 
   const [mode, setMode] = useState<FinderMode>("bottle");
-  const [stateFilter, setStateFilter] = useState<FinderState>("AL");
+  const [stateFilter, setStateFilter] = useState<FinderState>("NC");
   const [query, setQuery] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -657,7 +683,11 @@ export default function MapPageClient() {
       .filter((state) => FINDER_MARKET_CODES.has(state.code))
       .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }))
       .filter((state) => state.count > 0)
-      .sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const priorityDelta = FINDER_MARKET_PRIORITY.indexOf(a.code) - FINDER_MARKET_PRIORITY.indexOf(b.code);
+        if (priorityDelta !== 0) return priorityDelta;
+        return (b.count - a.count) || a.name.localeCompare(b.name);
+      });
 
     return [
       ...activeStates,
@@ -713,7 +743,8 @@ export default function MapPageClient() {
   }, [filteredBottles, selectedBottleId]);
 
   useEffect(() => {
-    if (stateFilter !== "ALL" || !stateOptions.length) return;
+    if (!stateOptions.length) return;
+    if (stateFilter !== "ALL" && stateOptions.some((option) => option.code === stateFilter)) return;
     const preferred = selectedStates.find((state) => stateOptions.some((option) => option.code === state && option.count > 0));
     const firstUseful = stateOptions.find((option) => option.code !== "ALL" && option.count > 0);
     if (preferred || firstUseful) setStateFilter((preferred || firstUseful!.code) as FinderState);
@@ -729,6 +760,15 @@ export default function MapPageClient() {
     if (!selectedStoreId) return null;
     return finderLocations.find((store) => store.id === selectedStoreId) ?? null;
   }, [finderLocations, selectedStoreId]);
+
+  useEffect(() => {
+    setSelectedSignalKey(null);
+    setHistoryOffset(0);
+    if (selectedStoreId && selectedStore && stateFilter !== "ALL" && selectedStore.state !== stateFilter) {
+      setSelectedStoreId(null);
+      setQuery("");
+    }
+  }, [selectedStore?.state, selectedStoreId, stateFilter]);
 
   useEffect(() => {
     if (mode === "bottle" && selectedBottle) {
@@ -907,7 +947,7 @@ export default function MapPageClient() {
     const sourceDrops = historyQuery.store && historyDrops.length > 0 ? historyDrops : drops;
     return sourceDrops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
-      .filter((drop) => matchesStore(drop, selectedStore))
+      .filter((drop) => dropMatchesExactSelectedStore(drop, selectedStore))
       .slice(0, 12);
   }, [drops, historyDrops, historyQuery.store, selectedStore, stateFilter]);
 
@@ -984,7 +1024,7 @@ export default function MapPageClient() {
               Finder
             </div>
             <h1>Finder</h1>
-            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Start with a market, then search a bottle or location. Finder shows store-level hits when the source supports them and board-level leads when it doesn’t.</p>
+            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Start with a market, then search a bottle or location. NC usually means board/county shipment clues; VA can show exact store inventory. Finder labels the difference so you know whether to drive, call, or just watch.</p>
 
             <div className="finder-tool-shell">
               <div className="finder-lens-row">
@@ -1244,7 +1284,7 @@ export default function MapPageClient() {
 
                         {exactBottleSignals.length === 0 && broaderBottleSignals.length === 0 ? (
                           <div className="finder-empty-card small">
-                            No useful lead in {stateFilter === "ALL" ? "the covered states" : getStateName(stateFilter)} yet. Try Alabama, Pennsylvania, Indiana, or search a broader bottle name.
+                            No useful lead in {stateFilter === "ALL" ? "the covered states" : getStateName(stateFilter)} yet. Try another promoted market, search a broader bottle name, or switch to location scan.
                           </div>
                         ) : null}
                       </div>
@@ -1350,8 +1390,8 @@ export default function MapPageClient() {
                           <Clock3 size={16} color="var(--color-accent-amber)" />
                         </div>
                         <div className="finder-list">
-                          {historyDrops.length > 0 ? (
-                            historyDrops.map((drop, index) => (
+                          {storeDrops.length > 0 ? (
+                            storeDrops.map((drop, index) => (
                               <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
                                 <div className="finder-list-row-copy">
                                   <strong>{getDisplayName(drop)}</strong>
@@ -1391,7 +1431,7 @@ export default function MapPageClient() {
                 ) : (
                   <div className="finder-empty-card finder-start-card">
                     <strong>Search a location to inspect it.</strong>
-                    <span>Try a store name, city, county, or board. Good starting points: Gettysburg, Montgomery, Auburn, Indianapolis, or Wake County.</span>
+                    <span>Try a store name, city, county, or board. Good starting points update with your selected market.</span>
                     {locationSuggestions.length > 0 ? (
                       <div className="finder-empty-suggestions">
                         {locationSuggestions.slice(0, 4).map((store) => (

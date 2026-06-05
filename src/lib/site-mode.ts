@@ -7,7 +7,7 @@ export const MEMBERSHIP_COPY = {
   testerLabel: "Founding tester mode",
   testerHeadline: "Help validate Bourbon Signal before paid memberships open.",
   testerBody:
-    "Full tester access is open while we test alert quality, tune the hunt workflow, and make sure the signals are worth trusting before anyone pays.",
+    "Full tester access is open while we test alert quality, tune the hunt workflow, and make sure the drop alerts are worth trusting before anyone pays.",
   standardName: "Standard Proof",
   standardStatus: "Planned member tier",
   standardBody:

@@ -122,16 +122,23 @@ export default function EventsPage() {
 
         <section className="events-hero">
           <div className="events-kicker">Events</div>
-          <h1>Events, Lotteries, Raffles, and more</h1>
-          <p>Upcoming events tracked by our system will be listed here with links when available</p>
+          <h1>Events and raffle watch</h1>
+          <p>No filler: only dated raffles, lotteries, tastings, barrel picks, or releases with useful official links show up here.</p>
         </section>
 
         <section className="events-board">
           {loading ? (
             <div className="events-empty">Loading upcoming events…</div>
           ) : events.length === 0 ? (
-            <div className="events-empty">
-              No upcoming actionable events with official links are available right now. When the system finds a dated event, lottery, raffle, tasting, or barrel pick with a useful signup/info link, it will appear here.
+            <div className="events-empty rich">
+              <strong>No current official events worth acting on.</strong>
+              <span>We are keeping this page intentionally quiet until there is a dated raffle, lottery, tasting, barrel pick, or release with a real signup/info link.</span>
+              <div className="events-empty-grid">
+                <div><b>What appears here</b><p>Official events with dates, locations, and links.</p></div>
+                <div><b>What stays out</b><p>Generic policy pages, stale announcements, and vague bottle chatter.</p></div>
+                <div><b>Want alerts?</b><p>Use the dashboard to watch bottles and markets; event-specific alerts can layer in when the feed has real inventory.</p></div>
+              </div>
+              <a className="events-empty-cta" href="/dashboard">Set drop alerts instead</a>
             </div>
           ) : (
             <>
@@ -219,5 +226,13 @@ const eventsCss = `
 .events-pill.high { border-color:rgba(110,231,183,.28); color:rgba(110,231,183,.96); background:rgba(110,231,183,.08); }
 .events-pill.medium { border-color:rgba(196,148,58,.34); color:var(--color-accent-amber); background:rgba(196,148,58,.08); }
 .events-empty { margin-top:18px; border:1px dashed rgba(245,237,214,.12); border-radius:22px; padding:28px; color:var(--color-text-secondary); font:14px/1.6 var(--font-dm-sans); }
-@media (max-width: 900px) { .events-leads, .events-feature, .events-row { grid-template-columns: 1fr; } .events-date-block, .events-row-location { text-align:left; } }
+.events-empty.rich { display:grid; gap:14px; background:rgba(255,255,255,.026); }
+.events-empty.rich strong { color:var(--color-text-primary); font:700 22px/1.2 var(--font-playfair); }
+.events-empty.rich span { max-width:760px; }
+.events-empty-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin-top:4px; }
+.events-empty-grid div { border:1px solid rgba(245,237,214,.08); border-radius:16px; padding:14px; background:rgba(255,255,255,.025); }
+.events-empty-grid b { color:var(--color-accent-amber); font:800 11px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
+.events-empty-grid p { margin:8px 0 0; }
+.events-empty-cta { width:fit-content; margin-top:4px; border-radius:999px; padding:10px 14px; border:1px solid rgba(196,148,58,.3); color:var(--color-accent-amber); text-decoration:none; font:700 13px/1 var(--font-dm-sans); }
+@media (max-width: 900px) { .events-leads, .events-feature, .events-row, .events-empty-grid { grid-template-columns: 1fr; } .events-date-block, .events-row-location { text-align:left; } }
 `;

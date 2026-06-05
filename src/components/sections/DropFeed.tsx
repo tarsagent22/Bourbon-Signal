@@ -228,7 +228,7 @@ function getEventDescription(drop: GroupedDrop): string {
   if (drop.state === "KY") {
     switch (drop.event_type) {
       case "in_stock":
-        return "Available at distillery";
+        return "Available - distillery";
       case "in_store":
         return "Pickup window open";
       case "new_allocation":
@@ -777,10 +777,15 @@ export default function DropFeed() {
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [stateTotals, setStateTotals] = useState<Map<string, number>>(new Map());
+
+  const feedStateParam = hasSelectedStates && preferredStates.length === 1 ? preferredStates[0] : null;
 
   const fetchDrops = useCallback(async () => {
     try {
-      const res = await fetch("/api/drops?limit=50");
+      const query = new URLSearchParams({ limit: "50" });
+      if (feedStateParam) query.set("state", feedStateParam);
+      const res = await fetch(`/api/drops?${query.toString()}`);
       if (!res.ok) throw new Error("fetch failed");
       const json: DropsResponse = await res.json();
       setError(false);
@@ -817,7 +822,7 @@ export default function DropFeed() {
     } catch {
       setError(true);
     }
-  }, [isSignedIn]);
+  }, [feedStateParam, isSignedIn]);
 
   const fetchOlderDrops = useCallback(async () => {
     if (!isSignedIn || isLoadingMore) return;
@@ -826,7 +831,9 @@ export default function DropFeed() {
 
     setIsLoadingMore(true);
     try {
-      const res = await fetch(`/api/drops?limit=10&offset=${nextOffset}`);
+      const query = new URLSearchParams({ limit: "10", offset: String(nextOffset) });
+      if (feedStateParam) query.set("state", feedStateParam);
+      const res = await fetch(`/api/drops?${query.toString()}`);
       if (!res.ok) throw new Error("fetch failed");
       const json: DropsResponse = await res.json();
       const sourceDrops = json.drops.length > 0 ? json.drops : [];
@@ -844,7 +851,7 @@ export default function DropFeed() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [data, grouped.length, isLoadingMore, isSignedIn]);
+  }, [data, feedStateParam, grouped.length, isLoadingMore, isSignedIn]);
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
@@ -861,6 +868,31 @@ export default function DropFeed() {
       setSecondsUntilRefresh((prev) => Math.max(prev - 1, 0));
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadStateTotals() {
+      try {
+        const entries = await Promise.all(
+          AVAILABLE_STATES
+            .filter((state) => !("comingSoon" in state && state.comingSoon))
+            .map(async (state) => {
+              const res = await fetch(`/api/drops?state=${encodeURIComponent(state.code)}&limit=1`, { signal: controller.signal });
+              if (!res.ok) return [state.code, 0] as const;
+              const json = await res.json();
+              return [state.code, Number(json.total || json.count || 0)] as const;
+            })
+        );
+        setStateTotals(new Map(entries));
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          setStateTotals(new Map());
+        }
+      }
+    }
+    loadStateTotals();
+    return () => controller.abort();
   }, []);
 
   // Apply state and tier filters
@@ -913,25 +945,13 @@ export default function DropFeed() {
     return true;
   });
 
-  // Always keep at least five recent signals visible, even if filters are narrow.
-  const minimumVisibleSignals = 5;
-  const fallbackFeed = filteredGrouped.length > 0 ? filteredGrouped : grouped;
-  const visibleFeedFiltersActive = hasSelectedStates || activeTiers.size > 0;
-  const feedWasRelaxed = filteredByArea.length < minimumVisibleSignals && grouped.length > filteredByArea.length;
-  const shouldShowRelaxedFilterNotice = feedWasRelaxed && visibleFeedFiltersActive;
-  const finalFeed = filteredByArea.length >= minimumVisibleSignals
-    ? filteredByArea
-    : [...filteredByArea, ...grouped.filter((drop) => !filteredByArea.some((visible) => visible.id === drop.id))].slice(0, Math.max(minimumVisibleSignals, filteredByArea.length || fallbackFeed.length));
+  const finalFeed = filteredByArea;
+  const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
 
   const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
   const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
   const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
-  const dropCountsByState = grouped.reduce((counts, drop) => {
-    const state = drop.state || "NC";
-    counts.set(state, (counts.get(state) || 0) + 1);
-    return counts;
-  }, new Map<string, number>());
   const feedStateOptions = AVAILABLE_STATES.filter((state) => !("comingSoon" in state && state.comingSoon));
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
     ? "Showing all supported states"
@@ -999,7 +1019,7 @@ export default function DropFeed() {
           pointerEvents: "none",
           opacity: 0.16,
           background:
-            "radial-gradient(ellipse 72% 56% at 50% 18%, rgba(196,148,58,0.16) 0%, rgba(196,148,58,0.07) 34%, rgba(196,148,58,0.025) 56%, transparent 74%), linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, transparent 24%, transparent 100%)",
+            "radial-gradient(ellipse 72% 56% - 50% 18%, rgba(196,148,58,0.16) 0%, rgba(196,148,58,0.07) 34%, rgba(196,148,58,0.025) 56%, transparent 74%), linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, transparent 24%, transparent 100%)",
         }}
       />
 
@@ -1076,11 +1096,11 @@ export default function DropFeed() {
                   cursor: "pointer",
                 }}
               >
-                <option value="ALL">All active markets ({grouped.length})</option>
+                <option value="ALL">All active markets ({data?.total ?? grouped.length})</option>
                 {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
                 {feedStateOptions.map((state) => (
                   <option key={state.code} value={state.code}>
-                    {state.name} ({state.code}) · {dropCountsByState.get(state.code) || 0}
+                    {state.name} ({state.code}) - {stateTotals.get(state.code) ?? 0}
                   </option>
                 ))}
               </select>
@@ -1150,7 +1170,7 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Feed rows */}
-          {(data?.fallback || shouldShowRelaxedFilterNotice) && (
+          {data?.fallback && (
             <div
               style={{
                 marginBottom: "18px",
@@ -1163,9 +1183,7 @@ export default function DropFeed() {
                 color: "rgba(245,237,214,0.65)",
               }}
             >
-              {data?.fallback
-                ? "Fresh scan was thin, so this feed is holding on the most recent valid drops instead of going blank."
-                : "Your current filters were too narrow, so we’re showing the newest valid drops instead of an empty feed."}
+              Fresh scan was thin, so this feed is holding on the most recent valid drops instead of going blank.
             </div>
           )}
           {error && !data ? (
@@ -1183,7 +1201,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.65)",
                 }}
               >
-                Live feed is temporarily unavailable, so this preview is showing sample activity instead of live drop signals.
+                Live feed is temporarily unavailable, so this preview is showing sample activity instead of live drops.
               </div>
               <AnimatePresence mode="popLayout">
                 {groupDrops(MOCK_DROPS).map((drop, index) => (
@@ -1218,6 +1236,23 @@ export default function DropFeed() {
                   paddingRight: "4px",
                 } : undefined}
               >
+                {displayedGrouped.length === 0 ? (
+                  <div
+                    style={{
+                      marginBottom: "18px",
+                      padding: "18px",
+                      borderRadius: "16px",
+                      border: "1px solid rgba(212,146,11,0.16)",
+                      background: "rgba(212,146,11,0.05)",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "14px",
+                      color: "rgba(245,237,214,0.68)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    No current drops match {selectedStateLabel ? `${selectedStateLabel}` : "these filters"}. Try Show all, another state, or a broader rarity filter.
+                  </div>
+                ) : null}
                 <AnimatePresence mode="popLayout">
                   {displayedGrouped.map((drop, index) => (
                     <FeedRow
@@ -1282,7 +1317,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more positive signals tracked` : isSignedIn ? "Newest drops stay at the top as you expand the feed" : "Live feed updates automatically"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked` : isSignedIn ? "Newest drops stay at the top as you expand the feed" : "Live feed updates automatically"}
               </p>
             </div>
           )}

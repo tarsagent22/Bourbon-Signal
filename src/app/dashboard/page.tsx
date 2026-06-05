@@ -313,7 +313,7 @@ export default function DashboardPage() {
   const { drops: recentDrops } = useDrops({ limit: 120 });
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, signIn } = useAuth();
   const { prefs, savePreferences } = useAreaPreferences();
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
 
@@ -335,6 +335,7 @@ export default function DashboardPage() {
   const [loadedSignedOutDefaults, setLoadedSignedOutDefaults] = useState(false);
 
   const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
+  const [territorySearch, setTerritorySearch] = useState("");
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
 
   async function sendPreviewEmail() {
@@ -532,7 +533,7 @@ export default function DashboardPage() {
 
     return matched.slice(0, 6).map((drop) => ({
       bottle: getDisplayName(drop),
-      location: drop.store_address || drop.board_name || drop.store_city || "Location signal",
+      location: drop.store_address || drop.board_name || drop.store_city || "Drop location",
       timestamp: drop.timestamp,
       state: drop.state || drop.state_code || "NC",
     }));
@@ -719,7 +720,10 @@ export default function DashboardPage() {
   }, [territoryDropdown]);
 
   const handleSaveAlertSetup = async () => {
-    if (!isSignedIn) return;
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
     setSavingLocations(true);
     try {
       const nextPrefs: UserAlertPreferences = {
@@ -783,7 +787,7 @@ export default function DashboardPage() {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Signal Dashboard
+                Alert Dashboard
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={140}>
@@ -797,7 +801,7 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Build your signal stack and get alerted how you want
+                Build your drop alerts around the bottles and places you actually chase.
               </p>
             </ScrollReveal>
           </div>
@@ -856,7 +860,11 @@ export default function DashboardPage() {
                         return (
                           <div key={card.stateCode} style={{ position: "relative" }}>
                             <button
-                              onClick={() => setTerritoryDropdown((prev) => prev?.stateCode === card.stateCode ? null : { stateCode: card.stateCode, scope: "primary" })}
+                              onClick={() => setTerritoryDropdown((prev) => {
+                                const next = prev?.stateCode === card.stateCode ? null : { stateCode: card.stateCode, scope: "primary" as const };
+                                setTerritorySearch("");
+                                return next;
+                              })}
                               style={{
                                 width: "100%",
                                 textAlign: "left",
@@ -896,9 +904,30 @@ export default function DashboardPage() {
                                     <button onClick={() => setTerritoryDropdown(null)} style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}>Done</button>
                                   </div>
 
+                                  {["NC", "VA", "OH", "IA", "PA"].includes(card.stateCode) ? (
+                                    <input
+                                      value={territorySearch}
+                                      onChange={(event) => setTerritorySearch(event.target.value)}
+                                      placeholder={card.stateCode === "NC" ? "Search boards like Wake, Mecklenburg, Triad…" : "Search cities…"}
+                                      style={{
+                                        width: "100%",
+                                        borderRadius: "14px",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                        background: "rgba(255,255,255,0.035)",
+                                        color: "var(--color-text-primary)",
+                                        padding: "12px 14px",
+                                        fontFamily: "var(--font-dm-sans)",
+                                        fontSize: "13px",
+                                        outline: "none",
+                                      }}
+                                    />
+                                  ) : null}
+
                                   {card.stateCode === "NC" ? (
                                     <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
-                                      {ncBoards.length > 0 ? ncBoards.map((board) => {
+                                      {ncBoards.length > 0 ? ncBoards
+                                        .filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()))
+                                        .map((board) => {
                                         const active = localPrefs.ncBoards.includes(board);
                                         return <button key={board} onClick={() => updateStateDetail("NC", board)} style={{ padding: "12px 14px", minHeight: "48px", borderRadius: "14px", border: active ? "1px solid rgba(196,148,58,0.28)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.08)" : "rgba(255,255,255,0.02)", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer" }}>{board}</button>;
                                       }) : (
@@ -936,7 +965,9 @@ export default function DashboardPage() {
                                       })()
                                     ) : (
                                       <div style={{ maxHeight: "min(52vh, 420px)", overflowY: "auto", display: "grid", gap: "8px" }}>
-                                        {(citiesByState[card.stateCode] ?? []).map((city) => {
+                                        {(citiesByState[card.stateCode] ?? [])
+                                          .filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()))
+                                          .map((city) => {
                                           const selectedCities = card.stateCode === "VA" ? localPrefs.vaCities : card.stateCode === "OH" ? localPrefs.ohCities : card.stateCode === "IA" ? localPrefs.iaCities : localPrefs.paCounties;
                                           const active = selectedCities.includes(city);
                                           return (
@@ -980,7 +1011,7 @@ export default function DashboardPage() {
                     {
                       value: "anything_notable" as AlertMode,
                       label: "Anything notable in my area",
-                      note: "Best when you care about your local board, city, or store. Alerts can fire for allocated, limited, unicorn, shipment, or verified inventory signals nearby.",
+                      note: "Best when you care about your local board, city, or store. Alerts can fire for allocated, limited, unicorn, shipment, or verified inventory hits nearby.",
                     },
                     {
                       value: "specific_bottles" as AlertMode,
@@ -1266,7 +1297,7 @@ export default function DashboardPage() {
                           </p>
                           <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
                             {[
-                              { value: "all", label: "All signals", note: "Every matching bottle alert, right away.", eyebrow: "ALWAYS ON" },
+                              { value: "all", label: "All matching drops", note: "Every matching bottle alert, right away.", eyebrow: "ALWAYS ON" },
                               { value: "major_only", label: "Major hits", note: "Only the strongest, most urgent matches hit your inbox.", eyebrow: "RECOMMENDED" },
                               { value: "daily_roundup", label: "Roundup", note: "Keep the inbox calm with a daily digest.", eyebrow: "DIGEST MODE" },
                             ].map((option) => {
@@ -1366,7 +1397,7 @@ export default function DashboardPage() {
                 />
                 <div style={{ position: "relative" }}>
                   <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                    Signal setup snapshot
+                    Alert setup snapshot
                   </p>
                   <h3 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "30px", color: "var(--color-cream)" }}>
                     Preference summary
@@ -1380,7 +1411,7 @@ export default function DashboardPage() {
                   {[
                     { label: "Alert type", value: alertMode === "anything_notable" ? "Notable" : "Bottles" },
                     { label: "Watched bottles", value: String(watchedBottleOptions.length) },
-                    { label: "Recent matched signals", value: String(watchlistSignals.length) },
+                    { label: "Recent matched drops", value: String(watchlistSignals.length) },
                     { label: "States", value: String(localPrefs.states.length) },
                     { label: "Channels", value: String([
                       notificationPrefs.onSite.enabled,
@@ -1460,7 +1491,7 @@ export default function DashboardPage() {
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <button
                   onClick={handleSaveAlertSetup}
-                  disabled={!isSignedIn || savingLocations}
+                  disabled={savingLocations}
                   style={{
                     padding: "12px 18px",
                     borderRadius: "12px",
@@ -1470,8 +1501,8 @@ export default function DashboardPage() {
                     fontFamily: "var(--font-dm-sans)",
                     fontWeight: 700,
                     fontSize: "14px",
-                    cursor: !isSignedIn || savingLocations ? "not-allowed" : "pointer",
-                    opacity: !isSignedIn || savingLocations ? 0.7 : 1,
+                    cursor: savingLocations ? "progress" : "pointer",
+                    opacity: savingLocations ? 0.7 : 1,
                   }}
                 >
                   {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : "Save alert setup"}
