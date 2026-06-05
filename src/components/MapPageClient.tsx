@@ -13,7 +13,7 @@ import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
-import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
+import { AVAILABLE_STATES } from "@/lib/statePreferences";
 
 type FinderMode = "bottle" | "store";
 type FinderState = string;
@@ -637,9 +637,6 @@ export default function MapPageClient() {
   const huntTargets = useWatchlistStore((state) => state.huntTargets);
   const addBottle = useWatchlistStore((state) => state.addBottle);
   const removeBottle = useWatchlistStore((state) => state.removeBottle);
-  const selectedStates = useStatePreferences((state) => state.selectedStates);
-  const hasSelectedStates = useStatePreferences((state) => state.hasSelectedStates);
-
   const [mode, setMode] = useState<FinderMode>("bottle");
   const [stateFilter, setStateFilter] = useState<FinderState>("NC");
   const [query, setQuery] = useState("");
@@ -745,10 +742,9 @@ export default function MapPageClient() {
   useEffect(() => {
     if (!stateOptions.length) return;
     if (stateFilter !== "ALL" && stateOptions.some((option) => option.code === stateFilter)) return;
-    const preferred = selectedStates.find((state) => stateOptions.some((option) => option.code === state && option.count > 0));
     const firstUseful = stateOptions.find((option) => option.code !== "ALL" && option.count > 0);
-    if (preferred || firstUseful) setStateFilter((preferred || firstUseful!.code) as FinderState);
-  }, [selectedStates, stateFilter, stateOptions]);
+    if (firstUseful) setStateFilter(firstUseful.code as FinderState);
+  }, [stateFilter, stateOptions]);
 
   useEffect(() => {
     if (mode === "bottle" && !selectedBottleId && filteredBottles[0]) {
@@ -793,12 +789,10 @@ export default function MapPageClient() {
     }
   }, [mode, selectedStore, stateFilter]);
 
-  const preferredStateSet = useMemo(() => new Set(selectedStates), [selectedStates]);
-
   const recommendedBottles = useMemo(() => {
     const pool = filteredBottles.filter((bottle) => {
-      if (!hasSelectedStates || preferredStateSet.size === 0) return true;
-      return bottle.state ? preferredStateSet.has(bottle.state) : (bottle.states || []).some((state) => preferredStateSet.has(state));
+      if (stateFilter === "ALL") return true;
+      return bottle.state ? bottle.state === stateFilter : (bottle.states || []).includes(stateFilter);
     });
 
     const watched = pool.filter((bottle) => watchlist.includes(bottle.id));
@@ -807,7 +801,7 @@ export default function MapPageClient() {
     const rotating = getRotatingBottleSuggestions(rotatingSource.length ? rotatingSource : pool, suggestionSeed, 6);
 
     return Array.from(new Map([...watched, ...hunted, ...rotating].map((bottle) => [bottle.id, bottle])).values()).slice(0, 6);
-  }, [filteredBottles, hasSelectedStates, huntTargets, preferredStateSet, suggestionSeed, watchlist]);
+  }, [filteredBottles, huntTargets, stateFilter, suggestionSeed, watchlist]);
 
   const bottleSuggestions = useMemo(() => {
     if (mode !== "bottle") return [] as Bottle[];
@@ -833,15 +827,23 @@ export default function MapPageClient() {
   const locationSuggestions = useMemo(() => {
     if (mode !== "store") return [] as Store[];
     const q = normalize(query);
-    if (q) {
-      return finderLocations
-        .filter((store) => getStoreLookupKeys(store).some((value) => value.includes(q) || q.includes(value)))
-        .slice(0, 8);
+    const source = q
+      ? finderLocations.filter((store) => getStoreLookupKeys(store).some((value) => value.includes(q) || q.includes(value)))
+      : finderLocations;
+    const unique = new Map<string, Store>();
+    for (const store of source) {
+      const key = normalize([store.displayLabel || store.name, store.state, store.precision].filter(Boolean).join("|"));
+      const existing = unique.get(key);
+      if (!existing || (store.bottle_count ?? 0) > (existing.bottle_count ?? 0)) unique.set(key, store);
     }
 
-    return finderLocations
-      .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
-      .slice(0, 6);
+    return Array.from(unique.values())
+      .sort((a, b) => {
+        const signalDelta = Number(Boolean(b.hasSignals)) - Number(Boolean(a.hasSignals));
+        if (signalDelta !== 0) return signalDelta;
+        return (b.bottle_count ?? 0) - (a.bottle_count ?? 0);
+      })
+      .slice(0, q ? 8 : 4);
   }, [finderLocations, mode, query]);
 
   const bottleDrops = useMemo(() => {
@@ -950,22 +952,6 @@ export default function MapPageClient() {
       .filter((drop) => dropMatchesExactSelectedStore(drop, selectedStore))
       .slice(0, 12);
   }, [drops, historyDrops, historyQuery.store, selectedStore, stateFilter]);
-
-  const topBottlesAtStore = useMemo(() => {
-    const counts = new Map<string, { bottle: string; count: number; rarity: string }>();
-    for (const drop of storeDrops) {
-      const bottle = getDisplayName(drop);
-      const existing = counts.get(bottle) ?? { bottle, count: 0, rarity: drop.rarity_tier };
-      existing.count += 1;
-      const rarityRank = { unicorn: 3, allocated: 2, limited: 1 } as Record<string, number>;
-      if ((rarityRank[drop.rarity_tier] ?? 0) > (rarityRank[existing.rarity] ?? 0)) existing.rarity = drop.rarity_tier;
-      counts.set(bottle, existing);
-    }
-
-    return Array.from(counts.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [storeDrops]);
 
   const bestStoreSignal = storeDrops[0] ?? null;
   const storeTrust = getTrustBadge(bestStoreSignal);
@@ -1353,26 +1339,30 @@ export default function MapPageClient() {
                       <div className="finder-subpanel">
                         <div className="finder-subpanel-head">
                           <div>
-                            <span className="finder-eyebrow">Bottle drops</span>
-                            <h3>Recent bottles here</h3>
+                            <span className="finder-eyebrow">Latest activity</span>
+                            <h3>{selectedStore.precision === "board" ? "Recent board shipments" : "Recent store drops"}</h3>
                           </div>
                           <Sparkles size={16} color="var(--color-accent-amber)" />
                         </div>
                         <div className="finder-list">
-                          {topBottlesAtStore.length > 0 ? (
-                            topBottlesAtStore.map((item) => (
-                              <div key={item.bottle} className="finder-list-row">
-                                <div>
-                                  <strong>{item.bottle}</strong>
-                                  <span>Recent drop or shipment activity at this location</span>
+                          {storeDrops.length > 0 ? (
+                            storeDrops.slice(0, 6).map((drop, index) => (
+                              <div key={`latest-${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
+                                <div className="finder-list-row-copy">
+                                  <strong>{getDisplayName(drop)}</strong>
+                                  <span>{selectedStore.precision === "board" ? "Board shipment lead — exact store not known" : summarizeDropLocation(drop).detail}</span>
+                                  <em>{getHumanSignalDetail(drop)}</em>
                                 </div>
-                                <span className="finder-row-pill">{item.count} hits</span>
+                                <div className="finder-signal-meta">
+                                  <span className="finder-row-pill">{getBottleAmount(drop)}</span>
+                                  <span className="finder-signal-time">{formatFreshness(drop.timestamp)}</span>
+                                </div>
                               </div>
                             ))
                           ) : (
                             <div className="finder-empty-card small">
                               {selectedStore.hasSignals
-                                ? "Not enough recent drop or shipment activity to rank bottles here yet."
+                                ? "No recent bottle-level rows are available to display here yet."
                                 : selectedStore.precision === "board"
                                   ? "No recent board-level bottle shipments found here yet."
                                   : "No recent bottle drops found for this location yet."}
@@ -1431,7 +1421,7 @@ export default function MapPageClient() {
                 ) : (
                   <div className="finder-empty-card finder-start-card">
                     <strong>Search a location to inspect it.</strong>
-                    <span>Try a store name, city, county, or board. Good starting points update with your selected market.</span>
+                    <span>{stateFilter === "NC" ? "Search a board or county. NC leads are board-level shipment clues unless a store is explicitly listed." : stateFilter === "VA" ? "Search a Virginia ABC store, city, or bottle-friendly area. VA can show exact store inventory." : "Search a store, city, county, or board in the selected market."}</span>
                     {locationSuggestions.length > 0 ? (
                       <div className="finder-empty-suggestions">
                         {locationSuggestions.slice(0, 4).map((store) => (
