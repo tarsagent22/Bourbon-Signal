@@ -16,15 +16,15 @@ const steps: StepData[] = [
   },
   {
     number: "02",
-    description: "Pick locations or bottles that you care about. We watch them for you.",
+    description: "Pick locations or bottles that you care about and we watch them for you",
   },
   {
     number: "03",
-    description: "We alert you when a signal matches your watchlist. Your preferences dictate how often you get notified about the bottles you care about.",
+    description: "Get alerts when a signal matches your watchlist, with frequency controlled by your preferences",
   },
   {
     number: "04",
-    description: "Grab the bourbon you've been looking for. When allocated bottles hit stores, you'll have the edge.",
+    description: "Grab the bourbon you've been looking for when an allocated-bottle signal is worth acting on",
   },
 ];
 

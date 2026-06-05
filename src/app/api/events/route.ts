@@ -28,6 +28,17 @@ function eventRank(event: JsonRecord) {
   return boost + (Number.isFinite(score) ? score : 0) + eventDateValue(event) / 100000000000;
 }
 
+function isUpcomingActionableEvent(event: ReturnType<typeof normalizeEvent>) {
+  const status = String(event.event_status || "").toLowerCase();
+  const actionability = String(event.actionability || "").toLowerCase();
+  const category = String(event.category || "").toLowerCase();
+  const eventDate = Date.parse(String(event.event_date || ""));
+  const hasFutureDate = Number.isFinite(eventDate) && eventDate >= Date.now() - 24 * 60 * 60 * 1000;
+  const hasOfficialLink = typeof event.source_url === "string" && /^https?:\/\//i.test(event.source_url);
+  const isSourceWatchPage = status === "watch_page" || category === "release_watch" || !event.event_date;
+  return hasOfficialLink && hasFutureDate && !isSourceWatchPage && ["high", "medium"].includes(actionability);
+}
+
 function normalizeEvent(event: JsonRecord) {
   const category = asString(event.category, "release_watch");
   const state = asString(event.state);
@@ -80,6 +91,7 @@ export async function GET(request: Request) {
     const exportPayload = readSiteExport("events");
     const rawEvents = Array.isArray(exportPayload?.events) ? exportPayload.events : [];
     let events = rawEvents.map((event) => normalizeEvent(event as JsonRecord));
+    events = events.filter(isUpcomingActionableEvent);
     const facets = {
       states: Array.from(new Set(events.map((event) => String(event.state || "")).filter(Boolean))).sort(),
       categories: Array.from(new Set(events.map((event) => String(event.category || "")).filter(Boolean))).sort(),

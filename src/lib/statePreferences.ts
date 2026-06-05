@@ -9,13 +9,28 @@ interface StatePreferencesStore {
   clearPreferences: () => void;
 }
 
-export const AVAILABLE_STATES = [
+export interface AvailableState {
+  code: string;
+  name: string;
+  active: boolean;
+  comingSoon?: boolean;
+}
+
+export const AVAILABLE_STATES: readonly AvailableState[] = [
+  { code: "AL", name: "Alabama", active: true },
   { code: "NC", name: "North Carolina", active: true },
   { code: "VA", name: "Virginia", active: true },
   { code: "PA", name: "Pennsylvania", active: true },
   { code: "IN", name: "Indiana", active: true },
   { code: "KY", name: "Kentucky", active: true },
-  { code: "UT", name: "Utah", active: false, comingSoon: true },
+  { code: "OH", name: "Ohio", active: true },
+  { code: "IA", name: "Iowa", active: true },
+  { code: "ME", name: "Maine", active: true },
+  { code: "UT", name: "Utah", active: true },
+  { code: "WV", name: "West Virginia", active: true },
+  { code: "MD-MONTGOMERY", name: "Montgomery, MD", active: true },
+  { code: "TN", name: "Tennessee", active: true },
+  { code: "IL", name: "Illinois", active: true },
 ] as const;
 
 export const useStatePreferences = create<StatePreferencesStore>()(

@@ -10,9 +10,9 @@ import { useAuth } from "@/lib/auth";
 
 const navLinks = [
   { label: "Drops", href: "/#drops" },
-  { label: "Events", href: "/events" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/map" },
+  { label: "Events", href: "/events" },
 ];
 
 export default function Navigation() {
