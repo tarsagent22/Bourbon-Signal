@@ -182,8 +182,6 @@ export function isUserFacingDropSignal(drop: {
   if (type === "nc_statewide_warehouse_stock") return quantity > 0;
   if (canAlert && precision === "store_level") return true;
   if (type === "store_delivery_snapshot") return quantity > 0;
-  if (type === "retailer_allocated_raffle_item") return quantity > 0;
-  if (type === "retailer_tasting_event") return precision === "store_level";
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
@@ -212,16 +210,16 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   const category = getPublicSignalCategory(type, locationPrecision, quantity, canAlertAsInventory);
   const normalized = type.toLowerCase();
   if (normalized === "nc_board_shipment_snapshot") return "Board shipment";
-  if (normalized === "nc_statewide_warehouse_stock") return "Warehouse radar";
+  if (normalized === "nc_statewide_warehouse_stock") return "Warehouse shipment";
   if (normalized.includes("limited_supply")) return "Limited supply";
   if (normalized.includes("in_stock")) return "In stock";
   if (normalized === "retailer_allocated_raffle_item") return "Retailer allocated watch";
   if (normalized === "retailer_tasting_event") return "Retailer tasting watch";
   if (normalized === "alabc_limited_release_store_drop") return "Scheduled ABC release";
-  if (category === "delivery") return "Store delivery";
+  if (category === "delivery") return "Bottle shipment";
   if (normalized === "store_inventory_aggregate") return "Statewide inventory";
-  if (category === "inventory") return quantity > 0 ? "In stock" : "Store signal";
-  return "Source signal";
+  if (category === "inventory") return quantity > 0 ? "In stock" : "Store-level bottle drop";
+  return "Bottle drop";
 }
 
 function getPublicStateLabel(state: string) {

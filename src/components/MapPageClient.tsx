@@ -164,8 +164,8 @@ function getDropLocations(drop: DropEvent) {
 
   if (drop.store_name || drop.store_address || drop.store_city) {
     locations.push({
-      label: drop.store_name || drop.store_city || "Store signal",
-      detail: drop.store_address || [drop.store_city, drop.store_county].filter(Boolean).join(", ") || "Store-level signal",
+      label: drop.store_name || drop.store_city || "Store drop",
+      detail: drop.store_address || [drop.store_city, drop.store_county].filter(Boolean).join(", ") || "Store-level bottle drop",
       precision: "store",
       confidence: drop.store_address ? 4 : 3,
     });
@@ -176,7 +176,7 @@ function getDropLocations(drop: DropEvent) {
     if (!label) continue;
     locations.push({
       label,
-      detail: entry.store_address ? `${entry.city || "Store"} inventory signal` : `${entry.city || "Board"} inventory lead`,
+      detail: entry.store_address ? `${entry.city || "Store"} bottle drop` : `${entry.city || "Board"} shipment lead`,
       precision: entry.store_address ? "store" : "board",
       confidence: entry.store_address ? 5 : 2,
     });
@@ -196,12 +196,12 @@ function getSignalQuality(drop: DropEvent) {
     if (confidence === "official_release_live") return { label: "Official release live", score: 3 };
     if (confidence === "official_window_open" || scope === "release_window") return { label: "Official pickup window", score: 2 };
     if (confidence === "official_announcement") return { label: "Official announcement", score: 2 };
-    return { label: "Distillery signal", score: 2 };
+    return { label: "Distillery release", score: 2 };
   }
   if (drop.store_address) return { label: "Exact store", score: 3 };
   if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store inventory", score: 3 };
   if (drop.board_name) return { label: "Board shipment lead", score: 2 };
-  return { label: "Weak signal", score: 1 };
+  return { label: "Bottle movement", score: 1 };
 }
 
 function getTrustBadge(drop?: DropEvent | null) {
@@ -210,13 +210,13 @@ function getTrustBadge(drop?: DropEvent | null) {
     return { label: "Verified", detail: "Store-level positive evidence", tone: "exact" as const };
   }
   if (drop.state === "KY" || drop.state_code === "KY" || String(drop.confidence_tier || "").startsWith("official")) {
-    return { label: "Official", detail: "Source-confirmed release signal", tone: "official" as const };
+    return { label: "Official", detail: "Source-confirmed bottle release", tone: "official" as const };
   }
-  return { label: "Positive", detail: "Noise-filtered bottle signal", tone: "positive" as const };
+  return { label: "Positive", detail: "Bottle drop or shipment evidence", tone: "positive" as const };
 }
 
 function formatFreshness(timestamp?: string | null) {
-  if (!timestamp) return "No recent signal";
+  if (!timestamp) return "No recent drops";
   return `Confirmed ${formatRelativeTime(timestamp)}`;
 }
 
@@ -230,7 +230,7 @@ function getStateName(code?: string | null) {
 
 function getBottleAmount(drop: DropEvent) {
   const quantity = drop.quantity_shipped ?? drop.quantity_in_stock ?? drop.quantity;
-  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) return "Bottle signal";
+  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) return "Bottle drop";
   return `${quantity} bottle${quantity === 1 ? "" : "s"}`;
 }
 
@@ -257,14 +257,14 @@ function getHumanSignalDetail(drop: DropEvent) {
   }
 
   if (state === "KY") {
-    return "Official Kentucky release signal.";
+    return "Official Kentucky bottle release.";
   }
 
   if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
     return `${amount} matched at this location.`;
   }
 
-  return "Recent movement signal for this area.";
+  return "Recent bottle shipment or drop for this area.";
 }
 
 function formatFinderStoreAddress(store?: Pick<Store, "address" | "city" | "state" | "zip" | "precision"> | null) {
@@ -292,28 +292,28 @@ function shouldShowInFinderLocationSearch(store: Store) {
 function getLocationSuggestionStatus(store: Store) {
   const signalCount = store.signalCount ?? store.bottle_count ?? 0;
   if (store.precision === "board" && signalCount > 0) {
-    return `${signalCount} board-level signal${signalCount === 1 ? "" : "s"}`;
+    return `${signalCount} board shipment${signalCount === 1 ? "" : "s"}`;
   }
   if (store.hasSignals || signalCount > 0) {
-    return `${signalCount} store-level signal${signalCount === 1 ? "" : "s"}`;
+    return `${signalCount} bottle drop${signalCount === 1 ? "" : "s"}`;
   }
-  if (store.precision === "board") return "board tracked — no recent signals";
-  return "store-level coverage not active";
+  if (store.precision === "board") return "no recent shipments";
+  return "no recent drops";
 }
 
 function getLocationCoverageCopy(store: Store, bestSignal?: DropEvent | null) {
   const signalCount = store.signalCount ?? store.bottle_count ?? 0;
   if (store.precision === "board") {
     return store.hasSignals || signalCount > 0
-      ? "Board-level shipment and movement signals are available here. Store-level availability is not currently tracked for individual ABC stores on this board."
-      : "This board is known, but we do not have recent board-level signals or store-level availability for it yet.";
+      ? "Board-level bottle shipments are available here. Individual ABC-store bottle drops are not currently tracked on this board."
+      : "No recent bottle shipments are available for this board yet.";
   }
 
   if (store.hasSignals || bestSignal) {
-    return "This view ranks bottles actually tied to this store, with verified store evidence separated from broader watch signals.";
+    return "This view ranks recent bottle drops or shipments tied to this store.";
   }
 
-  return "We know this store exists, but store-level availability is not active here yet.";
+  return "No recent bottle drops are available for this location yet.";
 }
 
 function extractStoreAddressParts(address?: string | null) {
@@ -353,7 +353,7 @@ function summarizeDropLocation(drop: DropEvent) {
             ? "Official release notice"
             : scope === "venue"
               ? "Venue notice"
-              : "Kentucky signal",
+              : "Kentucky bottle release",
       drop.state || drop.state_code,
     ].filter(Boolean).join(" · ");
     return {
@@ -370,7 +370,7 @@ function summarizeDropLocation(drop: DropEvent) {
         drop.store_address ||
         [addressParts.locality, drop.store_city, drop.state || drop.state_code]
           .filter(Boolean)
-          .join(" · ") || "Store-level inventory signal",
+          .join(" · ") || "Store-level bottle drop",
     };
   }
 
@@ -503,7 +503,7 @@ function FinderBottleCard({
           <div className="finder-stat">{formatPrice(bottle.msrp)}</div>
         </div>
         <div>
-          <div className="finder-eyebrow">Intel</div>
+          <div className="finder-eyebrow">Drops</div>
           <div className="finder-stat">{bottle.actionable_count_30d ?? 0}/30d</div>
         </div>
         <div>
@@ -590,11 +590,11 @@ function FinderStoreCard({
         }}
       >
         <div>
-          <div className="finder-eyebrow">Coverage</div>
+          <div className="finder-eyebrow">State</div>
           <div className="finder-stat">{store.state}</div>
         </div>
         <div>
-          <div className="finder-eyebrow">Signals</div>
+          <div className="finder-eyebrow">Drops/shipments</div>
           <div className="finder-stat">{store.bottle_count ?? 0}</div>
         </div>
       </div>
@@ -1163,7 +1163,7 @@ export default function MapPageClient() {
                               ? `Found ${exactBottleSignals.length} recent store hit${exactBottleSignals.length === 1 ? "" : "s"}.`
                               : broaderBottleSignals.length > 0
                                 ? `No exact store hit yet. Showing ${broaderBottleSignals.length} area lead${broaderBottleSignals.length === 1 ? "" : "s"}.`
-                                : "No current location signal in this search area."}
+                                : "No current bottle drops or shipments in this search area."}
                           </p>
                           <div className="finder-action-row">
                             <button
@@ -1270,8 +1270,8 @@ export default function MapPageClient() {
                     <div className="finder-result-hero store">
                       <div>
                         <div className={`finder-trust-pill ${storeTrust.tone}`}>
-                          <span>{selectedStore.hasSignals ? storeTrust.label : "Preloaded"}</span>
-                          <small>{selectedStore.hasSignals ? formatFreshness(bestStoreSignal?.timestamp) : "No bottle hit yet"}</small>
+                          <span>{selectedStore.hasSignals ? storeTrust.label : "No recent drops"}</span>
+                          <small>{selectedStore.hasSignals ? formatFreshness(bestStoreSignal?.timestamp) : "No bottle drops or shipments yet"}</small>
                         </div>
                         <h2>{selectedStore.displayLabel}</h2>
                         <p>
@@ -1283,9 +1283,9 @@ export default function MapPageClient() {
                         <p className="finder-evidence-line">
                           {bestStoreSignal
                             ? getHumanSignalDetail(bestStoreSignal)
-                            : selectedStore.source
-                              ? `Source loaded: ${selectedStore.source}`
-                              : storeTrust.detail}
+                            : selectedStore.precision === "board"
+                              ? "No recent board-level bottle shipments found here yet."
+                              : "No recent bottle drops found for this location yet."}
                         </p>
                         <div className="finder-action-row">
                           <a className="finder-primary-action" href={dashboardHref}>Set alerts for this area</a>
@@ -1294,16 +1294,16 @@ export default function MapPageClient() {
                       </div>
                       <div className="finder-highlight-orb">
                         <div>
-                          <span className="finder-eyebrow">Location intel</span>
+                          <span className="finder-eyebrow">Drops & shipments</span>
                           <strong>{selectedStore.bottle_count ?? 0}</strong>
                           <span>
                             {selectedStore.precision === "board"
                               ? selectedStore.hasSignals
-                                ? "board-level signals tied to this ABC board"
-                                : "board tracked — no recent bottle signals"
+                                ? "board-level bottle shipments tied to this ABC board"
+                                : "no recent bottle shipments"
                               : selectedStore.hasSignals
-                                ? "positive signals tied to this store"
-                                : "store-level coverage not active"}
+                                ? "recent bottle drops tied to this store"
+                                : "no recent bottle drops"}
                           </span>
                         </div>
                       </div>
@@ -1313,8 +1313,8 @@ export default function MapPageClient() {
                       <div className="finder-subpanel">
                         <div className="finder-subpanel-head">
                           <div>
-                            <span className="finder-eyebrow">Bottle movement</span>
-                            <h3>Most active bottles here</h3>
+                            <span className="finder-eyebrow">Bottle drops</span>
+                            <h3>Recent bottles here</h3>
                           </div>
                           <Sparkles size={16} color="var(--color-accent-amber)" />
                         </div>
@@ -1324,7 +1324,7 @@ export default function MapPageClient() {
                               <div key={item.bottle} className="finder-list-row">
                                 <div>
                                   <strong>{item.bottle}</strong>
-                                  <span>Repeated signal activity at this location</span>
+                                  <span>Recent drop or shipment activity at this location</span>
                                 </div>
                                 <span className="finder-row-pill">{item.count} hits</span>
                               </div>
@@ -1332,10 +1332,10 @@ export default function MapPageClient() {
                           ) : (
                             <div className="finder-empty-card small">
                               {selectedStore.hasSignals
-                                ? "Not enough recent structured activity to rank bottles here yet."
+                                ? "Not enough recent drop or shipment activity to rank bottles here yet."
                                 : selectedStore.precision === "board"
-                                  ? "No recent board-level bottle movement found here yet."
-                                  : "Store-level availability is not active for this location yet."}
+                                  ? "No recent board-level bottle shipments found here yet."
+                                  : "No recent bottle drops found for this location yet."}
                             </div>
                           )}
                         </div>
@@ -1344,8 +1344,8 @@ export default function MapPageClient() {
                       <div className="finder-subpanel">
                         <div className="finder-subpanel-head">
                           <div>
-                            <span className="finder-eyebrow">Recent location signals</span>
-                            <h3>Latest drops tied to this board or store</h3>
+                            <span className="finder-eyebrow">Recent drops</span>
+                            <h3>Latest bottles tied to this board or store</h3>
                           </div>
                           <Clock3 size={16} color="var(--color-accent-amber)" />
                         </div>
@@ -1369,10 +1369,10 @@ export default function MapPageClient() {
                               {historyLoading
                                 ? 'Loading location history…'
                                 : selectedStore.hasSignals
-                                  ? 'No recent or historical drops tied to this location in the current state lens.'
+                                  ? 'No recent or historical drops or shipments tied to this location in the current state lens.'
                                   : selectedStore.precision === 'board'
-                                    ? 'No recent board-level bottle movement found here yet.'
-                                    : 'Store-level availability is not active for this location yet.'}
+                                    ? 'No recent board-level bottle shipments found here yet.'
+                                    : 'No recent bottle drops found for this location yet.'}
                             </div>
                           )}
                         </div>

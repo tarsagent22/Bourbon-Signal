@@ -29,6 +29,16 @@ function locationNeedles(value: string) {
   );
 }
 
+function isBoardLevelDrop(drop: Record<string, unknown>) {
+  const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
+  const scope = String(drop.availability_scope ?? drop.availabilityScope ?? "").toLowerCase();
+  return precision.includes("board") || scope === "board";
+}
+
+function isBoardQuery(value: string) {
+  return value.toLowerCase().includes("board");
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
@@ -72,17 +82,20 @@ export async function GET(request: Request) {
 
     if (store) {
       const needles = locationNeedles(store);
+      const allowBoardLevelDrops = isBoardQuery(store);
       drops = drops.filter((drop) =>
-        needles.some((needle) =>
-          locationMatches(drop.store_name, needle) ||
-          locationMatches(drop.store_address, needle) ||
-          locationMatches(drop.store_city, needle) ||
-          locationMatches(drop.store_county, needle) ||
-          locationMatches(drop.board_name, needle) ||
-          locationMatches(drop.display_location, needle) ||
-          locationMatches((drop as Record<string, unknown>).locationName, needle) ||
-          locationMatches((drop as Record<string, unknown>).county, needle)
-        )
+        (allowBoardLevelDrops || !isBoardLevelDrop(drop as Record<string, unknown>)) &&
+        needles.some((needle) => {
+          const record = drop as Record<string, unknown>;
+          return locationMatches(drop.store_name, needle) ||
+            locationMatches(drop.store_address, needle) ||
+            locationMatches(drop.store_city, needle) ||
+            locationMatches(drop.store_county, needle) ||
+            locationMatches(drop.board_name, needle) ||
+            locationMatches(drop.display_location, needle) ||
+            locationMatches(record.locationName, needle) ||
+            locationMatches(record.county, needle);
+        })
       );
     }
 

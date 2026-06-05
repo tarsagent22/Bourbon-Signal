@@ -222,7 +222,7 @@ function getEventDescription(drop: GroupedDrop): string {
       return `${drop.locations.length} locations`;
     }
     const loc = drop.locations[0]?.label || cleanCountyName(drop.store_address || drop.board_name || "");
-    return loc || "Recent positive signal";
+    return loc || "Recent bottle drop";
   }
 
   if (drop.state === "KY") {
@@ -238,7 +238,7 @@ function getEventDescription(drop: GroupedDrop): string {
       case "restock":
         return "Official update";
       default:
-        return "Kentucky release signal";
+        return "Kentucky bottle release";
     }
   }
   switch (drop.event_type) {
@@ -286,13 +286,13 @@ function getEventDescription(drop: GroupedDrop): string {
       return "Allocation assigned";
     }
     default:
-      return "Recent bottle signal";
+      return "Recent bottle drop";
   }
 }
 
 function getPrimarySignalMeta(drop: GroupedDrop, locationSummary: string, stateLabel: string) {
   const parts = [stateLabel, locationSummary].filter(Boolean);
-  return parts.join(" · ") || "Recent signal";
+  return parts.join(" · ") || "Recent drop or shipment";
 }
 
 function TierBadge({ tier }: { tier: string }) {
@@ -323,7 +323,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const primaryLocation = drop.locations[0]?.label || description;
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
   const primaryMeta = getPrimarySignalMeta(drop, locationSummary, stateLabel);
-  const signalLabel = drop.signalLabel || "Bottle signal";
+  const signalLabel = drop.signalLabel || "Bottle drop";
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
 
@@ -341,7 +341,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const confidenceBadge = getConfidenceBadge(drop);
   const accuracyBadge = getAccuracyBadge(drop);
   if (drop.signalLabel) {
-    details.push({ label: "Signal", value: drop.signalLabel });
+    details.push({ label: "Drop type", value: drop.signalLabel });
   }
   details.push({ label: "Evidence", value: `${accuracyBadge.label} · ${accuracyBadge.caption}` });
   if (confidenceBadge) {
@@ -672,7 +672,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                         fontFamily: "var(--font-jetbrains)",
                       }}
                     >
-                      {stateLabel ? `${stateLabel} signal` : "Signal"}
+                      {stateLabel ? `${stateLabel} drop/shipment` : "Drop/shipment"}
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       {visibleLocations.map((location: DropLocation) => {
@@ -1098,7 +1098,7 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
-              { tier: "all", label: "All signals", activeBg: "rgba(245,237,214,0.13)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.035)", inactiveColor: "rgba(245,237,214,0.5)", border: "1px solid rgba(245,237,214,0.12)" },
+              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.13)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.035)", inactiveColor: "rgba(245,237,214,0.5)", border: "1px solid rgba(245,237,214,0.12)" },
               { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
               { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.3)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.06)", inactiveColor: "rgba(184,115,51,0.45)", border: "1px solid rgba(184,115,51,0.2)" },
               { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.22)", activeColor: "#AAAAAA", inactiveBg: "rgba(138,138,138,0.05)", inactiveColor: "rgba(138,138,138,0.4)", border: "1px solid rgba(138,138,138,0.18)" },
