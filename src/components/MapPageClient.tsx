@@ -276,6 +276,46 @@ function formatFinderStoreAddress(store?: Pick<Store, "address" | "city" | "stat
   return address;
 }
 
+function isStoreLocatorOnly(store: Pick<Store, "inventoryCapability" | "collectorAttached" | "hasSignals" | "bottle_count" | "signalCount">) {
+  const capability = normalize(store.inventoryCapability);
+  const signalCount = store.signalCount ?? store.bottle_count ?? 0;
+  return capability.includes("locator_only") && !store.collectorAttached && !store.hasSignals && signalCount <= 0;
+}
+
+function shouldShowInFinderLocationSearch(store: Store) {
+  const signalCount = store.signalCount ?? store.bottle_count ?? 0;
+  if (store.hasSignals || signalCount > 0) return true;
+  if (isStoreLocatorOnly(store)) return false;
+  return store.precision === "store" && store.collectorAttached === true;
+}
+
+function getLocationSuggestionStatus(store: Store) {
+  const signalCount = store.signalCount ?? store.bottle_count ?? 0;
+  if (store.precision === "board" && signalCount > 0) {
+    return `${signalCount} board-level signal${signalCount === 1 ? "" : "s"}`;
+  }
+  if (store.hasSignals || signalCount > 0) {
+    return `${signalCount} store-level signal${signalCount === 1 ? "" : "s"}`;
+  }
+  if (store.precision === "board") return "board tracked — no recent signals";
+  return "store-level coverage not active";
+}
+
+function getLocationCoverageCopy(store: Store, bestSignal?: DropEvent | null) {
+  const signalCount = store.signalCount ?? store.bottle_count ?? 0;
+  if (store.precision === "board") {
+    return store.hasSignals || signalCount > 0
+      ? "Board-level shipment and movement signals are available here. Store-level availability is not currently tracked for individual ABC stores on this board."
+      : "This board is known, but we do not have recent board-level signals or store-level availability for it yet.";
+  }
+
+  if (store.hasSignals || bestSignal) {
+    return "This view ranks bottles actually tied to this store, with verified store evidence separated from broader watch signals.";
+  }
+
+  return "We know this store exists, but store-level availability is not active here yet.";
+}
+
 function extractStoreAddressParts(address?: string | null) {
   if (!address) return { line1: null as string | null, locality: null as string | null };
   const trimmed = address.trim().replace(/\s+/g, " ");
@@ -662,6 +702,11 @@ export default function MapPageClient() {
       .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0));
   }, [stores, query, stateFilter]);
 
+  const finderLocations = useMemo(
+    () => filteredStores.filter((store) => shouldShowInFinderLocationSearch(store)),
+    [filteredStores]
+  );
+
   const selectedBottle = useMemo(() => {
     if (!filteredBottles.length) return null;
     return filteredBottles.find((bottle) => bottle.id === selectedBottleId) ?? filteredBottles[0];
@@ -682,8 +727,8 @@ export default function MapPageClient() {
 
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) return null;
-    return filteredStores.find((store) => store.id === selectedStoreId) ?? null;
-  }, [filteredStores, selectedStoreId]);
+    return finderLocations.find((store) => store.id === selectedStoreId) ?? null;
+  }, [finderLocations, selectedStoreId]);
 
   useEffect(() => {
     if (mode === "bottle" && selectedBottle) {
@@ -749,16 +794,15 @@ export default function MapPageClient() {
     if (mode !== "store") return [] as Store[];
     const q = normalize(query);
     if (q) {
-      return filteredStores
+      return finderLocations
         .filter((store) => getStoreLookupKeys(store).some((value) => value.includes(q) || q.includes(value)))
         .slice(0, 8);
     }
 
-    return filteredStores
-      .filter((store) => store.hasSignals || store.precision === "store")
+    return finderLocations
       .sort((a, b) => (b.bottle_count ?? 0) - (a.bottle_count ?? 0))
       .slice(0, 6);
-  }, [filteredStores, mode, query]);
+  }, [finderLocations, mode, query]);
 
   const bottleDrops = useMemo(() => {
     if (!selectedBottle) return [];
@@ -781,7 +825,7 @@ export default function MapPageClient() {
 
     const scored = new Map<string, Store & { hitCount: number; lastSeen?: string; matchStrength: number }>();
 
-    for (const store of filteredStores) {
+    for (const store of finderLocations) {
       let hitCount = 0;
       let matchStrength = 0;
       let lastSeen: string | undefined;
@@ -820,7 +864,7 @@ export default function MapPageClient() {
         return (b.bottle_count ?? 0) - (a.bottle_count ?? 0);
       })
       .slice(0, 8);
-  }, [bottleDrops, filteredStores, selectedBottle]);
+  }, [bottleDrops, finderLocations, selectedBottle]);
 
   const exactBottleSignals = useMemo(
     () => bottleDrops.filter((drop) => getSignalQuality(drop).score >= 3).slice(0, 3),
@@ -1058,7 +1102,7 @@ export default function MapPageClient() {
                             {formatFinderStoreAddress(store) || (store.precision === "board"
                               ? [store.county || store.city, store.state].filter(Boolean).join(", ") || "Board"
                               : [store.city, store.state].filter(Boolean).join(", ") || store.address || "Location")}
-                            {store.hasSignals ? " · signals found" : " · ready for future hits"}
+                            {` · ${getLocationSuggestionStatus(store)}`}
                           </span>
                         </div>
                         <span className="finder-row-pill">Select</span>
@@ -1231,9 +1275,7 @@ export default function MapPageClient() {
                         </div>
                         <h2>{selectedStore.displayLabel}</h2>
                         <p>
-                          {selectedStore.hasSignals
-                            ? "This view ranks the bottles actually tied to this board or store, with verified store evidence separated from broader watch signals."
-                            : "This board or store is already in the location bible, so future bottle signals have a place to land as soon as the engine sees them."}
+                          {getLocationCoverageCopy(selectedStore, bestStoreSignal)}
                         </p>
                         {formatFinderStoreAddress(selectedStore) ? (
                           <p className="finder-address-line">{formatFinderStoreAddress(selectedStore)}</p>
@@ -1254,7 +1296,15 @@ export default function MapPageClient() {
                         <div>
                           <span className="finder-eyebrow">Location intel</span>
                           <strong>{selectedStore.bottle_count ?? 0}</strong>
-                          <span>{selectedStore.hasSignals ? "positive signals tied to this location" : "signals so far — watching this location"}</span>
+                          <span>
+                            {selectedStore.precision === "board"
+                              ? selectedStore.hasSignals
+                                ? "board-level signals tied to this ABC board"
+                                : "board tracked — no recent bottle signals"
+                              : selectedStore.hasSignals
+                                ? "positive signals tied to this store"
+                                : "store-level coverage not active"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1283,7 +1333,9 @@ export default function MapPageClient() {
                             <div className="finder-empty-card small">
                               {selectedStore.hasSignals
                                 ? "Not enough recent structured activity to rank bottles here yet."
-                                : "No bottle movement has hit this location yet. It is preloaded and searchable for future signals."}
+                                : selectedStore.precision === "board"
+                                  ? "No recent board-level bottle movement found here yet."
+                                  : "Store-level availability is not active for this location yet."}
                             </div>
                           )}
                         </div>
@@ -1313,7 +1365,15 @@ export default function MapPageClient() {
                               </div>
                             ))
                           ) : (
-                            <div className="finder-empty-card small">{historyLoading ? 'Loading store history…' : selectedStore.hasSignals ? 'No recent or historical drops tied to this location in the current state lens.' : 'Location bible entry is ready; no drops have landed here yet.'}</div>
+                            <div className="finder-empty-card small">
+                              {historyLoading
+                                ? 'Loading location history…'
+                                : selectedStore.hasSignals
+                                  ? 'No recent or historical drops tied to this location in the current state lens.'
+                                  : selectedStore.precision === 'board'
+                                    ? 'No recent board-level bottle movement found here yet.'
+                                    : 'Store-level availability is not active for this location yet.'}
+                            </div>
                           )}
                         </div>
                         {historyHasMore ? (
