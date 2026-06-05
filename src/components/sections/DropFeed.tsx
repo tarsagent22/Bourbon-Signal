@@ -761,7 +761,7 @@ export default function DropFeed() {
     setSelectedStates,
     clearPreferences,
   } = useStatePreferences();
-  const { isSignedIn, memberTier, isPaidUser } = useAuth();
+  const { isSignedIn, isPaidUser } = useAuth();
   const { prefs } = useAreaPreferences();
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = !isPaidUser;
@@ -775,7 +775,7 @@ export default function DropFeed() {
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
-  const [showMoreCount, setShowMoreCount] = useState(0);
+  const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchDrops = useCallback(async () => {
@@ -810,23 +810,23 @@ export default function DropFeed() {
 
       setData(json);
       setGrouped(newGrouped);
-      setShowMoreCount(0);
+      setVisibleDropCount(isSignedIn ? 10 : 7);
       const nowIso = new Date().toISOString();
       setLastFetch(nowIso);
       setSecondsUntilRefresh(POLL_INTERVAL_SECONDS);
     } catch {
       setError(true);
     }
-  }, []);
+  }, [isSignedIn]);
 
   const fetchOlderDrops = useCallback(async () => {
-    if (!isPaidUser || isLoadingMore) return;
+    if (!isSignedIn || isLoadingMore) return;
     const nextOffset = grouped.length;
     if (data && data.total <= nextOffset) return;
 
     setIsLoadingMore(true);
     try {
-      const res = await fetch(`/api/drops?limit=50&offset=${nextOffset}`);
+      const res = await fetch(`/api/drops?limit=10&offset=${nextOffset}`);
       if (!res.ok) throw new Error("fetch failed");
       const json: DropsResponse = await res.json();
       const sourceDrops = json.drops.length > 0 ? json.drops : [];
@@ -834,17 +834,21 @@ export default function DropFeed() {
 
       setGrouped((prev) => {
         const existing = new Set(prev.map((drop) => drop.id));
-        const nextGrouped = latestSignalRows(sourceDrops, 50).filter((drop) => !existing.has(drop.id));
-        return [...prev, ...nextGrouped];
+        const nextGrouped = latestSignalRows(sourceDrops, 10).filter((drop) => !existing.has(drop.id));
+        return [...prev, ...nextGrouped].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
       });
-      setData((prev) => prev ? { ...prev, total: json.total, hasMore: json.hasMore, offset: 0, limit: 50 } : json);
-      setShowMoreCount((prev) => prev + 1);
+      setData((prev) => prev ? { ...prev, total: json.total, hasMore: json.hasMore, offset: 0, limit: 10 } : json);
+      setVisibleDropCount((prev) => prev + 10);
     } catch {
       setError(true);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [data, grouped.length, isLoadingMore, isPaidUser]);
+  }, [data, grouped.length, isLoadingMore, isSignedIn]);
+
+  useEffect(() => {
+    setVisibleDropCount(isSignedIn ? 10 : 7);
+  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), activeTiers]);
 
   useEffect(() => {
     fetchDrops();
@@ -909,9 +913,6 @@ export default function DropFeed() {
     return true;
   });
 
-  // Check if area prefs are active
-  const hasAreaPrefs = areaPrefs.states.length > 0;
-
   // Always keep at least five recent signals visible, even if filters are narrow.
   const minimumVisibleSignals = 5;
   const fallbackFeed = filteredGrouped.length > 0 ? filteredGrouped : grouped;
@@ -922,9 +923,9 @@ export default function DropFeed() {
     ? filteredByArea
     : [...filteredByArea, ...grouped.filter((drop) => !filteredByArea.some((visible) => visible.id === drop.id))].slice(0, Math.max(minimumVisibleSignals, filteredByArea.length || fallbackFeed.length));
 
-  const baseVisibleCount = isPaidUser ? Math.max(10, grouped.length || 10) : 7;
-  const canShowMore = isPaidUser && !hasSelectedStates && activeTiers.size === 0 && !hasAreaPrefs && !!data?.hasMore;
-  const displayedGrouped = finalFeed.slice(0, isPaidUser ? baseVisibleCount : baseVisibleCount);
+  const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
+  const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
+  const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const dropCountsByState = grouped.reduce((counts, drop) => {
     const state = drop.state || "NC";
@@ -935,6 +936,19 @@ export default function DropFeed() {
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
     ? "Showing all supported states"
     : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
+  const stateDropdownValue = !hasSelectedStates || preferredStates.length === 0
+    ? "ALL"
+    : preferredStates.length === 1
+      ? preferredStates[0]
+      : "MULTI";
+
+  const showNextDrops = () => {
+    if (finalFeed.length > baseVisibleCount) {
+      setVisibleDropCount((prev) => prev + 10);
+      return;
+    }
+    fetchOlderDrops();
+  };
 
   return (
     <section
@@ -1014,25 +1028,6 @@ export default function DropFeed() {
                 Live Drop Feed
               </h2>
             </div>
-            {hasAreaPrefs && (
-              <a
-                href="/dashboard"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  color: "var(--color-accent-amber)",
-                  textDecoration: "none",
-                  whiteSpace: "nowrap",
-                  opacity: 0.85,
-                  transition: "opacity 150ms",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
-              >
-                Filtered to your areas · Edit
-              </a>
-            )}
           </motion.div>
 
           {/* Divider */}
@@ -1054,38 +1049,42 @@ export default function DropFeed() {
                 <button type="button" onClick={clearPreferences}>Show all</button>
               ) : null}
             </div>
-            <div className="dropfeed-state-chips" aria-label="Filter drop feed by state">
-              <button
-                type="button"
-                className={`dropfeed-state-chip ${!hasSelectedStates || preferredStates.length === 0 ? "active" : ""}`}
-                onClick={clearPreferences}
-                aria-pressed={!hasSelectedStates || preferredStates.length === 0}
+            <label style={{ display: "block", marginTop: "12px" }}>
+              <span className="sr-only">Filter drop feed by state</span>
+              <select
+                value={stateDropdownValue}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "ALL") {
+                    clearPreferences();
+                    return;
+                  }
+                  setSelectedStates([value]);
+                }}
+                aria-label="Filter drop feed by state"
+                style={{
+                  width: "100%",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(212,146,11,0.22)",
+                  background: "rgba(20, 16, 12, 0.86)",
+                  color: "var(--color-cream)",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  padding: "12px 14px",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
               >
-                <strong>All</strong>
-                <span>Every active market</span>
-                <em>{grouped.length}</em>
-              </button>
-              {feedStateOptions.map((state) => {
-                const active = hasSelectedStates && preferredStates.includes(state.code);
-                const count = dropCountsByState.get(state.code) || 0;
-                const nextStates = active
-                  ? preferredStates.filter((code) => code !== state.code)
-                  : [...preferredStates, state.code];
-                return (
-                  <button
-                    key={state.code}
-                    type="button"
-                    className={`dropfeed-state-chip ${active ? "active" : ""} ${count === 0 ? "quiet" : ""}`}
-                    onClick={() => setSelectedStates(nextStates)}
-                    aria-pressed={active}
-                  >
-                    <strong>{state.code}</strong>
-                    <span>{state.name}</span>
-                    <em>{count}</em>
-                  </button>
-                );
-              })}
-            </div>
+                <option value="ALL">All active markets ({grouped.length})</option>
+                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
+                {feedStateOptions.map((state) => (
+                  <option key={state.code} value={state.code}>
+                    {state.name} ({state.code}) · {dropCountsByState.get(state.code) || 0}
+                  </option>
+                ))}
+              </select>
+            </label>
           </motion.div>
 
           {/* Filters row: Tier filter pills */}
@@ -1213,7 +1212,7 @@ export default function DropFeed() {
               transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <div
-                style={isPaidUser && showMoreCount > 0 ? {
+                style={isSignedIn && visibleDropCount > 10 ? {
                   maxHeight: "980px",
                   overflowY: "auto",
                   paddingRight: "4px",
@@ -1236,7 +1235,7 @@ export default function DropFeed() {
                 <div style={{ display: "flex", justifyContent: "center", marginTop: "18px" }}>
                   <button
                     type="button"
-                    onClick={() => fetchOlderDrops()}
+                    onClick={showNextDrops}
                     disabled={isLoadingMore}
                     style={{
                       padding: "10px 18px",
@@ -1251,7 +1250,7 @@ export default function DropFeed() {
                       opacity: isLoadingMore ? 0.7 : 1,
                     }}
                   >
-                    {isLoadingMore ? "Loading older drops…" : "Show older drops"}
+                    {isLoadingMore ? "Loading older drops…" : "See more"}
                   </button>
                 </div>
               )}
@@ -1283,7 +1282,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more positive signals tracked` : isPaidUser ? "Paid members can expand deeper into recent history" : "Live feed updates automatically"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more positive signals tracked` : isSignedIn ? "Newest drops stay at the top as you expand the feed" : "Live feed updates automatically"}
               </p>
             </div>
           )}

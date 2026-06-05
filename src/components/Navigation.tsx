@@ -123,36 +123,6 @@ export default function Navigation() {
             <>
               <MemberAlertsBell />
 
-              {/* Upgrade nudge — only for free tier, stays in nav */}
-              {memberTier === null && (
-                <a
-                  href="/dashboard"
-                  style={{
-                    fontFamily: "var(--font-dm-sans)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "var(--color-accent-amber)",
-                    textDecoration: "none",
-                    border: "1px solid rgba(196,148,58,0.35)",
-                    borderRadius: "4px",
-                    padding: "5px 12px",
-                    whiteSpace: "nowrap",
-                    transition: "all 200ms ease",
-                    letterSpacing: "0.02em",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(196,148,58,0.08)";
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.7)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.borderColor = "rgba(196,148,58,0.35)";
-                  }}
-                >
-                  Upgrade ↑
-                </a>
-              )}
-
               {/* Profile avatar + dropdown */}
               <div ref={profileRef} style={{ position: "relative" }}>
                 {/* Avatar button */}
@@ -327,14 +297,18 @@ export default function Navigation() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden cursor-pointer"
-          onClick={() => setMobileOpen(true)}
-          style={{ color: "var(--color-text-primary)", marginRight: "5px" }}
-        >
-          <Menu size={24} />
-        </button>
+        {/* Mobile right controls */}
+        <div className="md:hidden" style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "5px" }}>
+          {mounted && isSignedIn ? <MemberAlertsBell /> : null}
+          <button
+            className="cursor-pointer"
+            onClick={() => setMobileOpen(true)}
+            style={{ color: "var(--color-text-primary)" }}
+            aria-label="Open navigation menu"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
         </div>
       </motion.nav>
 

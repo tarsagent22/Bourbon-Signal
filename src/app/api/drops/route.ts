@@ -5,8 +5,28 @@ function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
 }
 
+function locationMatches(value: unknown, needle: string) {
+  if (typeof value !== "string") return false;
+  const haystack = value.toLowerCase().trim();
+  return haystack.includes(needle) || needle.includes(haystack);
+}
+
 function arrayIncludesNeedle(value: unknown, needle: string) {
   return Array.isArray(value) && value.some((item) => includesNeedle(item, needle));
+}
+
+function locationNeedles(value: string) {
+  return Array.from(
+    new Set(
+      [
+        value,
+        value.replace(/\s+abc\s+board$/i, ""),
+        value.replace(/\s+county\s+abc\s+board$/i, " county"),
+      ]
+        .map((item) => item.toLowerCase().trim())
+        .filter(Boolean)
+    )
+  );
 }
 
 export async function GET(request: Request) {
@@ -51,12 +71,18 @@ export async function GET(request: Request) {
     }
 
     if (store) {
-      drops = drops.filter(
-        (drop) =>
-          includesNeedle(drop.store_name, store) ||
-          includesNeedle(drop.store_address, store) ||
-          includesNeedle(drop.store_city, store) ||
-          includesNeedle(drop.board_name, store)
+      const needles = locationNeedles(store);
+      drops = drops.filter((drop) =>
+        needles.some((needle) =>
+          locationMatches(drop.store_name, needle) ||
+          locationMatches(drop.store_address, needle) ||
+          locationMatches(drop.store_city, needle) ||
+          locationMatches(drop.store_county, needle) ||
+          locationMatches(drop.board_name, needle) ||
+          locationMatches(drop.display_location, needle) ||
+          locationMatches((drop as Record<string, unknown>).locationName, needle) ||
+          locationMatches((drop as Record<string, unknown>).county, needle)
+        )
       );
     }
 
