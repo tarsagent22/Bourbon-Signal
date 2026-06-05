@@ -915,7 +915,9 @@ export default function DropFeed() {
   // Always keep at least five recent signals visible, even if filters are narrow.
   const minimumVisibleSignals = 5;
   const fallbackFeed = filteredGrouped.length > 0 ? filteredGrouped : grouped;
+  const visibleFeedFiltersActive = hasSelectedStates || activeTiers.size > 0;
   const feedWasRelaxed = filteredByArea.length < minimumVisibleSignals && grouped.length > filteredByArea.length;
+  const shouldShowRelaxedFilterNotice = feedWasRelaxed && visibleFeedFiltersActive;
   const finalFeed = filteredByArea.length >= minimumVisibleSignals
     ? filteredByArea
     : [...filteredByArea, ...grouped.filter((drop) => !filteredByArea.some((visible) => visible.id === drop.id))].slice(0, Math.max(minimumVisibleSignals, filteredByArea.length || fallbackFeed.length));
@@ -1149,7 +1151,7 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Feed rows */}
-          {(data?.fallback || feedWasRelaxed) && (
+          {(data?.fallback || shouldShowRelaxedFilterNotice) && (
             <div
               style={{
                 marginBottom: "18px",
