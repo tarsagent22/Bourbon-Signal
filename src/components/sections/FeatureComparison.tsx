@@ -33,7 +33,7 @@ const categories: FeatureCategory[] = [
       { name: "Bottle pricing and reference intel", free: true, standard: true, bib: true },
       { name: "Cleaner member-level feed access", free: false, standard: true, bib: true },
       { name: "Watchlist-driven workflow", free: false, standard: true, bib: true },
-      { name: "Secondary market pricing", free: false, standard: true, bib: true },
+  { name: "Expanded drop history", free: false, standard: true, bib: true },
     ],
   },
   {

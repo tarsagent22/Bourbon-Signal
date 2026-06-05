@@ -7,7 +7,7 @@ export const MEMBERSHIP_COPY = {
   testerLabel: "Founding tester mode",
   testerHeadline: "Help validate Bourbon Signal before paid memberships open.",
   testerBody:
-    "Full beta access is open while we test alert quality, tune the hunt workflow, and make sure the signals are worth trusting before anyone pays.",
+    "Full tester access is open while we test alert quality, tune the hunt workflow, and make sure the signals are worth trusting before anyone pays.",
   standardName: "Standard Proof",
   standardStatus: "Planned member tier",
   standardBody:
@@ -18,3 +18,4 @@ export const MEMBERSHIP_COPY = {
     "A limited founder tier planned for hard launch, with Standard Proof access plus founding perks and a permanent founder badge.",
   founderTease: "Only 100 founder spots are planned. Pricing stays hidden until launch.",
 };
+

@@ -25,6 +25,12 @@ export async function GET(request: Request) {
 
     if (include !== "all") {
       drops = drops.filter((drop) => isUserFacingDropSignal(drop));
+      drops = drops.filter((drop) => {
+        const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
+        const eventType = String(drop.event_type ?? "");
+        const scope = String(drop.availability_scope ?? "");
+        return !(dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse"));
+      });
     }
 
     if (state) {

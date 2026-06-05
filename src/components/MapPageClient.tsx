@@ -228,7 +228,7 @@ function getStateName(code?: string | null) {
 
 function getBottleAmount(drop: DropEvent) {
   const quantity = drop.quantity_shipped ?? drop.quantity_in_stock ?? drop.quantity;
-  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) return "Bottle spotted";
+  if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0) return "Bottle signal";
   return `${quantity} bottle${quantity === 1 ? "" : "s"}`;
 }
 

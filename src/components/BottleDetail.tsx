@@ -339,7 +339,7 @@ export default function BottleDetail({
                 fontStyle: "italic",
               }}
             >
-              Based on recent auction and secondary market data
+              Based on available source data
             </p>
           </div>
 

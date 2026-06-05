@@ -168,7 +168,7 @@ export default function LiveDropFeed() {
                 textDecoration: "none",
               }}
             >
-              Join beta setup →
+              Create account →
             </a>
           </p>
         </motion.div>
@@ -176,3 +176,4 @@ export default function LiveDropFeed() {
     </section>
   );
 }
+

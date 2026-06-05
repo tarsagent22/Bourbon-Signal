@@ -13,7 +13,6 @@ const navLinks = [
   { label: "Events", href: "/events" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/map" },
-  { label: "Beta Access", href: "/dashboard" },
 ];
 
 export default function Navigation() {
@@ -322,7 +321,7 @@ export default function Navigation() {
                   (e.currentTarget.style.opacity = "1")
                 }
               >
-                Join Beta
+                Create Account
               </a>
             </>
           )}
@@ -432,7 +431,7 @@ export default function Navigation() {
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                   }}
                 >
-                  Join Beta
+                  Create Account
                 </a>
               </>
             )}

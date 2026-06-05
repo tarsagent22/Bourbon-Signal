@@ -146,7 +146,7 @@ function SuccessContent() {
             lineHeight: 1.6,
           }}
         >
-          Drop alerts are live. Start building your watchlist and we&apos;ll notify you the moment your bottles hit shelves.
+          Drop alerts are live. Start building your watchlist and we&apos;ll notify you when source-backed signals match your bottles.
         </p>
 
         {/* CTA */}

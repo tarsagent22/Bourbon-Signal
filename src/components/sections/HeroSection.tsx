@@ -108,7 +108,7 @@ export default function HeroSection() {
               paddingInline: "8px",
             }}
           >
-            Track real bottle movement across live state data, build a bottle-plus-territory hunt, and get live beta alerts when your targets start showing up.
+            Find the bourbon you're looking for with the live drop feed, bottle or location-specific alerts, and more.
           </p>
         </ScrollReveal>
 
@@ -186,7 +186,7 @@ export default function HeroSection() {
                 boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
               }}
             >
-Join the beta
+Create Account
               <ArrowRight size={16} />
             </a>
 

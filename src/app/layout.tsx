@@ -8,11 +8,11 @@ import { LiquidToggleFilter } from "@/components/LiquidToggle";
 
 export const metadata: Metadata = {
   title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-  description: "Track allocated bourbon drops across NC, VA, PA, and IN. Real-time signals when rare bottles hit store shelves.",
+  description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
   metadataBase: new URL("https://bourbonsignal.com"),
   openGraph: {
     title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-    description: "Track allocated bourbon drops across NC, VA, PA, and IN. Real-time signals when rare bottles hit store shelves.",
+    description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
     url: "https://bourbonsignal.com",
     siteName: "Bourbon Signal",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Bourbon Signal — Real-Time Bourbon Drop Signals",
-    description: "Track allocated bourbon drops across NC, VA, PA, and IN. Real-time signals when rare bottles hit store shelves.",
+    description: "Track allocated bourbon signals across NC, VA, PA, and IN with source-backed drop, shipment, and release data.",
     images: ["https://bourbonsignal.com/hero-bg.jpg"],
   },
 };

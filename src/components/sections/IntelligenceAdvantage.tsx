@@ -28,8 +28,8 @@ const pipelineSteps = [
   },
   {
     icon: Store,
-    label: "Store Shelf",
-    note: "Community confirms it",
+    label: "Store-Level Signal",
+    note: "Source confirms it",
     glow: false,
   },
 ];
@@ -38,17 +38,17 @@ const features = [
   {
     title: "Days of Advance Notice",
     description:
-      "Our warehouse monitors catch bottles entering state distribution systems days before they reach stores. Plan your hunt instead of scrambling.",
+      "Our monitors catch bottles entering state distribution systems when that data is available, giving you a better starting point for the hunt.",
   },
   {
     title: "Board-Level Tracking",
     description:
-      "Know which specific distribution board is receiving a shipment. We tell you exactly where to focus your hunt.",
+      "Know which distribution board is receiving a shipment so you can focus on a tighter area instead of chasing statewide noise.",
   },
   {
     title: "Store-Level Intel",
     description:
-      "Where available, we track inventory at the store level. No more driving to every liquor store in the county.",
+      "Where available, we track inventory at the store level and label broader signals clearly when precision is lower.",
   },
 ];
 

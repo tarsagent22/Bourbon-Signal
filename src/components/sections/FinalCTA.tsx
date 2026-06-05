@@ -49,7 +49,7 @@ export default function FinalCTA() {
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-4">
-            <Button variant="primary">Join the Beta</Button>
+            <Button variant="primary">Create Account</Button>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",

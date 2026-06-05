@@ -71,7 +71,7 @@ export default function SetLocationButton({ compact = false }: SetLocationButton
           }}
         >
           <LocateFixed size={compact ? 14 : 16} />
-          {loading ? "Finding you..." : userLocation ? "Update location" : "Set your location"}
+      {loading ? "Finding you..." : userLocation ? "Update location" : "Choose location"}
         </button>
 
         {userLocation && (

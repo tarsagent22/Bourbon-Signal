@@ -13,7 +13,6 @@ import {
   formatStateLabel,
   lookupPricing,
   TIER_CONFIG,
-  MULTIPLIER_COLORS,
 } from "@/lib/drops";
 import DataFreshness from "@/components/DataFreshness";
 import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
@@ -93,6 +92,12 @@ const MOCK_DROPS: DropEvent[] = [
 function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
   const rows: GroupedDrop[] = [];
   for (const drop of drops) {
+    if (
+      (drop.state === "NC" || drop.state_code === "NC") &&
+      (drop.event_type === "nc_statewide_warehouse_stock" || drop.availability_scope === "warehouse")
+    ) {
+      continue;
+    }
     const row = groupDrops([drop], 1)[0];
     if (!row) continue;
     rows.push({
@@ -181,7 +186,6 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
   }
   if (drop.state === "NC") {
     if (drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board") return { label: "NC board", tone: "online" };
-    if (drop.event_type === "nc_statewide_warehouse_stock" || drop.availabilityScope === "warehouse") return { label: "NC radar", tone: "listing" };
   }
   if (drop.state !== "PA") return null;
   if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
@@ -205,8 +209,8 @@ function getAccuracyBadge(drop: GroupedDrop): { label: string; caption: string; 
     return { label: "Official", caption: "Source-confirmed", tone: "official" };
   }
 
-  if (drop.state === "NC" && (drop.event_type === "nc_board_shipment_snapshot" || drop.event_type === "nc_statewide_warehouse_stock")) {
-    return { label: "Official", caption: drop.event_type === "nc_board_shipment_snapshot" ? "Board-level shipment" : "Warehouse radar", tone: "official" };
+  if (drop.state === "NC" && drop.event_type === "nc_board_shipment_snapshot") {
+    return { label: "Official", caption: "Board-level shipment", tone: "official" };
   }
 
   return { label: "Positive", caption: "Noise-filtered", tone: "positive" };
@@ -316,7 +320,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const signalLabel = drop.signalLabel || "Bottle signal";
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
-  const multColors = MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
 
   // Glow timer for newest drop
   useEffect(() => {
@@ -342,9 +345,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   }
   if (drop.event_type === "nc_board_shipment_snapshot") {
     details.push({ label: "Precision", value: "Board-level shipment, store unknown" });
-  }
-  if (drop.event_type === "nc_statewide_warehouse_stock") {
-    details.push({ label: "Precision", value: "Statewide warehouse radar, board/store unknown" });
   }
   if (drop.retail_price && drop.retail_price > 0) {
     details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
@@ -560,20 +560,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for more" : "More shown"}</span>
         </div>
 
-        {pricing.secondary && (
-          <div
-            style={{
-              marginTop: "10px",
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "rgba(212,146,11,0.74)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            {isFreeUser ? "Market intel locked 🔒" : `Market intel: ${pricing.secondary}`}
-          </div>
-        )}
       </div>
 
       {/* Main row */}
@@ -737,55 +723,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
               >
                 MSRP ${pricing.msrp}
               </span>
-              {/* Secondary price — locked for free users only */}
-              {pricing.secondary && (
-                <div className="flex items-center gap-1.5" style={{ marginTop: "2px" }}>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-jetbrains)",
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      color: "var(--color-accent-amber)",
-                      whiteSpace: "nowrap",
-                      userSelect: isFreeUser ? "none" : "auto",
-                    }}
-                  >
-                    {isFreeUser ? "Member intel" : pricing.secondary}
-                  </span>
-                  {/* Lock icon — only show for free users */}
-                  {isFreeUser && (
-                    <span
-                      title="Unlock with Standard Proof"
-                      style={{
-                        fontSize: "10px",
-                        color: "rgba(245,237,214,0.3)",
-                        cursor: "help",
-                      }}
-                    >
-                      🔒
-                    </span>
-                  )}
-                  {/* Multiplier badge */}
-                  {pricing.multiplier && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-dm-sans)",
-                        fontSize: "9px",
-                        fontWeight: 700,
-                        color: multColors.color,
-                        background: multColors.bg,
-                        border: `1px solid ${multColors.border}`,
-                        borderRadius: "8px",
-                        padding: "1px 6px",
-                        whiteSpace: "nowrap",
-                        userSelect: isFreeUser ? "none" : "auto",
-                      }}
-                    >
-                      {isFreeUser ? "PRO" : `${pricing.multiplier}x`}
-                    </span>
-                  )}
-                </div>
-              )}
             </>
           ) : (
             /* No pricing — just timestamp */
@@ -869,7 +806,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       {visibleLocations.map((location: DropLocation) => {
-                        const destinationLabel = drop.signalCategory === "delivery" ? "Delivery location" : "Store / source";
+                        const destinationLabel = drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
                         const secondaryLine = location.address || location.boardName;
                         return (
                           <div
@@ -896,7 +833,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                               <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
                                 {drop.event_type === "new_shipment"
                                   ? `${location.quantity} case${location.quantity === 1 ? "" : "s"} shipped`
-                                  : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} seen`}
+                                  : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} reported`}
                               </div>
                             )}
                           </div>
@@ -934,40 +871,6 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                     <span>{detail.value}</span>
                   </div>
                 ))}
-                {/* Secondary market info in expanded panel */}
-                {pricing.secondary && (
-                  <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                    <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>Secondary:</span>
-                    <span
-                      style={{
-                        userSelect: isFreeUser ? "none" : "auto",
-                        color: "var(--color-accent-amber)",
-                      }}
-                    >
-                      {isFreeUser ? "Member intel" : pricing.secondary}
-                    </span>
-                    <span
-                      style={{
-                        marginLeft: "6px",
-                        fontSize: "10px",
-                        color: "rgba(245,237,214,0.3)",
-                        cursor: "help",
-                      }}
-                      title="Average resale price based on recent auction and market data"
-                    >
-                      ℹ
-                    </span>
-                    <span
-                      style={{
-                        marginLeft: "4px",
-                        fontSize: "10px",
-                        color: "rgba(245,237,214,0.3)",
-                      }}
-                    >
-                      🔒
-                    </span>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
@@ -1238,18 +1141,6 @@ export default function DropFeed() {
               >
                 Live Drop Feed
               </h2>
-              <p
-                className="dropfeed-subcopy"
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  color: "rgba(245,237,214,0.55)",
-                  marginTop: "6px",
-                  marginBottom: 0,
-                }}
-              >
-                Source-filtered positive bottle signals with freshness and evidence level shown on every card.
-              </p>
             </div>
             {hasAreaPrefs && (
               <a
@@ -1270,24 +1161,6 @@ export default function DropFeed() {
                 Filtered to your areas · Edit
               </a>
             )}
-          </motion.div>
-
-          {/* Premium member nudge */}
-          <motion.div
-            className="dropfeed-nudge"
-            style={{
-              marginTop: "14px",
-              marginBottom: "16px",
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "13px",
-              color: "rgba(245,237,214,0.58)",
-            }}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            Built to avoid false alarms: out-of-stock rows, lottery pages, statewide catalog noise, and weak allocation chatter are filtered before they reach this feed.
           </motion.div>
 
           {/* Divider */}

@@ -12,19 +12,19 @@ interface StepData {
 const steps: StepData[] = [
   {
     number: "01",
-    description: "Our proprietary data collection method does the heavy lifting for you by finding allocated bottle intel 24/7",
+    description: "Our data collection method does the heavy lifting for you by finding allocated bottle intel around the clock",
   },
   {
     number: "02",
-    description: "Set your location. Pick your bottles. We watch them for you.",
+    description: "Pick locations or bottles that you care about. We watch them for you.",
   },
   {
     number: "03",
-    description: "We alert you. Your preferences dictate how often you get notified about the bottles you care about.",
+    description: "We alert you when a signal matches your watchlist. Your preferences dictate how often you get notified about the bottles you care about.",
   },
   {
     number: "04",
-    description: "Grab the bottle you've been looking for. When allocated bottles like Blanton's, EH Taylor, or that unicorn bottle hit shelves, you'll have the edge.",
+    description: "Grab the bourbon you've been looking for. When allocated bottles hit stores, you'll have the edge.",
   },
 ];
 
@@ -590,14 +590,6 @@ export default function HowWeHunt() {
           }}>
             The Process
           </h2>
-          <p style={{
-            fontFamily: "var(--font-plus-jakarta)", fontSize: 16,
-            color: "var(--color-text-secondary)", lineHeight: 1.6,
-            maxWidth: 480, margin: "0 auto 52px",
-            textAlign: "center",
-          }}>
-            From raw signal to bottle in hand, built to move faster than the crowd.
-          </p>
         </ScrollReveal>
 
         <div>

@@ -245,11 +245,11 @@ function MiniHuntMap() {
 function MiniSmsAlert() {
   const messages = [
     {
-      text: "🥃 Blanton's Original — ABC Store #247, Raleigh. 6 bottles. Spotted 3 min ago",
+      text: "🥃 Blanton's Original — ABC Store #247, Raleigh. 6 bottles. Signal 3 min ago",
       time: "9:04 AM",
     },
     {
-      text: "🔥 Weller 12 Year — Store #189, Cary. 2 bottles. Spotted just now",
+      text: "🔥 Weller 12 Year — Store #189, Cary. 2 bottles. Signal just now",
       time: "9:06 AM",
     },
   ];
@@ -400,17 +400,17 @@ function MiniEmailInbox() {
   const emails = [
     {
       subject: "🦄 Pappy Van Winkle 15yr — ABC Store #112, Charlotte (2 bottles)",
-      preview: "Spotted 4 min ago. Tap to open map.",
+      preview: "Signal 4 min ago. Tap to open map.",
       time: "9:04 AM",
     },
     {
       subject: "🥃 Blanton's Original — ABC Store #247, Raleigh (6 bottles)",
-      preview: "Spotted 12 min ago. 6 bottles remaining.",
+      preview: "Signal 12 min ago. 6 bottles remaining.",
       time: "9:12 AM",
     },
     {
       subject: "📦 Weller Special Reserve — ABC Store #391, Durham (12 bottles)",
-      preview: "Spotted 31 min ago. Lower demand — good chance.",
+      preview: "Signal 31 min ago. Lower demand — good chance.",
       time: "9:31 AM",
     },
   ];
@@ -667,3 +667,4 @@ export default function MemberPreview() {
     </section>
   );
 }
+

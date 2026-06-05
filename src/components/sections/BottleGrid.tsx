@@ -457,7 +457,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                     lineHeight: 1.6,
                   }}
                 >
-                  Access secondary market data, drop history, and watchlists
+              Access drop history, bottle alerts, and watchlists
                   for {propBottles.length}+ bottles
                 </p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
