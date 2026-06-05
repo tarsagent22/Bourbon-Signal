@@ -777,7 +777,6 @@ export default function DropFeed() {
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [stateTotals, setStateTotals] = useState<Map<string, number>>(new Map());
 
   const feedStateParam = hasSelectedStates && preferredStates.length === 1 ? preferredStates[0] : null;
 
@@ -868,31 +867,6 @@ export default function DropFeed() {
       setSecondsUntilRefresh((prev) => Math.max(prev - 1, 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    async function loadStateTotals() {
-      try {
-        const entries = await Promise.all(
-          AVAILABLE_STATES
-            .filter((state) => !("comingSoon" in state && state.comingSoon))
-            .map(async (state) => {
-              const res = await fetch(`/api/drops?state=${encodeURIComponent(state.code)}&limit=1`, { signal: controller.signal });
-              if (!res.ok) return [state.code, 0] as const;
-              const json = await res.json();
-              return [state.code, Number(json.total || json.count || 0)] as const;
-            })
-        );
-        setStateTotals(new Map(entries));
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
-          setStateTotals(new Map());
-        }
-      }
-    }
-    loadStateTotals();
-    return () => controller.abort();
   }, []);
 
   // Apply state and tier filters
@@ -1096,11 +1070,11 @@ export default function DropFeed() {
                   cursor: "pointer",
                 }}
               >
-                <option value="ALL">All active markets ({data?.total ?? grouped.length})</option>
+                <option value="ALL">All active markets</option>
                 {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
                 {feedStateOptions.map((state) => (
                   <option key={state.code} value={state.code}>
-                    {state.name} ({state.code}) - {stateTotals.get(state.code) ?? 0}
+                    {state.name} ({state.code})
                   </option>
                 ))}
               </select>
