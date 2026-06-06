@@ -116,20 +116,21 @@ function safeString(value, max = 500) {
 function publicSignal(signal, bible) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
-  const canonicalName = preferRetailerName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
-  const canonicalId = bibleRecord?.id || bottleKey(signal);
+  const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
+  const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
+  const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,
     bottleId: canonicalId,
     canonicalId,
-    canonicalKey: bibleRecord?.normalizedKey || null,
+    canonicalKey: preferOfficialSourceName ? null : (bibleRecord?.normalizedKey || null),
     bottleName: canonicalName,
     canonicalName,
     rawName: signal.rawName || null,
-    aliases: bibleRecord?.aliases || [],
-    tier: (signal.tier && signal.tier !== 'unknown' ? signal.tier : bibleRecord?.tier) || null,
-    producer: signal.producer || bibleRecord?.producer || null,
+    aliases: preferOfficialSourceName ? [] : (bibleRecord?.aliases || []),
+    tier: preferOfficialSourceName ? null : ((signal.tier && signal.tier !== 'unknown' ? signal.tier : bibleRecord?.tier) || null),
+    producer: preferOfficialSourceName ? null : (signal.producer || bibleRecord?.producer || null),
     type: signal.eventType,
     source: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
@@ -240,6 +241,7 @@ function buildStores(signals) {
 
 function dropPriority(signal) {
   const type = String(signal.eventType || '');
+  if (signal.state === 'NC' && signal.canAlertAsInventory && signal.locationPrecision === 'store_level') return 78;
   if (type === 'nc_board_shipment_snapshot') return 64;
   if (signal.state === 'VA' && type === 'store_inventory_result') return 62;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') return 68;
@@ -275,7 +277,7 @@ function buildDrops(signals, bible) {
   const seenSourceIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
-    .filter((s) => findBibleRecord(s, bible))
+    .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && s.canAlertAsInventory && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|tasting|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {

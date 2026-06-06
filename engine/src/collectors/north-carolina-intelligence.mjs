@@ -13,11 +13,13 @@ const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_
 const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
 const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
+const DURHAM_STRUCTURED_PRODUCTS_URL = 'https://www.durhamabc.com/4552233';
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|bourbon|barrel|drop|specialty|special release|rare|whiskey|whisky|product search|inventory|stock|coming soon|release calendar/i;
 const STRONG_RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|specialty|special release|bourbon blast|barrel pick|release calendar|drops?\b|raffle|rare/i;
 const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|jack daniel|old forester|heaven hill|four roses|woodford|still austin|bardstown|yellowstone|wilderness trail|knob creek|elijah craig|ezra brooks/i;
+const DURHAM_STRUCTURED_SPIRIT_RE = /bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|michter|willett|pappy|van winkle|parker|little book|heaven hill|four roses|woodford|old forester|knob creek|elijah craig|blood oath|old carter|rock hill|elmer/i;
 const SOURCE_POLICY = 'Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.';
 
 const STATIC_BOARD_TARGETS = [
@@ -243,6 +245,45 @@ function parseNewHanoverBarrelItems(html = '') {
     rows.push({ rawName, ncCode: match[1], details, price, proof, size });
   }
   return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
+}
+
+function extractWixWarmupData(html = '') {
+  const match = String(html).match(/<script[^>]+id=["']wix-warmup-data["'][^>]*>([\s\S]*?)<\/script>/i);
+  if (!match) return null;
+  try {
+    return JSON.parse(decodeHtml(match[1]));
+  } catch {
+    try { return JSON.parse(match[1]); } catch { return null; }
+  }
+}
+
+function findStructuredProductRows(value, pathParts = [], found = []) {
+  if (!value || typeof value !== 'object') return found;
+  if (Array.isArray(value)) {
+    const productRows = value.filter((row) => row && typeof row === 'object' && row.productName && row.ncCode);
+    if (productRows.length) found.push({ path: pathParts.join('/'), rows: productRows });
+    for (const item of value) findStructuredProductRows(item, pathParts, found);
+    return found;
+  }
+  for (const [key, child] of Object.entries(value)) findStructuredProductRows(child, [...pathParts, key], found);
+  return found;
+}
+
+function parseDurhamStructuredProducts(html = '') {
+  const warmup = extractWixWarmupData(html);
+  const rowSets = findStructuredProductRows(warmup);
+  const rows = [];
+  for (const set of rowSets) {
+    for (const row of set.rows) {
+      const rawName = decodeHtml(stripHtml(row.productName)).replace(/\s+/g, ' ').trim();
+      if (!rawName || !DURHAM_STRUCTURED_SPIRIT_RE.test(rawName) || /tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i.test(rawName)) continue;
+      const ncCode = String(row.ncCode || '').trim();
+      const price = Number(row.price || 0) || null;
+      const updatedAt = row._updatedDate || row._createdDate || null;
+      rows.push({ rawName, ncCode, price, updatedAt, datasetPath: set.path, rowId: row._id || null });
+    }
+  }
+  return [...new Map(rows.map((row) => [`${row.ncCode}|${row.rawName}`, row])).values()];
 }
 
 async function collectBoardDirectory(config, roadblocks, dossier, boards) {
@@ -562,6 +603,55 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   };
 }
 
+async function collectDurhamStructuredProducts(config, bible, signals, roadblocks, dossier, boards) {
+  const boardName = 'Durham County ABC Board';
+  const board = boards.get(boardName) || createBoardRecord(boardName, { website: 'https://www.durhamabc.com', capabilities: ['official_board_website'] });
+  board.website ||= 'https://www.durhamabc.com';
+  board.sourceUrls.add(DURHAM_STRUCTURED_PRODUCTS_URL);
+  addCapability(board, 'official_wix_structured_allocated_product_table');
+  addCapability(board, 'allocation_policy_page');
+  boards.set(boardName, board);
+
+  const res = await safeTextFetch(DURHAM_STRUCTURED_PRODUCTS_URL, { referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS * 2 });
+  if (!res.ok) {
+    roadblocks.push({ state: config.id, source: 'Durham ABC structured allocated product table', url: DURHAM_STRUCTURED_PRODUCTS_URL, status: res.status, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry Durham Wix page and inspect wix-warmup-data / Velo datasets.' });
+    dossier.durhamStructuredProducts = { sourceUrl: DURHAM_STRUCTURED_PRODUCTS_URL, status: res.status, itemCount: 0, observedAt: new Date().toISOString() };
+    return;
+  }
+
+  const rows = parseDurhamStructuredProducts(res.text);
+  for (const row of rows) {
+    const base = signalBase(config, 'Durham ABC structured allocated product table', res.url || DURHAM_STRUCTURED_PRODUCTS_URL, row.rawName, bible, 0.76);
+    signals.push({
+      id: stableId([config.id, 'durham-structured-allocated-product', row.ncCode, row.rawName, row.price, row.updatedAt]),
+      ...base,
+      confidence: Math.max(base.confidence, 0.76),
+      eventType: 'nc_board_structured_allocated_product_release',
+      locationPrecision: 'board_county',
+      locationName: boardName,
+      county: 'Durham',
+      ncCode: row.ncCode,
+      price: row.price,
+      observedAt: row.updatedAt || base.fetchedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Official Durham ABC structured product table from Wix warmup data. Product/price/NC code intelligence only; no store-level shelf quantity is published. Verify rules before driving.',
+      evidence: `Durham ABC publishes ${row.rawName}${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''} in a structured allocated-product table. This is official board product intelligence, not exact shelf inventory.`,
+      raw: { ...row, sourceUrl: res.url || DURHAM_STRUCTURED_PRODUCTS_URL, precisionCaveat: 'structured official product row; store and shelf quantity not exposed' }
+    });
+  }
+
+  board.officialPageReports.push({ url: res.url || DURHAM_STRUCTURED_PRODUCTS_URL, status: res.status, capabilities: ['official_wix_structured_allocated_product_table', 'allocated_product_release_page'], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 30) });
+  dossier.durhamStructuredProducts = {
+    sourceUrl: res.url || DURHAM_STRUCTURED_PRODUCTS_URL,
+    status: res.status,
+    itemCount: rows.length,
+    items: rows,
+    observedAt: new Date().toISOString(),
+    note: 'Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed.'
+  };
+}
+
 function finalizeBoards(boards) {
   return [...boards.values()].map((board) => {
     board.precisionLevel = classifyBoard(board);
@@ -608,6 +698,7 @@ export async function collectNorthCarolinaIntelligence(config, bible, collectSto
   await collectStockShipped(config, bible, signals, roadblocks, dossier, boards);
   await collectWarehouse(config, bible, signals, roadblocks, dossier);
   await collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards);
+  await collectDurhamStructuredProducts(config, bible, signals, roadblocks, dossier, boards);
   await collectNewHanoverPublicProducts(config, bible, signals, roadblocks, dossier, boards);
 
   if (collectStoreInventoryFn) {

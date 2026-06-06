@@ -2078,6 +2078,8 @@ async function collectHighPointPowerBiNc(config, bible) {
       signals.push({
         id: stableId([config.id, 'high-point-powerbi-store-inventory', ncCode, store.storeId, qty, price]),
         ...base,
+        canonicalBottleId: null,
+        canonicalName: titleCase(rawName),
         confidence: Math.max(0.82, base.confidence),
         eventType: 'store_inventory_result',
         locationPrecision: 'store_level',
