@@ -518,7 +518,7 @@ function coverageSummary(boards) {
   return { boardCount: list.length, withWebsite, withTrackedShipments, withReleasePages, withInventoryPages, noWebsiteYet: list.filter((b) => !b.website).map((b) => b.boardName).slice(0, 50) };
 }
 
-export async function collectNorthCarolinaIntelligence(config, bible, collectWakeFn) {
+export async function collectNorthCarolinaIntelligence(config, bible, collectStoreInventoryFn) {
   const signals = [];
   const roadblocks = [];
   const boards = new Map();
@@ -539,15 +539,18 @@ export async function collectNorthCarolinaIntelligence(config, bible, collectWak
   await collectWarehouse(config, bible, signals, roadblocks, dossier);
   await collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards);
 
-  if (collectWakeFn) {
-    const wake = await collectWakeFn(config, bible);
-    signals.push(...wake.signals);
-    roadblocks.push(...wake.roadblocks);
-    const wakeBoard = [...boards.values()].find((b) => /wake/i.test(b.boardName));
-    if (wakeBoard) {
-      addCapability(wakeBoard, 'store_inventory_search_attached');
-      addCapability(wakeBoard, 'store_level_probe_attached');
-      wakeBoard.precisionLevel = 'store_inventory_search';
+  if (collectStoreInventoryFn) {
+    const storeInventory = await collectStoreInventoryFn(config, bible);
+    signals.push(...(storeInventory.signals || []));
+    roadblocks.push(...(storeInventory.roadblocks || []));
+    dossier.storeLevelProbes = storeInventory.probeReports || [];
+
+    const boardCapabilities = storeInventory.boardCapabilities || [];
+    for (const probe of boardCapabilities) {
+      const board = [...boards.values()].find((b) => boardKey(b.boardName) === boardKey(probe.boardName));
+      if (!board) continue;
+      for (const capability of probe.capabilities || []) addCapability(board, capability);
+      if (probe.precisionLevel) board.precisionLevel = probe.precisionLevel;
     }
   }
 

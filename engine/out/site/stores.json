@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-04T20:33:50.191Z",
-  "count": 2257,
+  "generatedAt": "2026-06-06T01:59:09.969Z",
+  "count": 2316,
   "stores": [
     {
       "id": "alabc:001",
@@ -3350,384 +3350,6 @@
       "signalCount": 1
     },
     {
-      "id": "belmont-beverage:5ba7d334b77cb36d0a2d2e63",
-      "sourceStoreId": "belmont-beverage:5ba7d334b77cb36d0a2d2e63",
-      "state": "IN",
-      "name": "Belmont Beverage of Bluffton Road",
-      "address": "5806 Bluffton Rd, Fort Wayne, IN 46809, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46809",
-      "lat": 41.0304121,
-      "lng": -85.1668317,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 27
-    },
-    {
-      "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e77",
-      "sourceStoreId": "belmont-beverage:5ba7d337b77cb36d0a2d2e77",
-      "state": "IN",
-      "name": "Belmont Beverage of Cleveland Road",
-      "address": "223 Cleveland Rd, Granger, IN 46530, USA",
-      "city": "Granger",
-      "county": null,
-      "zip": "46530",
-      "lat": 41.72358120000001,
-      "lng": -86.175613,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
-      "sourceStoreId": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
-      "state": "IN",
-      "name": "Belmont Beverage of Council Oak",
-      "address": "3320 Portage Ave, South Bend, IN 46628, USA",
-      "city": "South Bend",
-      "county": null,
-      "zip": "46628",
-      "lat": 41.7216322,
-      "lng": -86.2846113,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 9
-    },
-    {
-      "id": "belmont-beverage:5ba7d338b77cb36d0a2d2e81",
-      "sourceStoreId": "belmont-beverage:5ba7d338b77cb36d0a2d2e81",
-      "state": "IN",
-      "name": "Belmont Beverage of Decatur North",
-      "address": "510 N 13th St, Decatur, IN 46733, USA",
-      "city": "Decatur",
-      "county": "Adams County",
-      "zip": "46733",
-      "lat": 40.833523,
-      "lng": -84.9373864,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
-    },
-    {
-      "id": "belmont-beverage:5ba7d338b77cb36d0a2d2e86",
-      "sourceStoreId": "belmont-beverage:5ba7d338b77cb36d0a2d2e86",
-      "state": "IN",
-      "name": "Belmont Beverage of Downtown",
-      "address": "929 S, 929 Lafayette St, Fort Wayne, IN 46802, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46802",
-      "lat": 41.0783865,
-      "lng": -85.1338772,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 16
-    },
-    {
-      "id": "belmont-beverage:5ba7d339b77cb36d0a2d2e8b",
-      "sourceStoreId": "belmont-beverage:5ba7d339b77cb36d0a2d2e8b",
-      "state": "IN",
-      "name": "Belmont Beverage of Dupont East",
-      "address": "3718 E Dupont Rd, Fort Wayne, IN 46825, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46825",
-      "lat": 41.1779536,
-      "lng": -85.0973602,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
-      "sourceStoreId": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
-      "state": "IN",
-      "name": "Belmont Beverage of East Ewing",
-      "address": "1102 E Ewing Ave, South Bend, IN 46614, USA",
-      "city": "South Bend",
-      "county": null,
-      "zip": "46614",
-      "lat": 41.6507277,
-      "lng": -86.23446779999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 7
-    },
-    {
-      "id": "belmont-beverage:68126e69c0429248e97bc4bd",
-      "sourceStoreId": "belmont-beverage:68126e69c0429248e97bc4bd",
-      "state": "IN",
-      "name": "Belmont Beverage of East State",
-      "address": "3929 E State Blvd, Fort Wayne, IN 46805, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46805",
-      "lat": 41.0984937,
-      "lng": -85.089103,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 15
-    },
-    {
-      "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
-      "sourceStoreId": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
-      "state": "IN",
-      "name": "Belmont Beverage of Illinois Rd",
-      "address": "10311 Illinois Rd, Fort Wayne, IN 46814, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46814",
-      "lat": 41.0728349,
-      "lng": -85.2762487,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
-    },
-    {
-      "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9a",
-      "sourceStoreId": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9a",
-      "state": "IN",
-      "name": "Belmont Beverage of Lima Rd.",
-      "address": "8225 Lima Rd, Fort Wayne, IN 46818, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46818",
-      "lat": 41.1554813,
-      "lng": -85.166285,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 7
-    },
-    {
-      "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9f",
-      "sourceStoreId": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9f",
-      "state": "IN",
-      "name": "Belmont Beverage of Main Street",
-      "address": "2651 S Main St, Elkhart, IN 46517, USA",
-      "city": "Elkhart",
-      "county": null,
-      "zip": "46517",
-      "lat": 41.6605758,
-      "lng": -85.94925599999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea4",
-      "sourceStoreId": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea4",
-      "state": "IN",
-      "name": "Belmont Beverage of Maplecrest",
-      "address": "2799 Maplecrest Rd, Fort Wayne, IN 46815, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46815",
-      "lat": 41.102371,
-      "lng": -85.0609037,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 15
-    },
-    {
-      "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
-      "sourceStoreId": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
-      "state": "IN",
-      "name": "Belmont Beverage of North Anthony",
-      "address": "3311 N Anthony Blvd, Fort Wayne, IN 46805, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46805",
-      "lat": 41.1069418,
-      "lng": -85.1166123,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
-    },
-    {
-      "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb8",
-      "sourceStoreId": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb8",
-      "state": "IN",
-      "name": "Belmont Beverage of Oxford",
-      "address": "1111 Oxford St, Fort Wayne, IN 46806, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46806",
-      "lat": 41.0535318,
-      "lng": -85.1221551,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
-    },
-    {
-      "id": "belmont-beverage:5ba7d33fb77cb36d0a2d2ebd",
-      "sourceStoreId": "belmont-beverage:5ba7d33fb77cb36d0a2d2ebd",
-      "state": "IN",
-      "name": "Belmont Beverage of Pontiac At Anthony",
-      "address": "2631 S Anthony Blvd, Fort Wayne, IN 46803, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46803",
-      "lat": 41.0611182,
-      "lng": -85.1136938,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5c92aaeed82c8d4a376d917f",
-      "sourceStoreId": "belmont-beverage:5c92aaeed82c8d4a376d917f",
-      "state": "IN",
-      "name": "Belmont Beverage of Roanoke",
-      "address": "8930 N U.S. 24 E, Huntington, IN 46783, USA",
-      "city": "Huntington",
-      "county": null,
-      "zip": "46783",
-      "lat": 40.938599,
-      "lng": -85.3802383,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 16
-    },
-    {
-      "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ed1",
-      "sourceStoreId": "belmont-beverage:5ba7d341b77cb36d0a2d2ed1",
-      "state": "IN",
-      "name": "Belmont Beverage of Roseland",
-      "address": "254 N Dixie Way, Roseland, IN 46637, USA",
-      "city": "Roseland",
-      "county": null,
-      "zip": "46637",
-      "lat": 41.7186439,
-      "lng": -86.24994459999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 9
-    },
-    {
-      "id": "belmont-beverage:5ba7d342b77cb36d0a2d2ed6",
-      "sourceStoreId": "belmont-beverage:5ba7d342b77cb36d0a2d2ed6",
-      "state": "IN",
-      "name": "Belmont Beverage of South Anthony",
-      "address": "4308 S Anthony Blvd, Fort Wayne, IN 46806, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46806",
-      "lat": 41.0455829,
-      "lng": -85.113714,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
-    },
-    {
-      "id": "belmont-beverage:5ba7d342b77cb36d0a2d2edb",
-      "sourceStoreId": "belmont-beverage:5ba7d342b77cb36d0a2d2edb",
-      "state": "IN",
-      "name": "Belmont Beverage of South Bend Ave",
-      "address": "1621 S Bend Ave, South Bend, IN 46617, USA",
-      "city": "South Bend",
-      "county": null,
-      "zip": "46617",
-      "lat": 41.6939641,
-      "lng": -86.2248618,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5ba7d343b77cb36d0a2d2ee0",
-      "sourceStoreId": "belmont-beverage:5ba7d343b77cb36d0a2d2ee0",
-      "state": "IN",
-      "name": "Belmont Beverage of South Main",
-      "address": "404 S Main St, Mishawaka, IN 46544, USA",
-      "city": "Mishawaka",
-      "county": null,
-      "zip": "46544",
-      "lat": 41.6576443,
-      "lng": -86.17990429999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 12
-    },
-    {
-      "id": "belmont-beverage:5ba7d343b77cb36d0a2d2ee5",
-      "sourceStoreId": "belmont-beverage:5ba7d343b77cb36d0a2d2ee5",
-      "state": "IN",
-      "name": "Belmont Beverage of Southgate",
-      "address": "134 E Pettit Ave, Fort Wayne, IN 46806, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46806",
-      "lat": 41.0364248,
-      "lng": -85.135498,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 12
-    },
-    {
-      "id": "belmont-beverage:5ba7d344b77cb36d0a2d2eea",
-      "sourceStoreId": "belmont-beverage:5ba7d344b77cb36d0a2d2eea",
-      "state": "IN",
-      "name": "Belmont Beverage of Southland Plaza",
-      "address": "2027 E Ireland Rd, South Bend, IN 46614, USA",
-      "city": "South Bend",
-      "county": null,
-      "zip": "46614",
-      "lat": 41.6303934,
-      "lng": -86.2170805,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 19
-    },
-    {
-      "id": "belmont-beverage:6363d40785ef4f405ca69b20",
-      "sourceStoreId": "belmont-beverage:6363d40785ef4f405ca69b20",
-      "state": "IN",
-      "name": "Belmont Beverage of Stellhorn Crossing",
-      "address": "9173 Stellhorn Crossing Pkwy, Fort Wayne, IN 46815, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46815",
-      "lat": 41.1200388,
-      "lng": -85.02365789999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5ba7d345b77cb36d0a2d2eef",
-      "sourceStoreId": "belmont-beverage:5ba7d345b77cb36d0a2d2eef",
-      "state": "IN",
-      "name": "Belmont Beverage of Tillman Rd",
-      "address": "1414 E Tillman Rd, Fort Wayne, IN 46816, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46816",
-      "lat": 41.0169696,
-      "lng": -85.1177435,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
-    },
-    {
-      "id": "belmont-beverage:5ba7d345b77cb36d0a2d2ef4",
-      "sourceStoreId": "belmont-beverage:5ba7d345b77cb36d0a2d2ef4",
-      "state": "IN",
-      "name": "Belmont Beverage of Time Corners",
-      "address": "5992 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46804",
-      "lat": 41.061175,
-      "lng": -85.21872309999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
-    },
-    {
-      "id": "belmont-beverage:5ba7d346b77cb36d0a2d2ef9",
-      "sourceStoreId": "belmont-beverage:5ba7d346b77cb36d0a2d2ef9",
-      "state": "IN",
-      "name": "Belmont Beverage of West State",
-      "address": "1103 W State Blvd, Fort Wayne, IN 46808, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46808",
-      "lat": 41.0955093,
-      "lng": -85.1573343,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
-    },
-    {
-      "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
-      "sourceStoreId": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
-      "state": "IN",
-      "name": "Belmont Beverage of West Western",
-      "address": "4502 W Western Ave, South Bend, IN 46619, USA",
-      "city": "South Bend",
-      "county": null,
-      "zip": "46619",
-      "lat": 41.6714689,
-      "lng": -86.31053639999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 10
-    },
-    {
       "id": "DL3022640",
       "sourceStoreId": "DL3022640",
       "state": "IN",
@@ -3930,12 +3552,12 @@
       "name": "Big Red #106 - Bloomington",
       "address": "1115 W 2nd St, Bloomington, IN 47403, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47403",
       "lat": 39.1610207,
       "lng": -86.5468128,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 13
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9253cf78e8f13c2cb1e164",
@@ -3944,12 +3566,12 @@
       "name": "Big Red #107 - Bloomington",
       "address": "4021 W 3rd St, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47404",
       "lat": 39.1640166,
       "lng": -86.5838371,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 11
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92544778e8f13c2cb1e168",
@@ -3958,12 +3580,12 @@
       "name": "Big Red #108 - Bloomington",
       "address": "2475 S Walnut Street Pike, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47401",
       "lat": 39.1367519,
       "lng": -86.5289068,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92544978e8f13c2cb1e16c",
@@ -4196,12 +3818,12 @@
       "name": "Big Red #202 - Indianapolis",
       "address": "5510 Emerson Way, Indianapolis, IN 46226, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46226",
       "lat": 39.8539828,
       "lng": -86.0874017,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92547d78e8f13c2cb1e1b4",
@@ -4210,12 +3832,12 @@
       "name": "Big Red #204 - Indianapolis",
       "address": "5602 Georgetown Rd, Indianapolis, IN 46254, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46254",
       "lat": 39.8535565,
       "lng": -86.24063919999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548178e8f13c2cb1e1b8",
@@ -4229,7 +3851,7 @@
       "lat": 39.7977664,
       "lng": -86.264302,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 8
     },
     {
       "id": "big-red:5e92548478e8f13c2cb1e1bc",
@@ -4238,12 +3860,12 @@
       "name": "Big Red #207 - Indianapolis",
       "address": "9546 Allisonville Rd, Indianapolis, IN 46250, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46250",
       "lat": 39.9257539,
       "lng": -86.0692487,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548878e8f13c2cb1e1c0",
@@ -4252,12 +3874,12 @@
       "name": "Big Red #208 - Lawrence",
       "address": "8029 Pendleton Pike, Indianapolis, IN 46226, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46226",
       "lat": 39.837042,
       "lng": -86.02463279999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548b78e8f13c2cb1e1c4",
@@ -4266,12 +3888,12 @@
       "name": "Big Red #209 - Indianapolis",
       "address": "9908 E 79th St, Indianapolis, IN 46256, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46256",
       "lat": 39.8993173,
       "lng": -85.99296,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 16
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -4279,13 +3901,13 @@
       "state": "IN",
       "name": "Big Red #210 - Indianapolis",
       "address": "7015 Kentucky Ave #101, Camby, IN 46113, USA",
-      "city": "Camby",
-      "county": null,
+      "city": "Indianapolis",
+      "county": "Marion County",
       "zip": "46113",
       "lat": 39.6608323,
       "lng": -86.3102971,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 12
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -4294,12 +3916,12 @@
       "name": "Big Red #211 - Indianapolis",
       "address": "7930 S Emerson Ave, Indianapolis, IN 46237, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46237",
       "lat": 39.6518669,
       "lng": -86.0833471,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 12
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549678e8f13c2cb1e1d0",
@@ -4322,12 +3944,12 @@
       "name": "Big Red #213 - Indianapolis",
       "address": "8607 N Michigan Rd, Indianapolis, IN 46268, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46268",
       "lat": 39.9120889,
       "lng": -86.2221318,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549d78e8f13c2cb1e1d8",
@@ -4336,12 +3958,12 @@
       "name": "Big Red #214 - Indianapolis",
       "address": "4201 S East St, Indianapolis, IN 46227, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46227",
       "lat": 39.7042641,
       "lng": -86.1484309,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a078e8f13c2cb1e1dc",
@@ -4350,12 +3972,12 @@
       "name": "Big Red #215 - Indianapolis",
       "address": "1067 Broad Ripple Ave, Indianapolis, IN 46220, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46220",
       "lat": 39.8688159,
       "lng": -86.1401396,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 12
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a278e8f13c2cb1e1e0",
@@ -4364,12 +3986,12 @@
       "name": "Big Red #216 - Indianapolis",
       "address": "5301 W 10th St, Indianapolis, IN 46224, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46224",
       "lat": 39.7792998,
       "lng": -86.25101579999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a578e8f13c2cb1e1e4",
@@ -4378,12 +4000,12 @@
       "name": "Big Red #217 - Indianapolis",
       "address": "8975 E Washington St #105, Indianapolis, IN 46219, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46219",
       "lat": 39.7733888,
       "lng": -86.0098652,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a778e8f13c2cb1e1e8",
@@ -4392,12 +4014,12 @@
       "name": "Big Red #218 - Brownsburg",
       "address": "40 Northfield Dr, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8579945,
       "lng": -86.3913441,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254aa78e8f13c2cb1e1ec",
@@ -4406,12 +4028,12 @@
       "name": "Big Red #219 - Brownsburg",
       "address": "1477 E US Hwy 136, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8325132,
       "lng": -86.3698682,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:60088c642806824a8bcf5a05",
@@ -4420,12 +4042,12 @@
       "name": "Big Red #220 - Brownsburg",
       "address": "8049 Ortho Ln, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8014984,
       "lng": -86.3808135,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254ae78e8f13c2cb1e1f0",
@@ -4434,12 +4056,12 @@
       "name": "Big Red #221 - Indianapolis",
       "address": "3437 E 86th St, Indianapolis, IN 46240, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46240",
       "lat": 39.9106183,
       "lng": -86.1078581,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b078e8f13c2cb1e1f4",
@@ -4448,12 +4070,12 @@
       "name": "Big Red #222 - Carmel",
       "address": "2290 E 116th St, Carmel, IN 46032, USA",
       "city": "Carmel",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46032",
       "lat": 39.95698369999999,
       "lng": -86.11678979999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 12
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b278e8f13c2cb1e1f8",
@@ -4461,13 +4083,13 @@
       "state": "IN",
       "name": "Big Red #223 - Fishers",
       "address": "9641-9685 Olio Rd, McCordsville, IN 46055, USA",
-      "city": "McCordsville",
-      "county": null,
+      "city": "Mc Cordsville",
+      "county": "Hamilton County",
       "zip": "46055",
       "lat": 39.9290858,
       "lng": -85.9180638,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b578e8f13c2cb1e1fc",
@@ -4476,12 +4098,12 @@
       "name": "Big Red #224 - Fishers",
       "address": "12734 Parkside Dr, Fishers, IN 46038, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46038",
       "lat": 39.9735046,
       "lng": -86.0029704,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b778e8f13c2cb1e200",
@@ -4490,12 +4112,12 @@
       "name": "Big Red #225 - Fishers",
       "address": "9777 E 116th St, Fishers, IN 46037, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46037",
       "lat": 39.9550251,
       "lng": -85.99682349999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254ba78e8f13c2cb1e204",
@@ -4504,12 +4126,12 @@
       "name": "Big Red #226 - Indianapolis",
       "address": "8924 S Meridian St, Indianapolis, IN 46217, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46217",
       "lat": 39.6360649,
       "lng": -86.1595916,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254bc78e8f13c2cb1e208",
@@ -4518,12 +4140,12 @@
       "name": "Big Red #227 - Indianapolis",
       "address": "5439 S East St, Indianapolis, IN 46227, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46227",
       "lat": 39.6874809,
       "lng": -86.1482276,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254be78e8f13c2cb1e20c",
@@ -4532,12 +4154,12 @@
       "name": "Big Red #228 - Indianapolis",
       "address": "25 N Pennsylvania St, Indianapolis, IN 46204, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46204",
       "lat": 39.7676772,
       "lng": -86.1560652,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254c178e8f13c2cb1e210",
@@ -4588,12 +4210,12 @@
       "name": "Big Red #233 - Greenwood",
       "address": "707 S Madison Ave p g, Greenwood, IN 46143, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46143",
       "lat": 39.6053,
       "lng": -86.10568409999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 14
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254cd78e8f13c2cb1e220",
@@ -4602,12 +4224,12 @@
       "name": "Big Red #234 - Greenwood",
       "address": "816 US-31, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46142",
       "lat": 39.6286916,
       "lng": -86.1235722,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 8
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254d178e8f13c2cb1e224",
@@ -4616,12 +4238,12 @@
       "name": "Big Red #235 - Greenwood",
       "address": "172 Melody Ave b, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46142",
       "lat": 39.6136857,
       "lng": -86.1569734,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -4658,12 +4280,12 @@
       "name": "Big Red #238 - Southport",
       "address": "8142 E Southport Rd, Indianapolis, IN 46259, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46259",
       "lat": 39.6686819,
       "lng": -86.0200495,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 13
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:6286c4850d510526fe6145dc",
@@ -4686,12 +4308,12 @@
       "name": "Big Red #241 - Carmel",
       "address": "10598 N College Ave, Indianapolis, IN 46280, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46280",
       "lat": 39.9411009,
       "lng": -86.1463788,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 12
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:54592a8361386600020a0000",
@@ -4700,12 +4322,12 @@
       "name": "Big Red #302 - Bev Shop - Broad Ripple",
       "address": "5897 N College Ave, Indianapolis, IN 46220, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46220",
       "lat": 39.8618412,
       "lng": -86.14558370000002,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 11
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:646cb0ac0fdba52b23e23c65",
@@ -4742,12 +4364,12 @@
       "name": "Big Red #602 - Southport",
       "address": "4015 E Southport Rd, Indianapolis, IN 46237, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46237",
       "lat": 39.6649957,
       "lng": -86.09783039999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d55c9b85103730903a59b",
@@ -4761,7 +4383,7 @@
       "lat": 40.0475166,
       "lng": -86.0293044,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "big-red:5e8d566eb8510372ea03d3de",
@@ -4770,12 +4392,12 @@
       "name": "Big Red #614 - Indianapolis",
       "address": "150 N Delaware St, Indianapolis, IN 46204, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46204",
       "lat": 39.7696497,
       "lng": -86.1546635,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 11
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d56d79ea1421aba12c049",
@@ -4784,26 +4406,12 @@
       "name": "Big Red #615 - Fishers",
       "address": "13844 Olivia Way #102, Fishers, IN 46037, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46037",
       "lat": 39.9893943,
       "lng": -85.9213908,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 16
-    },
-    {
-      "id": "big-red:5e8d58959ea14225c1e39360",
-      "sourceStoreId": "big-red:5e8d58959ea14225c1e39360",
-      "state": "IN",
-      "name": "Big Red #619 - Carmel",
-      "address": "1420 W Main St c, Carmel, IN 46032, USA",
-      "city": "Carmel",
-      "county": null,
-      "zip": "46032",
-      "lat": 39.9789992,
-      "lng": -86.15431009999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d59149ea1420c2876426c",
@@ -4812,12 +4420,12 @@
       "name": "Big Red #620 - Fishers",
       "address": "8808 E 116th St, Fishers, IN 46038, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46038",
       "lat": 39.9571948,
       "lng": -86.01364559999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d597a9a81cb4383b0d828",
@@ -4826,12 +4434,12 @@
       "name": "Big Red #621 - Carmel",
       "address": "4000 W 106th St #105, Carmel, IN 46032, USA",
       "city": "Carmel",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46032",
       "lat": 39.9416872,
       "lng": -86.2344957,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 16
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d5aad9a81cb4b8dd365f7",
@@ -4846,6 +4454,20 @@
       "lng": -85.7707095,
       "source": "Big Red Liquors CityHive store inventory",
       "signalCount": 13
+    },
+    {
+      "id": "big-red:5e8d58959ea14225c1e39360",
+      "sourceStoreId": "big-red:5e8d58959ea14225c1e39360",
+      "state": "IN",
+      "name": "Big Red Liquors #619",
+      "address": "1420 W Main St c, Carmel, IN 46032, USA",
+      "city": "Carmel",
+      "county": "Hamilton County",
+      "zip": "46032",
+      "lat": 39.9789992,
+      "lng": -86.15431009999999,
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "DL6430337",
@@ -5366,174 +4988,6 @@
       "signalCount": 1
     },
     {
-      "id": "cap-n-cork:5ec5206ac306d525695bcf9c",
-      "sourceStoreId": "cap-n-cork:5ec5206ac306d525695bcf9c",
-      "state": "IN",
-      "name": "Cap n’ Cork Broadway #403",
-      "address": "1031 Broadway, Fort Wayne, IN 46802, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46802",
-      "lat": 41.0752243,
-      "lng": -85.1473693,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 9
-    },
-    {
-      "id": "cap-n-cork:6286c8b8bd6e7826f84d215d",
-      "sourceStoreId": "cap-n-cork:6286c8b8bd6e7826f84d215d",
-      "state": "IN",
-      "name": "Cap n' Cork Canterbury #415",
-      "address": "3128 St Joe Center Rd, Fort Wayne, IN 46835, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46835",
-      "lat": 41.1332513,
-      "lng": -85.1028202,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
-      "sourceStoreId": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
-      "state": "IN",
-      "name": "Cap n’ Cork Coldwater #411",
-      "address": "5430 Coldwater Rd, Fort Wayne, IN 46825, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46825",
-      "lat": 41.1293034,
-      "lng": -85.1350928,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 35
-    },
-    {
-      "id": "cap-n-cork:5e8f2a1fb851035361e0f22c",
-      "sourceStoreId": "cap-n-cork:5e8f2a1fb851035361e0f22c",
-      "state": "IN",
-      "name": "Cap n’ Cork Covington Plaza #412",
-      "address": "6410 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46804",
-      "lat": 41.05697139999999,
-      "lng": -85.2262477,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "cap-n-cork:5e8f34fb9ea142251855ff61",
-      "sourceStoreId": "cap-n-cork:5e8f34fb9ea142251855ff61",
-      "state": "IN",
-      "name": "Cap n’ Cork Dupont #414",
-      "address": "10020 Lima Rd, Fort Wayne, IN 46818, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46818",
-      "lat": 41.1745087,
-      "lng": -85.1646998,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "cap-n-cork:67588ec370555c28febc51ca",
-      "sourceStoreId": "cap-n-cork:67588ec370555c28febc51ca",
-      "state": "IN",
-      "name": "Cap n' Cork Dupont #417",
-      "address": "2868 E Dupont Rd, Fort Wayne, IN 46825, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46825",
-      "lat": 41.177567,
-      "lng": -85.10801839999999,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 6
-    },
-    {
-      "id": "cap-n-cork:6286c8a7a84e7c25c81dbf4a",
-      "sourceStoreId": "cap-n-cork:6286c8a7a84e7c25c81dbf4a",
-      "state": "IN",
-      "name": "Cap n' Cork Foster Park #413",
-      "address": "3603 Brooklyn Ave, Fort Wayne, IN 46809, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46809",
-      "lat": 41.0523728,
-      "lng": -85.1625186,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 6
-    },
-    {
-      "id": "cap-n-cork:6286c7f218bd991ce7713945",
-      "sourceStoreId": "cap-n-cork:6286c7f218bd991ce7713945",
-      "state": "IN",
-      "name": "Cap n' Cork Georgetown #402",
-      "address": "6712 E State Blvd, Fort Wayne, IN 46815, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46815",
-      "lat": 41.1023851,
-      "lng": -85.0556965,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 7
-    },
-    {
-      "id": "cap-n-cork:6286c835065fab26d65cf5c0",
-      "sourceStoreId": "cap-n-cork:6286c835065fab26d65cf5c0",
-      "state": "IN",
-      "name": "Cap n' Cork Lima Road #407",
-      "address": "4520 Lima Rd, Fort Wayne, IN 46808, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46808",
-      "lat": 41.1197149,
-      "lng": -85.1501037,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "cap-n-cork:5ec530cf23277b281b030bed",
-      "sourceStoreId": "cap-n-cork:5ec530cf23277b281b030bed",
-      "state": "IN",
-      "name": "Cap n’ Cork Maysville Pointe #410",
-      "address": "10158 Maysville Rd, Fort Wayne, IN 46835, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46835",
-      "lat": 41.1286331,
-      "lng": -85.01163,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 12
-    },
-    {
-      "id": "cap-n-cork:5ec5272fb8c4f025ffa9a194",
-      "sourceStoreId": "cap-n-cork:5ec5272fb8c4f025ffa9a194",
-      "state": "IN",
-      "name": "Cap n’ Cork New Haven #404",
-      "address": "110 Lincoln Hwy E, New Haven, IN 46774, USA",
-      "city": "New Haven",
-      "county": null,
-      "zip": "46774",
-      "lat": 41.0697063,
-      "lng": -85.0297202,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "cap-n-cork:6286c80fe0a85826d18a6636",
-      "sourceStoreId": "cap-n-cork:6286c80fe0a85826d18a6636",
-      "state": "IN",
-      "name": "Cap n' Cork Waynedale #405",
-      "address": "7002 Bluffton Rd, Fort Wayne, IN 46809, USA",
-      "city": "Fort Wayne",
-      "county": null,
-      "zip": "46809",
-      "lat": 41.01869019999999,
-      "lng": -85.1699124,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 12
-    },
-    {
       "id": "DL4232467",
       "sourceStoreId": "DL4232467",
       "state": "IN",
@@ -5742,104 +5196,6 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
-    },
-    {
-      "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e68",
-      "sourceStoreId": "belmont-beverage:5ba7d335b77cb36d0a2d2e68",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Caragana Court",
-      "address": "2703 Caragana Ct #1, Goshen, IN 46526, USA",
-      "city": "Goshen",
-      "county": null,
-      "zip": "46526",
-      "lat": 41.5558816,
-      "lng": -85.7907292,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 12
-    },
-    {
-      "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
-      "sourceStoreId": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Cassopolis St",
-      "address": "1800 Cassopolis St, Elkhart, IN 46514, USA",
-      "city": "Elkhart",
-      "county": null,
-      "zip": "46514",
-      "lat": 41.7088214,
-      "lng": -85.971721,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 17
-    },
-    {
-      "id": "belmont-beverage:5ba7d336b77cb36d0a2d2e72",
-      "sourceStoreId": "belmont-beverage:5ba7d336b77cb36d0a2d2e72",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Chicago Ave",
-      "address": "245 Chicago Ave, Goshen, IN 46526, USA",
-      "city": "Goshen",
-      "county": null,
-      "zip": "46526",
-      "lat": 41.5887503,
-      "lng": -85.8438448,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 17
-    },
-    {
-      "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
-      "sourceStoreId": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Middlebury",
-      "address": "309 N Main St, Middlebury, IN 46540, USA",
-      "city": "Middlebury",
-      "county": "Elkhart County",
-      "zip": "46540",
-      "lat": 41.6787489,
-      "lng": -85.7061942,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
-    },
-    {
-      "id": "belmont-beverage:5ba7d33db77cb36d0a2d2eae",
-      "sourceStoreId": "belmont-beverage:5ba7d33db77cb36d0a2d2eae",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Nappanee St",
-      "address": "2501 S Nappanee St, Elkhart, IN 46517, USA",
-      "city": "Elkhart",
-      "county": null,
-      "zip": "46517",
-      "lat": 41.6606584,
-      "lng": -86.003945,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 12
-    },
-    {
-      "id": "belmont-beverage:5ba7d33fb77cb36d0a2d2ec2",
-      "sourceStoreId": "belmont-beverage:5ba7d33fb77cb36d0a2d2ec2",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Reith BLVD",
-      "address": "1830 Rieth Blvd #2, Goshen, IN 46526, USA",
-      "city": "Goshen",
-      "county": null,
-      "zip": "46526",
-      "lat": 41.615844,
-      "lng": -85.8933109,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 13
-    },
-    {
-      "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",
-      "sourceStoreId": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",
-      "state": "IN",
-      "name": "Chalet Party Shoppes of Road 17",
-      "address": "667 County Rd 17, Elkhart, IN 46516, USA",
-      "city": "Elkhart",
-      "county": null,
-      "zip": "46516",
-      "lat": 41.6828878,
-      "lng": -85.88883589999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
     },
     {
       "id": "DL7134505",
@@ -6106,20 +5462,6 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
-    },
-    {
-      "id": "cork-liquors:5eeb9ed679fc9324eac8941d",
-      "sourceStoreId": "cork-liquors:5eeb9ed679fc9324eac8941d",
-      "state": "IN",
-      "name": "Cork Liquors VI",
-      "address": "3995 25th St, Columbus, IN 47203, USA",
-      "city": "Columbus",
-      "county": null,
-      "zip": "47203",
-      "lat": 39.2230848,
-      "lng": -85.8765676,
-      "source": "Cork Liquors CityHive store inventory",
-      "signalCount": 16
     },
     {
       "id": "DL1732705",
@@ -9871,7 +9213,7 @@
       "lat": 39.8498,
       "lng": -86.1226,
       "source": "Kahn's Fine Wines & Spirits in-stock bourbon API",
-      "signalCount": 37
+      "signalCount": 35
     },
     {
       "id": "DL4931513",
@@ -10423,7 +9765,7 @@
       "id": "DL3213693",
       "sourceStoreId": "DL3213693",
       "state": "IN",
-      "name": "Lalli, Inc.",
+      "name": "Lalli, Inc",
       "address": "Pittsboro, IN, 46167",
       "city": "Pittsboro",
       "county": null,
@@ -14578,20 +13920,6 @@
       "signalCount": 1
     },
     {
-      "id": "DL7933450",
-      "sourceStoreId": "DL7933450",
-      "state": "IN",
-      "name": "Shri Hari 8, Inc",
-      "address": "Lafayette, IN, 47905",
-      "city": "Lafayette",
-      "county": null,
-      "zip": "47905",
-      "lat": null,
-      "lng": null,
-      "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
-    },
-    {
       "id": "DL7933448",
       "sourceStoreId": "DL7933448",
       "state": "IN",
@@ -17686,48 +17014,6 @@
       "signalCount": 1
     },
     {
-      "id": "wise-guys:6085e68850996f7ec643a6bd",
-      "sourceStoreId": "wise-guys:6085e68850996f7ec643a6bd",
-      "state": "IN",
-      "name": "Wise Guys Discount Liquors - Chesterton",
-      "address": "504 E County Road 1100 North, Chesterton, IN 46304, USA",
-      "city": "Chesterton",
-      "county": null,
-      "zip": "46304",
-      "lat": 41.5952817,
-      "lng": -87.04614839999999,
-      "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 19
-    },
-    {
-      "id": "wise-guys:60803cb5ad4b017e711ec6fa",
-      "sourceStoreId": "wise-guys:60803cb5ad4b017e711ec6fa",
-      "state": "IN",
-      "name": "Wise Guys Discount Liquors - Hobart",
-      "address": "1634 E 80th Ave, Merrillville, IN 46410, USA",
-      "city": "Merrillville",
-      "county": null,
-      "zip": "46410",
-      "lat": 41.4716231,
-      "lng": -87.3167897,
-      "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 19
-    },
-    {
-      "id": "wise-guys:5eb1dc10054c392621980908",
-      "sourceStoreId": "wise-guys:5eb1dc10054c392621980908",
-      "state": "IN",
-      "name": "Wise Guys Discount Liquors - Valparaiso",
-      "address": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
-      "city": "Valparaiso",
-      "county": null,
-      "zip": "46383",
-      "lat": 41.4624416,
-      "lng": -87.0866222,
-      "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 34
-    },
-    {
       "id": "DL4901139",
       "sourceStoreId": "DL4901139",
       "state": "IN",
@@ -17826,6 +17112,216 @@
       "signalCount": 1
     },
     {
+      "id": "greensboro-25",
+      "sourceStoreId": "greensboro-25",
+      "state": "NC",
+      "name": "Store 1 - Brassfield",
+      "address": "3707-E Battleground Plaza, Greensboro, NC, 27410",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27410",
+      "lat": 36.130395,
+      "lng": -79.856256,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 4
+    },
+    {
+      "id": "greensboro-27",
+      "sourceStoreId": "greensboro-27",
+      "state": "NC",
+      "name": "Store 11 - Ring Road",
+      "address": "2731 Ring Road, Greensboro, NC, 27405",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27405",
+      "lat": 36.024248,
+      "lng": -79.801621,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 3
+    },
+    {
+      "id": "greensboro-28",
+      "sourceStoreId": "greensboro-28",
+      "state": "NC",
+      "name": "Store 12 - Hickory Branch",
+      "address": "500 Hickory Branch, Greensboro, NC, 27409",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27409",
+      "lat": 36.024248,
+      "lng": -79.801621,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "greensboro-29",
+      "sourceStoreId": "greensboro-29",
+      "state": "NC",
+      "name": "Store 13 - Lawndale",
+      "address": "2417 Lawndale Dr. (Ste. C & D), Greensboro, NC, 27408",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27408",
+      "lat": 36.024248,
+      "lng": -79.801621,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "greensboro-30",
+      "sourceStoreId": "greensboro-30",
+      "state": "NC",
+      "name": "Store 14 - Summerfield",
+      "address": "4548 US Hwy 220 (102 & 103), Greensboro, NC, 27358",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27358",
+      "lat": 36.192777,
+      "lng": -79.890666,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "greensboro-31",
+      "sourceStoreId": "greensboro-31",
+      "state": "NC",
+      "name": "Store 15 - Burlington Road",
+      "address": "3919 Burlington Road, Greensboro, NC, 27405",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27405",
+      "lat": 36.086901,
+      "lng": 0,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 4
+    },
+    {
+      "id": "greensboro-32",
+      "sourceStoreId": "greensboro-32",
+      "state": "NC",
+      "name": "Store 16 - Fleming Road",
+      "address": "2309 Fleming Road, Greensboro, NC, 27410",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27410",
+      "lat": 36.126399,
+      "lng": -79.908805,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "greensboro-33",
+      "sourceStoreId": "greensboro-33",
+      "state": "NC",
+      "name": "Store 17 - Bantiff Way",
+      "address": "106 Bantiff Way, Greensboro, NC, 27406",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27406",
+      "lat": 36.002358,
+      "lng": -79.790507,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 7
+    },
+    {
+      "id": "greensboro-36",
+      "sourceStoreId": "greensboro-36",
+      "state": "NC",
+      "name": "Store 3 - E. Market",
+      "address": "3100 E. Market Street, Greensboro, NC, 27405",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27405",
+      "lat": 36.083449,
+      "lng": -79.743518,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 3
+    },
+    {
+      "id": "greensboro-37",
+      "sourceStoreId": "greensboro-37",
+      "state": "NC",
+      "name": "Store 4 - Stonesthrow",
+      "address": "3741 Farmington Road, Greensboro, NC, 27407",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27407",
+      "lat": 36.036872,
+      "lng": -79.859072,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 4
+    },
+    {
+      "id": "greensboro-38",
+      "sourceStoreId": "greensboro-38",
+      "state": "NC",
+      "name": "Store 5 - W. Market",
+      "address": "4633 W. Market Street, Greensboro, NC, 27407",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27407",
+      "lat": 36.069891,
+      "lng": -79.86625,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "greensboro-39",
+      "sourceStoreId": "greensboro-39",
+      "state": "NC",
+      "name": "Store 6 - Pisgah Church",
+      "address": "307-A Pisgah Church Road, Greensboro, NC, 27455",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27455",
+      "lat": 36.13156,
+      "lng": -79.795102,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "greensboro-40",
+      "sourceStoreId": "greensboro-40",
+      "state": "NC",
+      "name": "Store 7 - Cedar Street",
+      "address": "115 N. Cedar Street, Greensboro, NC, 27401",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27401",
+      "lat": 36.073627,
+      "lng": -79.798793,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "greensboro-41",
+      "sourceStoreId": "greensboro-41",
+      "state": "NC",
+      "name": "Store 8 - W. Wendover",
+      "address": "4411 W. Wendover Ave., Greensboro, NC, 27407",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27407",
+      "lat": 36.055123,
+      "lng": 0,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 7
+    },
+    {
+      "id": "greensboro-42",
+      "sourceStoreId": "greensboro-42",
+      "state": "NC",
+      "name": "Store 9 - Randleman Road",
+      "address": "2701 Randleman Road, Greensboro, NC, 27406",
+      "city": "Greensboro",
+      "county": "Guilford",
+      "zip": "27406",
+      "lat": 36.024248,
+      "lng": -79.801621,
+      "source": "Greensboro ABC SuiteCommerce pickup inventory",
+      "signalCount": 3
+    },
+    {
       "id": "922b13b70cfc763f",
       "sourceStoreId": null,
       "state": "NC",
@@ -17851,7 +17347,21 @@
       "lat": 41.4807022,
       "lng": -81.6021592,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
+    },
+    {
+      "id": "30205",
+      "sourceStoreId": "30205",
+      "state": "OH",
+      "name": "1837 Wine and Spirits Emporium",
+      "address": "1383 E Johnstown Rd, Gahanna, OH, 43230",
+      "city": "Gahanna",
+      "county": null,
+      "zip": null,
+      "lat": 40.0537167,
+      "lng": -82.843662,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "40954",
@@ -17868,6 +17378,62 @@
       "signalCount": 2
     },
     {
+      "id": "30208",
+      "sourceStoreId": "30208",
+      "state": "OH",
+      "name": "3C Food & Beverage",
+      "address": "4436 Westerville Rd, Columbus, OH, 43231",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0625485,
+      "lng": -82.9346565,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40855",
+      "sourceStoreId": "40855",
+      "state": "OH",
+      "name": "A & C Southway Beverage",
+      "address": "45 South Ave, Youngstown, OH, 44503",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.0974336,
+      "lng": -80.644749,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40815",
+      "sourceStoreId": "40815",
+      "state": "OH",
+      "name": "ACME",
+      "address": "3140 Greenwich Rd, Norton, OH, 44203",
+      "city": "Norton",
+      "county": null,
+      "zip": null,
+      "lat": 41.0243492,
+      "lng": -81.640915,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10525",
+      "sourceStoreId": "10525",
+      "state": "OH",
+      "name": "Adam's County Beverage Barn",
+      "address": "410 E 2nd St, Manchester, OH, 45144",
+      "city": "Manchester",
+      "county": null,
+      "zip": null,
+      "lat": 38.6879478,
+      "lng": -83.6041239,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10556",
       "sourceStoreId": "10556",
       "state": "OH",
@@ -17880,6 +17446,20 @@
       "lng": -84.5855357,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
+    },
+    {
+      "id": "20610",
+      "sourceStoreId": "20610",
+      "state": "OH",
+      "name": "Alexa Liquor Barn",
+      "address": "2101 W Alexis Rd, Toledo, OH, 43613",
+      "city": "Toledo",
+      "county": null,
+      "zip": null,
+      "lat": 41.7207977,
+      "lng": -83.5951989,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "30754",
@@ -17949,7 +17529,7 @@
       "lat": 39.7048254,
       "lng": -84.1699296,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "10567",
@@ -18005,7 +17585,7 @@
       "lat": 39.2578049,
       "lng": -84.8024411,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40942",
@@ -18064,6 +17644,20 @@
       "signalCount": 1
     },
     {
+      "id": "20691",
+      "sourceStoreId": "20691",
+      "state": "OH",
+      "name": "Bellmann's Party Shop",
+      "address": "134 E 5th St, Delphos, OH, 45833",
+      "city": "Delphos",
+      "county": null,
+      "zip": null,
+      "lat": 40.8475267,
+      "lng": -84.3387082,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "10590",
       "sourceStoreId": "10590",
       "state": "OH",
@@ -18075,7 +17669,7 @@
       "lat": 39.7291148,
       "lng": -84.1415419,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20630",
@@ -18092,6 +17686,20 @@
       "signalCount": 1
     },
     {
+      "id": "30759",
+      "sourceStoreId": "30759",
+      "state": "OH",
+      "name": "Beverage Warehouse",
+      "address": "847 E 11th Ave, Columbus, OH, 43211",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9934584,
+      "lng": -82.9839186,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "30741",
       "sourceStoreId": "30741",
       "state": "OH",
@@ -18103,7 +17711,7 @@
       "lat": 39.9478906,
       "lng": -82.938985,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40894",
@@ -18131,6 +17739,34 @@
       "lat": 40.23255,
       "lng": -83.35091,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30881",
+      "sourceStoreId": "30881",
+      "state": "OH",
+      "name": "Bolivar Spirits",
+      "address": "10948 OH-212, Bolivar, OH, 44612",
+      "city": "Bolivar",
+      "county": null,
+      "zip": null,
+      "lat": 40.6461895,
+      "lng": -81.4526811,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40940",
+      "sourceStoreId": "40940",
+      "state": "OH",
+      "name": "Bottle Stop",
+      "address": "4417-4423 West 150th St, Cleveland, OH, 44135",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.4333469,
+      "lng": -81.8070274,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
@@ -18144,6 +17780,20 @@
       "zip": null,
       "lat": 39.224599,
       "lng": -84.5168313,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40301",
+      "sourceStoreId": "40301",
+      "state": "OH",
+      "name": "Brimfield Liquor",
+      "address": "3975 Cascades Blvd unit 15, Kent, OH, 44240",
+      "city": "Kent",
+      "county": null,
+      "zip": null,
+      "lat": 41.09645,
+      "lng": -81.38823,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18160,6 +17810,34 @@
       "lng": -80.5549795,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "20651",
+      "sourceStoreId": "20651",
+      "state": "OH",
+      "name": "Bryan Wine & Spirits",
+      "address": "123 E South St, Bryan, OH, 43506",
+      "city": "Bryan",
+      "county": null,
+      "zip": null,
+      "lat": 41.4639314,
+      "lng": -84.5499628,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30810",
+      "sourceStoreId": "30810",
+      "state": "OH",
+      "name": "Buehler's",
+      "address": "1055 Sugarbush Dr, Ashland, OH, 44805",
+      "city": "Ashland",
+      "county": null,
+      "zip": null,
+      "lat": 40.8600495,
+      "lng": -82.2814609,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "20685",
@@ -18204,6 +17882,34 @@
       "signalCount": 1
     },
     {
+      "id": "40923",
+      "sourceStoreId": "40923",
+      "state": "OH",
+      "name": "Buehler's",
+      "address": "3626 Medina Rd, Medina, OH, 44256",
+      "city": "Medina",
+      "county": null,
+      "zip": null,
+      "lat": 41.1347874,
+      "lng": -81.8170934,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40983",
+      "sourceStoreId": "40983",
+      "state": "OH",
+      "name": "Buehler's",
+      "address": "275 Forest Meadows Dr, Medina, OH, 44256",
+      "city": "Medina",
+      "county": null,
+      "zip": null,
+      "lat": 41.1533965,
+      "lng": -81.861381,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40837",
       "sourceStoreId": "40837",
       "state": "OH",
@@ -18214,6 +17920,20 @@
       "zip": null,
       "lat": 40.842536,
       "lng": -81.9447285,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40887",
+      "sourceStoreId": "40887",
+      "state": "OH",
+      "name": "Burlew's Fresh Market",
+      "address": "529 N Main St, P.O. Box 350, Hubbard, OH, 44425",
+      "city": "Hubbard",
+      "county": null,
+      "zip": null,
+      "lat": 41.1633072,
+      "lng": -80.5677857,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18256,6 +17976,20 @@
       "zip": null,
       "lat": 41.42412,
       "lng": -81.8996949,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10596",
+      "sourceStoreId": "10596",
+      "state": "OH",
+      "name": "Cappy's Wine & Spirits",
+      "address": "309 W Loveland Ave, Loveland, OH, 45140",
+      "city": "Loveland",
+      "county": null,
+      "zip": null,
+      "lat": 39.2680106,
+      "lng": -84.2600689,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
     },
@@ -18316,6 +18050,20 @@
       "signalCount": 1
     },
     {
+      "id": "30892",
+      "sourceStoreId": "30892",
+      "state": "OH",
+      "name": "Chestnut Spirits & Wine",
+      "address": "320 S Chestnut St, Barnesville, OH, 43713",
+      "city": "Barnesville",
+      "county": null,
+      "zip": null,
+      "lat": 39.9848745,
+      "lng": -81.1790337,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "20644",
       "sourceStoreId": "20644",
       "state": "OH",
@@ -18327,7 +18075,7 @@
       "lat": 41.152717,
       "lng": -84.5794531,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20652",
@@ -18341,7 +18089,7 @@
       "lat": 41.557357,
       "lng": -84.1336819,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20621",
@@ -18400,20 +18148,6 @@
       "signalCount": 2
     },
     {
-      "id": "40873",
-      "sourceStoreId": "40873",
-      "state": "OH",
-      "name": "Corkscrew Johnny's",
-      "address": "2542 Brecksville Rd, Richfield, OH, 44286",
-      "city": "Richfield",
-      "county": null,
-      "zip": null,
-      "lat": 41.2047669,
-      "lng": -81.6384491,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "40846",
       "sourceStoreId": "40846",
       "state": "OH",
@@ -18438,6 +18172,48 @@
       "zip": null,
       "lat": 39.773579,
       "lng": -82.1025664,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40856",
+      "sourceStoreId": "40856",
+      "state": "OH",
+      "name": "CV Spirits",
+      "address": "4620 Richmond Rd, #290, Warrensville Heights, OH, 44128",
+      "city": "Warrensville Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.4344608,
+      "lng": -81.4987718,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20624",
+      "sourceStoreId": "20624",
+      "state": "OH",
+      "name": "Daryl & Daryl's Pizza & Wings",
+      "address": "3232 Harding Hwy, Lima, OH, 45804",
+      "city": "Lima",
+      "county": null,
+      "zip": null,
+      "lat": 40.730621,
+      "lng": -84.0452387,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40927",
+      "sourceStoreId": "40927",
+      "state": "OH",
+      "name": "Dave's Supermarket",
+      "address": "5100 Wilson Mills Rd, Richmond Heights, OH, 44143",
+      "city": "Richmond Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.5383284,
+      "lng": -81.4963011,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18467,7 +18243,21 @@
       "lat": 39.205145,
       "lng": -84.3928651,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
+    },
+    {
+      "id": "20604",
+      "sourceStoreId": "20604",
+      "state": "OH",
+      "name": "Defiance Beverage Center",
+      "address": "1100 N Clinton St, Defiance, OH, 43512",
+      "city": "Defiance",
+      "county": null,
+      "zip": null,
+      "lat": 41.3006786,
+      "lng": -84.3612583,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "10553",
@@ -18480,6 +18270,20 @@
       "zip": null,
       "lat": 39.094107,
       "lng": -84.615492,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "20623",
+      "sourceStoreId": "20623",
+      "state": "OH",
+      "name": "Dick's Grocery & Carryout",
+      "address": "1318 Tiffin Ave, Sandusky, OH, 44870",
+      "city": "Sandusky",
+      "county": null,
+      "zip": null,
+      "lat": 41.4444367,
+      "lng": -82.7287629,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18498,6 +18302,20 @@
       "signalCount": 1
     },
     {
+      "id": "10560",
+      "sourceStoreId": "10560",
+      "state": "OH",
+      "name": "Eastgate Wine and Spirits",
+      "address": "4496 Mt Carmel Tobasco Rd, Cincinnati, OH, 45244",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.1051302,
+      "lng": -84.3013523,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "10503",
       "sourceStoreId": "10503",
       "state": "OH",
@@ -18509,7 +18327,7 @@
       "lat": 39.7492159,
       "lng": -84.635921,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20690",
@@ -18565,7 +18383,7 @@
       "lat": 39.216135,
       "lng": -84.692641,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40936",
@@ -18578,6 +18396,20 @@
       "zip": null,
       "lat": 41.596663,
       "lng": -81.539912,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10537",
+      "sourceStoreId": "10537",
+      "state": "OH",
+      "name": "Fine Wine & Spirits",
+      "address": "8433-37 Beechmont Ave, Cincinnati, OH, 45255",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.0719293,
+      "lng": -84.3213364,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18596,6 +18428,34 @@
       "signalCount": 1
     },
     {
+      "id": "30223",
+      "sourceStoreId": "30223",
+      "state": "OH",
+      "name": "Galloway Wine & Spirits",
+      "address": "950 Galloway Rd, Galloway, OH, 43119",
+      "city": "Galloway",
+      "county": null,
+      "zip": null,
+      "lat": 39.9321205,
+      "lng": -83.159177,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40838",
+      "sourceStoreId": "40838",
+      "state": "OH",
+      "name": "Gary's Drive Thru",
+      "address": "331 W High St, Orrville, OH, 44667",
+      "city": "Orrville",
+      "county": null,
+      "zip": null,
+      "lat": 40.843844,
+      "lng": -81.7680484,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "10583",
       "sourceStoreId": "10583",
       "state": "OH",
@@ -18606,6 +18466,230 @@
       "zip": null,
       "lat": 40.4269813,
       "lng": -84.6281707,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10105",
+      "sourceStoreId": "10105",
+      "state": "OH",
+      "name": "Gem City Wine & Spirits",
+      "address": "310 S. Jefferson St., Dayton, OH, 45402",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.7555864,
+      "lng": -84.188586,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40806",
+      "sourceStoreId": "40806",
+      "state": "OH",
+      "name": "Gene's Beverage",
+      "address": "239 West State St, Salem, OH, 44460",
+      "city": "Salem",
+      "county": null,
+      "zip": null,
+      "lat": 40.9011317,
+      "lng": -80.8361824,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30773",
+      "sourceStoreId": "30773",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "873 Refugee Rd, Pickerington, OH, 43147",
+      "city": "Pickerington",
+      "county": null,
+      "zip": null,
+      "lat": 39.9083827,
+      "lng": -82.7756677,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30704",
+      "sourceStoreId": "30704",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1394 Ety Shops Way, Lancaster, OH, 43130",
+      "city": "Lancaster",
+      "county": null,
+      "zip": null,
+      "lat": 39.738547,
+      "lng": -82.6356451,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40304",
+      "sourceStoreId": "40304",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6493 Strip Ave NW, North Canton, OH, 44720",
+      "city": "North Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.8751177,
+      "lng": -81.4351639,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40400",
+      "sourceStoreId": "40400",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "7400 Broadview Rd, Parma, OH, 44134",
+      "city": "Parma",
+      "county": null,
+      "zip": null,
+      "lat": 41.3647222,
+      "lng": -81.6880122,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40951",
+      "sourceStoreId": "40951",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "31990 Walker Rd, Avon Lake, OH, 44012",
+      "city": "Avon Lake",
+      "county": null,
+      "zip": null,
+      "lat": 41.4938295,
+      "lng": -81.9858165,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40965",
+      "sourceStoreId": "40965",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "4453 Liberty Ave, Vermilion, OH, 44089",
+      "city": "Vermilion",
+      "county": null,
+      "zip": null,
+      "lat": 41.4231772,
+      "lng": -82.3435957,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40968",
+      "sourceStoreId": "40968",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2201 Kresge Dr, Amherst, OH, 44001",
+      "city": "Amherst",
+      "county": null,
+      "zip": null,
+      "lat": 41.4152861,
+      "lng": -82.2049284,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40981",
+      "sourceStoreId": "40981",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "12692 W Geauga Plaza, Chesterland, OH, 44026",
+      "city": "Chesterland",
+      "county": null,
+      "zip": null,
+      "lat": 41.5237235,
+      "lng": -81.3391972,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40984",
+      "sourceStoreId": "40984",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6556 N Ridge Rd, Madison, OH, 44057",
+      "city": "Madison",
+      "county": null,
+      "zip": null,
+      "lat": 41.8020174,
+      "lng": -81.0512179,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40995",
+      "sourceStoreId": "40995",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "22080 Center Ridge Rd, Rocky River, OH, 44116",
+      "city": "Rocky River",
+      "county": null,
+      "zip": null,
+      "lat": 41.4597258,
+      "lng": -81.8646783,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30220",
+      "sourceStoreId": "30220",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "4000 W Powell Rd, Powell, OH, 43065",
+      "city": "Powell",
+      "county": null,
+      "zip": null,
+      "lat": 40.1607319,
+      "lng": -83.0937599,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30216",
+      "sourceStoreId": "30216",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "4001 Britton Pkwy, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0345767,
+      "lng": -83.1335711,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40845",
+      "sourceStoreId": "40845",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "2687 State Rd, Cuyahoga Falls, OH, 44223",
+      "city": "Cuyahoga Falls",
+      "county": null,
+      "zip": null,
+      "lat": 41.1465526,
+      "lng": -81.5068368,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40969",
+      "sourceStoreId": "40969",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "34310 Aurora Rd, Solon, OH, 44139",
+      "city": "Solon",
+      "county": null,
+      "zip": null,
+      "lat": 41.3819565,
+      "lng": -81.4365421,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18621,7 +18705,7 @@
       "lat": 39.3147786,
       "lng": -84.3751503,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "10546",
@@ -18649,7 +18733,7 @@
       "lat": 39.7422712,
       "lng": -84.23105,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "40813",
@@ -18666,6 +18750,20 @@
       "signalCount": 2
     },
     {
+      "id": "40977",
+      "sourceStoreId": "40977",
+      "state": "OH",
+      "name": "Golden Gate Beverage & Liquor",
+      "address": "6105 Mayfield Rd, Mayfield Heights, OH, 44124",
+      "city": "Mayfield Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.520528,
+      "lng": -81.4594259,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40931",
       "sourceStoreId": "40931",
       "state": "OH",
@@ -18680,16 +18778,16 @@
       "signalCount": 2
     },
     {
-      "id": "40958",
-      "sourceStoreId": "40958",
+      "id": "30736",
+      "sourceStoreId": "30736",
       "state": "OH",
-      "name": "Grumpy Grandpa's Git & Go",
-      "address": "3270 State Rd, Ashtabula, OH, 44004",
-      "city": "Ashtabula",
+      "name": "Groceryland",
+      "address": "1822 S Limestone St, Springfield, OH, 45505",
+      "city": "Springfield",
       "county": null,
       "zip": null,
-      "lat": 41.8759058,
-      "lng": -80.7719832,
+      "lat": 39.9031571,
+      "lng": -83.8092347,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18736,6 +18834,20 @@
       "signalCount": 1
     },
     {
+      "id": "10578",
+      "sourceStoreId": "10578",
+      "state": "OH",
+      "name": "Handy One Food Mart",
+      "address": "3105 E Dorothy Ln, Dayton, OH, 45420",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.6977162,
+      "lng": -84.1071683,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "30770",
       "sourceStoreId": "30770",
       "state": "OH",
@@ -18746,6 +18858,34 @@
       "zip": null,
       "lat": 40.44383,
       "lng": -82.2609323,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30703",
+      "sourceStoreId": "30703",
+      "state": "OH",
+      "name": "Houch's",
+      "address": "1020 E Main St, Chillicothe, OH, 45601",
+      "city": "Chillicothe",
+      "county": null,
+      "zip": null,
+      "lat": 39.3375082,
+      "lng": -82.9527915,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10512",
+      "sourceStoreId": "10512",
+      "state": "OH",
+      "name": "Hyde Park Wine And Spirits",
+      "address": "2719 Madison Rd, Cincinnati, OH, 45209",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.1452054,
+      "lng": -84.4417767,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18762,6 +18902,34 @@
       "lng": -83.1490442,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "40970",
+      "sourceStoreId": "40970",
+      "state": "OH",
+      "name": "Independence Beverage",
+      "address": "7103 Brecksville Rd, Independence, OH, 44131",
+      "city": "Independence",
+      "county": null,
+      "zip": null,
+      "lat": 41.3689757,
+      "lng": -81.6373418,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10533",
+      "sourceStoreId": "10533",
+      "state": "OH",
+      "name": "Joe's Party Shop & Drive Thru",
+      "address": "1080 Jefferson St, Greenfield, OH, 45123",
+      "city": "Greenfield",
+      "county": null,
+      "zip": null,
+      "lat": 39.3477869,
+      "lng": -83.3989112,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "40967",
@@ -18806,20 +18974,6 @@
       "signalCount": 1
     },
     {
-      "id": "10511",
-      "sourceStoreId": "10511",
-      "state": "OH",
-      "name": "Jungle Jim's International Market",
-      "address": "5440 Dixie Hwy, Fairfield, OH, 45014",
-      "city": "Fairfield",
-      "county": null,
-      "zip": null,
-      "lat": 39.335078,
-      "lng": -84.5242466,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "30734",
       "sourceStoreId": "30734",
       "state": "OH",
@@ -18830,6 +18984,20 @@
       "zip": null,
       "lat": 39.9396561,
       "lng": -83.7894244,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10120",
+      "sourceStoreId": "10120",
+      "state": "OH",
+      "name": "Kettering Wine & Spirits",
+      "address": "1218 E Stroop Rd, Dayton, OH, 45429",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.687371,
+      "lng": -84.145351,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18845,7 +19013,7 @@
       "lat": 41.4616704,
       "lng": -81.644196,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40926",
@@ -18873,6 +19041,328 @@
       "lat": 40.6914818,
       "lng": -81.1895137,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "20694",
+      "sourceStoreId": "20694",
+      "state": "OH",
+      "name": "Kork & Kap",
+      "address": "135 E Main St, Crestline, OH, 44827",
+      "city": "Crestline",
+      "county": null,
+      "zip": null,
+      "lat": 40.7879198,
+      "lng": -82.7347521,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10502",
+      "sourceStoreId": "10502",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1 W Corry St, Cincinnati, OH, 45219",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.1285358,
+      "lng": -84.5091675,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10506",
+      "sourceStoreId": "10506",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "560 Wessel Dr, Fairfield, OH, 45014",
+      "city": "Fairfield",
+      "county": null,
+      "zip": null,
+      "lat": 39.3362321,
+      "lng": -84.5625889,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10508",
+      "sourceStoreId": "10508",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4100 Hunt Rd, Blue Ash, OH, 45236",
+      "city": "Blue Ash",
+      "county": null,
+      "zip": null,
+      "lat": 39.2272715,
+      "lng": -84.3978397,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10539",
+      "sourceStoreId": "10539",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1230 Rombach Ave, Wilmington, OH, 45177",
+      "city": "Wilmington",
+      "county": null,
+      "zip": null,
+      "lat": 39.4464232,
+      "lng": -83.8070966,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30213",
+      "sourceStoreId": "30213",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "6580 E Main St, Reynoldsburg, OH, 43068",
+      "city": "Reynoldsburg",
+      "county": null,
+      "zip": null,
+      "lat": 39.9559048,
+      "lng": -82.8098986,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30720",
+      "sourceStoreId": "30720",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1375 Chambers Rd, Columbus, OH, 43212",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9926506,
+      "lng": -83.0434669,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30724",
+      "sourceStoreId": "30724",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1441 Parsons Ave, Columbus, OH, 43207",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9343323,
+      "lng": -82.9838752,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30727",
+      "sourceStoreId": "30727",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "55 W Schrock Rd, Westerville, OH, 43081",
+      "city": "Westerville",
+      "county": null,
+      "zip": null,
+      "lat": 40.1082449,
+      "lng": -82.9273308,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30733",
+      "sourceStoreId": "30733",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "7625 Sawmill Rd, Dublin, OH, 43016",
+      "city": "Dublin",
+      "county": null,
+      "zip": null,
+      "lat": 40.1216289,
+      "lng": -83.0927068,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30745",
+      "sourceStoreId": "30745",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "199 Graceland Blvd, Columbus, OH, 43214",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0650187,
+      "lng": -83.0253836,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30763",
+      "sourceStoreId": "30763",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4656 Cemetery Rd, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0335187,
+      "lng": -83.1404885,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30793",
+      "sourceStoreId": "30793",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "850 S Hamilton Rd, Whitehall, OH, 43213",
+      "city": "Whitehall",
+      "county": null,
+      "zip": null,
+      "lat": 39.9587124,
+      "lng": -82.875605,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30795",
+      "sourceStoreId": "30795",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3675 E Broad St, Whitehall, OH, 43213",
+      "city": "Whitehall",
+      "county": null,
+      "zip": null,
+      "lat": 39.9718477,
+      "lng": -82.9032023,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30819",
+      "sourceStoreId": "30819",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "50789 Valley Plaza Dr, Saint Clairsville, OH, 43950",
+      "city": "Saint Clairsville",
+      "county": null,
+      "zip": null,
+      "lat": 40.0756345,
+      "lng": -80.8725277,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10519",
+      "sourceStoreId": "10519",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "11390 Montgomery Rd, Cincinnati, OH, 45249",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.2714935,
+      "lng": -84.3258674,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20601",
+      "sourceStoreId": "20601",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "2555 Glendale Ave, Toledo, OH, 43614",
+      "city": "Toledo",
+      "county": null,
+      "zip": null,
+      "lat": 41.6114669,
+      "lng": -83.6064081,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20633",
+      "sourceStoreId": "20633",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1094 N Main St, Bowling Green, OH, 43402",
+      "city": "Bowling Green",
+      "county": null,
+      "zip": null,
+      "lat": 41.3912668,
+      "lng": -83.6486121,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20638",
+      "sourceStoreId": "20638",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "101 6th St, Findlay, OH, 45840",
+      "city": "Findlay",
+      "county": null,
+      "zip": null,
+      "lat": 41.0220241,
+      "lng": -83.6487695,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30711",
+      "sourceStoreId": "30711",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "350 East Broad Street, Pataskala, OH, 43062",
+      "city": "Pataskala",
+      "county": null,
+      "zip": null,
+      "lat": 40.0064465,
+      "lng": -82.6641962,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30761",
+      "sourceStoreId": "30761",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "2525 Hilliard Rome Rd, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0026145,
+      "lng": -83.1548091,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30762",
+      "sourceStoreId": "30762",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "5991 S Sunbury Rd, Columbus, OH, 43081",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0842726,
+      "lng": -82.8973149,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30817",
+      "sourceStoreId": "30817",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "858 Main St, Wintersville, OH, 43953",
+      "city": "Wintersville",
+      "county": null,
+      "zip": null,
+      "lat": 40.3743862,
+      "lng": -80.7034063,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
@@ -18887,7 +19377,7 @@
       "lat": 39.7966097,
       "lng": -84.2926892,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "40821",
@@ -18901,7 +19391,7 @@
       "lat": 40.9782437,
       "lng": -81.5203153,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40893",
@@ -18914,6 +19404,20 @@
       "zip": null,
       "lat": 41.0244505,
       "lng": -81.4238336,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10527",
+      "sourceStoreId": "10527",
+      "state": "OH",
+      "name": "Lakeview Carry Out",
+      "address": "103 E Logan St, Celina, OH, 45822",
+      "city": "Celina",
+      "county": null,
+      "zip": null,
+      "lat": 40.5459446,
+      "lng": -84.5701259,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18932,6 +19436,20 @@
       "signalCount": 1
     },
     {
+      "id": "10544",
+      "sourceStoreId": "10544",
+      "state": "OH",
+      "name": "Lehr's Prime Market",
+      "address": "740 Main St, Milford, OH, 45150",
+      "city": "Milford",
+      "county": null,
+      "zip": null,
+      "lat": 39.1769956,
+      "lng": -84.2847261,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "30755",
       "sourceStoreId": "30755",
       "state": "OH",
@@ -18943,7 +19461,7 @@
       "lat": 38.4640942,
       "lng": -82.6009558,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "40880",
@@ -18970,6 +19488,34 @@
       "zip": null,
       "lat": 40.6794129,
       "lng": -82.583179,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10542",
+      "sourceStoreId": "10542",
+      "state": "OH",
+      "name": "Liberty Wine & Liquor",
+      "address": "5501 Liberty Square Drive, Hamilton, OH, 45011",
+      "city": "Hamilton",
+      "county": null,
+      "zip": null,
+      "lat": 39.417,
+      "lng": -84.472,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10500",
+      "sourceStoreId": "10500",
+      "state": "OH",
+      "name": "Liquor and Wine Warehouse",
+      "address": "3440 York Commons Blvd, Dayton, OH, 45414",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.8440731,
+      "lng": -84.1968679,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19016,6 +19562,20 @@
       "signalCount": 1
     },
     {
+      "id": "10552",
+      "sourceStoreId": "10552",
+      "state": "OH",
+      "name": "Manor Wine Cellar",
+      "address": "5544 Airway Rd, Dayton, OH, 45431",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.7708751,
+      "lng": -84.1072983,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40800",
       "sourceStoreId": "40800",
       "state": "OH",
@@ -19058,6 +19618,20 @@
       "signalCount": 1
     },
     {
+      "id": "30717",
+      "sourceStoreId": "30717",
+      "state": "OH",
+      "name": "Mark's Drive Thru",
+      "address": "6240 E Livingston Ave, Reynoldsburg, OH, 43068",
+      "city": "Reynoldsburg",
+      "county": null,
+      "zip": null,
+      "lat": 39.9424198,
+      "lng": -82.8284573,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10513",
       "sourceStoreId": "10513",
       "state": "OH",
@@ -19083,21 +19657,7 @@
       "lat": 39.8392771,
       "lng": -84.4233122,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "10577",
-      "sourceStoreId": "10577",
-      "state": "OH",
-      "name": "McMiller's Carry Out",
-      "address": "601 Martin St, Greenville, OH, 45331",
-      "city": "Greenville",
-      "county": null,
-      "zip": null,
-      "lat": 40.0991851,
-      "lng": -84.6234713,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30211",
@@ -19138,6 +19698,20 @@
       "zip": null,
       "lat": 39.8482436,
       "lng": -84.1140049,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10572",
+      "sourceStoreId": "10572",
+      "state": "OH",
+      "name": "Middletown Fine Wine & Spirits",
+      "address": "721 S Breiel Blvd, Middletown, OH, 45044",
+      "city": "Middletown",
+      "county": null,
+      "zip": null,
+      "lat": 39.5027613,
+      "lng": -84.3547369,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19195,7 +19769,7 @@
       "lat": 40.553925,
       "lng": -81.9204162,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40864",
@@ -19210,6 +19784,20 @@
       "lng": -81.573743,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "40994",
+      "sourceStoreId": "40994",
+      "state": "OH",
+      "name": "Minotti's Rocky River Wine Shop",
+      "address": "19831 Detroit Rd, Rocky River, OH, 44116",
+      "city": "Rocky River",
+      "county": null,
+      "zip": null,
+      "lat": 41.4788179,
+      "lng": -81.840142,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "40917",
@@ -19238,20 +19826,6 @@
       "lng": -83.5682156,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "40978",
-      "sourceStoreId": "40978",
-      "state": "OH",
-      "name": "Mookies",
-      "address": "21700 Miles Rd, Unit B, North Randall, OH, 44128",
-      "city": "North Randall",
-      "county": null,
-      "zip": null,
-      "lat": 41.4270293,
-      "lng": -81.5267069,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "10591",
@@ -19293,7 +19867,7 @@
       "lat": 41.5177921,
       "lng": -81.6497954,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40938",
@@ -19335,7 +19909,7 @@
       "lat": 39.4215235,
       "lng": -84.5905272,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30708",
@@ -19363,6 +19937,34 @@
       "lat": 40.0607927,
       "lng": -83.0421624,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10531",
+      "sourceStoreId": "10531",
+      "state": "OH",
+      "name": "O'Bryan's Wine & Spirits",
+      "address": "8972 Columbia Rd, Unit A, Loveland, OH, 45140",
+      "city": "Loveland",
+      "county": null,
+      "zip": null,
+      "lat": 39.3054924,
+      "lng": -84.2786557,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40997",
+      "sourceStoreId": "40997",
+      "state": "OH",
+      "name": "Oakwood Deli & Liquor",
+      "address": "25911 Broadway Ave, Bedford, OH, 44146",
+      "city": "Bedford",
+      "county": null,
+      "zip": null,
+      "lat": 41.358544,
+      "lng": -81.498989,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
@@ -19377,7 +19979,7 @@
       "lat": 40.483624,
       "lng": -83.9244457,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40949",
@@ -19419,6 +20021,34 @@
       "lat": 41.4484712,
       "lng": -81.5638844,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 3
+    },
+    {
+      "id": "20647",
+      "sourceStoreId": "20647",
+      "state": "OH",
+      "name": "Ottawa Beverage & Liquor",
+      "address": "485 North Perry St., Ottawa, OH, 45875",
+      "city": "Ottawa",
+      "county": null,
+      "zip": null,
+      "lat": 41.0234259,
+      "lng": -84.0507929,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10535",
+      "sourceStoreId": "10535",
+      "state": "OH",
+      "name": "Oxford Spirits",
+      "address": "21 Lynn Ave, Unit 108, Oxford, OH, 45056",
+      "city": "Oxford",
+      "county": null,
+      "zip": null,
+      "lat": 39.5098306,
+      "lng": -84.7499489,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
     },
     {
@@ -19432,6 +20062,20 @@
       "zip": null,
       "lat": 40.8699355,
       "lng": -84.586643,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10587",
+      "sourceStoreId": "10587",
+      "state": "OH",
+      "name": "Party Place",
+      "address": "203 E Main St, P.O. Box 389, Mount Orab, OH, 45154",
+      "city": "Mount Orab",
+      "county": null,
+      "zip": null,
+      "lat": 39.0275133,
+      "lng": -83.9174451,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19461,7 +20105,7 @@
       "lat": 41.5665659,
       "lng": -83.6529805,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40822",
@@ -19545,21 +20189,7 @@
       "lat": 39.1065131,
       "lng": -84.5587324,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30200",
-      "sourceStoreId": "30200",
-      "state": "OH",
-      "name": "Riesbeck's",
-      "address": "2200 June Parkway, Zanesville, OH, 43701",
-      "city": "Zanesville",
-      "county": null,
-      "zip": null,
-      "lat": 39.9082835,
-      "lng": -82.0157004,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30716",
@@ -19590,6 +20220,34 @@
       "signalCount": 1
     },
     {
+      "id": "10594",
+      "sourceStoreId": "10594",
+      "state": "OH",
+      "name": "River's Bend Wine and Spirits",
+      "address": "5974 OH-48, Maineville, OH, 45039",
+      "city": "Maineville",
+      "county": null,
+      "zip": null,
+      "lat": 39.3485766,
+      "lng": -84.2177365,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40802",
+      "sourceStoreId": "40802",
+      "state": "OH",
+      "name": "Rocky's Wine & Beverage",
+      "address": "3616 Cleveland Ave SW, Canton, OH, 44707",
+      "city": "Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.7570745,
+      "lng": -81.3772556,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40909",
       "sourceStoreId": "40909",
       "state": "OH",
@@ -19600,6 +20258,20 @@
       "zip": null,
       "lat": 41.4848283,
       "lng": -81.9232523,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40935",
+      "sourceStoreId": "40935",
+      "state": "OH",
+      "name": "Royal Park Beverage",
+      "address": "12770 Royalton Rd, North Royalton, OH, 44133",
+      "city": "North Royalton",
+      "county": null,
+      "zip": null,
+      "lat": 41.3152259,
+      "lng": -81.7834231,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19615,7 +20287,21 @@
       "lat": 39.7914759,
       "lng": -84.2433323,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
+    },
+    {
+      "id": "40853",
+      "sourceStoreId": "40853",
+      "state": "OH",
+      "name": "Save-A-Lot",
+      "address": "653 Gypsy Ln, Youngstown, OH, 44505",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.1325812,
+      "lng": -80.6631237,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "10564",
@@ -19630,6 +20316,20 @@
       "lng": -84.4127996,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "40910",
+      "sourceStoreId": "40910",
+      "state": "OH",
+      "name": "Shore Center Beverage & Liquor",
+      "address": "22808 Lakeshore Blvd, Cleveland, OH, 44123",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.6119629,
+      "lng": -81.5224898,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "40976",
@@ -19660,6 +20360,20 @@
       "signalCount": 1
     },
     {
+      "id": "30775",
+      "sourceStoreId": "30775",
+      "state": "OH",
+      "name": "Short Stop",
+      "address": "495 E Main St, Circleville, OH, 43113",
+      "city": "Circleville",
+      "county": null,
+      "zip": null,
+      "lat": 39.5983835,
+      "lng": -82.9344559,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40823",
       "sourceStoreId": "40823",
       "state": "OH",
@@ -19671,7 +20385,7 @@
       "lat": 41.1350523,
       "lng": -81.5486753,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "10593",
@@ -19685,7 +20399,7 @@
       "lat": 39.75389,
       "lng": -84.1388997,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30835",
@@ -19700,6 +20414,34 @@
       "lng": -81.3441979,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "10543",
+      "sourceStoreId": "10543",
+      "state": "OH",
+      "name": "Spirits of Madeira",
+      "address": "6917 Miami Ave, Madeira, OH, 45243",
+      "city": "Madeira",
+      "county": null,
+      "zip": null,
+      "lat": 39.1870526,
+      "lng": -84.3635594,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10565",
+      "sourceStoreId": "10565",
+      "state": "OH",
+      "name": "Springboro Spirits",
+      "address": "748 Gardner Rd, Springboro, OH, 45066",
+      "city": "Springboro",
+      "county": null,
+      "zip": null,
+      "lat": 39.558493,
+      "lng": -84.241066,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "10581",
@@ -19797,7 +20539,7 @@
       "lat": 40.426763,
       "lng": -84.37752,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30722",
@@ -19814,6 +20556,20 @@
       "signalCount": 1
     },
     {
+      "id": "10585",
+      "sourceStoreId": "10585",
+      "state": "OH",
+      "name": "The Wine Connection",
+      "address": "1258 S.R. 28 Miami Twp., Milford, OH, 45150",
+      "city": "Milford",
+      "county": null,
+      "zip": null,
+      "lat": 39.2028575,
+      "lng": -84.2217929,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10576",
       "sourceStoreId": "10576",
       "state": "OH",
@@ -19825,7 +20581,7 @@
       "lat": 39.3558469,
       "lng": -84.3780797,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "10545",
@@ -19867,7 +20623,35 @@
       "lat": 41.1127543,
       "lng": -81.486509,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40306",
+      "sourceStoreId": "40306",
+      "state": "OH",
+      "name": "Top Shelf",
+      "address": "7257 Fulton Dr NW, Suite 47, Canton, OH, 44718",
+      "city": "Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.8615167,
+      "lng": -81.4835623,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
+    },
+    {
+      "id": "40854",
+      "sourceStoreId": "40854",
+      "state": "OH",
+      "name": "Top Shelf Liquor",
+      "address": "773 McCartney Rd, Youngstown, OH, 44505",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.0901529,
+      "lng": -80.5869418,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "40988",
@@ -19881,19 +20665,19 @@
       "lat": 41.4630425,
       "lng": -81.5958933,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
-      "id": "10521",
-      "sourceStoreId": "10521",
+      "id": "10528",
+      "sourceStoreId": "10528",
       "state": "OH",
-      "name": "Village Keg",
-      "address": "5 Enfield St, Cincinnati, OH, 45218",
-      "city": "Cincinnati",
+      "name": "Vandalia Carry Out",
+      "address": "351 E National Rd, Vandalia, OH, 45377",
+      "city": "Vandalia",
       "county": null,
       "zip": null,
-      "lat": 39.2697009,
-      "lng": -84.5215244,
+      "lat": 39.8913374,
+      "lng": -84.1934217,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19922,6 +20706,34 @@
       "zip": null,
       "lat": 39.2286847,
       "lng": -84.4387347,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10504",
+      "sourceStoreId": "10504",
+      "state": "OH",
+      "name": "Wagner's IGA Market",
+      "address": "257 E 4th St, Minster, OH, 45865",
+      "city": "Minster",
+      "county": null,
+      "zip": null,
+      "lat": 40.3927539,
+      "lng": -84.3754869,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20653",
+      "sourceStoreId": "20653",
+      "state": "OH",
+      "name": "Walt Churchill's Market",
+      "address": "26625 N Dixie Hwy, Perrysburg, OH, 43551",
+      "city": "Perrysburg",
+      "county": null,
+      "zip": null,
+      "lat": 41.5391108,
+      "lng": -83.6355912,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19954,6 +20766,20 @@
       "signalCount": 1
     },
     {
+      "id": "40982",
+      "sourceStoreId": "40982",
+      "state": "OH",
+      "name": "Washington St Beverage",
+      "address": "182 E Washington St, Painesville, OH, 44077",
+      "city": "Painesville",
+      "county": null,
+      "zip": null,
+      "lat": 41.7242327,
+      "lng": -81.2402355,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "30794",
       "sourceStoreId": "30794",
       "state": "OH",
@@ -19979,7 +20805,7 @@
       "lat": 39.1284368,
       "lng": -84.6014742,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30783",
@@ -19993,7 +20819,7 @@
       "lat": 40.1553396,
       "lng": -82.6831904,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40829",
@@ -20038,6 +20864,20 @@
       "signalCount": 1
     },
     {
+      "id": "40807",
+      "sourceStoreId": "40807",
+      "state": "OH",
+      "name": "Wonderland of Foods",
+      "address": "263 W Buckeye St, West Salem, OH, 44287",
+      "city": "West Salem",
+      "county": null,
+      "zip": null,
+      "lat": 40.967545,
+      "lng": -82.1164092,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40858",
       "sourceStoreId": "40858",
       "state": "OH",
@@ -20063,7 +20903,7 @@
       "lat": 40.448363,
       "lng": -79.986832,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "0222",
@@ -20119,7 +20959,7 @@
       "lat": -76.82134774447164,
       "lng": 40.274255407013335,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "2301",
@@ -21855,7 +22695,7 @@
       "lat": 40.32332,
       "lng": -78.957967,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "1201",
@@ -22065,7 +22905,7 @@
       "lat": 39.991867,
       "lng": -75.771223,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "1512",
@@ -23538,20 +24378,6 @@
       "signalCount": 4
     },
     {
-      "id": "3521",
-      "sourceStoreId": "3521",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3521",
-      "address": "921 Drinker Turnpike, Covington Township, PA, 18444",
-      "city": "Covington Township",
-      "county": null,
-      "zip": null,
-      "lat": 41.308617,
-      "lng": -75.517717,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "3522",
       "sourceStoreId": "3522",
       "state": "PA",
@@ -23675,7 +24501,7 @@
       "lat": 40.227691,
       "lng": -76.088965,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "3611",
@@ -25229,7 +26055,7 @@
       "lat": 40.688794,
       "lng": -75.499441,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4806",
@@ -26811,7 +27637,7 @@
       "lat": 40.3954271,
       "lng": -80.067089,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "102",

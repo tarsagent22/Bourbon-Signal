@@ -11,6 +11,8 @@ const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
+const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
+const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -258,6 +260,10 @@ function isSafePublicSignal(signal) {
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
     const maxAgeMs = PA_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
     if (!Number.isFinite(observedAt) || Date.now() - observedAt > maxAgeMs) return false;
+  }
+  if (signal.state === 'NC' && /Greensboro ABC SuiteCommerce/i.test(String(signal.sourceLabel || signal.source || ''))) {
+    const name = String(signal.rawName || signal.canonicalName || '');
+    return NC_GREENSBORO_STORE_SIGNAL_RE.test(name) && !NC_GREENSBORO_STORE_EXCLUDE_RE.test(name);
   }
   if (signal.state === 'NC' && (type === 'nc_board_shipment_snapshot' || type === 'nc_statewide_warehouse_stock')) {
     return NC_STRICT_SIGNAL_RE.test(String(signal.rawName || signal.canonicalName || ''));

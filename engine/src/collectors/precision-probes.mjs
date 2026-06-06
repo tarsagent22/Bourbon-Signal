@@ -17,6 +17,24 @@ const TRACKED_TERMS = {
   'MD-MONTGOMERY': ['Blanton', 'Eagle Rare', 'Weller', 'Buffalo Trace', 'Taylor', 'Stagg', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker']
 };
 
+const NC_STORE_INVENTORY_TERMS = [
+  'Blanton',
+  'Eagle Rare',
+  'Weller',
+  'E.H. Taylor',
+  'Willett',
+  'Buffalo Trace',
+  'Stagg',
+  'Old Fitzgerald',
+  'Michter',
+  'Van Winkle',
+  'Elijah Craig Barrel Proof',
+  "Baker's"
+];
+
+const GREENSBORO_WATCH_ITEM_RE = /blanton|eagle rare|weller|buffalo trace|stagg|old fitz|fitzgerald|michter|willett|pappy|van winkle|baker'?s?|e\.?\s*h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof/i;
+const GREENSBORO_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
+
 const RARE_RE = /blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|elijah craig|george t|william larue|thomas h/i;
 const MONTGOMERY_BOURBON_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|michter|buffalo trace|elijah craig|george t|william larue|thomas h/i;
 
@@ -58,6 +76,9 @@ const VIRGINIA_INVALID_ORIGIN_STORES = new Set(['63', '74', '123', '208', '215',
 const VIRGINIA_STORES_ARCGIS_URL = "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1/query?where=UPPER(LandmkName)%20LIKE%20%27%25ABC%25%27&outFields=*&returnGeometry=false&f=json";
 const VIRGINIA_CACHE_PATH = 'out/cache/VA-storeNearby-signals.json';
 const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX_AGE_MS || 7 * 24 * 60 * 60_000);
+const GREENSBORO_ABC_BASE_URL = 'https://shop.greensboroabc.com';
+const GREENSBORO_ABC_COMPANY_ID = '5571440';
+const GREENSBORO_ABC_SITE_ID = '2';
 const IN_ATC_SEARCH_URL = 'https://mylicense.in.gov/everification/Search.aspx?facility=Y';
 const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults.aspx';
 const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
@@ -1391,7 +1412,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IA') return collectIowa(config, bible, existingSignals);
   if (config.id === 'UT') return collectUtah(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
-  if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectWakeNc);
+  if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
@@ -1851,6 +1872,209 @@ async function collectWakeNc(config, bible) {
     } catch (error) { roadblocks.push({ state: config.id, source: 'Wake County ABC inventory POST', url, status: 0, error: error.message, nextRoute: 'Use browser form submission/network capture.' }); }
   }
   return { signals, roadblocks };
+}
+
+function safeGreensboroCoordinate(value, kind) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  if (kind === 'lat') return n >= 33 && n <= 37 ? n : null;
+  return n <= -75 && n >= -85 ? n : null;
+}
+
+function normalizeGreensboroStore(record) {
+  const id = String(record.internalid || '').trim();
+  const name = String(record.name || '').trim();
+  const address1 = String(record.address1 || '').trim();
+  const city = String(record.city || '').trim() || 'Greensboro';
+  const state = String(record.state || '').trim() || 'NC';
+  const zip = String(record.zip || '').trim();
+  const isRetailStore = record.locationtype === '1' && /^Store\s+\d+\b/i.test(name) && address1 && state === 'NC';
+  if (!id || !isRetailStore) return null;
+  return {
+    id,
+    name,
+    address: [address1, city, state, zip].filter(Boolean).join(', '),
+    city,
+    state,
+    zip,
+    phone: String(record.phone || '').trim() || null,
+    lat: safeGreensboroCoordinate(record.location?.latitude, 'lat'),
+    lng: safeGreensboroCoordinate(record.location?.longitude, 'lng'),
+    raw: record
+  };
+}
+
+async function greensboroStores() {
+  const url = `${GREENSBORO_ABC_BASE_URL}/scs/services/Location.Service.ss?c=${GREENSBORO_ABC_COMPANY_ID}&n=${GREENSBORO_ABC_SITE_ID}&results_per_page=50`;
+  const res = await textFetch(url, {
+    headers: { accept: 'application/json,*/*', referer: `${GREENSBORO_ABC_BASE_URL}/stores` },
+    timeoutMs: 20_000
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}${res.error ? `: ${res.error}` : ''}`);
+  const json = JSON.parse(res.text);
+  const stores = new Map();
+  for (const record of json.records || []) {
+    const store = normalizeGreensboroStore(record);
+    if (store) stores.set(store.id, store);
+  }
+  return { url, rawCount: (json.records || []).length, totalRecordsFound: json.totalRecordsFound || null, stores };
+}
+
+function greensboroItemName(item) {
+  return String(item.storedisplayname2 || item.displayname || item.itemid || '').replace(/\s+/g, ' ').trim();
+}
+
+function greensboroProductUrl(item) {
+  const slug = String(item.urlcomponent || '').trim();
+  return slug ? `${GREENSBORO_ABC_BASE_URL}/${encodeURIComponent(slug).replace(/%2F/gi, '/')}` : `${GREENSBORO_ABC_BASE_URL}/search?keywords=${encodeURIComponent(greensboroItemName(item))}`;
+}
+
+function isGreensboroBourbonWatchItem(name, bible) {
+  if (!name || !GREENSBORO_WATCH_ITEM_RE.test(name)) return false;
+  if (GREENSBORO_EXCLUDED_ITEM_RE.test(name)) return false;
+  return Boolean(bible.match(name)?.record);
+}
+
+async function collectGreensboroNc(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  let storeResult;
+  try {
+    storeResult = await greensboroStores();
+  } catch (error) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Greensboro ABC SuiteCommerce store locator service',
+      url: `${GREENSBORO_ABC_BASE_URL}/scs/services/Location.Service.ss?c=${GREENSBORO_ABC_COMPANY_ID}&n=${GREENSBORO_ABC_SITE_ID}`,
+      status: 0,
+      error: error.message,
+      nextRoute: 'Retry the public SuiteCommerce Location.Service endpoint from the rendered /stores page.'
+    });
+    return { signals, roadblocks, probeReports: [] };
+  }
+
+  const seenItems = new Set();
+  const observedAt = new Date().toISOString();
+  const probeReports = [{
+    source: 'Greensboro ABC SuiteCommerce store locator service',
+    url: storeResult.url,
+    status: 200,
+    rawLocationCount: storeResult.rawCount,
+    retailStoreCount: storeResult.stores.size,
+    note: 'Maps SuiteCommerce internal pickup location IDs to Greensboro ABC public store names and addresses.'
+  }];
+
+  for (const term of NC_STORE_INVENTORY_TERMS) {
+    const apiUrl = `${GREENSBORO_ABC_BASE_URL}/api/items?c=${GREENSBORO_ABC_COMPANY_ID}&country=US&currency=USD&fieldset=search&include=facets&language=en&limit=24&n=${GREENSBORO_ABC_SITE_ID}&offset=0&pricelevel=5&q=${encodeURIComponent(term)}&sort=custitem_ns_sc_ext_ts_7_quantity%3Adesc&use_pcv=T`;
+    let json;
+    try {
+      const res = await textFetch(apiUrl, {
+        headers: { accept: 'application/json,*/*', referer: `${GREENSBORO_ABC_BASE_URL}/search?keywords=${encodeURIComponent(term)}` },
+        timeoutMs: 20_000
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}${res.error ? `: ${res.error}` : ''}`);
+      json = JSON.parse(res.text);
+      probeReports.push({ source: 'Greensboro ABC SuiteCommerce item search API', url: apiUrl, status: res.status, term, total: json.total || 0, returned: (json.items || []).length });
+    } catch (error) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Greensboro ABC SuiteCommerce item search API',
+        url: apiUrl,
+        status: 0,
+        error: error.message,
+        nextRoute: 'Retry the public /api/items search endpoint and inspect rendered search network calls if the contract changed.'
+      });
+      continue;
+    }
+
+    for (const item of json.items || []) {
+      const itemId = String(item.internalid || item.itemid || greensboroItemName(item));
+      if (seenItems.has(itemId)) continue;
+      seenItems.add(itemId);
+      const rawName = greensboroItemName(item);
+      if (!isGreensboroBourbonWatchItem(rawName, bible)) continue;
+      const rows = item.quantityavailableforstorepickup_detail?.locations || [];
+      for (const row of rows) {
+        const qty = Number(row.qtyavailableforstorepickup || 0);
+        if (!Number.isFinite(qty) || qty <= 0) continue;
+        const store = storeResult.stores.get(String(row.internalid));
+        if (!store) continue;
+        const { base } = signalBase(config.id, 'Greensboro ABC SuiteCommerce pickup inventory', greensboroProductUrl(item), rawName, bible);
+        signals.push({
+          id: stableId([config.id, 'greensboro-suitecommerce-pickup', item.internalid || item.itemid, store.id, qty]),
+          ...base,
+          eventType: 'store_inventory_result',
+          locationPrecision: 'store_level',
+          locationName: store.name,
+          storeName: store.name,
+          storeId: `greensboro-${store.id}`,
+          storeAddress: store.address,
+          city: store.city,
+          county: 'Guilford',
+          zip: store.zip,
+          lat: store.lat,
+          lng: store.lng,
+          quantity: qty,
+          observedAt,
+          availabilityStatus: 'in_stock',
+          availabilityLabel: `${qty} reported available for pickup`,
+          evidence: `Greensboro ABC public storefront reports ${qty} bottle(s) of ${rawName} available for pickup at ${store.name}, ${store.address}. Verify with the store before driving.`,
+          raw: {
+            item: {
+              internalid: item.internalid || null,
+              itemid: item.itemid || null,
+              displayname: item.displayname || null,
+              storedisplayname2: item.storedisplayname2 || null,
+              urlcomponent: item.urlcomponent || null,
+              isinstock: item.isinstock ?? null,
+              storefrontQuantityField: item.custitem_ns_sc_ext_ts_7_quantity ?? null
+            },
+            store: { internalid: store.id, name: store.name, address: store.address, phone: store.phone },
+            endpoint: apiUrl,
+            sourceCaveat: 'Public SuiteCommerce pickup quantity by store. Treat as official storefront availability with verify-before-driving caveat, not a guaranteed shelf hold.'
+          }
+        });
+      }
+    }
+  }
+
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Greensboro ABC SuiteCommerce pickup inventory',
+      url: `${GREENSBORO_ABC_BASE_URL}/search`,
+      status: 'no_positive_tracked_rows',
+      error: 'Public item API and store locator were reachable, but tracked rare-bourbon terms produced no mapped positive pickup quantities.',
+      nextRoute: 'Broaden tracked terms carefully or inspect rendered product pages for item-specific pickup rows.'
+    });
+  }
+
+  return { signals, roadblocks, probeReports };
+}
+
+async function collectNcStoreInventory(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  const probeReports = [];
+
+  const wake = await collectWakeNc(config, bible);
+  signals.push(...wake.signals);
+  roadblocks.push(...wake.roadblocks);
+
+  const greensboro = await collectGreensboroNc(config, bible);
+  signals.push(...greensboro.signals);
+  roadblocks.push(...greensboro.roadblocks);
+  probeReports.push(...(greensboro.probeReports || []));
+
+  return {
+    signals,
+    roadblocks,
+    probeReports,
+    boardCapabilities: [
+      { boardName: 'Wake County ABC Board', capabilities: ['store_inventory_search_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' },
+      { boardName: 'Greensboro ABC Board', capabilities: ['suitecommerce_pickup_inventory_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' }
+    ]
+  };
 }
 
 function virginiaStoreSignals(product, json, config, bible, url) {
