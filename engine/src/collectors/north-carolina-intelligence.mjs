@@ -12,10 +12,12 @@ const NC_WAREHOUSE_HISTORY_DIR = path.join(OUT, 'history', 'nc-warehouse');
 const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 30);
 const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
+const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|bourbon|barrel|drop|specialty|special release|rare|whiskey|whisky|product search|inventory|stock|coming soon|release calendar/i;
 const STRONG_RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|specialty|special release|bourbon blast|barrel pick|release calendar|drops?\b|raffle|rare/i;
+const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|jack daniel|old forester|heaven hill|four roses|woodford|still austin|bardstown|yellowstone|wilderness trail|knob creek|elijah craig|ezra brooks/i;
 const SOURCE_POLICY = 'Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.';
 
 const STATIC_BOARD_TARGETS = [
@@ -224,6 +226,23 @@ function strictBottleMentions(text, bible) {
     if (strictTrackedProduct(record.canonical) || (record.aliases || []).some(strictTrackedProduct)) mentions.push(record);
   }
   return [...new Map(mentions.map((r) => [r.id, r])).values()];
+}
+
+function parseNewHanoverBarrelItems(html = '') {
+  const rows = [];
+  for (const match of html.matchAll(/NC Code:\s*<\/(?:strong|b)>\s*(\d+)\s*<br\s*\/?>([\s\S]{0,180}?)(?=<\/p>)/gi)) {
+    const before = html.slice(Math.max(0, match.index - 1400), match.index);
+    const titleMatches = [...before.matchAll(/<h1[^>]*style=["'][^"']*text-align:\s*center[^"']*["'][^>]*>([\s\S]*?)<\/h1>/gi)];
+    const titleHtml = titleMatches[titleMatches.length - 1]?.[1] || '';
+    const rawName = decodeHtml(stripHtml(titleHtml.replace(/<br\s*\/?\s*>/gi, ' '))).replace(/\s+/g, ' ').trim();
+    if (!rawName || !NEW_HANOVER_BARREL_SPIRIT_RE.test(rawName) || /tequila|corazon|herradura|codigo|reposado|a[ñn]ejo|blanco/i.test(rawName)) continue;
+    const details = decodeHtml(stripHtml(match[2])).replace(/\s+/g, ' ').trim();
+    const price = Number(details.match(/\$([\d,]+\.\d{2})/)?.[1]?.replace(/,/g, '')) || null;
+    const proof = Number(details.match(/([\d.]+)\s*Proof/i)?.[1]) || null;
+    const size = details.match(/(?:^|\|)\s*(\.\d+L|\d+(?:\.\d+)?\s*(?:ML|L))\b/i)?.[1]?.replace(/\s+/g, '') || null;
+    rows.push({ rawName, ncCode: match[1], details, price, proof, size });
+  }
+  return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
 }
 
 async function collectBoardDirectory(config, roadblocks, dossier, boards) {
@@ -492,6 +511,57 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
   dossier.boardWebsiteWatch = reports.map(({ textSample, ...report }) => report);
 }
 
+async function collectNewHanoverPublicProducts(config, bible, signals, roadblocks, dossier, boards) {
+  const boardName = 'New Hanover County ABC Board';
+  const board = boards.get(boardName) || createBoardRecord(boardName, { website: 'https://www.newhanovercountyabc.com', capabilities: ['official_board_website'] });
+  board.website ||= 'https://www.newhanovercountyabc.com';
+  board.sourceUrls.add(NEW_HANOVER_BARREL_URL);
+  addCapability(board, 'official_barrel_pick_item_cards');
+  boards.set(boardName, board);
+
+  const res = await safeTextFetch(NEW_HANOVER_BARREL_URL, { referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS });
+  if (!res.ok) {
+    roadblocks.push({ state: config.id, source: 'New Hanover County ABC barrel-pick item cards', url: NEW_HANOVER_BARREL_URL, status: res.status, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry the public WordPress barrel-pick page and inspect rendered card markup.' });
+    dossier.newHanoverPublicProducts = { sourceUrl: NEW_HANOVER_BARREL_URL, status: res.status, itemCount: 0, observedAt: new Date().toISOString() };
+    return;
+  }
+
+  const rows = parseNewHanoverBarrelItems(res.text);
+  for (const row of rows) {
+    const base = signalBase(config, 'New Hanover County ABC barrel-pick item cards', res.url || NEW_HANOVER_BARREL_URL, row.rawName, bible, 0.74);
+    signals.push({
+      id: stableId([config.id, 'new-hanover-barrel-card', row.ncCode, row.rawName, row.price]),
+      ...base,
+      confidence: Math.max(base.confidence, 0.74),
+      eventType: 'nc_board_barrel_pick_item',
+      locationPrecision: 'board_county',
+      locationName: boardName,
+      county: 'New Hanover',
+      ncCode: row.ncCode,
+      price: row.price,
+      proof: row.proof,
+      size: row.size,
+      observedAt: base.fetchedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Official New Hanover County ABC barrel-pick product card; page does not publish per-store shelf quantity.',
+      evidence: `New Hanover County ABC lists ${row.rawName} as an available barrel-pick offering${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''}. This is an official board product-card signal, not store-level inventory.`,
+      raw: { ...row, sourceUrl: res.url || NEW_HANOVER_BARREL_URL, precisionCaveat: 'official barrel-pick card; exact store and shelf quantity unknown' }
+    });
+  }
+
+  board.officialPageReports.push({ url: res.url || NEW_HANOVER_BARREL_URL, status: res.status, capabilities: ['barrel_program_page', 'official_barrel_pick_item_cards'], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 20) });
+  dossier.newHanoverPublicProducts = {
+    sourceUrl: res.url || NEW_HANOVER_BARREL_URL,
+    status: res.status,
+    itemCount: rows.length,
+    bourbonOrWhiskeyItemCount: rows.length,
+    items: rows,
+    observedAt: new Date().toISOString(),
+    note: 'Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity.'
+  };
+}
+
 function finalizeBoards(boards) {
   return [...boards.values()].map((board) => {
     board.precisionLevel = classifyBoard(board);
@@ -538,6 +608,7 @@ export async function collectNorthCarolinaIntelligence(config, bible, collectSto
   await collectStockShipped(config, bible, signals, roadblocks, dossier, boards);
   await collectWarehouse(config, bible, signals, roadblocks, dossier);
   await collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards);
+  await collectNewHanoverPublicProducts(config, bible, signals, roadblocks, dossier, boards);
 
   if (collectStoreInventoryFn) {
     const storeInventory = await collectStoreInventoryFn(config, bible);

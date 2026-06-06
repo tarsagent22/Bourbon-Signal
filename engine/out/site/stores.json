@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-06T01:59:09.969Z",
-  "count": 2316,
+  "generatedAt": "2026-06-06T10:49:32.757Z",
+  "count": 2441,
   "stores": [
     {
       "id": "alabc:001",
@@ -17112,6 +17112,104 @@
       "signalCount": 1
     },
     {
+      "id": "high-point-brookridge-lane",
+      "sourceStoreId": "high-point-brookridge-lane",
+      "state": "NC",
+      "name": "High Point ABC - Brookridge Lane",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 9
+    },
+    {
+      "id": "high-point-english-rd",
+      "sourceStoreId": "high-point-english-rd",
+      "state": "NC",
+      "name": "High Point ABC - English Rd",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 7
+    },
+    {
+      "id": "high-point-fairfield-rd",
+      "sourceStoreId": "high-point-fairfield-rd",
+      "state": "NC",
+      "name": "High Point ABC - Fairfield Rd",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 9
+    },
+    {
+      "id": "high-point-gate-city-blvd",
+      "sourceStoreId": "high-point-gate-city-blvd",
+      "state": "NC",
+      "name": "High Point ABC - Gate City Blvd",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 11
+    },
+    {
+      "id": "high-point-parris-ave",
+      "sourceStoreId": "high-point-parris-ave",
+      "state": "NC",
+      "name": "High Point ABC - Parris Ave",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 10
+    },
+    {
+      "id": "high-point-skeet-club-rd",
+      "sourceStoreId": "high-point-skeet-club-rd",
+      "state": "NC",
+      "name": "High Point ABC - Skeet Club Rd",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 10
+    },
+    {
+      "id": "high-point-wendover-ave",
+      "sourceStoreId": "high-point-wendover-ave",
+      "state": "NC",
+      "name": "High Point ABC - Wendover Ave",
+      "address": null,
+      "city": "High Point",
+      "county": "Guilford",
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "source": "High Point ABC public Power BI store inventory",
+      "signalCount": 8
+    },
+    {
       "id": "greensboro-25",
       "sourceStoreId": "greensboro-25",
       "state": "NC",
@@ -17123,7 +17221,7 @@
       "lat": 36.130395,
       "lng": -79.856256,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "greensboro-27",
@@ -17137,7 +17235,7 @@
       "lat": 36.024248,
       "lng": -79.801621,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "greensboro-28",
@@ -17151,7 +17249,7 @@
       "lat": 36.024248,
       "lng": -79.801621,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "greensboro-29",
@@ -17165,21 +17263,7 @@
       "lat": 36.024248,
       "lng": -79.801621,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 5
-    },
-    {
-      "id": "greensboro-30",
-      "sourceStoreId": "greensboro-30",
-      "state": "NC",
-      "name": "Store 14 - Summerfield",
-      "address": "4548 US Hwy 220 (102 & 103), Greensboro, NC, 27358",
-      "city": "Greensboro",
-      "county": "Guilford",
-      "zip": "27358",
-      "lat": 36.192777,
-      "lng": -79.890666,
-      "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "greensboro-31",
@@ -17193,7 +17277,7 @@
       "lat": 36.086901,
       "lng": 0,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "greensboro-32",
@@ -17207,7 +17291,7 @@
       "lat": 36.126399,
       "lng": -79.908805,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 6
+      "signalCount": 4
     },
     {
       "id": "greensboro-33",
@@ -17221,7 +17305,7 @@
       "lat": 36.002358,
       "lng": -79.790507,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 7
+      "signalCount": 4
     },
     {
       "id": "greensboro-36",
@@ -17235,7 +17319,7 @@
       "lat": 36.083449,
       "lng": -79.743518,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "greensboro-37",
@@ -17263,7 +17347,7 @@
       "lat": 36.069891,
       "lng": -79.86625,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 6
+      "signalCount": 3
     },
     {
       "id": "greensboro-39",
@@ -17277,7 +17361,7 @@
       "lat": 36.13156,
       "lng": -79.795102,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 8
+      "signalCount": 5
     },
     {
       "id": "greensboro-40",
@@ -17291,7 +17375,7 @@
       "lat": 36.073627,
       "lng": -79.798793,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 5
+      "signalCount": 3
     },
     {
       "id": "greensboro-41",
@@ -17305,7 +17389,7 @@
       "lat": 36.055123,
       "lng": 0,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 7
+      "signalCount": 5
     },
     {
       "id": "greensboro-42",
@@ -17319,7 +17403,7 @@
       "lat": 36.024248,
       "lng": -79.801621,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "922b13b70cfc763f",
@@ -17389,7 +17473,7 @@
       "lat": 40.0625485,
       "lng": -82.9346565,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40855",
@@ -17417,6 +17501,90 @@
       "lat": 41.0243492,
       "lng": -81.640915,
       "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40836",
+      "sourceStoreId": "40836",
+      "state": "OH",
+      "name": "ACME",
+      "address": "3979 Medina Rd, Akron, OH, 44333",
+      "city": "Akron",
+      "county": null,
+      "zip": null,
+      "lat": 41.1380206,
+      "lng": -81.6420704,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40852",
+      "sourceStoreId": "40852",
+      "state": "OH",
+      "name": "ACME",
+      "address": "2630 Bailey Rd, Cuyahoga Falls, OH, 44221",
+      "city": "Cuyahoga Falls",
+      "county": null,
+      "zip": null,
+      "lat": 41.1453321,
+      "lng": -81.4749214,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40870",
+      "sourceStoreId": "40870",
+      "state": "OH",
+      "name": "ACME",
+      "address": "116 W Streetsboro St, Unit 5, Hudson, OH, 44236",
+      "city": "Hudson",
+      "county": null,
+      "zip": null,
+      "lat": 41.2381369,
+      "lng": -81.4475853,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40872",
+      "sourceStoreId": "40872",
+      "state": "OH",
+      "name": "ACME",
+      "address": "2420 Wedgewood Dr, Akron, OH, 44312",
+      "city": "Akron",
+      "county": null,
+      "zip": null,
+      "lat": 41.0477375,
+      "lng": -81.4424828,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40879",
+      "sourceStoreId": "40879",
+      "state": "OH",
+      "name": "ACME",
+      "address": "1709 OH-59, Kent, OH, 44240",
+      "city": "Kent",
+      "county": null,
+      "zip": null,
+      "lat": 41.1545303,
+      "lng": -81.3320384,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40882",
+      "sourceStoreId": "40882",
+      "state": "OH",
+      "name": "ACME",
+      "address": "2905 Whipple Ave NW, Canton, OH, 44708",
+      "city": "Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.8315059,
+      "lng": -81.4264934,
+      "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
@@ -17434,6 +17602,20 @@
       "signalCount": 1
     },
     {
+      "id": "10562",
+      "sourceStoreId": "10562",
+      "state": "OH",
+      "name": "Air City Wine & Liquor",
+      "address": "3114 N Dixie Dr, Dayton, OH, 45414",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.7938457,
+      "lng": -84.1909382,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10556",
       "sourceStoreId": "10556",
       "state": "OH",
@@ -17445,7 +17627,21 @@
       "lat": 39.215014,
       "lng": -84.5855357,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
+    },
+    {
+      "id": "30700",
+      "sourceStoreId": "30700",
+      "state": "OH",
+      "name": "Ale Wine and Spirits",
+      "address": "7560 Guard Well St, Powell, OH, 43065",
+      "city": "Powell",
+      "county": null,
+      "zip": null,
+      "lat": 40.192661,
+      "lng": -83.09521,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "20610",
@@ -17490,6 +17686,34 @@
       "signalCount": 1
     },
     {
+      "id": "40950",
+      "sourceStoreId": "40950",
+      "state": "OH",
+      "name": "Apples",
+      "address": "400 sheffield center, Lorain, OH, 44055",
+      "city": "Lorain",
+      "county": null,
+      "zip": null,
+      "lat": 41.421,
+      "lng": -82.152,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40956",
+      "sourceStoreId": "40956",
+      "state": "OH",
+      "name": "Apples Market",
+      "address": "209 E Herrick Ave, Wellington, OH, 44090",
+      "city": "Wellington",
+      "county": null,
+      "zip": null,
+      "lat": 41.1691451,
+      "lng": -82.2126447,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "30748",
       "sourceStoreId": "30748",
       "state": "OH",
@@ -17530,20 +17754,6 @@
       "lng": -84.1699296,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 3
-    },
-    {
-      "id": "10567",
-      "sourceStoreId": "10567",
-      "state": "OH",
-      "name": "Arrow Wine & Spirits",
-      "address": "615 Lyons Road, Dayton, OH, 45459",
-      "city": "Dayton",
-      "county": null,
-      "zip": null,
-      "lat": 39.631675,
-      "lng": -84.189661,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "40859",
@@ -17598,6 +17808,20 @@
       "zip": null,
       "lat": 41.4181044,
       "lng": -81.616566,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20686",
+      "sourceStoreId": "20686",
+      "state": "OH",
+      "name": "Bassett's Market",
+      "address": "3994 E Harbor Rd, Port Clinton, OH, 43452",
+      "city": "Port Clinton",
+      "county": null,
+      "zip": null,
+      "lat": 41.522543,
+      "lng": -82.855973,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -17753,21 +17977,7 @@
       "lat": 40.6461895,
       "lng": -81.4526811,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "40940",
-      "sourceStoreId": "40940",
-      "state": "OH",
-      "name": "Bottle Stop",
-      "address": "4417-4423 West 150th St, Cleveland, OH, 44135",
-      "city": "Cleveland",
-      "county": null,
-      "zip": null,
-      "lat": 41.4333469,
-      "lng": -81.8070274,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "10549",
@@ -17782,20 +17992,6 @@
       "lng": -84.5168313,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "40301",
-      "sourceStoreId": "40301",
-      "state": "OH",
-      "name": "Brimfield Liquor",
-      "address": "3975 Cascades Blvd unit 15, Kent, OH, 44240",
-      "city": "Kent",
-      "county": null,
-      "zip": null,
-      "lat": 41.09645,
-      "lng": -81.38823,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "40986",
@@ -17896,16 +18092,16 @@
       "signalCount": 1
     },
     {
-      "id": "40983",
-      "sourceStoreId": "40983",
+      "id": "40411",
+      "sourceStoreId": "40411",
       "state": "OH",
-      "name": "Buehler's",
-      "address": "275 Forest Meadows Dr, Medina, OH, 44256",
-      "city": "Medina",
+      "name": "Buehler's Fresh Foods",
+      "address": "2208-2226 Lincoln Way West, Massillon, OH, 44647",
+      "city": "Massillon",
       "county": null,
       "zip": null,
-      "lat": 41.1533965,
-      "lng": -81.861381,
+      "lat": 40.7958604,
+      "lng": -81.5498438,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18008,6 +18204,20 @@
       "signalCount": 1
     },
     {
+      "id": "30732",
+      "sourceStoreId": "30732",
+      "state": "OH",
+      "name": "Central Point Liquor",
+      "address": "689 Harrisburg Pike, Columbus, OH, 43223",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9433396,
+      "lng": -83.0396845,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40919",
       "sourceStoreId": "40919",
       "state": "OH",
@@ -18018,20 +18228,6 @@
       "zip": null,
       "lat": 41.4642372,
       "lng": -81.5620605,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "40874",
-      "sourceStoreId": "40874",
-      "state": "OH",
-      "name": "Chalet Premier",
-      "address": "10000 Market St, North Lima, OH, 44452",
-      "city": "North Lima",
-      "county": null,
-      "zip": null,
-      "lat": 40.9729827,
-      "lng": -80.6616391,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18204,6 +18400,34 @@
       "signalCount": 2
     },
     {
+      "id": "40914",
+      "sourceStoreId": "40914",
+      "state": "OH",
+      "name": "Dave's Market",
+      "address": "1940 Lee Rd, Cleveland Heights, OH, 44118",
+      "city": "Cleveland Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.5068988,
+      "lng": -81.5660831,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40915",
+      "sourceStoreId": "40915",
+      "state": "OH",
+      "name": "Dave's Supermarket",
+      "address": "3628 Mayfield Rd, Cleveland Heights, OH, 44118",
+      "city": "Cleveland Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.5176073,
+      "lng": -81.5529664,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40927",
       "sourceStoreId": "40927",
       "state": "OH",
@@ -18214,6 +18438,34 @@
       "zip": null,
       "lat": 41.5383284,
       "lng": -81.4963011,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40847",
+      "sourceStoreId": "40847",
+      "state": "OH",
+      "name": "Dave's Supermarket",
+      "address": "3565 Ridge Rd, Cleveland, OH, 44102",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.4592904,
+      "lng": -81.7371648,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40920",
+      "sourceStoreId": "40920",
+      "state": "OH",
+      "name": "Dave's Supermarket",
+      "address": "2700 Carroll Ave, Cleveland, OH, 44113",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.4849384,
+      "lng": -81.7059974,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18274,16 +18526,16 @@
       "signalCount": 2
     },
     {
-      "id": "20623",
-      "sourceStoreId": "20623",
+      "id": "40831",
+      "sourceStoreId": "40831",
       "state": "OH",
-      "name": "Dick's Grocery & Carryout",
-      "address": "1318 Tiffin Ave, Sandusky, OH, 44870",
-      "city": "Sandusky",
+      "name": "Didi's Beverage",
+      "address": "5614 Youngstown Warren Rd, Niles, OH, 44446",
+      "city": "Niles",
       "county": null,
       "zip": null,
-      "lat": 41.4444367,
-      "lng": -82.7287629,
+      "lat": 41.2102478,
+      "lng": -80.7516301,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18298,6 +18550,20 @@
       "zip": null,
       "lat": 41.500149,
       "lng": -81.6986126,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20631",
+      "sourceStoreId": "20631",
+      "state": "OH",
+      "name": "Duke's State Liquor Store",
+      "address": "630 N Main St, Lima, OH, 45801",
+      "city": "Lima",
+      "county": null,
+      "zip": null,
+      "lat": 40.7474165,
+      "lng": -84.1049791,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18386,6 +18652,20 @@
       "signalCount": 2
     },
     {
+      "id": "30757",
+      "sourceStoreId": "30757",
+      "state": "OH",
+      "name": "Enon Drive Thru",
+      "address": "358 Enon Rd, Enon, OH, 45323",
+      "city": "Enon",
+      "county": null,
+      "zip": null,
+      "lat": 39.884392,
+      "lng": -83.9358037,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40936",
       "sourceStoreId": "40936",
       "state": "OH",
@@ -18400,6 +18680,20 @@
       "signalCount": 1
     },
     {
+      "id": "40939",
+      "sourceStoreId": "40939",
+      "state": "OH",
+      "name": "Fairport Harbor Beverage & Liquor",
+      "address": "200 3rd St, Fairport Harbor, OH, 44077",
+      "city": "Fairport Harbor",
+      "county": null,
+      "zip": null,
+      "lat": 41.7556301,
+      "lng": -81.2770981,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10537",
       "sourceStoreId": "10537",
       "state": "OH",
@@ -18410,6 +18704,20 @@
       "zip": null,
       "lat": 39.0719293,
       "lng": -84.3213364,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10597",
+      "sourceStoreId": "10597",
+      "state": "OH",
+      "name": "Franklin Party Supply",
+      "address": "443 Riley Blvd, Franklin, OH, 45005",
+      "city": "Franklin",
+      "county": null,
+      "zip": null,
+      "lat": 39.5587138,
+      "lng": -84.303466,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18439,7 +18747,7 @@
       "lat": 39.9321205,
       "lng": -83.159177,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40838",
@@ -18481,7 +18789,7 @@
       "lat": 39.7555864,
       "lng": -84.188586,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40806",
@@ -18496,6 +18804,90 @@
       "lng": -80.8361824,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "40300",
+      "sourceStoreId": "40300",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "484 E Waterloo Rd, Akron, OH, 44319",
+      "city": "Akron",
+      "county": null,
+      "zip": null,
+      "lat": 41.0275123,
+      "lng": -81.5094509,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40828",
+      "sourceStoreId": "40828",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "3100 Cromer Ave NW, Canton, OH, 44709",
+      "city": "Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.8341339,
+      "lng": -81.381672,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40833",
+      "sourceStoreId": "40833",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2700 Mahoning Ave, Warren, OH, 44483",
+      "city": "Warren",
+      "county": null,
+      "zip": null,
+      "lat": 41.2597141,
+      "lng": -80.832574,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40839",
+      "sourceStoreId": "40839",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "608 Raff Rd SW, Canton, OH, 44710",
+      "city": "Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.7962282,
+      "lng": -81.4153639,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40904",
+      "sourceStoreId": "40904",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "5321 Warrensville Center Rd, Maple Heights, OH, 44137",
+      "city": "Maple Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.4156693,
+      "lng": -81.5354263,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "40991",
+      "sourceStoreId": "40991",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6869 Southland Dr, Middleburg Heights, OH, 44130",
+      "city": "Middleburg Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.3769352,
+      "lng": -81.7876508,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "30773",
@@ -18523,7 +18915,7 @@
       "lat": 39.738547,
       "lng": -82.6356451,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40304",
@@ -18537,7 +18929,7 @@
       "lat": 40.8751177,
       "lng": -81.4351639,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40400",
@@ -18551,7 +18943,7 @@
       "lat": 41.3647222,
       "lng": -81.6880122,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40951",
@@ -18565,7 +18957,7 @@
       "lat": 41.4938295,
       "lng": -81.9858165,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40965",
@@ -18579,7 +18971,7 @@
       "lat": 41.4231772,
       "lng": -82.3435957,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40968",
@@ -18607,7 +18999,7 @@
       "lat": 41.5237235,
       "lng": -81.3391972,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40984",
@@ -18621,7 +19013,7 @@
       "lat": 41.8020174,
       "lng": -81.0512179,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40995",
@@ -18634,6 +19026,552 @@
       "zip": null,
       "lat": 41.4597258,
       "lng": -81.8646783,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30202",
+      "sourceStoreId": "30202",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6700 Hayden Run Blvd, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0604426,
+      "lng": -83.1801926,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30212",
+      "sourceStoreId": "30212",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2801 N High St, Columbus, OH, 43202",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0190754,
+      "lng": -83.0131417,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30728",
+      "sourceStoreId": "30728",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "3841 S Hamilton Rd, Groveport, OH, 43125",
+      "city": "Groveport",
+      "county": null,
+      "zip": null,
+      "lat": 39.8965136,
+      "lng": -82.8846358,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30747",
+      "sourceStoreId": "30747",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2173 Stringtown Rd, Grove City, OH, 43123",
+      "city": "Grove City",
+      "county": null,
+      "zip": null,
+      "lat": 39.8766,
+      "lng": -83.0614986,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30812",
+      "sourceStoreId": "30812",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "515 Union Ave, Dover, OH, 44622",
+      "city": "Dover",
+      "county": null,
+      "zip": null,
+      "lat": 40.5080949,
+      "lng": -81.4636095,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40307",
+      "sourceStoreId": "40307",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "4700 Belmont Ave, Youngstown, OH, 44505",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.1664805,
+      "lng": -80.666851,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40401",
+      "sourceStoreId": "40401",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6300 Biddulph Rd, Brooklyn, OH, 44144",
+      "city": "Brooklyn",
+      "county": null,
+      "zip": null,
+      "lat": 41.4317838,
+      "lng": -81.7300151,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40404",
+      "sourceStoreId": "40404",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "25105 Cedar Rd, Lyndhurst, OH, 44124",
+      "city": "Lyndhurst",
+      "county": null,
+      "zip": null,
+      "lat": 41.503467,
+      "lng": -81.4994567,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40801",
+      "sourceStoreId": "40801",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1955 E Maple St, North Canton, OH, 44720",
+      "city": "North Canton",
+      "county": null,
+      "zip": null,
+      "lat": 40.8751034,
+      "lng": -81.3707892,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40808",
+      "sourceStoreId": "40808",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "290 E Aurora Rd, Northfield, OH, 44067",
+      "city": "Northfield",
+      "county": null,
+      "zip": null,
+      "lat": 41.3139547,
+      "lng": -81.526271,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40816",
+      "sourceStoreId": "40816",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1700 Norton Rd, Stow, OH, 44224",
+      "city": "Stow",
+      "county": null,
+      "zip": null,
+      "lat": 41.202064,
+      "lng": -81.43392,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40818",
+      "sourceStoreId": "40818",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "108 W Main St, Louisville, OH, 44641",
+      "city": "Louisville",
+      "county": null,
+      "zip": null,
+      "lat": 40.8367309,
+      "lng": -81.2606701,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40844",
+      "sourceStoreId": "40844",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "41 5th St SE, Barberton, OH, 44203",
+      "city": "Barberton",
+      "county": null,
+      "zip": null,
+      "lat": 41.0093165,
+      "lng": -81.5872784,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40848",
+      "sourceStoreId": "40848",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "4428 Broadview Rd, Richfield, OH, 44286",
+      "city": "Richfield",
+      "county": null,
+      "zip": null,
+      "lat": 41.2506237,
+      "lng": -81.6642023,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40849",
+      "sourceStoreId": "40849",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2032 Lincoln Way E, Massillon, OH, 44646",
+      "city": "Massillon",
+      "county": null,
+      "zip": null,
+      "lat": 40.8010824,
+      "lng": -81.4951907,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40863",
+      "sourceStoreId": "40863",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "8202 E Market St, Warren, OH, 44484",
+      "city": "Warren",
+      "county": null,
+      "zip": null,
+      "lat": 41.2371851,
+      "lng": -80.7435436,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40866",
+      "sourceStoreId": "40866",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "525 E Main St, Canfield, OH, 44406",
+      "city": "Canfield",
+      "county": null,
+      "zip": null,
+      "lat": 41.0233149,
+      "lng": -80.7469215,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40884",
+      "sourceStoreId": "40884",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "476 Boardman-Canfield Rd, Youngstown, OH, 44512",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.0262102,
+      "lng": -80.6788821,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40888",
+      "sourceStoreId": "40888",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "909 E Main St, Ravenna, OH, 44266",
+      "city": "Ravenna",
+      "county": null,
+      "zip": null,
+      "lat": 41.1583798,
+      "lng": -81.2277961,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40889",
+      "sourceStoreId": "40889",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1201 Doral Dr, Youngstown, OH, 44514",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.0281855,
+      "lng": -80.6319141,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40890",
+      "sourceStoreId": "40890",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1800 W State St, Alliance, OH, 44601",
+      "city": "Alliance",
+      "county": null,
+      "zip": null,
+      "lat": 40.9007509,
+      "lng": -81.1313067,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40899",
+      "sourceStoreId": "40899",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2061 Elm Rd, Warren, OH, 44483",
+      "city": "Warren",
+      "county": null,
+      "zip": null,
+      "lat": 41.255268,
+      "lng": -80.793562,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40900",
+      "sourceStoreId": "40900",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "24601 Chagrin Blvd, Beachwood, OH, 44122",
+      "city": "Beachwood",
+      "county": null,
+      "zip": null,
+      "lat": 41.4659078,
+      "lng": -81.5057165,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40902",
+      "sourceStoreId": "40902",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "5231 Detroit Rd, Sheffield Lake, OH, 44054",
+      "city": "Sheffield Lake",
+      "county": null,
+      "zip": null,
+      "lat": 41.4277127,
+      "lng": -82.0792277,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40913",
+      "sourceStoreId": "40913",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "3440 Center Rd, Brunswick, OH, 44212",
+      "city": "Brunswick",
+      "county": null,
+      "zip": null,
+      "lat": 41.2369703,
+      "lng": -81.8101122,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40916",
+      "sourceStoreId": "40916",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "320 Market Dr, Elyria, OH, 44035",
+      "city": "Elyria",
+      "county": null,
+      "zip": null,
+      "lat": 41.3899944,
+      "lng": -82.1099186,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40918",
+      "sourceStoreId": "40918",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "34325 Center Ridge Rd, North Ridgeville, OH, 44039",
+      "city": "North Ridgeville",
+      "county": null,
+      "zip": null,
+      "lat": 41.3963235,
+      "lng": -81.9974129,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40921",
+      "sourceStoreId": "40921",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "36475 Euclid Ave, Willoughby, OH, 44094",
+      "city": "Willoughby",
+      "county": null,
+      "zip": null,
+      "lat": 41.6303564,
+      "lng": -81.4277904,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40933",
+      "sourceStoreId": "40933",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "4343 E Royalton Rd, Broadview Heights, OH, 44147",
+      "city": "Broadview Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.3150978,
+      "lng": -81.6561515,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40937",
+      "sourceStoreId": "40937",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "3050 W 117th St, Cleveland, OH, 44111",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.4689392,
+      "lng": -81.7717994,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40943",
+      "sourceStoreId": "40943",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "15400 W High St, Middlefield, OH, 44062",
+      "city": "Middlefield",
+      "county": null,
+      "zip": null,
+      "lat": 41.4645989,
+      "lng": -81.0918603,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40946",
+      "sourceStoreId": "40946",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6079 Andrews Rd, Mentor-on-the-Lake, OH, 44060",
+      "city": "Mentor-on-the-Lake",
+      "county": null,
+      "zip": null,
+      "lat": 41.7067823,
+      "lng": -81.3597887,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40957",
+      "sourceStoreId": "40957",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "7939 Day Dr, Cleveland, OH, 44129",
+      "city": "Cleveland",
+      "county": null,
+      "zip": null,
+      "lat": 41.3784411,
+      "lng": -81.7397128,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40966",
+      "sourceStoreId": "40966",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "1201 Mentor Ave, Painesville, OH, 44077",
+      "city": "Painesville",
+      "county": null,
+      "zip": null,
+      "lat": 41.7061246,
+      "lng": -81.2664784,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40972",
+      "sourceStoreId": "40972",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "351 Center St, Chardon, OH, 44024",
+      "city": "Chardon",
+      "county": null,
+      "zip": null,
+      "lat": 41.5835564,
+      "lng": -81.2182429,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40974",
+      "sourceStoreId": "40974",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "755 S Broadway, Geneva, OH, 44041",
+      "city": "Geneva",
+      "county": null,
+      "zip": null,
+      "lat": 41.795232,
+      "lng": -80.9462497,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40979",
+      "sourceStoreId": "40979",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "825 Ambassador Dr, Wadsworth, OH, 44281",
+      "city": "Wadsworth",
+      "county": null,
+      "zip": null,
+      "lat": 41.0452366,
+      "lng": -81.6958105,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40987",
+      "sourceStoreId": "40987",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "2390 W Prospect Rd, Ashtabula, OH, 44004",
+      "city": "Ashtabula",
+      "county": null,
+      "zip": null,
+      "lat": 41.8537656,
+      "lng": -80.8160853,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40990",
+      "sourceStoreId": "40990",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "5744 Transportation Blvd, Garfield Heights, OH, 44125",
+      "city": "Garfield Heights",
+      "county": null,
+      "zip": null,
+      "lat": 41.4044382,
+      "lng": -81.6121576,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18677,7 +19615,7 @@
       "lat": 41.1465526,
       "lng": -81.5068368,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40969",
@@ -18690,6 +19628,118 @@
       "zip": null,
       "lat": 41.3819565,
       "lng": -81.4365421,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30210",
+      "sourceStoreId": "30210",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "3061 Kingsdale Center, Upper Arlington, OH, 43221",
+      "city": "Upper Arlington",
+      "county": null,
+      "zip": null,
+      "lat": 40.0200612,
+      "lng": -83.0585093,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30719",
+      "sourceStoreId": "30719",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "2900 Stelzer Rd, Columbus, OH, 43219",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0320755,
+      "lng": -82.9080945,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30723",
+      "sourceStoreId": "30723",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "4747 Sawmill Rd, Columbus, OH, 43220",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0640075,
+      "lng": -83.0958741,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30725",
+      "sourceStoreId": "30725",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "840 W 3rd Ave, Columbus, OH, 43212",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9862547,
+      "lng": -83.0278807,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30746",
+      "sourceStoreId": "30746",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "6700 Perimeter Loop Rd, Dublin, OH, 43017",
+      "city": "Dublin",
+      "county": null,
+      "zip": null,
+      "lat": 40.1027885,
+      "lng": -83.1558953,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40814",
+      "sourceStoreId": "40814",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "1700 Corporate Woods Pkwy, Uniontown, OH, 44685",
+      "city": "Uniontown",
+      "county": null,
+      "zip": null,
+      "lat": 40.9620598,
+      "lng": -81.4691972,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40963",
+      "sourceStoreId": "40963",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "15919 Pearl Rd, Strongsville, OH, 44136",
+      "city": "Strongsville",
+      "county": null,
+      "zip": null,
+      "lat": 41.3004124,
+      "lng": -81.8324648,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30219",
+      "sourceStoreId": "30219",
+      "state": "OH",
+      "name": "Giant Eagle Market District Express",
+      "address": "2250 E. Main St., Bexley, OH, 43209",
+      "city": "Bexley",
+      "county": null,
+      "zip": null,
+      "lat": 39.9575815,
+      "lng": -82.9392971,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -18747,7 +19797,7 @@
       "lat": 41.0610653,
       "lng": -80.6342878,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40977",
@@ -18848,6 +19898,20 @@
       "signalCount": 2
     },
     {
+      "id": "20618",
+      "sourceStoreId": "20618",
+      "state": "OH",
+      "name": "Hogue's Foodland Mkt",
+      "address": "855 Kilbourne St, Bellevue, OH, 44811",
+      "city": "Bellevue",
+      "county": null,
+      "zip": null,
+      "lat": 41.2632359,
+      "lng": -82.858195,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
       "id": "30770",
       "sourceStoreId": "30770",
       "state": "OH",
@@ -18876,6 +19940,20 @@
       "signalCount": 1
     },
     {
+      "id": "20612",
+      "sourceStoreId": "20612",
+      "state": "OH",
+      "name": "Huron Market",
+      "address": "525 Cleveland Rd W, Huron, OH, 44839",
+      "city": "Huron",
+      "county": null,
+      "zip": null,
+      "lat": 41.3988113,
+      "lng": -82.5604116,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10512",
       "sourceStoreId": "10512",
       "state": "OH",
@@ -18887,7 +19965,7 @@
       "lat": 39.1452054,
       "lng": -84.4417767,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20669",
@@ -18929,7 +20007,7 @@
       "lat": 39.3477869,
       "lng": -83.3989112,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40967",
@@ -19055,161 +20133,91 @@
       "lat": 40.7879198,
       "lng": -82.7347521,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
-      "id": "10502",
-      "sourceStoreId": "10502",
+      "id": "10548",
+      "sourceStoreId": "10548",
       "state": "OH",
       "name": "Kroger",
-      "address": "1 W Corry St, Cincinnati, OH, 45219",
-      "city": "Cincinnati",
+      "address": "2100 W Michigan St, Sidney, OH, 45365",
+      "city": "Sidney",
       "county": null,
       "zip": null,
-      "lat": 39.1285358,
-      "lng": -84.5091675,
+      "lat": 40.289692,
+      "lng": -84.1869554,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
-      "id": "10506",
-      "sourceStoreId": "10506",
+      "id": "20632",
+      "sourceStoreId": "20632",
       "state": "OH",
       "name": "Kroger",
-      "address": "560 Wessel Dr, Fairfield, OH, 45014",
-      "city": "Fairfield",
+      "address": "2257 N Holland Sylvania Rd, Toledo, OH, 43615",
+      "city": "Toledo",
       "county": null,
       "zip": null,
-      "lat": 39.3362321,
-      "lng": -84.5625889,
+      "lat": 41.6625345,
+      "lng": -83.6843175,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "20641",
+      "sourceStoreId": "20641",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4633 Suder Ave, Toledo, OH, 43611",
+      "city": "Toledo",
+      "county": null,
+      "zip": null,
+      "lat": 41.7058137,
+      "lng": -83.4995378,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30710",
+      "sourceStoreId": "30710",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "610 Carroll St, New Lexington, OH, 43764",
+      "city": "New Lexington",
+      "county": null,
+      "zip": null,
+      "lat": 39.722029,
+      "lng": -82.2030838,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
     {
-      "id": "10508",
-      "sourceStoreId": "10508",
+      "id": "30713",
+      "sourceStoreId": "30713",
       "state": "OH",
       "name": "Kroger",
-      "address": "4100 Hunt Rd, Blue Ash, OH, 45236",
-      "city": "Blue Ash",
+      "address": "1240 Park Ave W, Mansfield, OH, 44906",
+      "city": "Mansfield",
       "county": null,
       "zip": null,
-      "lat": 39.2272715,
-      "lng": -84.3978397,
+      "lat": 40.7609952,
+      "lng": -82.5609947,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
-      "id": "10539",
-      "sourceStoreId": "10539",
+      "id": "30730",
+      "sourceStoreId": "30730",
       "state": "OH",
       "name": "Kroger",
-      "address": "1230 Rombach Ave, Wilmington, OH, 45177",
-      "city": "Wilmington",
-      "county": null,
-      "zip": null,
-      "lat": 39.4464232,
-      "lng": -83.8070966,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30213",
-      "sourceStoreId": "30213",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "6580 E Main St, Reynoldsburg, OH, 43068",
-      "city": "Reynoldsburg",
-      "county": null,
-      "zip": null,
-      "lat": 39.9559048,
-      "lng": -82.8098986,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30720",
-      "sourceStoreId": "30720",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "1375 Chambers Rd, Columbus, OH, 43212",
+      "address": "1350 N High St, Columbus, OH, 43201",
       "city": "Columbus",
       "county": null,
       "zip": null,
-      "lat": 39.9926506,
-      "lng": -83.0434669,
+      "lat": 39.988877,
+      "lng": -83.0058436,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30724",
-      "sourceStoreId": "30724",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "1441 Parsons Ave, Columbus, OH, 43207",
-      "city": "Columbus",
-      "county": null,
-      "zip": null,
-      "lat": 39.9343323,
-      "lng": -82.9838752,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30727",
-      "sourceStoreId": "30727",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "55 W Schrock Rd, Westerville, OH, 43081",
-      "city": "Westerville",
-      "county": null,
-      "zip": null,
-      "lat": 40.1082449,
-      "lng": -82.9273308,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30733",
-      "sourceStoreId": "30733",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "7625 Sawmill Rd, Dublin, OH, 43016",
-      "city": "Dublin",
-      "county": null,
-      "zip": null,
-      "lat": 40.1216289,
-      "lng": -83.0927068,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30745",
-      "sourceStoreId": "30745",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "199 Graceland Blvd, Columbus, OH, 43214",
-      "city": "Columbus",
-      "county": null,
-      "zip": null,
-      "lat": 40.0650187,
-      "lng": -83.0253836,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30763",
-      "sourceStoreId": "30763",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "4656 Cemetery Rd, Hilliard, OH, 43026",
-      "city": "Hilliard",
-      "county": null,
-      "zip": null,
-      "lat": 40.0335187,
-      "lng": -83.1404885,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30793",
@@ -19223,7 +20231,161 @@
       "lat": 39.9587124,
       "lng": -82.875605,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
+    },
+    {
+      "id": "10502",
+      "sourceStoreId": "10502",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1 W Corry St, Cincinnati, OH, 45219",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.1285358,
+      "lng": -84.5091675,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10506",
+      "sourceStoreId": "10506",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "560 Wessel Dr, Fairfield, OH, 45014",
+      "city": "Fairfield",
+      "county": null,
+      "zip": null,
+      "lat": 39.3362321,
+      "lng": -84.5625889,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10508",
+      "sourceStoreId": "10508",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4100 Hunt Rd, Blue Ash, OH, 45236",
+      "city": "Blue Ash",
+      "county": null,
+      "zip": null,
+      "lat": 39.2272715,
+      "lng": -84.3978397,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10539",
+      "sourceStoreId": "10539",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1230 Rombach Ave, Wilmington, OH, 45177",
+      "city": "Wilmington",
+      "county": null,
+      "zip": null,
+      "lat": 39.4464232,
+      "lng": -83.8070966,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30213",
+      "sourceStoreId": "30213",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "6580 E Main St, Reynoldsburg, OH, 43068",
+      "city": "Reynoldsburg",
+      "county": null,
+      "zip": null,
+      "lat": 39.9559048,
+      "lng": -82.8098986,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30720",
+      "sourceStoreId": "30720",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1375 Chambers Rd, Columbus, OH, 43212",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9926506,
+      "lng": -83.0434669,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30724",
+      "sourceStoreId": "30724",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1441 Parsons Ave, Columbus, OH, 43207",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9343323,
+      "lng": -82.9838752,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30727",
+      "sourceStoreId": "30727",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "55 W Schrock Rd, Westerville, OH, 43081",
+      "city": "Westerville",
+      "county": null,
+      "zip": null,
+      "lat": 40.1082449,
+      "lng": -82.9273308,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30733",
+      "sourceStoreId": "30733",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "7625 Sawmill Rd, Dublin, OH, 43016",
+      "city": "Dublin",
+      "county": null,
+      "zip": null,
+      "lat": 40.1216289,
+      "lng": -83.0927068,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30745",
+      "sourceStoreId": "30745",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "199 Graceland Blvd, Columbus, OH, 43214",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.0650187,
+      "lng": -83.0253836,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30763",
+      "sourceStoreId": "30763",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4656 Cemetery Rd, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0335187,
+      "lng": -83.1404885,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "30795",
@@ -19251,7 +20413,7 @@
       "lat": 40.0756345,
       "lng": -80.8725277,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "10519",
@@ -19265,7 +20427,7 @@
       "lat": 39.2714935,
       "lng": -84.3258674,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20601",
@@ -19279,7 +20441,7 @@
       "lat": 41.6114669,
       "lng": -83.6064081,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20633",
@@ -19293,7 +20455,7 @@
       "lat": 41.3912668,
       "lng": -83.6486121,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "20638",
@@ -19307,7 +20469,7 @@
       "lat": 41.0220241,
       "lng": -83.6487695,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30711",
@@ -19335,7 +20497,7 @@
       "lat": 40.0026145,
       "lng": -83.1548091,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30762",
@@ -19349,7 +20511,7 @@
       "lat": 40.0842726,
       "lng": -82.8973149,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30817",
@@ -19362,6 +20524,384 @@
       "zip": null,
       "lat": 40.3743862,
       "lng": -80.7034063,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10516",
+      "sourceStoreId": "10516",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3033 Heritage Green Dr, Monroe, OH, 45050",
+      "city": "Monroe",
+      "county": null,
+      "zip": null,
+      "lat": 39.4423634,
+      "lng": -84.378075,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10530",
+      "sourceStoreId": "10530",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4500 Montgomery Rd, Norwood, OH, 45212",
+      "city": "Norwood",
+      "county": null,
+      "zip": null,
+      "lat": 39.1587733,
+      "lng": -84.455467,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10534",
+      "sourceStoreId": "10534",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "548 Clinton Ave, Washington Court House, OH, 43160",
+      "city": "Washington Court House",
+      "county": null,
+      "zip": null,
+      "lat": 39.5340599,
+      "lng": -83.4459176,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10550",
+      "sourceStoreId": "10550",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "2120 Beechmont Ave, Cincinnati, OH, 45230",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.0935626,
+      "lng": -84.3864388,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10557",
+      "sourceStoreId": "10557",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "262 W Main St, Amelia, OH, 45102",
+      "city": "Amelia",
+      "county": null,
+      "zip": null,
+      "lat": 39.0360156,
+      "lng": -84.2327136,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10563",
+      "sourceStoreId": "10563",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "7580 Beechmont Ave, Cincinnati, OH, 45255",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.0743794,
+      "lng": -84.3491591,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10586",
+      "sourceStoreId": "10586",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "5910 Harrison Ave., Cincinnati, OH, 45248",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.1740893,
+      "lng": -84.6398896,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20602",
+      "sourceStoreId": "20602",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "113 E Airport Hwy, Swanton, OH, 43558",
+      "city": "Swanton",
+      "county": null,
+      "zip": null,
+      "lat": 41.5810343,
+      "lng": -83.8868682,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20613",
+      "sourceStoreId": "20613",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "790 W Market St, Tiffin, OH, 44883",
+      "city": "Tiffin",
+      "county": null,
+      "zip": null,
+      "lat": 41.1128393,
+      "lng": -83.2084132,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20615",
+      "sourceStoreId": "20615",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "126 W High St, Fostoria, OH, 44830",
+      "city": "Fostoria",
+      "county": null,
+      "zip": null,
+      "lat": 41.1629751,
+      "lng": -83.4155146,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20620",
+      "sourceStoreId": "20620",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3301 Navarre Ave, Oregon, OH, 43616",
+      "city": "Oregon",
+      "county": null,
+      "zip": null,
+      "lat": 41.6383699,
+      "lng": -83.4697727,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20625",
+      "sourceStoreId": "20625",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "2028 E Harbor Rd, Port Clinton, OH, 43452",
+      "city": "Port Clinton",
+      "county": null,
+      "zip": null,
+      "lat": 41.5148182,
+      "lng": -82.9024339,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20646",
+      "sourceStoreId": "20646",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4925 Jackman Rd, Unit 1, Toledo, OH, 43613",
+      "city": "Toledo",
+      "county": null,
+      "zip": null,
+      "lat": 41.7041963,
+      "lng": -83.5898479,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20649",
+      "sourceStoreId": "20649",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "226 E Perkins Ave, Sandusky, OH, 44870",
+      "city": "Sandusky",
+      "county": null,
+      "zip": null,
+      "lat": 41.4312538,
+      "lng": -82.6947831,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20666",
+      "sourceStoreId": "20666",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "27322 Carronade Dr, Perrysburg, OH, 43551",
+      "city": "Perrysburg",
+      "county": null,
+      "zip": null,
+      "lat": 41.5454285,
+      "lng": -83.5981821,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20692",
+      "sourceStoreId": "20692",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "7059 Orchard Centre Dr, Holland, OH, 43528",
+      "city": "Holland",
+      "county": null,
+      "zip": null,
+      "lat": 41.6082755,
+      "lng": -83.7100543,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30206",
+      "sourceStoreId": "30206",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "300 S Hamilton Rd, Gahanna, OH, 43230",
+      "city": "Gahanna",
+      "county": null,
+      "zip": null,
+      "lat": 40.0118854,
+      "lng": -82.8647496,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30207",
+      "sourceStoreId": "30207",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1006 A Washington Blvd, Belpre, OH, 45714",
+      "city": "Belpre",
+      "county": null,
+      "zip": null,
+      "lat": 39.2748159,
+      "lng": -81.5797785,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30214",
+      "sourceStoreId": "30214",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3588 Gender Rd, Canal Winchester, OH, 43110",
+      "city": "Canal Winchester",
+      "county": null,
+      "zip": null,
+      "lat": 39.908329,
+      "lng": -82.8226343,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30714",
+      "sourceStoreId": "30714",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1500 Lexington Ave, Mansfield, OH, 44907",
+      "city": "Mansfield",
+      "county": null,
+      "zip": null,
+      "lat": 40.7188315,
+      "lng": -82.5492869,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30721",
+      "sourceStoreId": "30721",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "60 Worthington Mall, Worthington, OH, 43085",
+      "city": "Worthington",
+      "county": null,
+      "zip": null,
+      "lat": 40.1091745,
+      "lng": -83.0177497,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30731",
+      "sourceStoreId": "30731",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3600 Soldano Boulevard, Columbus, OH, 43228",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9567726,
+      "lng": -83.0967966,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30737",
+      "sourceStoreId": "30737",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "230 Lafayette St, London, OH, 43140",
+      "city": "London",
+      "county": null,
+      "zip": null,
+      "lat": 39.896806,
+      "lng": -83.435529,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30743",
+      "sourceStoreId": "30743",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "299 W Bridge St, Dublin, OH, 43017",
+      "city": "Dublin",
+      "county": null,
+      "zip": null,
+      "lat": 40.0978219,
+      "lng": -83.122326,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30766",
+      "sourceStoreId": "30766",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1637 E US Hwy 36, Urbana, OH, 43078",
+      "city": "Urbana",
+      "county": null,
+      "zip": null,
+      "lat": 40.1045289,
+      "lng": -83.7201083,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30791",
+      "sourceStoreId": "30791",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1177 Polaris Pkwy, Columbus, OH, 43240",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 40.1401083,
+      "lng": -82.9903152,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30827",
+      "sourceStoreId": "30827",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "264 S Hollywood Blvd, Steubenville, OH, 43952",
+      "city": "Steubenville",
+      "county": null,
+      "zip": null,
+      "lat": 40.3670421,
+      "lng": -80.6398448,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19419,7 +20959,7 @@
       "lat": 40.5459446,
       "lng": -84.5701259,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40952",
@@ -19503,7 +21043,7 @@
       "lat": 39.417,
       "lng": -84.472,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10500",
@@ -19562,6 +21102,34 @@
       "signalCount": 1
     },
     {
+      "id": "30758",
+      "sourceStoreId": "30758",
+      "state": "OH",
+      "name": "Lucky's Granville Market",
+      "address": "484 S Main St, P.O. Box 377, Granville, OH, 43023",
+      "city": "Granville",
+      "county": null,
+      "zip": null,
+      "lat": 40.0630993,
+      "lng": -82.5194565,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40412",
+      "sourceStoreId": "40412",
+      "state": "OH",
+      "name": "Lucky's Market",
+      "address": "7596 Fredle Dr, Concord, OH, 44077",
+      "city": "Concord",
+      "county": null,
+      "zip": null,
+      "lat": 41.6642217,
+      "lng": -81.2412163,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "10552",
       "sourceStoreId": "10552",
       "state": "OH",
@@ -19573,7 +21141,7 @@
       "lat": 39.7708751,
       "lng": -84.1072983,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40800",
@@ -19713,7 +21281,7 @@
       "lat": 39.5027613,
       "lng": -84.3547369,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40408",
@@ -19797,7 +21365,7 @@
       "lat": 41.4788179,
       "lng": -81.840142,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40917",
@@ -19866,6 +21434,34 @@
       "zip": null,
       "lat": 41.5177921,
       "lng": -81.6497954,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "20689",
+      "sourceStoreId": "20689",
+      "state": "OH",
+      "name": "Mutach's Food Market",
+      "address": "8037 E Harbor Rd, Lakeside Marblehead, OH, 43440",
+      "city": "Lakeside Marblehead",
+      "county": null,
+      "zip": null,
+      "lat": 41.5304377,
+      "lng": -82.7805713,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40841",
+      "sourceStoreId": "40841",
+      "state": "OH",
+      "name": "Navarre Drive Thru & Party Store",
+      "address": "708 N Main St, Navarre, OH, 44662",
+      "city": "Navarre",
+      "county": null,
+      "zip": null,
+      "lat": 40.7290967,
+      "lng": -81.5212997,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19951,7 +21547,7 @@
       "lat": 39.3054924,
       "lng": -84.2786557,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40997",
@@ -19996,6 +21592,20 @@
       "signalCount": 1
     },
     {
+      "id": "20681",
+      "sourceStoreId": "20681",
+      "state": "OH",
+      "name": "One Stop Carry Out",
+      "address": "206 S Vance St, Carey, OH, 43316",
+      "city": "Carey",
+      "county": null,
+      "zip": null,
+      "lat": 40.950994,
+      "lng": -83.3834152,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40869",
       "sourceStoreId": "40869",
       "state": "OH",
@@ -20022,6 +21632,20 @@
       "lng": -81.5638844,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 3
+    },
+    {
+      "id": "40830",
+      "sourceStoreId": "40830",
+      "state": "OH",
+      "name": "One Stop Shop",
+      "address": "6000 Mahoning Ave, Youngstown, OH, 44515",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.101226,
+      "lng": -80.7745928,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "20647",
@@ -20248,6 +21872,20 @@
       "signalCount": 1
     },
     {
+      "id": "40985",
+      "sourceStoreId": "40985",
+      "state": "OH",
+      "name": "Ross Wine and Liquor",
+      "address": "360 W Bagley Rd, Berea, OH, 44017",
+      "city": "Berea",
+      "county": null,
+      "zip": null,
+      "lat": 41.373386,
+      "lng": -81.86647,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40909",
       "sourceStoreId": "40909",
       "state": "OH",
@@ -20441,7 +22079,7 @@
       "lat": 39.558493,
       "lng": -84.241066,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10581",
@@ -20454,6 +22092,20 @@
       "zip": null,
       "lat": 40.5450873,
       "lng": -84.386918,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10509",
+      "sourceStoreId": "10509",
+      "state": "OH",
+      "name": "Staggerlee's Carry Out",
+      "address": "2020 Elm St, Cincinnati, OH, 45202",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.118482,
+      "lng": -84.520388,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -20484,6 +22136,20 @@
       "lng": -81.7101834,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "30796",
+      "sourceStoreId": "30796",
+      "state": "OH",
+      "name": "State Street Market",
+      "address": "11 State St, Zanesville, OH, 43701",
+      "city": "Zanesville",
+      "county": null,
+      "zip": null,
+      "lat": 39.9422283,
+      "lng": -82.0244742,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "30895",
@@ -20556,20 +22222,6 @@
       "signalCount": 1
     },
     {
-      "id": "10585",
-      "sourceStoreId": "10585",
-      "state": "OH",
-      "name": "The Wine Connection",
-      "address": "1258 S.R. 28 Miami Twp., Milford, OH, 45150",
-      "city": "Milford",
-      "county": null,
-      "zip": null,
-      "lat": 39.2028575,
-      "lng": -84.2217929,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "10576",
       "sourceStoreId": "10576",
       "state": "OH",
@@ -20582,20 +22234,6 @@
       "lng": -84.3780797,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "10545",
-      "sourceStoreId": "10545",
-      "state": "OH",
-      "name": "Tom's Drive Thru",
-      "address": "1906 Galbraith Rd, Cincinnati, OH, 45239",
-      "city": "Cincinnati",
-      "county": null,
-      "zip": null,
-      "lat": 39.2187008,
-      "lng": -84.5575363,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "40922",
@@ -20650,6 +22288,34 @@
       "zip": null,
       "lat": 41.0901529,
       "lng": -80.5869418,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40886",
+      "sourceStoreId": "40886",
+      "state": "OH",
+      "name": "Town Centre Liquor Lottery Beverage",
+      "address": "816 N State St, Girard, OH, 44420",
+      "city": "Girard",
+      "county": null,
+      "zip": null,
+      "lat": 41.1619637,
+      "lng": -80.7045269,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "10555",
+      "sourceStoreId": "10555",
+      "state": "OH",
+      "name": "Tri County Beverage",
+      "address": "350 Northland Blvd, Cincinnati, OH, 45246",
+      "city": "Cincinnati",
+      "county": null,
+      "zip": null,
+      "lat": 39.2828631,
+      "lng": -84.48408,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -20780,20 +22446,6 @@
       "signalCount": 1
     },
     {
-      "id": "30794",
-      "sourceStoreId": "30794",
-      "state": "OH",
-      "name": "Weiland's Market",
-      "address": "3600 Indianola Ave, Columbus, OH, 43214",
-      "city": "Columbus",
-      "county": null,
-      "zip": null,
-      "lat": 40.0371821,
-      "lng": -82.9996117,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "10529",
       "sourceStoreId": "10529",
       "state": "OH",
@@ -20820,6 +22472,20 @@
       "lng": -82.6831904,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
+    },
+    {
+      "id": "40840",
+      "sourceStoreId": "40840",
+      "state": "OH",
+      "name": "Wine Cellar",
+      "address": "105 S Meridian Rd, Youngstown, OH, 44509",
+      "city": "Youngstown",
+      "county": null,
+      "zip": null,
+      "lat": 41.100906,
+      "lng": -80.7102637,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "40829",
@@ -20850,6 +22516,20 @@
       "signalCount": 1
     },
     {
+      "id": "40964",
+      "sourceStoreId": "40964",
+      "state": "OH",
+      "name": "Wine Reserve Of Aurora",
+      "address": "1029 N Aurora Rd, Aurora, OH, 44202",
+      "city": "Aurora",
+      "county": null,
+      "zip": null,
+      "lat": 41.3455681,
+      "lng": -81.3765104,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "20616",
       "sourceStoreId": "20616",
       "state": "OH",
@@ -20860,6 +22540,48 @@
       "zip": null,
       "lat": 40.7365935,
       "lng": -84.1659501,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30735",
+      "sourceStoreId": "30735",
+      "state": "OH",
+      "name": "Wine Works",
+      "address": "1550 Commerce Rd, Springfield, OH, 45504",
+      "city": "Springfield",
+      "county": null,
+      "zip": null,
+      "lat": 39.9364325,
+      "lng": -83.8358957,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30797",
+      "sourceStoreId": "30797",
+      "state": "OH",
+      "name": "Winerak Market",
+      "address": "2336 Maple Ave, Zanesville, OH, 43701",
+      "city": "Zanesville",
+      "county": null,
+      "zip": null,
+      "lat": 39.966382,
+      "lng": -82.008787,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40912",
+      "sourceStoreId": "40912",
+      "state": "OH",
+      "name": "Wines For You",
+      "address": "7344 Mentor Ave, Mentor, OH, 44060",
+      "city": "Mentor",
+      "county": null,
+      "zip": null,
+      "lat": 41.651517,
+      "lng": -81.378918,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -20878,6 +22600,20 @@
       "signalCount": 1
     },
     {
+      "id": "20643",
+      "sourceStoreId": "20643",
+      "state": "OH",
+      "name": "Woodbury Market",
+      "address": "1503 Woodville Rd, Millbury, OH, 43447",
+      "city": "Millbury",
+      "county": null,
+      "zip": null,
+      "lat": 41.5752202,
+      "lng": -83.4255561,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "40858",
       "sourceStoreId": "40858",
       "state": "OH",
@@ -20888,6 +22624,20 @@
       "zip": null,
       "lat": 41.3400143,
       "lng": -81.5292106,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40905",
+      "sourceStoreId": "40905",
+      "state": "OH",
+      "name": "World Wines And Liquor",
+      "address": "8760 Mentor Ave, Mentor, OH, 44060",
+      "city": "Mentor",
+      "county": null,
+      "zip": null,
+      "lat": 41.6718229,
+      "lng": -81.326429,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -21785,7 +23535,7 @@
       "lat": 40.772685,
       "lng": -80.373449,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "410",
@@ -24711,7 +26461,7 @@
       "lat": 41.008507,
       "lng": -80.398468,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "3801",

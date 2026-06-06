@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 
@@ -34,6 +35,8 @@ const NC_STORE_INVENTORY_TERMS = [
 
 const GREENSBORO_WATCH_ITEM_RE = /blanton|eagle rare|weller|buffalo trace|stagg|old fitz|fitzgerald|michter|willett|pappy|van winkle|baker'?s?|e\.?\s*h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof/i;
 const GREENSBORO_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
+const HIGH_POINT_WATCH_ITEM_RE = /blanton|eagle rare|weller|buffalo trace|stagg|old fitz|fitzgerald|michter|willett|pappy|van winkle|baker'?s?|e\.?\s*h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,50}barrel proof|four roses|old forester|heaven hill|knob creek|woodford/i;
+const HIGH_POINT_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|elijah\s+craig\s+small\s+batch(?![^\n]{0,50}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail|glass|display|shirt|sign/i;
 
 const RARE_RE = /blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|elijah craig|george t|william larue|thomas h/i;
 const MONTGOMERY_BOURBON_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|michter|buffalo trace|elijah craig|george t|william larue|thomas h/i;
@@ -79,6 +82,21 @@ const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX
 const GREENSBORO_ABC_BASE_URL = 'https://shop.greensboroabc.com';
 const GREENSBORO_ABC_COMPANY_ID = '5571440';
 const GREENSBORO_ABC_SITE_ID = '2';
+const HIGH_POINT_ABC_BASE_URL = 'https://highpointabc.com';
+const HIGH_POINT_POWERBI_VIEW_URL = 'https://app.powerbi.com/view?r=eyJrIjoiMDU4OTk5MWUtZDQwNC00MmM4LWFjYmItM2M5NDYwNmVkY2YyIiwidCI6IjUwMjg1N2U1LWQxMGItNDBiZC05MGY5LWE1NDgxOWE1YzljOCIsImMiOjF9';
+const HIGH_POINT_POWERBI_REPORT_URL = `${HIGH_POINT_ABC_BASE_URL}/pages/view-inventory`;
+const HIGH_POINT_POWERBI_CLUSTER = 'https://wabi-us-east2-b-primary-api.analysis.windows.net';
+const HIGH_POINT_POWERBI_RESOURCE_KEY = '0589991e-d404-42c8-acbb-3c94606edcf2';
+const HIGH_POINT_POWERBI_MAX_ROWS = Number(process.env.BOURBON_SIGNAL_NC_HIGH_POINT_POWERBI_MAX_ROWS || 30_000);
+const HIGH_POINT_STORES = [
+  { field: 'WendoverAve', label: 'Wendover Ave', storeId: 'high-point-wendover-ave' },
+  { field: 'FairfieldRd', label: 'Fairfield Rd', storeId: 'high-point-fairfield-rd' },
+  { field: 'ParrisAve', label: 'Parris Ave', storeId: 'high-point-parris-ave' },
+  { field: 'GateCityBlvd', label: 'Gate City Blvd', storeId: 'high-point-gate-city-blvd' },
+  { field: 'EnglishRd', label: 'English Rd', storeId: 'high-point-english-rd' },
+  { field: 'SkeetClubRd', label: 'Skeet Club Rd', storeId: 'high-point-skeet-club-rd' },
+  { field: 'BrookridgeLane', label: 'Brookridge Lane', storeId: 'high-point-brookridge-lane' }
+];
 const IN_ATC_SEARCH_URL = 'https://mylicense.in.gov/everification/Search.aspx?facility=Y';
 const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults.aspx';
 const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
@@ -1935,6 +1953,243 @@ function isGreensboroBourbonWatchItem(name, bible) {
   return Boolean(bible.match(name)?.record);
 }
 
+function powerBiHeaders(resourceKey = HIGH_POINT_POWERBI_RESOURCE_KEY) {
+  return {
+    accept: 'application/json',
+    activityid: randomUUID(),
+    requestid: randomUUID(),
+    'x-powerbi-resourcekey': resourceKey
+  };
+}
+
+function powerBiCellValue(value, selector, valueDicts) {
+  if (selector?.DN && Number.isInteger(value) && Array.isArray(valueDicts?.[selector.DN])) {
+    return valueDicts[selector.DN][value] ?? value;
+  }
+  return value;
+}
+
+function decodePowerBiRows(queryData) {
+  const data = queryData?.results?.[0]?.result?.data;
+  const ds = data?.dsr?.DS?.[0];
+  const rows = ds?.PH?.[0]?.DM0 || [];
+  const selectors = rows[0]?.S || [];
+  const valueDicts = ds?.ValueDicts || {};
+  const decoded = [];
+  for (const row of rows) {
+    if (!Array.isArray(row.C)) continue;
+    const out = {};
+    let cIndex = 0;
+    for (let i = 0; i < selectors.length; i += 1) {
+      const selector = selectors[i];
+      const omitted = row.R && (row.R & (1 << i));
+      const key = selector.N;
+      if (omitted) {
+        out[key] = null;
+        continue;
+      }
+      out[key] = powerBiCellValue(row.C[cIndex], selector, valueDicts);
+      cIndex += 1;
+    }
+    decoded.push(out);
+  }
+  return { rows: decoded, rowCount: data?.metrics?.Events?.find((event) => event.Metrics?.RowCount)?.Metrics?.RowCount || decoded.length, timestamp: data?.timestamp || null };
+}
+
+function highPointPowerBiProductQuery(model) {
+  const visual = model?.exploration?.sections?.flatMap((section) => section.visualContainers || [])
+    .find((container) => /tableEx/.test(container.config || '') && /Stock Levels\.WendoverAve/.test(container.query || ''));
+  if (!visual?.query || !model?.models?.[0]?.id) return null;
+  const query = JSON.parse(visual.query);
+  const command = query.Commands?.[0]?.SemanticQueryDataShapeCommand;
+  if (command?.Binding?.DataReduction?.Primary) command.Binding.DataReduction.Primary = { Top: { Count: HIGH_POINT_POWERBI_MAX_ROWS } };
+  return {
+    version: '1.0.0',
+    queries: [{
+      Query: query,
+      ApplicationContext: {
+        DatasetId: model.models[0].dbName,
+        Sources: [{ ReportId: model.exploration?.id || HIGH_POINT_POWERBI_RESOURCE_KEY, VisualId: String(visual.id || '') }]
+      }
+    }],
+    cancelQueries: [],
+    modelId: model.models[0].id
+  };
+}
+
+async function collectHighPointPowerBiNc(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  const probeReports = [];
+  const observedAt = new Date().toISOString();
+  const modelUrl = `${HIGH_POINT_POWERBI_CLUSTER}/public/reports/${HIGH_POINT_POWERBI_RESOURCE_KEY}/modelsAndExploration?preferReadOnlySession=true`;
+  const queryUrl = `${HIGH_POINT_POWERBI_CLUSTER}/public/reports/querydata`;
+
+  const modelRes = await textFetch(modelUrl, { headers: powerBiHeaders(), timeoutMs: 30_000 });
+  if (!modelRes.ok) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI inventory model', url: HIGH_POINT_POWERBI_REPORT_URL, status: modelRes.status, error: modelRes.error || modelRes.text.slice(0, 240), nextRoute: 'Retry the public Power BI embed model endpoint from High Point ABC View Inventory.' });
+    return { signals, roadblocks, probeReports };
+  }
+
+  let model;
+  try {
+    model = JSON.parse(modelRes.text);
+  } catch (error) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI inventory model', url: HIGH_POINT_POWERBI_REPORT_URL, status: modelRes.status, error: `Could not parse model JSON: ${error.message}`, nextRoute: 'Inspect public Power BI modelsAndExploration response contract.' });
+    return { signals, roadblocks, probeReports };
+  }
+
+  const body = highPointPowerBiProductQuery(model);
+  if (!body) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI inventory query', url: HIGH_POINT_POWERBI_REPORT_URL, status: 'query_not_found', error: 'Could not find Stock Levels table visual/query in public Power BI model.', nextRoute: 'Inspect the embedded Power BI exploration for renamed visuals or fields.' });
+    return { signals, roadblocks, probeReports };
+  }
+
+  const queryRes = await textFetch(queryUrl, { method: 'POST', body: JSON.stringify(body), headers: { ...powerBiHeaders(), 'content-type': 'application/json' }, timeoutMs: 45_000 });
+  if (!queryRes.ok) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI inventory querydata', url: HIGH_POINT_POWERBI_REPORT_URL, status: queryRes.status, error: queryRes.error || queryRes.text.slice(0, 240), nextRoute: 'Retry Power BI querydata POST with the current table visual query and model id.' });
+    return { signals, roadblocks, probeReports };
+  }
+
+  let queryData;
+  try {
+    queryData = JSON.parse(queryRes.text);
+  } catch (error) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI inventory querydata', url: HIGH_POINT_POWERBI_REPORT_URL, status: queryRes.status, error: `Could not parse querydata JSON: ${error.message}`, nextRoute: 'Inspect public Power BI querydata response contract.' });
+    return { signals, roadblocks, probeReports };
+  }
+
+  const { rows, rowCount, timestamp } = decodePowerBiRows(queryData);
+  const matchedProducts = new Set();
+  let positiveStoreRows = 0;
+  for (const row of rows) {
+    const rawName = String(row.G1 || '').replace(/\s+/g, ' ').trim();
+    const ncCode = String(row.G0 || '').trim();
+    const hay = `${rawName} ${ncCode}`;
+    if (!rawName || !HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)) continue;
+    matchedProducts.add(`${ncCode}|${rawName}`);
+    const price = Number(row.M7 || 0) || null;
+    const sizeLiters = Number(row.M8 || 0) || null;
+    for (const [storeIndex, store] of HIGH_POINT_STORES.entries()) {
+      const qty = Number(row[`M${storeIndex}`] || 0);
+      if (!Number.isFinite(qty) || qty <= 0) continue;
+      positiveStoreRows += 1;
+      const { base } = signalBase(config.id, 'High Point ABC public Power BI store inventory', HIGH_POINT_POWERBI_REPORT_URL, rawName, bible);
+      signals.push({
+        id: stableId([config.id, 'high-point-powerbi-store-inventory', ncCode, store.storeId, qty, price]),
+        ...base,
+        confidence: Math.max(0.82, base.confidence),
+        eventType: 'store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: `High Point ABC - ${store.label}`,
+        storeName: `High Point ABC - ${store.label}`,
+        storeId: store.storeId,
+        city: 'High Point',
+        county: 'Guilford',
+        ncCode,
+        price,
+        size: sizeLiters ? `${sizeLiters}L` : null,
+        quantity: qty,
+        observedAt: timestamp || observedAt,
+        availabilityStatus: 'in_stock',
+        availabilityLabel: `${qty} reported available at ${store.label}`,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Official High Point ABC public Power BI inventory table with per-store bottle counts. Verify before driving.',
+        evidence: `High Point ABC public inventory reports ${qty} bottle(s) of ${rawName}${ncCode ? ` (NC Code ${ncCode})` : ''} at ${store.label}${price ? ` for $${price.toFixed(2)}` : ''}.`,
+        raw: { ncCode, rawName, price, sizeLiters, storeField: store.field, endpoint: HIGH_POINT_POWERBI_VIEW_URL, sourceCaveat: 'Public Power BI embed on High Point ABC View Inventory; official per-store count, not a hold/reservation.' }
+      });
+    }
+  }
+
+  probeReports.push({ source: 'High Point ABC public Power BI store inventory', url: HIGH_POINT_POWERBI_REPORT_URL, modelUrl, queryUrl, status: queryRes.status, totalRows: rowCount, decodedRows: rows.length, matchedProductCount: matchedProducts.size, positiveStoreRows, storeColumns: HIGH_POINT_STORES.map((store) => store.label), observedAt: timestamp || observedAt });
+  if (!signals.length) {
+    roadblocks.push({ state: config.id, source: 'High Point ABC public Power BI store inventory', url: HIGH_POINT_POWERBI_REPORT_URL, status: 'no_positive_tracked_rows', error: 'Power BI table was reachable but no matched tracked bourbon/whiskey rows had positive store quantities.', nextRoute: 'Broaden tracked terms carefully or inspect table filters/field names.' });
+  }
+  return { signals, roadblocks, probeReports };
+}
+
+async function collectHighPointNc(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  const probeReports = [];
+  const seen = new Set();
+  const observedAt = new Date().toISOString();
+
+  const powerBi = await collectHighPointPowerBiNc(config, bible);
+  signals.push(...powerBi.signals);
+  roadblocks.push(...powerBi.roadblocks);
+  probeReports.push(...(powerBi.probeReports || []));
+
+  for (const term of NC_STORE_INVENTORY_TERMS) {
+    const url = `${HIGH_POINT_ABC_BASE_URL}/search/suggest.json?q=${encodeURIComponent(term)}&resources[type]=product&resources[limit]=10`;
+    let json;
+    try {
+      const res = await textFetch(url, { headers: { accept: 'application/json,*/*', referer: `${HIGH_POINT_ABC_BASE_URL}/pages/view-inventory` }, timeoutMs: 20_000 });
+      if (!res.ok) throw new Error(`HTTP ${res.status}${res.error ? `: ${res.error}` : ''}`);
+      json = JSON.parse(res.text);
+      const products = json.resources?.results?.products || [];
+      probeReports.push({ source: 'High Point ABC Shopify product suggestion API', url, status: res.status, term, returned: products.length });
+    } catch (error) {
+      roadblocks.push({
+        state: config.id,
+        source: 'High Point ABC Shopify product suggestion API',
+        url,
+        status: 0,
+        error: error.message,
+        nextRoute: 'Retry public Shopify /search/suggest.json or inspect the public View Inventory page network calls.'
+      });
+      continue;
+    }
+
+    for (const product of json.resources?.results?.products || []) {
+      const rawName = stripHtml(product.body || product.title || '').replace(/\s+/g, ' ').trim() || stripHtml(product.title || '');
+      const hay = `${product.title || ''} ${product.body || ''}`;
+      if (!rawName || !HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)) continue;
+      const productId = String(product.id || product.handle || rawName);
+      if (seen.has(productId)) continue;
+      seen.add(productId);
+      if (!bible.match(rawName)?.record && !bible.match(product.title || '')?.record) continue;
+      const available = product.available === true;
+      const productUrl = product.url ? new URL(product.url, HIGH_POINT_ABC_BASE_URL).toString() : `${HIGH_POINT_ABC_BASE_URL}/search?q=${encodeURIComponent(rawName)}`;
+      const price = Number(product.price || product.price_min || product.price_max || 0) || null;
+      const { base } = signalBase(config.id, 'High Point ABC Shopify product availability', productUrl, rawName, bible);
+      signals.push({
+        id: stableId([config.id, 'high-point-shopify-availability', productId, available ? 'available' : 'sold-out', price]),
+        ...base,
+        confidence: Math.max(available ? 0.7 : 0.62, base.confidence),
+        eventType: available ? 'store_inventory_aggregate' : 'store_inventory_out_of_stock',
+        locationPrecision: 'store_aggregate',
+        locationName: 'High Point ABC stores',
+        county: 'Guilford',
+        price,
+        quantity: null,
+        observedAt,
+        availabilityStatus: available ? 'available_in_board_catalog' : 'sold_out_in_board_catalog',
+        availabilityLabel: available ? 'Listed available by High Point ABC storefront' : 'Listed sold out by High Point ABC storefront',
+        canAlertAsInventory: false,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Official Shopify storefront product availability for High Point ABC; public endpoint does not expose per-store quantity.',
+        evidence: `High Point ABC public storefront lists ${rawName}${available ? ' as available' : ' as sold out'}${price ? ` at $${price.toFixed(2)}` : ''}. This is board storefront availability, not a per-store shelf count.`,
+        raw: { product, endpoint: url, precisionCaveat: 'Shopify product availability only; no per-store pickup rows exposed by the public endpoint.' }
+      });
+    }
+  }
+
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'High Point ABC Shopify product availability',
+      url: `${HIGH_POINT_ABC_BASE_URL}/pages/view-inventory`,
+      status: 'no_tracked_rows',
+      error: 'Public Shopify suggestion endpoint was reachable but did not produce matched tracked bourbon/whiskey rows.',
+      nextRoute: 'Broaden terms carefully or inspect rendered product pages for a store-pickup component.'
+    });
+  }
+
+  return { signals, roadblocks, probeReports };
+}
+
 async function collectGreensboroNc(config, bible) {
   const signals = [];
   const roadblocks = [];
@@ -2066,13 +2321,19 @@ async function collectNcStoreInventory(config, bible) {
   roadblocks.push(...greensboro.roadblocks);
   probeReports.push(...(greensboro.probeReports || []));
 
+  const highPoint = await collectHighPointNc(config, bible);
+  signals.push(...highPoint.signals);
+  roadblocks.push(...highPoint.roadblocks);
+  probeReports.push(...(highPoint.probeReports || []));
+
   return {
     signals,
     roadblocks,
     probeReports,
     boardCapabilities: [
       { boardName: 'Wake County ABC Board', capabilities: ['store_inventory_search_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' },
-      { boardName: 'Greensboro ABC Board', capabilities: ['suitecommerce_pickup_inventory_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' }
+      { boardName: 'Greensboro ABC Board', capabilities: ['suitecommerce_pickup_inventory_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' },
+      { boardName: 'High Point ABC Board', capabilities: ['shopify_product_availability_attached', 'official_board_storefront_availability'], precisionLevel: 'store_aggregate' }
     ]
   };
 }
