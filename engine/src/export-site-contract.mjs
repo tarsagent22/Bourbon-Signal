@@ -267,6 +267,10 @@ function isSafePublicSignal(signal) {
     const name = String(signal.rawName || signal.canonicalName || '');
     return NC_GREENSBORO_STORE_SIGNAL_RE.test(name) && !NC_GREENSBORO_STORE_EXCLUDE_RE.test(name);
   }
+  if (signal.state === 'NC' && /Wake County ABC store inventory search/i.test(String(signal.sourceLabel || signal.source || ''))) {
+    const name = String(signal.rawName || signal.canonicalName || '').replace(/\s+/g, ' ').trim();
+    if (/^BAKER'?S$/i.test(name) || String(signal.ncCode || '').trim() === '27006') return false;
+  }
   if (signal.state === 'NC' && (type === 'nc_board_shipment_snapshot' || type === 'nc_statewide_warehouse_stock')) {
     return NC_STRICT_SIGNAL_RE.test(String(signal.rawName || signal.canonicalName || ''));
   }

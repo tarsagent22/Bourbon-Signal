@@ -1866,30 +1866,119 @@ async function collectUtah(config, bible) {
   return { signals, roadblocks };
 }
 
-function parseWakeProducts(html, config, bible, url) {
-  const blocks = html.split(/<div class="wake-product">/i).slice(1);
-  const signals = [];
-  for (const block of blocks) {
-    const name = stripHtml(block.match(/<h4[^>]*>([\s\S]*?)<\/h4>/i)?.[1] || '');
-    if (!name || !RARE_RE.test(name)) continue;
-    const plu = stripHtml(block.match(/PLU:\s*([^<]+)/i)?.[1] || '');
-    const out = /out-of-stock/i.test(block);
-    const { base } = signalBase(config.id, 'Wake County ABC store inventory search', url, name, bible);
-    signals.push({ id: stableId([config.id, 'wake', plu || name, out ? 'out' : 'stock']), ...base, eventType: out ? 'store_inventory_out_of_stock' : 'store_inventory_result', locationPrecision: 'store_level', locationName: 'Wake County ABC stores', county: 'Wake', quantity: out ? 0 : null, observedAt: base.fetchedAt, evidence: out ? `${name} listed by Wake ABC search, all locations out of stock.` : `${name} listed by Wake ABC search with store inventory block.`, raw: { plu, html: block.slice(0, 3000) } });
+const WAKE_WATCH_ITEM_RE = /blanton|eagle rare|weller|buffalo trace|stagg|old fitz|fitzgerald|michter|willett|pappy|van winkle|baker'?s?|e\.?\s*h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,50}barrel proof|woodford|four roses|knob creek/i;
+const WAKE_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail|seltzer|moonshine/i;
+
+function wakeProductBlocks(html = '') {
+  const text = String(html);
+  const blocks = [];
+  const re = /<div\s+class=["'][^"']*\bwake-product\b[^"']*["'][^>]*>/gi;
+  const starts = [...text.matchAll(re)].map((match) => match.index).filter(Number.isInteger);
+  for (let i = 0; i < starts.length; i += 1) {
+    blocks.push(text.slice(starts[i], starts[i + 1] ?? text.length));
   }
-  return signals;
+  return blocks;
+}
+
+function normalizeWakeAddress(html = '') {
+  return stripHtml(String(html).replace(/<br\s*\/?\s*>/gi, ', ')).replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').trim();
+}
+
+function parseWakeAddressParts(address = '') {
+  const match = String(address).match(/^(.*?),\s*([^,]+),\s*NC\s+(\d{5})(?:-\d{4})?$/i);
+  if (!match) return { city: null, postalCode: null };
+  return { city: match[2].trim(), postalCode: match[3] };
+}
+
+function parseWakeProducts(html, config, bible, url, term) {
+  const blocks = wakeProductBlocks(html);
+  const signals = [];
+  let positiveStoreRows = 0;
+  let matchedProductBlocks = 0;
+
+  for (const block of blocks) {
+    const rawName = stripHtml(block.match(/<h4[^>]*>([\s\S]*?)<\/h4>/i)?.[1] || '').replace(/\s+/g, ' ').trim();
+    if (!rawName || !WAKE_WATCH_ITEM_RE.test(rawName) || WAKE_EXCLUDED_ITEM_RE.test(rawName)) continue;
+    if (/^BAKER'?S$/i.test(rawName)) continue;
+    const plu = stripHtml(block.match(/PLU:\s*([^<]+)/i)?.[1] || '').replace(/\s+/g, ' ').trim();
+    const price = Number(stripHtml(block.match(/<span[^>]+class=["']price["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '').replace(/[^\d.]/g, '')) || null;
+    const size = stripHtml(block.match(/<span[^>]+class=["']size["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '').replace(/\s+/g, ' ').trim() || null;
+    const storeRows = [...block.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)];
+    if (!storeRows.length) continue;
+    matchedProductBlocks += 1;
+
+    for (const rowMatch of storeRows) {
+      const row = rowMatch[1];
+      const address = normalizeWakeAddress(row.match(/<span[^>]+class=["']address["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '');
+      const quantityText = stripHtml(row.match(/<span[^>]+class=["']quantity["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '').replace(/\s+/g, ' ').trim();
+      const quantity = Number(quantityText.match(/(\d+)/)?.[1] || 0);
+      if (!address || !Number.isFinite(quantity) || quantity <= 0) continue;
+      positiveStoreRows += 1;
+      const { city, postalCode } = parseWakeAddressParts(address);
+      const { base } = signalBase(config.id, 'Wake County ABC store inventory search', url, rawName, bible);
+      signals.push({
+        id: stableId([config.id, 'wake-store-inventory', plu || rawName, address, quantity]),
+        ...base,
+        confidence: Math.max(0.82, base.confidence),
+        eventType: 'store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: `Wake County ABC - ${address}`,
+        storeName: `Wake County ABC - ${address}`,
+        storeId: stableId(['wake-abc-store', address]),
+        storeAddress: address,
+        city,
+        county: 'Wake',
+        stateCode: 'NC',
+        postalCode,
+        ncCode: plu || null,
+        price,
+        size,
+        quantity,
+        availabilityLabel: `${quantity} reported in stock`,
+        observedAt: base.fetchedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Official Wake County ABC public inventory search result with per-store bottle counts. Verify before driving.',
+        evidence: `Wake County ABC public inventory reports ${quantity} bottle(s) of ${rawName}${plu ? ` (PLU ${plu})` : ''} at ${address}${price ? ` for $${price.toFixed(2)}` : ''}. Verify before driving.`,
+        raw: { term, plu, rawName, price, size, quantityText, endpoint: 'https://wakeabc.com/search-results/', sourceCaveat: 'Public Wake County ABC inventory search; official per-store count, not a hold/reservation.' }
+      });
+    }
+  }
+
+  return { signals, probe: { term, productBlocks: blocks.length, matchedProductBlocks, positiveStoreRows } };
 }
 
 async function collectWakeNc(config, bible) {
-  const signals = [], roadblocks = [];
-  for (const term of TRACKED_TERMS.NC) {
-    const url = 'https://wakeabc.com/search-results/';
+  const signals = [];
+  const roadblocks = [];
+  const probeReports = [];
+  const url = 'https://wakeabc.com/search-results/';
+
+  for (const term of NC_STORE_INVENTORY_TERMS) {
     try {
-      const res = await textFetch(url, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ productSearch: term }) });
-      signals.push(...parseWakeProducts(res.text, config, bible, `${url}?productSearch=${encodeURIComponent(term)}`));
-    } catch (error) { roadblocks.push({ state: config.id, source: 'Wake County ABC inventory POST', url, status: 0, error: error.message, nextRoute: 'Use browser form submission/network capture.' }); }
+      const res = await textFetch(url, {
+        method: 'POST',
+        headers: { accept: 'text/html,*/*', 'content-type': 'application/x-www-form-urlencoded', referer: 'https://wakeabc.com/search-our-inventory/' },
+        body: new URLSearchParams({ productSearch: term }),
+        timeoutMs: 30_000
+      });
+      if (!res.ok) {
+        roadblocks.push({ state: config.id, source: 'Wake County ABC store inventory search', url, status: res.status || 0, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry Wake County ABC public inventory POST or inspect form changes.' });
+        continue;
+      }
+      const parsed = parseWakeProducts(res.text, config, bible, `${url}?productSearch=${encodeURIComponent(term)}`, term);
+      signals.push(...parsed.signals);
+      probeReports.push({ source: 'Wake County ABC store inventory search', url, term, status: res.status, ...parsed.probe });
+    } catch (error) {
+      roadblocks.push({ state: config.id, source: 'Wake County ABC store inventory search', url, status: 0, error: error.message, nextRoute: 'Use browser form submission/network capture.' });
+    }
   }
-  return { signals, roadblocks };
+
+  if (!signals.length) {
+    roadblocks.push({ state: config.id, source: 'Wake County ABC store inventory search', url, status: 'no_positive_store_rows', error: 'Public inventory form was reachable but no tracked bourbon/whiskey searches produced positive store quantities.', nextRoute: 'Inspect Wake search result HTML for changed classes or broaden terms carefully.' });
+  }
+
+  return { signals, roadblocks, probeReports };
 }
 
 function safeGreensboroCoordinate(value, kind) {
@@ -2317,6 +2406,7 @@ async function collectNcStoreInventory(config, bible) {
   const wake = await collectWakeNc(config, bible);
   signals.push(...wake.signals);
   roadblocks.push(...wake.roadblocks);
+  probeReports.push(...(wake.probeReports || []));
 
   const greensboro = await collectGreensboroNc(config, bible);
   signals.push(...greensboro.signals);
