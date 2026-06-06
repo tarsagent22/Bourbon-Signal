@@ -298,7 +298,7 @@ export default function Navigation() {
         </div>
 
         {/* Mobile right controls */}
-        <div className="md:hidden" style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "5px" }}>
+        <div className="flex md:hidden items-center gap-[10px] mr-[5px]">
           {mounted && isSignedIn ? <MemberAlertsBell /> : null}
           <button
             className="cursor-pointer"
