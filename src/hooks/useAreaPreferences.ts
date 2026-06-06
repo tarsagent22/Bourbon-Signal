@@ -47,12 +47,17 @@ export function useAreaPreferences() {
   }, [isSignedIn]);
 
   useEffect(() => {
+    if (!isSignedIn) {
+      cachedPrefs = null;
+      setPrefs(EMPTY_PREFS);
+      return;
+    }
     if (cachedPrefs !== null) {
       setPrefs(cachedPrefs);
       return;
     }
     fetchPrefs();
-  }, [fetchPrefs]);
+  }, [fetchPrefs, isSignedIn]);
 
   const savePreferences = useCallback(async (newPrefs: UserAlertPreferences) => {
     setPrefs(newPrefs);

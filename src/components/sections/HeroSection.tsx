@@ -4,9 +4,11 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import ScrollReveal from "../ScrollReveal";
+import { useAuth } from "@/lib/auth";
 
 export default function HeroSection() {
   const ref = useRef(null);
+  const { isSignedIn } = useAuth();
 
   return (
     <section
@@ -108,7 +110,7 @@ export default function HeroSection() {
               paddingInline: "8px",
             }}
           >
-            Find the bourbon you're looking for with the live drop feed, bottle or location-specific alerts, and more.
+            Find the bourbon you're looking for.
           </p>
         </ScrollReveal>
 
@@ -122,10 +124,11 @@ export default function HeroSection() {
             }}
           >
             {[
-              "NC · VA · PA · IN live coverage",
+              "Multi-state coverage",
+              "Live Drop Feed",
+              "Email Alerts",
               "Bottle Finder",
-              "Live beta alerts",
-              "Historical drop search",
+              "Events",
             ].map((item, index, arr) => (
               <div
                 key={item}
@@ -164,34 +167,35 @@ export default function HeroSection() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={150}>
-          <div
-            className="flex flex-col sm:flex-row items-center gap-4"
-            style={{ marginBottom: "16px" }}
-          >
-            <a
-              href="/dashboard"
-              className="flex items-center gap-2"
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "15px",
-                fontWeight: 600,
-                color: "#0D0B0E",
-                background:
-                  "linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-gold) 100%)",
-                borderRadius: "8px",
-                padding: "14px 28px",
-                textDecoration: "none",
-                transition: "opacity 200ms, transform 200ms",
-                boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
-              }}
+        {!isSignedIn ? (
+          <ScrollReveal delay={150}>
+            <div
+              className="flex flex-col sm:flex-row items-center gap-4"
+              style={{ marginBottom: "16px" }}
             >
-Create Account
-              <ArrowRight size={16} />
-            </a>
-
-          </div>
-        </ScrollReveal>
+              <a
+                href="/dashboard"
+                className="flex items-center gap-2"
+                style={{
+                  fontFamily: "var(--font-dm-sans)",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#0D0B0E",
+                  background:
+                    "linear-gradient(135deg, var(--color-accent-amber) 0%, var(--color-accent-gold) 100%)",
+                  borderRadius: "8px",
+                  padding: "14px 28px",
+                  textDecoration: "none",
+                  transition: "opacity 200ms, transform 200ms",
+                  boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
+                }}
+              >
+                Create Account
+                <ArrowRight size={16} />
+              </a>
+            </div>
+          </ScrollReveal>
+        ) : null}
       </div>
 
     </section>

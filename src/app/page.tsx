@@ -63,11 +63,18 @@ export default function Home() {
         <HeroSection />
         <div
           style={{
-            height: 28,
+            height: 12,
             background: "var(--color-bg-primary)",
           }}
         />
-        <DropFeed />
+        <motion.div
+          initial={{ opacity: 0, y: 56 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.14 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <DropFeed />
+        </motion.div>
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
         <HowWeHunt />
         <div style={{ height: 24, background: "var(--color-bg-primary)" }} />
