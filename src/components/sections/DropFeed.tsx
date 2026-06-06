@@ -761,10 +761,10 @@ export default function DropFeed() {
     setSelectedStates,
     clearPreferences,
   } = useStatePreferences();
-  const { isSignedIn, isPaidUser } = useAuth();
+  const { isSignedIn } = useAuth();
   const { prefs } = useAreaPreferences();
   const areaPrefs = prefs.areaPreferences;
-  const isFreeUser = !isPaidUser;
+  const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
