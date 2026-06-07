@@ -1621,6 +1621,89 @@ body::after {
   }
 }
 
+@media (max-width: 640px) {
+  .finder-shell {
+    width: calc(100% - 20px);
+    padding-bottom: 28px;
+  }
+
+  .finder-hero-wrap {
+    border-radius: 26px;
+  }
+
+  .finder-hero {
+    padding: 18px 14px 20px;
+    gap: 18px;
+  }
+
+  .finder-hero-copy h1 {
+    font-size: clamp(2.55rem, 12vw, 3.05rem);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+  }
+
+  .finder-hero-copy p {
+    margin-top: 12px !important;
+    max-width: 32ch;
+    font-size: 0.98rem !important;
+    line-height: 1.55 !important;
+  }
+
+  .finder-tool-shell {
+    margin-top: 20px;
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .finder-lens-row {
+    gap: 8px;
+  }
+
+  .finder-lens {
+    min-height: 62px;
+    height: 62px;
+    border-radius: 18px;
+    padding: 0 8px;
+    gap: 7px;
+    font-size: 0.9rem;
+  }
+
+  .finder-lens svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .finder-search-wrap {
+    min-height: 52px;
+    border-radius: 18px;
+    gap: 7px;
+    padding: 0 7px 0 12px;
+  }
+
+  .finder-search-input {
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+
+  .finder-search-submit {
+    border-radius: 14px;
+    padding: 9px 12px;
+    font-size: 0.86rem;
+  }
+
+  .finder-state-select-wrap {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  .finder-state-select {
+    min-height: 44px;
+    border-radius: 15px;
+    padding: 0 12px;
+    font-size: 0.92rem;
+  }
+}
+
 /* Accessibility: respect user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
