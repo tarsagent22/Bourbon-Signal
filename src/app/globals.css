@@ -1630,7 +1630,7 @@ body::after {
   }
 }
 
-/* How We Hunt / The Process — mobile text tuning only */
+/* How We Hunt / The Process ï¿½ mobile text tuning only */
 .hwh-step-copy {
   text-wrap: pretty;
   overflow-wrap: normal;
@@ -1648,8 +1648,10 @@ body::after {
     min-height: 184px !important;
   }
 
-  .hwh-step-text,
-  .hwh-step-text--left,
+  .hwh-step-text--left {
+    text-align: right !important;
+  }
+
   .hwh-step-text--right {
     text-align: left !important;
   }
