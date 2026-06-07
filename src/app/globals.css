@@ -245,7 +245,7 @@ body::after {
 .finder-shell {
   width: min(1480px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 0 0 40px;
+  padding: 82px 0 40px;
 }
 
 .finder-hero-wrap {
@@ -1624,6 +1624,7 @@ body::after {
 @media (max-width: 640px) {
   .finder-shell {
     width: calc(100% - 20px);
+    padding-top: 76px;
     padding-bottom: 28px;
   }
 
