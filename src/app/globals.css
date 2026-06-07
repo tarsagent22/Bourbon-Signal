@@ -1629,3 +1629,46 @@ body::after {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* How We Hunt / The Process — mobile text tuning only */
+.hwh-step-copy {
+  text-wrap: pretty;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+@media (max-width: 640px) {
+  .hwh-process-inner {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .hwh-step-row {
+    column-gap: 12px !important;
+    min-height: 184px !important;
+  }
+
+  .hwh-step-text,
+  .hwh-step-text--left,
+  .hwh-step-text--right {
+    text-align: left !important;
+  }
+
+  .hwh-step-copy {
+    font-size: 12.5px !important;
+    line-height: 1.38 !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 640px) {
+  .hwh-step-row {
+    column-gap: 14px !important;
+  }
+
+  .hwh-step-copy {
+    font-size: 13.25px !important;
+    line-height: 1.42 !important;
+  }
+}

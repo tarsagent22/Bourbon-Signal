@@ -524,6 +524,7 @@ function StepText({ step, index, side }: { step: StepData; index: number; side: 
   return (
     <div
       ref={ref}
+      className={`hwh-step-text hwh-step-text--${side}`}
       style={{
         opacity: isInView ? 1 : 0,
         transform: isInView ? "translateX(0)" : `translateX(${fromX}px)`,
@@ -531,7 +532,7 @@ function StepText({ step, index, side }: { step: StepData; index: number; side: 
         textAlign: side === "left" ? "right" : "left",
       }}
     >
-      <p style={{
+      <p className="hwh-step-copy" style={{
         fontFamily: "var(--font-plus-jakarta)", fontSize: 17, fontWeight: 500,
         color: "var(--color-text-primary)", lineHeight: 1.7, margin: 0,
       }}>
@@ -546,6 +547,7 @@ function StepRow({ step, index }: { step: StepData; index: number }) {
   const textOnRight = index % 2 === 0;
   return (
     <div
+      className="hwh-step-row"
       style={{
         display: "grid",
         gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -581,7 +583,7 @@ export default function HowWeHunt() {
       overflow: "hidden", // clip pipes at page edges — no horizontal scrollbar
     }}>
       <SvgDefs />
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
+      <div className="hwh-process-inner" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px", overflow: "visible" }}>
         <ScrollReveal>
           <h2 style={{
             fontFamily: "var(--font-playfair)", fontSize: "clamp(32px,6vw,44px)",
