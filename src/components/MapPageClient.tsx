@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Search, Radar, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
+import { Search, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
 import { useBottles } from "@/hooks/useBottles";
 import { useDrops } from "@/hooks/useDrops";
@@ -1005,12 +1005,8 @@ export default function MapPageClient() {
           className="finder-hero"
         >
           <div className="finder-hero-copy">
-            <div className="finder-kicker">
-              <Radar size={14} />
-              Finder
-            </div>
             <h1>Finder</h1>
-            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Start with a market, then search a bottle or location. NC usually means board/county shipment clues; VA can show exact store inventory. Finder labels the difference so you know whether to drive, call, or just watch.</p>
+            <p style={{ fontSize: "1.08rem", lineHeight: 1.7 }}>Choose your market, then search for a bottle or store. We’ll show what the signal means so you know whether it’s worth a trip, a call, or just keeping an eye on.</p>
 
             <div className="finder-tool-shell">
               <div className="finder-lens-row">
