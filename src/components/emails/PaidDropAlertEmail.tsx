@@ -34,9 +34,11 @@ export function PaidDropAlertEmail({
   const greeting = firstName?.trim() ? `Hi ${firstName},` : "Hi there,";
 
   return (
-    <Html style={{ backgroundColor: "#090806" }}>
+    <Html style={{ backgroundColor: "#f7efe2" }}>
       <Head>
-        <style>{darkModeEmailCss}</style>
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <style>{lightEmailCss}</style>
       </Head>
       <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
       <Body className="bs-body" style={body}>
@@ -50,9 +52,9 @@ export function PaidDropAlertEmail({
           <Section className="bs-content" style={contentWrap}>
             <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
             <Text className="bs-paragraph" style={paragraph}>
-              {`${bottleName} just hit ${storeLabel}.`}
+              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
             </Text>
-            <Text className="bs-paragraph" style={paragraph}>{`This matched your ${matchedArea} alert area.`}</Text>
+            <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
 
             <Section className="bs-signal-card" style={signalCard}>
               <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
@@ -80,147 +82,110 @@ export function PaidDropAlertEmail({
   );
 }
 
-const darkModeEmailCss = `
+const lightEmailCss = `
+  :root {
+    color-scheme: light;
+    supported-color-schemes: light;
+  }
+
   html,
   body,
   .bs-body {
-    background: #090806 !important;
-    background-image: linear-gradient(#090806, #090806) !important;
-    background-color: #090806 !important;
-    color: #f6efe5 !important;
+    background: #f7efe2 !important;
+    background-color: #f7efe2 !important;
+    color: #24170d !important;
   }
 
   .bs-shell {
-    background: #14100c !important;
-    background-image: linear-gradient(#14100c, #14100c) !important;
-    background-color: #14100c !important;
-    border-color: #4f3516 !important;
+    background: #fff8ec !important;
+    background-color: #fff8ec !important;
+    border-color: #d3b98e !important;
   }
 
   .bs-top-rail {
-    background: linear-gradient(135deg, #2a1c0e 0%, #17110c 74%, #100c09 100%) !important;
-    background-color: #1f160e !important;
-    border-bottom-color: #4f3516 !important;
+    background: linear-gradient(135deg, #fff3dc 0%, #f5dfb8 100%) !important;
+    background-color: #fff3dc !important;
+    border-bottom-color: #d3b98e !important;
   }
 
   .bs-content {
-    background: #100c09 !important;
-    background-image: linear-gradient(#100c09, #100c09) !important;
-    background-color: #100c09 !important;
+    background: #fffaf1 !important;
+    background-color: #fffaf1 !important;
   }
 
   .bs-signal-card {
-    background: #18120d !important;
-    background-image: linear-gradient(#18120d, #18120d) !important;
-    background-color: #18120d !important;
-    border-color: #5f411b !important;
+    background: #fff4df !important;
+    background-color: #fff4df !important;
+    border-color: #c99b4a !important;
   }
 
   .bs-headline,
   .bs-signal-value,
   .bs-strong {
-    color: #ffffff !important;
-    background: linear-gradient(#ffffff, #ffffff) !important;
-    background-image: linear-gradient(#ffffff, #ffffff) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    opacity: 1 !important;
-    filter: none !important;
+    color: #1e140c !important;
+    -webkit-text-fill-color: #1e140c !important;
   }
 
   .bs-paragraph {
-    color: #ffffff !important;
-    background: linear-gradient(#ffffff, #ffffff) !important;
-    background-image: linear-gradient(#ffffff, #ffffff) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    opacity: 1 !important;
-    filter: none !important;
+    color: #352316 !important;
+    -webkit-text-fill-color: #352316 !important;
   }
 
   .bs-subhead,
   .bs-meta-line {
-    color: #fff0cc !important;
-    background: linear-gradient(#fff0cc, #fff0cc) !important;
-    background-image: linear-gradient(#fff0cc, #fff0cc) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    opacity: 1 !important;
-    filter: none !important;
+    color: #5b3e24 !important;
+    -webkit-text-fill-color: #5b3e24 !important;
   }
 
   .bs-eyebrow,
   .bs-signal-label {
-    color: #ffc857 !important;
-    background: linear-gradient(#ffc857, #ffc857) !important;
-    background-image: linear-gradient(#ffc857, #ffc857) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    opacity: 1 !important;
-    filter: none !important;
+    color: #9b671d !important;
+    -webkit-text-fill-color: #9b671d !important;
   }
 
   .bs-button {
-    background: linear-gradient(135deg, #c4943a 0%, #d4a44a 100%) !important;
-    background-color: #d4a44a !important;
-    color: #0d0b0e !important;
-    -webkit-text-fill-color: #0d0b0e !important;
+    background: linear-gradient(135deg, #8a5618 0%, #b87924 100%) !important;
+    background-color: #9b671d !important;
+    color: #fff8ec !important;
+    -webkit-text-fill-color: #fff8ec !important;
   }
 
   .bs-footer {
-    color: #ffe4b8 !important;
-    background: linear-gradient(#ffe4b8, #ffe4b8) !important;
-    background-image: linear-gradient(#ffe4b8, #ffe4b8) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    opacity: 1 !important;
-    filter: none !important;
+    color: #765331 !important;
+    -webkit-text-fill-color: #765331 !important;
   }
 `;
 
 const body = {
-  backgroundColor: "#090806",
-  background: "linear-gradient(#090806, #090806)",
-  backgroundImage: "linear-gradient(#090806, #090806)",
-  color: "#f6efe5",
+  backgroundColor: "#f7efe2",
+  color: "#24170d",
   fontFamily: "Georgia, 'Times New Roman', serif",
   margin: 0,
   padding: "24px 10px",
+  colorScheme: "light",
 };
 
 const shell = {
   width: "100%",
   maxWidth: "600px",
   margin: "0 auto",
-  backgroundColor: "#14100c",
-  background: "linear-gradient(#14100c, #14100c)",
-  backgroundImage: "linear-gradient(#14100c, #14100c)",
-  border: "1px solid #4f3516",
+  backgroundColor: "#fff8ec",
+  border: "1px solid #d3b98e",
   borderRadius: "18px",
   overflow: "hidden",
 };
 
 const topRail = {
   padding: "28px 24px 24px",
-  backgroundColor: "#1f160e",
-  background: "linear-gradient(135deg, #2a1c0e 0%, #17110c 74%, #100c09 100%)",
-  borderBottom: "1px solid #4f3516",
+  backgroundColor: "#fff3dc",
+  background: "linear-gradient(135deg, #fff3dc 0%, #f5dfb8 100%)",
+  borderBottom: "1px solid #d3b98e",
 };
 
 const eyebrow = {
   margin: 0,
-  color: "#ffc857",
-  background: "linear-gradient(#ffc857, #ffc857)",
-  backgroundImage: "linear-gradient(#ffc857, #ffc857)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontSize: "11px",
   letterSpacing: "0.22em",
   textTransform: "uppercase" as const,
@@ -230,13 +195,8 @@ const eyebrow = {
 
 const headline = {
   margin: "12px 0 8px",
-  color: "#ffffff",
-  background: "linear-gradient(#ffffff, #ffffff)",
-  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#1e140c",
+  WebkitTextFillColor: "#1e140c",
   fontSize: "34px",
   lineHeight: 1.15,
   fontWeight: 700,
@@ -244,13 +204,8 @@ const headline = {
 
 const subhead = {
   margin: 0,
-  color: "#fff0cc",
-  background: "linear-gradient(#fff0cc, #fff0cc)",
-  backgroundImage: "linear-gradient(#fff0cc, #fff0cc)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#5b3e24",
+  WebkitTextFillColor: "#5b3e24",
   fontSize: "15px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
@@ -258,19 +213,12 @@ const subhead = {
 
 const contentWrap = {
   padding: "28px 24px 28px",
-  backgroundColor: "#100c09",
-  background: "linear-gradient(#100c09, #100c09)",
-  backgroundImage: "linear-gradient(#100c09, #100c09)",
+  backgroundColor: "#fffaf1",
 };
 
 const paragraph = {
-  color: "#ffffff",
-  background: "linear-gradient(#ffffff, #ffffff)",
-  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#352316",
+  WebkitTextFillColor: "#352316",
   fontSize: "16px",
   lineHeight: 1.7,
   margin: "0 0 16px",
@@ -278,34 +226,22 @@ const paragraph = {
 };
 
 const strong = {
-  color: "#ffffff",
-  background: "linear-gradient(#ffffff, #ffffff)",
-  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#1e140c",
+  WebkitTextFillColor: "#1e140c",
 };
 
 const signalCard = {
   marginTop: "24px",
-  backgroundColor: "#18120d",
-  background: "linear-gradient(#18120d, #18120d)",
-  backgroundImage: "linear-gradient(#18120d, #18120d)",
-  border: "1px solid #5f411b",
+  backgroundColor: "#fff4df",
+  border: "1px solid #c99b4a",
   borderRadius: "14px",
   padding: "20px",
 };
 
 const signalLabel = {
   margin: 0,
-  color: "#ffc857",
-  background: "linear-gradient(#ffc857, #ffc857)",
-  backgroundImage: "linear-gradient(#ffc857, #ffc857)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontSize: "10px",
   letterSpacing: "0.2em",
   textTransform: "uppercase" as const,
@@ -315,13 +251,8 @@ const signalLabel = {
 
 const signalValue = {
   margin: "10px 0 14px",
-  color: "#ffffff",
-  background: "linear-gradient(#ffffff, #ffffff)",
-  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#1e140c",
+  WebkitTextFillColor: "#1e140c",
   fontSize: "24px",
   lineHeight: 1.3,
   fontWeight: 700,
@@ -329,23 +260,18 @@ const signalValue = {
 
 const metaLine = {
   margin: "0 0 8px",
-  color: "#fff0cc",
-  background: "linear-gradient(#fff0cc, #fff0cc)",
-  backgroundImage: "linear-gradient(#fff0cc, #fff0cc)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#5b3e24",
+  WebkitTextFillColor: "#5b3e24",
   fontSize: "14px",
   lineHeight: 1.55,
   fontFamily: "Arial, Helvetica, sans-serif",
 };
 
 const button = {
-  backgroundColor: "#d4a44a",
-  background: "linear-gradient(135deg, #c4943a 0%, #d4a44a 100%)",
-  color: "#0d0b0e",
-  WebkitTextFillColor: "#0d0b0e",
+  backgroundColor: "#9b671d",
+  background: "linear-gradient(135deg, #8a5618 0%, #b87924 100%)",
+  color: "#fff8ec",
+  WebkitTextFillColor: "#fff8ec",
   padding: "14px 22px",
   borderRadius: "999px",
   fontSize: "14px",
@@ -356,13 +282,8 @@ const button = {
 
 const footerCopy = {
   margin: 0,
-  color: "#ffe4b8",
-  background: "linear-gradient(#ffe4b8, #ffe4b8)",
-  backgroundImage: "linear-gradient(#ffe4b8, #ffe4b8)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  opacity: 1,
+  color: "#765331",
+  WebkitTextFillColor: "#765331",
   fontSize: "12px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
