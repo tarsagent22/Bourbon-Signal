@@ -42,26 +42,26 @@ export function PaidDropAlertEmail({
       <Body className="bs-body" style={body}>
         <Container className="bs-shell" style={shell}>
           <Section className="bs-top-rail" style={topRail}>
-            <Text className="bs-eyebrow" style={eyebrow}><ColorLock color="#ffc857">BOURBON SIGNAL MEMBER ALERT</ColorLock></Text>
-            <Text className="bs-headline" style={headline}><ColorLock color="#ffffff">{bottleName}</ColorLock></Text>
-            <Text className="bs-subhead" style={subhead}><ColorLock color="#fff0cc">{`${bottleName} just showed up in one of your tracked areas.`}</ColorLock></Text>
+            <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
+            <Text className="bs-headline" style={headline}>{bottleName}</Text>
+            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
           </Section>
 
           <Section className="bs-content" style={contentWrap}>
-            <Text className="bs-paragraph" style={paragraph}><ColorLock color="#ffffff">{greeting}</ColorLock></Text>
+            <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
             <Text className="bs-paragraph" style={paragraph}>
-              <ColorLock color="#ffffff">{`${bottleName} just hit ${storeLabel}.`}</ColorLock>
+              {`${bottleName} just hit ${storeLabel}.`}
             </Text>
-            <Text className="bs-paragraph" style={paragraph}><ColorLock color="#ffffff">{`This matched your ${matchedArea} alert area.`}</ColorLock></Text>
+            <Text className="bs-paragraph" style={paragraph}>{`This matched your ${matchedArea} alert area.`}</Text>
 
             <Section className="bs-signal-card" style={signalCard}>
-              <Text className="bs-signal-label" style={signalLabel}><ColorLock color="#ffc857">SIGNAL LOCATION</ColorLock></Text>
-              <Text className="bs-signal-value" style={signalValue}><ColorLock color="#ffffff">{storeLabel}</ColorLock></Text>
+              <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
+              <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
 
-              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Tracked area: {matchedArea}</ColorLock></Text>
-              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">State: {state}</ColorLock></Text>
-              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Reported: {timestampLabel}</ColorLock></Text>
-              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Reported qty: {quantityLabel}</ColorLock></Text> : null}
+              <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
+              <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
+              <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
+              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
             </Section>
 
             <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
@@ -71,22 +71,12 @@ export function PaidDropAlertEmail({
             </Section>
 
             <Text className="bs-footer" style={footerCopy}>
-              <ColorLock color="#ffe4b8">If this looks wrong, reply and we will check it out.</ColorLock>
+              If this looks wrong, reply and we will check it out.
             </Text>
           </Section>
         </Container>
       </Body>
     </Html>
-  );
-}
-
-function ColorLock({ children, color }: { children: React.ReactNode; color: string }) {
-  return (
-    <span className="bs-lock-screen" style={lockScreen}>
-      <span className="bs-lock-difference" style={{ ...lockDifference, color, WebkitTextFillColor: color }}>
-        {children}
-      </span>
-    </span>
   );
 }
 
@@ -130,14 +120,22 @@ const darkModeEmailCss = `
   .bs-signal-value,
   .bs-strong {
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    background: linear-gradient(#ffffff, #ffffff) !important;
+    background-image: linear-gradient(#ffffff, #ffffff) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
     opacity: 1 !important;
     filter: none !important;
   }
 
   .bs-paragraph {
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    background: linear-gradient(#ffffff, #ffffff) !important;
+    background-image: linear-gradient(#ffffff, #ffffff) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
     opacity: 1 !important;
     filter: none !important;
   }
@@ -145,7 +143,11 @@ const darkModeEmailCss = `
   .bs-subhead,
   .bs-meta-line {
     color: #fff0cc !important;
-    -webkit-text-fill-color: #fff0cc !important;
+    background: linear-gradient(#fff0cc, #fff0cc) !important;
+    background-image: linear-gradient(#fff0cc, #fff0cc) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
     opacity: 1 !important;
     filter: none !important;
   }
@@ -153,7 +155,11 @@ const darkModeEmailCss = `
   .bs-eyebrow,
   .bs-signal-label {
     color: #ffc857 !important;
-    -webkit-text-fill-color: #ffc857 !important;
+    background: linear-gradient(#ffc857, #ffc857) !important;
+    background-image: linear-gradient(#ffc857, #ffc857) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
     opacity: 1 !important;
     filter: none !important;
   }
@@ -167,21 +173,11 @@ const darkModeEmailCss = `
 
   .bs-footer {
     color: #ffe4b8 !important;
-    -webkit-text-fill-color: #ffe4b8 !important;
-    opacity: 1 !important;
-    filter: none !important;
-  }
-
-  .bs-lock-screen {
-    background: #000000 !important;
-    background-image: linear-gradient(#000000, #000000) !important;
-    mix-blend-mode: screen !important;
-  }
-
-  .bs-lock-difference {
-    background: #000000 !important;
-    background-image: linear-gradient(#000000, #000000) !important;
-    mix-blend-mode: difference !important;
+    background: linear-gradient(#ffe4b8, #ffe4b8) !important;
+    background-image: linear-gradient(#ffe4b8, #ffe4b8) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
     opacity: 1 !important;
     filter: none !important;
   }
@@ -209,23 +205,6 @@ const shell = {
   overflow: "hidden",
 };
 
-const lockScreen = {
-  display: "inline",
-  backgroundColor: "#000000",
-  background: "linear-gradient(#000000, #000000)",
-  backgroundImage: "linear-gradient(#000000, #000000)",
-  mixBlendMode: "screen" as const,
-};
-
-const lockDifference = {
-  display: "inline",
-  backgroundColor: "#000000",
-  background: "linear-gradient(#000000, #000000)",
-  backgroundImage: "linear-gradient(#000000, #000000)",
-  mixBlendMode: "difference" as const,
-  opacity: 1,
-};
-
 const topRail = {
   padding: "28px 24px 24px",
   backgroundColor: "#1f160e",
@@ -236,7 +215,11 @@ const topRail = {
 const eyebrow = {
   margin: 0,
   color: "#ffc857",
-  WebkitTextFillColor: "#ffc857",
+  background: "linear-gradient(#ffc857, #ffc857)",
+  backgroundImage: "linear-gradient(#ffc857, #ffc857)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "11px",
   letterSpacing: "0.22em",
@@ -248,7 +231,11 @@ const eyebrow = {
 const headline = {
   margin: "12px 0 8px",
   color: "#ffffff",
-  WebkitTextFillColor: "#ffffff",
+  background: "linear-gradient(#ffffff, #ffffff)",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "34px",
   lineHeight: 1.15,
@@ -258,7 +245,11 @@ const headline = {
 const subhead = {
   margin: 0,
   color: "#fff0cc",
-  WebkitTextFillColor: "#fff0cc",
+  background: "linear-gradient(#fff0cc, #fff0cc)",
+  backgroundImage: "linear-gradient(#fff0cc, #fff0cc)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "15px",
   lineHeight: 1.6,
@@ -274,7 +265,11 @@ const contentWrap = {
 
 const paragraph = {
   color: "#ffffff",
-  WebkitTextFillColor: "#ffffff",
+  background: "linear-gradient(#ffffff, #ffffff)",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "16px",
   lineHeight: 1.7,
@@ -284,7 +279,11 @@ const paragraph = {
 
 const strong = {
   color: "#ffffff",
-  WebkitTextFillColor: "#ffffff",
+  background: "linear-gradient(#ffffff, #ffffff)",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
 };
 
@@ -301,7 +300,11 @@ const signalCard = {
 const signalLabel = {
   margin: 0,
   color: "#ffc857",
-  WebkitTextFillColor: "#ffc857",
+  background: "linear-gradient(#ffc857, #ffc857)",
+  backgroundImage: "linear-gradient(#ffc857, #ffc857)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "10px",
   letterSpacing: "0.2em",
@@ -313,7 +316,11 @@ const signalLabel = {
 const signalValue = {
   margin: "10px 0 14px",
   color: "#ffffff",
-  WebkitTextFillColor: "#ffffff",
+  background: "linear-gradient(#ffffff, #ffffff)",
+  backgroundImage: "linear-gradient(#ffffff, #ffffff)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "24px",
   lineHeight: 1.3,
@@ -323,7 +330,11 @@ const signalValue = {
 const metaLine = {
   margin: "0 0 8px",
   color: "#fff0cc",
-  WebkitTextFillColor: "#fff0cc",
+  background: "linear-gradient(#fff0cc, #fff0cc)",
+  backgroundImage: "linear-gradient(#fff0cc, #fff0cc)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "14px",
   lineHeight: 1.55,
@@ -346,7 +357,11 @@ const button = {
 const footerCopy = {
   margin: 0,
   color: "#ffe4b8",
-  WebkitTextFillColor: "#ffe4b8",
+  background: "linear-gradient(#ffe4b8, #ffe4b8)",
+  backgroundImage: "linear-gradient(#ffe4b8, #ffe4b8)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  WebkitTextFillColor: "transparent",
   opacity: 1,
   fontSize: "12px",
   lineHeight: 1.6,
