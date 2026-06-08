@@ -48,13 +48,13 @@ export function PaidDropAlertEmail({
             <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" border={0} style={heroTextTable}>
               <tbody>
                 <tr>
-                  <td color="#252019" style={heroTitleCell}>
-                    <LegacyFont color="#252019" style={heroTitleFont}>{bottleName}</LegacyFont>
+                  <td color="#9b671d" style={heroTitleCell}>
+                    <LegacyFont color="#9b671d" style={heroTitleFont}>{bottleName}</LegacyFont>
                   </td>
                 </tr>
                 <tr>
-                  <td color="#252019" style={heroSubheadCell}>
-                    <LegacyFont color="#252019" style={heroSubheadFont}>{`${bottleName} just showed up in one of your tracked areas.`}</LegacyFont>
+                  <td color="#9b671d" style={heroSubheadCell}>
+                    <LegacyFont color="#9b671d" style={heroSubheadFont}>{`${bottleName} just showed up in one of your tracked areas.`}</LegacyFont>
                   </td>
                 </tr>
               </tbody>
@@ -215,8 +215,8 @@ const heroTextTable = {
 };
 
 const heroTitleCell = {
-  color: "#252019",
-  WebkitTextFillColor: "#252019",
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontFamily: "Georgia, 'Times New Roman', serif",
   fontSize: "34px",
   lineHeight: 1.15,
@@ -225,8 +225,8 @@ const heroTitleCell = {
 };
 
 const heroTitleFont = {
-  color: "#252019",
-  WebkitTextFillColor: "#252019",
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontFamily: "Georgia, 'Times New Roman', serif",
   fontSize: "34px",
   lineHeight: 1.15,
@@ -234,8 +234,8 @@ const heroTitleFont = {
 };
 
 const heroSubheadCell = {
-  color: "#252019",
-  WebkitTextFillColor: "#252019",
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontFamily: "Arial, Helvetica, sans-serif",
   fontSize: "15px",
   lineHeight: 1.6,
@@ -243,8 +243,8 @@ const heroSubheadCell = {
 };
 
 const heroSubheadFont = {
-  color: "#252019",
-  WebkitTextFillColor: "#252019",
+  color: "#9b671d",
+  WebkitTextFillColor: "#9b671d",
   fontFamily: "Arial, Helvetica, sans-serif",
   fontSize: "15px",
   lineHeight: 1.6,
