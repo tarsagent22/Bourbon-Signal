@@ -42,26 +42,26 @@ export function PaidDropAlertEmail({
       <Body className="bs-body" style={body}>
         <Container className="bs-shell" style={shell}>
           <Section className="bs-top-rail" style={topRail}>
-            <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
-            <Text className="bs-headline" style={headline}>{bottleName}</Text>
-            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
+            <Text className="bs-eyebrow" style={eyebrow}><ColorLock color="#ffc857">BOURBON SIGNAL MEMBER ALERT</ColorLock></Text>
+            <Text className="bs-headline" style={headline}><ColorLock color="#ffffff">{bottleName}</ColorLock></Text>
+            <Text className="bs-subhead" style={subhead}><ColorLock color="#fff0cc">{`${bottleName} just showed up in one of your tracked areas.`}</ColorLock></Text>
           </Section>
 
           <Section className="bs-content" style={contentWrap}>
-            <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
+            <Text className="bs-paragraph" style={paragraph}><ColorLock color="#ffffff">{greeting}</ColorLock></Text>
             <Text className="bs-paragraph" style={paragraph}>
-              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
+              <ColorLock color="#ffffff">{`${bottleName} just hit ${storeLabel}.`}</ColorLock>
             </Text>
-            <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
+            <Text className="bs-paragraph" style={paragraph}><ColorLock color="#ffffff">{`This matched your ${matchedArea} alert area.`}</ColorLock></Text>
 
             <Section className="bs-signal-card" style={signalCard}>
-              <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
-              <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
+              <Text className="bs-signal-label" style={signalLabel}><ColorLock color="#ffc857">SIGNAL LOCATION</ColorLock></Text>
+              <Text className="bs-signal-value" style={signalValue}><ColorLock color="#ffffff">{storeLabel}</ColorLock></Text>
 
-              <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
-              <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
-              <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
-              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
+              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Tracked area: {matchedArea}</ColorLock></Text>
+              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">State: {state}</ColorLock></Text>
+              <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Reported: {timestampLabel}</ColorLock></Text>
+              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}><ColorLock color="#fff0cc">Reported qty: {quantityLabel}</ColorLock></Text> : null}
             </Section>
 
             <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
@@ -71,12 +71,22 @@ export function PaidDropAlertEmail({
             </Section>
 
             <Text className="bs-footer" style={footerCopy}>
-              If this looks wrong, reply and we will check it out.
+              <ColorLock color="#ffe4b8">If this looks wrong, reply and we will check it out.</ColorLock>
             </Text>
           </Section>
         </Container>
       </Body>
     </Html>
+  );
+}
+
+function ColorLock({ children, color }: { children: React.ReactNode; color: string }) {
+  return (
+    <span className="bs-lock-screen" style={lockScreen}>
+      <span className="bs-lock-difference" style={{ ...lockDifference, color, WebkitTextFillColor: color }}>
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -161,6 +171,20 @@ const darkModeEmailCss = `
     opacity: 1 !important;
     filter: none !important;
   }
+
+  .bs-lock-screen {
+    background: #000000 !important;
+    background-image: linear-gradient(#000000, #000000) !important;
+    mix-blend-mode: screen !important;
+  }
+
+  .bs-lock-difference {
+    background: #000000 !important;
+    background-image: linear-gradient(#000000, #000000) !important;
+    mix-blend-mode: difference !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
 `;
 
 const body = {
@@ -183,6 +207,23 @@ const shell = {
   border: "1px solid #4f3516",
   borderRadius: "18px",
   overflow: "hidden",
+};
+
+const lockScreen = {
+  display: "inline",
+  backgroundColor: "#000000",
+  background: "linear-gradient(#000000, #000000)",
+  backgroundImage: "linear-gradient(#000000, #000000)",
+  mixBlendMode: "screen" as const,
+};
+
+const lockDifference = {
+  display: "inline",
+  backgroundColor: "#000000",
+  background: "linear-gradient(#000000, #000000)",
+  backgroundImage: "linear-gradient(#000000, #000000)",
+  mixBlendMode: "difference" as const,
+  opacity: 1,
 };
 
 const topRail = {
