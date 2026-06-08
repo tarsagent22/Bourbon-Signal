@@ -6,6 +6,7 @@ import SectionHeading from "../SectionHeading";
 import GlassCard from "../GlassCard";
 import Badge from "../Badge";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
+import { useAuth } from "@/lib/auth";
 
 const eventIcons: Record<string, typeof Warehouse> = {
   "Warehouse Received": Warehouse,
@@ -58,6 +59,8 @@ const drops = [
 ];
 
 export default function LiveDropFeed() {
+  const { signUp } = useAuth();
+
   return (
     <section
       className="py-24 px-6 sm:px-8 md:px-16 lg:px-24"
@@ -162,7 +165,11 @@ export default function LiveDropFeed() {
           >
             Founding testers help validate these alerts before paid memberships open.{" "}
             <a
-              href="/dashboard"
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+                signUp();
+              }}
               style={{
                 color: "var(--color-accent-amber)",
                 textDecoration: "none",

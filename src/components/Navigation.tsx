@@ -23,7 +23,7 @@ export default function Navigation() {
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, memberTier, signIn, signOut } = useAuth();
+  const { isSignedIn, user, memberTier, signIn, signUp, signOut } = useAuth();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -272,7 +272,11 @@ export default function Navigation() {
                 Sign In
               </a>
               <a
-                href="/dashboard"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  signUp();
+                }}
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
@@ -392,8 +396,12 @@ export default function Navigation() {
                   Sign In
                 </a>
                 <a
-                  href="/dashboard"
-                  onClick={() => setMobileOpen(false)}
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    signUp();
+                    setMobileOpen(false);
+                  }}
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "16px",
