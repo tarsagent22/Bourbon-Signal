@@ -1,10 +1,10 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T20:05:24.654Z",
-  "engineGeneratedAt": "2026-06-08T20:00:15.289Z",
+  "generatedAt": "2026-06-08T20:07:08.080Z",
+  "engineGeneratedAt": "2026-06-08T20:06:57.930Z",
   "stateCount": 24,
   "signalCount": 8744,
-  "historicalSignalCount": 107221,
+  "historicalSignalCount": 109103,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
@@ -15,8 +15,8 @@
   "preloadedLocationCount": 1666,
   "dropCount": 6108,
   "eventCount": 1401,
-  "alertCandidateCount": 88,
-  "roadblockCount": 58,
+  "alertCandidateCount": 4,
+  "roadblockCount": 57,
   "refreshHealth": {
     "degradedStateCount": 2,
     "staleStateCount": 2,
@@ -29,7 +29,7 @@
         "stale": true,
         "staleReason": "VA timed out after 180s",
         "previousFinishedAt": "2026-06-08T14:08:26.278Z",
-        "staleFallbackAt": "2026-06-08T19:54:36.991Z"
+        "staleFallbackAt": "2026-06-08T20:01:05.558Z"
       },
       {
         "state": "IN",
@@ -38,7 +38,7 @@
         "stale": true,
         "staleReason": "IN timed out after 180s",
         "previousFinishedAt": "2026-06-06T11:29:18.600Z",
-        "staleFallbackAt": "2026-06-08T19:58:57.694Z"
+        "staleFallbackAt": "2026-06-08T20:05:29.753Z"
       }
     ]
   },
@@ -141,7 +141,7 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1434,
+        "signalCount": 1433,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -297,8 +297,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 2,
+        "signalCount": 4,
+        "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -343,7 +343,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-08T20:05:24.655Z",
+    "generatedAt": "2026-06-08T20:07:08.081Z",
     "focusStates": [
       "AL",
       "VA",
@@ -382,7 +382,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1434,
+        "signalCount": 1433,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -414,7 +414,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 3,
+        "signalCount": 4,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
