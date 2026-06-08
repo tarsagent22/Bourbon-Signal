@@ -11,12 +11,18 @@ import type { DropEvent } from "@/lib/drops";
 import { cleanBrandName, formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { dropMatchesBottle } from "@/lib/bottleIdentity";
 import { ZIP_CENTROIDS } from "@/data/zip-centroids";
+import { AVAILABLE_STATES, ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 
 interface HuntMapProps {
   stores: Store[];
   bottles: Bottle[];
   drops: DropEvent[];
 }
+
+const HUNT_MAP_STATE_OPTIONS = ENGINE_COVERED_STATE_CODES.map((code) => ({
+  code,
+  name: AVAILABLE_STATES.find((state) => state.code === code)?.name || code,
+}));
 
 type Mode = "bottle" | "store";
 
@@ -253,7 +259,7 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8 }}>
                 <input value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder="ZIP code or city" style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }} />
-                <select value={String(daysBack)} onChange={(e) => setDaysBack(Number(e.target.value))} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
+                <select className="bourbon-select" value={String(daysBack)} onChange={(e) => setDaysBack(Number(e.target.value))} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
                   {[1, 3, 7, 14].map((days) => <option key={days} value={days}>{`Last ${days} day${days === 1 ? "" : "s"}`}</option>)}
                 </select>
                 <button onClick={handleApplyArea} style={{ borderRadius: 12, border: "1px solid rgba(196,148,58,0.24)", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Go</button>
@@ -262,11 +268,10 @@ export default function HuntMap({ stores, bottles, drops }: HuntMapProps) {
           ) : (
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ display: "grid", gridTemplateColumns: "140px 1fr auto", gap: 8 }}>
-                <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
-                  <option value="IN">Indiana</option>
-                  <option value="NC">North Carolina</option>
-                  <option value="VA">Virginia</option>
-                  <option value="PA">Pennsylvania</option>
+                <select className="bourbon-select" value={selectedState} onChange={(e) => setSelectedState(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }}>
+                  {HUNT_MAP_STATE_OPTIONS.map((state) => (
+                    <option key={state.code} value={state.code}>{state.name}</option>
+                  ))}
                 </select>
                 <input value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} placeholder="ZIP code or city" style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14 }} />
                 <button onClick={handleApplyArea} style={{ borderRadius: 12, border: "1px solid rgba(196,148,58,0.24)", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>Go</button>

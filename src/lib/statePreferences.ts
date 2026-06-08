@@ -16,21 +16,23 @@ export interface AvailableState {
   comingSoon?: boolean;
 }
 
+export const ENGINE_COVERED_STATE_CODES = ["AL", "IA", "IN", "NC", "OH", "PA", "VA"] as const;
+
 export const AVAILABLE_STATES: readonly AvailableState[] = [
   { code: "AL", name: "Alabama", active: true },
-  { code: "NC", name: "North Carolina", active: true },
-  { code: "VA", name: "Virginia", active: true },
-  { code: "PA", name: "Pennsylvania", active: true },
-  { code: "IN", name: "Indiana", active: true },
-  { code: "KY", name: "Kentucky", active: true },
-  { code: "OH", name: "Ohio", active: true },
   { code: "IA", name: "Iowa", active: true },
-  { code: "ME", name: "Maine", active: true },
-  { code: "UT", name: "Utah", active: true },
-  { code: "WV", name: "West Virginia", active: true },
-  { code: "MD-MONTGOMERY", name: "Montgomery, MD", active: true },
-  { code: "TN", name: "Tennessee", active: true },
-  { code: "IL", name: "Illinois", active: true },
+  { code: "IN", name: "Indiana", active: true },
+  { code: "NC", name: "North Carolina", active: true },
+  { code: "OH", name: "Ohio", active: true },
+  { code: "PA", name: "Pennsylvania", active: true },
+  { code: "VA", name: "Virginia", active: true },
+  { code: "KY", name: "Kentucky", active: false, comingSoon: true },
+  { code: "ME", name: "Maine", active: false, comingSoon: true },
+  { code: "UT", name: "Utah", active: false, comingSoon: true },
+  { code: "WV", name: "West Virginia", active: false, comingSoon: true },
+  { code: "MD-MONTGOMERY", name: "Montgomery, MD", active: false, comingSoon: true },
+  { code: "TN", name: "Tennessee", active: false, comingSoon: true },
+  { code: "IL", name: "Illinois", active: false, comingSoon: true },
 ] as const;
 
 export const useStatePreferences = create<StatePreferencesStore>()(

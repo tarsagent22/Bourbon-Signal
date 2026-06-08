@@ -212,6 +212,7 @@ export default function BottleFilterBar({
             <div className="flex items-center gap-2">
               {onDistilleryChange && distilleries.length > 0 && (
                 <select
+                  className="bourbon-select"
                   value={activeDistillery}
                   onChange={(e) => onDistilleryChange(e.target.value)}
                   style={{

@@ -926,9 +926,9 @@ export default function DropFeed() {
   const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
   const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
-  const feedStateOptions = AVAILABLE_STATES.filter((state) => !("comingSoon" in state && state.comingSoon));
+  const feedStateOptions = AVAILABLE_STATES.filter((state) => state.active && !("comingSoon" in state && state.comingSoon));
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
-    ? "Showing all supported states"
+    ? "Showing all covered states"
     : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
   const stateDropdownValue = !hasSelectedStates || preferredStates.length === 0
     ? "ALL"
@@ -1056,6 +1056,7 @@ export default function DropFeed() {
                   setSelectedStates([value]);
                 }}
                 aria-label="Filter drop feed by state"
+                className="bourbon-select"
                 style={{
                   width: "100%",
                   borderRadius: "14px",
@@ -1070,7 +1071,7 @@ export default function DropFeed() {
                   cursor: "pointer",
                 }}
               >
-                <option value="ALL">All active markets</option>
+                <option value="ALL">All covered states</option>
                 {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
                 {feedStateOptions.map((state) => (
                   <option key={state.code} value={state.code}>

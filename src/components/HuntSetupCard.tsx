@@ -69,6 +69,7 @@ export default function HuntSetupCard({ bottles, stores }: HuntSetupCardProps) {
             Bottle
           </label>
           <select
+            className="bourbon-select"
             value={bottleId}
             onChange={(e) => setBottleId(e.target.value)}
             style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(196,148,58,0.18)", background: "rgba(16,12,9,0.92)", color: "var(--color-text-primary)", fontFamily: "var(--font-dm-sans)", fontSize: 14, marginBottom: 16 }}

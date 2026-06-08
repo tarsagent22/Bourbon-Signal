@@ -20,6 +20,7 @@ import { getDisplayName } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
+import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -31,7 +32,7 @@ const EMPTY_PREFS: AreaPreferences = {
   paStores: [],
 };
 
-const SIMPLE_STATE_CODES = ["NC", "VA", "OH", "IA", "PA", "MD-MONTGOMERY"] as const;
+const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
 
 interface AlertPreviewState {
   sending: boolean;
@@ -199,6 +200,7 @@ function makeStateLabel(code: string) {
     IA: "Iowa",
     PA: "Pennsylvania",
     AL: "Alabama",
+    IN: "Indiana",
     WV: "West Virginia",
     MS: "Mississippi",
     GA: "Georgia",
@@ -831,7 +833,7 @@ export default function DashboardPage() {
                       ? localPrefs.iaCities
                       : activeState === "PA"
                         ? localPrefs.paCounties
-                        : activeState === "MD-MONTGOMERY" && localPrefs.states.includes("MD-MONTGOMERY") ? ["County-wide coverage"] : [];
+                        : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const detailLabel = activeState === "NC" ? "boards" : activeState === "PA" ? "cities / stores" : ["VA", "OH", "IA"].includes(activeState) ? "cities" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
               const cityPrefs = activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "IA" ? localPrefs.iaCities : activeState === "PA" ? localPrefs.paCounties : [];
@@ -896,7 +898,7 @@ export default function DashboardPage() {
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
                                 : ["VA", "OH", "IA", "PA"].includes(activeState)
                                   ? "Pick cities first. For states with reliable store-level data, selected cities can be narrowed to specific stores."
-                                  : "Montgomery County is currently saved as county-wide coverage."}
+                                  : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
                             </p>
                           </div>
                           <div style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.10)", padding: "8px 12px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -981,9 +983,9 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
 
-                        {activeState === "MD-MONTGOMERY" ? (
+                        {!(["NC", "VA", "OH", "IA", "PA"].includes(activeState)) ? (
                           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                            Montgomery County is currently one county-wide ABS coverage area. No duplicate board/store selector is shown until a clean store-level source exists.
+                            {makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.
                           </div>
                         ) : null}
                       </div>

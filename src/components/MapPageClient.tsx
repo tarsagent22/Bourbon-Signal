@@ -13,13 +13,13 @@ import type { DropEvent } from "@/lib/drops";
 import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
-import { AVAILABLE_STATES } from "@/lib/statePreferences";
+import { AVAILABLE_STATES, ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 
 type FinderMode = "bottle" | "store";
 type FinderState = string;
 
-const FINDER_MARKET_CODES = new Set(["NC", "VA", "PA", "IN", "OH", "ME", "UT", "AL"]);
-const FINDER_MARKET_PRIORITY = ["NC", "VA", "PA", "IN", "OH", "ME", "UT", "AL"];
+const FINDER_MARKET_CODES = new Set<string>(ENGINE_COVERED_STATE_CODES);
+const FINDER_MARKET_PRIORITY = ["NC", "VA", "PA", "OH", "IA", "IN", "AL"];
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
@@ -677,7 +677,7 @@ export default function MapPageClient() {
     for (const store of stores) if (store.state) counts.set(store.state, (counts.get(store.state) || 0) + 1);
 
     const activeStates = AVAILABLE_STATES
-      .filter((state) => FINDER_MARKET_CODES.has(state.code))
+      .filter((state) => state.active && FINDER_MARKET_CODES.has(state.code))
       .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }))
       .filter((state) => state.count > 0)
       .sort((a, b) => {
@@ -687,8 +687,8 @@ export default function MapPageClient() {
       });
 
     return [
-      ...activeStates,
       { code: "ALL", name: "All covered states", count: drops.length },
+      ...activeStates,
     ];
   }, [bottles, drops, stores]);
 
@@ -741,7 +741,8 @@ export default function MapPageClient() {
 
   useEffect(() => {
     if (!stateOptions.length) return;
-    if (stateFilter !== "ALL" && stateOptions.some((option) => option.code === stateFilter)) return;
+    if (stateFilter === "ALL") return;
+    if (stateOptions.some((option) => option.code === stateFilter)) return;
     const firstUseful = stateOptions.find((option) => option.code !== "ALL" && option.count > 0);
     if (firstUseful) setStateFilter(firstUseful.code as FinderState);
   }, [stateFilter, stateOptions]);
@@ -1140,7 +1141,7 @@ export default function MapPageClient() {
                 <select
                   value={stateFilter}
                   onChange={(e) => setStateFilter(e.target.value)}
-                  className="finder-state-select"
+                  className="finder-state-select bourbon-select"
                 >
                   {stateOptions.map((state) => (
                     <option key={state.code} value={state.code}>
