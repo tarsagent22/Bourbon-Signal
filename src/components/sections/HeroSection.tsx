@@ -128,7 +128,7 @@ export default function HeroSection() {
               "Live Drop Feed",
               "Email Alerts",
               "Bottle Finder",
-              "Events",
+              "Bottle Check",
             ].map((item, index, arr) => (
               <div
                 key={item}

@@ -12,12 +12,12 @@ const navLinks = [
   { label: "Drops", href: "/#drops" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/finder" },
-  { label: "Events", href: "/events" },
+  { label: "Bottle Check", href: "/bottle-check" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isMapPage = pathname === "/map" || pathname === "/finder";
+  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -88,11 +88,12 @@ export default function Navigation() {
 
         {/* Desktop nav links */}
         <div
-          className="hidden md:flex items-center gap-8"
+          className="hidden md:flex items-center"
           style={{
             position: "absolute",
             left: "50%",
             transform: "translateX(-50%)",
+            gap: "clamp(18px, 2.4vw, 32px)",
           }}
         >
           {navLinks.map((link) => (
