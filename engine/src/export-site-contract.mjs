@@ -9,6 +9,7 @@ const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
 const SITE_OUT = path.join(OUT, 'site');
 const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
+const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHOT_LIMIT || 40);
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
@@ -26,10 +27,11 @@ async function recentSnapshots(days = HISTORY_DAYS) {
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   if (!(await exists(SNAPSHOTS))) return [];
 
-  const files = (await readdir(SNAPSHOTS)).filter((f) => f.endsWith('.json')).sort();
+  const files = (await readdir(SNAPSHOTS)).filter((f) => f.endsWith('.json')).sort().reverse();
   const snapshots = [];
   for (const file of files) {
     const fullPath = path.join(SNAPSHOTS, file);
+    if (HISTORY_SNAPSHOT_LIMIT > 0 && snapshots.length >= HISTORY_SNAPSHOT_LIMIT) break;
     const data = await readJson(fullPath);
     const ts = new Date(data?.generatedAt || '').getTime();
     if (!Number.isFinite(ts)) continue;
@@ -115,7 +117,7 @@ function safeString(value, max = 500) {
 
 function publicSignal(signal, bible) {
   const bibleRecord = findBibleRecord(signal, bible);
-  const preferRetailerName = signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
+  const preferRetailerName = (signal.state === 'IN' || signal.state === 'IL') && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
@@ -257,6 +259,7 @@ function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
   if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
   if (signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
+  if (signal.state === 'IL' && /^(retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|knob creek|maker|pappy/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
     if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();

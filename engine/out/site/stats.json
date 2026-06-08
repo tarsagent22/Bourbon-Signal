@@ -1,27 +1,36 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-06T17:07:50.250Z",
-  "engineGeneratedAt": "2026-06-06T17:00:38.329Z",
-  "stateCount": 23,
-  "signalCount": 8599,
-  "historicalSignalCount": 2256968,
+  "generatedAt": "2026-06-08T20:05:24.654Z",
+  "engineGeneratedAt": "2026-06-08T20:00:15.289Z",
+  "stateCount": 24,
+  "signalCount": 8744,
+  "historicalSignalCount": 107221,
   "historyDays": 30,
-  "snapshotCount": 1662,
+  "snapshotCount": 40,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2520,
-  "locationCount": 4347,
+  "storeCount": 2407,
+  "locationCount": 4236,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 10000,
-  "eventCount": 2449,
-  "alertCandidateCount": 2,
-  "roadblockCount": 63,
+  "dropCount": 6108,
+  "eventCount": 1401,
+  "alertCandidateCount": 88,
+  "roadblockCount": 58,
   "refreshHealth": {
-    "degradedStateCount": 1,
-    "staleStateCount": 1,
+    "degradedStateCount": 2,
+    "staleStateCount": 2,
     "failedStateCount": 0,
     "degradedStates": [
+      {
+        "state": "VA",
+        "label": "Virginia ABC",
+        "status": "stale_useful",
+        "stale": true,
+        "staleReason": "VA timed out after 180s",
+        "previousFinishedAt": "2026-06-08T14:08:26.278Z",
+        "staleFallbackAt": "2026-06-08T19:54:36.991Z"
+      },
       {
         "state": "IN",
         "label": "Indiana ATC + retailer inventory watch",
@@ -29,15 +38,15 @@
         "stale": true,
         "staleReason": "IN timed out after 180s",
         "previousFinishedAt": "2026-06-06T11:29:18.600Z",
-        "staleFallbackAt": "2026-06-06T16:59:29.845Z"
+        "staleFallbackAt": "2026-06-08T19:58:57.694Z"
       }
     ]
   },
-  "statesAtTargetPrecision": 19,
-  "rareStatesVerified": 17,
+  "statesAtTargetPrecision": 20,
+  "rareStatesVerified": 18,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 6,
+      "live_store_inventory": 7,
       "shipment_drop_intelligence": 5,
       "catalog_watch": 11,
       "policy_source_discovery": 1
@@ -48,7 +57,7 @@
         "label": "Ohio OHLQ",
         "tier": "A",
         "status": "useful",
-        "signalCount": 598,
+        "signalCount": 361,
         "roadblockCount": 7,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -95,9 +104,9 @@
         "state": "VA",
         "label": "Virginia ABC",
         "tier": "B",
-        "status": "useful",
+        "status": "stale_useful",
         "signalCount": 2367,
-        "roadblockCount": 5,
+        "roadblockCount": 6,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "catalog_plus_limited_availability_watch",
@@ -108,7 +117,7 @@
         "label": "Pennsylvania FWGS / PLCB",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1570,
+        "signalCount": 1574,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -132,8 +141,8 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1425,
-        "roadblockCount": 6,
+        "signalCount": 1434,
+        "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "warehouse_plus_county_board_inventory",
@@ -149,6 +158,18 @@
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "license_spine_plus_retailer_store_inventory",
+        "coverageTier": "live_store_inventory"
+      },
+      {
+        "state": "IL",
+        "label": "Illinois Binny's + retailer inventory watch",
+        "tier": "B",
+        "status": "useful",
+        "signalCount": 370,
+        "roadblockCount": 0,
+        "targetLocationPrecision": "store_level",
+        "bestLocationPrecision": "store_level",
+        "strategy": "retailer_store_inventory",
         "coverageTier": "live_store_inventory"
       },
       {
@@ -168,7 +189,7 @@
         "label": "Montgomery County ABS",
         "tier": "B",
         "status": "useful",
-        "signalCount": 502,
+        "signalCount": 501,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_aggregate",
@@ -322,7 +343,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-06T17:07:50.251Z",
+    "generatedAt": "2026-06-08T20:05:24.655Z",
     "focusStates": [
       "AL",
       "VA",
@@ -351,7 +372,7 @@
       },
       "VA": {
         "label": "Virginia ABC",
-        "status": "useful",
+        "status": "stale_useful",
         "coverageTier": "live_store_inventory",
         "signalCount": 2367,
         "bestLocationPrecision": "store_level",
@@ -361,7 +382,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1425,
+        "signalCount": 1434,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -564,11 +585,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 2322,
+          "quantity": 2227,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 2322 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 2227 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "5fe622929530be5a",
@@ -580,11 +601,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 1379,
+          "quantity": 1363,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 1379 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 1363 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "42112660bd6fdf81",
@@ -596,11 +617,11 @@
           "rawName": "E.H. Taylor Jr. Small Batch",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 748,
+          "quantity": 742,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 748 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 742 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -628,11 +649,11 @@
           "rawName": "Willett Family Estate Small Batch Bourbon 4Y",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 594,
+          "quantity": 589,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 594 unit(s) available statewide for Willett Family Estate Small Batch Bourbon 4Y (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 589 unit(s) available statewide for Willett Family Estate Small Batch Bourbon 4Y (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "67f40f0df74ae716",
@@ -676,11 +697,11 @@
           "rawName": "Buffalo Trace Bourbon Cream",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 402,
+          "quantity": 386,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 402 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 386 unit(s) available statewide for Buffalo Trace Bourbon Cream (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         }
       ],
       "alReleaseIntel": [
@@ -857,7 +878,7 @@
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
     "boardsWithReleasePages": 12,
-    "boardsWithInventoryPages": 5,
+    "boardsWithInventoryPages": 6,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
   "locationBibleSources": [

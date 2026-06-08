@@ -13,6 +13,7 @@ const TRACKED_TERMS = {
   IA: ['Blanton', 'Old Fitzgerald', 'Baker'],
   UT: ['Eagle Rare', 'Blanton', 'Elijah Craig'],
   NC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Willett'],
+  IL: ['Blanton', 'Eagle Rare', 'Weller', 'Stagg', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker'],
   VA: ['Blanton', 'Eagle Rare', 'Buffalo Trace', 'Taylor', 'Old Fitzgerald', '1792 Small Batch'],
   PA: ['Buffalo Trace', 'Weller', 'Blanton', 'Eagle Rare', 'Stagg', 'Old Fitzgerald'],
   'MD-MONTGOMERY': ['Blanton', 'Eagle Rare', 'Weller', 'Buffalo Trace', 'Taylor', 'Stagg', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker']
@@ -40,6 +41,17 @@ const HIGH_POINT_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+por
 
 const RARE_RE = /blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|elijah craig|george t|william larue|thomas h/i;
 const MONTGOMERY_BOURBON_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|michter|buffalo trace|elijah craig|george t|william larue|thomas h/i;
+
+const BINNYS_ALGOLIA_APP_ID = process.env.BOURBON_SIGNAL_BINNYS_ALGOLIA_APP_ID || 'Z25A2A928M';
+const BINNYS_ALGOLIA_SEARCH_KEY = process.env.BOURBON_SIGNAL_BINNYS_ALGOLIA_SEARCH_KEY || '88b6125855a0bbd845447e35de8d51c5';
+const BINNYS_PRODUCT_INDEX = process.env.BOURBON_SIGNAL_BINNYS_PRODUCT_INDEX || 'Products_Production';
+const BINNYS_STORE_INDEX = process.env.BOURBON_SIGNAL_BINNYS_STORE_INDEX || 'Stores_Production';
+const BINNYS_BASE_URL = 'https://www.binnys.com';
+const BINNYS_BOURBON_URL = `${BINNYS_BASE_URL}/spirits?refinementList%5BproductVarietal%5D%5B0%5D=Bourbon`;
+const BINNYS_MAX_BOURBON_PAGES = Number(process.env.BOURBON_SIGNAL_BINNYS_MAX_BOURBON_PAGES || 10);
+const BINNYS_HITS_PER_PAGE = Number(process.env.BOURBON_SIGNAL_BINNYS_HITS_PER_PAGE || 100);
+const BINNYS_STRICT_WATCH_RE = /blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|van winkle|pappy|elmer|rock hill|blood oath|four roses\s+(limited|limited edition)|elijah craig[^\n]{0,50}barrel proof|russell'?s?\s+reserve|old forester[^\n]{0,40}birthday|heaven hill[^\n]{0,40}(grain|heritage|bottled in bond)|1792[^\n]{0,40}(full proof|sweet wheat|12 year|bottled in bond)|knob creek[^\n]{0,40}(12|15|18)|wild turkey[^\n]{0,40}(master|limited|70th)|little book|parker'?s/i;
+const BINNYS_EXCLUDE_RE = /vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|syrup|bitters|barrel aged stout|flavored whiskey(?![^\n]{0,40}bourbon)/i;
 
 const AL_ABC_BASE_URL = 'https://alabcboard.gov';
 const AL_MONTHLY_RELEASE_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/monthly`;
@@ -1431,11 +1443,238 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'UT') return collectUtah(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
+  if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
   return { signals: [], roadblocks: [] };
+}
+
+async function binnysAlgoliaQuery(indexName, params) {
+  const res = await textFetch(`https://${BINNYS_ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${encodeURIComponent(indexName)}/query`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      'x-algolia-application-id': BINNYS_ALGOLIA_APP_ID,
+      'x-algolia-api-key': BINNYS_ALGOLIA_SEARCH_KEY
+    },
+    body: JSON.stringify(params),
+    timeoutMs: 30_000
+  });
+  if (!res.ok) throw new Error(`Binny's Algolia ${indexName} HTTP ${res.status}: ${res.error || res.text.slice(0, 180)}`);
+  return JSON.parse(res.text);
+}
+
+function binnysStoreAddress(store) {
+  return [store.addressLine1, store.city, 'IL', store.zipCode].filter(Boolean).join(', ');
+}
+
+function binnysProductName(hit) {
+  return hit.productName || hit.shortDescription || hit.name || hit.objectID || '';
+}
+
+function binnysProductRelevant(hit) {
+  const text = `${binnysProductName(hit)} ${hit.productBrandName || ''} ${hit.productType || ''} ${hit.productVarietal || ''} ${hit.area || ''} ${(hit.designations || []).join(' ')} ${hit.productDescriptionLong || ''}`;
+  if (BINNYS_EXCLUDE_RE.test(text) && !/bourbon|straight bourbon|american whiskey|rye whiskey|blanton|eagle rare|weller|stagg|taylor|buffalo trace/i.test(text)) return false;
+  return BINNYS_STRICT_WATCH_RE.test(text);
+}
+
+function binnysQuantity(row = {}) {
+  const qty = Number(row.purchaseAvailability || 0) || 0;
+  if (qty > 0) return qty;
+  const label = String(row.stockMessageByStore || '');
+  const only = label.match(/only\s+(\d+)\s+left/i)?.[1];
+  if (only) return Number(only) || 0;
+  if (/in\s+stock/i.test(label)) return 1;
+  return 0;
+}
+
+function binnysPrice(row = {}, hit = {}) {
+  const prices = row.prices || {};
+  return Number(prices.bestPrice || prices.salePrice || prices.regularPrice || hit.onlineStoreBestPrice || 0) || null;
+}
+
+async function collectIllinois(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  const observedAt = new Date().toISOString();
+
+  let stores = [];
+  const storesByCode = new Map();
+  try {
+    const storeResult = await binnysAlgoliaQuery(BINNYS_STORE_INDEX, { query: '', hitsPerPage: 100 });
+    stores = (storeResult.hits || [])
+      .filter((store) => String(store.state || '').toLowerCase() === 'illinois' && !store.isComingSoon && store.storeId)
+      .sort((a, b) => Number(a.storeId) - Number(b.storeId));
+    for (const store of stores) {
+      storesByCode.set(String(store.storeId), store);
+      signals.push({
+        id: stableId([config.id, 'binnys-store-location', store.storeId]),
+        state: config.id,
+        sourceLabel: "Binny's Beverage Depot store locator",
+        sourceUrl: store.storeUrl || `${BINNYS_BASE_URL}/store-locator/`,
+        rawName: `Binny's ${store.storeName}`,
+        canonicalBottleId: null,
+        canonicalName: null,
+        confidence: 0.78,
+        eventType: 'retailer_store_location',
+        locationPrecision: 'store_level',
+        locationName: `Binny's ${store.storeName}`,
+        storeName: `Binny's ${store.storeName}`,
+        storeId: `binnys:${store.storeId}`,
+        storeAddress: binnysStoreAddress(store),
+        city: store.city || null,
+        county: null,
+        stateCode: 'IL',
+        postalCode: store.zipCode || null,
+        zip: store.zipCode || null,
+        lat: Number(store.latitude) || null,
+        lng: Number(store.longitude) || null,
+        quantity: 0,
+        observedAt,
+        canAlertAsInventory: false,
+        canAlertAsWatch: false,
+        inventorySemantics: "Binny's public store index identifies Illinois store locations. Store rows are not bottle availability by themselves.",
+        evidence: `Binny's lists ${store.storeName}${store.city ? ` in ${store.city}` : ''}${store.addressLine1 ? ` at ${binnysStoreAddress(store)}` : ''}.`,
+        raw: { store }
+      });
+    }
+  } catch (error) {
+    roadblocks.push({
+      state: config.id,
+      source: "Binny's Algolia store index",
+      url: `https://${BINNYS_ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${BINNYS_STORE_INDEX}/query`,
+      status: 0,
+      error: error instanceof Error ? error.message : String(error),
+      nextRoute: "Retry Binny's public Algolia Stores_Production index or fall back to rendered store-locator browser discovery."
+    });
+  }
+
+  const productMap = new Map();
+  const productQueries = [];
+  const searchTerms = [...new Set([...(TRACKED_TERMS.IL || []), 'bourbon'])];
+  for (const term of searchTerms) {
+    const maxPages = term === 'bourbon' ? BINNYS_MAX_BOURBON_PAGES : 2;
+    for (let page = 0; page < maxPages; page++) {
+      try {
+        const params = {
+          query: term === 'bourbon' ? '' : term,
+          page,
+          hitsPerPage: BINNYS_HITS_PER_PAGE,
+          facetFilters: ['productVarietal:Bourbon'],
+          attributesToRetrieve: ['objectID', 'variantCode', 'productName', 'shortDescription', 'productBrandName', 'productType', 'productVarietal', 'area', 'country', 'itemSize', 'priceUnitLabel', 'proof', 'productUrl', 'onlineStoreBestPrice', 'isInStoreOnly', 'isSoldOut', 'designations', 'storesPriceAndInventory', 'inStockStores', 'onSaleStores', 'storeSaleAvailability', 'productDescriptionLong']
+        };
+        const result = await binnysAlgoliaQuery(BINNYS_PRODUCT_INDEX, params);
+        productQueries.push({ term, page, status: 200, nbHits: result.nbHits || 0, hitCount: (result.hits || []).length });
+        for (const hit of result.hits || []) {
+          if (!hit.objectID || productMap.has(hit.objectID)) continue;
+          if (!binnysProductRelevant(hit)) continue;
+          productMap.set(hit.objectID, hit);
+        }
+        if (!result.hits?.length || page + 1 >= Number(result.nbPages || 0)) break;
+        await sleep(120);
+      } catch (error) {
+        roadblocks.push({
+          state: config.id,
+          source: "Binny's Algolia bourbon product index",
+          url: BINNYS_BOURBON_URL,
+          status: 0,
+          error: error instanceof Error ? error.message : String(error),
+          nextRoute: "Retry Binny's public Algolia Products_Production index; if it changes, rediscover the rendered page's Algolia settings."
+        });
+        break;
+      }
+    }
+  }
+
+  let matchedProducts = 0;
+  let inventoryRows = 0;
+  for (const hit of productMap.values()) {
+    const rawName = binnysProductName(hit);
+    const { match, record } = bottleMatch(rawName, bible);
+    if (!record) continue;
+    matchedProducts += 1;
+    const rows = Array.isArray(hit.storesPriceAndInventory) ? hit.storesPriceAndInventory : [];
+    for (const row of rows) {
+      const storeCode = String(row.storeCode || '');
+      const store = storesByCode.get(storeCode);
+      if (!store) continue;
+      const quantity = binnysQuantity(row);
+      const statusLabel = row.stockMessageByStore || (quantity > 0 ? 'In stock' : 'Out of stock');
+      const price = binnysPrice(row, hit);
+      inventoryRows += 1;
+      signals.push({
+        id: stableId([config.id, 'binnys-store-inventory', hit.objectID, storeCode, quantity, price, statusLabel]),
+        state: config.id,
+        sourceLabel: "Binny's Beverage Depot public store inventory",
+        sourceUrl: hit.productUrl || BINNYS_BOURBON_URL,
+        rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.8, match?.confidence || 0.5),
+        eventType: quantity > 0 ? 'retailer_store_inventory_result' : 'retailer_store_inventory_out_of_stock',
+        locationPrecision: 'store_level',
+        locationName: `Binny's ${store.storeName}`,
+        storeName: `Binny's ${store.storeName}`,
+        storeId: `binnys:${storeCode}`,
+        storeAddress: binnysStoreAddress(store),
+        city: store.city || null,
+        county: null,
+        stateCode: 'IL',
+        postalCode: store.zipCode || null,
+        zip: store.zipCode || null,
+        lat: Number(store.latitude) || null,
+        lng: Number(store.longitude) || null,
+        quantity,
+        price,
+        availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
+        availabilityLabel: statusLabel,
+        observedAt,
+        canAlertAsInventory: quantity > 0,
+        canAlertAsWatch: true,
+        inventorySemantics: "Binny's public search index includes per-store purchase availability, stock message, price, and aisle metadata for Illinois stores. Treat as retailer-published pickup/shelf availability and ask users to verify before driving.",
+        evidence: `Binny's reports ${statusLabel} for ${rawName} at Binny's ${store.storeName}${store.city ? ` in ${store.city}` : ''}${price ? ` for $${price.toFixed(2)}` : ''}${row.aisleSection ? ` (${row.aisleSection})` : ''}.`,
+        raw: { product: hit, inventory: row, store }
+      });
+    }
+  }
+
+  if (!matchedProducts) {
+    roadblocks.push({
+      state: config.id,
+      source: "Binny's Algolia bourbon product index",
+      url: BINNYS_BOURBON_URL,
+      status: productMap.size ? 'reachable_no_bible_matches' : 'reachable_no_relevant_products',
+      error: `Parsed ${productMap.size} high-signal Binny's bourbon products but none matched the Bourbon Bible seed strongly enough for alert wiring.`,
+      nextRoute: 'Review Binny\'s product names against the Bourbon Bible aliases; add missing canonical aliases only when products are genuinely alert-worthy.'
+    });
+  }
+
+  signals.push({
+    id: stableId([config.id, 'binnys-source-health', observedAt.slice(0, 10), productMap.size, inventoryRows]),
+    state: config.id,
+    sourceLabel: "Binny's Illinois engine coverage summary",
+    sourceUrl: BINNYS_BOURBON_URL,
+    rawName: "Binny's Illinois bourbon inventory coverage",
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: stores.length && matchedProducts ? 0.74 : 0.45,
+    eventType: 'retailer_inventory_source_health',
+    locationPrecision: stores.length ? 'store_aggregate' : 'statewide_catalog',
+    locationName: 'Illinois Binny\'s coverage',
+    stateCode: 'IL',
+    observedAt,
+    quantity: 0,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'Internal source-health signal for Illinois coverage; not a user alert candidate.',
+    evidence: `Collected ${stores.length} Illinois Binny's stores, ${productMap.size} high-signal bourbon products, ${matchedProducts} matched Bourbon Bible products, and ${inventoryRows} store inventory rows.`,
+    raw: { productQueries, storeCount: stores.length, productCount: productMap.size, matchedProducts, inventoryRows }
+  });
+
+  return { signals, roadblocks };
 }
 
 async function collectIndiana(config, bible) {

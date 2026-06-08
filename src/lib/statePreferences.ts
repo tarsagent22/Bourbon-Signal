@@ -16,11 +16,12 @@ export interface AvailableState {
   comingSoon?: boolean;
 }
 
-export const ENGINE_COVERED_STATE_CODES = ["AL", "IA", "IN", "NC", "OH", "PA", "VA"] as const;
+export const ENGINE_COVERED_STATE_CODES = ["AL", "IA", "IL", "IN", "NC", "OH", "PA", "VA"] as const;
 
 export const AVAILABLE_STATES: readonly AvailableState[] = [
   { code: "AL", name: "Alabama", active: true },
   { code: "IA", name: "Iowa", active: true },
+  { code: "IL", name: "Illinois", active: true },
   { code: "IN", name: "Indiana", active: true },
   { code: "NC", name: "North Carolina", active: true },
   { code: "OH", name: "Ohio", active: true },
@@ -32,7 +33,6 @@ export const AVAILABLE_STATES: readonly AvailableState[] = [
   { code: "WV", name: "West Virginia", active: false, comingSoon: true },
   { code: "MD-MONTGOMERY", name: "Montgomery, MD", active: false, comingSoon: true },
   { code: "TN", name: "Tennessee", active: false, comingSoon: true },
-  { code: "IL", name: "Illinois", active: false, comingSoon: true },
 ] as const;
 
 export const useStatePreferences = create<StatePreferencesStore>()(

@@ -19,6 +19,7 @@ export const LOCATION_PROFILES = {
   ID: { target: 'board_county', note: 'Idaho publishes catalog/special releases; public store quantity route not yet found.' },
   NC: { target: 'store_level', note: 'NC is fragmented by county board; Wake ABC publicly exposes store/quantity results, while state source gives allocated list/warehouse context.' },
   IN: { target: 'store_level', note: 'Indiana is a private retail market. ATC public permit lookup can provide active package-store coverage at store/city/ZIP precision; bottle inventory requires retailer-specific shop/inventory surfaces.' },
+  IL: { target: 'store_level', note: "Illinois is a private retail market. Current strongest source is Binny's public Algolia product/store index, which exposes Illinois store locations plus per-store purchase availability, prices, and aisle labels for matching bourbon products." },
   NH: { target: 'store_level', note: 'NHLC product/outlet site likely has catalog/outlet data but Cloudflare blocks raw fetch.' },
   'MD-MONTGOMERY': { target: 'store_level', note: 'Montgomery ABS product search has ASP.NET autocomplete and store inventory modal; product POST/viewstate drilldown remains.' },
   ME: { target: 'store_level', note: 'Maine Spirits finder is Cloudflare-blocked; lottery pages remain statewide until browser/API extraction.' },

@@ -226,6 +226,23 @@ export async function collectState(config, bible) {
   const roadblocks = [];
 
   for (const source of config.sources) {
+    if (source.precisionOnly) {
+      sourceReports.push({
+        label: source.label,
+        url: source.url,
+        ok: true,
+        status: 0,
+        contentType: 'precision-probe-only',
+        bytes: 0,
+        elapsedMs: 0,
+        signalType: 'skipped_precision_probe_only',
+        matchedBottleCount: 0,
+        pdfLinkCount: 0,
+        documentLinkCount: 0,
+        error: null
+      });
+      continue;
+    }
     const response = await fetchWithMeta(source.url, { politeDelayMs: 300 });
     const contentIsJson = response.contentType.includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
     const json = contentIsJson ? tryParseJson(response.text) : null;

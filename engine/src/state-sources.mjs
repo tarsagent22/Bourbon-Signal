@@ -129,6 +129,19 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
+    id: 'IL', label: "Illinois Binny's + retailer inventory watch", tier: 'B', strategy: 'retailer_store_inventory', cadence: '15-60m',
+    value: "Illinois is a private retail market, so the highest-value public signal is retailer-specific. Binny's exposes a public Algolia product/store index with Illinois store locations plus per-store bourbon purchase availability, stock labels, prices, and aisle metadata. Treat as retailer-published availability, not guaranteed shelf possession.",
+    sources: [
+      { kind: 'api', url: 'https://Z25A2A928M-dsn.algolia.net/1/indexes/Products_Production/query', label: "Binny's public product/store inventory index", precisionOnly: true },
+      { kind: 'api', url: 'https://Z25A2A928M-dsn.algolia.net/1/indexes/Stores_Production/query', label: "Binny's public Illinois store index", precisionOnly: true },
+      { kind: 'html', url: 'https://www.binnys.com/spirits?refinementList%5BproductVarietal%5D%5B0%5D=Bourbon', label: "Binny's bourbon category", precisionOnly: true },
+      { kind: 'html', url: 'https://www.binnys.com/store-locator/', label: "Binny's store locator", precisionOnly: true },
+      { kind: 'html', url: 'https://www.binnys.com/whiskey-hotline/', label: "Binny's Whiskey Hotline / limited rarities", precisionOnly: true },
+      { kind: 'html', url: 'https://atjewelosco.com/bourbonlovers/', label: 'Jewel Whiskey Bourbon Lovers program watch' }
+    ],
+    apiCandidates: []
+  },
+  {
     id: 'NH', label: 'New Hampshire Liquor & Wine Outlets', tier: 'B', strategy: 'catalog_and_limited_release_category', cadence: 'daily-60m',
     value: 'State outlet catalog and special/limited release categories. Good travel/cross-border value.',
     sources: [
