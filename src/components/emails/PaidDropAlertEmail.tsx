@@ -43,42 +43,38 @@ export function PaidDropAlertEmail({
       <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
       <Body className="bs-body" style={body}>
         <Container className="bs-shell" style={shell}>
-          <Section className="bs-blend-screen" style={blendScreen}>
-            <Section className="bs-blend-difference" style={blendDifference}>
-              <Section className="bs-top-rail" style={topRail}>
-                <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
-                <Text className="bs-headline" style={headline}>{bottleName}</Text>
-                <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
-              </Section>
+          <Section className="bs-top-rail" style={topRail}>
+            <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
+            <Text className="bs-headline" style={headline}>{bottleName}</Text>
+            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
+          </Section>
 
-              <Section className="bs-content" style={contentWrap}>
-                <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
-                <Text className="bs-paragraph" style={paragraph}>
-                  <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
-                </Text>
-                <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
+          <Section className="bs-content" style={contentWrap}>
+            <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
+            <Text className="bs-paragraph" style={paragraph}>
+              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
+            </Text>
+            <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
 
-                <Section className="bs-signal-card" style={signalCard}>
-                  <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
-                  <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
+            <Section className="bs-signal-card" style={signalCard}>
+              <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
+              <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
 
-                  <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
-                  <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
-                  <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
-                  {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
-                </Section>
-
-                <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
-                  <Button className="bs-button" href={dashboardUrl} style={button}>
-                    Open member dashboard
-                  </Button>
-                </Section>
-
-                <Text className="bs-footer" style={footerCopy}>
-                  If this looks wrong, reply and we will check it out.
-                </Text>
-              </Section>
+              <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
+              <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
+              <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
+              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
             </Section>
+
+            <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
+              <Button className="bs-button" href={dashboardUrl} style={button}>
+                Open member dashboard
+              </Button>
+            </Section>
+
+            <Text className="bs-footer" style={footerCopy}>
+              If this looks wrong, reply and we will check it out.
+            </Text>
           </Section>
         </Container>
       </Body>
@@ -108,18 +104,6 @@ const darkModeEmailCss = `
     border-color: #4f3516 !important;
   }
 
-  .bs-blend-screen {
-    background: #000000 !important;
-    background-image: linear-gradient(#000000, #000000) !important;
-    mix-blend-mode: screen;
-  }
-
-  .bs-blend-difference {
-    background: #000000 !important;
-    background-image: linear-gradient(#000000, #000000) !important;
-    mix-blend-mode: difference;
-  }
-
   .bs-top-rail {
     background: linear-gradient(135deg, #2a1c0e 0%, #17110c 74%, #100c09 100%) !important;
     background-color: #1f160e !important;
@@ -142,21 +126,33 @@ const darkModeEmailCss = `
   .bs-headline,
   .bs-signal-value,
   .bs-strong {
-    color: #fff4e4 !important;
+    color: #fff8ea !important;
+    -webkit-text-fill-color: #fff8ea !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 0 #fff8ea !important;
   }
 
   .bs-paragraph {
-    color: #f6efe5 !important;
+    color: #fff2df !important;
+    -webkit-text-fill-color: #fff2df !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 0 #fff2df !important;
   }
 
   .bs-subhead,
   .bs-meta-line {
-    color: #dcc9ad !important;
+    color: #f3dfbd !important;
+    -webkit-text-fill-color: #f3dfbd !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 0 #f3dfbd !important;
   }
 
   .bs-eyebrow,
   .bs-signal-label {
-    color: #d4a44a !important;
+    color: #f0b84d !important;
+    -webkit-text-fill-color: #f0b84d !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 0 #f0b84d !important;
   }
 
   .bs-button {
@@ -166,7 +162,10 @@ const darkModeEmailCss = `
   }
 
   .bs-footer {
-    color: #bda98d !important;
+    color: #e6cda7 !important;
+    -webkit-text-fill-color: #e6cda7 !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 0 #e6cda7 !important;
   }
 `;
 
@@ -193,20 +192,6 @@ const shell = {
   overflow: "hidden",
 };
 
-const blendScreen = {
-  backgroundColor: "#000000",
-  background: "linear-gradient(#000000, #000000)",
-  backgroundImage: "linear-gradient(#000000, #000000)",
-  mixBlendMode: "screen" as const,
-};
-
-const blendDifference = {
-  backgroundColor: "#000000",
-  background: "linear-gradient(#000000, #000000)",
-  backgroundImage: "linear-gradient(#000000, #000000)",
-  mixBlendMode: "difference" as const,
-};
-
 const topRail = {
   padding: "28px 24px 24px",
   backgroundColor: "#1f160e",
@@ -216,7 +201,10 @@ const topRail = {
 
 const eyebrow = {
   margin: 0,
-  color: "#d4a44a",
+  color: "#f0b84d",
+  WebkitTextFillColor: "#f0b84d",
+  opacity: 1,
+  textShadow: "0 0 0 #f0b84d",
   fontSize: "11px",
   letterSpacing: "0.22em",
   textTransform: "uppercase" as const,
@@ -226,7 +214,10 @@ const eyebrow = {
 
 const headline = {
   margin: "12px 0 8px",
-  color: "#fff4e4",
+  color: "#fff8ea",
+  WebkitTextFillColor: "#fff8ea",
+  opacity: 1,
+  textShadow: "0 0 0 #fff8ea",
   fontSize: "34px",
   lineHeight: 1.15,
   fontWeight: 700,
@@ -234,7 +225,10 @@ const headline = {
 
 const subhead = {
   margin: 0,
-  color: "#ead8bd",
+  color: "#f3dfbd",
+  WebkitTextFillColor: "#f3dfbd",
+  opacity: 1,
+  textShadow: "0 0 0 #f3dfbd",
   fontSize: "15px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
@@ -248,7 +242,10 @@ const contentWrap = {
 };
 
 const paragraph = {
-  color: "#f6efe5",
+  color: "#fff2df",
+  WebkitTextFillColor: "#fff2df",
+  opacity: 1,
+  textShadow: "0 0 0 #fff2df",
   fontSize: "16px",
   lineHeight: 1.7,
   margin: "0 0 16px",
@@ -256,7 +253,10 @@ const paragraph = {
 };
 
 const strong = {
-  color: "#ffffff",
+  color: "#fff8ea",
+  WebkitTextFillColor: "#fff8ea",
+  opacity: 1,
+  textShadow: "0 0 0 #fff8ea",
 };
 
 const signalCard = {
@@ -271,7 +271,10 @@ const signalCard = {
 
 const signalLabel = {
   margin: 0,
-  color: "#d4a44a",
+  color: "#f0b84d",
+  WebkitTextFillColor: "#f0b84d",
+  opacity: 1,
+  textShadow: "0 0 0 #f0b84d",
   fontSize: "10px",
   letterSpacing: "0.2em",
   textTransform: "uppercase" as const,
@@ -281,7 +284,10 @@ const signalLabel = {
 
 const signalValue = {
   margin: "10px 0 14px",
-  color: "#fff4e4",
+  color: "#fff8ea",
+  WebkitTextFillColor: "#fff8ea",
+  opacity: 1,
+  textShadow: "0 0 0 #fff8ea",
   fontSize: "24px",
   lineHeight: 1.3,
   fontWeight: 700,
@@ -289,7 +295,10 @@ const signalValue = {
 
 const metaLine = {
   margin: "0 0 8px",
-  color: "#dcc9ad",
+  color: "#f3dfbd",
+  WebkitTextFillColor: "#f3dfbd",
+  opacity: 1,
+  textShadow: "0 0 0 #f3dfbd",
   fontSize: "14px",
   lineHeight: 1.55,
   fontFamily: "Arial, Helvetica, sans-serif",
@@ -309,7 +318,10 @@ const button = {
 
 const footerCopy = {
   margin: 0,
-  color: "#bda98d",
+  color: "#e6cda7",
+  WebkitTextFillColor: "#e6cda7",
+  opacity: 1,
+  textShadow: "0 0 0 #e6cda7",
   fontSize: "12px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
