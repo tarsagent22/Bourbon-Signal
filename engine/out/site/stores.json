@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T20:54:47.267Z",
-  "count": 2457,
+  "generatedAt": "2026-06-08T21:16:37.184Z",
+  "count": 2455,
   "stores": [
     {
       "id": "alabc:001",
@@ -19139,7 +19139,7 @@
       "lat": 41.4807022,
       "lng": -81.6021592,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40954",
@@ -19153,7 +19153,7 @@
       "lat": 41.4963437,
       "lng": -81.6368993,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30208",
@@ -19307,7 +19307,7 @@
       "lat": 39.7048254,
       "lng": -84.1699296,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "10110",
@@ -19418,20 +19418,6 @@
       "zip": null,
       "lat": 39.3525812,
       "lng": -84.4600688,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30809",
-      "sourceStoreId": "30809",
-      "state": "OH",
-      "name": "Bellaire Party Center",
-      "address": "3179 Union St, Bellaire, OH, 43906",
-      "city": "Bellaire",
-      "county": null,
-      "zip": null,
-      "lat": 40.013598,
-      "lng": -80.742562,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -19839,7 +19825,7 @@
       "lat": 39.9848745,
       "lng": -81.1790337,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "20644",
@@ -19895,7 +19881,7 @@
       "lat": 39.2000523,
       "lng": -84.458502,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40903",
@@ -19909,7 +19895,7 @@
       "lat": 41.5599467,
       "lng": -81.5663234,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "20657",
@@ -19937,7 +19923,7 @@
       "lat": 41.0905542,
       "lng": -81.5286771,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40846",
@@ -19951,7 +19937,7 @@
       "lat": 41.0617356,
       "lng": -81.5240229,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30739",
@@ -20077,7 +20063,7 @@
       "lat": 41.500149,
       "lng": -81.6986126,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10560",
@@ -20497,7 +20483,7 @@
       "lat": 39.7422712,
       "lng": -84.23105,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40813",
@@ -20567,7 +20553,7 @@
       "lat": 41.556405,
       "lng": -81.5501759,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40303",
@@ -20735,7 +20721,7 @@
       "lat": 41.6939898,
       "lng": -83.6457758,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10100",
@@ -20791,7 +20777,7 @@
       "lat": 41.4616704,
       "lng": -81.644196,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10125",
@@ -20819,7 +20805,7 @@
       "lat": 41.4711207,
       "lng": -81.6222103,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30885",
@@ -21141,7 +21127,7 @@
       "lat": 39.7966097,
       "lng": -84.2926892,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40960",
@@ -21239,7 +21225,7 @@
       "lat": 38.4640942,
       "lng": -82.6009558,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40880",
@@ -21435,7 +21421,7 @@
       "lat": 39.80379,
       "lng": -84.222124,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10538",
@@ -21519,7 +21505,7 @@
       "lat": 41.4468013,
       "lng": -81.5903931,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "20636",
@@ -21603,7 +21589,7 @@
       "lat": 41.6632362,
       "lng": -83.5682156,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40978",
@@ -21631,7 +21617,7 @@
       "lat": 39.7593764,
       "lng": -84.2273478,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10554",
@@ -21673,7 +21659,7 @@
       "lat": 41.5413799,
       "lng": -81.595961,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40947",
@@ -21687,7 +21673,7 @@
       "lat": 41.5177921,
       "lng": -81.6497954,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40938",
@@ -21701,7 +21687,7 @@
       "lat": 41.5244728,
       "lng": -81.5881623,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10568",
@@ -21869,7 +21855,7 @@
       "lat": 41.4484712,
       "lng": -81.5638844,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "20647",
@@ -21912,20 +21898,6 @@
       "lng": -84.586643,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "10587",
-      "sourceStoreId": "10587",
-      "state": "OH",
-      "name": "Party Place",
-      "address": "203 E Main St, P.O. Box 389, Mount Orab, OH, 45154",
-      "city": "Mount Orab",
-      "county": null,
-      "zip": null,
-      "lat": 39.0275133,
-      "lng": -83.9174451,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "40932",
@@ -22163,7 +22135,7 @@
       "lat": 39.7914759,
       "lng": -84.2433323,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40929",
@@ -22289,7 +22261,7 @@
       "lat": 41.1350523,
       "lng": -81.5486753,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 1
     },
     {
       "id": "10593",
@@ -22443,7 +22415,7 @@
       "lat": 40.271841,
       "lng": -81.606398,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "20640",
@@ -22639,7 +22611,7 @@
       "lat": 41.4630425,
       "lng": -81.5958933,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10528",
@@ -31529,7 +31501,7 @@
       "lat": 36.625907,
       "lng": -79.398533,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "277",
@@ -32845,7 +32817,7 @@
       "lat": 37.249012,
       "lng": -76.685618,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "382",

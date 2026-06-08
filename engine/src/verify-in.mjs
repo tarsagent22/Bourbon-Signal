@@ -45,7 +45,8 @@ const alertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => 
 const eventSignals = (state.signals || []).filter((signal) => /lottery|tasting|event|release/i.test(String(signal.eventType || '') + ' ' + String(signal.sourceLabel || '') + ' ' + String(signal.readableSummary || '') + ' ' + String(signal.evidence || '')));
 const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'retailer_tasting_event', 'cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(drop.type));
 
-assert(state.status === 'useful' || state.status === 'reachable_needs_deeper_parser', `Unexpected IN state status: ${state.status}`);
+assert(state.status === 'useful', `Unexpected IN state status: ${state.status}`);
+assert(!state.stale, `IN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
 assert(artifact.storeCount >= 900, `Expected at least 900 active Indiana package-store permits; got ${artifact.storeCount}`);
 assert(artifact.pageCount >= 20, `Expected ATC pagination to reach at least 20 pages; got ${artifact.pageCount}`);
 assert(permitSignals.length === artifact.storeCount, `Permit signal count ${permitSignals.length} did not match artifact store count ${artifact.storeCount}`);

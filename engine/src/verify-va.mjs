@@ -41,6 +41,8 @@ async function main() {
   const invalidOriginRoadblocks = (state.roadblocks || []).filter((roadblock) => /No Store exists/i.test(String(roadblock.error || '')));
   const directPage403s = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 403 && /abc\.virginia\.gov\/products/i.test(String(roadblock.url || '')));
 
+  assert(state.status === 'useful', `VA state status must be useful, got ${state.status}`, { status: state.status, stale: state.stale, staleReason: state.staleReason });
+  assert(!state.stale, 'VA must not be using stale fallback data', { status: state.status, staleReason: state.staleReason, staleFallbackAt: state.staleFallbackAt });
   assert(signals.length >= 700, 'VA signal count below definition-of-done threshold', signals.length);
   assert(storeSignals.length >= 700, 'VA store-level signal count below definition-of-done threshold', storeSignals.length);
   assert(inventorySignals.length >= 250, 'VA inventory-alertable signal count below definition-of-done threshold', inventorySignals.length);

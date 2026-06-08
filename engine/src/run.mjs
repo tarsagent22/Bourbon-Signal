@@ -7,6 +7,17 @@ import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
 const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 180_000);
+const STATE_TIMEOUT_OVERRIDES_MS = {
+  // VA and IN can legitimately do broad store-level inventory work. Give them
+  // enough room in the full scheduled run so they do not regress to stale
+  // fallback while still keeping hard failure bounds.
+  VA: Number(process.env.BOURBON_SIGNAL_VA_STATE_TIMEOUT_MS || 420_000),
+  IN: Number(process.env.BOURBON_SIGNAL_IN_STATE_TIMEOUT_MS || 420_000)
+};
+
+function stateTimeoutMs(config) {
+  return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
+}
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -81,6 +92,7 @@ function failedReport(config, reason) {
 function runStateChild(config) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
+    const timeoutMs = stateTimeoutMs(config);
     let settled = false;
     const child = spawn(process.execPath, ['src/run-state.mjs', config.id], {
       cwd: process.cwd(),
@@ -96,12 +108,12 @@ function runStateChild(config) {
       if (timeout) clearTimeout(timeout);
       fn(value);
     };
-    const timeout = STATE_TIMEOUT_MS > 0 ? setTimeout(() => {
+    const timeout = timeoutMs > 0 ? setTimeout(() => {
       try { child.kill(); } catch {}
-      const error = new Error(`${config.id} timed out after ${Math.round(STATE_TIMEOUT_MS / 1000)}s`);
+      const error = new Error(`${config.id} timed out after ${Math.round(timeoutMs / 1000)}s`);
       error.result = { state: config.id, startedAt, finishedAt: new Date().toISOString(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) };
       finish(reject, error);
-    }, STATE_TIMEOUT_MS) : null;
+    }, timeoutMs) : null;
     child.stdout.on('data', (chunk) => { stdout += chunk.toString(); process.stdout.write(chunk); });
     child.stderr.on('data', (chunk) => { stderr += chunk.toString(); process.stderr.write(chunk); });
     child.on('error', (error) => finish(reject, error));
