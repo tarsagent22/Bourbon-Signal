@@ -3,10 +3,10 @@ import {
   Body,
   Button,
   Container,
+  Section,
   Head,
   Html,
   Preview,
-  Section,
   Text,
 } from "@react-email/components";
 
@@ -43,38 +43,42 @@ export function PaidDropAlertEmail({
       <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
       <Body className="bs-body" style={body}>
         <Container className="bs-shell" style={shell}>
-          <Section className="bs-top-rail" style={topRail}>
-            <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
-            <Text className="bs-headline" style={headline}>{bottleName}</Text>
-            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
-          </Section>
+          <Section className="bs-blend-screen" style={blendScreen}>
+            <Section className="bs-blend-difference" style={blendDifference}>
+              <Section className="bs-top-rail" style={topRail}>
+                <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
+                <Text className="bs-headline" style={headline}>{bottleName}</Text>
+                <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
+              </Section>
 
-          <Section className="bs-content" style={contentWrap}>
-            <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
-            <Text className="bs-paragraph" style={paragraph}>
-              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
-            </Text>
-            <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
+              <Section className="bs-content" style={contentWrap}>
+                <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
+                <Text className="bs-paragraph" style={paragraph}>
+                  <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
+                </Text>
+                <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
 
-            <Section className="bs-signal-card" style={signalCard}>
-              <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
-              <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
+                <Section className="bs-signal-card" style={signalCard}>
+                  <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
+                  <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
 
-              <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
-              <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
-              <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
-              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
+                  <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
+                  <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
+                  <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
+                  {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
+                </Section>
+
+                <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
+                  <Button className="bs-button" href={dashboardUrl} style={button}>
+                    Open member dashboard
+                  </Button>
+                </Section>
+
+                <Text className="bs-footer" style={footerCopy}>
+                  If this looks wrong, reply and we will check it out.
+                </Text>
+              </Section>
             </Section>
-
-            <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
-              <Button className="bs-button" href={dashboardUrl} style={button}>
-                Open member dashboard
-              </Button>
-            </Section>
-
-            <Text className="bs-footer" style={footerCopy}>
-              If this looks wrong, reply and we will check it out.
-            </Text>
           </Section>
         </Container>
       </Body>
@@ -102,6 +106,18 @@ const darkModeEmailCss = `
     background-image: linear-gradient(#14100c, #14100c) !important;
     background-color: #14100c !important;
     border-color: #4f3516 !important;
+  }
+
+  .bs-blend-screen {
+    background: #000000 !important;
+    background-image: linear-gradient(#000000, #000000) !important;
+    mix-blend-mode: screen;
+  }
+
+  .bs-blend-difference {
+    background: #000000 !important;
+    background-image: linear-gradient(#000000, #000000) !important;
+    mix-blend-mode: difference;
   }
 
   .bs-top-rail {
@@ -175,6 +191,20 @@ const shell = {
   border: "1px solid #4f3516",
   borderRadius: "18px",
   overflow: "hidden",
+};
+
+const blendScreen = {
+  backgroundColor: "#000000",
+  background: "linear-gradient(#000000, #000000)",
+  backgroundImage: "linear-gradient(#000000, #000000)",
+  mixBlendMode: "screen" as const,
+};
+
+const blendDifference = {
+  backgroundColor: "#000000",
+  background: "linear-gradient(#000000, #000000)",
+  backgroundImage: "linear-gradient(#000000, #000000)",
+  mixBlendMode: "difference" as const,
 };
 
 const topRail = {
