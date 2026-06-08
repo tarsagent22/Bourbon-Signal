@@ -92,12 +92,14 @@ const darkModeEmailCss = `
   body,
   .bs-body {
     background: #090806 !important;
+    background-image: linear-gradient(#090806, #090806) !important;
     background-color: #090806 !important;
     color: #f6efe5 !important;
   }
 
   .bs-shell {
     background: #14100c !important;
+    background-image: linear-gradient(#14100c, #14100c) !important;
     background-color: #14100c !important;
     border-color: #4f3516 !important;
   }
@@ -110,11 +112,13 @@ const darkModeEmailCss = `
 
   .bs-content {
     background: #100c09 !important;
+    background-image: linear-gradient(#100c09, #100c09) !important;
     background-color: #100c09 !important;
   }
 
   .bs-signal-card {
     background: #18120d !important;
+    background-image: linear-gradient(#18120d, #18120d) !important;
     background-color: #18120d !important;
     border-color: #5f411b !important;
   }
@@ -152,7 +156,8 @@ const darkModeEmailCss = `
 
 const body = {
   backgroundColor: "#090806",
-  background: "#090806",
+  background: "linear-gradient(#090806, #090806)",
+  backgroundImage: "linear-gradient(#090806, #090806)",
   color: "#f6efe5",
   fontFamily: "Georgia, 'Times New Roman', serif",
   margin: 0,
@@ -165,7 +170,8 @@ const shell = {
   maxWidth: "600px",
   margin: "0 auto",
   backgroundColor: "#14100c",
-  background: "#14100c",
+  background: "linear-gradient(#14100c, #14100c)",
+  backgroundImage: "linear-gradient(#14100c, #14100c)",
   border: "1px solid #4f3516",
   borderRadius: "18px",
   overflow: "hidden",
@@ -207,7 +213,8 @@ const subhead = {
 const contentWrap = {
   padding: "28px 24px 28px",
   backgroundColor: "#100c09",
-  background: "#100c09",
+  background: "linear-gradient(#100c09, #100c09)",
+  backgroundImage: "linear-gradient(#100c09, #100c09)",
 };
 
 const paragraph = {
@@ -225,7 +232,8 @@ const strong = {
 const signalCard = {
   marginTop: "24px",
   backgroundColor: "#18120d",
-  background: "#18120d",
+  background: "linear-gradient(#18120d, #18120d)",
+  backgroundImage: "linear-gradient(#18120d, #18120d)",
   border: "1px solid #5f411b",
   borderRadius: "14px",
   padding: "20px",
