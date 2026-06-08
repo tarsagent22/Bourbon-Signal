@@ -83,31 +83,31 @@ export function PaidDropAlertEmail({
 }
 
 const body = {
-  backgroundColor: "#090806",
-  fontFamily: "Georgia, 'Times New Roman', serif",
+  backgroundColor: "#0b0806",
+  fontFamily: "Arial, Helvetica, sans-serif",
   margin: 0,
-  padding: "32px 12px",
+  padding: "16px 8px",
 };
 
 const shell = {
-  maxWidth: "620px",
+  width: "100%",
+  maxWidth: "560px",
   margin: "0 auto",
-  background: "linear-gradient(180deg, #16110d 0%, #0f0b08 100%)",
-  border: "1px solid rgba(212, 146, 11, 0.22)",
-  borderRadius: "18px",
+  backgroundColor: "#120d09",
+  border: "1px solid #9b6720",
+  borderRadius: "16px",
   overflow: "hidden",
-  boxShadow: "0 18px 60px rgba(0, 0, 0, 0.42)",
 };
 
 const topRail = {
-  padding: "28px 28px 24px",
-  background: "radial-gradient(circle at top right, rgba(212, 146, 11, 0.22), transparent 34%), linear-gradient(180deg, rgba(196, 148, 58, 0.14) 0%, rgba(22, 17, 13, 0.98) 100%)",
-  borderBottom: "1px solid rgba(212, 146, 11, 0.16)",
+  padding: "26px 22px 22px",
+  backgroundColor: "#24180c",
+  borderBottom: "1px solid #9b6720",
 };
 
 const eyebrow = {
   margin: 0,
-  color: "#d4a44a",
+  color: "#f0b94f",
   fontSize: "11px",
   letterSpacing: "0.22em",
   textTransform: "uppercase" as const,
@@ -117,26 +117,27 @@ const eyebrow = {
 
 const headline = {
   margin: "12px 0 8px",
-  color: "#f6efe5",
-  fontSize: "34px",
+  color: "#fff7eb",
+  fontSize: "32px",
   lineHeight: 1.15,
   fontWeight: 700,
 };
 
 const subhead = {
   margin: 0,
-  color: "#cbbca7",
+  color: "#f1dfc4",
   fontSize: "15px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
 };
 
 const contentWrap = {
-  padding: "28px",
+  padding: "24px 22px 26px",
+  backgroundColor: "#120d09",
 };
 
 const paragraph = {
-  color: "#f4ecdf",
+  color: "#fff4e4",
   fontSize: "16px",
   lineHeight: 1.7,
   margin: "0 0 16px",
@@ -144,7 +145,7 @@ const paragraph = {
 };
 
 const paragraphMuted = {
-  color: "#bda98d",
+  color: "#ecd3aa",
   fontSize: "14px",
   lineHeight: 1.7,
   margin: "20px 0 0",
@@ -152,20 +153,20 @@ const paragraphMuted = {
 };
 
 const strong = {
-  color: "#f6efe5",
+  color: "#ffffff",
 };
 
 const signalCard = {
-  marginTop: "24px",
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(212, 146, 11, 0.16)",
+  marginTop: "22px",
+  backgroundColor: "#1d140d",
+  border: "1px solid #8c5b1e",
   borderRadius: "14px",
-  padding: "20px",
+  padding: "18px",
 };
 
 const signalLabel = {
   margin: 0,
-  color: "#d4a44a",
+  color: "#f0b94f",
   fontSize: "10px",
   letterSpacing: "0.2em",
   textTransform: "uppercase" as const,
@@ -175,7 +176,7 @@ const signalLabel = {
 
 const signalValue = {
   margin: "10px 0 14px",
-  color: "#f7f1e8",
+  color: "#fff7eb",
   fontSize: "24px",
   lineHeight: 1.3,
   fontWeight: 700,
@@ -183,14 +184,14 @@ const signalValue = {
 
 const metaLine = {
   margin: "0 0 8px",
-  color: "#cfbfaa",
+  color: "#f0ddbe",
   fontSize: "14px",
   lineHeight: 1.55,
   fontFamily: "Arial, Helvetica, sans-serif",
 };
 
 const button = {
-  background: "linear-gradient(135deg, #c4943a 0%, #e0b15a 100%)",
+  backgroundColor: "#e0b15a",
   color: "#0d0b0e",
   padding: "14px 22px",
   borderRadius: "999px",
@@ -202,7 +203,7 @@ const button = {
 
 const footerCopy = {
   margin: 0,
-  color: "#9f8e78",
+  color: "#dbc19a",
   fontSize: "12px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
