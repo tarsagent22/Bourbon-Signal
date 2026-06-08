@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Search, MapPin, Clock3, Sparkles, Warehouse, ChevronRight } from "lucide-react";
+import { Search, MapPin, Sparkles, Warehouse, ChevronRight } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
 import { useBottles } from "@/hooks/useBottles";
 import { useDrops } from "@/hooks/useDrops";
@@ -950,7 +950,8 @@ export default function MapPageClient() {
     return sourceDrops
       .filter((drop) => (stateFilter === "ALL" ? true : (drop.state || drop.state_code) === stateFilter))
       .filter((drop) => dropMatchesExactSelectedStore(drop, selectedStore))
-      .slice(0, 12);
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, historyQuery.store ? 40 : 20);
   }, [drops, historyDrops, historyQuery.store, selectedStore, stateFilter]);
 
   const bestStoreSignal = storeDrops[0] ?? null;
@@ -1331,87 +1332,55 @@ export default function MapPageClient() {
                       </div>
                     </div>
 
-                    <div className="finder-dual-columns">
-                      <div className="finder-subpanel">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Latest activity</span>
-                            <h3>{selectedStore.precision === "board" ? "Recent board shipments" : "Recent store drops"}</h3>
-                          </div>
-                          <Sparkles size={16} color="var(--color-accent-amber)" />
+                    <div className="finder-subpanel finder-subpanel-full">
+                      <div className="finder-subpanel-head">
+                        <div>
+                          <span className="finder-eyebrow">Inventory & shipments</span>
+                          <h3>Location signal history</h3>
                         </div>
-                        <div className="finder-list">
-                          {storeDrops.length > 0 ? (
-                            storeDrops.slice(0, 6).map((drop, index) => (
-                              <div key={`latest-${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
+                        <Sparkles size={16} color="var(--color-accent-amber)" />
+                      </div>
+                      <div className="finder-list">
+                        {storeDrops.length > 0 ? (
+                          storeDrops.map((drop, index) => {
+                            const location = summarizeDropLocation(drop);
+                            const quality = getSignalQuality(drop);
+                            return (
+                              <div key={[drop.timestamp, drop.brand_name, drop.store_name || drop.board_name, index].filter(Boolean).join("-")} className="finder-list-row">
                                 <div className="finder-list-row-copy">
                                   <strong>{getDisplayName(drop)}</strong>
-                                  <span>{selectedStore.precision === "board" ? "Board shipment lead — exact store not known" : summarizeDropLocation(drop).detail}</span>
+                                  <span>{selectedStore.precision === "board" ? "Board shipment lead — exact store not known" : location.detail}</span>
                                   <em>{getHumanSignalDetail(drop)}</em>
                                 </div>
                                 <div className="finder-signal-meta">
+                                  <span className="finder-row-pill">{quality.label}</span>
                                   <span className="finder-row-pill">{getBottleAmount(drop)}</span>
                                   <span className="finder-signal-time">{formatFreshness(drop.timestamp)}</span>
                                 </div>
                               </div>
-                            ))
-                          ) : (
-                            <div className="finder-empty-card small">
-                              {selectedStore.hasSignals
-                                ? "No recent bottle-level rows are available to display here yet."
+                            );
+                          })
+                        ) : (
+                          <div className="finder-empty-card small">
+                            {historyLoading
+                              ? "Loading location history…"
+                              : selectedStore.hasSignals
+                                ? "No recent or historical inventory, shipment, or drop signals tied to this location in the current state lens."
                                 : selectedStore.precision === "board"
                                   ? "No recent board-level bottle shipments found here yet."
                                   : "No recent bottle drops found for this location yet."}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="finder-subpanel">
-                        <div className="finder-subpanel-head">
-                          <div>
-                            <span className="finder-eyebrow">Recent drops</span>
-                            <h3>Latest bottles tied to this board or store</h3>
                           </div>
-                          <Clock3 size={16} color="var(--color-accent-amber)" />
-                        </div>
-                        <div className="finder-list">
-                          {storeDrops.length > 0 ? (
-                            storeDrops.map((drop, index) => (
-                              <div key={`${drop.timestamp}-${drop.brand_name}-${index}`} className="finder-list-row">
-                                <div className="finder-list-row-copy">
-                                  <strong>{getDisplayName(drop)}</strong>
-                                  <span>{summarizeDropLocation(drop).detail}</span>
-                                  <em>{getHumanSignalDetail(drop)}</em>
-                                </div>
-                                <div className="finder-signal-meta">
-                                  <span className="finder-row-pill">{getSignalQuality(drop).label}</span>
-                                  <span className="finder-signal-time">{formatFreshness(drop.timestamp)}</span>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="finder-empty-card small">
-                              {historyLoading
-                                ? 'Loading location history…'
-                                : selectedStore.hasSignals
-                                  ? 'No recent or historical drops or shipments tied to this location in the current state lens.'
-                                  : selectedStore.precision === 'board'
-                                    ? 'No recent board-level bottle shipments found here yet.'
-                                    : 'No recent bottle drops found for this location yet.'}
-                            </div>
-                          )}
-                        </div>
-                        {historyHasMore ? (
-                          <button
-                            type="button"
-                            className="finder-load-more"
-                            onClick={() => setHistoryOffset((prev) => prev + 20)}
-                          >
-                            Load older location history
-                          </button>
-                        ) : null}
+                        )}
                       </div>
+                      {historyHasMore ? (
+                        <button
+                          type="button"
+                          className="finder-load-more"
+                          onClick={() => setHistoryOffset((prev) => prev + 20)}
+                        >
+                          Load older location history
+                        </button>
+                      ) : null}
                     </div>
                   </>
                 ) : (
