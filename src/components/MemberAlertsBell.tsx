@@ -1,14 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bell, Archive, CheckCheck } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemberAlerts } from "@/hooks/useMemberAlerts";
 
 export default function MemberAlertsBell() {
   const [open, setOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const { alerts, unreadCount, isEligible, loading, markRead, markAllRead, archive } = useMemberAlerts(open);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const handleChange = () => setIsMobileViewport(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const recentAlerts = useMemo(() => alerts.filter((alert) => !alert.archivedAt).slice(0, 6), [alerts]);
 
@@ -67,10 +77,12 @@ export default function MemberAlertsBell() {
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             style={{
-              position: "absolute",
-              top: "calc(100% + 12px)",
-              right: 0,
-              width: "min(420px, calc(100vw - 32px))",
+              position: isMobileViewport ? "fixed" : "absolute",
+              top: isMobileViewport ? "72px" : "calc(100% + 12px)",
+              right: isMobileViewport ? "16px" : 0,
+              left: isMobileViewport ? "16px" : "auto",
+              width: isMobileViewport ? "auto" : "min(420px, calc(100vw - 32px))",
+              maxWidth: isMobileViewport ? "calc(100vw - 32px)" : "none",
               background: "rgba(20, 16, 12, 0.98)",
               border: "1px solid rgba(196,148,58,0.16)",
               borderTop: "2px solid var(--color-accent-amber)",

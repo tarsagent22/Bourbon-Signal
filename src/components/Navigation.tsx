@@ -60,16 +60,18 @@ export default function Navigation() {
           transition: "all 300ms ease",
         }}
       >
-        <div className="relative flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
+        <div className="relative flex items-center justify-between px-4 sm:px-8 md:px-16 lg:px-24 h-full">
         {/* Logo */}
-        <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "clamp(30px, 4vw, 60px)" }}>
+        <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "clamp(6px, 2.5vw, 60px)", flexShrink: 1, minWidth: 0 }}>
           <span
             style={{
               fontFamily: "var(--font-playfair)",
               fontWeight: 700,
-              fontSize: "26px",
+              fontSize: "clamp(20px, 5.2vw, 26px)",
               color: "var(--color-text-primary)",
               letterSpacing: "0.02em",
+              whiteSpace: "nowrap",
+              lineHeight: 1,
             }}
           >
             BOURBON SIGNAL
@@ -318,7 +320,7 @@ export default function Navigation() {
         {/* Mobile right controls */}
         <div
           className="flex md:hidden items-center gap-[10px]"
-          style={{ marginRight: "18px", flexShrink: 0 }}
+          style={{ marginRight: "4px", flexShrink: 0 }}
         >
           {mounted && isSignedIn ? <MemberAlertsBell /> : null}
           <button
