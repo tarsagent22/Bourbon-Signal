@@ -98,12 +98,27 @@ export async function GET(req: NextRequest) {
             }}
           >
             <div style={{ color: "#fff0dc", fontSize: "35px", marginBottom: "36px" }}>{greeting}</div>
-            <div style={{ color: "#fff0dc", fontSize: "35px", lineHeight: 1.55, marginBottom: "34px" }}>
-              <span style={{ fontWeight: 800, color: "#fff8ea" }}>{bottleName}</span> just hit{" "}
-              <span style={{ fontWeight: 800, color: "#fff8ea" }}>{storeLabel}</span>.
+            <div
+              style={{
+                display: "flex",
+                color: "#fff0dc",
+                fontSize: "35px",
+                lineHeight: 1.55,
+                marginBottom: "34px",
+              }}
+            >
+              {bottleName} just hit {storeLabel}.
             </div>
-            <div style={{ color: "#fff0dc", fontSize: "35px", lineHeight: 1.5, marginBottom: "54px" }}>
-              This matched your <span style={{ fontWeight: 800, color: "#fff8ea" }}>{matchedArea}</span> alert area.
+            <div
+              style={{
+                display: "flex",
+                color: "#fff0dc",
+                fontSize: "35px",
+                lineHeight: 1.5,
+                marginBottom: "54px",
+              }}
+            >
+              This matched your {matchedArea} alert area.
             </div>
 
             <div
@@ -141,18 +156,19 @@ export async function GET(req: NextRequest) {
               >
                 {storeLabel}
               </div>
-              <div style={{ color: "#ead7b9", fontSize: "32px", lineHeight: 1.85 }}>
-                Tracked area: {matchedArea}
-                <br />
-                State: {state}
-                <br />
-                Reported: {timestampLabel}
-                {quantityLabel ? (
-                  <>
-                    <br />
-                    Reported qty: {quantityLabel}
-                  </>
-                ) : null}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  color: "#ead7b9",
+                  fontSize: "32px",
+                  lineHeight: 1.85,
+                }}
+              >
+                <div style={{ display: "flex" }}>Tracked area: {matchedArea}</div>
+                <div style={{ display: "flex" }}>State: {state}</div>
+                <div style={{ display: "flex" }}>Reported: {timestampLabel}</div>
+                {quantityLabel ? <div style={{ display: "flex" }}>Reported qty: {quantityLabel}</div> : null}
               </div>
             </div>
 
