@@ -45,8 +45,20 @@ export function PaidDropAlertEmail({
         <Container className="bs-shell" style={shell}>
           <Section className="bs-top-rail" style={topRail}>
             <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
-            <Text className="bs-headline" style={headline}>{bottleName}</Text>
-            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
+            <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" border={0} style={heroTextTable}>
+              <tbody>
+                <tr>
+                  <td color="#252019" style={heroTitleCell}>
+                    <LegacyFont color="#252019" style={heroTitleFont}>{bottleName}</LegacyFont>
+                  </td>
+                </tr>
+                <tr>
+                  <td color="#252019" style={heroSubheadCell}>
+                    <LegacyFont color="#252019" style={heroSubheadFont}>{`${bottleName} just showed up in one of your tracked areas.`}</LegacyFont>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Section>
 
           <Section className="bs-content" style={contentWrap}>
@@ -80,6 +92,10 @@ export function PaidDropAlertEmail({
       </Body>
     </Html>
   );
+}
+
+function LegacyFont({ children, color, style }: { children: React.ReactNode; color: string; style: React.CSSProperties }) {
+  return React.createElement("font", { color, style }, children);
 }
 
 const lightEmailCss = `
@@ -119,7 +135,6 @@ const lightEmailCss = `
     border-color: #c99b4a !important;
   }
 
-  .bs-headline,
   .bs-signal-value,
   .bs-strong {
     color: #1e140c !important;
@@ -131,7 +146,6 @@ const lightEmailCss = `
     -webkit-text-fill-color: #352316 !important;
   }
 
-  .bs-subhead,
   .bs-meta-line {
     color: #5b3e24 !important;
     -webkit-text-fill-color: #5b3e24 !important;
@@ -193,22 +207,47 @@ const eyebrow = {
   fontWeight: 700,
 };
 
-const headline = {
-  margin: "12px 0 8px",
+const heroTextTable = {
+  width: "100%",
+  borderCollapse: "collapse" as const,
+  borderSpacing: 0,
+  marginTop: "12px",
+};
+
+const heroTitleCell = {
   color: "#252019",
   WebkitTextFillColor: "#252019",
+  fontFamily: "Georgia, 'Times New Roman', serif",
+  fontSize: "34px",
+  lineHeight: 1.15,
+  fontWeight: 700,
+  padding: "0 0 8px",
+};
+
+const heroTitleFont = {
+  color: "#252019",
+  WebkitTextFillColor: "#252019",
+  fontFamily: "Georgia, 'Times New Roman', serif",
   fontSize: "34px",
   lineHeight: 1.15,
   fontWeight: 700,
 };
 
-const subhead = {
-  margin: 0,
+const heroSubheadCell = {
   color: "#252019",
   WebkitTextFillColor: "#252019",
+  fontFamily: "Arial, Helvetica, sans-serif",
   fontSize: "15px",
   lineHeight: 1.6,
+  padding: 0,
+};
+
+const heroSubheadFont = {
+  color: "#252019",
+  WebkitTextFillColor: "#252019",
   fontFamily: "Arial, Helvetica, sans-serif",
+  fontSize: "15px",
+  lineHeight: 1.6,
 };
 
 const contentWrap = {
