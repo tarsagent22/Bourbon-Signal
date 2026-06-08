@@ -777,12 +777,17 @@ export default function DropFeed() {
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextDropOffset, setNextDropOffset] = useState(0);
 
-  const feedStateParam = hasSelectedStates && preferredStates.length === 1 ? preferredStates[0] : null;
+  const feedStateParam = hasSelectedStates && preferredStates.length === 1
+    ? preferredStates[0]
+    : isSignedIn && areaPrefs.states.length === 1
+      ? areaPrefs.states[0]
+      : null;
 
   const fetchDrops = useCallback(async () => {
     try {
-      const query = new URLSearchParams({ limit: "50" });
+      const query = new URLSearchParams({ limit: "200" });
       if (feedStateParam) query.set("state", feedStateParam);
       const res = await fetch(`/api/drops?${query.toString()}`);
       if (!res.ok) throw new Error("fetch failed");
@@ -814,6 +819,7 @@ export default function DropFeed() {
 
       setData(json);
       setGrouped(newGrouped);
+      setNextDropOffset((json.offset ?? 0) + (json.limit ?? json.drops.length));
       setVisibleDropCount(isSignedIn ? 10 : 7);
       const nowIso = new Date().toISOString();
       setLastFetch(nowIso);
@@ -825,32 +831,54 @@ export default function DropFeed() {
 
   const fetchOlderDrops = useCallback(async () => {
     if (!isSignedIn || isLoadingMore) return;
-    const nextOffset = grouped.length;
+    let nextOffset = nextDropOffset;
     if (data && data.total <= nextOffset) return;
 
     setIsLoadingMore(true);
     try {
-      const query = new URLSearchParams({ limit: "10", offset: String(nextOffset) });
-      if (feedStateParam) query.set("state", feedStateParam);
-      const res = await fetch(`/api/drops?${query.toString()}`);
-      if (!res.ok) throw new Error("fetch failed");
-      const json: DropsResponse = await res.json();
-      const sourceDrops = json.drops.length > 0 ? json.drops : [];
-      if (!sourceDrops.length) return;
+      let latestJson: DropsResponse | null = null;
+      let accumulated: GroupedDrop[] = [];
+      let attempts = 0;
+      const existingIds = new Set(grouped.map((drop) => drop.id));
+
+      while (attempts < 8) {
+        const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
+        if (feedStateParam) query.set("state", feedStateParam);
+        const res = await fetch(`/api/drops?${query.toString()}`);
+        if (!res.ok) throw new Error("fetch failed");
+        const json: DropsResponse = await res.json();
+        latestJson = json;
+
+        const sourceDrops = json.drops.length > 0 ? json.drops : [];
+        accumulated = [
+          ...accumulated,
+          ...latestSignalRows(sourceDrops, 100).filter((drop) => !existingIds.has(drop.id)),
+        ];
+
+        nextOffset = (json.offset ?? nextOffset) + (json.limit ?? sourceDrops.length);
+        if (accumulated.length > 0 || !json.hasMore || nextOffset >= json.total) break;
+        attempts += 1;
+      }
+
+      setNextDropOffset(nextOffset);
+      if (latestJson) {
+        setData((prev) => prev ? { ...prev, total: latestJson.total, hasMore: latestJson.hasMore, offset: 0, limit: latestJson.limit } : latestJson);
+      }
+
+      if (!accumulated.length) return;
 
       setGrouped((prev) => {
-        const existing = new Set(prev.map((drop) => drop.id));
-        const nextGrouped = latestSignalRows(sourceDrops, 10).filter((drop) => !existing.has(drop.id));
+        const currentIds = new Set(prev.map((drop) => drop.id));
+        const nextGrouped = accumulated.filter((drop) => !currentIds.has(drop.id));
         return [...prev, ...nextGrouped].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
       });
-      setData((prev) => prev ? { ...prev, total: json.total, hasMore: json.hasMore, offset: 0, limit: 10 } : json);
       setVisibleDropCount((prev) => prev + 10);
     } catch {
       setError(true);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [data, feedStateParam, grouped.length, isLoadingMore, isSignedIn]);
+  }, [data, feedStateParam, grouped, isLoadingMore, isSignedIn, nextDropOffset]);
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
