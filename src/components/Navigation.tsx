@@ -60,7 +60,7 @@ export default function Navigation() {
           transition: "all 300ms ease",
         }}
       >
-        <div className="flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
+        <div className="relative flex items-center justify-between px-8 sm:px-12 md:px-16 lg:px-24 h-full">
         {/* Logo */}
         <a href="/" className="flex items-baseline gap-0" style={{ marginLeft: "clamp(30px, 4vw, 60px)" }}>
           <span
@@ -87,7 +87,14 @@ export default function Navigation() {
         </a>
 
         {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div
+          className="hidden md:flex items-center gap-8"
+          style={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -118,7 +125,13 @@ export default function Navigation() {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-4" style={{ marginRight: "10px" }}>
+        <div
+          className="hidden md:flex items-center gap-4"
+          style={{
+            position: "absolute",
+            right: "clamp(42px, 5vw, 96px)",
+          }}
+        >
           {mounted && isSignedIn ? (
             <>
               <MemberAlertsBell />
