@@ -56,6 +56,7 @@ export async function GET(req: NextRequest) {
           >
             <div
               style={{
+                display: "flex",
                 color: "#d4a44a",
                 fontSize: "26px",
                 fontWeight: 800,
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest) {
             </div>
             <div
               style={{
+                display: "flex",
                 color: "#fff3df",
                 fontFamily: "Georgia, 'Times New Roman', serif",
                 fontSize: "82px",
@@ -80,6 +82,7 @@ export async function GET(req: NextRequest) {
             </div>
             <div
               style={{
+                display: "flex",
                 color: "#ead7b9",
                 fontSize: "38px",
                 lineHeight: 1.45,
@@ -97,7 +100,7 @@ export async function GET(req: NextRequest) {
               background: "#100b08",
             }}
           >
-            <div style={{ color: "#fff0dc", fontSize: "35px", marginBottom: "36px" }}>{greeting}</div>
+            <div style={{ display: "flex", color: "#fff0dc", fontSize: "35px", marginBottom: "36px" }}>{greeting}</div>
             <div
               style={{
                 display: "flex",
@@ -134,6 +137,7 @@ export async function GET(req: NextRequest) {
             >
               <div
                 style={{
+                  display: "flex",
                   color: "#d4a44a",
                   fontSize: "24px",
                   fontWeight: 800,
@@ -146,6 +150,7 @@ export async function GET(req: NextRequest) {
               </div>
               <div
                 style={{
+                  display: "flex",
                   color: "#fff3df",
                   fontFamily: "Georgia, 'Times New Roman', serif",
                   fontSize: "58px",
@@ -174,6 +179,7 @@ export async function GET(req: NextRequest) {
 
             <div
               style={{
+                display: "flex",
                 alignSelf: "center",
                 color: "#0d0b0e",
                 background: "linear-gradient(135deg, #c4943a 0%, #e0b15a 100%)",
@@ -187,7 +193,7 @@ export async function GET(req: NextRequest) {
               Open member dashboard
             </div>
 
-            <div style={{ color: "#d6bb93", fontSize: "24px", lineHeight: 1.6 }}>
+            <div style={{ display: "flex", color: "#d6bb93", fontSize: "24px", lineHeight: 1.6 }}>
               If this looks wrong, reply and we will check it out.
             </div>
           </div>
