@@ -759,7 +759,6 @@ export default function DropFeed() {
     selectedStates: preferredStates,
     hasSelectedStates,
     setSelectedStates,
-    clearPreferences,
   } = useStatePreferences();
   const { isSignedIn } = useAuth();
   const { prefs } = useAreaPreferences();
@@ -781,7 +780,7 @@ export default function DropFeed() {
 
   const feedStateParam = hasSelectedStates && preferredStates.length === 1
     ? preferredStates[0]
-    : isSignedIn && areaPrefs.states.length === 1
+    : !hasSelectedStates && isSignedIn && areaPrefs.states.length === 1
       ? areaPrefs.states[0]
       : null;
 
@@ -910,6 +909,11 @@ export default function DropFeed() {
   // Apply area preferences (Clerk-backed per-user preferences)
   // Only apply area prefs if the user is signed in AND has actually set preferences
   const filteredByArea = filteredGrouped.filter((drop) => {
+    // The drop-feed state selector is an explicit browsing control and must
+    // override saved alert-area preferences. Saved areas are only a default
+    // when the user has not chosen a feed state/filter in this session.
+    if (hasSelectedStates) return true;
+
     // Not signed in, or no preferences set = show everything
     if (!isSignedIn || !areaPrefs.states.length) return true;
 
@@ -1068,7 +1072,7 @@ export default function DropFeed() {
                 <strong>{stateFilterSummary}</strong>
               </div>
               {hasSelectedStates && preferredStates.length > 0 ? (
-                <button type="button" onClick={clearPreferences}>Show all</button>
+                <button type="button" onClick={() => setSelectedStates([])}>Show all</button>
               ) : null}
             </div>
             <label style={{ display: "block", marginTop: "12px" }}>
@@ -1078,7 +1082,7 @@ export default function DropFeed() {
                 onChange={(event) => {
                   const value = event.target.value;
                   if (value === "ALL") {
-                    clearPreferences();
+                    setSelectedStates([]);
                     return;
                   }
                   setSelectedStates([value]);
