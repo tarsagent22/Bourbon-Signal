@@ -195,8 +195,8 @@ const eyebrow = {
 
 const headline = {
   margin: "12px 0 8px",
-  color: "#1e140c",
-  WebkitTextFillColor: "#1e140c",
+  color: "#252019",
+  WebkitTextFillColor: "#252019",
   fontSize: "34px",
   lineHeight: 1.15,
   fontWeight: 700,
@@ -204,8 +204,8 @@ const headline = {
 
 const subhead = {
   margin: 0,
-  color: "#5b3e24",
-  WebkitTextFillColor: "#5b3e24",
+  color: "#252019",
+  WebkitTextFillColor: "#252019",
   fontSize: "15px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
