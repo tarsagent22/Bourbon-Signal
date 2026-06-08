@@ -67,10 +67,10 @@ export const ALL_STATE_SOURCES = [
     id: 'VA', label: 'Virginia ABC', tier: 'B', strategy: 'catalog_plus_limited_availability_watch', cadence: 'daily-60m',
     value: 'Good catalog and regular inventory. Limited products intentionally hidden/randomized; still useful for product/watchlist intelligence.',
     sources: [
-      { kind: 'html', url: 'https://www.abc.virginia.gov/products/bourbon', label: 'Virginia bourbon catalog' },
-      { kind: 'html', url: 'https://www.abc.virginia.gov/products/all-products', label: 'All products' },
-      { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability', label: 'Limited availability list' },
-      { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability/limited-availability-faqs', label: 'Limited availability FAQ' }
+      { kind: 'html', url: 'https://www.abc.virginia.gov/products/bourbon', label: 'Virginia bourbon catalog', precisionOnly: true },
+      { kind: 'html', url: 'https://www.abc.virginia.gov/products/all-products', label: 'All products', precisionOnly: true },
+      { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability', label: 'Limited availability list', precisionOnly: true },
+      { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability/limited-availability-faqs', label: 'Limited availability FAQ', precisionOnly: true }
     ],
     apiCandidates: []
   },
@@ -117,14 +117,14 @@ export const ALL_STATE_SOURCES = [
     id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_store_inventory', cadence: 'daily-60m',
     value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus retailer store inventory/watch surfaces from Kahn\'s, Big Red/Bourbon World, Cap n Cork, Wise Guys, Belmont Beverage/Chalet Party Shoppe, Cork Liquors, and Payless Liquors East Street barrel selections. ATC permits must never be presented as bottle inventory.',
     sources: [
-      { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search' },
-      { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance' },
-      { kind: 'api', url: 'https://www.kahnsfinewines.com/api/trpc/product.getAll', label: 'Kahn\'s Fine Wines & Spirits in-stock bourbon API' },
-      { kind: 'html', url: 'https://belmontbev.com/shop?subtype=bourbon', label: 'Belmont Beverage / Chalet Party Shoppe CityHive bourbon inventory' },
-      { kind: 'html', url: 'https://shop.corkliquor.com/spirits/bourbon', label: 'Cork Liquors CityHive bourbon inventory' },
-      { kind: 'html', url: 'https://www.paylessliquors.info/barrel-selections', label: 'Payless Liquors East Street barrel selections' },
-      { kind: 'html', url: 'https://www.wiseguysliquors.com/wise-guys-events/bourbon-open-house-bourbon-lottery', label: 'Wise Guys bourbon open house / bourbon lottery' },
-      { kind: 'html', url: 'https://indianaliquor.com/our-events/', label: 'Indiana Liquor Group tasting events' }
+      { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search', precisionOnly: true },
+      { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance', precisionOnly: true },
+      { kind: 'api', url: 'https://www.kahnsfinewines.com/api/trpc/product.getAll', label: 'Kahn\'s Fine Wines & Spirits in-stock bourbon API', precisionOnly: true },
+      { kind: 'html', url: 'https://belmontbev.com/shop?subtype=bourbon', label: 'Belmont Beverage / Chalet Party Shoppe CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://shop.corkliquor.com/spirits/bourbon', label: 'Cork Liquors CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://www.paylessliquors.info/barrel-selections', label: 'Payless Liquors East Street barrel selections', precisionOnly: true },
+      { kind: 'html', url: 'https://www.wiseguysliquors.com/wise-guys-events/bourbon-open-house-bourbon-lottery', label: 'Wise Guys bourbon open house / bourbon lottery', precisionOnly: true },
+      { kind: 'html', url: 'https://indianaliquor.com/our-events/', label: 'Indiana Liquor Group tasting events', precisionOnly: true }
     ],
     apiCandidates: []
   },

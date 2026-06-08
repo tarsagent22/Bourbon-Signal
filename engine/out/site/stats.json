@@ -1,22 +1,22 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T20:07:08.080Z",
-  "engineGeneratedAt": "2026-06-08T20:06:57.930Z",
+  "generatedAt": "2026-06-08T20:54:47.267Z",
+  "engineGeneratedAt": "2026-06-08T20:47:28.296Z",
   "stateCount": 24,
-  "signalCount": 8744,
-  "historicalSignalCount": 109103,
+  "signalCount": 9399,
+  "historicalSignalCount": 105803,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2407,
-  "locationCount": 4236,
+  "storeCount": 2457,
+  "locationCount": 4285,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 6108,
-  "eventCount": 1401,
-  "alertCandidateCount": 4,
-  "roadblockCount": 57,
+  "dropCount": 6410,
+  "eventCount": 1423,
+  "alertCandidateCount": 0,
+  "roadblockCount": 56,
   "refreshHealth": {
     "degradedStateCount": 2,
     "staleStateCount": 2,
@@ -29,7 +29,7 @@
         "stale": true,
         "staleReason": "VA timed out after 180s",
         "previousFinishedAt": "2026-06-08T14:08:26.278Z",
-        "staleFallbackAt": "2026-06-08T20:01:05.558Z"
+        "staleFallbackAt": "2026-06-08T20:41:17.885Z"
       },
       {
         "state": "IN",
@@ -37,8 +37,8 @@
         "status": "stale_useful",
         "stale": true,
         "staleReason": "IN timed out after 180s",
-        "previousFinishedAt": "2026-06-06T11:29:18.600Z",
-        "staleFallbackAt": "2026-06-08T20:05:29.753Z"
+        "previousFinishedAt": "2026-06-08T20:44:32.814Z",
+        "staleFallbackAt": "2026-06-08T20:45:39.684Z"
       }
     ]
   },
@@ -141,7 +141,7 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1433,
+        "signalCount": 1435,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -153,8 +153,8 @@
         "label": "Indiana ATC + retailer inventory watch",
         "tier": "B",
         "status": "stale_useful",
-        "signalCount": 1267,
-        "roadblockCount": 7,
+        "signalCount": 1922,
+        "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "license_spine_plus_retailer_store_inventory",
@@ -189,8 +189,8 @@
         "label": "Montgomery County ABS",
         "tier": "B",
         "status": "useful",
-        "signalCount": 501,
-        "roadblockCount": 0,
+        "signalCount": 500,
+        "roadblockCount": 1,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_aggregate",
         "strategy": "county_inventory_and_HAL",
@@ -297,8 +297,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 1,
+        "signalCount": 3,
+        "roadblockCount": 2,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "statewide_catalog",
         "strategy": "license_and_policy_watch",
@@ -343,7 +343,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-08T20:07:08.081Z",
+    "generatedAt": "2026-06-08T20:54:47.268Z",
     "focusStates": [
       "AL",
       "VA",
@@ -382,7 +382,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1433,
+        "signalCount": 1435,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -414,7 +414,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "catalog_watch",
-        "signalCount": 4,
+        "signalCount": 3,
         "bestLocationPrecision": "statewide_catalog",
         "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
@@ -877,7 +877,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
-    "boardsWithReleasePages": 12,
+    "boardsWithReleasePages": 13,
     "boardsWithInventoryPages": 6,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },

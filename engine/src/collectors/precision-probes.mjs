@@ -114,12 +114,14 @@ const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults
 const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
 const IN_CITYHIVE_ARTIFACT_PATH = 'out/browser/IN-cityhive-retailer-inventory.json';
 const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
+const IN_ATC_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_ATC_CACHE_MAX_AGE_MS || 7 * 24 * 60 * 60_000);
+const IN_ATC_POST_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_IN_ATC_POST_TIMEOUT_MS || 15_000);
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
 const INDIANA_LIQUOR_GROUP_EVENTS_URL = 'https://indianaliquor.com/our-events/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
 const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PER_STORE_MAX_PAGES || 1);
 const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 48);
-const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
+const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
 const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany/i;
 const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
@@ -452,7 +454,23 @@ function pagerTargets(html) {
     .filter((target) => !/\$_ctl0$/.test(target));
 }
 
+async function readIndianaAtcCache() {
+  try {
+    const artifact = JSON.parse(await readFile(IN_ATC_ARTIFACT_PATH, 'utf8'));
+    const generatedMs = new Date(artifact.generatedAt || 0).getTime();
+    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= IN_ATC_CACHE_MAX_AGE_MS;
+    const stores = Array.isArray(artifact.stores) ? artifact.stores : [];
+    if (!fresh || !stores.length) return null;
+    return { ...artifact, stores, cacheReuse: true, cacheGeneratedAt: artifact.generatedAt };
+  } catch {
+    return null;
+  }
+}
+
 async function collectIndianaAtcPackageStores() {
+  const cached = await readIndianaAtcCache();
+  if (process.env.BOURBON_SIGNAL_IN_FORCE_ATC_LIVE !== '1' && cached) return cached;
+
   const first = await textFetch(IN_ATC_SEARCH_URL, { headers: { accept: 'text/html,*/*' } });
   if (!first.ok) throw new Error(`Indiana ATC search page HTTP ${first.status}: ${first.error || first.text.slice(0, 120)}`);
   const cookie = first.rawSetCookie || '';
@@ -466,19 +484,26 @@ async function collectIndianaAtcPackageStores() {
   searchParams.set('recaptcha', '');
 
   async function post(url, body, referer) {
-    const res = await fetch(url, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: {
-        'user-agent': 'Mozilla/5.0 (BourbonSignal research)',
-        accept: 'text/html,*/*',
-        'content-type': 'application/x-www-form-urlencoded',
-        referer,
-        ...(cookie ? { cookie } : {})
-      },
-      body
-    });
-    return { ok: res.ok, status: res.status, url: res.url, text: await res.text() };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), IN_ATC_POST_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: {
+          'user-agent': 'Mozilla/5.0 (BourbonSignal research)',
+          accept: 'text/html,*/*',
+          'content-type': 'application/x-www-form-urlencoded',
+          referer,
+          ...(cookie ? { cookie } : {})
+        },
+        body
+      });
+      return { ok: res.ok, status: res.status, url: res.url, text: await res.text() };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   let pageHtml = (await post(IN_ATC_SEARCH_URL, searchParams, IN_ATC_SEARCH_URL)).text;
@@ -1004,7 +1029,23 @@ async function collectIndianaCityHive(config, bible, observedAt) {
   const roadblocks = [];
   const cache = await readIndianaCityHiveCache();
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
-  if (cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
+  if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= IN_CITYHIVE_CACHE_MAX_AGE_MS) {
+    return {
+      signals: cachedIndianaCityHiveSignals(cache, observedAt),
+      roadblocks: [
+        ...(cache.roadblocks || []),
+        {
+          state: config.id,
+          source: 'Indiana CityHive retailer inventory cache reuse',
+          url: IN_CITYHIVE_ARTIFACT_PATH,
+          status: 200,
+          error: `Using ${cache.signals.length} cached CityHive store-level rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer 429s unless BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE=1.`,
+          nextRoute: 'Force live CityHive refresh during a maintenance window; otherwise keep cache-backed rows inside the freshness window.'
+        }
+      ]
+    };
+  }
+  if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
     return { signals: cachedIndianaCityHiveSignals(cache, observedAt), roadblocks: cache.roadblocks || [] };
   }
   const seenPageFirstProducts = new Set();
@@ -1682,6 +1723,16 @@ async function collectIndiana(config, bible) {
   try {
     const artifact = await collectIndianaAtcPackageStores();
     const observedAt = artifact.generatedAt;
+    if (artifact.cacheReuse) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Indiana ATC public facility permit search cache reuse',
+        url: IN_ATC_ARTIFACT_PATH,
+        status: 200,
+        error: `Using ${artifact.stores?.length || 0} cached active package-store permit rows from ${artifact.cacheGeneratedAt || artifact.generatedAt}; scheduled refresh avoids the slow ASP.NET paging flow unless BOURBON_SIGNAL_IN_FORCE_ATC_LIVE=1.`,
+        nextRoute: 'Force live ATC refresh during maintenance; permit rows are store-coverage infrastructure, not bottle inventory.'
+      });
+    }
     for (const store of artifact.stores || []) {
       signals.push({
         id: stableId([config.id, 'atc-package-store-permit', store.permitNumber]),
@@ -2700,12 +2751,32 @@ function virginiaStoreSignals(product, json, config, bible, url) {
       longitude: Number(store.longitude ?? 0) || null,
       distance: Number(store.distance ?? 0) || null,
       quantity,
+      availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
+      availabilityLabel: quantity > 0 ? `${quantity} reported available` : 'Out of stock',
       observedAt: base.fetchedAt,
+      canAlertAsInventory: quantity > 0,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Virginia ABC public storeNearby API reports per-store inventory rows for regular catalog products. Limited-availability products may be hidden/randomized by policy outside release windows; verify before driving.',
       evidence: `Virginia ABC API reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${store.city ? ` in ${store.city}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden/randomized by policy outside release windows.' : 'Normal product inventory signal.'}`,
       raw: { product, store }
     });
   }
   return signals;
+}
+
+function enrichVirginiaCachedSignal(signal, cacheGeneratedAt) {
+  const quantity = Number(signal.quantity ?? 0) || 0;
+  const eventType = signal.eventType || (quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock');
+  return {
+    ...signal,
+    eventType,
+    availabilityStatus: signal.availabilityStatus || (quantity > 0 ? 'in_stock' : 'out_of_stock'),
+    availabilityLabel: signal.availabilityLabel || (quantity > 0 ? `${quantity} reported available` : 'Out of stock'),
+    canAlertAsInventory: signal.canAlertAsInventory ?? quantity > 0,
+    canAlertAsWatch: signal.canAlertAsWatch ?? true,
+    inventorySemantics: signal.inventorySemantics || 'Virginia ABC public storeNearby API reports per-store inventory rows for regular catalog products. Limited-availability products may be hidden/randomized by policy outside release windows; verify before driving.',
+    raw: { ...(signal.raw || {}), cacheReuse: true, cacheGeneratedAt }
+  };
 }
 
 async function collectVirginia(config, bible) {
@@ -2722,7 +2793,7 @@ async function collectVirginia(config, bible) {
       error: `Using ${cachedSignals.length} cached store-level VA rows from ${cached.generatedAt}; scheduled refresh avoids the full multi-origin scan unless BOURBON_SIGNAL_VA_FORCE_LIVE=1.`,
       nextRoute: 'Run npm run verify:va or BOURBON_SIGNAL_VA_FORCE_LIVE=1 node src/run-state.mjs VA for a full live VA cache refresh.'
     });
-    return { signals: cachedSignals.map((signal) => ({ ...signal, raw: { ...(signal.raw || {}), cacheReuse: true, cacheGeneratedAt: cached.generatedAt } })), roadblocks };
+    return { signals: cachedSignals.map((signal) => enrichVirginiaCachedSignal(signal, cached.generatedAt)), roadblocks };
   }
   let stores = [{ storeNumber: '101', name: 'Virginia ABC Store 101' }];
   try {
