@@ -108,7 +108,7 @@ export default function PricingSection() {
 
               <div className="flex items-baseline gap-2 mb-1">
                 <span style={{ fontFamily: "var(--font-playfair)", fontSize: "56px", fontWeight: 700, color: "var(--color-cream)" }}>{TESTER_MODE ? "Free" : "$5"}</span>
-                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.4)" }}>{TESTER_MODE ? "beta" : "/mo"}</span>
+                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.4)" }}>{TESTER_MODE ? "testing" : "/mo"}</span>
               </div>
 
               <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.42)", marginBottom: "8px" }}>
@@ -130,7 +130,7 @@ export default function PricingSection() {
 
               <div style={{ marginTop: "auto", paddingTop: "24px", display: "grid", gap: 10 }}>
                 <button onClick={() => handleCheckout("monthly")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(196,148,58,0.08)", border: "1px solid rgba(196,148,58,0.4)", color: "rgba(196,148,58,0.9)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
-                  {TESTER_MODE ? "Open beta dashboard" : `Start monthly, ${STANDARD_MONTHLY_PRICE}`}
+                  {TESTER_MODE ? "Open free dashboard" : `Start monthly, ${STANDARD_MONTHLY_PRICE}`}
                 </button>
                 <button onClick={() => handleCheckout("annual")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
                   {TESTER_MODE ? "Build alert setup" : `Go annual, ${STANDARD_ANNUAL_PRICE}`}
@@ -167,7 +167,7 @@ export default function PricingSection() {
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>{TESTER_MODE ? "Beta" : "$39"}</span>
+                  <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>{TESTER_MODE ? "Free" : "$39"}</span>
                   <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.5)" }}>{TESTER_MODE ? "access" : "one-time"}</span>
                 </div>
 
@@ -196,7 +196,7 @@ export default function PricingSection() {
                     {TESTER_MODE ? "Join tester flow" : "Claim your founder spot, $39"}
                   </button>
                   <p className="text-center" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.42)", marginTop: "10px" }}>
-                    {TESTER_MODE ? "Founder pricing returns after beta validation." : `${FOUNDING_SPOTS_REMAINING} of 100 spots remaining`}
+                    {TESTER_MODE ? "Founder pricing returns after the free testing period." : `${FOUNDING_SPOTS_REMAINING} of 100 spots remaining`}
                   </p>
                 </div>
               </div>

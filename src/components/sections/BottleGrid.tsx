@@ -477,7 +477,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                       transition: "all 200ms ease",
                     }}
                   >
-                    Open beta dashboard
+                    Open free dashboard
                   </button>
                   <button
                     onClick={() => handleCheckout("founder")}

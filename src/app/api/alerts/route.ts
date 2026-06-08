@@ -120,7 +120,7 @@ export async function GET() {
     candidateAlertCount: candidateAlerts.length,
     reliabilitySummary: reliabilitySummary(candidateAlerts),
     alertDeliveryEnabled: false,
-    alertPolicyNote: "Engine candidates now include reliability gates and can be synced into the on-site beta inbox; external delivery remains disabled until explicitly enabled.",
+    alertPolicyNote: "Engine candidates can be reviewed for on-site alerts; external delivery remains disabled until explicitly enabled.",
   });
 }
 
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
     considered: candidates.length,
     reliabilitySummary: reliabilitySummary(candidates),
     alertDeliveryEnabled: false,
-    note: "Created on-site beta inbox alerts only. Email/SMS delivery remains disabled.",
+    note: "Created on-site inbox alerts only. Email/SMS delivery remains disabled.",
   });
 }
 

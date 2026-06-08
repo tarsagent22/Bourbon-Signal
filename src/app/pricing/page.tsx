@@ -127,7 +127,7 @@ function PricingPageContent() {
                 href="/dashboard"
                 style={{ display: "inline-flex", background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)", color: "#1A1510", fontFamily: "var(--font-dm-sans)", fontSize: 15, fontWeight: 800, padding: "14px 22px", borderRadius: 10, textDecoration: "none" }}
               >
-                Open beta setup
+                Open free setup
               </a>
             </ScrollReveal>
           </div>
