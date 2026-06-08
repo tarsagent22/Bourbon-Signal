@@ -1,22 +1,22 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T21:16:37.184Z",
-  "engineGeneratedAt": "2026-06-08T21:16:25.412Z",
+  "generatedAt": "2026-06-08T23:19:19.834Z",
+  "engineGeneratedAt": "2026-06-08T23:18:09.345Z",
   "stateCount": 24,
-  "signalCount": 9351,
-  "historicalSignalCount": 108642,
+  "signalCount": 9397,
+  "historicalSignalCount": 108069,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2455,
-  "locationCount": 4282,
+  "storeCount": 2461,
+  "locationCount": 4288,
   "officialLocationCount": 1652,
   "preloadedLocationCount": 1666,
-  "dropCount": 6590,
-  "eventCount": 1534,
-  "alertCandidateCount": 6,
-  "roadblockCount": 51,
+  "dropCount": 6610,
+  "eventCount": 1550,
+  "alertCandidateCount": 2,
+  "roadblockCount": 52,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -24,12 +24,12 @@
     "degradedStates": []
   },
   "statesAtTargetPrecision": 20,
-  "rareStatesVerified": 18,
+  "rareStatesVerified": 19,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 7,
+      "live_store_inventory": 8,
       "shipment_drop_intelligence": 5,
-      "catalog_watch": 11,
+      "catalog_watch": 10,
       "policy_source_discovery": 1
     },
     "states": [
@@ -122,7 +122,7 @@
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1430,
+        "signalCount": 1432,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -278,12 +278,12 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 1,
+        "signalCount": 48,
+        "roadblockCount": 2,
         "targetLocationPrecision": "statewide_policy",
-        "bestLocationPrecision": "statewide_catalog",
+        "bestLocationPrecision": "store_level",
         "strategy": "license_and_policy_watch",
-        "coverageTier": "catalog_watch"
+        "coverageTier": "live_store_inventory"
       },
       {
         "state": "SC",
@@ -324,7 +324,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-08T21:16:37.186Z",
+    "generatedAt": "2026-06-08T23:19:19.835Z",
     "focusStates": [
       "AL",
       "VA",
@@ -338,8 +338,8 @@
       "FL"
     ],
     "counts": {
-      "live_store_inventory": 3,
-      "catalog_watch": 5,
+      "live_store_inventory": 4,
+      "catalog_watch": 4,
       "shipment_drop_intelligence": 2
     },
     "stateNotes": {
@@ -363,7 +363,7 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1430,
+        "signalCount": 1432,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       },
@@ -394,10 +394,10 @@
       "TN": {
         "label": "Tennessee ABC",
         "status": "useful",
-        "coverageTier": "catalog_watch",
-        "signalCount": 4,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
+        "coverageTier": "live_store_inventory",
+        "signalCount": 48,
+        "bestLocationPrecision": "store_level",
+        "testerValue": "Live/store inventory where public source permits."
       },
       "SC": {
         "label": "South Carolina DOR ABL",
@@ -566,11 +566,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 2227,
+          "quantity": 2262,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 2227 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 2262 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "5fe622929530be5a",
@@ -801,6 +801,136 @@
           "summary": "WV ABCA barrel-pick page tracks latest barrel pick programs and 2025 selections. Search index mentions Whistle Pig Six Year single barrel rye and routine updates."
         }
       ],
+      "tnStoreInventory": [
+        {
+          "id": "3b6e28cb643f807d",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=bdb08a37a30c12117ed8ecd199b343412c8b6996d4c1174be14bc4c15f248283",
+          "bottle": "E.H. Taylor Small Batch",
+          "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Midtown",
+          "quantity": 1366,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1366 750mls of Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $99.99."
+        },
+        {
+          "id": "62a85b61a995a20f",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/four-roses-single-barrel-private-selection-barrel-strength-bourbon/56c2722175627570b0640200?option-id=10a30967fc27e9d53028c9c2286a83d9cbc1bb2859a9a94a0b2cc5e9f713bdfe",
+          "bottle": "Four Roses Single Barrel Barrel Strength",
+          "rawName": "Four Roses Single Barrel Private Selection Barrel Strength Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Midtown",
+          "quantity": 1310,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1310 750mls of Four Roses Single Barrel Private Selection Barrel Strength Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $119.97."
+        },
+        {
+          "id": "2d5371b510c9ad07",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/bulleit-bourbon/60d24ff23d172e254c08e74d?option-id=f014ed6a1ee9035ac65727586efc718030d70b19c695b8f43b24ed3c9775ef0b",
+          "bottle": "Bulleit Bourbon",
+          "rawName": "Bulleit Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Midtown",
+          "quantity": 1224,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1224 50mls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $4.49."
+        },
+        {
+          "id": "00b218bfb062ee12",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Frugal MacDoogal CityHive store inventory",
+          "sourceUrl": "https://www.frugalmacdoogal.com/shop/product/bulleit-bourbon/56c26ee075627570b05e0100?option-id=70d733d26a4edea6b52d458543722988129807e5bcba27f9b4691d353abfb3e1",
+          "bottle": "Bulleit Bourbon",
+          "rawName": "Bulleit Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Frugal MacDoogal",
+          "quantity": 156,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Frugal MacDoogal CityHive reports 156 750mls of Bulleit Bourbon at Frugal MacDoogal (701 Division St, Nashville, TN 37203, USA) for $24.99."
+        },
+        {
+          "id": "5153464984e8b142",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Buster's Liquors & Wines CityHive store inventory",
+          "sourceUrl": "https://bustersliquors.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Buster’s Liquors | University",
+          "quantity": 151,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Buster's Liquors & Wines CityHive reports 151 750mls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $25.99."
+        },
+        {
+          "id": "2d5371b510c9ad07",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/bulleit-bourbon/69cef15a0041430001c883dc?option-id=66def7fd9ff267eb33e612b915be06327a646fe87a2f9ff43b9fa92d058763eb",
+          "bottle": "Bulleit Bourbon",
+          "rawName": "Bulleit Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Midtown",
+          "quantity": 148,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 148 1.75Ls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $47.99."
+        },
+        {
+          "id": "00b218bfb062ee12",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Frugal MacDoogal CityHive store inventory",
+          "sourceUrl": "https://www.frugalmacdoogal.com/shop/product/bulleit-bourbon/56c2713c75627570b0160200?option-id=0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77",
+          "bottle": "Bulleit Bourbon",
+          "rawName": "Bulleit Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Frugal MacDoogal",
+          "quantity": 143,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Frugal MacDoogal CityHive reports 143 1.75Ls of Bulleit Bourbon at Frugal MacDoogal (701 Division St, Nashville, TN 37203, USA) for $44.99."
+        },
+        {
+          "id": "2d5371b510c9ad07",
+          "state": "TN",
+          "type": "cityhive_store_inventory_result",
+          "source": "Corkdorks CityHive store inventory",
+          "sourceUrl": "https://corkdorkswine.com/shop/product/bulleit-bourbon/69ceba3cbc4b9c0001f1325d?option-id=725fbf595c171bae78494a1a5aa22d4655c21b3e11c754b6d890af23b8f86eda",
+          "bottle": "Bulleit Bourbon",
+          "rawName": "Bulleit Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Corkdorks Wine Spirits Beer - Midtown",
+          "quantity": 126,
+          "confidence": 0.86,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 126 750mls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $25.99."
+        }
+      ],
       "tnSourceDiscovery": [
         {
           "id": "02df9ae4c0481ced",
@@ -858,7 +988,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
-    "boardsWithReleasePages": 14,
+    "boardsWithReleasePages": 13,
     "boardsWithInventoryPages": 6,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },

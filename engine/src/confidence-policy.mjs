@@ -66,8 +66,22 @@ const MODE_CAPS = {
 
 function clamp(n, min = 0, max = 1) { return Math.max(min, Math.min(max, n)); }
 
+const TENNESSEE_CITYHIVE_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'Tennessee is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.',
+  defaultCadence: 'daily-60m'
+};
+
+function policyForSignal(signal) {
+  const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
+  const eventType = String(signal.eventType || signal.signalType || '');
+  const source = String(signal.sourceLabel || signal.source || '');
+  if (signal.state === 'TN' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
+  return basePolicy;
+}
+
 export function confidenceForSignal(signal) {
-  const policy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
+  const policy = policyForSignal(signal);
   const precision = signal.locationPrecision || 'statewide_catalog';
   const rank = precisionRank(precision);
   let confidence = Number(signal.confidence || 0.35) || 0.35;

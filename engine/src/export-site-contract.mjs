@@ -115,12 +115,26 @@ function safeString(value, max = 500) {
   return value == null ? null : String(value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+function isTennesseeCityHiveInventory(signal) {
+  return signal.state === 'TN'
+    && /^cityhive_store_inventory_result/i.test(String(signal.eventType || signal.type || ''))
+    && /CityHive/i.test(String(signal.sourceLabel || signal.source || ''))
+    && signal.locationPrecision === 'store_level'
+    && Number(signal.quantity || 0) > 0
+    && Boolean(signal.storeId)
+    && Boolean(signal.storeAddress);
+}
+
 function publicSignal(signal, bible) {
   const bibleRecord = findBibleRecord(signal, bible);
-  const preferRetailerName = (signal.state === 'IN' || signal.state === 'IL') && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
+  const preferRetailerName = ['IN', 'IL', 'TN'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
+  const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
+  const inventorySemantics = isTnCityHiveInventory
+    ? 'Tennessee is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
+    : signal.inventorySemantics;
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,
@@ -153,10 +167,10 @@ function publicSignal(signal, bible) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: signal.confidence,
-    policyMode: signal.policyMode,
-    canAlertAsInventory: Boolean(signal.canAlertAsInventory),
-    canAlertAsWatch: Boolean(signal.canAlertAsWatch),
-    inventorySemantics: safeString(signal.inventorySemantics, 700),
+    policyMode: isTnCityHiveInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    canAlertAsInventory: Boolean(signal.canAlertAsInventory) || isTnCityHiveInventory,
+    canAlertAsWatch: Boolean(signal.canAlertAsWatch) || isTnCityHiveInventory,
+    inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
 }
@@ -241,15 +255,23 @@ function buildStores(signals) {
   return stores.sort((a, b) => a.state.localeCompare(b.state) || String(a.name).localeCompare(String(b.name)));
 }
 
+function signalCanAlertAsInventory(signal) {
+  return Boolean(signal.canAlertAsInventory) || isTennesseeCityHiveInventory(signal);
+}
+
+function signalCanAlertAsWatch(signal) {
+  return Boolean(signal.canAlertAsWatch) || isTennesseeCityHiveInventory(signal);
+}
+
 function dropPriority(signal) {
   const type = String(signal.eventType || '');
-  if (signal.state === 'NC' && signal.canAlertAsInventory && signal.locationPrecision === 'store_level') return 78;
+  if (signal.state === 'NC' && signalCanAlertAsInventory(signal) && signal.locationPrecision === 'store_level') return 78;
   if (type === 'nc_board_shipment_snapshot') return 64;
   if (signal.state === 'VA' && type === 'store_inventory_result') return 62;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') return 68;
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
-  if (signal.canAlertAsInventory) return 50;
+  if (signalCanAlertAsInventory(signal)) return 50;
   if (/store_delivery_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
@@ -284,8 +306,8 @@ function buildDrops(signals, bible) {
   const seenSourceIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
-    .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && s.canAlertAsInventory && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
-    .filter((s) => s.canAlertAsInventory || /release|allocated|lottery|tasting|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
+    .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => signalCanAlertAsInventory(s) || /release|allocated|lottery|tasting|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
@@ -646,6 +668,7 @@ function buildSoutheastReadiness(summary, signals) {
       ncShipmentAndWarehouse: topSignals(southeastSignals, (s) => s.state === 'NC' && /nc_board_shipment_snapshot|nc_statewide_warehouse_stock/i.test(String(s.eventType || '')), 8),
       alReleaseIntel: topSignals(southeastSignals, (s) => s.state === 'AL' && /release|allocated/i.test(String(s.eventType || '')), 5),
       wvBarrelPicks: topSignals(southeastSignals, (s) => s.state === 'WV' && /barrel|release|allocated/i.test(String(s.eventType || '')), 5),
+      tnStoreInventory: topSignals(southeastSignals, (s) => s.state === 'TN' && s.locationPrecision === 'store_level' && s.canAlertAsInventory, 8),
       tnSourceDiscovery: topSignals(southeastSignals, (s) => s.state === 'TN' && /license|policy|document/i.test(String(s.eventType || '')), 5)
     },
     caveat: 'Southeast readiness distinguishes live inventory from shipment/release leads and catalog/license context. Non-inventory sources must not be presented as exact bottle/store availability.'
