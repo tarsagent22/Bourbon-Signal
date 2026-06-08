@@ -1,3 +1,4 @@
+import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
@@ -220,8 +221,19 @@ function readEngineBibleBottles(): BibleBottle[] {
   }
 }
 
+function readInventoryBibleBottles(): BibleBottle[] {
+  return (inventoryBottles as unknown as BibleBottle[]).map((bottle) => ({
+    ...bottle,
+    aliases: Array.isArray(bottle.aliases) ? bottle.aliases : [],
+    isSignalTracked: false,
+    isAlertEligible: Boolean(bottle.isAlertEligible),
+  }));
+}
+
 export function getBourbonBible() {
-  return dedupeBottles([...SEED_BOTTLES, ...readEngineBibleBottles()]);
+  // Inventory bottles are broad lookup context. Curated seed + engine records come after
+  // so allocated/drop-aware metadata wins when the same canonical id appears twice.
+  return dedupeBottles([...readInventoryBibleBottles(), ...SEED_BOTTLES, ...readEngineBibleBottles()]);
 }
 
 export function searchBourbonBible(query: string, limit = 8): BibleSearchResult[] {

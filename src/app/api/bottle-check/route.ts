@@ -29,8 +29,8 @@ function dropMatchesBottle(drop: Record<string, unknown>, bottle: BibleBottle) {
   const names = [dropName(drop), String(drop.canonical_id || ""), String(drop.bottle_id || ""), ...(Array.isArray(drop.aliases) ? drop.aliases.map(String) : [])]
     .map(normalizeBottleKey)
     .filter(Boolean);
-  const keys = [bottle.id, bottle.canonicalName, bottle.brand, ...bottle.aliases].map(normalizeBottleKey).filter(Boolean);
-  return names.some((name) => keys.some((key) => name === key || name.includes(key) || key.includes(name)));
+  const keys = [bottle.id, bottle.canonicalName, ...bottle.aliases].map(normalizeBottleKey).filter(Boolean);
+  return names.some((name) => keys.some((key) => name === key || (key.length >= 12 && name.includes(key)) || (name.length >= 12 && key.includes(name))));
 }
 
 function getDropsForBottle(bottle: BibleBottle, state?: string) {
