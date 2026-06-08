@@ -316,15 +316,28 @@ export default function Navigation() {
         </div>
 
         {/* Mobile right controls */}
-        <div className="flex md:hidden items-center gap-[10px] mr-[5px]">
+        <div
+          className="flex md:hidden items-center gap-[10px]"
+          style={{ marginRight: "18px", flexShrink: 0 }}
+        >
           {mounted && isSignedIn ? <MemberAlertsBell /> : null}
           <button
             className="cursor-pointer"
             onClick={() => setMobileOpen(true)}
-            style={{ color: "var(--color-text-primary)" }}
+            style={{
+              width: "42px",
+              height: "42px",
+              color: "var(--color-text-primary)",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
             aria-label="Open navigation menu"
           >
-            <Menu size={24} />
+            <Menu size={28} strokeWidth={2.25} />
           </button>
         </div>
         </div>

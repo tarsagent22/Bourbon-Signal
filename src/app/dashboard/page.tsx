@@ -1299,7 +1299,7 @@ export default function DashboardPage() {
                             Email alerts
                           </span>
                           <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
-                            Use email for either every matching alert, only major hits, or a calmer daily roundup.
+                            Get email alerts when a signal matches your watchlist.
                           </span>
                         </div>
                         <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
@@ -1315,48 +1315,6 @@ export default function DashboardPage() {
                         </div>
                       </button>
 
-                      {emailActive ? (
-                        <div style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(180deg, rgba(22,18,14,0.98) 0%, rgba(14,11,8,0.98) 100%)", padding: "18px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
-                          <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                            Delivery profile
-                          </p>
-                          <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-                            {[
-                              { value: "all", label: "All matching drops", note: "Every matching bottle alert, right away.", eyebrow: "ALWAYS ON" },
-                              { value: "major_only", label: "Major hits", note: "Only the strongest, most urgent matches hit your inbox.", eyebrow: "RECOMMENDED" },
-                              { value: "daily_roundup", label: "Roundup", note: "Keep the inbox calm with a daily digest.", eyebrow: "DIGEST MODE" },
-                            ].map((option) => {
-                              const selected = notificationPrefs.email.mode === option.value;
-                              return (
-                                <button
-                                  key={option.value}
-                                  onClick={() =>
-                                    setNotificationPrefs((prev) => ({
-                                      ...prev,
-                                      email: { ...prev.email, mode: option.value as typeof prev.email.mode },
-                                    }))
-                                  }
-                                  style={{
-                                    textAlign: "left",
-                                    borderRadius: "16px",
-                                    border: selected ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)",
-                                    background: selected
-                                      ? "linear-gradient(180deg, rgba(47,33,18,0.96) 0%, rgba(24,18,12,0.96) 100%)"
-                                      : "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)",
-                                    boxShadow: selected ? "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)" : "none",
-                                    padding: "14px 16px",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: selected ? "var(--color-accent-amber)" : "var(--color-text-tertiary)" }}>{option.eyebrow}</div>
-                                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
-                                  <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{option.note}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : null}
 
                     </>
                   );

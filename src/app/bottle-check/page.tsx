@@ -140,7 +140,7 @@ export default function BottleCheckPage() {
           <div className="bc-kicker">Bottle Check</div>
           <h1>Standing in the aisle? Check the bottle before you buy.</h1>
           <p>
-            Search a bourbon, choose your state, and get a plain-English read on whether it is common, allocated, worth grabbing, or just not showing enough local signal yet.
+            Search a bourbon, choose your state, and get a read on whether it is common, allocated, worth grabbing, or just not showing enough local signal yet.
           </p>
         </section>
 
