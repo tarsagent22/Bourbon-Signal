@@ -34,10 +34,8 @@ export function PaidDropAlertEmail({
   const greeting = firstName?.trim() ? `Hi ${firstName},` : "Hi there,";
 
   return (
-    <Html style={{ backgroundColor: "#090806", colorScheme: "dark" }}>
+    <Html style={{ backgroundColor: "#090806" }}>
       <Head>
-        <meta name="color-scheme" content="dark" />
-        <meta name="supported-color-schemes" content="dark" />
         <style>{darkModeEmailCss}</style>
       </Head>
       <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
@@ -83,11 +81,6 @@ export function PaidDropAlertEmail({
 }
 
 const darkModeEmailCss = `
-  :root {
-    color-scheme: dark;
-    supported-color-schemes: dark;
-  }
-
   html,
   body,
   .bs-body {
@@ -126,46 +119,47 @@ const darkModeEmailCss = `
   .bs-headline,
   .bs-signal-value,
   .bs-strong {
-    color: #fff8ea !important;
-    -webkit-text-fill-color: #fff8ea !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     opacity: 1 !important;
-    text-shadow: 0 0 0 #fff8ea !important;
+    filter: none !important;
   }
 
   .bs-paragraph {
-    color: #fff2df !important;
-    -webkit-text-fill-color: #fff2df !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     opacity: 1 !important;
-    text-shadow: 0 0 0 #fff2df !important;
+    filter: none !important;
   }
 
   .bs-subhead,
   .bs-meta-line {
-    color: #f3dfbd !important;
-    -webkit-text-fill-color: #f3dfbd !important;
+    color: #fff0cc !important;
+    -webkit-text-fill-color: #fff0cc !important;
     opacity: 1 !important;
-    text-shadow: 0 0 0 #f3dfbd !important;
+    filter: none !important;
   }
 
   .bs-eyebrow,
   .bs-signal-label {
-    color: #f0b84d !important;
-    -webkit-text-fill-color: #f0b84d !important;
+    color: #ffc857 !important;
+    -webkit-text-fill-color: #ffc857 !important;
     opacity: 1 !important;
-    text-shadow: 0 0 0 #f0b84d !important;
+    filter: none !important;
   }
 
   .bs-button {
     background: linear-gradient(135deg, #c4943a 0%, #d4a44a 100%) !important;
     background-color: #d4a44a !important;
     color: #0d0b0e !important;
+    -webkit-text-fill-color: #0d0b0e !important;
   }
 
   .bs-footer {
-    color: #e6cda7 !important;
-    -webkit-text-fill-color: #e6cda7 !important;
+    color: #ffe4b8 !important;
+    -webkit-text-fill-color: #ffe4b8 !important;
     opacity: 1 !important;
-    text-shadow: 0 0 0 #e6cda7 !important;
+    filter: none !important;
   }
 `;
 
@@ -177,7 +171,6 @@ const body = {
   fontFamily: "Georgia, 'Times New Roman', serif",
   margin: 0,
   padding: "24px 10px",
-  colorScheme: "dark",
 };
 
 const shell = {
@@ -201,10 +194,9 @@ const topRail = {
 
 const eyebrow = {
   margin: 0,
-  color: "#f0b84d",
-  WebkitTextFillColor: "#f0b84d",
+  color: "#ffc857",
+  WebkitTextFillColor: "#ffc857",
   opacity: 1,
-  textShadow: "0 0 0 #f0b84d",
   fontSize: "11px",
   letterSpacing: "0.22em",
   textTransform: "uppercase" as const,
@@ -214,10 +206,9 @@ const eyebrow = {
 
 const headline = {
   margin: "12px 0 8px",
-  color: "#fff8ea",
-  WebkitTextFillColor: "#fff8ea",
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
   opacity: 1,
-  textShadow: "0 0 0 #fff8ea",
   fontSize: "34px",
   lineHeight: 1.15,
   fontWeight: 700,
@@ -225,10 +216,9 @@ const headline = {
 
 const subhead = {
   margin: 0,
-  color: "#f3dfbd",
-  WebkitTextFillColor: "#f3dfbd",
+  color: "#fff0cc",
+  WebkitTextFillColor: "#fff0cc",
   opacity: 1,
-  textShadow: "0 0 0 #f3dfbd",
   fontSize: "15px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
@@ -242,10 +232,9 @@ const contentWrap = {
 };
 
 const paragraph = {
-  color: "#fff2df",
-  WebkitTextFillColor: "#fff2df",
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
   opacity: 1,
-  textShadow: "0 0 0 #fff2df",
   fontSize: "16px",
   lineHeight: 1.7,
   margin: "0 0 16px",
@@ -253,10 +242,9 @@ const paragraph = {
 };
 
 const strong = {
-  color: "#fff8ea",
-  WebkitTextFillColor: "#fff8ea",
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
   opacity: 1,
-  textShadow: "0 0 0 #fff8ea",
 };
 
 const signalCard = {
@@ -271,10 +259,9 @@ const signalCard = {
 
 const signalLabel = {
   margin: 0,
-  color: "#f0b84d",
-  WebkitTextFillColor: "#f0b84d",
+  color: "#ffc857",
+  WebkitTextFillColor: "#ffc857",
   opacity: 1,
-  textShadow: "0 0 0 #f0b84d",
   fontSize: "10px",
   letterSpacing: "0.2em",
   textTransform: "uppercase" as const,
@@ -284,10 +271,9 @@ const signalLabel = {
 
 const signalValue = {
   margin: "10px 0 14px",
-  color: "#fff8ea",
-  WebkitTextFillColor: "#fff8ea",
+  color: "#ffffff",
+  WebkitTextFillColor: "#ffffff",
   opacity: 1,
-  textShadow: "0 0 0 #fff8ea",
   fontSize: "24px",
   lineHeight: 1.3,
   fontWeight: 700,
@@ -295,10 +281,9 @@ const signalValue = {
 
 const metaLine = {
   margin: "0 0 8px",
-  color: "#f3dfbd",
-  WebkitTextFillColor: "#f3dfbd",
+  color: "#fff0cc",
+  WebkitTextFillColor: "#fff0cc",
   opacity: 1,
-  textShadow: "0 0 0 #f3dfbd",
   fontSize: "14px",
   lineHeight: 1.55,
   fontFamily: "Arial, Helvetica, sans-serif",
@@ -308,6 +293,7 @@ const button = {
   backgroundColor: "#d4a44a",
   background: "linear-gradient(135deg, #c4943a 0%, #d4a44a 100%)",
   color: "#0d0b0e",
+  WebkitTextFillColor: "#0d0b0e",
   padding: "14px 22px",
   borderRadius: "999px",
   fontSize: "14px",
@@ -318,10 +304,9 @@ const button = {
 
 const footerCopy = {
   margin: 0,
-  color: "#e6cda7",
-  WebkitTextFillColor: "#e6cda7",
+  color: "#ffe4b8",
+  WebkitTextFillColor: "#ffe4b8",
   opacity: 1,
-  textShadow: "0 0 0 #e6cda7",
   fontSize: "12px",
   lineHeight: 1.6,
   fontFamily: "Arial, Helvetica, sans-serif",
