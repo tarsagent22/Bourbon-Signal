@@ -34,41 +34,45 @@ export function PaidDropAlertEmail({
   const greeting = firstName?.trim() ? `Hi ${firstName},` : "Hi there,";
 
   return (
-    <Html>
-      <Head />
+    <Html style={{ backgroundColor: "#090806", colorScheme: "dark" }}>
+      <Head>
+        <meta name="color-scheme" content="dark" />
+        <meta name="supported-color-schemes" content="dark" />
+        <style>{darkModeEmailCss}</style>
+      </Head>
       <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
-      <Body style={body}>
-        <Container style={shell}>
-          <Section style={topRail}>
-            <Text style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
-            <Text style={headline}>{bottleName}</Text>
-            <Text style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
+      <Body className="bs-body" style={body}>
+        <Container className="bs-shell" style={shell}>
+          <Section className="bs-top-rail" style={topRail}>
+            <Text className="bs-eyebrow" style={eyebrow}>BOURBON SIGNAL MEMBER ALERT</Text>
+            <Text className="bs-headline" style={headline}>{bottleName}</Text>
+            <Text className="bs-subhead" style={subhead}>{`${bottleName} just showed up in one of your tracked areas.`}</Text>
           </Section>
 
-          <Section style={contentWrap}>
-            <Text style={paragraph}>{greeting}</Text>
-            <Text style={paragraph}>
-              <strong style={strong}>{bottleName}</strong> just hit <strong style={strong}>{storeLabel}</strong>.
+          <Section className="bs-content" style={contentWrap}>
+            <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
+            <Text className="bs-paragraph" style={paragraph}>
+              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
             </Text>
-            <Text style={paragraph}>This matched your <strong style={strong}>{matchedArea}</strong> alert area.</Text>
+            <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
 
-            <Section style={signalCard}>
-              <Text style={signalLabel}>SIGNAL LOCATION</Text>
-              <Text style={signalValue}>{storeLabel}</Text>
+            <Section className="bs-signal-card" style={signalCard}>
+              <Text className="bs-signal-label" style={signalLabel}>SIGNAL LOCATION</Text>
+              <Text className="bs-signal-value" style={signalValue}>{storeLabel}</Text>
 
-              <Text style={metaLine}>Tracked area: {matchedArea}</Text>
-              <Text style={metaLine}>State: {state}</Text>
-              <Text style={metaLine}>Reported: {timestampLabel}</Text>
-              {quantityLabel ? <Text style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
+              <Text className="bs-meta-line" style={metaLine}>Tracked area: {matchedArea}</Text>
+              <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
+              <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
+              {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
             </Section>
 
             <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
-              <Button href={dashboardUrl} style={button}>
+              <Button className="bs-button" href={dashboardUrl} style={button}>
                 Open member dashboard
               </Button>
             </Section>
 
-            <Text style={footerCopy}>
+            <Text className="bs-footer" style={footerCopy}>
               If this looks wrong, reply and we will check it out.
             </Text>
           </Section>
@@ -78,11 +82,82 @@ export function PaidDropAlertEmail({
   );
 }
 
+const darkModeEmailCss = `
+  :root {
+    color-scheme: dark;
+    supported-color-schemes: dark;
+  }
+
+  html,
+  body,
+  .bs-body {
+    background: #090806 !important;
+    background-color: #090806 !important;
+    color: #f6efe5 !important;
+  }
+
+  .bs-shell {
+    background: #14100c !important;
+    background-color: #14100c !important;
+    border-color: #4f3516 !important;
+  }
+
+  .bs-top-rail {
+    background: linear-gradient(135deg, #2a1c0e 0%, #17110c 74%, #100c09 100%) !important;
+    background-color: #1f160e !important;
+    border-bottom-color: #4f3516 !important;
+  }
+
+  .bs-content {
+    background: #100c09 !important;
+    background-color: #100c09 !important;
+  }
+
+  .bs-signal-card {
+    background: #18120d !important;
+    background-color: #18120d !important;
+    border-color: #5f411b !important;
+  }
+
+  .bs-headline,
+  .bs-signal-value,
+  .bs-strong {
+    color: #fff4e4 !important;
+  }
+
+  .bs-paragraph {
+    color: #f6efe5 !important;
+  }
+
+  .bs-subhead,
+  .bs-meta-line {
+    color: #dcc9ad !important;
+  }
+
+  .bs-eyebrow,
+  .bs-signal-label {
+    color: #d4a44a !important;
+  }
+
+  .bs-button {
+    background: linear-gradient(135deg, #c4943a 0%, #d4a44a 100%) !important;
+    background-color: #d4a44a !important;
+    color: #0d0b0e !important;
+  }
+
+  .bs-footer {
+    color: #bda98d !important;
+  }
+`;
+
 const body = {
   backgroundColor: "#090806",
+  background: "#090806",
+  color: "#f6efe5",
   fontFamily: "Georgia, 'Times New Roman', serif",
   margin: 0,
   padding: "24px 10px",
+  colorScheme: "dark",
 };
 
 const shell = {
@@ -90,6 +165,7 @@ const shell = {
   maxWidth: "600px",
   margin: "0 auto",
   backgroundColor: "#14100c",
+  background: "#14100c",
   border: "1px solid #4f3516",
   borderRadius: "18px",
   overflow: "hidden",
@@ -98,6 +174,7 @@ const shell = {
 const topRail = {
   padding: "28px 24px 24px",
   backgroundColor: "#1f160e",
+  background: "linear-gradient(135deg, #2a1c0e 0%, #17110c 74%, #100c09 100%)",
   borderBottom: "1px solid #4f3516",
 };
 
@@ -130,6 +207,7 @@ const subhead = {
 const contentWrap = {
   padding: "28px 24px 28px",
   backgroundColor: "#100c09",
+  background: "#100c09",
 };
 
 const paragraph = {
@@ -147,6 +225,7 @@ const strong = {
 const signalCard = {
   marginTop: "24px",
   backgroundColor: "#18120d",
+  background: "#18120d",
   border: "1px solid #5f411b",
   borderRadius: "14px",
   padding: "20px",
@@ -180,6 +259,7 @@ const metaLine = {
 
 const button = {
   backgroundColor: "#d4a44a",
+  background: "linear-gradient(135deg, #c4943a 0%, #d4a44a 100%)",
   color: "#0d0b0e",
   padding: "14px 22px",
   borderRadius: "999px",
