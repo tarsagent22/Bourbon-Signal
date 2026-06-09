@@ -8,7 +8,7 @@ import {
   type GroupedDrop,
   type DropLocation,
   groupDrops,
-  formatRelativeTime,
+  formatDropTime,
   cleanCountyName,
   formatStateLabel,
   lookupPricing,
@@ -454,7 +454,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
 
           <div style={{ textAlign: "right", flexShrink: 0, paddingTop: "1px" }}>
             <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
-              Confirmed {formatRelativeTime(drop.timestamp)}
+              {formatDropTime(drop)}
             </div>
             {hasPricing && (
               <div style={{ marginTop: "8px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "rgba(245,237,214,0.58)", whiteSpace: "nowrap" }}>
@@ -604,7 +604,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 whiteSpace: "nowrap",
               }}
             >
-              {formatRelativeTime(drop.timestamp)}
+              {formatDropTime(drop)}
             </span>
           )}
           {/* Timestamp below pricing */}
@@ -618,7 +618,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
                 marginTop: "3px",
               }}
             >
-              Confirmed {formatRelativeTime(drop.timestamp)}
+              {formatDropTime(drop)}
             </span>
           )}
         </div>
@@ -636,7 +636,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
               whiteSpace: "nowrap",
             }}
           >
-            Confirmed {formatRelativeTime(drop.timestamp)}
+            {formatDropTime(drop)}
           </span>
         </div>
       </div>
@@ -1353,3 +1353,4 @@ export default function DropFeed() {
     </section>
   );
 }
+

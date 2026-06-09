@@ -26,6 +26,11 @@ export interface DropEvent {
   state_code?: string;
   source?: string;
   sourceUrl?: string;
+  observed_at?: string;
+  event_at?: string;
+  first_seen_at?: string;
+  last_confirmed_at?: string;
+  timestamp_basis?: "source_event_at" | "first_seen_at" | "last_confirmed_at" | string;
   evidence?: string | null;
   inventorySemantics?: string | null;
   canAlertAsWatch?: boolean;
@@ -76,6 +81,10 @@ export interface GroupedDrop {
   canAlertAsInventory?: boolean;
   signalCategory?: string;
   displayState?: string;
+  timestampBasis?: string;
+  eventAt?: string;
+  firstSeenAt?: string;
+  lastConfirmedAt?: string;
   locations: DropLocation[];
 }
 
@@ -178,6 +187,35 @@ export function formatRelativeTime(timestamp: string): string {
   if (diffHr < 24) return `${diffHr}h ago`;
   if (diffDay === 1) return "1d ago";
   return `${diffDay}d ago`;
+}
+
+export function formatDropTime(drop: Pick<DropEvent | GroupedDrop, "timestamp" | "event_type"> & {
+  timestamp_basis?: string;
+  timestampBasis?: string;
+  event_at?: string;
+  eventAt?: string;
+  first_seen_at?: string;
+  firstSeenAt?: string;
+  last_confirmed_at?: string;
+  lastConfirmedAt?: string;
+}): string {
+  const basis = drop.timestamp_basis || drop.timestampBasis || "last_confirmed_at";
+  const eventType = String(drop.event_type || "").toLowerCase();
+  const eventAt = drop.event_at || drop.eventAt;
+  const firstSeenAt = drop.first_seen_at || drop.firstSeenAt;
+  const lastConfirmedAt = drop.last_confirmed_at || drop.lastConfirmedAt;
+
+  if (basis === "source_event_at" && eventAt) {
+    const prefix = eventType === "nc_board_shipment_snapshot" ? "Shipped" : "Occurred";
+    return `${prefix} ${formatRelativeTime(eventAt)}`;
+  }
+
+  if (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt) {
+    return `Seen since ${formatRelativeTime(firstSeenAt)} · confirmed ${formatRelativeTime(lastConfirmedAt)}`;
+  }
+
+  if (lastConfirmedAt) return `Last confirmed ${formatRelativeTime(lastConfirmedAt)}`;
+  return formatRelativeTime(drop.timestamp);
 }
 
 export function cleanCountyName(board: string): string {
@@ -328,6 +366,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.canAlertAsInventory && event.can_alert_as_inventory) {
         existing.canAlertAsInventory = event.can_alert_as_inventory;
       }
+      if (!existing.eventAt && event.event_at) existing.eventAt = event.event_at;
+      if (!existing.firstSeenAt || (event.first_seen_at && event.first_seen_at < existing.firstSeenAt)) existing.firstSeenAt = event.first_seen_at;
+      if (!existing.lastConfirmedAt || (event.last_confirmed_at && event.last_confirmed_at > existing.lastConfirmedAt)) existing.lastConfirmedAt = event.last_confirmed_at;
+      if (event.timestamp_basis === "source_event_at") existing.timestampBasis = event.timestamp_basis;
       if ((existing.onlineInStockQuantity == null || existing.onlineInStockQuantity === 0) && event.online_in_stock_quantity != null) {
         existing.onlineInStockQuantity = event.online_in_stock_quantity;
       }
@@ -354,6 +396,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         canAlertAsInventory: event.can_alert_as_inventory,
         signalCategory: event.signal_category,
         displayState: event.display_state || formatStateLabel(event.state || event.state_code),
+        timestampBasis: event.timestamp_basis,
+        eventAt: event.event_at,
+        firstSeenAt: event.first_seen_at,
+        lastConfirmedAt: event.last_confirmed_at,
         locations,
       });
     }

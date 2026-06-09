@@ -110,6 +110,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const type = asString(drop.type, "signal");
   const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
   const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
+  const eventAt = asString(drop.eventAt);
+  const firstSeenAt = asString(drop.firstSeenAt);
+  const lastConfirmedAt = asString(drop.lastConfirmedAt, asString(drop.observedAt));
+  const displayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || new Date().toISOString());
+  const timestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
 
   return {
     ...drop,
@@ -119,7 +124,12 @@ export function normalizeDropForSite(drop: JsonRecord) {
     canonical_key: asString(drop.canonicalKey),
     raw_name: asString(drop.rawName),
     aliases: Array.isArray(drop.aliases) ? drop.aliases.map(String) : [],
-    timestamp: asString(drop.observedAt, new Date().toISOString()),
+    timestamp: displayAt,
+    observed_at: asString(drop.observedAt),
+    event_at: eventAt || undefined,
+    first_seen_at: firstSeenAt || undefined,
+    last_confirmed_at: lastConfirmedAt || undefined,
+    timestamp_basis: timestampBasis,
     event_type: type,
     brand_name: asString(drop.bottleName, "Unknown Bottle"),
     tracked_brand_name: asString(drop.bottleName, "Unknown Bottle"),

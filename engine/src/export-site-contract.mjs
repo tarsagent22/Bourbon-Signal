@@ -136,7 +136,7 @@ function isTennesseeRetailerInventory(signal) {
     && Boolean(signal.storeAddress);
 }
 
-function publicSignal(signal, bible) {
+function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
@@ -154,6 +154,11 @@ function publicSignal(signal, bible) {
     : canAlertAsWatch
       ? 'actionable_watch'
       : 'informational';
+  const eventAt = freshness?.eventAt || null;
+  const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
+  const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
+  const displayAt = eventAt || firstSeenAt || lastConfirmedAt;
+  const timestampBasis = eventAt ? 'source_event_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,
@@ -170,6 +175,11 @@ function publicSignal(signal, bible) {
     source: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     observedAt: signal.observedAt,
+    eventAt,
+    firstSeenAt,
+    lastConfirmedAt,
+    displayAt,
+    timestampBasis,
     locationPrecision: signal.locationPrecision,
     locationName: signal.locationName,
     storeName: signal.storeName,
@@ -195,6 +205,45 @@ function publicSignal(signal, bible) {
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
+}
+
+function signalFreshnessKey(signal) {
+  return [
+    signal.state || '',
+    signal.eventType || signal.type || '',
+    signal.canonicalBottleId || signal.bottleId || signal.canonicalName || signal.rawName || '',
+    signal.sourceLabel || signal.source || '',
+    signal.sourceUrl || '',
+    signal.storeId || '',
+    signal.locationName || signal.storeName || signal.county || signal.city || '',
+    signal.quantity || signal.storeQty || signal.warehouseQty || 0,
+    signal.availabilityStatus || '',
+    signal.price || 0
+  ].map((value) => String(value).toLowerCase().trim()).join('|');
+}
+
+function sourceEventAt(signal) {
+  const type = String(signal.eventType || signal.type || '').toLowerCase();
+  // This is a source-provided NC extract timestamp for the actual stock-shipped feed,
+  // not the crawler runtime. Other inventory probes use observedAt as last-confirmed.
+  if (type === 'nc_board_shipment_snapshot') return signal.observedAt || null;
+  return null;
+}
+
+function buildFreshnessIndex(historicalSignals = [], currentSignals = []) {
+  const index = new Map();
+  for (const signal of [...historicalSignals, ...currentSignals]) {
+    const key = signalFreshnessKey(signal);
+    if (!key) continue;
+    const observedAt = signal.observedAt || signal.fetchedAt || null;
+    const cur = index.get(key) || { firstSeenAt: null, lastConfirmedAt: null, eventAt: null };
+    const eventAt = sourceEventAt(signal);
+    if (eventAt && (!cur.eventAt || eventAt < cur.eventAt)) cur.eventAt = eventAt;
+    if (observedAt && (!cur.firstSeenAt || observedAt < cur.firstSeenAt)) cur.firstSeenAt = observedAt;
+    if (observedAt && (!cur.lastConfirmedAt || observedAt > cur.lastConfirmedAt)) cur.lastConfirmedAt = observedAt;
+    index.set(key, cur);
+  }
+  return index;
 }
 
 function buildBottles(signals, bible, bibleRecords = []) {
@@ -350,8 +399,9 @@ function isSafePublicSignal(signal) {
   return true;
 }
 
-function buildDrops(signals, bible) {
+function buildDrops(signals, bible, historicalSignals = []) {
   const seenSourceIds = new Set();
+  const freshnessIndex = buildFreshnessIndex(historicalSignals, signals);
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
@@ -364,7 +414,7 @@ function buildDrops(signals, bible) {
       seenSourceIds.add(sourceId);
       return true;
     })
-    .map((signal) => publicSignal(signal, bible))
+    .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
     .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.locationName, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.locationName, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
     .slice(0, 10000);
 }
@@ -803,7 +853,7 @@ async function main() {
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
-  const drops = buildDrops(historicalSignals, bible);
+  const drops = buildDrops(historicalSignals, bible, historicalSignals);
   const events = buildEvents(historicalSignals, bible);
   const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);

@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-09T12:22:06.951Z",
+  "generatedAt": "2026-06-09T13:21:43.212Z",
   "count": 2575,
   "stores": [
     {
@@ -18929,7 +18929,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "19564b4d77d0a6ce",
@@ -22849,7 +22849,7 @@
       "lat": 40.448363,
       "lng": -79.986832,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "0222",
@@ -24305,7 +24305,7 @@
       "lat": 40.319332,
       "lng": -75.131819,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "935",
@@ -25593,7 +25593,7 @@
       "lat": 39.917462,
       "lng": -75.393539,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2320",
@@ -26727,7 +26727,7 @@
       "lat": 40.612398,
       "lng": -75.53292,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "3902",
@@ -28309,7 +28309,7 @@
       "lat": 40.07731,
       "lng": -75.208682,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "5126",
@@ -29373,7 +29373,7 @@
       "lat": 39.824867,
       "lng": -76.981219,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "6714",
@@ -29555,7 +29555,7 @@
       "lat": 40.442114,
       "lng": -80.236161,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "9213",
