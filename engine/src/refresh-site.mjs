@@ -126,32 +126,46 @@ function runCommand(command, args = [], options = {}) {
   });
 }
 
-async function paInventorySignature() {
-  const payload = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
-  const paRows = (payload.drops || [])
-    .filter((drop) => drop.state === 'PA' && drop.type === 'store_inventory_result' && drop.locationPrecision === 'store_level')
+async function siteDeliverySignature() {
+  const dropsPayload = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
+  const alertsPayload = await readJson(path.join(OUT, 'site', 'alerts.json'), { alerts: [] });
+  const inventoryRows = (dropsPayload.drops || [])
+    .filter((drop) => drop.is_user_facing_drop || drop.can_alert_as_inventory || drop.canAlertAsInventory)
     .map((drop) => ({
+      state: drop.state || drop.state_code || null,
       bottle: drop.canonicalId || drop.bottleId || drop.canonicalName || drop.bottleName,
       storeId: drop.storeId || drop.store_id || drop.storeName || drop.locationName,
       quantity: Number(drop.quantity || 0) || 0,
       price: Number(drop.price || 0) || 0,
       status: drop.availabilityStatus || null
     }))
-    .sort((a, b) => `${a.bottle}|${a.storeId}`.localeCompare(`${b.bottle}|${b.storeId}`));
+    .sort((a, b) => `${a.state}|${a.bottle}|${a.storeId}`.localeCompare(`${b.state}|${b.bottle}|${b.storeId}`));
+  const alertRows = (alertsPayload.alerts || [])
+    .filter((alert) => alert.eligibleForDelivery)
+    .map((alert) => ({
+      state: alert.state || null,
+      dedupeKey: alert.dedupeKey || alert.id || null,
+      bottle: alert.bottle || null,
+      store: alert.storeId || alert.storeName || alert.locationName || null,
+      priorityClass: alert.priorityClass || null,
+      recommendation: alert.sendRecommendation || null
+    }))
+    .sort((a, b) => `${a.state}|${a.dedupeKey}`.localeCompare(`${b.state}|${b.dedupeKey}`));
   return {
-    hash: createHash('sha256').update(JSON.stringify(paRows)).digest('hex'),
-    rowCount: paRows.length,
-    generatedAt: payload.generatedAt || null
+    hash: createHash('sha256').update(JSON.stringify({ inventoryRows, alertRows })).digest('hex'),
+    rowCount: inventoryRows.length,
+    alertCandidateCount: alertRows.length,
+    generatedAt: dropsPayload.generatedAt || alertsPayload.generatedAt || null
   };
 }
 
 async function maybeDeploySite() {
-  const signature = await paInventorySignature();
+  const signature = await siteDeliverySignature();
   const previous = await readJson(DEPLOY_STATUS, {});
   const now = new Date().toISOString();
   const lastDeployAt = previous.lastDeployAt || null;
   const minutesSinceDeploy = lastDeployAt ? (Date.now() - new Date(lastDeployAt).getTime()) / 60_000 : Infinity;
-  const changed = signature.hash !== previous.paInventorySignature;
+  const changed = signature.hash !== previous.siteDeliverySignature;
   const eligible = AUTO_DEPLOY && changed && minutesSinceDeploy >= AUTO_DEPLOY_MINUTES;
   const base = {
     autoDeploy: AUTO_DEPLOY,
@@ -160,8 +174,9 @@ async function maybeDeploySite() {
     eligible,
     minDeployMinutes: AUTO_DEPLOY_MINUTES,
     minutesSinceDeploy: Number.isFinite(minutesSinceDeploy) ? Math.round(minutesSinceDeploy * 10) / 10 : null,
-    paInventorySignature: signature.hash,
-    paExactStoreDropCount: signature.rowCount,
+    siteDeliverySignature: signature.hash,
+    userFacingDropCount: signature.rowCount,
+    alertCandidateCount: signature.alertCandidateCount,
     siteGeneratedAt: signature.generatedAt,
     lastDeployAt: previous.lastDeployAt || null,
     lastDeploymentUrl: previous.lastDeploymentUrl || null
@@ -172,8 +187,8 @@ async function maybeDeploySite() {
     return { ...base, skipped: true, skippedReason: 'auto_deploy_disabled' };
   }
   if (!changed) {
-    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'pa_inventory_unchanged' }, null, 2));
-    return { ...base, skipped: true, skippedReason: 'pa_inventory_unchanged' };
+    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'site_delivery_signature_unchanged' }, null, 2));
+    return { ...base, skipped: true, skippedReason: 'site_delivery_signature_unchanged' };
   }
   if (minutesSinceDeploy < AUTO_DEPLOY_MINUTES) {
     const skippedReason = `deploy_throttled_${Math.ceil(AUTO_DEPLOY_MINUTES - minutesSinceDeploy)}m_remaining`;
