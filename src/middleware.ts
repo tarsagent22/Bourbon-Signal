@@ -15,6 +15,7 @@ export const config = {
     "/api/alerts(.*)",
     "/api/user/preferences(.*)",
     "/api/alerts/preview(.*)",
+    "/api/feedback(.*)",
     "/api/checkout(.*)",
   ],
 };

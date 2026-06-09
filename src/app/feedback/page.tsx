@@ -13,6 +13,9 @@ interface FeedbackState {
   error: string | null;
 }
 
+const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
+const COMPRESSIBLE_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
 const fieldStyle = {
   width: "100%",
   borderRadius: "14px",
@@ -41,6 +44,43 @@ function FieldLabel({ children, helper }: { children: React.ReactNode; helper?: 
   );
 }
 
+async function compressImageFile(file: File) {
+  if (!COMPRESSIBLE_IMAGE_TYPES.has(file.type) || file.size <= MAX_SCREENSHOT_BYTES) return file;
+
+  const imageUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Could not read screenshot image."));
+      img.src = imageUrl;
+    });
+
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+    context.drawImage(image, 0, 0, width, height);
+
+    for (const quality of [0.82, 0.72, 0.62]) {
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+      if (blob && blob.size <= MAX_SCREENSHOT_BYTES) {
+        const baseName = file.name.replace(/\.[^.]+$/, "") || "feedback-screenshot";
+        return new File([blob], `${baseName}.jpg`, { type: "image/jpeg" });
+      }
+    }
+
+    return file;
+  } finally {
+    URL.revokeObjectURL(imageUrl);
+  }
+}
+
 export default function FeedbackPage() {
   const { isSignedIn, user, signIn } = useAuth();
   const [feedbackState, setFeedbackState] = useState<FeedbackState>({ sending: false, success: false, error: null });
@@ -56,16 +96,24 @@ export default function FeedbackPage() {
     event.preventDefault();
     setFeedbackState({ sending: true, success: false, error: null });
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    if (!formData.get("deviceBrowser")) formData.set("deviceBrowser", detectedDevice);
-    formData.set("email", userEmail);
-    formData.set("pageUrl", typeof window !== "undefined" ? window.location.href : "");
-    formData.set("referrer", typeof document !== "undefined" ? document.referrer : "");
-    formData.set("userAgent", typeof navigator !== "undefined" ? navigator.userAgent : "");
-    formData.set("viewport", typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "");
-
     try {
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const screenshot = formData.get("screenshot");
+      if (screenshot instanceof File && screenshot.size > 0) {
+        const preparedScreenshot = await compressImageFile(screenshot);
+        if (preparedScreenshot.size > MAX_SCREENSHOT_BYTES) {
+          throw new Error("That screenshot is too large to attach. Please choose an image under 4 MB or send the feedback without a screenshot.");
+        }
+        formData.set("screenshot", preparedScreenshot);
+      }
+      if (!formData.get("deviceBrowser")) formData.set("deviceBrowser", detectedDevice);
+      formData.set("email", userEmail);
+      formData.set("pageUrl", typeof window !== "undefined" ? window.location.href : "");
+      formData.set("referrer", typeof document !== "undefined" ? document.referrer : "");
+      formData.set("userAgent", typeof navigator !== "undefined" ? navigator.userAgent : "");
+      formData.set("viewport", typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "");
+
       const response = await fetch("/api/feedback", {
         method: "POST",
         body: formData,
@@ -174,7 +222,7 @@ export default function FeedbackPage() {
                 <input
                   name="screenshot"
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif"
                   style={{ display: "none" }}
                   onChange={(event) => setScreenshotName(event.currentTarget.files?.[0]?.name || "")}
                 />

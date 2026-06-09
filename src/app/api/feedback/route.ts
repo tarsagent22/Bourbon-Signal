@@ -5,8 +5,8 @@ import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts"
 export const dynamic = "force-dynamic";
 
 const FEEDBACK_TO = "support@bourbonsignal.com";
-const MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
-const ALLOWED_SCREENSHOT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
+const ALLOWED_SCREENSHOT_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/heic", "image/heif"]);
 
 type FeedbackField = "tryingToDo" | "workedWell" | "confusingOrBroken" | "deviceBrowser";
 
@@ -122,10 +122,10 @@ export async function POST(req: NextRequest) {
   const attachments: Array<{ filename: string; content: string; contentType?: string }> = [];
   if (screenshot instanceof File && screenshot.size > 0) {
     if (screenshot.size > MAX_SCREENSHOT_BYTES) {
-      return NextResponse.json({ error: "Screenshot is too large. Please upload an image under 8 MB." }, { status: 400 });
+      return NextResponse.json({ error: "Screenshot is too large. Please upload an image under 4 MB." }, { status: 400 });
     }
     if (!ALLOWED_SCREENSHOT_TYPES.has(screenshot.type)) {
-      return NextResponse.json({ error: "Screenshot must be PNG, JPG, WebP, or GIF." }, { status: 400 });
+      return NextResponse.json({ error: "Screenshot must be PNG, JPG, WebP, GIF, HEIC, or HEIF." }, { status: 400 });
     }
     const bytes = Buffer.from(await screenshot.arrayBuffer());
     attachments.push({
