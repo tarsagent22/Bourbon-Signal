@@ -3,6 +3,7 @@ import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { normalizeNotificationPreferences, type EmailAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport } from "@/lib/site-engine-contract";
+import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 
 export interface AreaPreferences {
   states: string[];
@@ -57,8 +58,9 @@ function toStrings(value: unknown) {
 
 export function normalizeAreaPrefs(input: unknown): AreaPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
   return {
-    states: toStrings(source.states).map((state) => state.toUpperCase()),
+    states: toStrings(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
     ncBoards: toStrings(source.ncBoards),
     vaCities: toStrings(source.vaCities),
     ohCities: toStrings(source.ohCities),

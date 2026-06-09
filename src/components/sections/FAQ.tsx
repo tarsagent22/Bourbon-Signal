@@ -19,7 +19,7 @@ const faqs: FAQItem[] = [
   {
     question: "What states do you cover?",
     answer:
-      "We currently track live bourbon drops, store inventory hits, and board shipment leads across North Carolina, Virginia, Pennsylvania, Indiana, Tennessee, Illinois, and Kentucky. Depth varies by state, and we only surface what we can support honestly.",
+      "We currently track live bourbon drops, store inventory hits, and board shipment leads across North Carolina, Virginia, Pennsylvania, Ohio, Indiana, Tennessee, Illinois, and Alabama. Depth varies by state, and we only surface what we can support honestly.",
   },
   {
     question: "What is a unicorn / allocated / limited bottle?",

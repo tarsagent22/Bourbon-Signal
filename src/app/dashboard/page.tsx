@@ -485,7 +485,7 @@ export default function DashboardPage() {
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};
-    for (const state of ["VA", "OH", "IA", "PA"] as const) {
+    for (const state of ["VA", "OH", "PA"] as const) {
       grouped[state] = Array.from(
         new Set(
           stores.flatMap((store) => {
@@ -502,7 +502,7 @@ export default function DashboardPage() {
     const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
       if (!isSelectableStoreLocation(store)) continue;
-      if (["VA", "OH", "IA"].includes(store.state) && store.city) {
+      if (["VA", "OH"].includes(store.state) && store.city) {
         const city = titleCase(store.city);
         const key = `${store.state}:${city}`;
         if (!(grouped.get(key) ?? []).some((existing) => existing.id === store.id || storePhysicalKey(existing) === storePhysicalKey(store))) {
@@ -572,14 +572,6 @@ export default function DashboardPage() {
       totalCount: citiesByState.OH?.length ?? 0,
     },
     {
-      stateCode: "IA",
-      label: "Iowa",
-      detailLabel: "cities",
-      summary: "Iowa has public store-level inventory data. Choose the cities that matter to you.",
-      selectedCount: localPrefs.iaCities.length,
-      totalCount: citiesByState.IA?.length ?? 0,
-    },
-    {
       stateCode: "PA",
       label: "Pennsylvania",
       detailLabel: "cities",
@@ -587,15 +579,7 @@ export default function DashboardPage() {
       selectedCount: localPrefs.paCounties.length,
       totalCount: citiesByState.PA?.length ?? 0,
     },
-    {
-      stateCode: "MD-MONTGOMERY",
-      label: "Montgomery County, MD",
-      detailLabel: "coverage",
-      summary: "County-wide ABS inventory and highly allocated liquor signals.",
-      selectedCount: localPrefs.states.includes("MD-MONTGOMERY") ? 1 : 0,
-      totalCount: 1,
-    },
-  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.states, localPrefs.vaCities.length, ncBoards.length]);
+  ]), [citiesByState, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -615,7 +599,7 @@ export default function DashboardPage() {
         ncBoards: state === "NC" && removing ? [] : prev.ncBoards,
         vaCities: state === "VA" && removing ? [] : prev.vaCities,
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
-        iaCities: state === "IA" && removing ? [] : prev.iaCities,
+        iaCities: [],
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -643,13 +627,6 @@ export default function DashboardPage() {
         return {
           ...prev,
           ohCities: has ? prev.ohCities.filter((item) => item !== value) : [...prev.ohCities, value],
-        };
-      }
-      if (state === "IA") {
-        const has = prev.iaCities.includes(value);
-        return {
-          ...prev,
-          iaCities: has ? prev.iaCities.filter((item) => item !== value) : [...prev.iaCities, value],
         };
       }
       if (state === "PA") {
@@ -833,14 +810,12 @@ export default function DashboardPage() {
                   ? localPrefs.vaCities
                   : activeState === "OH"
                     ? localPrefs.ohCities
-                    : activeState === "IA"
-                      ? localPrefs.iaCities
-                      : activeState === "PA"
-                        ? localPrefs.paCounties
-                        : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
-              const detailLabel = activeState === "NC" ? "boards" : activeState === "PA" ? "cities / stores" : ["VA", "OH", "IA"].includes(activeState) ? "cities" : "coverage";
+                    : activeState === "PA"
+                      ? localPrefs.paCounties
+                      : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+              const detailLabel = activeState === "NC" ? "boards" : activeState === "PA" ? "cities / stores" : ["VA", "OH"].includes(activeState) ? "cities" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "IA" ? localPrefs.iaCities : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 
@@ -900,7 +875,7 @@ export default function DashboardPage() {
                             <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
                               {activeState === "NC"
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
-                                : ["VA", "OH", "IA", "PA"].includes(activeState)
+                                : ["VA", "OH", "PA"].includes(activeState)
                                   ? "Pick cities first. For states with reliable store-level data, selected cities can be narrowed to specific stores."
                                   : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
                             </p>
@@ -910,7 +885,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        {["NC", "VA", "OH", "IA", "PA"].includes(activeState) ? (
+                        {["NC", "VA", "OH", "PA"].includes(activeState) ? (
                           <input
                             value={territorySearch}
                             onChange={(event) => setTerritorySearch(event.target.value)}
@@ -946,7 +921,7 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
 
-                        {["VA", "OH", "IA", "PA"].includes(activeState) ? (
+                        {["VA", "OH", "PA"].includes(activeState) ? (
                           <div style={{ display: "grid", gap: "12px" }}>
                             <div style={{ maxHeight: "360px", overflowY: "auto", display: "grid", gap: "8px" }}>
                               {filteredCities.map((city) => {
@@ -987,7 +962,7 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
 
-                        {!(["NC", "VA", "OH", "IA", "PA"].includes(activeState)) ? (
+                        {!(["NC", "VA", "OH", "PA"].includes(activeState)) ? (
                           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
                             {makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.
                           </div>
@@ -1468,3 +1443,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

@@ -5,6 +5,7 @@ import {
   normalizeNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
+import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 
 export interface AreaPreferences {
   states: string[];
@@ -53,7 +54,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const toStringArray = (value: unknown) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
-  const supportedStates = new Set(["AL", "FL", "GA", "IA", "IL", "IN", "KY", "MD-MONTGOMERY", "NC", "OH", "PA", "TN", "TX", "VA"]);
+  const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
 
   return {
     states: toStringArray(source.states).filter((state) => supportedStates.has(state)),
