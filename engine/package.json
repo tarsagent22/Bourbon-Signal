@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Standalone Bourbon Signal state-data engine foundation. Not wired into the live site.",
+  "description": "Bourbon Signal active-market data engine and site export pipeline.",
   "scripts": {
     "run": "node src/run.mjs",
     "probe": "node src/probe.mjs",

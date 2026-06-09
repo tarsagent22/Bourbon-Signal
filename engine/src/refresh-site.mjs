@@ -294,8 +294,8 @@ async function main() {
         const hadExistingCdp = await cdpReady();
         launchedBrowser = await ensureHeadlessCdp();
         const browserScripts = hadExistingCdp
-          ? ['src/ohlq-browser-collector.mjs', 'src/or-browser-collector.mjs', 'src/fwgs-browser-full.mjs']
-          : ['src/or-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
+          ? ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs']
+          : ['src/fwgs-browser-full.mjs'];
         if (!hadExistingCdp) {
           warnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }

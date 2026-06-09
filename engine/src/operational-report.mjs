@@ -176,6 +176,14 @@ function reliabilityForCandidate(change, sig, score) {
   const quantity = quantityValue(sig);
   const isInventory = Boolean(sig.canAlertAsInventory);
   const isWatch = Boolean(sig.canAlertAsWatch) && !isInventory;
+  const eventType = String(sig.eventType || '').toLowerCase();
+  const isSourceDiscovery = /surface|policy|license|catalog|tasting|raffle/.test(eventType);
+  const isActionableWatch = isWatch && !isSourceDiscovery && (
+    quantity > 0
+    || /^alabc_limited_release_store_drop$/i.test(eventType)
+    || /^nc_board_shipment_snapshot$/i.test(eventType)
+    || /^nc_statewide_warehouse_stock$/i.test(eventType)
+  );
   const isNewOrPositive = change.type === 'new_signal'
     || changedIncrease(change, 'quantity')
     || changedIncrease(change, 'warehouseQty')
@@ -188,6 +196,8 @@ function reliabilityForCandidate(change, sig, score) {
   if (change.type === 'missing_signal') blockers.push('missing_signal_not_sendable');
   if (sig.sampleOnly) blockers.push('sample_only');
   if (!isInventory && !sig.canAlertAsWatch) blockers.push('policy_not_alertable');
+  if (isSourceDiscovery) blockers.push('source_discovery_not_user_alert');
+  if (isWatch && !isActionableWatch) blockers.push('watch_signal_not_actionable');
 
   if (ageHours == null) cautions.push('unknown_freshness');
   else if (ageHours <= 24) gates.push('fresh_24h');
@@ -211,7 +221,7 @@ function reliabilityForCandidate(change, sig, score) {
   const majorTier = sig.tier === 'unicorn' || sig.tier === 'allocated';
   const eligible = blockers.length === 0
     && isNewOrPositive
-    && (isInventory ? (confidence >= 0.62 && ageHours != null && ageHours <= 72) : (confidence >= 0.55 && ageHours != null && ageHours <= 168))
+    && (isInventory ? (confidence >= 0.62 && ageHours != null && ageHours <= 72) : (isActionableWatch && confidence >= 0.55 && ageHours != null && ageHours <= 168))
     && score >= (majorTier ? 85 : isInventory ? 92 : 78);
 
   const priorityClass = eligible && (score >= 115 || majorTier || precisionScore >= precisionRank('store_level')) ? 'major'

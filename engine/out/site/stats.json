@@ -1,36 +1,33 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-09T00:56:09.859Z",
-  "engineGeneratedAt": "2026-06-09T00:55:57.309Z",
-  "stateCount": 24,
-  "signalCount": 9444,
-  "historicalSignalCount": 106123,
+  "generatedAt": "2026-06-09T02:49:47.032Z",
+  "engineGeneratedAt": "2026-06-09T02:49:33.230Z",
+  "stateCount": 8,
+  "signalCount": 8868,
+  "historicalSignalCount": 82269,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
   "bibleRecordCount": 139,
   "storeCount": 2466,
-  "locationCount": 4293,
-  "officialLocationCount": 1652,
-  "preloadedLocationCount": 1666,
-  "dropCount": 6631,
-  "eventCount": 1549,
-  "alertCandidateCount": 2,
-  "roadblockCount": 53,
+  "locationCount": 3830,
+  "officialLocationCount": 1218,
+  "preloadedLocationCount": 1222,
+  "dropCount": 6394,
+  "eventCount": 1353,
+  "alertCandidateCount": 0,
+  "roadblockCount": 21,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
     "failedStateCount": 0,
     "degradedStates": []
   },
-  "statesAtTargetPrecision": 20,
-  "rareStatesVerified": 19,
+  "statesAtTargetPrecision": 8,
+  "rareStatesVerified": 8,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 8,
-      "shipment_drop_intelligence": 5,
-      "catalog_watch": 10,
-      "policy_source_discovery": 1
+      "live_store_inventory": 8
     },
     "states": [
       {
@@ -44,30 +41,6 @@
         "bestLocationPrecision": "store_level",
         "strategy": "inventory_locator",
         "coverageTier": "live_store_inventory"
-      },
-      {
-        "state": "IA",
-        "label": "Iowa ABD",
-        "tier": "A",
-        "status": "useful",
-        "signalCount": 1,
-        "roadblockCount": 2,
-        "targetLocationPrecision": "store_level",
-        "bestLocationPrecision": "statewide_policy",
-        "strategy": "public_data_portal",
-        "coverageTier": "shipment_drop_intelligence"
-      },
-      {
-        "state": "UT",
-        "label": "Utah DABS",
-        "tier": "A",
-        "status": "useful",
-        "signalCount": 12,
-        "roadblockCount": 1,
-        "targetLocationPrecision": "board_warehouse",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "product_locator_and_drawings",
-        "coverageTier": "catalog_watch"
       },
       {
         "state": "AL",
@@ -106,23 +79,11 @@
         "coverageTier": "live_store_inventory"
       },
       {
-        "state": "ID",
-        "label": "Idaho State Liquor Division",
-        "tier": "B",
-        "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "board_county",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "catalog_limited_release_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
         "state": "NC",
         "label": "North Carolina ABC + county boards",
         "tier": "B",
         "status": "useful",
-        "signalCount": 1436,
+        "signalCount": 1435,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -154,126 +115,6 @@
         "coverageTier": "live_store_inventory"
       },
       {
-        "state": "NH",
-        "label": "New Hampshire Liquor & Wine Outlets",
-        "tier": "B",
-        "status": "reachable_needs_deeper_parser",
-        "signalCount": 3,
-        "roadblockCount": 10,
-        "targetLocationPrecision": "store_level",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "catalog_and_limited_release_category",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "MD-MONTGOMERY",
-        "label": "Montgomery County ABS",
-        "tier": "B",
-        "status": "useful",
-        "signalCount": 501,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "store_level",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "county_inventory_and_HAL",
-        "coverageTier": "policy_source_discovery"
-      },
-      {
-        "state": "ME",
-        "label": "Maine Spirits",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 22,
-        "roadblockCount": 3,
-        "targetLocationPrecision": "store_level",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "product_finder_and_lottery_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "VT",
-        "label": "Vermont 802Spirits",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 2,
-        "roadblockCount": 5,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "board_county",
-        "strategy": "product_price_and_allocated_watch",
-        "coverageTier": "shipment_drop_intelligence"
-      },
-      {
-        "state": "MI",
-        "label": "Michigan MLCC",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 2,
-        "roadblockCount": 4,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "price_book_and_new_item_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "MT",
-        "label": "Montana Department of Revenue",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 2,
-        "roadblockCount": 1,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "warehouse_product_and_agency_store_watch",
-        "coverageTier": "shipment_drop_intelligence"
-      },
-      {
-        "state": "WV",
-        "label": "West Virginia ABCA",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 1,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "product_search_and_barrel_pick_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "WY",
-        "label": "Wyoming Liquor Division",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 2,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "wholesale_listing_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "MS",
-        "label": "Mississippi ABC",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 4,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "vendor_warehouse_policy_watch",
-        "coverageTier": "shipment_drop_intelligence"
-      },
-      {
-        "state": "KY",
-        "label": "Kentucky ABC",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 5,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "license_and_active_brand_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
         "state": "TN",
         "label": "Tennessee ABC",
         "tier": "C",
@@ -284,63 +125,19 @@
         "bestLocationPrecision": "store_level",
         "strategy": "license_and_policy_watch",
         "coverageTier": "live_store_inventory"
-      },
-      {
-        "state": "SC",
-        "label": "South Carolina DOR ABL",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 3,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "statewide_policy",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "license_and_regulatory_watch",
-        "coverageTier": "catalog_watch"
-      },
-      {
-        "state": "GA",
-        "label": "Georgia DOR Alcohol",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 6,
-        "roadblockCount": 1,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "shipment_report_and_license_watch",
-        "coverageTier": "shipment_drop_intelligence"
-      },
-      {
-        "state": "FL",
-        "label": "Florida ABT",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 4,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "statewide_policy",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "license_lottery_and_policy_watch",
-        "coverageTier": "catalog_watch"
       }
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-09T00:56:09.861Z",
+    "generatedAt": "2026-06-09T02:49:47.033Z",
     "focusStates": [
       "AL",
       "VA",
       "NC",
-      "WV",
-      "MS",
-      "KY",
-      "TN",
-      "SC",
-      "GA",
-      "FL"
+      "TN"
     ],
     "counts": {
-      "live_store_inventory": 4,
-      "catalog_watch": 4,
-      "shipment_drop_intelligence": 2
+      "live_store_inventory": 4
     },
     "stateNotes": {
       "AL": {
@@ -363,33 +160,9 @@
         "label": "North Carolina ABC + county boards",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1436,
+        "signalCount": 1435,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
-      },
-      "WV": {
-        "label": "West Virginia ABCA",
-        "status": "useful",
-        "coverageTier": "catalog_watch",
-        "signalCount": 3,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
-      },
-      "MS": {
-        "label": "Mississippi ABC",
-        "status": "useful",
-        "coverageTier": "shipment_drop_intelligence",
-        "signalCount": 3,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock."
-      },
-      "KY": {
-        "label": "Kentucky ABC",
-        "status": "useful",
-        "coverageTier": "catalog_watch",
-        "signalCount": 5,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       },
       "TN": {
         "label": "Tennessee ABC",
@@ -398,30 +171,6 @@
         "signalCount": 92,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
-      },
-      "SC": {
-        "label": "South Carolina DOR ABL",
-        "status": "useful",
-        "coverageTier": "catalog_watch",
-        "signalCount": 3,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
-      },
-      "GA": {
-        "label": "Georgia DOR Alcohol",
-        "status": "useful",
-        "coverageTier": "shipment_drop_intelligence",
-        "signalCount": 6,
-        "bestLocationPrecision": "store_aggregate",
-        "testerValue": "Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock."
-      },
-      "FL": {
-        "label": "Florida ABT",
-        "status": "useful",
-        "coverageTier": "catalog_watch",
-        "signalCount": 4,
-        "bestLocationPrecision": "statewide_catalog",
-        "testerValue": "Catalog, product, price, brand, or license-document watch; useful context, not inventory."
       }
     },
     "bestCurrentSignals": {
@@ -566,11 +315,11 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 2276,
+          "quantity": 2331,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 2276 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 2331 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "5fe622929530be5a",
@@ -767,40 +516,7 @@
           "summary": "Alabama ABC lists E.H. TAYLOR JR. SMALL BATCH BOURBON B.I.B 100 PR. 7 YR. 750 at ABC Store #004 in Auburn on 5/23/2026 for $54.99. Verify availability and line rules before driving."
         }
       ],
-      "wvBarrelPicks": [
-        {
-          "id": "293dc6f0554b0586",
-          "state": "WV",
-          "type": "allocated_release_signal",
-          "source": "WV barrel picks",
-          "sourceUrl": "https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0",
-          "bottle": "Maker",
-          "rawName": null,
-          "locationPrecision": "statewide_policy",
-          "locationName": "West Virginia ABCA",
-          "quantity": 0,
-          "confidence": 0.58,
-          "canAlertAsInventory": false,
-          "canAlertAsWatch": true,
-          "summary": "Matched bottles: Maker. WV Bourbon & Whiskey Barrel Picks | WV Alcohol Beverage Control Administration Skip to main content An Official West Virginia Government Website State Agency Directory | Online Services | Phone Directory WV Alcohol Beverage Control Administration Search Text Box About Toggle submenu Annual Reports Contact Us FAQ Forms History Meet the Commissioner News Code & Rules Toggle submenu Legislation W"
-        },
-        {
-          "id": "70a9f202e798c879",
-          "state": "WV",
-          "type": "barrel_pick_signal",
-          "source": "WV bourbon and whiskey barrel picks",
-          "sourceUrl": "https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0",
-          "bottle": "WhistlePig 6 Year Single Barrel Rye",
-          "rawName": null,
-          "locationPrecision": "statewide_catalog",
-          "locationName": "West Virginia ABCA",
-          "quantity": 0,
-          "confidence": 0.56,
-          "canAlertAsInventory": false,
-          "canAlertAsWatch": true,
-          "summary": "WV ABCA barrel-pick page tracks latest barrel pick programs and 2025 selections. Search index mentions Whistle Pig Six Year single barrel rye and routine updates."
-        }
-      ],
+      "wvBarrelPicks": [],
       "tnStoreInventory": [
         {
           "id": "3b6e28cb643f807d",
@@ -946,7 +662,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -962,7 +678,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat as source-discovery/license intelligence only; do not produce bottle/store alerts from these sources."
         },
         {
           "id": "043b9c8f4cc5473e",
@@ -988,7 +704,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 127,
-    "boardsWithReleasePages": 14,
+    "boardsWithReleasePages": 13,
     "boardsWithInventoryPages": 6,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
@@ -1010,39 +726,11 @@
       "sourceUrl": "https://vgin.vdem.virginia.gov/datasets/virginia-abc-stores/"
     },
     {
-      "id": "UT_ARCGIS",
-      "state": "UT",
-      "status": "ok",
-      "count": 111,
-      "sourceUrl": "https://gis.utah.gov/products/sgid/society/liquor-stores/"
-    },
-    {
-      "id": "ME_AGENCIES",
-      "state": "ME",
-      "status": "ok",
-      "count": 227,
-      "sourceUrl": "https://www.maine.gov/dafs/bablo/active_liquor/active_reseller_licenses.htm"
-    },
-    {
-      "id": "MT_AGENCIES",
-      "state": "MT",
-      "status": "ok",
-      "count": 96,
-      "sourceUrl": "https://revenue.mt.gov/card/alcoholic-beverages/agency-liquor-stores/list"
-    },
-    {
       "id": "AL_STORES",
       "state": "AL",
       "status": "ok",
       "count": 177,
       "sourceUrl": "https://alabcboard.gov/store-locator"
-    },
-    {
-      "id": "VT_OUTLETS",
-      "state": "VT",
-      "status": "failed",
-      "error": "HTTP 403",
-      "sourceUrl": "https://liquorcontrol.vermont.gov/sites/dlc/files/documents/Downloads/outlets.txt"
     }
   ],
   "sourceCaveat": "Standalone engine export only. Candidate alerts are not sent to users until app integration and alert policy are explicitly enabled."

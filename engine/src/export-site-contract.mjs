@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs';
 import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
+import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -14,6 +15,7 @@ const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_M
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
+const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -548,7 +550,9 @@ function buildEvents(signals, bible) {
 }
 
 function buildAlerts(alerts) {
-  return (alerts.candidates || []).map((c) => ({
+  return (alerts.candidates || [])
+    .filter((c) => Boolean(c.eligibleForDelivery))
+    .map((c) => ({
     id: c.id,
     action: c.action,
     score: c.score,
@@ -600,8 +604,11 @@ function stateCoverageTier(state) {
   return 'policy_source_discovery';
 }
 
-function buildStateCoverage(summary) {
-  const states = (summary.states || []).map((state) => ({
+function buildStateCoverage(summary, options = {}) {
+  const stateFilter = options.stateFilter || null;
+  const states = (summary.states || [])
+    .filter((state) => !stateFilter || stateFilter.has(state.state))
+    .map((state) => ({
     state: state.state,
     label: state.label,
     tier: state.tier,
@@ -650,8 +657,8 @@ function topSignals(signals, predicate, limit = 5) {
 }
 
 function buildSoutheastReadiness(summary, signals) {
-  const stateCoverage = buildStateCoverage(summary).states.filter((state) => SOUTHEAST_STATES.has(state.state));
-  const southeastSignals = signals.filter((signal) => SOUTHEAST_STATES.has(signal.state));
+  const stateCoverage = buildStateCoverage(summary, { stateFilter: SITE_ACTIVE_STATE_IDS }).states.filter((state) => SOUTHEAST_STATES.has(state.state));
+  const southeastSignals = signals.filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state) && SOUTHEAST_STATES.has(signal.state));
   const stateNotes = Object.fromEntries(stateCoverage.map((state) => [state.state, {
     label: state.label,
     status: state.status,
@@ -698,8 +705,8 @@ async function main() {
   const rare = await readJson(path.join(OUT, 'rare-signals.json'), {});
   const ncIntelligenceRaw = await readJson(path.join(OUT, 'nc-board-intelligence.json'), null);
 
-  const signals = snapshot.signals || [];
-  const activeStateIds = new Set((summary.states || []).map((state) => state.state));
+  const signals = (snapshot.signals || []).filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state));
+  const activeStateIds = new Set((summary.states || []).map((state) => state.state).filter((state) => SITE_ACTIVE_STATE_IDS.has(state)));
   const activeOfficialLocations = (officialLocationBible.locations || []).filter((location) => activeStateIds.has(location.state));
   const activeOfficialSourceReports = (officialLocationBible.sourceReports || []).filter((report) => !report.state || activeStateIds.has(report.state));
   const historicalSignals = uniqueHistoricalSignals(snapshots, signals).filter((signal) => activeStateIds.has(signal.state));
@@ -708,15 +715,16 @@ async function main() {
   const locations = buildLocationBible(signals, activeOfficialLocations);
   const drops = buildDrops(historicalSignals, bible);
   const events = buildEvents(historicalSignals, bible);
-  const alertCandidates = buildAlerts(alerts);
+  const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const generatedAt = new Date().toISOString();
-  const stateCoverage = buildStateCoverage(summary);
+  const stateCoverage = buildStateCoverage(summary, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness(summary, signals);
+  const activeSummaryStates = (summary.states || []).filter((state) => activeStateIds.has(state.state));
   const stats = {
     contractVersion: CONTRACT_VERSION,
     generatedAt,
     engineGeneratedAt: summary.generatedAt || snapshot.generatedAt || null,
-    stateCount: summary.stateCount || 0,
+    stateCount: activeSummaryStates.length,
     signalCount: signals.length,
     historicalSignalCount: historicalSignals.length,
     historyDays: HISTORY_DAYS,
@@ -735,7 +743,7 @@ async function main() {
       degradedStateCount: summary.degradedStateCount || 0,
       staleStateCount: summary.staleStateCount || 0,
       failedStateCount: summary.failedStateCount || 0,
-      degradedStates: (summary.states || [])
+      degradedStates: activeSummaryStates
         .filter((state) => state.stale || /^failed_/.test(String(state.status || '')))
         .map((state) => ({
           state: state.state,

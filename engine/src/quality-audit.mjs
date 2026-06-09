@@ -1,6 +1,6 @@
 import { readFile, readdir, writeFile, mkdir, access } from 'node:fs/promises';
 import path from 'node:path';
-import { STATE_SOURCES } from './state-sources.mjs';
+import { CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from './state-sources.mjs';
 
 const ROOT = path.resolve('.');
 const OUT = path.join(ROOT, 'out');
@@ -49,7 +49,7 @@ async function main() {
     if (!stats.bottleCount || stats.bottleCount < 50) problems.push(problem('Site export bottle count looks too low.', 'error', stats.bottleCount));
     if (!stats.locationCount || stats.locationCount < 800) problems.push(problem('Site export location bible looks too small.', 'error', stats.locationCount));
     if (!stats.preloadedLocationCount || stats.preloadedLocationCount < 100) problems.push(problem('Site export should include preloaded no-signal locations.', 'error', stats.preloadedLocationCount));
-    if (!stats.statesAtTargetPrecision || stats.statesAtTargetPrecision < 10) problems.push(problem('Site export precision coverage looks wrong or stale.', 'error', stats.statesAtTargetPrecision));
+    if (!stats.statesAtTargetPrecision || stats.statesAtTargetPrecision < CUSTOMER_ACTIVE_STATE_IDS.size) problems.push(problem('Site export precision coverage looks wrong or stale.', 'error', stats.statesAtTargetPrecision));
     const nc = stats.ncBoardIntelligence;
     if (!nc || nc.boardCount < 170) problems.push(problem('NC board intelligence coverage is missing or too small.', 'error', nc));
     if ((nc?.boardsWithTrackedShipments || 0) < 100) problems.push(problem('NC tracked board shipment coverage is below definition-of-done threshold.', 'error', nc));
@@ -71,6 +71,8 @@ async function main() {
 
   const snapshot = await readJson(path.join(OUT, 'current-snapshot.json'));
   const activeStateIds = new Set(STATE_SOURCES.map((s) => s.id));
+  const unexpectedActiveStates = [...activeStateIds].filter((state) => !CUSTOMER_ACTIVE_STATE_IDS.has(state));
+  if (unexpectedActiveStates.length) problems.push(problem('Engine active states include non-customer-facing research markets.', 'error', unexpectedActiveStates));
   const badInventory = (snapshot.signals || []).filter((s) => s.canAlertAsInventory && s.locationPrecision !== 'store_level');
   if (badInventory.length) problems.push(problem('Inventory-alertable signals must be store_level.', 'error', badInventory.slice(0, 10).map((s) => ({ state: s.state, bottle: s.canonicalName, precision: s.locationPrecision }))));
 
