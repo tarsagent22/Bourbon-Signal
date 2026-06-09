@@ -3,6 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { readMemberAlerts, writeMemberAlerts } from "@/lib/member-alerts-store";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { buildAlertId, normalizeNotificationPreferences, type MemberAlertRecord } from "@/lib/notification-preferences";
+import { candidateMatchesArea, normalizeAreaPrefs } from "@/lib/alert-delivery";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -44,33 +45,6 @@ function reliabilitySummary(candidates: CandidateAlert[]) {
     topBlockers: [...blockers.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([label, count]) => ({ label, count })),
     topCautions: [...cautions.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([label, count]) => ({ label, count })),
   };
-}
-
-function normalizeAreaPrefs(input: unknown) {
-  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
-  const toStrings = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-  return {
-    states: toStrings(source.states),
-    ncBoards: toStrings(source.ncBoards),
-    vaCities: toStrings(source.vaCities),
-    ohCities: toStrings(source.ohCities),
-    iaCities: toStrings(source.iaCities),
-    paCounties: toStrings(source.paCounties),
-    paStores: toStrings(source.paStores),
-  };
-}
-
-function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: ReturnType<typeof normalizeAreaPrefs>) {
-  const state = asString(candidate.state);
-  if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
-  const location = `${asString(candidate.locationName)} ${asString(candidate.storeName)} ${asString(candidate.storeAddress)}`.toLowerCase();
-  if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.some((board) => location.includes(board.toLowerCase()));
-  if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(city.toLowerCase()));
-  if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(city.toLowerCase()));
-  if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(city.toLowerCase()));
-  if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((county) => location.includes(county.toLowerCase()));
-  if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((store) => location.includes(store.toLowerCase()));
-  return true;
 }
 
 function candidateToMemberAlert(userId: string, candidate: CandidateAlert, createdAt: string): MemberAlertRecord {
@@ -119,8 +93,8 @@ export async function GET() {
     candidateAlerts,
     candidateAlertCount: candidateAlerts.length,
     reliabilitySummary: reliabilitySummary(candidateAlerts),
-    alertDeliveryEnabled: false,
-    alertPolicyNote: "Engine candidates can be reviewed for on-site alerts; external delivery remains disabled until explicitly enabled.",
+    alertDeliveryEnabled: Boolean(process.env.RESEND_API_KEY),
+    alertPolicyNote: "Eligible engine candidates can be synced on-site and delivered by the protected email delivery worker when preferences match.",
   });
 }
 
@@ -157,8 +131,8 @@ export async function POST(req: NextRequest) {
     created: created.length,
     considered: candidates.length,
     reliabilitySummary: reliabilitySummary(candidates),
-    alertDeliveryEnabled: false,
-    note: "Created on-site inbox alerts only. Email/SMS delivery remains disabled.",
+    alertDeliveryEnabled: Boolean(process.env.RESEND_API_KEY),
+    note: "Created on-site inbox alerts. Email delivery is handled separately by the protected alert delivery worker.",
   });
 }
 

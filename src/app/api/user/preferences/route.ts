@@ -22,6 +22,10 @@ export interface UserAlertPreferences {
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
   alertMode: AlertMode;
+  bottleAlertPreferences: {
+    bottleNames: string[];
+    bottleKeys: string[];
+  };
 }
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -34,6 +38,11 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   paStores: [],
 };
 
+const EMPTY_BOTTLE_ALERT_PREFERENCES: UserAlertPreferences["bottleAlertPreferences"] = {
+  bottleNames: [],
+  bottleKeys: [],
+};
+
 function normalizeAlertMode(input: unknown): AlertMode {
   return input === "specific_bottles" ? "specific_bottles" : "anything_notable";
 }
@@ -44,7 +53,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const toStringArray = (value: unknown) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
-  const supportedStates = new Set(["NC", "VA", "OH", "IA", "PA", "MD-MONTGOMERY"]);
+  const supportedStates = new Set(["AL", "FL", "GA", "IA", "IL", "IN", "KY", "MD-MONTGOMERY", "NC", "OH", "PA", "TN", "TX", "VA"]);
 
   return {
     states: toStringArray(source.states).filter((state) => supportedStates.has(state)),
@@ -57,11 +66,27 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   };
 }
 
+function normalizeBottleKey(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function normalizeBottleAlertPreferences(input: unknown): UserAlertPreferences["bottleAlertPreferences"] {
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const toStringArray = (value: unknown) =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  const unique = (values: string[]) => Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).slice(0, 100);
+  return {
+    bottleNames: unique(toStringArray(source.bottleNames)),
+    bottleKeys: unique(toStringArray(source.bottleKeys).map(normalizeBottleKey)),
+  };
+}
+
 function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
   return {
     areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
     notificationPreferences: normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences),
     alertMode: normalizeAlertMode(user.publicMetadata?.alertMode),
+    bottleAlertPreferences: normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences),
   };
 }
 
@@ -84,11 +109,12 @@ export async function POST(req: NextRequest) {
     payload.notificationPreferences ?? getDefaultNotificationPreferences()
   );
   const alertMode = normalizeAlertMode(payload.alertMode);
+  const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
 
   const client = await clerkClient();
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences, alertMode },
+    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences },
   });
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences });
 }

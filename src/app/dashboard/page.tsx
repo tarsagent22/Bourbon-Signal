@@ -736,6 +736,10 @@ export default function DashboardPage() {
         areaPreferences: localPrefs,
         notificationPreferences: notificationPrefs,
         alertMode,
+        bottleAlertPreferences: {
+          bottleNames: watchedBottleOptions.map((option) => option.label),
+          bottleKeys: Array.from(selectedCanonicalKeys),
+        },
       };
       await savePreferences(nextPrefs);
       setSavedLocations(true);

@@ -17,6 +17,10 @@ const EMPTY_PREFS: UserAlertPreferences = {
   },
   notificationPreferences: getDefaultNotificationPreferences(),
   alertMode: "anything_notable",
+  bottleAlertPreferences: {
+    bottleNames: [],
+    bottleKeys: [],
+  },
 };
 
 let cachedPrefs: UserAlertPreferences | null = null;
