@@ -24,13 +24,14 @@ export default function RefundsPage() {
           heading: "2. Cancellation",
           body: [
             "You may cancel your subscription at any time through the account, billing portal, or by contacting support if the self-service portal is unavailable.",
-            "Cancellation stops future renewals. Unless otherwise stated, your access continues through the end of the current paid billing period after cancellation.",
+            "Cancellation stops future renewals. Monthly members keep membership access until the next would-be monthly renewal date. Annual members keep membership access until the annual renewal date. Cancellation does not immediately remove paid access for the billing period already purchased.",
           ],
         },
         {
           heading: "3. Refunds",
           body: [
             "Bourbon Signal subscriptions are generally non-refundable once a billing period begins. We do not typically provide prorated refunds for partial months or unused time after cancellation.",
+            "Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
             "That said, we want early users to trust the product. If you believe you were charged in error, experienced a serious service problem, or have a good-faith issue with your subscription, contact support and we will review the request case by case.",
           ],
         },
