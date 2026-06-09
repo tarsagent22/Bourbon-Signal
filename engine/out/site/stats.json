@@ -1,10 +1,10 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-09T02:49:47.032Z",
-  "engineGeneratedAt": "2026-06-09T02:49:33.230Z",
+  "generatedAt": "2026-06-09T03:24:57.260Z",
+  "engineGeneratedAt": "2026-06-09T03:14:32.679Z",
   "stateCount": 8,
-  "signalCount": 8868,
-  "historicalSignalCount": 82269,
+  "signalCount": 8869,
+  "historicalSignalCount": 82244,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
@@ -13,10 +13,10 @@
   "locationCount": 3830,
   "officialLocationCount": 1218,
   "preloadedLocationCount": 1222,
-  "dropCount": 6394,
-  "eventCount": 1353,
+  "dropCount": 4531,
+  "eventCount": 0,
   "alertCandidateCount": 0,
-  "roadblockCount": 21,
+  "roadblockCount": 20,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
@@ -119,8 +119,8 @@
         "label": "Tennessee ABC",
         "tier": "C",
         "status": "useful",
-        "signalCount": 92,
-        "roadblockCount": 3,
+        "signalCount": 93,
+        "roadblockCount": 2,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "store_level",
         "strategy": "license_and_policy_watch",
@@ -129,7 +129,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-09T02:49:47.033Z",
+    "generatedAt": "2026-06-09T03:24:57.261Z",
     "focusStates": [
       "AL",
       "VA",
@@ -168,7 +168,7 @@
         "label": "Tennessee ABC",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 92,
+        "signalCount": 93,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits."
       }

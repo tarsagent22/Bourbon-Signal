@@ -289,6 +289,32 @@ function dropPriority(signal) {
   return 0;
 }
 
+function isUserFacingDropSignal(signal) {
+  const type = String(signal.eventType || '').toLowerCase();
+  const quantity = Number(signal.quantity || signal.storeQty || 0) || 0;
+  const precision = String(signal.locationPrecision || '').toLowerCase();
+  const canAlert = signalCanAlertAsInventory(signal);
+
+  if (!type) return false;
+  if (type.includes('out_of_stock') || type.includes('out-of-stock')) return false;
+  if (type.includes('lottery') || type.includes('raffle') || type.includes('tasting')) return false;
+  if (type.includes('policy') || type.includes('program') || type.includes('catalog') || type.includes('surface')) return false;
+  if (type.includes('allocated_release') || type.includes('county_allocated')) return false;
+
+  if (type === 'alabc_limited_release_store_drop') return precision === 'store_level';
+  if (type === 'nc_board_shipment_snapshot') return quantity > 0;
+  if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
+  if (type === 'store_delivery_snapshot') return quantity > 0;
+  if (type === 'store_inventory_aggregate') return quantity > 0;
+  if (type === 'store_inventory_result') return quantity > 0;
+  if (type === 'retailer_store_inventory_result') return quantity > 0;
+  if (type === 'cityhive_store_inventory_result') return quantity > 0;
+  if (type === 'browser_assisted_store_inventory_limited_supply') return true;
+  if (type === 'browser_assisted_store_inventory_in_stock') return true;
+
+  return canAlert && precision === 'store_level';
+}
+
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
   if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
@@ -319,7 +345,7 @@ function buildDrops(signals, bible) {
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
-    .filter((s) => signalCanAlertAsInventory(s) || /release|allocated|lottery|tasting|store_inventory|delivery|shipment|warehouse|limited_supply|in_stock/i.test(String(s.eventType || '')))
+    .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
@@ -532,6 +558,17 @@ function publicEvent(signal, bible) {
   };
 }
 
+function isUpcomingActionableEvent(event) {
+  const status = String(event.eventStatus || '').toLowerCase();
+  const actionability = String(event.actionability || '').toLowerCase();
+  const category = String(event.category || '').toLowerCase();
+  const eventDate = Date.parse(String(event.eventDate || ''));
+  const hasFutureDate = Number.isFinite(eventDate) && eventDate >= Date.now() - 24 * 60 * 60 * 1000;
+  const hasOfficialLink = /^https?:\/\//i.test(String(event.sourceUrl || ''));
+  const isSourceWatchPage = status === 'watch_page' || category === 'release_watch' || !event.eventDate;
+  return hasOfficialLink && hasFutureDate && !isSourceWatchPage && ['high', 'medium'].includes(actionability);
+}
+
 function buildEvents(signals, bible) {
   const seen = new Set();
   return signals
@@ -539,6 +576,7 @@ function buildEvents(signals, bible) {
     .filter((signal) => isEventSignal(signal))
     .filter((signal) => findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
     .map((signal) => publicEvent(signal, bible))
+    .filter((event) => isUpcomingActionableEvent(event))
     .filter((event) => {
       const key = event.eventKey || [event.state, event.category, event.canonicalId || event.rawName || event.title, event.sourceUrl, event.locationName, event.eventDate, event.price].join('|');
       if (seen.has(key)) return false;
