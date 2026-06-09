@@ -147,6 +147,13 @@ function publicSignal(signal, bible) {
   const inventorySemantics = isTnRetailerInventory
     ? 'Tennessee is a private retail market. Retailer e-commerce pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
     : signal.inventorySemantics;
+  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory;
+  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory;
+  const dataLane = canAlertAsInventory && signal.locationPrecision === 'store_level'
+    ? 'actionable_inventory'
+    : canAlertAsWatch
+      ? 'actionable_watch'
+      : 'informational';
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,
@@ -180,8 +187,11 @@ function publicSignal(signal, bible) {
     price: signal.price || 0,
     confidence: signal.confidence,
     policyMode: isTnRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
-    canAlertAsInventory: Boolean(signal.canAlertAsInventory) || isTnRetailerInventory,
-    canAlertAsWatch: Boolean(signal.canAlertAsWatch) || isTnRetailerInventory,
+    canAlertAsInventory,
+    canAlertAsWatch,
+    dataLane,
+    informationalOnly: dataLane === 'informational',
+    inventoryCaveat: canAlertAsInventory ? 'Retailer/source-published availability; verify before driving.' : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
@@ -629,6 +639,48 @@ function buildAlerts(alerts) {
     .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0));
 }
 
+function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
+  const byKey = new Map();
+  for (const signal of historicalSignals || []) {
+    if (!isSafePublicSignal(signal)) continue;
+    const state = signal.state;
+    if (!state) continue;
+    const bottle = findBibleRecord(signal, bible)?.canonical || signal.canonicalName || signal.rawName || 'Unknown bottle';
+    const source = signal.storeName || signal.locationName || signal.sourceLabel || 'Unknown source';
+    const key = [state, bottle, source].join('|');
+    const cur = byKey.get(key) || {
+      state,
+      bottleName: bottle,
+      source,
+      locationPrecision: signal.locationPrecision || null,
+      inventoryObservations: 0,
+      watchObservations: 0,
+      positiveQuantities: 0,
+      firstObservedAt: null,
+      lastObservedAt: null,
+      sampleSignalIds: []
+    };
+    const observedAt = signal.observedAt || signal.fetchedAt || null;
+    if (signalCanAlertAsInventory(signal) || /store_inventory|warehouse_stock|shipment_snapshot/i.test(String(signal.eventType || ''))) cur.inventoryObservations += 1;
+    if (signalCanAlertAsWatch(signal) || /release|lottery|allocated|barrel|event/i.test(String(signal.eventType || ''))) cur.watchObservations += 1;
+    if (Number(signal.quantity || signal.storeQty || 0) > 0) cur.positiveQuantities += 1;
+    if (observedAt && (!cur.firstObservedAt || observedAt < cur.firstObservedAt)) cur.firstObservedAt = observedAt;
+    if (observedAt && (!cur.lastObservedAt || observedAt > cur.lastObservedAt)) cur.lastObservedAt = observedAt;
+    if (cur.sampleSignalIds.length < 5) cur.sampleSignalIds.push(signal.key || signal.id || signal.sourceSignalId || null);
+    byKey.set(key, cur);
+  }
+  return [...byKey.values()]
+    .filter((trend) => trend.inventoryObservations + trend.watchObservations >= 2 || trend.positiveQuantities >= 2)
+    .map((trend) => ({
+      ...trend,
+      observationCount: trend.inventoryObservations + trend.watchObservations,
+      current: (currentSignals || []).some((signal) => signal.state === trend.state && (signal.canonicalName === trend.bottleName || signal.rawName === trend.bottleName) && (signal.storeName || signal.locationName || signal.sourceLabel) === trend.source),
+      trendLabel: trend.inventoryObservations >= 2 ? 'repeated_inventory_or_shipment_signal' : 'repeated_release_watch_signal'
+    }))
+    .sort((a, b) => b.positiveQuantities - a.positiveQuantities || b.observationCount - a.observationCount || String(b.lastObservedAt || '').localeCompare(String(a.lastObservedAt || '')))
+    .slice(0, 100);
+}
+
 function stateCoverageTier(state) {
   const precision = state.bestLocationPrecision || state.targetLocationPrecision || 'blocked';
   const strategy = String(state.strategy || '');
@@ -754,6 +806,7 @@ async function main() {
   const drops = buildDrops(historicalSignals, bible);
   const events = buildEvents(historicalSignals, bible);
   const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
+  const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const stateCoverage = buildStateCoverage(summary, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness(summary, signals);
@@ -775,6 +828,7 @@ async function main() {
     preloadedLocationCount: locations.filter((location) => !location.hasSignals).length,
     dropCount: drops.length,
     eventCount: events.length,
+    historicalTrendCount: historicalTrends.length,
     alertCandidateCount: alertCandidates.length,
     roadblockCount: summary.roadblockCount || 0,
     refreshHealth: {
@@ -806,6 +860,7 @@ async function main() {
       sourcePolicy: ncIntelligenceRaw.sourcePolicy
     } : null,
     locationBibleSources: activeOfficialSourceReports,
+    historicalTrends: historicalTrends.slice(0, 25),
     sourceCaveat: 'Standalone engine export only. Candidate alerts are not sent to users until app integration and alert policy are explicitly enabled.'
   };
 
@@ -820,6 +875,7 @@ async function main() {
       drops: 'drops.json',
       events: 'events.json',
       alerts: 'alerts.json',
+      historicalTrends: 'historical-trends.json',
       ncIntelligence: 'nc-intelligence.json'
     },
     historyDays: HISTORY_DAYS,
@@ -830,7 +886,8 @@ async function main() {
       location: Object.keys(locations[0] || {}),
       drop: Object.keys(drops[0] || {}),
       event: Object.keys(events[0] || {}),
-      alert: Object.keys(alertCandidates[0] || {})
+      alert: Object.keys(alertCandidates[0] || {}),
+      historicalTrend: Object.keys(historicalTrends[0] || {})
     }
   };
 
@@ -842,6 +899,7 @@ async function main() {
   await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: drops.length, drops }, null, 2));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: events.length, events }, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: alertCandidates.length, alerts: alertCandidates }, null, 2));
+  await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, null, 2));
   if (ncIntelligenceRaw) {
     await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, ...ncIntelligenceRaw }, null, 2));
   }

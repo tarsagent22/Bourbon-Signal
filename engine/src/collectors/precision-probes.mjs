@@ -311,6 +311,27 @@ const TN_CITYHIVE_SOURCES = [
   }
 ];
 
+const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
+const TX_SPECS_PRODUCT_URLS = [
+  'https://specsonline.com/shop/spirits/native-texas-bourbon/',
+  'https://specsonline.com/shop/spirits/tx-bourbon-whiskey-6-case/',
+  'https://specsonline.com/shop/spirits/specs-single-barrel-tx-bourbon/'
+];
+const TX_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TX_CITYHIVE_MAX_PAGES || 2);
+const TX_CITYHIVE_SOURCES = [
+  {
+    id: 'twin-liquors',
+    chainName: 'Twin Liquors',
+    sourceLabel: 'Twin Liquors CityHive store inventory',
+    baseUrl: 'https://twinliquors.com',
+    urls: [
+      'https://twinliquors.com/shop/?subtype=bourbon',
+      'https://twinliquors.com/shop/?subtype=whiskey'
+    ]
+  }
+];
+const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|bardstown|holladay|single barrel|barrel pick|rare|allocated/i;
+
 const OHLQ_SHA256_AVAILABILITY_BUCKETS = {
   '3:1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464': { value: -1, status: 'not_available', label: 'Not Available', positive: false },
   '3:5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9': { value: 0, status: 'sold_out', label: 'Sold Out', positive: false },
@@ -1700,6 +1721,236 @@ async function collectTennessee(config, bible) {
   return { signals: [...cityHive.signals, ...coolSprings.signals], roadblocks: [...cityHive.roadblocks, ...coolSprings.roadblocks] };
 }
 
+function specsProductNameFromText(text, fallbackUrl) {
+  const compact = String(text || '').replace(/\s+/g, ' ').trim();
+  const title = compact.match(/Leave a Review \|\s*([^|]{4,120}?)(?:Available Sizes|Product Details|Type)/i)?.[1]
+    || compact.match(/^([^|]{4,120}?)(?:Available Sizes|Product Details|Type)/i)?.[1]
+    || fallbackUrl.split('/').filter(Boolean).pop()?.replace(/-/g, ' ')
+    || 'Spec\'s bourbon product';
+  return title.replace(/•.*$/, '').replace(/\bSpec’s Wines.*$/i, '').trim();
+}
+
+async function collectTexas(config, bible) {
+  const observedAt = new Date().toISOString();
+  const signals = [];
+  const roadblocks = [];
+
+  for (const source of TX_CITYHIVE_SOURCES) {
+    for (const seedUrl of source.urls) {
+      for (const url of cityHivePageUrls(seedUrl, TX_CITYHIVE_MAX_PAGES)) {
+        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+        if (!res.ok) {
+          roadblocks.push({
+            state: config.id,
+            source: source.sourceLabel,
+            url,
+            status: res.status,
+            error: res.error || `HTTP ${res.status}`,
+            nextRoute: 'Retry the Texas CityHive page or inspect rendered/network calls for current product JSON shape.'
+          });
+          continue;
+        }
+        const blobs = cityHiveJsonBlobs(res.text);
+        const products = cityHiveProducts(blobs);
+        for (const cfg of cityHiveMerchantConfigs(blobs)) {
+          const merchant = cfg.merchant || cfg;
+          if (!merchant?.id) continue;
+          const a = cityHiveAddressParts(merchant.address || {});
+          signals.push({
+            id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]),
+            state: config.id,
+            sourceLabel: `${source.chainName} CityHive store locator`,
+            sourceUrl: source.baseUrl,
+            rawName: merchant.display_name || merchant.name || source.chainName,
+            canonicalBottleId: null,
+            canonicalName: null,
+            confidence: 0.72,
+            eventType: 'retailer_store_location',
+            locationPrecision: 'store_level',
+            locationName: merchant.display_name || merchant.name || source.chainName,
+            storeName: merchant.display_name || merchant.name || source.chainName,
+            storeId: `${source.id}:${merchant.id}`,
+            storeAddress: a.fullAddress,
+            city: a.city,
+            stateCode: a.state || 'TX',
+            postalCode: a.zip,
+            zip: a.zip,
+            lat: Number(merchant.lat || merchant.latitude || merchant.location?.lat) || null,
+            lng: Number(merchant.lng || merchant.longitude || merchant.location?.lng) || null,
+            quantity: 0,
+            observedAt,
+            canAlertAsInventory: false,
+            canAlertAsWatch: false,
+            inventorySemantics: `${source.chainName} CityHive store rows identify retailer locations/order-capable branches. Store rows are not bottle inventory by themselves.`,
+            evidence: `${source.chainName} CityHive configuration lists ${merchant.display_name || merchant.name}${a.fullAddress ? ` at ${a.fullAddress}` : ''}.`,
+            raw: { merchant }
+          });
+        }
+        for (const product of products) {
+          for (const merchant of product.merchants || []) {
+            for (const option of merchant.product_options || []) {
+              if (!isBourbonRelevantProduct(product, option)) continue;
+              const rawName = option.option_display_data?.name || product.name || '';
+              if (!rawName || !TX_WATCH_RE.test(rawName)) continue;
+              const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+              if (!record) continue;
+              const quantity = Number(option.quantity || 0) || 0;
+              if (quantity <= 0) continue;
+              const fullAddress = option.full_address || null;
+              const city = fullAddress?.match(/,\s*([^,]+),\s*TX\s+\d{5}/i)?.[1] || null;
+              const zip = fullAddress?.match(/\bTX\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
+              const price = Number(option.price || 0) || null;
+              signals.push({
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.option_id, quantity, price]),
+                state: config.id,
+                sourceLabel: source.sourceLabel,
+                sourceUrl: option.product_url || url,
+                rawName,
+                canonicalBottleId: record.id,
+                canonicalName: record.canonical,
+                confidence: Math.max(0.78, match?.confidence || 0.5),
+                eventType: 'cityhive_store_inventory_result',
+                locationPrecision: 'store_level',
+                locationName: option.merchant_name || source.chainName,
+                storeName: option.merchant_name || source.chainName,
+                storeId: option.merchant_id ? `${source.id}:${option.merchant_id}` : null,
+                storeAddress: fullAddress,
+                city,
+                stateCode: 'TX',
+                postalCode: zip,
+                zip,
+                lat: Number(option.coordinates?.[1]) || null,
+                lng: Number(option.coordinates?.[0]) || null,
+                quantity,
+                price,
+                availabilityStatus: 'in_stock',
+                availabilityLabel: 'In stock',
+                observedAt,
+                canAlertAsInventory: true,
+                canAlertAsWatch: true,
+                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for selected branches. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                evidence: `${source.chainName} CityHive reports ${quantity} unit${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${price ? ` for $${price.toFixed(2)}` : ''}.`,
+                raw: { product, option, matchGuard: unsafeReason }
+              });
+            }
+          }
+        }
+        await sleep(600);
+      }
+    }
+  }
+
+  const release = await textFetch(TX_SPECS_RELEASE_URL, { timeoutMs: 24_000 });
+  if (release.ok) {
+    const text = stripHtml(release.text);
+    const matched = bible.scanText(text).filter((match) => TX_WATCH_RE.test(match.canonical || ''));
+    const productNames = [...new Set([
+      ...matched.map((match) => match.canonical),
+      ...[...text.matchAll(/(?:Blanton'?s?|Baker'?s?|Bardstown|Holladay|Weller|Eagle Rare|Buffalo Trace|Taylor|Stagg)[^\n\.]{0,80}/gi)].map((m) => decodeHtml(m[0]).trim())
+    ].filter(Boolean))].slice(0, 20);
+    signals.push({
+      id: stableId([config.id, 'specs-release-watch', TX_SPECS_RELEASE_URL, productNames.join('|') || observedAt.slice(0, 10)]),
+      state: config.id,
+      sourceLabel: "Spec's Bourbon Drop / rare-release event page",
+      sourceUrl: TX_SPECS_RELEASE_URL,
+      rawName: productNames[0] || "Spec's Bourbon Drop",
+      canonicalBottleId: matched[0]?.id || null,
+      canonicalName: matched[0]?.canonical || (productNames[0] || "Spec's Bourbon Drop"),
+      matchedBottleCount: matched.length,
+      matchedBottles: matched.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
+      confidence: matched.length ? 0.62 : 0.48,
+      eventType: 'retailer_release_watch_signal',
+      locationPrecision: 'statewide_catalog',
+      locationName: "Texas Spec's retailer watch",
+      stateCode: 'TX',
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: matched.length > 0,
+      inventorySemantics: "Spec's public rare bourbon drop/event page is release-watch intelligence only. It is not live shelf inventory and must not be presented as store availability.",
+      evidence: productNames.length
+        ? `Spec's public bourbon drop page mentions ${productNames.slice(0, 8).join(', ')}.`
+        : "Spec's public bourbon drop page was reachable but no matched Bourbon Bible products were detected.",
+      raw: { matchedProductNames: productNames, textSample: text.slice(0, 1200) }
+    });
+  } else {
+    roadblocks.push({
+      state: config.id,
+      source: "Spec's Bourbon Drop / rare-release event page",
+      url: TX_SPECS_RELEASE_URL,
+      status: release.status,
+      error: release.error || `HTTP ${release.status}`,
+      nextRoute: "Retry Spec's release page or use browser-rendered extraction if static fetch is blocked."
+    });
+  }
+
+  for (const url of TX_SPECS_PRODUCT_URLS) {
+    const res = await textFetch(url, { timeoutMs: 18_000 });
+    if (!res.ok) {
+      roadblocks.push({ state: config.id, source: "Spec's public product page", url, status: res.status, error: res.error || `HTTP ${res.status}`, nextRoute: "Retry product page or inspect rendered page for product JSON." });
+      continue;
+    }
+    const text = stripHtml(res.text);
+    if (!TX_WATCH_RE.test(text)) continue;
+    const rawName = specsProductNameFromText(text, url);
+    const { match, record } = bottleMatch(rawName, bible);
+    const sku = text.match(/\bSKU\s*([A-Z0-9-]+)/i)?.[1] || null;
+    signals.push({
+      id: stableId([config.id, 'specs-product-catalog', url, sku || rawName]),
+      state: config.id,
+      sourceLabel: "Spec's public product catalog",
+      sourceUrl: url,
+      rawName,
+      canonicalBottleId: record?.id || null,
+      canonicalName: record?.canonical || titleCase(rawName),
+      confidence: Math.max(0.48, Math.min(0.66, match?.confidence || 0.48)),
+      eventType: 'retailer_product_catalog_signal',
+      locationPrecision: 'statewide_catalog',
+      locationName: "Texas Spec's catalog",
+      stateCode: 'TX',
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      inventorySemantics: "Spec's product pages are retailer catalog/price-context signals. They are not store-level availability unless a location-specific inventory row is extracted.",
+      evidence: `Spec's public product page lists ${rawName}${sku ? ` with SKU ${sku}` : ''}.`,
+      raw: { sku, textSample: text.slice(0, 1000) }
+    });
+  }
+
+  signals.push({
+    id: stableId([config.id, 'texas-source-health', observedAt.slice(0, 10), signals.length]),
+    state: config.id,
+    sourceLabel: 'Texas engine coverage summary',
+    sourceUrl: TX_SPECS_RELEASE_URL,
+    rawName: 'Texas retailer/source coverage',
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: signals.length ? 0.52 : 0.35,
+    eventType: 'retailer_source_health',
+    locationPrecision: 'statewide_catalog',
+    locationName: 'Texas coverage',
+    stateCode: 'TX',
+    observedAt,
+    quantity: 0,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'Internal source-health signal for Texas coverage; not a user alert candidate.',
+    evidence: `Collected ${signals.length} Texas retailer/policy signals, including ${signals.filter((s) => s.eventType === 'cityhive_store_inventory_result').length} store-level CityHive inventory rows.`,
+    raw: { productUrls: TX_SPECS_PRODUCT_URLS, releaseUrl: TX_SPECS_RELEASE_URL }
+  });
+
+  if (!signals.some((s) => s.eventType === 'retailer_release_watch_signal' || s.eventType === 'retailer_product_catalog_signal')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Texas retailer public-source coverage',
+      url: TX_SPECS_RELEASE_URL,
+      status: 'no_public_retailer_signals',
+      error: "Texas public-source pass did not extract usable Spec's catalog/release signals.",
+      nextRoute: "Add a rendered/browser collector for Spec's or another Texas retailer with explicitly public store/product availability."
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function virginiaStoreNumbers() {
   const res = await textFetch(VIRGINIA_STORES_ARCGIS_URL, { headers: { accept: 'application/json,*/*' } });
   if (!res.ok) throw new Error(`Virginia ArcGIS store list HTTP ${res.status}`);
@@ -1961,6 +2212,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
+  if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);

@@ -250,12 +250,27 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'TN', label: 'Tennessee ABC', tier: 'C', strategy: 'license_and_policy_watch', cadence: 'weekly-monthly',
-    value: 'Private retail market with limited official consumer availability data; useful for license/policy monitoring and public-source feasibility tracking.',
-    rareSignalTarget: false,
+    value: 'Private retail market. Official ABC pages are policy/license context, while selected public retailer e-commerce pages can expose store-level bourbon inventory with verify-before-driving caveats.',
     sources: [
       { kind: 'html', url: 'https://www.tn.gov/abc.html', label: 'Tennessee ABC homepage' },
       { kind: 'html', url: 'https://www.tn.gov/abc/licensing.html', label: 'Tennessee ABC licensing' },
-      { kind: 'html', url: 'https://www.tn.gov/abc/public-information-and-forms.html', label: 'Tennessee ABC public information and forms' }
+      { kind: 'html', url: 'https://www.tn.gov/abc/public-information-and-forms.html', label: 'Tennessee ABC public information and forms' },
+      { kind: 'html', url: 'https://www.frugalmacdoogal.com/shop/?subtype=bourbon', label: 'Frugal MacDoogal CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://corkdorkswine.com/shop/?subtype=bourbon', label: 'Corkdorks CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://shop.coolspringswine.com/s/1000-1057/c/spirits/bourbon', label: 'Cool Springs Wine & Spirits retailer bourbon inventory', precisionOnly: true }
+    ],
+    apiCandidates: []
+  },
+  {
+    id: 'TX', label: "Texas TABC + Spec's retailer watch", tier: 'C', strategy: 'retailer_catalog_and_release_watch', cadence: 'daily-weekly',
+    value: "Texas is a private retail market. Current public coverage focuses on TABC/comptroller market context plus Spec's public product/event pages for retailer catalog and rare-release watch; do not present as live shelf inventory unless a store-specific source is later extracted.",
+    rareSignalTarget: false,
+    sources: [
+      { kind: 'html', url: 'https://comptroller.texas.gov/taxes/alcohol/', label: 'Texas Comptroller alcohol reporting' },
+      { kind: 'html', url: 'https://www.tabc.texas.gov/public-information/tabc-public-inquiry/', label: 'TABC public inquiry / license search' },
+      { kind: 'html', url: 'https://twinliquors.com/shop/?subtype=bourbon', label: 'Twin Liquors CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://specsonline.com/shop/spirits/?s=bourbon', label: "Spec's public bourbon product search", precisionOnly: true },
+      { kind: 'html', url: 'https://specsonline.com/bourbonday2024/', label: "Spec's Bourbon Drop / rare-release event page", precisionOnly: true }
     ],
     apiCandidates: []
   },
@@ -295,7 +310,7 @@ export const ALL_STATE_SOURCES = [
   }
 ];
 
-export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA']);
+export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'TX', 'VA']);
 
 export const STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active !== false && CUSTOMER_ACTIVE_STATE_IDS.has(source.id));
 export const DISABLED_STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active === false || !CUSTOMER_ACTIVE_STATE_IDS.has(source.id));

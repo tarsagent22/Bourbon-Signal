@@ -12,8 +12,36 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // enough room in the full scheduled run so they do not regress to stale
   // fallback while still keeping hard failure bounds.
   VA: Number(process.env.BOURBON_SIGNAL_VA_STATE_TIMEOUT_MS || 420_000),
-  IN: Number(process.env.BOURBON_SIGNAL_IN_STATE_TIMEOUT_MS || 420_000)
+  IN: Number(process.env.BOURBON_SIGNAL_IN_STATE_TIMEOUT_MS || 420_000),
+  // NC board intelligence + county inventory probes can cross the generic
+  // timeout during normal successful runs. Give it the same scheduled-run
+  // budget as other broad inventory states so stale fallback only indicates a
+  // real collector problem, not a too-short parent watchdog.
+  NC: Number(process.env.BOURBON_SIGNAL_NC_STATE_TIMEOUT_MS || 420_000)
 };
+const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
+const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0';
+
+const BROWSER_PREFLIGHT_JOBS = [
+  {
+    id: 'ohlq',
+    label: 'Ohio OHLQ browser availability bootstrap',
+    artifact: path.join(OUT, 'browser', 'ohlq-availability.json'),
+    command: ['src/ohlq-browser-collector.mjs']
+  },
+  {
+    id: 'pa-fwgs',
+    label: 'Pennsylvania FWGS browser/store inventory bootstrap',
+    artifact: path.join(OUT, 'browser', 'fwgs-store-inventory.json'),
+    command: ['src/fwgs-browser-collector.mjs']
+  },
+  {
+    id: 'browser-discovery',
+    label: 'Generic difficult-source browser/API discovery bootstrap',
+    artifact: path.join(OUT, 'browser', 'browser-discovery-summary.json'),
+    command: ['src/browser-source-discovery.mjs']
+  }
+];
 
 function stateTimeoutMs(config) {
   return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
@@ -21,6 +49,72 @@ function stateTimeoutMs(config) {
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
+
+async function fileFreshEnough(file, maxAgeMs) {
+  try {
+    const { stat } = await import('node:fs/promises');
+    const info = await stat(file);
+    return Date.now() - info.mtimeMs <= maxAgeMs;
+  } catch {
+    return false;
+  }
+}
+
+function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_TIMEOUT_MS || 180_000)) {
+  return new Promise((resolve) => {
+    const startedAt = new Date().toISOString();
+    const child = spawn(process.execPath, command, {
+      cwd: process.cwd(),
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+      windowsHide: true
+    });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const timeout = timeoutMs > 0 ? setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try { child.kill(); } catch {}
+      resolve({ ok: false, startedAt, finishedAt: new Date().toISOString(), code: 'timeout', stdout: stdout.slice(-4000), stderr: stderr.slice(-4000), error: `Timed out after ${Math.round(timeoutMs / 1000)}s` });
+    }, timeoutMs) : null;
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); process.stdout.write(chunk); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); process.stderr.write(chunk); });
+    child.on('error', (error) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      resolve({ ok: false, startedAt, finishedAt: new Date().toISOString(), code: 'error', stdout: stdout.slice(-4000), stderr: stderr.slice(-4000), error: error.message });
+    });
+    child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      resolve({ ok: code === 0, startedAt, finishedAt: new Date().toISOString(), code, stdout: stdout.slice(-4000), stderr: stderr.slice(-4000), error: code === 0 ? null : `Exited ${code}` });
+    });
+  });
+}
+
+async function runBrowserPreflight() {
+  const results = [];
+  if (!BROWSER_PREFLIGHT_ENABLED) {
+    return { generatedAt: new Date().toISOString(), enabled: false, results };
+  }
+  await mkdir(path.join(OUT, 'browser'), { recursive: true });
+  for (const job of BROWSER_PREFLIGHT_JOBS) {
+    const fresh = await fileFreshEnough(job.artifact, BROWSER_PREFLIGHT_MAX_AGE_MS);
+    if (fresh && process.env.BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT !== '1') {
+      results.push({ id: job.id, label: job.label, artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'), status: 'fresh_artifact_reused' });
+      continue;
+    }
+    console.log(`Browser preflight: ${job.label}`);
+    const result = await runNodeScript(job.command);
+    results.push({ id: job.id, label: job.label, artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'), status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result });
+  }
+  const payload = { generatedAt: new Date().toISOString(), enabled: true, maxAgeMs: BROWSER_PREFLIGHT_MAX_AGE_MS, results };
+  await writeFile(path.join(OUT, 'browser-refresh-status.json'), JSON.stringify(payload, null, 2));
+  return payload;
 }
 
 function markStaleReport(report, config, reason) {
@@ -174,8 +268,53 @@ function stateMarkdown(report) {
   return `## ${report.label} (${report.state})\n\n- Tier: ${report.tier}\n- Strategy: ${report.strategy}\n- Recommended cadence: ${report.cadence}\n- Status: ${signalScore(report)}\n- User value: ${report.value}\n\nSources checked:\n${sourceLines}\n\nTop normalized signals:\n${topSignals}\n\nRoadblocks / next routes:\n${roadblocks}\n`;
 }
 
+function buildSourceHealth(summary, reports, browserPreflight) {
+  const states = reports.map((report) => {
+    const sourceCount = report.sources?.length || 0;
+    const reachable = (report.sources || []).filter((s) => s.ok).length;
+    const signalProducing = (report.sources || []).filter((s) => s.ok && ((s.matchedBottleCount || 0) > 0 || (s.pdfLinkCount || 0) > 0 || (s.documentLinkCount || 0) > 0 || /inventory|release|catalog|health|location/i.test(String(s.signalType || '')))).length;
+    const storeLevelSignals = (report.signals || []).filter((s) => s.locationPrecision === 'store_level').length;
+    const actionableInventorySignals = (report.signals || []).filter((s) => s.canAlertAsInventory && s.locationPrecision === 'store_level').length;
+    return {
+      state: report.state,
+      label: report.label,
+      status: report.status,
+      stale: Boolean(report.stale),
+      staleReason: report.staleReason || null,
+      sourceCount,
+      reachableSourceCount: reachable,
+      signalProducingSourceCount: signalProducing,
+      signalCount: report.signals?.length || 0,
+      storeLevelSignalCount: storeLevelSignals,
+      actionableInventorySignalCount: actionableInventorySignals,
+      roadblockCount: report.roadblocks?.length || 0,
+      targetLocationPrecision: LOCATION_PROFILES[report.state]?.target || null,
+      bestLocationPrecision: bestPrecision(report.signals || []),
+      topRoadblocks: (report.roadblocks || []).slice(0, 5).map((r) => ({ source: r.source, status: r.status, error: r.error, nextRoute: r.nextRoute }))
+    };
+  });
+  const health = {
+    generatedAt: summary.generatedAt,
+    status: summary.failedStateCount ? 'failed_states_present' : summary.staleStateCount ? 'degraded_with_stale_fallbacks' : 'healthy',
+    browserPreflight,
+    totals: {
+      stateCount: states.length,
+      degradedStateCount: summary.degradedStateCount,
+      staleStateCount: summary.staleStateCount,
+      failedStateCount: summary.failedStateCount,
+      signalCount: summary.signalCount,
+      roadblockCount: summary.roadblockCount,
+      actionableInventorySignalCount: states.reduce((sum, state) => sum + state.actionableInventorySignalCount, 0)
+    },
+    states
+  };
+  const markdown = `# Bourbon Signal Engine Source Health\n\nGenerated: ${health.generatedAt}\n\nStatus: ${health.status}\n\n## Browser preflight\n\n${(browserPreflight?.results || []).map((r) => `- ${r.label}: ${r.status}${r.error ? ` — ${r.error}` : ''}`).join('\n') || '- Disabled or not run.'}\n\n## State health\n\n${states.map((s) => `### ${s.state} — ${s.label}\n\n- Status: ${s.status}${s.stale ? ` (${s.staleReason})` : ''}\n- Sources: ${s.reachableSourceCount}/${s.sourceCount} reachable, ${s.signalProducingSourceCount} signal-producing\n- Signals: ${s.signalCount}; store-level: ${s.storeLevelSignalCount}; actionable inventory: ${s.actionableInventorySignalCount}\n- Precision: ${s.bestLocationPrecision || 'blocked'} / target ${s.targetLocationPrecision || 'unknown'}\n- Roadblocks: ${s.roadblockCount}\n`).join('\n')}`;
+  return { health, markdown };
+}
+
 async function main() {
   await mkdir(STATES_OUT, { recursive: true });
+  const browserPreflight = await runBrowserPreflight();
   const allReports = [];
   const allSignals = [];
   const allRoadblocks = [];
@@ -219,6 +358,9 @@ async function main() {
   await writeFile(path.join(OUT, 'summary.json'), JSON.stringify(summary, null, 2));
   await writeFile(path.join(OUT, 'signals.json'), JSON.stringify({ generatedAt: summary.generatedAt, signals: allSignals }, null, 2));
   await writeFile(path.join(OUT, 'roadblocks.json'), JSON.stringify({ generatedAt: summary.generatedAt, roadblocks: allRoadblocks }, null, 2));
+  const sourceHealth = buildSourceHealth(summary, allReports, browserPreflight);
+  await writeFile(path.join(OUT, 'source-health.json'), JSON.stringify(sourceHealth.health, null, 2));
+  await writeFile(path.join(OUT, 'source-health.md'), sourceHealth.markdown);
 
   const readable = `# Bourbon Signal Standalone Engine Run\n\nGenerated: ${summary.generatedAt}\n\nStates covered: ${summary.stateCount}\nNormalized signals: ${summary.signalCount}\nRoadblocks logged: ${summary.roadblockCount}\n\n${allReports.map(stateMarkdown).join('\n')}\n`;
   await writeFile(path.join(OUT, 'readable.md'), readable);

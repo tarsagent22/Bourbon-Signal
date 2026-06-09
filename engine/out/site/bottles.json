@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-09T03:24:57.260Z",
+  "generatedAt": "2026-06-09T12:22:06.951Z",
   "count": 139,
   "bottles": [
     {
@@ -28,7 +28,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_a85df59577c72709",
@@ -48,17 +48,17 @@
       ],
       "tier": "unicorn",
       "producer": "Heaven Hill",
-      "signalCount": 402,
+      "signalCount": 405,
       "stateCount": 2,
-      "inventorySignalCount": 9,
-      "watchSignalCount": 402,
+      "inventorySignalCount": 12,
+      "watchSignalCount": 405,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T02:58:56.657Z"
+      "latestObservedAt": "2026-06-09T12:04:35.849Z"
     },
     {
       "id": "bb_ea6984efad655e2d",
@@ -86,7 +86,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-09T03:14:03.531Z"
+      "latestObservedAt": "2026-06-09T12:21:20.305Z"
     },
     {
       "id": "bb_25051cdc130afc7e",
@@ -112,7 +112,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_a3c16eb6f814785b",
@@ -137,7 +137,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:52.797Z"
+      "latestObservedAt": "2026-06-09T12:21:10.064Z"
     },
     {
       "id": "bb_2b5d9987117596c4",
@@ -163,7 +163,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_cca84bbe5368acac",
@@ -189,7 +189,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_18013da36d2e4da4",
@@ -216,7 +216,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_d2b7ab7e2ebc1404",
@@ -241,7 +241,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_3566c2a0088ec99a",
@@ -266,7 +266,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_8ab6c80727eefe77",
@@ -291,7 +291,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -316,7 +316,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -341,7 +341,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_770b95a65307bba6",
@@ -391,7 +391,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -418,7 +418,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_7f15783e8c144664",
@@ -444,7 +444,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -468,7 +468,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_064157246d06e7cd",
@@ -518,7 +518,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_ac855cd46254e92a",
@@ -543,7 +543,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_1ac52cea6f3d0115",
@@ -567,7 +567,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_89f4f171664009c0",
@@ -591,7 +591,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_251412a45d0064c1",
@@ -615,7 +615,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_a66a1b8df27382e5",
@@ -639,7 +639,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_40a01e5c27a36a6d",
@@ -1006,7 +1006,7 @@
         "NC",
         "OH"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_be6a0afd4ba5f963",
@@ -1033,7 +1033,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:14:26.126Z"
+      "latestObservedAt": "2026-06-09T12:21:42.661Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1067,7 +1067,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T03:14:09.927Z"
+      "latestObservedAt": "2026-06-09T12:21:26.946Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1093,7 +1093,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1120,7 +1120,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:14:09.927Z"
+      "latestObservedAt": "2026-06-09T12:21:26.946Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1149,7 +1149,7 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T03:14:26.126Z"
+      "latestObservedAt": "2026-06-09T12:21:42.660Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1175,7 +1175,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_5afa9241206ab963",
@@ -1207,7 +1207,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T03:14:03.531Z"
+      "latestObservedAt": "2026-06-09T12:21:20.305Z"
     },
     {
       "id": "bb_15b34a1a107fafe0",
@@ -1233,7 +1233,7 @@
         "IN",
         "PA"
       ],
-      "latestObservedAt": "2026-06-09T02:58:56.657Z"
+      "latestObservedAt": "2026-06-09T12:04:35.849Z"
     },
     {
       "id": "bb_152c90f782b801f5",
@@ -1265,7 +1265,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T03:13:53.864Z"
+      "latestObservedAt": "2026-06-09T12:21:11.100Z"
     },
     {
       "id": "bb_7991fa37cd881dba",
@@ -1293,7 +1293,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_bb97e76c263976a8",
@@ -1346,7 +1346,7 @@
         "AL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_85305a6b410701da",
@@ -1395,7 +1395,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_fd202575957d3cea",
@@ -1422,7 +1422,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_ab29607e7117c93f",
@@ -1472,7 +1472,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_d804fd15377958b6",
@@ -1496,7 +1496,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1520,7 +1520,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_b575401320b1c321",
@@ -1618,7 +1618,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1642,7 +1642,7 @@
         "IN",
         "PA"
       ],
-      "latestObservedAt": "2026-06-09T02:58:56.657Z"
+      "latestObservedAt": "2026-06-09T12:04:35.849Z"
     },
     {
       "id": "bb_2435a31e97c20ce7",
@@ -1668,7 +1668,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1691,7 +1691,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-09T02:58:56.657Z"
+      "latestObservedAt": "2026-06-09T12:04:35.849Z"
     },
     {
       "id": "bb_ef203a18f5f98f23",
@@ -1717,7 +1717,7 @@
         "IL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:26.126Z"
+      "latestObservedAt": "2026-06-09T12:21:42.661Z"
     },
     {
       "id": "bb_a3b1732edd18ac89",
@@ -1770,7 +1770,7 @@
         "IL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:26.126Z"
+      "latestObservedAt": "2026-06-09T12:21:42.661Z"
     },
     {
       "id": "bb_24c7e1719e8ded79",
@@ -1821,7 +1821,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:14:09.927Z"
+      "latestObservedAt": "2026-06-09T12:21:26.946Z"
     },
     {
       "id": "bb_8924180d0cc2d853",
@@ -1862,17 +1862,18 @@
       ],
       "tier": "limited",
       "producer": "McCormick Distilling",
-      "signalCount": 7,
-      "stateCount": 2,
+      "signalCount": 8,
+      "stateCount": 3,
       "inventorySignalCount": 7,
-      "watchSignalCount": 7,
+      "watchSignalCount": 8,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN",
-        "TN"
+        "TN",
+        "TX"
       ],
-      "latestObservedAt": "2026-06-09T00:17:27.341Z"
+      "latestObservedAt": "2026-06-09T12:21:50.521Z"
     },
     {
       "id": "bb_bf904ca5ccbb690d",
@@ -1899,7 +1900,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_d99031402ce45359",
@@ -1923,7 +1924,7 @@
         "AL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_4e7a2ea067e741fd",
@@ -2047,7 +2048,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_71c68398a83ef404",
@@ -2096,7 +2097,7 @@
         "AL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_21f337f08eaf6bdd",
@@ -2243,7 +2244,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:22.074Z"
+      "latestObservedAt": "2026-06-09T12:20:28.633Z"
     },
     {
       "id": "bb_c57c8f61c0075ec5",
@@ -2269,7 +2270,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_dcbadbe1cd262fe4",
@@ -2294,7 +2295,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:13:16.905Z"
+      "latestObservedAt": "2026-06-09T12:20:23.719Z"
     },
     {
       "id": "bb_fbdffd15c5c5d159",
@@ -2317,7 +2318,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-09T03:13:06.816Z"
+      "latestObservedAt": "2026-06-09T12:20:14.343Z"
     },
     {
       "id": "bb_6885046e5aeac722",
@@ -2341,7 +2342,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_78ae1c4d3ca52afc",
@@ -2819,19 +2820,20 @@
       ],
       "tier": "core",
       "producer": "Barton",
-      "signalCount": 485,
-      "stateCount": 4,
-      "inventorySignalCount": 472,
-      "watchSignalCount": 484,
+      "signalCount": 487,
+      "stateCount": 5,
+      "inventorySignalCount": 474,
+      "watchSignalCount": 486,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "AL",
         "IN",
         "TN",
+        "TX",
         "VA"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:50.522Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -2846,17 +2848,18 @@
       ],
       "tier": "standard",
       "producer": "Diageo",
-      "signalCount": 161,
-      "stateCount": 2,
-      "inventorySignalCount": 160,
-      "watchSignalCount": 161,
+      "signalCount": 166,
+      "stateCount": 3,
+      "inventorySignalCount": 165,
+      "watchSignalCount": 166,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN",
-        "TN"
+        "TN",
+        "TX"
       ],
-      "latestObservedAt": "2026-06-09T00:17:27.341Z"
+      "latestObservedAt": "2026-06-09T12:21:50.522Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -2878,7 +2881,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-09T02:58:56.657Z"
+      "latestObservedAt": "2026-06-09T12:04:35.849Z"
     },
     {
       "id": "bb_c782a4dd71e5ef89",
@@ -2901,7 +2904,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-09T03:04:12.461Z"
+      "latestObservedAt": "2026-06-09T12:14:17.699Z"
     },
     {
       "id": "bb_4b57850b8b8f77fd",
@@ -2950,7 +2953,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_24473260f6d7da78",
@@ -2975,6 +2978,30 @@
       "latestObservedAt": "2026-06-08T20:43:25.092Z"
     },
     {
+      "id": "bb_dab3d03d7632a821",
+      "canonical_id": "bb_dab3d03d7632a821",
+      "canonical_name": "Wild Turkey Longbranch",
+      "canonical_key": "wild turkey longbranch",
+      "name": "Wild Turkey Longbranch",
+      "aliases": [
+        "Longbranch Bourbon",
+        "Wild Turkey Longbranch"
+      ],
+      "tier": "standard",
+      "producer": "Wild Turkey",
+      "signalCount": 2,
+      "stateCount": 2,
+      "inventorySignalCount": 2,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "TX"
+      ],
+      "latestObservedAt": "2026-06-09T12:21:50.522Z"
+    },
+    {
       "id": "bb_2a3a72be37e1c233",
       "canonical_id": "bb_2a3a72be37e1c233",
       "canonical_name": "Wild Turkey Master",
@@ -2997,29 +3024,6 @@
       "latestObservedAt": "2026-06-08T20:37:43.965Z"
     },
     {
-      "id": "bb_dab3d03d7632a821",
-      "canonical_id": "bb_dab3d03d7632a821",
-      "canonical_name": "Wild Turkey Longbranch",
-      "canonical_key": "wild turkey longbranch",
-      "name": "Wild Turkey Longbranch",
-      "aliases": [
-        "Longbranch Bourbon",
-        "Wild Turkey Longbranch"
-      ],
-      "tier": "standard",
-      "producer": "Wild Turkey",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 1,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.86,
-      "states": [
-        "IN"
-      ],
-      "latestObservedAt": "2026-06-08T20:43:25.092Z"
-    },
-    {
       "id": "bb_00de3ec6e1619105",
       "canonical_id": "bb_00de3ec6e1619105",
       "canonical_name": "Maker",
@@ -3039,7 +3043,7 @@
       "states": [
         "OH"
       ],
-      "latestObservedAt": "2026-06-09T03:13:04.258Z"
+      "latestObservedAt": "2026-06-09T12:20:12.032Z"
     },
     {
       "id": "bb_768476e649819a93",
@@ -3061,7 +3065,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-06-09T03:14:31.785Z"
+      "latestObservedAt": "2026-06-09T12:21:48.354Z"
     },
     {
       "id": "bb_6593beca781b533e",

@@ -30,7 +30,8 @@ export const LOCATION_PROFILES = {
   WY: { target: 'statewide_catalog', note: 'Wyoming Liquor Division product pages are wholesale/product-level; no consumer store inventory found.' },
   MS: { target: 'statewide_catalog', note: 'Mississippi ABC public pages expose SPA/bailment price-change PDFs and vendor/product policy, not bottle/store inventory.' },
   KY: { target: 'statewide_catalog', note: 'Kentucky ABC has active-brand/licensing surfaces but no official consumer store inventory or allocation feed found.' },
-  TN: { target: 'statewide_policy', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, not consumer inventory.' },
+  TN: { target: 'store_level', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, while selected public retailer e-commerce pages can expose store-level quantity/price with a verify-before-driving caveat.' },
+  TX: { target: 'statewide_catalog', note: "Texas is a private retail market. Current public coverage is TABC/comptroller context plus Spec's retailer catalog/release pages; store-level inventory remains a future retailer-specific extraction target." },
   SC: { target: 'statewide_policy', note: 'South Carolina DOR ABL pages expose liquor licensing/regulatory context, not bottle/store inventory.' },
   GA: { target: 'statewide_catalog', note: 'Georgia DOR brand/label and active-license pages expose registration/license context, not public consumer bottle availability.' },
   FL: { target: 'statewide_policy', note: 'Florida ABT quota/license pages expose regulatory/lottery context, not bourbon inventory.' }

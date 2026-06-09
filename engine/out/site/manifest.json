@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-09T03:24:57.260Z",
+  "generatedAt": "2026-06-09T12:22:06.951Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -9,6 +9,7 @@
     "drops": "drops.json",
     "events": "events.json",
     "alerts": "alerts.json",
+    "historicalTrends": "historical-trends.json",
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
@@ -105,10 +106,28 @@
       "policyMode",
       "canAlertAsInventory",
       "canAlertAsWatch",
+      "dataLane",
+      "informationalOnly",
+      "inventoryCaveat",
       "inventorySemantics",
       "evidence"
     ],
     "event": [],
-    "alert": []
+    "alert": [],
+    "historicalTrend": [
+      "state",
+      "bottleName",
+      "source",
+      "locationPrecision",
+      "inventoryObservations",
+      "watchObservations",
+      "positiveQuantities",
+      "firstObservedAt",
+      "lastObservedAt",
+      "sampleSignalIds",
+      "observationCount",
+      "current",
+      "trendLabel"
+    ]
   }
 }

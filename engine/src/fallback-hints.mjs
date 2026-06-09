@@ -173,6 +173,22 @@
       nextRoute: 'Keep Tennessee as policy/source-discovery watch; revisit only if a state data portal, product registration export, or official public shipment feed appears.'
     }
   ],
+  TX: [
+    {
+      url: 'https://comptroller.texas.gov/taxes/alcohol/',
+      label: 'Texas Comptroller alcohol reporting',
+      type: 'shipment_reporting_policy_signal',
+      text: 'Texas Comptroller alcohol reporting describes monthly reporting of alcohol sales to retailers. This is source-discovery and market-context infrastructure, not public consumer bottle inventory.',
+      nextRoute: 'Investigate whether any public aggregate reports or licensee-facing datasets can be safely extracted; keep out of inventory alerts.'
+    },
+    {
+      url: 'https://specsonline.com/bourbonday2024/',
+      label: "Spec's Bourbon Drop / rare-release event page",
+      type: 'retailer_release_watch_signal',
+      text: "Spec's publishes rare bourbon drop/event pages mentioning bottles such as Baker's Single Barrel, Bardstown single barrels, Holladay Soft Red Wheat, and Blanton's. Treat as retailer release-watch intelligence, not live shelf inventory.",
+      nextRoute: "Track Spec's public event/drop pages and product pages for release dates and named bottles; only promote to inventory when store-specific availability rows are extracted."
+    }
+  ],
   SC: [
     {
       url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing',
