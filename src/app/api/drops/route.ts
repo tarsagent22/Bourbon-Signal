@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+
+const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 
 function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
@@ -41,9 +44,12 @@ function isBoardQuery(value: string) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const { userId } = await auth();
+  const isSignedIn = Boolean(userId);
   const state = url.searchParams.get("state")?.toUpperCase();
-  const limit = Math.max(0, Number(url.searchParams.get("limit") ?? "50") || 50);
-  const offset = Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
+  const requestedLimit = Math.max(0, Number(url.searchParams.get("limit") ?? "50") || 50);
+  const limit = isSignedIn ? requestedLimit : Math.min(requestedLimit, ANONYMOUS_DROP_PREVIEW_LIMIT);
+  const offset = isSignedIn ? Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0) : 0;
   const bottle = url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = url.searchParams.get("store")?.toLowerCase().trim();
   const include = url.searchParams.get("include")?.toLowerCase().trim();
@@ -121,7 +127,9 @@ export async function GET(request: Request) {
         total,
         limit,
         offset,
-        hasMore: offset + limit < total,
+        hasMore: isSignedIn && offset + limit < total,
+        previewLocked: !isSignedIn && total > pagedDrops.length,
+        requiresAccountForFullFeed: !isSignedIn,
         lastUpdated: exportPayload?.generatedAt ?? new Date().toISOString(),
       },
       {

@@ -1,21 +1,49 @@
 import { NextResponse } from "next/server";
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Temporarily keep Clerk installed but do not require sign-in while the site is being edited.
-// Re-enable route protection here when onboarding/subscriptions are ready.
-export default clerkMiddleware(() => {
-  return NextResponse.next();
+const isProtectedRoute = createRouteMatcher([
+  "/alerts(.*)",
+  "/bottle-check(.*)",
+  "/dashboard(.*)",
+  "/events(.*)",
+  "/feedback(.*)",
+  "/finder(.*)",
+  "/map(.*)",
+  "/pricing(.*)",
+  "/settings(.*)",
+  "/success(.*)",
+  "/api/alerts(.*)",
+  "/api/bottle-check(.*)",
+  "/api/bottles(.*)",
+  "/api/checkout(.*)",
+  "/api/events(.*)",
+  "/api/feedback(.*)",
+  "/api/locations(.*)",
+  "/api/nc-intelligence(.*)",
+  "/api/stores(.*)",
+  "/api/user/preferences(.*)",
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isProtectedRoute(request)) return NextResponse.next();
+
+  const { userId } = await auth();
+  if (userId) return NextResponse.next();
+
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Account required" }, { status: 401 });
+  }
+
+  const signUpUrl = new URL("/sign-up", request.url);
+  signUpUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
+  return NextResponse.redirect(signUpUrl);
 });
 
 export const config = {
   matcher: [
-    "/dashboard(.*)",
-    "/settings(.*)",
-    "/alerts(.*)",
-    "/api/alerts(.*)",
-    "/api/user/preferences(.*)",
-    "/api/alerts/preview(.*)",
-    "/api/feedback(.*)",
-    "/api/checkout(.*)",
+    // Skip Next internals and static assets, but run on app/API routes.
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/api/(.*)",
   ],
 };
