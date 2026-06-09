@@ -13,7 +13,7 @@ const PAID_TIERS = new Set([
 
 export function useAuth() {
   const { isSignedIn, user } = useUser();
-  const { signOut, openSignIn, openSignUp } = useClerk();
+  const { signOut, openSignIn } = useClerk();
 
   const rawTier = typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
   const memberTier = isSignedIn ? rawTier : null;
@@ -26,7 +26,11 @@ export function useAuth() {
     memberNumber: 0,
     user,
     signIn: () => openSignIn(),
-    signUp: () => openSignUp(),
+    signUp: () => {
+      if (typeof window !== "undefined") {
+        window.location.href = "/sign-up";
+      }
+    },
     signOut: () => signOut(),
   };
 }
