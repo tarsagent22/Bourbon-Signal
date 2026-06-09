@@ -1,51 +1,8 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T23:19:19.834Z",
-  "count": 2,
+  "generatedAt": "2026-06-09T00:52:51.115Z",
+  "count": 1,
   "alerts": [
-    {
-      "id": "0ecad9994e627c8d",
-      "action": "watch_alert_candidate",
-      "score": 143,
-      "reliabilityScore": 100,
-      "eligibleForDelivery": false,
-      "priorityClass": "hold",
-      "deliveryChannel": "review_only",
-      "sendRecommendation": "review_before_send",
-      "freshnessHours": 0,
-      "dedupeKey": "57065aa12463cdb7",
-      "matchKey": "084822e2a2932aa0",
-      "gates": [
-        "bottle_matched",
-        "fresh_24h",
-        "confidence_high"
-      ],
-      "blockers": [],
-      "cautions": [
-        "regional_not_store_level",
-        "not_new_or_positive_change"
-      ],
-      "state": "MD-MONTGOMERY",
-      "bottle": "Old Fitzgerald Bottled-in-Bond",
-      "tier": "unicorn",
-      "eventType": "county_allocated_product_row",
-      "source": "Montgomery County ABS ASP.NET product search",
-      "sourceUrl": "https://www2.montgomerycountymd.gov/abssearch/default.aspx",
-      "locationPrecision": "board_county",
-      "locationName": "Montgomery County ABS",
-      "storeName": null,
-      "storeAddress": null,
-      "quantity": 0,
-      "availabilityStatus": null,
-      "availabilityLabel": null,
-      "warehouseQty": 0,
-      "price": 142.99,
-      "confidence": 0.78,
-      "policyMode": "alert_county_product_or_store_when_available",
-      "inventorySemantics": "Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted.",
-      "reason": "Changed signal for Old Fitzgerald Bottled-in-Bond in MD-MONTGOMERY: price: 53.99 → 142.99.",
-      "evidence": "Montgomery ABS ASP.NET product search row: OLD FITZGERALD BOTTLED IN BOND FALL 2025 - 11Y (HAL) 750ML (#47035) at $142.99; marked allocated. Store-level modal is not exposed for these allocated rows in the product-card HTML."
-    },
     {
       "id": "79c980d19e895fc8",
       "action": "watch_alert_candidate",

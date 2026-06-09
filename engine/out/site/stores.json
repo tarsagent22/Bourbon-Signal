@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-08T23:19:19.834Z",
-  "count": 2461,
+  "generatedAt": "2026-06-09T00:52:51.115Z",
+  "count": 2466,
   "stores": [
     {
       "id": "alabc:001",
@@ -29163,7 +29163,7 @@
       "lat": 40.31935,
       "lng": -79.691922,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "6519",
@@ -29614,6 +29614,20 @@
       "signalCount": 8
     },
     {
+      "id": "cool-springs:1000-1057",
+      "sourceStoreId": "cool-springs:1000-1057",
+      "state": "TN",
+      "name": "Cool Springs Wine & Spirits",
+      "address": "1935 Mallory Lane, Franklin, TN 37067",
+      "city": "Franklin",
+      "county": null,
+      "zip": "37067",
+      "lat": 35.955476,
+      "lng": -86.817278,
+      "source": "Cool Springs Wine & Spirits public catalog API",
+      "signalCount": 12
+    },
+    {
       "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",
       "sourceStoreId": "corkdorks:5b52b2903ff14a3c5d9cdd19",
       "state": "TN",
@@ -29642,6 +29656,20 @@
       "signalCount": 15
     },
     {
+      "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
+      "sourceStoreId": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
+      "state": "TN",
+      "name": "Cristy's Liquor Store",
+      "address": "4613 Rutledge Pike, Knoxville, TN 37914, USA",
+      "city": "Knoxville",
+      "county": null,
+      "zip": "37914",
+      "lat": 36.0115107,
+      "lng": -83.8699566,
+      "source": "Cristy's Liquor Store CityHive store inventory",
+      "signalCount": 4
+    },
+    {
       "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "sourceStoreId": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "state": "TN",
@@ -29668,6 +29696,48 @@
       "lng": -90.0121156,
       "source": "Kimbrough Fine Wine & Spirits CityHive store inventory",
       "signalCount": 7
+    },
+    {
+      "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
+      "sourceStoreId": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
+      "state": "TN",
+      "name": "Moon Wine & Spirits",
+      "address": "6910 Moores Ln, Brentwood, TN 37027, USA",
+      "city": "Brentwood",
+      "county": null,
+      "zip": "37027",
+      "lat": 35.973703,
+      "lng": -86.8318783,
+      "source": "Moon Wine & Spirits CityHive store inventory",
+      "signalCount": 10
+    },
+    {
+      "id": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
+      "sourceStoreId": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
+      "state": "TN",
+      "name": "Red Dog Wine and Spirits",
+      "address": "1031 Riverside Dr, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "county": null,
+      "zip": "37064",
+      "lat": 35.9121068,
+      "lng": -86.82835680000001,
+      "source": "Red Dog Wine and Spirits CityHive store inventory",
+      "signalCount": 11
+    },
+    {
+      "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
+      "sourceStoreId": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
+      "state": "TN",
+      "name": "Westside Wine & Spirits",
+      "address": "188 Front St #106, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "county": null,
+      "zip": "37064",
+      "lat": 35.9293792,
+      "lng": -86.9195292,
+      "source": "Westside Wine & Spirits CityHive store inventory",
+      "signalCount": 8
     },
     {
       "id": "102",

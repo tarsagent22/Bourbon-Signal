@@ -125,6 +125,15 @@ function isTennesseeCityHiveInventory(signal) {
     && Boolean(signal.storeAddress);
 }
 
+function isTennesseeRetailerInventory(signal) {
+  return signal.state === 'TN'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && signal.locationPrecision === 'store_level'
+    && Number(signal.quantity || 0) > 0
+    && Boolean(signal.storeId)
+    && Boolean(signal.storeAddress);
+}
+
 function publicSignal(signal, bible) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
@@ -132,8 +141,9 @@ function publicSignal(signal, bible) {
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
-  const inventorySemantics = isTnCityHiveInventory
-    ? 'Tennessee is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
+  const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
+  const inventorySemantics = isTnRetailerInventory
+    ? 'Tennessee is a private retail market. Retailer e-commerce pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
     : signal.inventorySemantics;
   return {
     id: signal.key || signal.sourceSignalId,
@@ -167,9 +177,9 @@ function publicSignal(signal, bible) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: signal.confidence,
-    policyMode: isTnCityHiveInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
-    canAlertAsInventory: Boolean(signal.canAlertAsInventory) || isTnCityHiveInventory,
-    canAlertAsWatch: Boolean(signal.canAlertAsWatch) || isTnCityHiveInventory,
+    policyMode: isTnRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    canAlertAsInventory: Boolean(signal.canAlertAsInventory) || isTnRetailerInventory,
+    canAlertAsWatch: Boolean(signal.canAlertAsWatch) || isTnRetailerInventory,
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
@@ -256,11 +266,11 @@ function buildStores(signals) {
 }
 
 function signalCanAlertAsInventory(signal) {
-  return Boolean(signal.canAlertAsInventory) || isTennesseeCityHiveInventory(signal);
+  return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal);
 }
 
 function signalCanAlertAsWatch(signal) {
-  return Boolean(signal.canAlertAsWatch) || isTennesseeCityHiveInventory(signal);
+  return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal);
 }
 
 function dropPriority(signal) {

@@ -213,6 +213,18 @@ const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_
 const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
+const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
+const TN_COOL_SPRINGS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_PAGE_SIZE || 100));
+const TN_COOL_SPRINGS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_MAX_PAGES || 3);
+const TN_COOL_SPRINGS_STORE = {
+  id: '1000-1057',
+  name: 'Cool Springs Wine & Spirits',
+  address: '1935 Mallory Lane, Franklin, TN 37067',
+  city: 'Franklin',
+  zip: '37067',
+  lat: 35.955476,
+  lng: -86.817278
+};
 const TN_CITYHIVE_SOURCES = [
   {
     id: 'frugal-macdoogal',
@@ -255,6 +267,46 @@ const TN_CITYHIVE_SOURCES = [
       'https://kimbroughwines.com/shop/?subtype=bourbon',
       'https://kimbroughwines.com/shop/?subtype=whiskey',
       'https://kimbroughwines.com/pages/shop-spirits'
+    ]
+  },
+  {
+    id: 'cristys-liquor-store',
+    chainName: "Cristy's Liquor Store",
+    sourceLabel: "Cristy's Liquor Store CityHive store inventory",
+    baseUrl: 'https://cristysliquorstore.com',
+    urls: [
+      'https://cristysliquorstore.com/shop/?subtype=bourbon',
+      'https://cristysliquorstore.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'red-dog-wine-spirits',
+    chainName: 'Red Dog Wine and Spirits',
+    sourceLabel: 'Red Dog Wine and Spirits CityHive store inventory',
+    baseUrl: 'https://shop.reddogwineandspirits.com',
+    urls: [
+      'https://shop.reddogwineandspirits.com/shop/?subtype=bourbon',
+      'https://shop.reddogwineandspirits.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'moon-wine-spirits',
+    chainName: 'Moon Wine & Spirits',
+    sourceLabel: 'Moon Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://moonwineandspirits.com',
+    urls: [
+      'https://moonwineandspirits.com/shop/?subtype=bourbon',
+      'https://moonwineandspirits.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'westside-wine-spirits',
+    chainName: 'Westside Wine & Spirits',
+    sourceLabel: 'Westside Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://westsidewineandspirits.com',
+    urls: [
+      'https://westsidewineandspirits.com/shop/?subtype=bourbon',
+      'https://westsidewineandspirits.com/shop/?subtype=whiskey'
     ]
   }
 ];
@@ -1534,10 +1586,118 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+function isCoolSpringsBourbonRelevantProduct(item) {
+  const text = `${item?.name || ''} ${item?.brand || ''} ${item?.department || ''} ${(item?.itemGroups || []).join(' ')}`;
+  if (/\bcream\b/i.test(text) && !/\b(whiskey|whisky|rye)\b/i.test(text)) return false;
+  if (/vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|coffee|bitters|margarita|brandy|cognac|mezcal/i.test(text) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(text)) return false;
+  return /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|woodford|four roses|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker'?s mark|benchmark|willett/i.test(text);
+}
+
+function coolSpringsProductUrl(item) {
+  return item?.id ? new URL(`i/${item.id}`, TN_COOL_SPRINGS_BASE_URL).toString() : new URL('b?q=bourbon', TN_COOL_SPRINGS_BASE_URL).toString();
+}
+
+async function fetchCoolSpringsProducts(pageNumber) {
+  const body = JSON.stringify({ pn: pageNumber, ps: TN_COOL_SPRINGS_PAGE_SIZE, q: 'bourbon' });
+  const res = await textFetch(new URL('api/b/', TN_COOL_SPRINGS_BASE_URL).toString(), {
+    method: 'POST',
+    body,
+    headers: { accept: 'application/json,*/*', 'content-type': 'application/json' },
+    timeoutMs: 24_000
+  });
+  if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, items: [], totalCount: 0 };
+  try {
+    const json = JSON.parse(res.text);
+    return { ok: true, status: res.status, items: Array.isArray(json.items) ? json.items : [], totalCount: Number(json.totalCount || 0) || 0 };
+  } catch (error) {
+    return { ok: false, status: res.status, error: error instanceof Error ? error.message : String(error), items: [], totalCount: 0 };
+  }
+}
+
+async function collectTennesseeCoolSprings(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seenItems = new Set();
+  let totalCount = 0;
+  for (let pageNumber = 1; pageNumber <= TN_COOL_SPRINGS_MAX_PAGES; pageNumber++) {
+    const page = await fetchCoolSpringsProducts(pageNumber);
+    if (!page.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Cool Springs Wine & Spirits public catalog API',
+        url: new URL('api/b/', TN_COOL_SPRINGS_BASE_URL).toString(),
+        status: page.status || 0,
+        error: page.error || 'Cool Springs catalog API did not return parseable inventory JSON.',
+        nextRoute: 'Retry the BottleCapps-style catalog API or inspect updated app chunks for api/b request shape.'
+      });
+      break;
+    }
+    totalCount = Math.max(totalCount, page.totalCount || 0);
+    for (const item of page.items) {
+      if (!item?.id || seenItems.has(item.id)) continue;
+      seenItems.add(item.id);
+      if (!isCoolSpringsBourbonRelevantProduct(item)) continue;
+      if (item.outOfStock && !item.sellOutOfStock) continue;
+      const quantity = Math.max(0, Number(item.maxBaseQuantity ?? item.maxQuantity ?? 0) || 0);
+      if (quantity <= 0) continue;
+      const rawName = [item.name, item.size].filter(Boolean).join(' ');
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record) continue;
+      const price = Number(item.actualPrice ?? item.suggestedPrice ?? 0) || null;
+      signals.push({
+        id: stableId([config.id, 'cool-springs-store-inventory', item.id, quantity, price]),
+        state: config.id,
+        sourceLabel: 'Cool Springs Wine & Spirits public catalog API',
+        sourceUrl: coolSpringsProductUrl(item),
+        rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.8, match?.confidence || 0.5),
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: TN_COOL_SPRINGS_STORE.name,
+        storeName: TN_COOL_SPRINGS_STORE.name,
+        storeId: `cool-springs:${TN_COOL_SPRINGS_STORE.id}`,
+        storeAddress: TN_COOL_SPRINGS_STORE.address,
+        city: TN_COOL_SPRINGS_STORE.city,
+        stateCode: 'TN',
+        postalCode: TN_COOL_SPRINGS_STORE.zip,
+        zip: TN_COOL_SPRINGS_STORE.zip,
+        lat: TN_COOL_SPRINGS_STORE.lat,
+        lng: TN_COOL_SPRINGS_STORE.lng,
+        quantity,
+        price,
+        availabilityStatus: 'in_stock',
+        availabilityLabel: 'In stock',
+        observedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Cool Springs Wine & Spirits public online catalog reports item price, out-of-stock flag, and max base quantity for pickup/order. Treat as retailer-published availability and ask users to verify before driving.',
+        evidence: `Cool Springs Wine & Spirits public catalog reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}.`,
+        raw: { chain: 'cool-springs-wine-spirits', item, matchGuard: unsafeReason }
+      });
+    }
+    if (!page.items.length || pageNumber * TN_COOL_SPRINGS_PAGE_SIZE >= totalCount) break;
+    await sleep(500);
+  }
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Cool Springs Wine & Spirits public catalog API',
+      url: new URL('b?q=bourbon', TN_COOL_SPRINGS_BASE_URL).toString(),
+      status: 'reachable_no_matched_inventory',
+      error: `Cool Springs catalog returned ${totalCount || 'unknown'} bourbon search rows but no positive bottle-bible matches survived filtering.`,
+      nextRoute: 'Inspect Cool Springs API rows and tune bottle-bible aliases or relevance filters without accepting unsafe generic matches.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function collectTennessee(config, bible) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
-  return { signals: cityHive.signals, roadblocks: cityHive.roadblocks };
+  const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt);
+  return { signals: [...cityHive.signals, ...coolSprings.signals], roadblocks: [...cityHive.roadblocks, ...coolSprings.roadblocks] };
 }
 
 async function virginiaStoreNumbers() {
