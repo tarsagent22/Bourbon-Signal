@@ -13,11 +13,12 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/finder" },
   { label: "Bottle Check", href: "/bottle-check" },
+  { label: "Feedback", href: "/feedback" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check";
+  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check" || pathname === "/feedback";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -95,7 +96,7 @@ export default function Navigation() {
             position: "absolute",
             left: "50%",
             transform: "translateX(-50%)",
-            gap: "clamp(18px, 2.4vw, 32px)",
+            gap: "clamp(14px, 1.8vw, 26px)",
           }}
         >
           {navLinks.map((link) => (
@@ -105,7 +106,7 @@ export default function Navigation() {
               className="relative group"
               style={{
                 fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
+                fontSize: "clamp(12px, 0.9vw, 14px)",
                 fontWeight: 500,
                 color: "var(--color-text-secondary)",
                 textDecoration: "none",
