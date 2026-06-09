@@ -148,6 +148,22 @@ function candidateMatchesEmailMode(candidate: CandidateAlert, mode: EmailAlertMo
   return false;
 }
 
+function candidateCanSendEmail(candidate: CandidateAlert) {
+  const deliveryChannel = asString(candidate.deliveryChannel);
+  const eventType = asString(candidate.eventType).toLowerCase();
+  const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
+  const quantity = asNumber(candidate.quantity) || asNumber(candidate.warehouseQty);
+  const status = `${asString(candidate.availabilityStatus)} ${asString(candidate.availabilityLabel)}`.toLowerCase();
+
+  if (deliveryChannel === "watch_candidate") return false;
+  if (eventType.includes("release_surface") || eventType.includes("release-watch")) return false;
+  if (eventType.includes("policy") || eventType.includes("license")) return false;
+  if (eventType.includes("raffle") || eventType.includes("tasting")) return false;
+  if (locationPrecision === "store_level") return true;
+  if (quantity > 0) return true;
+  return /in_stock|limited|available|on_hand/.test(status);
+}
+
 function candidateTimestampLabel(candidate: CandidateAlert) {
   const hours = asNumber(candidate.freshnessHours, NaN);
   if (Number.isFinite(hours)) {
@@ -170,13 +186,25 @@ function candidateStoreLabel(candidate: CandidateAlert) {
   return asString(candidate.storeName) || asString(candidate.locationName) || asString(candidate.storeAddress) || stateLabel(asString(candidate.state));
 }
 
+function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
+  const location = normalizeLocationText([
+    asString(candidate.locationName),
+    asString(candidate.storeName),
+    asString(candidate.storeAddress),
+  ].join(" "));
+  return options.find((option) => location.includes(normalizeLocationText(option)) || normalizeLocationText(option).includes(location));
+}
+
 function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
   const state = asString(candidate.state).toUpperCase();
-  if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.join(", ");
-  if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.join(", ");
-  if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.join(", ");
-  if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.join(", ");
-  if (state === "PA" && (areaPrefs.paStores.length || areaPrefs.paCounties.length)) return [...areaPrefs.paStores, ...areaPrefs.paCounties].join(", ");
+  const locationName = asString(candidate.locationName) || asString(candidate.storeName) || asString(candidate.storeAddress);
+  if (state === "NC" && areaPrefs.ncBoards.length) return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
+  if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);
+  if (state === "OH" && areaPrefs.ohCities.length) return matchedLocationFromOptions(candidate, areaPrefs.ohCities) || locationName || stateLabel(state);
+  if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
+  if (state === "PA" && areaPrefs.paStores.length) return matchedLocationFromOptions(candidate, areaPrefs.paStores) || locationName || stateLabel(state);
+  if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
+  if (locationName) return locationName;
   return stateLabel(state);
 }
 
@@ -243,6 +271,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
   const candidates = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
+    .filter(candidateCanSendEmail)
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
   const resend = dryRun ? null : getResendClient();
