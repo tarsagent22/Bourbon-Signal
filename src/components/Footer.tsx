@@ -3,7 +3,11 @@
 const footerLinks = [
   { label: "How It Works", href: "/#how-we-hunt" },
   { label: "FAQ", href: "/#faq" },
-  { label: "Support", href: "mailto:tarsagent22@gmail.com?subject=Bourbon%20Signal%20Support" },
+  { label: "Privacy", href: "/legal/privacy" },
+  { label: "Terms", href: "/legal/terms" },
+  { label: "Refunds", href: "/legal/refunds" },
+  { label: "Disclaimer", href: "/legal/disclaimer" },
+  { label: "Support", href: "mailto:support@bourbonsignal.com?subject=Bourbon%20Signal%20Support" },
 ];
 
 export default function Footer() {
@@ -42,7 +46,7 @@ export default function Footer() {
           </div>
 
           {/* Center: links */}
-          <nav className="flex items-center gap-6" style={{ margin: "0 auto" }}>
+          <nav className="flex items-center justify-center gap-4 md:gap-6" style={{ margin: "0 auto", flexWrap: "wrap" }}>
             {footerLinks.map((link) => (
               <a
                 key={link.label}
