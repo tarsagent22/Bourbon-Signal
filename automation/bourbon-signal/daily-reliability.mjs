@@ -8,6 +8,15 @@ const SITE_OUT = path.join(ROOT, 'engine', 'out', 'site');
 const ENGINE_OUT = path.join(ROOT, 'engine', 'out');
 const BASE_URL = process.env.BOURBON_SIGNAL_PROD_URL || 'https://www.bourbonsignal.com';
 const REQUIRED_STATES = ['NC', 'VA', 'PA', 'TX', 'TN', 'IL', 'IN'];
+const REQUIRED_STATE_SIGNAL_FLOORS = {
+  NC: Number(process.env.BOURBON_SIGNAL_MIN_NC_SIGNALS || 1000),
+  VA: Number(process.env.BOURBON_SIGNAL_MIN_VA_SIGNALS || 2000),
+  PA: Number(process.env.BOURBON_SIGNAL_MIN_PA_SIGNALS || 1000),
+  IN: Number(process.env.BOURBON_SIGNAL_MIN_IN_SIGNALS || 1000),
+  IL: Number(process.env.BOURBON_SIGNAL_MIN_IL_SIGNALS || 250),
+  TN: Number(process.env.BOURBON_SIGNAL_MIN_TN_SIGNALS || 50),
+  TX: Number(process.env.BOURBON_SIGNAL_MIN_TX_SIGNALS || 50),
+};
 const MAX_EXPORT_AGE_HOURS = Number(process.env.BOURBON_SIGNAL_MAX_EXPORT_AGE_HOURS || 18);
 const MAX_SOURCE_HEALTH_AGE_HOURS = Number(process.env.BOURBON_SIGNAL_MAX_SOURCE_HEALTH_AGE_HOURS || 18);
 const MAX_ANON_DROPS = Number(process.env.BOURBON_SIGNAL_MAX_ANON_DROPS || 7);
@@ -183,10 +192,20 @@ async function main() {
   const rows = stateRows(stats);
   const requiredStates = REQUIRED_STATES.map((state) => {
     const row = rows.find((r) => r.state === state);
-    const ok = !!row && Number(row.signalCount || 0) > 0 && row.status !== 'failed';
-    if (!ok) pushIssue(issues, 'warn', 'state coverage', `${state} missing or empty in required coverage`);
-    return { state, ok, signalCount: row?.signalCount || 0, status: row?.status || null };
+    const signalCount = Number(row?.signalCount || 0);
+    const floor = REQUIRED_STATE_SIGNAL_FLOORS[state] || 1;
+    const ok = !!row && signalCount >= floor && row.status !== 'failed';
+    if (!row) pushIssue(issues, 'warn', 'state coverage', `${state} missing in required coverage`);
+    else if (row.status === 'failed') pushIssue(issues, 'warn', 'state coverage', `${state} failed in required coverage`);
+    else if (signalCount < floor) pushIssue(issues, 'warn', 'state coverage', `${state} below signal floor`, `${signalCount} signals; expected at least ${floor}`);
+    return { state, ok, signalCount, signalFloor: floor, status: row?.status || null };
   });
+
+  for (const [state, floor] of Object.entries(REQUIRED_STATE_SIGNAL_FLOORS)) {
+    const sourceRow = (sourceHealth.states || []).find((r) => r.state === state);
+    const signalCount = Number(sourceRow?.signalCount || 0);
+    if (sourceRow && signalCount < floor) pushIssue(issues, 'warn', 'source health regression', `${state} source health below signal floor`, `${signalCount} signals; expected at least ${floor}`);
+  }
 
   const alertsSummary = summarizeAlertRisk(alerts);
   if (alertsSummary.risky.length) pushIssue(issues, 'warn', 'alert safety', `${alertsSummary.risky.length} risky alert candidate(s) sampled`, alertsSummary.risky.map((a) => a.bottleName || a.brand_name || a.rawName || a.id || 'unknown').slice(0, 5).join(', '));

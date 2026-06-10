@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
@@ -27,13 +27,17 @@ const BROWSER_PREFLIGHT_JOBS = [
     id: 'ohlq',
     label: 'Ohio OHLQ browser availability bootstrap',
     artifact: path.join(OUT, 'browser', 'ohlq-availability.json'),
-    command: ['src/ohlq-browser-collector.mjs']
+    command: ['src/ohlq-browser-collector.mjs'],
+    outEnv: 'OHLQ_OUT_FILE',
+    validateArtifact: validateOhlqArtifact
   },
   {
     id: 'pa-fwgs',
     label: 'Pennsylvania FWGS browser/store inventory bootstrap',
     artifact: path.join(OUT, 'browser', 'fwgs-store-inventory.json'),
-    command: ['src/fwgs-browser-collector.mjs']
+    command: ['src/fwgs-browser-collector.mjs'],
+    outEnv: 'FWGS_OUT_FILE',
+    validateArtifact: validateFwgsArtifact
   },
   {
     id: 'browser-discovery',
@@ -42,6 +46,9 @@ const BROWSER_PREFLIGHT_JOBS = [
     command: ['src/browser-source-discovery.mjs']
   }
 ];
+
+const MIN_FWGS_POSITIVE_ROWS = Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITIVE_ROWS || 1000);
+const MIN_OHLQ_OK_PRODUCTS = Number(process.env.BOURBON_SIGNAL_MIN_OHLQ_OK_PRODUCTS || 1);
 
 function stateTimeoutMs(config) {
   return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
@@ -61,13 +68,31 @@ async function fileFreshEnough(file, maxAgeMs) {
   }
 }
 
-function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_TIMEOUT_MS || 180_000)) {
+function validateFwgsArtifact(payload) {
+  const positiveRows = Number(payload?.summary?.positiveInventoryRowCount || 0);
+  const locations = Number(payload?.summary?.locationCount || 0);
+  if (positiveRows < MIN_FWGS_POSITIVE_ROWS) {
+    return { ok: false, reason: `FWGS artifact has ${positiveRows} positive rows across ${locations} stores; minimum is ${MIN_FWGS_POSITIVE_ROWS}. Keeping previous full artifact.` };
+  }
+  return { ok: true, reason: `FWGS artifact accepted: ${positiveRows} positive rows across ${locations} stores.` };
+}
+
+function validateOhlqArtifact(payload) {
+  const okProducts = Number(payload?.summary?.okProductCount || 0);
+  const inventoryRows = Number(payload?.summary?.inventoryRowCount || 0);
+  if (okProducts < MIN_OHLQ_OK_PRODUCTS || inventoryRows <= 0) {
+    return { ok: false, reason: `OHLQ artifact has ${okProducts} successful products and ${inventoryRows} inventory rows; likely blocked by Cloudflare/session. Keeping previous artifact.` };
+  }
+  return { ok: true, reason: `OHLQ artifact accepted: ${okProducts} successful products, ${inventoryRows} inventory rows.` };
+}
+
+function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_TIMEOUT_MS || 180_000), extraEnv = {}) {
   return new Promise((resolve) => {
     const startedAt = new Date().toISOString();
     const child = spawn(process.execPath, command, {
       cwd: process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
+      env: { ...process.env, ...extraEnv },
       windowsHide: true
     });
     let stdout = '';
@@ -96,6 +121,48 @@ function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BR
   });
 }
 
+async function runGuardedBrowserPreflightJob(job) {
+  const artifactLabel = path.relative(process.cwd(), job.artifact).replace(/\\/g, '/');
+  if (!job.outEnv || !job.validateArtifact) {
+    const result = await runNodeScript(job.command);
+    return { id: job.id, label: job.label, artifact: artifactLabel, status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result };
+  }
+
+  const tempArtifact = `${job.artifact}.candidate-${Date.now()}.json`;
+  const result = await runNodeScript(job.command, undefined, { [job.outEnv]: tempArtifact });
+  if (!result.ok) {
+    await rm(tempArtifact, { force: true }).catch(() => {});
+    return { id: job.id, label: job.label, artifact: artifactLabel, status: 'failed_non_blocking', preservedPreviousArtifact: true, ...result };
+  }
+
+  const candidate = await readJson(tempArtifact, null);
+  const validation = job.validateArtifact(candidate);
+  if (!validation.ok) {
+    await rm(tempArtifact, { force: true }).catch(() => {});
+    return {
+      id: job.id,
+      label: job.label,
+      artifact: artifactLabel,
+      ...result,
+      status: 'rejected_candidate_preserved_previous',
+      ok: false,
+      preservedPreviousArtifact: true,
+      validation: validation.reason
+    };
+  }
+
+  await writeFile(job.artifact, JSON.stringify(candidate, null, 2));
+  await rm(tempArtifact, { force: true }).catch(() => {});
+  return {
+    id: job.id,
+    label: job.label,
+    artifact: artifactLabel,
+    status: 'refreshed',
+    validation: validation.reason,
+    ...result
+  };
+}
+
 async function runBrowserPreflight() {
   const results = [];
   if (!BROWSER_PREFLIGHT_ENABLED) {
@@ -109,8 +176,7 @@ async function runBrowserPreflight() {
       continue;
     }
     console.log(`Browser preflight: ${job.label}`);
-    const result = await runNodeScript(job.command);
-    results.push({ id: job.id, label: job.label, artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'), status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result });
+    results.push(await runGuardedBrowserPreflightJob(job));
   }
   const payload = { generatedAt: new Date().toISOString(), enabled: true, maxAgeMs: BROWSER_PREFLIGHT_MAX_AGE_MS, results };
   await writeFile(path.join(OUT, 'browser-refresh-status.json'), JSON.stringify(payload, null, 2));
