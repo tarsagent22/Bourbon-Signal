@@ -21,8 +21,9 @@ interface BottleResult {
   } | null;
   localSignal?: {
     state: string;
-    localScore: number | null;
-    scoreStatus: "scored" | "common" | "no_local_signal";
+    localScore: number;
+    scoreStatus: "bible_baseline" | "local_adjusted";
+    scoreBasis: string;
     label: string;
     verdict: string;
     confidence: "high" | "medium" | "low";
@@ -201,12 +202,13 @@ export default function BottleCheckPage() {
                 <p className="bc-summary">{bottle.summary}</p>
 
                 {signal ? (
-                  <div className={`bc-score ${typeof signal.localScore === "number" ? scoreTone(signal.localScore) : "quiet"}`}>
+                  <div className={`bc-score ${scoreTone(signal.localScore)}`}>
                     <div>
-                      <span>{signal.scoreStatus === "scored" ? "Local Score" : "Local Read"}</span>
-                      <strong>{typeof signal.localScore === "number" ? signal.localScore : "—"}</strong>
+                      <span>Bottle Score</span>
+                      <strong>{signal.localScore}</strong>
                     </div>
                     <p>{signal.label}</p>
+                    <small>{signal.scoreStatus === "local_adjusted" ? "Adjusted with recent local signal." : "Bourbon Bible baseline."}</small>
                   </div>
                 ) : null}
                 <div className="bc-guidance">
@@ -307,6 +309,7 @@ const bottleCheckCss = `
 .bc-score span { display:block; color:var(--color-text-tertiary); font:900 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
 .bc-score strong { display:block; margin-top:8px; font:800 54px/.85 var(--font-playfair); color:var(--color-cream); }
 .bc-score p { margin:0; color:var(--color-text-primary); font:800 20px/1.25 var(--font-dm-sans); }
+.bc-score small { display:block; margin-top:6px; color:var(--color-text-tertiary); font:700 12px/1.35 var(--font-dm-sans); }
 .bc-score.hot { border-color:rgba(196,148,58,.38); box-shadow:inset 0 0 0 1px rgba(196,148,58,.08); }
 .bc-score.hot strong, .bc-score.warm strong { color:var(--color-accent-amber); }
 .bc-score.quiet strong { color:rgba(245,237,214,.55); }

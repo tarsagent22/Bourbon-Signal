@@ -5,8 +5,9 @@ import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/s
 
 interface LocalSignal {
   state: string;
-  localScore: number | null;
-  scoreStatus: "scored" | "common" | "no_local_signal";
+  localScore: number;
+  scoreStatus: "bible_baseline" | "local_adjusted";
+  scoreBasis: string;
   label: string;
   verdict: string;
   confidence: "high" | "medium" | "low";
@@ -49,6 +50,37 @@ function getDropsForBottle(bottle: BibleBottle, state?: string) {
   }
 }
 
+function getBibleBaselineScore(bottle: BibleBottle) {
+  const availabilityBase: Record<string, number> = {
+    common: 22,
+    regional: 40,
+    seasonal: 48,
+    limited: 62,
+    allocated: 76,
+    highly_allocated: 88,
+    unicorn: 97,
+  };
+
+  const verdictBoost: Record<string, number> = {
+    safe_to_pass: -4,
+    fair_buy: 0,
+    good_buy: 5,
+    grab_at_msrp: 8,
+    special_find: 10,
+    unknown: 0,
+  };
+
+  const proofBoost = typeof bottle.proof === "number" && bottle.proof >= 115 ? 3 : typeof bottle.proof === "number" && bottle.proof >= 100 ? 1 : 0;
+  const ageText = `${bottle.ageStatement || ""}`.toLowerCase();
+  const ageMatch = ageText.match(/(\d+)/);
+  const ageBoost = ageMatch ? Math.min(4, Math.max(0, Number(ageMatch[1]) - 8)) : 0;
+  const alertBoost = bottle.isAlertEligible ? 2 : 0;
+
+  const raw = (availabilityBase[bottle.availability] ?? 45) + (verdictBoost[bottle.buyerVerdict] ?? 0) + proofBoost + ageBoost + alertBoost;
+  const capped = bottle.availability === "common" ? Math.min(35, raw) : raw;
+  return Math.max(1, Math.min(100, Math.round(capped)));
+}
+
 function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   const drops = getDropsForBottle(bottle, state);
   const now = Date.now();
@@ -58,38 +90,33 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   const lastSeenAt = drops[0]?.timestamp ? String(drops[0].timestamp) : null;
   const uniqueLocations = new Set(recent90.map((drop) => String(drop.store_id || drop.store_name || drop.display_location || drop.board_name || drop.store_city || "")).filter(Boolean));
 
-  const availabilityBase: Record<string, number> = {
-    regional: 34,
-    seasonal: 42,
-    limited: 58,
-    allocated: 72,
-    highly_allocated: 84,
-    unicorn: 96,
-  };
-
-  const scoreStatus: LocalSignal["scoreStatus"] = bottle.availability === "common" ? "common" : recent90.length === 0 ? "no_local_signal" : "scored";
-  const recencyBoost = scoreStatus === "scored" && lastSeenAt ? Math.max(0, 18 - Math.floor((now - asTime(lastSeenAt)) / day) / 3) : 0;
-  const sightingBoost = scoreStatus === "scored" ? Math.min(18, recent90.length * 2.4) : 0;
-  const spreadBoost = scoreStatus === "scored" ? Math.min(10, uniqueLocations.size * 1.5) : 0;
-  const rawLocalScore = scoreStatus === "scored"
-    ? Math.max(0, Math.min(100, Math.round((availabilityBase[bottle.availability] ?? 40) + recencyBoost + sightingBoost + spreadBoost)))
-    : null;
-  const localScore = rawLocalScore;
+  const baselineScore = getBibleBaselineScore(bottle);
+  const hasLocalSignal = recent90.length > 0;
+  const recencyBoost = hasLocalSignal && lastSeenAt ? Math.max(0, 14 - Math.floor((now - asTime(lastSeenAt)) / day) / 4) : 0;
+  const sightingBoost = hasLocalSignal ? Math.min(12, recent90.length * 1.8) : 0;
+  const spreadBoost = hasLocalSignal ? Math.min(6, uniqueLocations.size * 1.1) : 0;
+  const commonLocalCap = bottle.availability === "common" ? 38 : 100;
+  const localScore = hasLocalSignal
+    ? Math.max(1, Math.min(commonLocalCap, Math.round(baselineScore + recencyBoost + sightingBoost + spreadBoost)))
+    : baselineScore;
+  const scoreStatus: LocalSignal["scoreStatus"] = hasLocalSignal ? "local_adjusted" : "bible_baseline";
+  const scoreBasis = hasLocalSignal
+    ? "Bourbon Bible baseline adjusted by recent local sightings."
+    : "Bourbon Bible baseline based on availability tier, buyer guidance, proof/age context, and alert eligibility.";
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
   let label = "Not enough local signal";
   if (bottle.availability === "common") label = "Common shelf bottle";
-  else if (scoreStatus === "no_local_signal") label = "No local signal yet";
-  else if (localScore !== null && localScore >= 90) label = "Extremely rare local find";
-  else if (localScore !== null && localScore >= 75) label = "Rare in your area";
-  else if (localScore !== null && localScore >= 58) label = "Worth checking locally";
-  else if (localScore !== null && localScore >= 36) label = "Moderate local signal";
+  else if (localScore >= 90) label = hasLocalSignal ? "Extremely rare local find" : "Extremely rare bottle";
+  else if (localScore >= 75) label = hasLocalSignal ? "Rare in your area" : "Rare bottle";
+  else if (localScore >= 58) label = hasLocalSignal ? "Worth checking locally" : "Limited or allocated bottle";
+  else if (localScore >= 36) label = hasLocalSignal ? "Moderate local signal" : "Regional or situational bottle";
 
   let verdict = "Check price and local context before deciding.";
   if (bottle.availability === "common") verdict = "Usually safe to pass unless you specifically want it.";
-  else if (scoreStatus === "no_local_signal") verdict = "We know the bottle context, but do not have enough recent local sightings to score it honestly yet.";
-  else if (localScore !== null && localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
-  else if (localScore !== null && localScore >= 62) verdict = "Worth considering at a fair shelf price.";
+  else if (!hasLocalSignal) verdict = "This score is based on Bourbon Bible context. We do not have recent local sightings yet, so verify shelf price and availability before treating it as a local find.";
+  else if (localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
+  else if (localScore >= 62) verdict = "Worth considering at a fair shelf price.";
   else if (confidence === "low") verdict = "Not enough local history yet; use the national bottle context as a guide.";
 
   const canTrack = Boolean(bottle.isAlertEligible && bottle.availability !== "common");
@@ -98,6 +125,7 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
     state,
     localScore,
     scoreStatus,
+    scoreBasis,
     label,
     verdict,
     confidence,
