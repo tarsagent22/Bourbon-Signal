@@ -9,10 +9,10 @@ import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
-  { label: "Drops", href: "/#drops" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/finder" },
   { label: "Bottle Check", href: "/bottle-check" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Feedback", href: "/feedback" },
 ];
 

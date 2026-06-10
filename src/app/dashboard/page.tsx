@@ -316,6 +316,57 @@ function BottleChip({ option, onRemove }: { option: BottleOption; onRemove: () =
   );
 }
 
+function HubCard({
+  eyebrow,
+  title,
+  body,
+  status,
+  href,
+  accent = false,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  status: string;
+  href?: string;
+  accent?: boolean;
+}) {
+  const content = (
+    <div
+      style={{
+        minHeight: "100%",
+        borderRadius: "22px",
+        border: accent ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
+        background: accent
+          ? "linear-gradient(180deg, rgba(47,33,17,0.74) 0%, rgba(18,15,11,0.94) 100%)"
+          : "rgba(255,255,255,0.03)",
+        padding: "22px",
+        boxShadow: accent ? "0 0 44px rgba(196,148,58,0.08)" : "none",
+        display: "grid",
+        gap: "14px",
+      }}
+    >
+      <div>
+        <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          {eyebrow}
+        </p>
+        <h2 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)", lineHeight: 1.08 }}>
+          {title}
+        </h2>
+      </div>
+      <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.75 }}>
+        {body}
+      </p>
+      <div style={{ alignSelf: "end", display: "inline-flex", width: "fit-content", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(196,148,58,0.08)", padding: "7px 11px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        {status}
+      </div>
+    </div>
+  );
+
+  if (!href) return content;
+  return <a href={href} style={{ color: "inherit", textDecoration: "none" }}>{content}</a>;
+}
+
 export default function DashboardPage() {
   const { bottles, loading } = useBottles();
   const { stores } = useStores();
@@ -798,7 +849,7 @@ export default function DashboardPage() {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Alert Dashboard
+                Member Dashboard
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={140}>
@@ -812,13 +863,60 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Build your drop alerts around the bottles and places you actually chase.
+                Your home base for alerts, tracked bottles, collection notes, and the personalized features coming next.
               </p>
             </ScrollReveal>
           </div>
         </section>
 
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px) 80px", display: "grid", gap: "22px" }}>
+          <section style={{ display: "grid", gap: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "end", flexWrap: "wrap" }}>
+              <div>
+                <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  Command center
+                </p>
+                <h2 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", fontSize: "34px", color: "var(--color-cream)", lineHeight: 1.08 }}>
+                  Built around how you hunt.
+                </h2>
+              </div>
+              <p style={{ margin: 0, maxWidth: "42ch", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+                Phase 1 turns the dashboard into the home for personalized Bourbon Signal tools. Alerts stay first; collection and recommendation features have room to grow here.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: "14px" }}>
+              <HubCard
+                eyebrow="Live now"
+                title="Alert Preferences"
+                body="Save your states, local territory, watched bottles, inbox settings, and email alert behavior."
+                status="Configure below"
+                href="#alert-setup"
+                accent
+              />
+              <HubCard
+                eyebrow="Live now"
+                title="Tracked Bottles"
+                body="Bottles tracked from Dashboard or Bottle Check now share the same account-level watchlist."
+                status={`${watchedBottleOptions.length} tracked`}
+                href="#bottle-watchlist"
+              />
+              <HubCard
+                eyebrow="Coming next"
+                title="My Collection"
+                body="A place to log bottles you own, rate them 0-100, and build a taste profile without turning shelf bottles into noisy alerts."
+                status="Phase 2"
+              />
+              <HubCard
+                eyebrow="Future module"
+                title="Recommendations"
+                body="Personalized suggestions based on highly rated bottles, flavor patterns, and what has actually been sighted near you."
+                status="Barrel Proof"
+              />
+            </div>
+          </section>
+
+          <div id="alert-setup" />
           <StepShell
             step="01"
             title="Choose your area"
@@ -1075,6 +1173,7 @@ export default function DashboardPage() {
               </div>
           </StepShell>
 
+          <div id="bottle-watchlist" />
           {alertMode === "specific_bottles" ? (
           <StepShell
             step="03"
