@@ -12,7 +12,6 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/finder" },
   { label: "Bottle Check", href: "/bottle-check" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Feedback", href: "/feedback" },
 ];
 

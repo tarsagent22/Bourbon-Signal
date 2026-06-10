@@ -1,24 +1,24 @@
-export const SITE_PHASE = "paid_launch_preview" as const;
+export const SITE_PHASE = "founding_test" as const;
 
-export const SHOW_PUBLIC_PRICING = true;
+export const SHOW_PUBLIC_PRICING = false;
 export const CHECKOUT_ENABLED = false;
 
 export const MEMBERSHIP_COPY = {
-  testerLabel: "Paid launch preview",
-  testerHeadline: "Choose the Bourbon Signal tier built for how you hunt.",
+  testerLabel: "Founding tester mode",
+  testerHeadline: "Help validate Bourbon Signal before paid memberships open.",
   testerBody:
-    "This preview lays out the paid-launch product ladder: a free public layer, Standard Proof for personalized alerts, Barrel Proof for deeper decision intelligence, and Bottled-in-Bond Founder access for early adopters.",
-  standardName: "Standard Proof",
-  standardStatus: "$5/mo · $40/yr",
+    "Tester access is open while we tune alert quality, improve the member dashboard, and make sure Bourbon Signal is worth trusting before anyone pays.",
+  standardName: "Member dashboard",
+  standardStatus: "Tester access",
   standardBody:
-    "For hunters who want saved preferences, an alert inbox, email alerts, a bottle watchlist, and territory narrowing.",
-  barrelName: "Barrel Proof",
-  barrelStatus: "$10/mo · $80/yr",
+    "Build saved alert preferences, track bottles, narrow your territory, and try the personalized dashboard flow while we prepare paid memberships.",
+  barrelName: "Personalized intelligence",
+  barrelStatus: "Preview features",
   barrelBody:
-    "For members who want the smarter layer: Signal Score, Worth Chasing verdicts, better alternatives, market personalization, and alert explanations.",
-  founderName: "Bottled-in-Bond Founder",
-  founderStatus: "$40 one-time",
+    "Collection, recommendations, alert reasoning, and market-personalization experiments are being shaped with tester feedback.",
+  founderName: "Founding tester",
+  founderStatus: "Early access",
   founderBody:
-    "For early adopters: lifetime Barrel Proof treatment for a fraction of the cost, founder badge, beta access, and extra goodies as we grow.",
-  founderTease: "Founder spots are for the members who help shape Bourbon Signal early.",
+    "Early testers help shape the product before paid launch and get the first look at new member features.",
+  founderTease: "Paid membership details are intentionally hidden during tester validation.",
 };
