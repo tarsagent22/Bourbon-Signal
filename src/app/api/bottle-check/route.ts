@@ -81,6 +81,14 @@ function getBibleBaselineScore(bottle: BibleBottle) {
   return Math.max(1, Math.min(100, Math.round(capped)));
 }
 
+function userFacingBottle(bottle: BibleBottle) {
+  return {
+    ...bottle,
+    summary: bottle.summary.replace(/Bourbon Bible/g, "Bottle Check index"),
+    guidance: bottle.guidance.replace(/Bourbon Bible/g, "Bottle Check"),
+  };
+}
+
 function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   const drops = getDropsForBottle(bottle, state);
   const now = Date.now();
@@ -101,8 +109,8 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
     : baselineScore;
   const scoreStatus: LocalSignal["scoreStatus"] = hasLocalSignal ? "local_adjusted" : "bible_baseline";
   const scoreBasis = hasLocalSignal
-    ? "Bourbon Bible baseline adjusted by recent local sightings."
-    : "Bourbon Bible baseline based on availability tier, buyer guidance, proof/age context, and alert eligibility.";
+    ? "Bottle profile adjusted by recent Bourbon Signal sightings."
+    : "Bottle profile based on availability, buyer guidance, proof/age context, and alert eligibility.";
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
   let label = "Not enough local signal";
@@ -114,7 +122,7 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
 
   let verdict = "Check price and local context before deciding.";
   if (bottle.availability === "common") verdict = "Usually safe to pass unless you specifically want it.";
-  else if (!hasLocalSignal) verdict = "This score is based on Bourbon Bible context. We do not have recent local sightings yet, so verify shelf price and availability before treating it as a local find.";
+  else if (!hasLocalSignal) verdict = "Solid bottle if priced fairly. Bourbon Signal does not have recent local sightings for it yet, so this score is based on bottle profile rather than confirmed local availability.";
   else if (localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
   else if (localScore >= 62) verdict = "Worth considering at a fair shelf price.";
   else if (confidence === "low") verdict = "Not enough local history yet; use the national bottle context as a guide.";
@@ -170,13 +178,15 @@ export async function GET(request: Request) {
         state,
         bottle: null,
         suggestions,
-        message: "We do not have this bottle in the Bourbon Bible yet. Try a different spelling or check back as the list expands.",
+        message: "We do not have this bottle in the Bottle Check index yet. Try a different spelling or check back as the list expands.",
       },
       { headers: siteExportHeaders("local-export") }
     );
   }
 
   const localSignal = getLocalSignal(bottle, state);
+  const matchedBottle = bottle as BibleBottle & { matchScore?: number };
+  const matchScore = typeof matchedBottle.matchScore === "number" ? matchedBottle.matchScore : 120;
 
   captureSearchEvent({
     surface: "bottle-check",
@@ -195,9 +205,10 @@ export async function GET(request: Request) {
     {
       query,
       state,
-      bottle,
+      bottle: userFacingBottle(bottle),
       localSignal,
-      suggestions,
+      suggestions: suggestions.map(userFacingBottle),
+      showSuggestions: matchScore < 95,
     },
     { headers: siteExportHeaders("local-export") }
   );

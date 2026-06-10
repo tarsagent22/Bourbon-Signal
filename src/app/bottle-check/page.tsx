@@ -18,6 +18,8 @@ interface BottleResult {
     isAlertEligible?: boolean;
     summary: string;
     guidance: string;
+    matchScore?: number;
+    matchReason?: "exact" | "alias" | "fuzzy" | "engine";
   } | null;
   localSignal?: {
     state: string;
@@ -35,6 +37,7 @@ interface BottleResult {
     trackDisabledReason?: string;
   };
   suggestions?: BottleResult["bottle"][];
+  showSuggestions?: boolean;
   message?: string;
 }
 
@@ -51,9 +54,9 @@ const availabilityLabels: Record<string, string> = {
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return "Not seen recently";
+  if (!value) return "No signal yet";
   const time = Date.parse(value);
-  if (!Number.isFinite(time)) return "Not seen recently";
+  if (!Number.isFinite(time)) return "No signal yet";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(time);
 }
 
@@ -108,13 +111,15 @@ export default function BottleCheckPage() {
   const isTracked = bottle ? tracked.includes(bottle.id) : false;
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isCommon = bottle?.availability === "common";
+  const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
 
   const suggestedNames = useMemo(() => {
+    if (!result?.showSuggestions) return [];
     return (result?.suggestions || [])
       .filter((suggestion): suggestion is NonNullable<typeof suggestion> => Boolean(suggestion))
       .filter((suggestion) => suggestion.id !== bottle?.id)
       .slice(0, 5);
-  }, [result?.suggestions, bottle?.id]);
+  }, [result?.showSuggestions, result?.suggestions, bottle?.id]);
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -142,7 +147,7 @@ export default function BottleCheckPage() {
           <div className="bc-kicker">Bottle Check</div>
           <h1>Standing in the aisle? Check the bottle before you buy.</h1>
           <p>
-            Search a bourbon, choose your state, and get a read on whether it is common, allocated, worth grabbing, or just not showing enough local signal yet.
+            Search a bourbon, choose your market, and get a fast read on whether it is a smart buy, a shelf staple, or a bottle worth grabbing near retail.
           </p>
         </section>
 
@@ -185,18 +190,18 @@ export default function BottleCheckPage() {
           </form>
 
           {loading ? (
-            <div className="bc-panel muted">Checking the Bourbon Bible…</div>
+            <div className="bc-panel muted">Checking Bottle Signal…</div>
           ) : !bottle ? (
             <div className="bc-panel empty">
               <strong>We do not have that bottle yet.</strong>
-              <p>{result?.message || "Try a different spelling. Unknown searches are exactly how the Bourbon Bible gets better over time."}</p>
+              <p>{result?.message || "Try a different spelling. Unknown searches help Bourbon Signal improve the Bottle Check index."}</p>
             </div>
           ) : (
             <div className="bc-result-grid">
               <article className="bc-verdict-card">
                 <div className="bc-card-topline">
                   <span className={`bc-tier ${bottle.availability}`}>{availabilityLabels[bottle.availability] || bottle.availability}</span>
-                  <span className="bc-confidence">Confidence: {signal?.confidence || "low"}</span>
+                  <span className="bc-confidence">Local signal: {signal?.confidence || "low"}</span>
                 </div>
                 <h2>{bottle.canonicalName}</h2>
                 <p className="bc-summary">{bottle.summary}</p>
@@ -208,31 +213,32 @@ export default function BottleCheckPage() {
                       <strong>{signal.localScore}</strong>
                     </div>
                     <p>{signal.label}</p>
-                    <small>{signal.scoreStatus === "local_adjusted" ? "Adjusted with recent local signal." : "Bourbon Bible baseline."}</small>
+                    <small>{signal.scoreStatus === "local_adjusted" ? "Adjusted with recent Bourbon Signal sightings." : "Based on bottle profile; no recent local sightings yet."}</small>
                   </div>
                 ) : null}
                 <div className="bc-guidance">
-                  <h3>Buy guidance</h3>
+                  <h3>In-store read</h3>
                   <p>{signal?.verdict || bottle.guidance}</p>
                   <small>{bottle.guidance}</small>
                 </div>
 
                 <div className="bc-track-box">
                   {isCommon ? (
-                    <p><strong>No alert settings for common bottles.</strong> This page can still help explain what you are looking at, but common shelf bottles stay out of alert/watchlist noise.</p>
+                    <p><strong>No alert settings for common bottles.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
                     <>
                       <p><strong>Track this bottle</strong> saves it for Bottle Check follow-up. Alert setup stays separate so this page does not get confusing.</p>
                       <button type="button" onClick={trackBottle} disabled={isTracked}>{isTracked ? "Tracked" : "Track this bottle"}</button>
                     </>
                   ) : (
-                    <p><strong>Tracking unavailable.</strong> {signal?.trackDisabledReason || "This bottle is not ready for tracking yet."}</p>
+                    <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>
                   )}
                 </div>
               </article>
 
               <aside className="bc-detail-card">
-                <h3>Local signal in {state}</h3>
+                <h3>Local signal in {activeStateName}</h3>
+                <p className="bc-local-note">Recent Bourbon Signal sightings for the selected market. This is not a live shelf confirmation.</p>
                 <div className="bc-stat-grid">
                   <div><span>Last seen</span><strong>{formatDate(signal?.lastSeenAt)}</strong></div>
                   <div><span>30 days</span><strong>{signal?.recentCount30d ?? 0}</strong></div>
@@ -249,7 +255,7 @@ export default function BottleCheckPage() {
                       </div>
                     ))
                   ) : (
-                    <p>No recent local sightings in the current engine window.</p>
+                    <p>No recent Bourbon Signal sightings for this bottle in the current engine window.</p>
                   )}
                 </div>
 
@@ -274,14 +280,14 @@ export default function BottleCheckPage() {
 }
 
 const bottleCheckCss = `
-.bottle-check-page { min-height: 100vh; padding-top: 96px; background: radial-gradient(circle at 48% 0%, rgba(196,148,58,0.12), transparent 34%), var(--color-bg-primary); color: var(--color-text-primary); }
+.bottle-check-page { min-height: 100vh; padding-top: 96px; background: radial-gradient(circle at 48% 0%, rgba(196,148,58,0.14), transparent 34%), radial-gradient(circle at 82% 28%, rgba(184,115,51,0.08), transparent 30%), var(--color-bg-primary); color: var(--color-text-primary); }
 .bc-hero, .bc-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .bc-hero { padding: 54px 0 26px; }
 .bc-kicker { display: inline-flex; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; color: var(--color-accent-amber); padding: 7px 11px; font: 800 11px/1 var(--font-dm-sans); letter-spacing: .13em; text-transform: uppercase; }
 .bc-hero h1 { max-width: 920px; font-family: var(--font-playfair); font-size: clamp(42px, 7vw, 78px); line-height: .94; letter-spacing: -.045em; margin: 20px 0 0; }
 .bc-hero p { max-width: 790px; margin-top: 20px; color: var(--color-text-secondary); font: 17px/1.7 var(--font-dm-sans); }
 .bc-shell { padding: 10px 0 78px; }
-.bc-search-card { display:flex; align-items:flex-end; gap:12px; padding:16px; border:1px solid rgba(196,148,58,.18); border-radius:24px; background:rgba(255,255,255,.035); box-shadow:0 22px 80px rgba(0,0,0,.24); }
+.bc-search-card { display:flex; align-items:flex-end; gap:12px; padding:16px; border:1px solid rgba(196,148,58,.22); border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.025)); box-shadow:0 24px 90px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.055); }
 .bc-field { display:grid; gap:8px; }
 .bc-field.grow { flex:1; }
 .bc-field.state { width:220px; }
@@ -296,8 +302,8 @@ const bottleCheckCss = `
 .bc-panel { margin-top:18px; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:24px; background:rgba(255,255,255,.026); color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
 .bc-panel strong { color:var(--color-cream); display:block; font:700 22px/1.2 var(--font-playfair); margin-bottom:8px; }
 .bc-result-grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr); gap:16px; margin-top:18px; }
-.bc-verdict-card, .bc-detail-card { border:1px solid rgba(245,237,214,.08); border-radius:28px; background:rgba(255,255,255,.033); padding:24px; }
-.bc-verdict-card { background:radial-gradient(circle at 16% 0%, rgba(196,148,58,.14), transparent 42%), rgba(255,255,255,.035); }
+.bc-verdict-card, .bc-detail-card { border:1px solid rgba(245,237,214,.09); border-radius:28px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); padding:28px; }
+.bc-verdict-card { background:radial-gradient(circle at 16% 0%, rgba(196,148,58,.16), transparent 42%), linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.024)); }
 .bc-card-topline { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .bc-tier { display:inline-flex; border-radius:999px; padding:7px 10px; font:900 10px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; border:1px solid rgba(245,237,214,.14); color:var(--color-text-secondary); background:rgba(255,255,255,.04); }
 .bc-tier.allocated, .bc-tier.highly_allocated, .bc-tier.unicorn { border-color:rgba(196,148,58,.38); color:var(--color-accent-amber); background:rgba(196,148,58,.10); }
@@ -305,7 +311,7 @@ const bottleCheckCss = `
 .bc-confidence { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
 .bc-verdict-card h2 { margin:18px 0 0; font:700 clamp(32px, 5vw, 56px)/.98 var(--font-playfair); letter-spacing:-.035em; color:var(--color-cream); }
 .bc-summary { margin:14px 0 0; color:var(--color-text-secondary); font:16px/1.7 var(--font-dm-sans); }
-.bc-score { margin-top:22px; display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; align-items:center; border-radius:22px; border:1px solid rgba(245,237,214,.08); padding:18px; background:rgba(0,0,0,.16); }
+.bc-score { margin-top:22px; display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; align-items:center; border-radius:24px; border:1px solid rgba(196,148,58,.16); padding:20px; background:linear-gradient(135deg, rgba(0,0,0,.22), rgba(196,148,58,.055)); }
 .bc-score span { display:block; color:var(--color-text-tertiary); font:900 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
 .bc-score strong { display:block; margin-top:8px; font:800 54px/.85 var(--font-playfair); color:var(--color-cream); }
 .bc-score p { margin:0; color:var(--color-text-primary); font:800 20px/1.25 var(--font-dm-sans); }
@@ -321,6 +327,7 @@ const bottleCheckCss = `
 .bc-track-box p { margin:0; color:var(--color-text-secondary); font:13px/1.65 var(--font-dm-sans); }
 .bc-track-box strong { color:var(--color-cream); }
 .bc-detail-card { display:grid; gap:20px; align-content:start; }
+.bc-local-note { margin:-8px 0 0; color:var(--color-text-secondary); font:13px/1.55 var(--font-dm-sans); }
 .bc-stat-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
 .bc-stat-grid div { border-radius:16px; background:rgba(0,0,0,.16); padding:12px; }
 .bc-stat-grid span { display:block; color:var(--color-text-tertiary); font:800 10px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
