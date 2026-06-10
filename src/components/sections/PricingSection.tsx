@@ -11,6 +11,7 @@ import {
   STANDARD_FEATURES,
   STANDARD_MONTHLY_PRICE,
   FOUNDER_ACCESS_LINE,
+  FOUNDER_PRICE,
 } from "@/lib/pricing-copy";
 
 const founderExclusives = [
@@ -167,7 +168,7 @@ export default function PricingSection() {
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>{TESTER_MODE ? "Free" : "$39"}</span>
+                  <span style={{ fontFamily: "var(--font-playfair)", fontSize: "64px", fontWeight: 700, color: "var(--color-amber-rich)" }}>{TESTER_MODE ? "Free" : FOUNDER_PRICE}</span>
                   <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "16px", color: "rgba(245,237,214,0.5)" }}>{TESTER_MODE ? "access" : "one-time"}</span>
                 </div>
 
@@ -193,7 +194,7 @@ export default function PricingSection() {
 
                 <div style={{ marginTop: "auto", paddingTop: "24px" }}>
                   <button onClick={() => handleCheckout("founder")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)", color: "#1A1510", fontFamily: "var(--font-dm-sans)", fontSize: "15px", fontWeight: 700, padding: "14px", border: "none", borderRadius: "10px", textAlign: "center" }}>
-                    {TESTER_MODE ? "Join tester flow" : "Claim your founder spot, $39"}
+                    {TESTER_MODE ? "Join tester flow" : `Claim your founder spot, ${FOUNDER_PRICE}`}
                   </button>
                   <p className="text-center" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.42)", marginTop: "10px" }}>
                     {TESTER_MODE ? "Founder pricing returns after the free testing period." : `${FOUNDING_SPOTS_REMAINING} of 100 spots remaining`}

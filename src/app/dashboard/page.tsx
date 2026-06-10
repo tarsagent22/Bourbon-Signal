@@ -153,6 +153,10 @@ function normalizePreferenceBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function normalizeLocationText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function normalizeNcBoardLabel(value: string) {
   return value
     .replace(/abc/gi, "")
@@ -211,11 +215,41 @@ function formatShortDate(value: string) {
 }
 
 function dropLocationLabel(drop: DropEvent) {
-  return drop.display_location || drop.store_name || drop.store_address || drop.board_name || drop.store_city || drop.store_county || "Recent sighting";
+  const firstStore = drop.stores?.[0] || drop.store_details?.[0];
+  const storeLabel = firstStore ? [
+    "name" in firstStore ? firstStore.name : undefined,
+    "store_address" in firstStore ? firstStore.store_address : undefined,
+    firstStore.city,
+    "county" in firstStore ? firstStore.county : undefined,
+  ].filter(Boolean).join(" · ") : "";
+  return drop.display_location || drop.store_name || drop.store_address || storeLabel || drop.board_name || drop.store_city || drop.store_county || "Recent sighting";
 }
 
 function dropStateLabel(drop: DropEvent) {
   return (drop.state_code || drop.state || drop.display_state || "").toUpperCase();
+}
+
+function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences) {
+  const state = dropStateLabel(drop);
+  if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
+
+  const location = normalizeLocationText([
+    dropLocationLabel(drop),
+    drop.board_name,
+    drop.store_city,
+    drop.store_county,
+    drop.store_address,
+    drop.store_name,
+    ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
+    ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
+  ].filter(Boolean).join(" "));
+
+  if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.some((board) => location.includes(normalizeLocationText(board)));
+  if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
+  return true;
 }
 
 
@@ -397,7 +431,7 @@ export default function DashboardPage() {
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn, signIn } = useAuth();
-  const { prefs, savePreferences } = useAreaPreferences();
+  const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
 
   const [mounted, setMounted] = useState(false);
@@ -427,6 +461,8 @@ export default function DashboardPage() {
   const [collectionNotes, setCollectionNotes] = useState("");
   const [savingCollection, setSavingCollection] = useState(false);
   const [savedCollection, setSavedCollection] = useState(false);
+  const [collectionError, setCollectionError] = useState<string | null>(null);
+  const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -567,7 +603,6 @@ export default function DashboardPage() {
       .map((entry) => bottleOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
       .filter((bottle): bottle is Bottle => Boolean(bottle));
     const favoriteFlavorTags = new Set(likedBottles.flatMap((bottle) => bottle.flavor || []).map((tag) => tag.toLowerCase()));
-    const preferredStates = new Set(localPrefs.states.map((state) => state.toUpperCase()));
 
     if (!favoriteFlavorTags.size) return [];
     return bottleOptions
@@ -577,7 +612,7 @@ export default function DashboardPage() {
         matchedFlavors: (option.bottle.flavor || []).filter((tag) => favoriteFlavorTags.has(tag.toLowerCase())),
         recentSightings: recentDrops
           .filter((drop) => dropMatchesBottle(drop, option.bottle))
-          .filter((drop) => !preferredStates.size || preferredStates.has(dropStateLabel(drop)))
+          .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
           .slice(0, 3)
           .map((drop) => ({
             location: dropLocationLabel(drop),
@@ -773,10 +808,15 @@ export default function DashboardPage() {
   const saveCollectionEntries = async (entries: UserAlertPreferences["collectionPreferences"]["bottles"]) => {
     if (!isSignedIn) {
       signIn();
-      return;
+      return false;
+    }
+    if (prefsLoading) {
+      setCollectionError("Loading your saved preferences. Try again in a second.");
+      return false;
     }
     setSavingCollection(true);
     setSavedCollection(false);
+    setCollectionError(null);
     try {
       await savePreferences({
         areaPreferences: localPrefs,
@@ -790,6 +830,10 @@ export default function DashboardPage() {
       });
       setSavedCollection(true);
       setTimeout(() => setSavedCollection(false), 2200);
+      return true;
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
+      return false;
     } finally {
       setSavingCollection(false);
     }
@@ -809,10 +853,12 @@ export default function DashboardPage() {
         updatedAt: now,
       },
     ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
-    await saveCollectionEntries(nextEntries);
-    setCollectionBottleQuery("");
-    setCollectionRating(85);
-    setCollectionNotes("");
+    const saved = await saveCollectionEntries(nextEntries);
+    if (saved) {
+      setCollectionBottleQuery("");
+      setCollectionRating(85);
+      setCollectionNotes("");
+    }
   };
 
   const updateCollectionBottle = async (canonicalKey: string, patch: Partial<UserAlertPreferences["collectionPreferences"]["bottles"][number]>) => {
@@ -826,19 +872,43 @@ export default function DashboardPage() {
     await saveCollectionEntries(collectionEntries.filter((entry) => entry.canonicalKey !== canonicalKey));
   };
 
+  const commitCollectionRating = async (canonicalKey: string) => {
+    const rating = collectionRatingDrafts[canonicalKey];
+    if (rating === undefined) return;
+    await updateCollectionBottle(canonicalKey, { rating });
+    setCollectionRatingDrafts((prev) => {
+      const next = { ...prev };
+      delete next[canonicalKey];
+      return next;
+    });
+  };
+
   const trackCollectionSuggestion = async (option: BottleOption) => {
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    if (prefsLoading) {
+      setCollectionError("Loading your saved preferences. Try again in a second.");
+      return;
+    }
     addBottleOption(option);
     setAlertMode("specific_bottles");
-    await savePreferences({
-      areaPreferences: localPrefs,
-      notificationPreferences: notificationPrefs,
-      alertMode: "specific_bottles",
-      bottleAlertPreferences: {
-        bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
-        bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
-      },
-      collectionPreferences: prefs.collectionPreferences,
-    });
+    setCollectionError(null);
+    try {
+      await savePreferences({
+        areaPreferences: localPrefs,
+        notificationPreferences: notificationPrefs,
+        alertMode: "specific_bottles",
+        bottleAlertPreferences: {
+          bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
+          bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+        },
+        collectionPreferences: prefs.collectionPreferences,
+      });
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
+    }
   };
 
   const toggleState = (state: string) => {
@@ -1165,13 +1235,18 @@ export default function DashboardPage() {
                         </button>
                       </div>
                       <label style={{ display: "grid", gap: "7px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)" }}>
-                        Your rating: <strong style={{ color: "var(--color-accent-amber)" }}>{entry.rating}/100</strong>
+                        Your rating: <strong style={{ color: "var(--color-accent-amber)" }}>{collectionRatingDrafts[entry.canonicalKey] ?? entry.rating}/100</strong>
                         <input
                           type="range"
                           min={0}
                           max={100}
-                          value={entry.rating}
-                          onChange={(event) => updateCollectionBottle(entry.canonicalKey, { rating: Number(event.target.value) })}
+                          value={collectionRatingDrafts[entry.canonicalKey] ?? entry.rating}
+                          onChange={(event) => setCollectionRatingDrafts((prev) => ({ ...prev, [entry.canonicalKey]: Number(event.target.value) }))}
+                          onMouseUp={() => commitCollectionRating(entry.canonicalKey)}
+                          onTouchEnd={() => commitCollectionRating(entry.canonicalKey)}
+                          onKeyUp={(event) => {
+                            if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) commitCollectionRating(entry.canonicalKey);
+                          }}
                         />
                       </label>
                     </div>
@@ -1225,6 +1300,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
+              {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
               {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>Collection saved.</p> : null}
             </div>
           </StepShell>

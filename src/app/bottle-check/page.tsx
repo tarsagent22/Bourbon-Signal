@@ -75,7 +75,7 @@ function scoreTone(score: number) {
 
 export default function BottleCheckPage() {
   const { isSignedIn, signIn } = useAuth();
-  const { prefs, savePreferences } = useAreaPreferences();
+  const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
   const [submittedQuery, setSubmittedQuery] = useState("Buffalo Trace");
   const [state, setState] = useState("NC");
@@ -147,6 +147,10 @@ export default function BottleCheckPage() {
     if (!bottle || !canTrack) return;
     if (!isSignedIn) {
       signIn();
+      return;
+    }
+    if (prefsLoading) {
+      setTrackError("Loading your saved preferences. Try again in a second.");
       return;
     }
 
@@ -286,7 +290,7 @@ export default function BottleCheckPage() {
                         {trackError ? <small className="bc-track-error">{trackError}</small> : null}
                         {trackSaved ? <small className="bc-track-success">Saved to your alert preferences.</small> : null}
                       </div>
-                      <button type="button" onClick={trackBottle} disabled={savingTrack || isTracked}>{!isSignedIn ? "Sign in to track" : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
+                      <button type="button" onClick={trackBottle} disabled={savingTrack || prefsLoading || isTracked}>{!isSignedIn ? "Sign in to track" : prefsLoading ? "Loading..." : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
                     </>
                   ) : (
                     <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>

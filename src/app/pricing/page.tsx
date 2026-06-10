@@ -27,6 +27,8 @@ function PlanCard({
   price,
   body,
   features,
+  ctaLabel,
+  ctaHref,
   tone = "standard",
 }: {
   eyebrow: string;
@@ -34,6 +36,8 @@ function PlanCard({
   price: string;
   body: string;
   features: string[];
+  ctaLabel: string;
+  ctaHref: string;
   tone?: TierTone;
 }) {
   const featured = tone === "barrel" || tone === "founder";
@@ -83,6 +87,27 @@ function PlanCard({
           </div>
         ))}
       </div>
+
+      <a
+        href={ctaHref}
+        style={{
+          marginTop: "auto",
+          display: "inline-flex",
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: 12,
+          border: featured ? "1px solid rgba(196,148,58,0.38)" : "1px solid rgba(255,255,255,0.12)",
+          background: featured ? "linear-gradient(135deg, rgba(196,148,58,0.92), rgba(239,192,80,0.86))" : "rgba(255,255,255,0.045)",
+          color: featured ? "#15100A" : "var(--color-cream)",
+          padding: "12px 14px",
+          fontFamily: "var(--font-dm-sans)",
+          fontSize: 14,
+          fontWeight: 800,
+          textDecoration: "none",
+        }}
+      >
+        {ctaLabel}
+      </a>
     </div>
   );
 }
@@ -122,6 +147,8 @@ function PricingPageContent() {
                 price="Free"
                 body="A public proof-of-life layer for casual followers and future members."
                 features={FREE_FEATURES}
+                ctaLabel="View public feed"
+                ctaHref="/#drops"
                 tone="muted"
               />
               <PlanCard
@@ -130,6 +157,8 @@ function PricingPageContent() {
                 price={`${STANDARD_MONTHLY_PRICE} · ${STANDARD_ANNUAL_PRICE}`}
                 body={MEMBERSHIP_COPY.standardBody}
                 features={STANDARD_FEATURES}
+                ctaLabel="Build alert setup"
+                ctaHref="/dashboard#alert-setup"
               />
               <PlanCard
                 eyebrow={MEMBERSHIP_COPY.barrelStatus}
@@ -137,6 +166,8 @@ function PricingPageContent() {
                 price={`${BARREL_MONTHLY_PRICE} · ${BARREL_ANNUAL_PRICE}`}
                 body={MEMBERSHIP_COPY.barrelBody}
                 features={BARREL_FEATURES}
+                ctaLabel="Preview Barrel Proof"
+                ctaHref="/dashboard#my-collection"
                 tone="barrel"
               />
               <PlanCard
@@ -145,6 +176,8 @@ function PricingPageContent() {
                 price={`${FOUNDER_PRICE} once`}
                 body={MEMBERSHIP_COPY.founderBody}
                 features={FOUNDER_FEATURES}
+                ctaLabel="Founder preview"
+                ctaHref="/dashboard"
                 tone="founder"
               />
             </div>

@@ -154,15 +154,18 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
-  const areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? EMPTY_AREA_PREFERENCES);
-  const notificationPreferences = normalizeNotificationPreferences(
-    payload.notificationPreferences ?? getDefaultNotificationPreferences()
-  );
-  const alertMode = normalizeAlertMode(payload.alertMode);
-  const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
-  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
-
   const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const existing = buildResponseFromMetadata(user);
+
+  const areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
+  const notificationPreferences = normalizeNotificationPreferences(
+    payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
+  );
+  const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
+  const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
+  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
+
   await client.users.updateUserMetadata(userId, {
     publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences },
   });
