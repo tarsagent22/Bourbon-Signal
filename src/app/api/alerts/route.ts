@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { readMemberAlerts, writeMemberAlerts } from "@/lib/member-alerts-store";
 import { readSiteExport } from "@/lib/site-engine-contract";
-import { buildAlertId, normalizeNotificationPreferences, type MemberAlertRecord } from "@/lib/notification-preferences";
-import { candidateMatchesArea, normalizeAreaPrefs } from "@/lib/alert-delivery";
+import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
+import { candidateMatchesArea, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs } from "@/lib/alert-delivery";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -47,37 +46,14 @@ function reliabilitySummary(candidates: CandidateAlert[]) {
   };
 }
 
-function candidateToMemberAlert(userId: string, candidate: CandidateAlert, createdAt: string): MemberAlertRecord {
-  const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-  const storeLabel = asString(candidate.storeName) || asString(candidate.locationName) || asString(candidate.storeAddress) || asString(candidate.state, "Regional signal");
-  return {
-    id: buildAlertId(userId, dedupeKey, createdAt),
-    userId,
-    dedupeKey,
-    bottleName: asString(candidate.bottle, "Bottle signal"),
-    state: asString(candidate.state),
-    storeLabel,
-    matchedArea: asString(candidate.locationName) || asString(candidate.state),
-    eventType: asString(candidate.eventType, asString(candidate.action, "signal")),
-    rarityTier: asString(candidate.tier) || null,
-    quantity: asNumber(candidate.quantity) || asNumber(candidate.warehouseQty) || null,
-    score: asNumber(candidate.reliabilityScore, asNumber(candidate.score)),
-    priorityClass: candidate.priorityClass === "major" ? "major" : "standard",
-    createdAt,
-    readAt: null,
-    archivedAt: null,
-    emailDeliveredAt: null,
-    emailModeAtSend: null,
-  };
-}
-
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const alerts = await readMemberAlerts();
-  const userAlerts = alerts
-    .filter((alert) => alert.userId === userId)
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const userAlerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
   let candidateAlerts: CandidateAlert[] = [];
@@ -107,6 +83,7 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const areaPrefs = normalizeAreaPrefs(user.publicMetadata?.areaPreferences);
   const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
   if (!notificationPrefs.onSite.enabled) return NextResponse.json({ ok: true, created: 0, skipped: "on_site_disabled" });
@@ -117,14 +94,25 @@ export async function POST(req: NextRequest) {
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore))
     .slice(0, Math.max(1, Math.min(25, asNumber(body.limit, 10))));
 
-  const alerts = await readMemberAlerts();
-  const existingDedupe = new Set(alerts.filter((alert) => alert.userId === userId).map((alert) => alert.dedupeKey));
+  const inbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
+  const alerts = inbox.recent;
+  const existingDedupe = new Set(alerts.map((alert) => alert.dedupeKey));
   const createdAt = new Date().toISOString();
   const created = candidates
     .filter((candidate) => !existingDedupe.has(asString(candidate.dedupeKey, asString(candidate.id))))
-    .map((candidate) => candidateToMemberAlert(userId, candidate, createdAt));
+    .map((candidate) => candidateToMemberAlert(userId, candidate, createdAt, areaPrefs));
 
-  if (created.length) await writeMemberAlerts([...created, ...alerts]);
+  if (created.length) {
+    await client.users.updateUserMetadata(userId, {
+      privateMetadata: {
+        ...privateMetadata,
+        alertInbox: {
+          recent: [...created, ...alerts].slice(0, 100),
+          lastSyncedAt: createdAt,
+        },
+      },
+    });
+  }
 
   return NextResponse.json({
     ok: true,
@@ -145,12 +133,13 @@ export async function PATCH(req: NextRequest) {
     alertId?: string;
   };
 
-  const alerts = await readMemberAlerts();
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const alerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent;
   const now = new Date().toISOString();
 
   const nextAlerts = alerts.map((alert) => {
-    if (alert.userId !== userId) return alert;
-
     if (body.action === "mark_all_read") {
       return alert.readAt || alert.archivedAt ? alert : { ...alert, readAt: now };
     }
@@ -168,10 +157,17 @@ export async function PATCH(req: NextRequest) {
     return alert;
   });
 
-  await writeMemberAlerts(nextAlerts);
+  await client.users.updateUserMetadata(userId, {
+    privateMetadata: {
+      ...privateMetadata,
+      alertInbox: {
+        recent: nextAlerts,
+        lastSyncedAt: now,
+      },
+    },
+  });
 
   const userAlerts = nextAlerts
-    .filter((alert) => alert.userId === userId)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
   return NextResponse.json({
