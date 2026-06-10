@@ -399,6 +399,11 @@ export default function DashboardPage() {
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const hydratedBottlePrefsKeyRef = useRef("");
+  const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
+  const [collectionRating, setCollectionRating] = useState(85);
+  const [collectionNotes, setCollectionNotes] = useState("");
+  const [savingCollection, setSavingCollection] = useState(false);
+  const [savedCollection, setSavedCollection] = useState(false);
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -511,6 +516,47 @@ export default function DashboardPage() {
         .some((value) => String(value).toLowerCase().includes(query));
     });
   }, [bottleOptions, bottleQuery, selectedCanonicalKeys]);
+
+  const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
+  const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
+
+  const filteredCollectionBottleOptions = useMemo(() => {
+    const query = collectionBottleQuery.trim().toLowerCase();
+    if (!query) return [];
+    return bottleOptions.filter((option) => {
+      if (collectionKeys.has(option.canonicalKey)) return false;
+      return [
+        option.label,
+        option.bottle.distillery,
+        ...(option.bottle.flavor || []),
+        ...(option.bottle.search_aliases || []),
+        ...Object.values(option.bottle.state_aliases || {}).flat(),
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    }).slice(0, 6);
+  }, [bottleOptions, collectionBottleQuery, collectionKeys]);
+
+  const collectionRecommendationOptions = useMemo(() => {
+    const likedEntries = collectionEntries.filter((entry) => entry.rating >= 80);
+    const likedKeys = new Set(likedEntries.map((entry) => entry.canonicalKey));
+    const likedBottles = likedEntries
+      .map((entry) => bottleOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
+      .filter((bottle): bottle is Bottle => Boolean(bottle));
+    const favoriteFlavorTags = new Set(likedBottles.flatMap((bottle) => bottle.flavor || []).map((tag) => tag.toLowerCase()));
+
+    if (!favoriteFlavorTags.size) return [];
+    return bottleOptions
+      .filter((option) => !likedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
+      .map((option) => ({
+        option,
+        score: (option.bottle.flavor || []).filter((tag) => favoriteFlavorTags.has(tag.toLowerCase())).length,
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score || a.option.label.localeCompare(b.option.label))
+      .slice(0, 4)
+      .map((item) => item.option);
+  }, [bottleOptions, collectionEntries, selectedCanonicalKeys]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -665,6 +711,77 @@ export default function DashboardPage() {
     option.bottleIds.forEach((id) => removeBottle(id));
   };
 
+  const saveCollectionEntries = async (entries: UserAlertPreferences["collectionPreferences"]["bottles"]) => {
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    setSavingCollection(true);
+    setSavedCollection(false);
+    try {
+      await savePreferences({
+        areaPreferences: localPrefs,
+        notificationPreferences: notificationPrefs,
+        alertMode,
+        bottleAlertPreferences: {
+          bottleNames: watchedBottleOptions.map((option) => option.label),
+          bottleKeys: Array.from(selectedCanonicalKeys),
+        },
+        collectionPreferences: { bottles: entries },
+      });
+      setSavedCollection(true);
+      setTimeout(() => setSavedCollection(false), 2200);
+    } finally {
+      setSavingCollection(false);
+    }
+  };
+
+  const addCollectionBottle = async (option: BottleOption) => {
+    const now = new Date().toISOString();
+    const nextEntries = [
+      ...collectionEntries.filter((entry) => entry.canonicalKey !== option.canonicalKey),
+      {
+        bottleId: option.bottle.id,
+        bottleName: option.label,
+        canonicalKey: option.canonicalKey,
+        rating: collectionRating,
+        notes: collectionNotes.trim(),
+        addedAt: now,
+        updatedAt: now,
+      },
+    ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
+    await saveCollectionEntries(nextEntries);
+    setCollectionBottleQuery("");
+    setCollectionRating(85);
+    setCollectionNotes("");
+  };
+
+  const updateCollectionBottle = async (canonicalKey: string, patch: Partial<UserAlertPreferences["collectionPreferences"]["bottles"][number]>) => {
+    const now = new Date().toISOString();
+    await saveCollectionEntries(collectionEntries.map((entry) =>
+      entry.canonicalKey === canonicalKey ? { ...entry, ...patch, updatedAt: now } : entry
+    ));
+  };
+
+  const removeCollectionBottle = async (canonicalKey: string) => {
+    await saveCollectionEntries(collectionEntries.filter((entry) => entry.canonicalKey !== canonicalKey));
+  };
+
+  const trackCollectionSuggestion = async (option: BottleOption) => {
+    addBottleOption(option);
+    setAlertMode("specific_bottles");
+    await savePreferences({
+      areaPreferences: localPrefs,
+      notificationPreferences: notificationPrefs,
+      alertMode: "specific_bottles",
+      bottleAlertPreferences: {
+        bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
+        bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+      },
+      collectionPreferences: prefs.collectionPreferences,
+    });
+  };
+
   const toggleState = (state: string) => {
     setLocalPrefs((prev) => {
       const removing = prev.states.includes(state);
@@ -792,6 +909,7 @@ export default function DashboardPage() {
           bottleNames: watchedBottleOptions.map((option) => option.label),
           bottleKeys: Array.from(selectedCanonicalKeys),
         },
+        collectionPreferences: prefs.collectionPreferences,
       };
       await savePreferences(nextPrefs);
       setSavedLocations(true);
@@ -902,10 +1020,11 @@ export default function DashboardPage() {
                 href="#bottle-watchlist"
               />
               <HubCard
-                eyebrow="Coming next"
+                eyebrow="Live now"
                 title="My Collection"
                 body="A place to log bottles you own, rate them 0-100, and build a taste profile without turning shelf bottles into noisy alerts."
-                status="Phase 2"
+                status={`${collectionEntries.length} owned`}
+                href="#my-collection"
               />
               <HubCard
                 eyebrow="Future module"
@@ -915,6 +1034,121 @@ export default function DashboardPage() {
               />
             </div>
           </section>
+
+          <StepShell
+            step="Collection"
+            title="My Collection"
+            subtitle="Add bottles you own, rate them 0-100, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
+          >
+            <div id="my-collection" style={{ display: "grid", gap: "18px" }}>
+              <div style={{ display: "grid", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 130px", gap: "12px" }}>
+                  <input
+                    value={collectionBottleQuery}
+                    onChange={(event) => setCollectionBottleQuery(event.target.value)}
+                    placeholder="Search a bottle you own..."
+                    style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none" }}
+                  />
+                  <label style={{ display: "grid", gap: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "var(--color-text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Rating
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={collectionRating}
+                      onChange={(event) => setCollectionRating(Math.max(0, Math.min(100, Number(event.target.value) || 0)))}
+                      style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "11px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none" }}
+                    />
+                  </label>
+                </div>
+                <textarea
+                  value={collectionNotes}
+                  onChange={(event) => setCollectionNotes(event.target.value)}
+                  placeholder="Optional notes: why you like it, batch, store pick, flavor impressions..."
+                  rows={2}
+                  style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none", resize: "vertical" }}
+                />
+
+                {filteredCollectionBottleOptions.length > 0 ? (
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {filteredCollectionBottleOptions.map((option) => (
+                      <button
+                        key={option.canonicalKey}
+                        onClick={() => addCollectionBottle(option)}
+                        disabled={savingCollection}
+                        style={{ width: "100%", textAlign: "left", padding: "14px 16px", borderRadius: "16px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(196,148,58,0.07)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
+                      >
+                        <strong>{option.label}</strong>
+                        <span style={{ display: "block", marginTop: 4, color: "var(--color-text-tertiary)", fontSize: 12 }}>
+                          {option.bottle.distillery} {option.bottle.flavor?.length ? `· ${option.bottle.flavor.slice(0, 3).join(", ")}` : ""}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : collectionBottleQuery.trim() ? (
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                    No matching bottle found yet. For this MVP, collection entries use the existing Bourbon Signal bottle library.
+                  </div>
+                ) : null}
+              </div>
+
+              {collectionEntries.length > 0 ? (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {collectionEntries.map((entry) => (
+                    <div key={entry.canonicalKey} style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.028)", padding: "15px", display: "grid", gap: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start", flexWrap: "wrap" }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "23px" }}>{entry.bottleName}</h3>
+                          {entry.notes ? <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>{entry.notes}</p> : null}
+                        </div>
+                        <button onClick={() => removeCollectionBottle(entry.canonicalKey)} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: "rgba(255,255,255,0.03)", color: "var(--color-text-tertiary)", padding: "8px 11px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", cursor: "pointer" }}>
+                          Remove
+                        </button>
+                      </div>
+                      <label style={{ display: "grid", gap: "7px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)" }}>
+                        Your rating: <strong style={{ color: "var(--color-accent-amber)" }}>{entry.rating}/100</strong>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={entry.rating}
+                          onChange={(event) => updateCollectionBottle(entry.canonicalKey, { rating: Number(event.target.value) })}
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+                  Your collection is empty. Add a few bottles you own and rate highly; Barrel Proof recommendations will start from those signals.
+                </div>
+              )}
+
+              <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
+                <div>
+                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Early recommendation signal</p>
+                  <h3 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Based on bottles you rated 80+</h3>
+                </div>
+                {collectionRecommendationOptions.length > 0 ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
+                    {collectionRecommendationOptions.map((option) => (
+                      <div key={option.canonicalKey} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "13px", display: "grid", gap: "9px" }}>
+                        <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{option.label}</strong>
+                        <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>{option.bottle.flavor?.slice(0, 3).join(", ") || option.bottle.distillery}</span>
+                        <button onClick={() => trackCollectionSuggestion(option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track suggestion</button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.7 }}>
+                    Add and rate a few bottles 80+ to unlock lightweight flavor-overlap suggestions. This is the first pass before deeper Bourbon DNA logic.
+                  </p>
+                )}
+              </div>
+
+              {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>Collection saved.</p> : null}
+            </div>
+          </StepShell>
 
           <div id="alert-setup" />
           <StepShell

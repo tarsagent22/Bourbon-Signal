@@ -166,6 +166,7 @@ export default function BottleCheckPage() {
           bottleNames: Array.from(new Set([...prefs.bottleAlertPreferences.bottleNames, bottle.canonicalName])),
           bottleKeys: Array.from(new Set([...prefs.bottleAlertPreferences.bottleKeys, bottleKey].filter(Boolean))),
         },
+        collectionPreferences: prefs.collectionPreferences,
       });
       setTrackSaved(true);
     } catch (error) {

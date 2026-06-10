@@ -21,6 +21,9 @@ const EMPTY_PREFS: UserAlertPreferences = {
     bottleNames: [],
     bottleKeys: [],
   },
+  collectionPreferences: {
+    bottles: [],
+  },
 };
 
 let cachedPrefs: UserAlertPreferences | null = null;

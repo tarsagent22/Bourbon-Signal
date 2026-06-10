@@ -19,6 +19,16 @@ export interface AreaPreferences {
 
 export type AlertMode = "specific_bottles" | "anything_notable";
 
+export interface CollectionBottlePreference {
+  bottleId: string;
+  bottleName: string;
+  canonicalKey: string;
+  rating: number;
+  notes?: string;
+  addedAt: string;
+  updatedAt: string;
+}
+
 export interface UserAlertPreferences {
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
@@ -26,6 +36,9 @@ export interface UserAlertPreferences {
   bottleAlertPreferences: {
     bottleNames: string[];
     bottleKeys: string[];
+  };
+  collectionPreferences: {
+    bottles: CollectionBottlePreference[];
   };
 }
 
@@ -42,6 +55,10 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
 const EMPTY_BOTTLE_ALERT_PREFERENCES: UserAlertPreferences["bottleAlertPreferences"] = {
   bottleNames: [],
   bottleKeys: [],
+};
+
+const EMPTY_COLLECTION_PREFERENCES: UserAlertPreferences["collectionPreferences"] = {
+  bottles: [],
 };
 
 function normalizeAlertMode(input: unknown): AlertMode {
@@ -82,12 +99,44 @@ function normalizeBottleAlertPreferences(input: unknown): UserAlertPreferences["
   };
 }
 
+function normalizeCollectionPreferences(input: unknown): UserAlertPreferences["collectionPreferences"] {
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const rawBottles = Array.isArray(source.bottles) ? source.bottles : [];
+  const seen = new Set<string>();
+  const bottles: CollectionBottlePreference[] = [];
+
+  for (const raw of rawBottles) {
+    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const bottleName = typeof item.bottleName === "string" ? item.bottleName.trim() : "";
+    const bottleId = typeof item.bottleId === "string" ? item.bottleId.trim() : normalizeBottleKey(bottleName);
+    const canonicalKey = normalizeBottleKey(typeof item.canonicalKey === "string" ? item.canonicalKey : bottleName || bottleId);
+    if (!bottleName || !canonicalKey || seen.has(canonicalKey)) continue;
+    seen.add(canonicalKey);
+    const rawRating = typeof item.rating === "number" && Number.isFinite(item.rating) ? item.rating : 0;
+    const rating = Math.max(0, Math.min(100, Math.round(rawRating)));
+    const addedAt = typeof item.addedAt === "string" ? item.addedAt : new Date().toISOString();
+    const updatedAt = typeof item.updatedAt === "string" ? item.updatedAt : addedAt;
+    bottles.push({
+      bottleId,
+      bottleName,
+      canonicalKey,
+      rating,
+      notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",
+      addedAt,
+      updatedAt,
+    });
+  }
+
+  return { bottles: bottles.slice(0, 250) };
+}
+
 function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
   return {
     areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
     notificationPreferences: normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences),
     alertMode: normalizeAlertMode(user.publicMetadata?.alertMode),
     bottleAlertPreferences: normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences),
+    collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
   };
 }
 
@@ -111,11 +160,12 @@ export async function POST(req: NextRequest) {
   );
   const alertMode = normalizeAlertMode(payload.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
+  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
 
   const client = await clerkClient();
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences },
+    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences },
   });
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences });
 }
