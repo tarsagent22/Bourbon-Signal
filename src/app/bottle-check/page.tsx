@@ -21,7 +21,8 @@ interface BottleResult {
   } | null;
   localSignal?: {
     state: string;
-    localScore: number;
+    localScore: number | null;
+    scoreStatus: "scored" | "common" | "no_local_signal";
     label: string;
     verdict: string;
     confidence: "high" | "medium" | "low";
@@ -200,15 +201,14 @@ export default function BottleCheckPage() {
                 <p className="bc-summary">{bottle.summary}</p>
 
                 {signal ? (
-                  <div className={`bc-score ${scoreTone(signal.localScore)}`}>
+                  <div className={`bc-score ${typeof signal.localScore === "number" ? scoreTone(signal.localScore) : "quiet"}`}>
                     <div>
-                      <span>Local Score</span>
-                      <strong>{signal.localScore}</strong>
+                      <span>{signal.scoreStatus === "scored" ? "Local Score" : "Local Read"}</span>
+                      <strong>{typeof signal.localScore === "number" ? signal.localScore : "—"}</strong>
                     </div>
                     <p>{signal.label}</p>
                   </div>
                 ) : null}
-
                 <div className="bc-guidance">
                   <h3>Buy guidance</h3>
                   <p>{signal?.verdict || bottle.guidance}</p>

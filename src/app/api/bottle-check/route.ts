@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getBottleById, normalizeBottleKey, searchBourbonBible, type BibleBottle } from "@/lib/bourbonBible";
+import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 
 interface LocalSignal {
   state: string;
-  localScore: number;
+  localScore: number | null;
+  scoreStatus: "scored" | "common" | "no_local_signal";
   label: string;
   verdict: string;
   confidence: "high" | "medium" | "low";
@@ -57,7 +59,6 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   const uniqueLocations = new Set(recent90.map((drop) => String(drop.store_id || drop.store_name || drop.display_location || drop.board_name || drop.store_city || "")).filter(Boolean));
 
   const availabilityBase: Record<string, number> = {
-    common: 18,
     regional: 34,
     seasonal: 42,
     limited: 58,
@@ -66,25 +67,29 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
     unicorn: 96,
   };
 
-  const recencyBoost = lastSeenAt ? Math.max(0, 18 - Math.floor((now - asTime(lastSeenAt)) / day) / 3) : 0;
-  const sightingBoost = Math.min(18, recent90.length * 2.4);
-  const spreadBoost = Math.min(10, uniqueLocations.size * 1.5);
-  const commonPenalty = bottle.availability === "common" ? Math.min(14, recent90.length * 1.5) : 0;
-  const rawLocalScore = Math.max(0, Math.min(100, Math.round((availabilityBase[bottle.availability] ?? 40) + recencyBoost + sightingBoost + spreadBoost - commonPenalty)));
-  const localScore = bottle.availability === "common" ? Math.min(32, rawLocalScore) : rawLocalScore;
+  const scoreStatus: LocalSignal["scoreStatus"] = bottle.availability === "common" ? "common" : recent90.length === 0 ? "no_local_signal" : "scored";
+  const recencyBoost = scoreStatus === "scored" && lastSeenAt ? Math.max(0, 18 - Math.floor((now - asTime(lastSeenAt)) / day) / 3) : 0;
+  const sightingBoost = scoreStatus === "scored" ? Math.min(18, recent90.length * 2.4) : 0;
+  const spreadBoost = scoreStatus === "scored" ? Math.min(10, uniqueLocations.size * 1.5) : 0;
+  const rawLocalScore = scoreStatus === "scored"
+    ? Math.max(0, Math.min(100, Math.round((availabilityBase[bottle.availability] ?? 40) + recencyBoost + sightingBoost + spreadBoost)))
+    : null;
+  const localScore = rawLocalScore;
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
   let label = "Not enough local signal";
   if (bottle.availability === "common") label = "Common shelf bottle";
-  else if (localScore >= 90) label = "Extremely rare local find";
-  else if (localScore >= 75) label = "Rare in your area";
-  else if (localScore >= 58) label = "Worth checking locally";
-  else if (localScore >= 36) label = "Moderate local signal";
+  else if (scoreStatus === "no_local_signal") label = "No local signal yet";
+  else if (localScore !== null && localScore >= 90) label = "Extremely rare local find";
+  else if (localScore !== null && localScore >= 75) label = "Rare in your area";
+  else if (localScore !== null && localScore >= 58) label = "Worth checking locally";
+  else if (localScore !== null && localScore >= 36) label = "Moderate local signal";
 
   let verdict = "Check price and local context before deciding.";
   if (bottle.availability === "common") verdict = "Usually safe to pass unless you specifically want it.";
-  else if (localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
-  else if (localScore >= 62) verdict = "Worth considering at a fair shelf price.";
+  else if (scoreStatus === "no_local_signal") verdict = "We know the bottle context, but do not have enough recent local sightings to score it honestly yet.";
+  else if (localScore !== null && localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
+  else if (localScore !== null && localScore >= 62) verdict = "Worth considering at a fair shelf price.";
   else if (confidence === "low") verdict = "Not enough local history yet; use the national bottle context as a guide.";
 
   const canTrack = Boolean(bottle.isAlertEligible && bottle.availability !== "common");
@@ -92,6 +97,7 @@ function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   return {
     state,
     localScore,
+    scoreStatus,
     label,
     verdict,
     confidence,
@@ -120,6 +126,16 @@ export async function GET(request: Request) {
   const suggestions = query ? searchBourbonBible(query, 8) : [];
 
   if (!bottle) {
+    captureSearchEvent({
+      surface: "bottle-check",
+      query,
+      state,
+      outcome: "unmatched",
+      suggestionCount: suggestions.length,
+      localScore: null,
+      scoreStatus: "unmatched",
+    });
+
     return NextResponse.json(
       {
         query,
@@ -133,6 +149,19 @@ export async function GET(request: Request) {
   }
 
   const localSignal = getLocalSignal(bottle, state);
+
+  captureSearchEvent({
+    surface: "bottle-check",
+    query: query || bottle.canonicalName,
+    state,
+    outcome: "matched",
+    matchedBottleId: bottle.id,
+    matchedBottleName: bottle.canonicalName,
+    suggestionCount: suggestions.length,
+    confidence: localSignal.confidence,
+    localScore: localSignal.localScore,
+    scoreStatus: localSignal.scoreStatus,
+  });
 
   return NextResponse.json(
     {

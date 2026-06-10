@@ -82,6 +82,34 @@ Outputs:
 - `automation/bourbon-signal/reports/weekly-engine-brief-latest.json`
 - Timestamped report copies in the same folder
 
+## Search Events Report
+
+Command:
+
+```bash
+npm run ops:searches -- --since=24h
+```
+
+Purpose: list recent Bottle Check and Finder searches captured in Vercel logs.
+
+Captured fields intentionally avoid user PII:
+
+- surface: `bottle-check` or `finder`
+- query
+- state
+- mode
+- outcome
+- matched bottle name/id when applicable
+- suggestion/result count
+- Bottle Check score status/local score when applicable
+
+Outputs:
+
+- `automation/bourbon-signal/reports/search-events-latest.md`
+- `automation/bourbon-signal/reports/search-events-latest.json`
+
+Use this during tester windows to find missing Bourbon Bible/index entries and confusing low-data searches.
+
 ## Engine Coding Loop
 
 When Chandler approves an improvement from the weekly brief:

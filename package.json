@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "ops:daily": "node automation/bourbon-signal/daily-reliability.mjs",
-    "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs"
+    "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs",
+    "ops:searches": "node automation/bourbon-signal/search-events-report.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",

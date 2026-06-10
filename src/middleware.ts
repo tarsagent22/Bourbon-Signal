@@ -20,6 +20,7 @@ const isProtectedRoute = createRouteMatcher([
   "/api/feedback(.*)",
   "/api/locations(.*)",
   "/api/nc-intelligence(.*)",
+  "/api/search-events(.*)",
   "/api/stores(.*)",
   "/api/user/preferences(.*)",
 ]);

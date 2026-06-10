@@ -980,15 +980,44 @@ export default function MapPageClient() {
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, []);
 
+  const captureFinderSearch = (payload: { outcome: "matched" | "unmatched" | "selected"; matchedBottleId?: string | null; matchedBottleName?: string | null; resultCount?: number }) => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return;
+    fetch("/api/search-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        surface: "finder",
+        query: trimmed,
+        state: stateFilter,
+        mode,
+        ...payload,
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Search capture is best-effort and should never affect Finder UX.
+    });
+  };
+
   const submitSearch = () => {
     if (mode === "bottle") {
       const match = bottleSuggestions[0] ?? filteredBottles[0];
+      captureFinderSearch({
+        outcome: match ? "matched" : "unmatched",
+        matchedBottleId: match?.id ?? null,
+        matchedBottleName: match?.name ?? null,
+        resultCount: bottleSuggestions.length,
+      });
       if (match) {
         setQuery(match.name);
         setSelectedBottleId(match.id);
       }
     } else {
       const match = locationSuggestions[0];
+      captureFinderSearch({
+        outcome: match ? "matched" : "unmatched",
+        resultCount: locationSuggestions.length,
+      });
       if (match) {
         setQuery(match.displayLabel ?? match.name ?? "");
         setSelectedStoreId(match.id);
