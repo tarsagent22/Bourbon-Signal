@@ -483,6 +483,7 @@ export default function DashboardPage() {
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const hydratedBottlePrefsKeyRef = useRef("");
   const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
+  const [selectedCollectionBottle, setSelectedCollectionBottle] = useState<BottleOption | null>(null);
   const [collectionRating, setCollectionRating] = useState(85);
   const [collectionTasteTags, setCollectionTasteTags] = useState<string[]>([]);
   const [collectionNotes, setCollectionNotes] = useState("");
@@ -869,6 +870,20 @@ export default function DashboardPage() {
     }
   };
 
+  const stageCollectionBottle = (option: BottleOption) => {
+    setSelectedCollectionBottle(option);
+    setCollectionBottleQuery(option.label);
+    setCollectionError(null);
+  };
+
+  const saveStagedCollectionBottle = async () => {
+    if (!selectedCollectionBottle) {
+      setCollectionError("Choose a bottle from the suggestions before saving.");
+      return;
+    }
+    await addCollectionBottle(selectedCollectionBottle);
+  };
+
   const addCollectionBottle = async (option: BottleOption) => {
     const now = new Date().toISOString();
     const nextEntries = [
@@ -887,6 +902,7 @@ export default function DashboardPage() {
     ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
     const saved = await saveCollectionEntries(nextEntries);
     if (saved) {
+      setSelectedCollectionBottle(null);
       setCollectionBottleQuery("");
       setCollectionRating(85);
       setCollectionTasteTags([]);
@@ -1986,11 +2002,23 @@ export default function DashboardPage() {
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "12px" }}>
                   <input
                     value={collectionBottleQuery}
-                    onChange={(event) => setCollectionBottleQuery(event.target.value)}
+                    onChange={(event) => {
+                      setCollectionBottleQuery(event.target.value);
+                      if (selectedCollectionBottle && event.target.value !== selectedCollectionBottle.label) setSelectedCollectionBottle(null);
+                    }}
                     placeholder="Search a bottle you own..."
                     style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none" }}
                   />
                 </div>
+                {selectedCollectionBottle ? (
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Selected bottle</div>
+                      <div style={{ marginTop: 4, fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, color: "var(--color-cream)" }}>{selectedCollectionBottle.label}</div>
+                    </div>
+                    <button type="button" onClick={() => { setSelectedCollectionBottle(null); setCollectionBottleQuery(""); }} style={{ border: "1px solid rgba(255,255,255,0.10)", borderRadius: "999px", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", cursor: "pointer" }}>Change</button>
+                  </div>
+                ) : null}
                 <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(180deg, rgba(45,31,16,0.42), rgba(255,255,255,0.025))", padding: "15px", display: "grid", gap: "12px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "end", flexWrap: "wrap" }}>
                     <div>
@@ -2034,9 +2062,9 @@ export default function DashboardPage() {
                     {filteredCollectionBottleOptions.map((option) => (
                       <button
                         key={option.canonicalKey}
-                        onClick={() => addCollectionBottle(option)}
+                        onClick={() => stageCollectionBottle(option)}
                         disabled={savingCollection}
-                        style={{ width: "100%", textAlign: "left", padding: "14px 16px", borderRadius: "16px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(196,148,58,0.07)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
+                        style={{ width: "100%", textAlign: "left", padding: "14px 16px", borderRadius: "16px", border: selectedCollectionBottle?.canonicalKey === option.canonicalKey ? "1px solid rgba(196,148,58,0.52)" : "1px solid rgba(196,148,58,0.20)", background: selectedCollectionBottle?.canonicalKey === option.canonicalKey ? "rgba(196,148,58,0.14)" : "rgba(196,148,58,0.07)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
                       >
                         <strong>{option.label}</strong>
                         <span style={{ display: "block", marginTop: 4, color: "var(--color-text-tertiary)", fontSize: 12 }}>
@@ -2050,6 +2078,14 @@ export default function DashboardPage() {
                     No matching bottle found yet. For this MVP, collection entries use the existing Bourbon Signal bottle library.
                   </div>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={saveStagedCollectionBottle}
+                  disabled={savingCollection || !selectedCollectionBottle}
+                  style={{ border: "1px solid rgba(196,148,58,0.30)", borderRadius: "14px", background: selectedCollectionBottle ? "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)" : "rgba(255,255,255,0.045)", color: selectedCollectionBottle ? "#0D0B07" : "var(--color-text-tertiary)", padding: "13px 16px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, cursor: savingCollection ? "progress" : selectedCollectionBottle ? "pointer" : "not-allowed", opacity: savingCollection ? 0.75 : 1 }}
+                >
+                  {savingCollection ? "Saving bottle…" : selectedCollectionBottle ? "Save bottle to collection" : "Select a suggested bottle to save"}
+                </button>
               </div>
 
               {collectionEntries.length > 0 ? (
