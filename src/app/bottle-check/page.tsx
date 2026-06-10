@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { AVAILABLE_STATES } from "@/lib/statePreferences";
+import { useAreaPreferences } from "@/hooks/useAreaPreferences";
+import { useAuth } from "@/lib/auth";
 
 interface BottleResult {
   bottle: {
@@ -53,6 +55,10 @@ const availabilityLabels: Record<string, string> = {
 
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
+function normalizeBottleKey(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "No signal yet";
   const time = Date.parse(value);
@@ -68,21 +74,17 @@ function scoreTone(score: number) {
 }
 
 export default function BottleCheckPage() {
+  const { isSignedIn, signIn } = useAuth();
+  const { prefs, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
   const [submittedQuery, setSubmittedQuery] = useState("Buffalo Trace");
   const [state, setState] = useState("NC");
   const [result, setResult] = useState<BottleResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [tracked, setTracked] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("bourbon-signal-bottle-check-tracked");
-      if (raw) setTracked(JSON.parse(raw));
-    } catch {
-      setTracked([]);
-    }
-  }, []);
+  const [trackingStates, setTrackingStates] = useState<string[]>(["NC"]);
+  const [savingTrack, setSavingTrack] = useState(false);
+  const [trackError, setTrackError] = useState<string | null>(null);
+  const [trackSaved, setTrackSaved] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -106,9 +108,16 @@ export default function BottleCheckPage() {
     return () => controller.abort();
   }, [submittedQuery, state]);
 
+  useEffect(() => {
+    setTrackingStates((prev) => Array.from(new Set([...(prev.length ? prev : []), state])));
+  }, [state]);
+
   const bottle = result?.bottle || null;
   const signal = result?.localSignal;
-  const isTracked = bottle ? tracked.includes(bottle.id) : false;
+  const bottleKey = bottle ? normalizeBottleKey(bottle.canonicalName) : "";
+  const savedBottleKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizeBottleKey);
+  const savedBottleNames = prefs.bottleAlertPreferences.bottleNames.map(normalizeBottleKey);
+  const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isCommon = bottle?.availability === "common";
   const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
@@ -126,14 +135,43 @@ export default function BottleCheckPage() {
     setSubmittedQuery(query);
   }
 
-  function trackBottle() {
+  function toggleTrackingState(nextState: string) {
+    setTrackingStates((prev) => {
+      const hasState = prev.includes(nextState);
+      const next = hasState ? prev.filter((item) => item !== nextState) : [...prev, nextState];
+      return next.length ? next : [nextState];
+    });
+  }
+
+  async function trackBottle() {
     if (!bottle || !canTrack) return;
-    const next = Array.from(new Set([...tracked, bottle.id]));
-    setTracked(next);
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+
+    setSavingTrack(true);
+    setTrackError(null);
+    setTrackSaved(false);
     try {
-      window.localStorage.setItem("bourbon-signal-bottle-check-tracked", JSON.stringify(next));
-    } catch {
-      // Ignore local storage failures; the UI should still feel responsive.
+      const selectedStates = trackingStates.length ? trackingStates : [state];
+      await savePreferences({
+        areaPreferences: {
+          ...prefs.areaPreferences,
+          states: Array.from(new Set([...prefs.areaPreferences.states, ...selectedStates])),
+        },
+        notificationPreferences: prefs.notificationPreferences,
+        alertMode: "specific_bottles",
+        bottleAlertPreferences: {
+          bottleNames: Array.from(new Set([...prefs.bottleAlertPreferences.bottleNames, bottle.canonicalName])),
+          bottleKeys: Array.from(new Set([...prefs.bottleAlertPreferences.bottleKeys, bottleKey].filter(Boolean))),
+        },
+      });
+      setTrackSaved(true);
+    } catch (error) {
+      setTrackError(error instanceof Error ? error.message : "Could not save this bottle yet.");
+    } finally {
+      setSavingTrack(false);
     }
   }
 
@@ -227,8 +265,27 @@ export default function BottleCheckPage() {
                     <p><strong>No alert settings for common bottles.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
                     <>
-                      <p><strong>Track this bottle</strong> saves it for Bottle Check follow-up. Alert setup stays separate so this page does not get confusing.</p>
-                      <button type="button" onClick={trackBottle} disabled={isTracked}>{isTracked ? "Tracked" : "Track this bottle"}</button>
+                      <div className="bc-track-content">
+                        <p><strong>Track this bottle</strong> saves it to your account-level alert preferences so future inbox/email alerts can use it.</p>
+                        <div className="bc-market-picker" aria-label="Choose markets to track this bottle">
+                          {activeStates.map((item) => (
+                            <button
+                              key={item.code}
+                              type="button"
+                              className={trackingStates.includes(item.code) ? "selected" : ""}
+                              onClick={() => toggleTrackingState(item.code)}
+                            >
+                              {item.code}
+                            </button>
+                          ))}
+                        </div>
+                        <small>
+                          Saves selected markets now. Use the dashboard afterward for board, city, or store-level territory refinement.
+                        </small>
+                        {trackError ? <small className="bc-track-error">{trackError}</small> : null}
+                        {trackSaved ? <small className="bc-track-success">Saved to your alert preferences.</small> : null}
+                      </div>
+                      <button type="button" onClick={trackBottle} disabled={savingTrack || isTracked}>{!isSignedIn ? "Sign in to track" : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
                     </>
                   ) : (
                     <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>
@@ -297,8 +354,8 @@ const bottleCheckCss = `
 .bc-field input:focus { border-color:rgba(212,164,74,.78); box-shadow:0 0 0 3px rgba(212,164,74,.12); }
 .bc-search-clear { position:absolute; right:8px; top:50%; transform:translateY(-50%); appearance:none; width:32px; height:32px; border:1px solid rgba(247,240,224,.10); border-radius:999px; background:rgba(255,255,255,.045); color:var(--color-text-secondary); display:grid; place-items:center; padding:0; font:800 22px/0 var(--font-dm-sans); cursor:pointer; }
 .bc-search-clear:hover, .bc-search-clear:focus-visible { color:var(--color-text-primary); border-color:rgba(212,146,11,.34); outline:none; }
-.bc-search-card > button, .bc-track-box button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; }
-.bc-track-box button:disabled { cursor:default; opacity:.72; }
+.bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
+.bc-track-box > button:disabled { cursor:default; opacity:.72; }
 .bc-panel { margin-top:18px; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:24px; background:rgba(255,255,255,.026); color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
 .bc-panel strong { color:var(--color-cream); display:block; font:700 22px/1.2 var(--font-playfair); margin-bottom:8px; }
 .bc-result-grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr); gap:16px; margin-top:18px; }
@@ -326,6 +383,13 @@ const bottleCheckCss = `
 .bc-track-box { margin-top:22px; border-radius:18px; border:1px solid rgba(196,148,58,.16); background:rgba(196,148,58,.055); padding:16px; display:flex; justify-content:space-between; gap:16px; align-items:center; }
 .bc-track-box p { margin:0; color:var(--color-text-secondary); font:13px/1.65 var(--font-dm-sans); }
 .bc-track-box strong { color:var(--color-cream); }
+.bc-track-content { display:grid; gap:10px; min-width:0; }
+.bc-track-content small { color:var(--color-text-tertiary); font:12px/1.45 var(--font-dm-sans); }
+.bc-market-picker { display:flex; flex-wrap:wrap; gap:7px; }
+.bc-market-picker button { border:1px solid rgba(245,237,214,.12); border-radius:999px; background:rgba(255,255,255,.035); color:var(--color-text-secondary); padding:7px 10px; font:900 11px/1 var(--font-dm-sans); cursor:pointer; }
+.bc-market-picker button.selected { border-color:rgba(196,148,58,.52); background:rgba(196,148,58,.15); color:var(--color-accent-amber); }
+.bc-track-content .bc-track-error { color:#ffb4a8; }
+.bc-track-content .bc-track-success { color:#9AD4B1; }
 .bc-detail-card { display:grid; gap:20px; align-content:start; }
 .bc-local-note { margin:-8px 0 0; color:var(--color-text-secondary); font:13px/1.55 var(--font-dm-sans); }
 .bc-stat-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }

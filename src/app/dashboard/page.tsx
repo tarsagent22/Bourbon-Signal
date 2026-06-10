@@ -141,6 +141,10 @@ function canonicalizeLocationName(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+function normalizePreferenceBottleKey(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function normalizeNcBoardLabel(value: string) {
   return value
     .replace(/abc/gi, "")
@@ -343,6 +347,7 @@ export default function DashboardPage() {
   const [territorySearch, setTerritorySearch] = useState("");
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
+  const hydratedBottlePrefsKeyRef = useRef("");
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -461,6 +466,25 @@ export default function DashboardPage() {
     const ids = new Set(pool.map((bottle) => bottle.id));
     return bottleOptions.filter((option) => ids.has(option.bottle.id) && !selectedCanonicalKeys.has(option.canonicalKey));
   }, [bottleOptions, selectedCanonicalKeys]);
+
+  useEffect(() => {
+    if (!mounted || !isSignedIn || bottleOptions.length === 0) return;
+    const savedNames = prefs.bottleAlertPreferences.bottleNames.map(normalizePreferenceBottleKey).filter(Boolean);
+    const savedKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizePreferenceBottleKey).filter(Boolean);
+    const savedSignature = [...savedNames, ...savedKeys].sort().join("|");
+    if (!savedSignature || hydratedBottlePrefsKeyRef.current === savedSignature) return;
+
+    const savedSet = new Set([...savedNames, ...savedKeys]);
+    const matchingOptions = bottleOptions.filter((option) => {
+      const optionKeys = [option.canonicalKey, option.label, option.bottle.name, ...(option.bottle.search_aliases || [])]
+        .filter(Boolean)
+        .map((value) => normalizePreferenceBottleKey(String(value)));
+      return optionKeys.some((key) => savedSet.has(key));
+    });
+
+    matchingOptions.forEach((option) => option.bottleIds.forEach((id) => addBottle(id)));
+    hydratedBottlePrefsKeyRef.current = savedSignature;
+  }, [addBottle, bottleOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
 
   const ncBoards = useMemo(() => {
     const boardNames = new Set<string>();
