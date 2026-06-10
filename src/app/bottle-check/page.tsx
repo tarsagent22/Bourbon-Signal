@@ -148,13 +148,28 @@ export default function BottleCheckPage() {
           <form className="bc-search-card" onSubmit={submitSearch}>
             <div className="bc-field grow">
               <label htmlFor="bottle-search">Bottle name</label>
-              <input
-                id="bottle-search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Try Blanton's, Weller Green, Maker's Mark…"
-                autoComplete="off"
-              />
+              <div className="bc-search-input-wrap">
+                <input
+                  id="bottle-search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Try Blanton's, Weller Green, Maker's Mark…"
+                  autoComplete="off"
+                />
+                {query ? (
+                  <button
+                    type="button"
+                    className="bc-search-clear"
+                    aria-label="Clear bottle search"
+                    onClick={() => {
+                      setQuery("");
+                      setResult(null);
+                    }}
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
             </div>
             <div className="bc-field state">
               <label htmlFor="state-select">Area</label>
@@ -269,9 +284,12 @@ const bottleCheckCss = `
 .bc-field.grow { flex:1; }
 .bc-field.state { width:220px; }
 .bc-field label { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
-.bc-field input { height:48px; border-radius:14px; border:1px solid rgba(196,148,58,.26); background:rgba(13,11,8,.62); color:var(--color-cream); padding:0 15px; font:700 15px/1 var(--font-dm-sans); outline:none; }
+.bc-search-input-wrap { position:relative; }
+.bc-field input { width:100%; height:48px; border-radius:14px; border:1px solid rgba(196,148,58,.26); background:rgba(13,11,8,.62); color:var(--color-cream); padding:0 50px 0 15px; font:700 15px/1 var(--font-dm-sans); outline:none; }
 .bc-field input:focus { border-color:rgba(212,164,74,.78); box-shadow:0 0 0 3px rgba(212,164,74,.12); }
-.bc-search-card button, .bc-track-box button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; }
+.bc-search-clear { position:absolute; right:8px; top:50%; transform:translateY(-50%); appearance:none; width:32px; height:32px; border:1px solid rgba(247,240,224,.10); border-radius:999px; background:rgba(255,255,255,.045); color:var(--color-text-secondary); display:grid; place-items:center; padding:0; font:800 22px/0 var(--font-dm-sans); cursor:pointer; }
+.bc-search-clear:hover, .bc-search-clear:focus-visible { color:var(--color-text-primary); border-color:rgba(212,146,11,.34); outline:none; }
+.bc-search-card > button, .bc-track-box button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; }
 .bc-track-box button:disabled { cursor:default; opacity:.72; }
 .bc-panel { margin-top:18px; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:24px; background:rgba(255,255,255,.026); color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
 .bc-panel strong { color:var(--color-cream); display:block; font:700 22px/1.2 var(--font-playfair); margin-bottom:8px; }
