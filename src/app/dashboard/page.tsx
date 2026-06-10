@@ -1197,29 +1197,64 @@ export default function DashboardPage() {
             flex-wrap: wrap;
           }
           @media (max-width: 860px) {
-            .dashboard-shell { grid-template-columns: 1fr; gap: 16px; }
+            .dashboard-shell { grid-template-columns: 1fr; gap: 14px; margin-top: -8px; }
             .dashboard-sidebar { display: none; }
             .dashboard-mobile-tabs {
-              position: sticky;
-              top: 72px;
-              z-index: 20;
-              display: flex;
-              gap: 8px;
-              overflow-x: auto;
-              padding: 8px 0 12px;
-              background: linear-gradient(180deg, var(--color-bg-primary), rgba(11,9,7,0.88));
-              scrollbar-width: none;
+              display: grid;
+              gap: 9px;
+              padding: 0;
             }
             .dashboard-mobile-tabs::-webkit-scrollbar { display: none; }
             .dashboard-mobile-tabs .dashboard-section-button {
-              flex: 0 0 auto;
-              width: auto;
-              min-width: 138px;
-              border-radius: 999px;
-              padding: 10px 13px;
+              width: 100%;
+              min-width: 0;
+              border-radius: 15px;
+              padding: 13px 14px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
             }
-            .dashboard-mobile-tabs .section-summary,
-            .dashboard-mobile-tabs .section-eyebrow { display: none; }
+            .dashboard-mobile-tabs .dashboard-section-button[data-active="true"] {
+              border-color: rgba(196,148,58,0.46);
+              background: linear-gradient(180deg, rgba(44,31,16,0.92), rgba(18,14,10,0.98));
+            }
+            .dashboard-mobile-tabs .mobile-section-main {
+              min-width: 0;
+              display: grid;
+              gap: 3px;
+            }
+            .dashboard-mobile-tabs .mobile-section-label {
+              font-family: var(--font-dm-sans);
+              font-size: 14px;
+              font-weight: 800;
+              color: var(--color-cream);
+            }
+            .dashboard-mobile-tabs .mobile-section-status {
+              font-family: var(--font-jetbrains);
+              font-size: 9px;
+              color: var(--color-accent-amber);
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
+            .dashboard-mobile-tabs .mobile-section-arrow {
+              width: 30px;
+              height: 30px;
+              border-radius: 999px;
+              border: 1px solid rgba(196,148,58,0.22);
+              display: grid;
+              place-items: center;
+              color: var(--color-accent-amber);
+              font-size: 14px;
+              flex: 0 0 auto;
+              transition: transform 160ms ease;
+            }
+            .dashboard-mobile-tabs .dashboard-section-button[data-active="true"] .mobile-section-arrow {
+              transform: rotate(180deg);
+            }
+            .dashboard-panel-heading { display: none; }
+            .dashboard-workspace { gap: 14px; }
           }
         `}</style>
 
@@ -1239,8 +1274,11 @@ export default function DashboardPage() {
             <div className="dashboard-mobile-tabs" aria-label="Dashboard sections">
               {dashboardSections.map((section) => (
                 <button key={section.key} type="button" className="dashboard-section-button" data-active={activeDashboardSection === section.key} onClick={() => setActiveDashboardSection(section.key)}>
-                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800 }}>{section.label}</span>
-                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: 9, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{section.status}</span>
+                  <span className="mobile-section-main">
+                    <span className="mobile-section-label">{section.label}</span>
+                    <span className="mobile-section-status">{section.status}</span>
+                  </span>
+                  <span className="mobile-section-arrow" aria-hidden="true">⌄</span>
                 </button>
               ))}
             </div>
