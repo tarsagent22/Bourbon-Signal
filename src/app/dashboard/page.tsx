@@ -1999,7 +1999,7 @@ export default function DashboardPage() {
           >
             <div id="my-collection" style={{ display: "grid", gap: "18px" }}>
               <div style={{ display: "grid", gap: "14px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "12px", position: "relative", zIndex: 30 }}>
                   <input
                     value={collectionBottleQuery}
                     onChange={(event) => {
@@ -2009,6 +2009,28 @@ export default function DashboardPage() {
                     placeholder="Search a bottle you own..."
                     style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none" }}
                   />
+                  {filteredCollectionBottleOptions.length > 0 && collectionBottleQuery.trim() && !selectedCollectionBottle ? (
+                    <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, display: "grid", gap: "7px", maxHeight: "310px", overflowY: "auto", borderRadius: "16px", border: "1px solid rgba(196,148,58,0.24)", background: "linear-gradient(180deg, rgba(18,14,10,0.98), rgba(9,7,5,0.98))", boxShadow: "0 18px 48px rgba(0,0,0,0.45), 0 0 34px rgba(196,148,58,0.10)", padding: "8px" }}>
+                      {filteredCollectionBottleOptions.map((option) => (
+                        <button
+                          key={option.canonicalKey}
+                          type="button"
+                          onClick={() => stageCollectionBottle(option)}
+                          disabled={savingCollection}
+                          style={{ width: "100%", textAlign: "left", padding: "12px 13px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
+                        >
+                          <strong>{option.label}</strong>
+                          <span style={{ display: "block", marginTop: 4, color: "var(--color-text-tertiary)", fontSize: 12 }}>
+                            {option.bottle.distillery} {option.bottle.flavor?.length ? `· ${option.bottle.flavor.slice(0, 3).join(", ")}` : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : collectionBottleQuery.trim() && !selectedCollectionBottle ? (
+                    <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(12,9,7,0.98)", boxShadow: "0 18px 42px rgba(0,0,0,0.36)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
+                      No matching bottle found yet. For this MVP, collection entries use the existing Bourbon Signal bottle library.
+                    </div>
+                  ) : null}
                 </div>
                 {selectedCollectionBottle ? (
                   <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
@@ -2057,27 +2079,6 @@ export default function DashboardPage() {
                   style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none", resize: "vertical" }}
                 />
 
-                {filteredCollectionBottleOptions.length > 0 ? (
-                  <div style={{ display: "grid", gap: "8px" }}>
-                    {filteredCollectionBottleOptions.map((option) => (
-                      <button
-                        key={option.canonicalKey}
-                        onClick={() => stageCollectionBottle(option)}
-                        disabled={savingCollection}
-                        style={{ width: "100%", textAlign: "left", padding: "14px 16px", borderRadius: "16px", border: selectedCollectionBottle?.canonicalKey === option.canonicalKey ? "1px solid rgba(196,148,58,0.52)" : "1px solid rgba(196,148,58,0.20)", background: selectedCollectionBottle?.canonicalKey === option.canonicalKey ? "rgba(196,148,58,0.14)" : "rgba(196,148,58,0.07)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
-                      >
-                        <strong>{option.label}</strong>
-                        <span style={{ display: "block", marginTop: 4, color: "var(--color-text-tertiary)", fontSize: 12 }}>
-                          {option.bottle.distillery} {option.bottle.flavor?.length ? `· ${option.bottle.flavor.slice(0, 3).join(", ")}` : ""}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                ) : collectionBottleQuery.trim() ? (
-                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                    No matching bottle found yet. For this MVP, collection entries use the existing Bourbon Signal bottle library.
-                  </div>
-                ) : null}
                 <button
                   type="button"
                   onClick={saveStagedCollectionBottle}
