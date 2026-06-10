@@ -15,9 +15,8 @@ Production storage is Resend Audiences. The route does **not** send email; it on
 - Validates basic email format.
 - Creates a Resend contact in `RESEND_DIGEST_AUDIENCE_ID`.
 - If the contact already exists, updates it as subscribed.
-- Adds contact properties:
-  - `source=homepage_weekly_drop_digest`
-  - `subscribedAt=<ISO timestamp>`
+- Resubscribes an existing contact if they submit again.
+- Does not attach custom Resend contact properties yet because Resend requires properties to be pre-created before writes.
 - In non-production only, if `RESEND_DIGEST_AUDIENCE_ID` is missing, it falls back to local `data/subscribers.json` for development convenience.
 - In production, missing Resend config returns a user-safe error and logs the config issue server-side.
 

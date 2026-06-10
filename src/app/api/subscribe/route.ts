@@ -67,16 +67,11 @@ async function subscribeToDigestAudience(email: string) {
   }
 
   const resend = getResendClient();
-  const properties = {
-    source: "homepage_weekly_drop_digest",
-    subscribedAt: new Date().toISOString(),
-  };
 
   const created = await resend.contacts.create({
     audienceId: DIGEST_AUDIENCE_ID,
     email,
     unsubscribed: false,
-    properties,
   });
 
   if (!created.error) {
@@ -91,7 +86,6 @@ async function subscribeToDigestAudience(email: string) {
     audienceId: DIGEST_AUDIENCE_ID,
     email,
     unsubscribed: false,
-    properties,
   });
 
   if (updated.error) {
