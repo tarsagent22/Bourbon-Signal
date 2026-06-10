@@ -16,7 +16,7 @@ import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
-import { getDisplayName } from "@/lib/drops";
+import { getDisplayName, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
@@ -65,6 +65,14 @@ interface TerritoryDropdownState {
   stateCode: string;
   scope: "primary" | "secondary";
   value?: string;
+}
+
+interface RecommendedBottleInsight {
+  option: BottleOption;
+  score: number;
+  matchedFlavors: string[];
+  recentSightings: Array<{ location: string; state: string; timestamp: string }>;
+  reason: string;
 }
 
 function isWhiskeyProduct(name: string) {
@@ -195,6 +203,21 @@ function formatStoreLabel(store: { name?: string | null; city?: string | null; a
   if (trimmedAddress) return `${trimmedName} · ${trimmedAddress}`;
   return trimmedCity ? `${trimmedName} · ${trimmedCity}` : trimmedName;
 }
+
+function formatShortDate(value: string) {
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return "recently";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(time));
+}
+
+function dropLocationLabel(drop: DropEvent) {
+  return drop.display_location || drop.store_name || drop.store_address || drop.board_name || drop.store_city || drop.store_county || "Recent sighting";
+}
+
+function dropStateLabel(drop: DropEvent) {
+  return (drop.state_code || drop.state || drop.display_state || "").toUpperCase();
+}
+
 
 function makeStateLabel(code: string) {
   const labels: Record<string, string> = {
@@ -537,26 +560,48 @@ export default function DashboardPage() {
     }).slice(0, 6);
   }, [bottleOptions, collectionBottleQuery, collectionKeys]);
 
-  const collectionRecommendationOptions = useMemo(() => {
+  const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
     const likedEntries = collectionEntries.filter((entry) => entry.rating >= 80);
     const likedKeys = new Set(likedEntries.map((entry) => entry.canonicalKey));
     const likedBottles = likedEntries
       .map((entry) => bottleOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
       .filter((bottle): bottle is Bottle => Boolean(bottle));
     const favoriteFlavorTags = new Set(likedBottles.flatMap((bottle) => bottle.flavor || []).map((tag) => tag.toLowerCase()));
+    const preferredStates = new Set(localPrefs.states.map((state) => state.toUpperCase()));
 
     if (!favoriteFlavorTags.size) return [];
     return bottleOptions
       .filter((option) => !likedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
       .map((option) => ({
         option,
-        score: (option.bottle.flavor || []).filter((tag) => favoriteFlavorTags.has(tag.toLowerCase())).length,
+        matchedFlavors: (option.bottle.flavor || []).filter((tag) => favoriteFlavorTags.has(tag.toLowerCase())),
+        recentSightings: recentDrops
+          .filter((drop) => dropMatchesBottle(drop, option.bottle))
+          .filter((drop) => !preferredStates.size || preferredStates.has(dropStateLabel(drop)))
+          .slice(0, 3)
+          .map((drop) => ({
+            location: dropLocationLabel(drop),
+            state: dropStateLabel(drop),
+            timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
+          })),
       }))
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score || a.option.label.localeCompare(b.option.label))
+      .map((item) => ({
+        ...item,
+        score: item.matchedFlavors.length * 3 + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
+      }))
+      .filter((item) => item.matchedFlavors.length > 0)
+      .sort((a, b) => b.score - a.score || b.recentSightings.length - a.recentSightings.length || a.option.label.localeCompare(b.option.label))
       .slice(0, 4)
-      .map((item) => item.option);
-  }, [bottleOptions, collectionEntries, selectedCanonicalKeys]);
+      .map((item) => ({
+        option: item.option,
+        score: item.score,
+        matchedFlavors: item.matchedFlavors,
+        recentSightings: item.recentSightings,
+        reason: item.recentSightings.length
+          ? `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} and has recent market sightings.`
+          : `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} from bottles you rated highly.`,
+      }));
+  }, [bottleOptions, collectionEntries, localPrefs.states, recentDrops, selectedCanonicalKeys]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -665,6 +710,20 @@ export default function DashboardPage() {
       state: drop.state || drop.state_code || "NC",
     }));
   }, [mounted, watchedBottleOptions, recentDrops, bottles]);
+
+  const recommendationMarketSummary = useMemo(() => {
+    const recommendedCount = collectionRecommendationInsights.length;
+    const sightedCount = collectionRecommendationInsights.filter((insight) => insight.recentSightings.length > 0).length;
+    const totalSightings = collectionRecommendationInsights.reduce((sum, insight) => sum + insight.recentSightings.length, 0);
+    return {
+      recommendedCount,
+      sightedCount,
+      totalSightings,
+      summary: recommendedCount
+        ? `${sightedCount}/${recommendedCount} suggestions have recent sightings in your selected markets.`
+        : "Rate bottles 80+ to build your recommendation graph.",
+    };
+  }, [collectionRecommendationInsights]);
 
 
   const territoryCards = useMemo<TerritoryCardConfig[]>(() => ([
@@ -1128,14 +1187,34 @@ export default function DashboardPage() {
                 <div>
                   <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Early recommendation signal</p>
                   <h3 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Based on bottles you rated 80+</h3>
+                  <p style={{ margin: "7px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.65 }}>
+                    {recommendationMarketSummary.summary}
+                  </p>
                 </div>
-                {collectionRecommendationOptions.length > 0 ? (
+                {collectionRecommendationInsights.length > 0 ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
-                    {collectionRecommendationOptions.map((option) => (
-                      <div key={option.canonicalKey} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "13px", display: "grid", gap: "9px" }}>
-                        <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{option.label}</strong>
-                        <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>{option.bottle.flavor?.slice(0, 3).join(", ") || option.bottle.distillery}</span>
-                        <button onClick={() => trackCollectionSuggestion(option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track suggestion</button>
+                    {collectionRecommendationInsights.map((insight) => (
+                      <div key={insight.option.canonicalKey} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "13px", display: "grid", gap: "10px" }}>
+                        <div>
+                          <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{insight.option.label}</strong>
+                          <span style={{ display: "block", marginTop: 4, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>{insight.reason}</span>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {insight.matchedFlavors.slice(0, 3).map((flavor) => (
+                            <span key={flavor} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{flavor}</span>
+                          ))}
+                        </div>
+                        {insight.recentSightings.length > 0 ? (
+                          <div style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "9px", display: "grid", gap: "5px" }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Recently sighted</span>
+                            {insight.recentSightings.slice(0, 2).map((sighting) => (
+                              <span key={`${sighting.location}-${sighting.timestamp}`} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45 }}>
+                                {sighting.state ? `${sighting.state} · ` : ""}{sighting.location} {sighting.timestamp ? `· ${formatShortDate(sighting.timestamp)}` : ""}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                        <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track suggestion</button>
                       </div>
                     ))}
                   </div>
