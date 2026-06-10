@@ -24,6 +24,8 @@ export interface CollectionBottlePreference {
   bottleName: string;
   canonicalKey: string;
   rating: number;
+  tasteTags?: string[];
+  wouldBuyAgain?: boolean;
   notes?: string;
   addedAt: string;
   updatedAt: string;
@@ -121,6 +123,10 @@ function normalizeCollectionPreferences(input: unknown): UserAlertPreferences["c
       bottleName,
       canonicalKey,
       rating,
+      tasteTags: Array.isArray(item.tasteTags)
+        ? Array.from(new Set(item.tasteTags.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))).slice(0, 12)
+        : [],
+      wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : rating >= 80,
       notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",
       addedAt,
       updatedAt,
