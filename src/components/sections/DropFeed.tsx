@@ -421,50 +421,52 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           }}
         />
 
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2" style={{ marginBottom: "8px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "rgba(245,237,214,0.42)",
-                }}
-              >
-                {stateLabel}
-              </span>
-            </div>
+        <div className="flex items-center justify-between gap-3" style={{ marginBottom: "8px" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "9px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "rgba(245,237,214,0.42)",
+            }}
+          >
+            {stateLabel}
+          </span>
 
-            <div
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "21px",
-                fontWeight: 700,
-                color: "var(--color-cream)",
-                lineHeight: 1.08,
-                letterSpacing: "-0.015em",
-              }}
-            >
-              {drop.displayName}
-            </div>
-          </div>
-
-          <div style={{ textAlign: "right", flexShrink: 0, paddingTop: "1px" }}>
-            <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
-              {formatDropTime(drop)}
-            </div>
+          <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
             {hasPricing && (
-              <div style={{ marginTop: "8px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "rgba(245,237,214,0.58)", whiteSpace: "nowrap" }}>
+              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.5)", whiteSpace: "nowrap" }}>
                 ${pricing.msrp} MSRP
-              </div>
+              </span>
             )}
+            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
+              {formatDropTime(drop)}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3" style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(245,237,214,0.07)" }}>
+        <div
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: "21px",
+            fontWeight: 700,
+            color: "var(--color-cream)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.015em",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "100%",
+          }}
+        >
+          {drop.displayName}
+        </div>
+
+        <div className="flex items-center justify-between gap-3" style={{ marginTop: "12px", paddingTop: "11px", borderTop: "1px solid rgba(245,237,214,0.07)" }}>
           <div className="min-w-0">
             <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 650, color: "rgba(245,237,214,0.86)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {primaryMeta}
