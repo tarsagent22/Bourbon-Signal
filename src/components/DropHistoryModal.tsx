@@ -46,8 +46,8 @@ function getStoreName(drop: DropEvent): string {
   // PA store-level events
   if (drop.state_code === "PA" || drop.state === "PA") {
     const confidence = (drop as any).confidence_tier as string | undefined;
-    if (drop.store_name) return confidence === 'exact_store' ? `${drop.store_name} · exact` : drop.store_name;
-    if (drop.store_city) return confidence === 'exact_store' ? `PA — ${drop.store_city} · exact` : `PA — ${drop.store_city}`;
+    if (drop.store_name) return confidence === 'exact_store' ? `${drop.store_name} · source-reported` : drop.store_name;
+    if (drop.store_city) return confidence === 'exact_store' ? `PA — ${drop.store_city} · source-reported` : `PA — ${drop.store_city}`;
     if ((drop as any).stores_in_stock) return `${(drop as any).stores_in_stock} PA stores`;
     return confidence === 'online_positive' ? "Pennsylvania online-positive" : "Pennsylvania ABC Store";
   }

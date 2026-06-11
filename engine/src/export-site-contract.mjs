@@ -12,6 +12,7 @@ const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
 const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHOT_LIMIT || 40);
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
+const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 2);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
@@ -195,16 +196,40 @@ function publicSignal(signal, bible, freshness = null) {
     availabilityLabel: signal.availabilityLabel,
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
-    confidence: signal.confidence,
+    confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
     policyMode: isTnRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
     dataLane,
     informationalOnly: dataLane === 'informational',
-    inventoryCaveat: canAlertAsInventory ? 'Retailer/source-published availability; verify before driving.' : 'Informational/watch data only; not live shelf inventory.',
+    inventoryCaveat: canAlertAsInventory && signal.locationPrecision === 'store_level'
+      ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
+      : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
+}
+
+function asTime(value) {
+  const time = new Date(value || 0).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function isFastMovingStoreInventory(signal) {
+  const type = String(signal.eventType || signal.type || '').toLowerCase();
+  const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
+  if (signal.locationPrecision !== 'store_level') return false;
+  if (!signalCanAlertAsInventory(signal)) return false;
+  if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
+  return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
+}
+
+function isFreshCurrentInventorySignal(signal, currentKeys) {
+  if (!isFastMovingStoreInventory(signal)) return true;
+  if (!currentKeys.has(signalFreshnessKey(signal))) return false;
+  const observedAt = asTime(signal.observedAt || signal.fetchedAt);
+  if (!observedAt) return false;
+  return Date.now() - observedAt <= FAST_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
 }
 
 function signalFreshnessKey(signal) {
@@ -399,11 +424,13 @@ function isSafePublicSignal(signal) {
   return true;
 }
 
-function buildDrops(signals, bible, historicalSignals = []) {
+function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
-  const freshnessIndex = buildFreshnessIndex(historicalSignals, signals);
+  const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
+  const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
   return signals
     .filter((s) => isSafePublicSignal(s))
+    .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
     .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
@@ -853,7 +880,7 @@ async function main() {
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
-  const drops = buildDrops(historicalSignals, bible, historicalSignals);
+  const drops = buildDrops(historicalSignals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
   const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);

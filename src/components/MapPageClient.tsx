@@ -213,7 +213,7 @@ function getDropLocations(drop: DropEvent) {
 
 function getSignalQuality(drop: DropEvent) {
   if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
-    return { label: "Verified store-level", score: 4 };
+    return { label: "Store-level source report", score: 4 };
   }
   if (drop.state === "KY" || drop.state_code === "KY") {
     const scope = String(drop.availability_scope || "");
@@ -224,8 +224,8 @@ function getSignalQuality(drop: DropEvent) {
     if (confidence === "official_announcement") return { label: "Official announcement", score: 2 };
     return { label: "Distillery release", score: 2 };
   }
-  if (drop.store_address) return { label: "Exact store", score: 3 };
-  if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store inventory", score: 3 };
+  if (drop.store_address) return { label: "Store-level source report", score: 3 };
+  if (drop.stores && drop.stores.some((entry) => entry.store_address)) return { label: "Multi-store source report", score: 3 };
   if (drop.board_name) return { label: "Board shipment lead", score: 2 };
   return { label: "Bottle movement", score: 1 };
 }
@@ -233,7 +233,7 @@ function getSignalQuality(drop: DropEvent) {
 function getTrustBadge(drop?: DropEvent | null) {
   if (!drop) return { label: "Verifying", detail: "No current evidence yet", tone: "muted" as const };
   if (drop.can_alert_as_inventory || drop.exact_store || drop.location_precision === "store_level" || drop.availability_scope === "exact") {
-    return { label: "Verified", detail: "Store-level positive evidence", tone: "exact" as const };
+    return { label: "Source-reported", detail: "Store-level source signal — verify before driving", tone: "exact" as const };
   }
   if (drop.state === "KY" || drop.state_code === "KY" || String(drop.confidence_tier || "").startsWith("official")) {
     return { label: "Official", detail: "Source-confirmed bottle release", tone: "official" as const };
@@ -243,7 +243,7 @@ function getTrustBadge(drop?: DropEvent | null) {
 
 function formatFreshness(timestamp?: string | null) {
   if (!timestamp) return "No recent drops";
-  return `Confirmed ${formatRelativeTime(timestamp)}`;
+  return `Last reported ${formatRelativeTime(timestamp)}`;
 }
 
 function getDropKey(drop: DropEvent, index: number = 0) {
