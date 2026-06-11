@@ -189,7 +189,7 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
   }
   if (drop.state !== "PA") return null;
   if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
-    return { label: "PA exact", tone: "exact" };
+    return { label: "PA source", tone: "exact" };
   }
   if (drop.confidenceTier === "online_positive") {
     return { label: "PA online", tone: "online" };
@@ -202,11 +202,11 @@ function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" |
 
 function getAccuracyBadge(drop: GroupedDrop): { label: string; caption: string; tone: "exact" | "official" | "positive" } {
   if (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level") {
-    return { label: "Verified", caption: "Store-level positive", tone: "exact" };
+    return { label: "Source-reported", caption: "Store-level signal; verify before driving", tone: "exact" };
   }
 
   if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) {
-    return { label: "Official", caption: "Source-confirmed", tone: "official" };
+    return { label: "Official", caption: "Official source signal", tone: "official" };
   }
 
   if (drop.state === "NC" && drop.event_type === "nc_board_shipment_snapshot") {
@@ -272,15 +272,15 @@ function getEventDescription(drop: GroupedDrop): string {
     }
     case "store_inventory_result": {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
-      return `In stock${loc ? ` \u00B7 ${loc}` : ""}`;
+      return `Availability reported${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "browser_assisted_store_inventory_limited_supply": {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
-      return `Limited supply${loc ? ` \u00B7 ${loc}` : ""}`;
+      return `Limited supply reported${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "browser_assisted_store_inventory_in_stock": {
       const loc = cleanCountyName(drop.store_address || drop.board_name || "");
-      return `In stock${loc ? ` \u00B7 ${loc}` : ""}`;
+      return `Availability reported${loc ? ` \u00B7 ${loc}` : ""}`;
     }
     case "allocation_assigned": {
       return "Allocation assigned";
@@ -360,7 +360,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
     details.push({ label: drop.event_type === "nc_board_shipment_snapshot" ? "Board received" : "Shipped", value: `${drop.quantity_shipped} unit${drop.quantity_shipped === 1 ? "" : "s"}` });
   }
   if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
-    details.push({ label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "In stock", value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}` });
+    details.push({ label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "Source-reported", value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}` });
   }
   if (drop.locations.length > 0) {
     details.push({

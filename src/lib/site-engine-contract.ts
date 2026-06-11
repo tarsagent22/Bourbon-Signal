@@ -53,6 +53,11 @@ function asBoolean(value: unknown) {
   return value === true;
 }
 
+function isStoreLevelInventory(type: string, locationPrecision: string, canAlertAsInventory: boolean) {
+  const normalized = type.toLowerCase();
+  return locationPrecision === "store_level" && (canAlertAsInventory || normalized.includes("store_inventory") || normalized.includes("limited_supply") || normalized.includes("in_stock"));
+}
+
 export function normalizeBottleForSite(bottle: JsonRecord) {
   const states = Array.isArray(bottle.states) ? bottle.states.map(String) : [];
   const aliases = Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [];
@@ -109,6 +114,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const canAlertAsInventory = asBoolean(drop.canAlertAsInventory);
   const type = asString(drop.type, "signal");
   const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
+  const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory);
   const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
   const eventAt = asString(drop.eventAt);
   const firstSeenAt = asString(drop.firstSeenAt);
@@ -148,8 +154,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
     exact_store: locationPrecision === "store_level",
-    availability_scope: locationPrecision === "store_level" ? "exact" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
-    confidence_tier: canAlertAsInventory ? "exact_store" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
+    availability_scope: isStoreInventory ? "store_reported" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    confidence_tier: isStoreInventory ? "source_reported_store" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
     signal_label: signalLabel,
@@ -221,14 +227,14 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   const normalized = type.toLowerCase();
   if (normalized === "nc_board_shipment_snapshot") return "Board shipment";
   if (normalized === "nc_statewide_warehouse_stock") return "Warehouse shipment";
-  if (normalized.includes("limited_supply")) return "Limited supply";
-  if (normalized.includes("in_stock")) return "In stock";
+  if (normalized.includes("limited_supply")) return "Limited supply reported";
+  if (normalized.includes("in_stock")) return "Availability reported";
   if (normalized === "retailer_allocated_raffle_item") return "Retailer allocated watch";
   if (normalized === "retailer_tasting_event") return "Retailer tasting watch";
   if (normalized === "alabc_limited_release_store_drop") return "Scheduled ABC release";
   if (category === "delivery") return "Bottle shipment";
   if (normalized === "store_inventory_aggregate") return "Statewide inventory";
-  if (category === "inventory") return quantity > 0 ? "In stock" : "Store-level bottle drop";
+  if (category === "inventory") return quantity > 0 ? "Store availability reported" : "Store-level bottle signal";
   return "Bottle drop";
 }
 

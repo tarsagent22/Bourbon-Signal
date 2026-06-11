@@ -211,10 +211,10 @@ export function formatDropTime(drop: Pick<DropEvent | GroupedDrop, "timestamp" |
   }
 
   if (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt) {
-    return `Seen since ${formatRelativeTime(firstSeenAt)} · confirmed ${formatRelativeTime(lastConfirmedAt)}`;
+    return `Seen since ${formatRelativeTime(firstSeenAt)} · last reported ${formatRelativeTime(lastConfirmedAt)}`;
   }
 
-  if (lastConfirmedAt) return `Last confirmed ${formatRelativeTime(lastConfirmedAt)}`;
+  if (lastConfirmedAt) return `Last reported ${formatRelativeTime(lastConfirmedAt)}`;
   return formatRelativeTime(drop.timestamp);
 }
 
@@ -237,12 +237,12 @@ export function formatStateLabel(state?: string): string {
 function getPublicSignalLabel(event: DropEvent): string | undefined {
   if (event.signal_label) return event.signal_label;
   const eventType = (event.event_type || "").toLowerCase();
-  if (eventType.includes("limited_supply")) return "Limited supply";
+  if (eventType.includes("limited_supply")) return "Limited supply reported";
   if (eventType === "nc_board_shipment_snapshot") return "Board shipment";
   if (eventType === "nc_statewide_warehouse_stock") return "Warehouse radar";
-  if (eventType.includes("in_stock")) return "In stock";
+  if (eventType.includes("in_stock")) return "Availability reported";
   if (eventType === "store_delivery_snapshot") return "Store delivery";
-  if (eventType === "store_inventory_result") return "In stock";
+  if (eventType === "store_inventory_result") return "Store availability reported";
   if (eventType === "new_shipment") return "Shipment";
   if (eventType === "store_stock_increase") return "Stock increase";
   return undefined;
