@@ -768,6 +768,20 @@
       ]
     },
     {
+      "canonical": "Eagle Rare 12 Year",
+      "aliases": [
+        "Eagle Rare 12",
+        "Eagle Rare Twelve",
+        "ER12"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "review",
+        "watchlist"
+      ]
+    },
+    {
       "canonical": "Weller Special Reserve",
       "aliases": [
         "W.L. Weller Special Reserve",

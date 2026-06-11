@@ -3,10 +3,13 @@ export const BOURBON_DNA_TAGS = [
   "Vanilla",
   "Oak",
   "Cherry",
+  "Grape",
   "Spice",
   "Proof heat",
   "Sweet",
+  "Honey",
   "Dark fruit",
+  "Leather",
   "Nutty",
   "Smoky",
   "Dessert",
@@ -61,9 +64,86 @@ function addTag(profile: BourbonDnaProfile, tag: BourbonDnaTag, weight: number, 
   if (!profile.signals.includes(signal)) profile.signals.push(signal);
 }
 
+function normalizeBottleKey(input: BourbonDnaInput) {
+  return [input.name, input.brand, ...(input.aliases || [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+const CURATED_BOURBON_DNA: Array<{
+  match: RegExp;
+  tags: Array<{ tag: BourbonDnaTag; weight: number }>;
+  signals: string[];
+}> = [
+  {
+    match: /\beagle rare\b(?=.*\b(?:12|twelve)\b)/,
+    tags: [
+      { tag: "Grape", weight: 0.92 },
+      { tag: "Dark fruit", weight: 0.88 },
+      { tag: "Oak", weight: 0.82 },
+      { tag: "Leather", weight: 0.72 },
+      { tag: "Caramel", weight: 0.68 },
+      { tag: "Honey", weight: 0.62 },
+      { tag: "Balanced", weight: 0.58 },
+    ],
+    signals: [
+      "curated review: ER12 is darker and more complex than ER10",
+      "curated review: classic Buffalo Trace grape with blackberry/dark fruit, oak, leather, caramel/toffee, and honey",
+      "curated review score 7.5/10; preferred neat pour at MSRP over ER10",
+    ],
+  },
+  {
+    match: /\beagle rare\b(?=.*\b(?:10|ten|10y|10yr|10 year)\b)|\beagle rare\b(?!.*\b(?:12|17|25)\b)/,
+    tags: [
+      { tag: "Grape", weight: 0.86 },
+      { tag: "Cherry", weight: 0.78 },
+      { tag: "Sweet", weight: 0.7 },
+      { tag: "Vanilla", weight: 0.66 },
+      { tag: "Leather", weight: 0.58 },
+      { tag: "Oak", weight: 0.54 },
+      { tag: "Caramel", weight: 0.5 },
+    ],
+    signals: [
+      "curated review: ER10 is lighter/brighter than ER12",
+      "curated review: grape, cherry pie, confectioner's sugar, vanilla buttercream, leather, barrel char, and a drier shorter finish",
+      "curated review score 6.5/10; good neat and likely strong in an Old Fashioned",
+    ],
+  },
+  {
+    match: /\beagle rare\b(?=.*\b(?:17|seventeen)\b)/,
+    tags: [
+      { tag: "Oak", weight: 0.84 },
+      { tag: "Leather", weight: 0.78 },
+      { tag: "Dark fruit", weight: 0.74 },
+      { tag: "Grape", weight: 0.7 },
+      { tag: "Caramel", weight: 0.62 },
+      { tag: "Balanced", weight: 0.56 },
+    ],
+    signals: ["curated reviewer ladder places Eagle Rare 17 at 8/10, above ER12 and ER10"],
+  },
+];
+
+function applyCuratedBourbonDna(profile: BourbonDnaProfile, input: BourbonDnaInput) {
+  const key = normalizeBottleKey(input);
+  const curated = CURATED_BOURBON_DNA.find((entry) => entry.match.test(key));
+  if (!curated) return;
+
+  for (const { tag, weight } of curated.tags) addTag(profile, tag, weight, "curated bourbon DNA");
+  for (const signal of curated.signals) {
+    if (!profile.signals.includes(signal)) profile.signals.push(signal);
+  }
+  profile.method = "curated";
+  profile.confidence = "high";
+}
+
 export function createBourbonDnaProfile(input: BourbonDnaInput): BourbonDnaProfile {
   const text = [input.name, input.brand, input.producer, input.category, ...(input.aliases || [])].filter(Boolean).join(" ").toLowerCase();
   const profile: BourbonDnaProfile = { tags: [], weights: {}, method: "inferred", confidence: "medium", signals: [] };
+
+  applyCuratedBourbonDna(profile, input);
 
   for (const rawTag of input.userTags || []) {
     const tag = normalizeTag(rawTag);
@@ -75,19 +155,22 @@ export function createBourbonDnaProfile(input: BourbonDnaInput): BourbonDnaProfi
   if (/double oak|double oaked|toasted|1910|woodford|old forester|brown.?forman|elijah craig|knob creek|russell|wild turkey/.test(text)) addTag(profile, "Oak", 0.72, "oak/producer pattern");
   if (/maker|weller|larceny|wheated|rebel|old fitzgerald/.test(text)) addTag(profile, "Sweet", 0.7, "wheated/sweet profile");
   if (/buffalo trace|eagle rare|e\.h\.? taylor|stagg|blanton|benchmark|sazerac|1792|barton/.test(text)) addTag(profile, "Caramel", 0.66, "brand family pattern");
+  if (/buffalo trace|eagle rare|e\.h\.? taylor|stagg|blanton|benchmark|sazerac/.test(text)) addTag(profile, "Grape", 0.64, "Buffalo Trace grape profile");
   if (/four roses|high rye|redemption|bulleit|new riff|rye/.test(text)) addTag(profile, "Spice", 0.74, "high-rye pattern");
   if (/michter|angel|finished|port|sherry|rum|cognac|amburana|redwood|casey jones|jefferson/.test(text)) addTag(profile, "Dark fruit", 0.62, "finish/producer pattern");
   if (/old forester|woodford|buffalo trace|eagle rare|blanton|weller|maker|four roses|russell|wild turkey|knob creek|elijah craig|1792/.test(text)) addTag(profile, "Vanilla", 0.6, "classic bourbon profile");
   if (/1910|double oak|toasted|woodford|angel|honey|maple|sweet|dessert/.test(text)) addTag(profile, "Sweet", 0.75, "dessert/sweet-oak signal");
+  if (/honey|eagle rare/.test(text)) addTag(profile, "Honey", 0.58, "honey/sweet finish signal");
   if (/booker|baker|knob creek|jim beam|beam|basil hayden/.test(text)) addTag(profile, "Nutty", 0.62, "Beam/nutty profile");
   if (/jack daniel|charcoal|smoke|smoky/.test(text)) addTag(profile, "Smoky", 0.58, "charcoal/smoke signal");
   if (/cherry|red fruit|fruit/.test(text)) addTag(profile, "Cherry", 0.58, "fruit descriptor signal");
+  if (/leather|eagle rare/.test(text)) addTag(profile, "Leather", 0.52, "leather/mature oak signal");
 
   if (!profile.tags.length) addTag(profile, "Balanced", 0.45, "fallback balanced profile");
   if (profile.tags.length < 2 && !profile.tags.includes("Balanced")) addTag(profile, "Balanced", 0.4, "secondary balance signal");
 
   if ((input.userTags || []).some((tag) => TAG_SET.has(tag))) profile.method = "user_augmented";
-  profile.confidence = profile.signals.length >= 4 ? "high" : profile.signals.length >= 2 ? "medium" : "low";
+  if (profile.method !== "curated") profile.confidence = profile.signals.length >= 4 ? "high" : profile.signals.length >= 2 ? "medium" : "low";
   return profile;
 }
 
