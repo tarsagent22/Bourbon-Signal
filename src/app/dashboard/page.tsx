@@ -51,14 +51,36 @@ interface BibleBottleSuggestion {
   id: string;
   canonicalName: string;
   brand: string;
+  producer?: string;
   category?: "bourbon" | "rye" | "american_whiskey";
   proof?: number;
   ageStatement?: string | null;
   msrp?: number | null;
   availability?: string;
+  buyerVerdict?: string;
   aliases?: string[];
   isAlertEligible?: boolean;
   summary?: string;
+  guidance?: string;
+}
+
+function inferBottleFlavorTags(input: { name: string; brand?: string; producer?: string; proof?: number; category?: string; aliases?: string[] }) {
+  const text = [input.name, input.brand, input.producer, input.category, ...(input.aliases || [])].filter(Boolean).join(" ").toLowerCase();
+  const tags = new Set<string>();
+  if (input.category === "rye" || /\brye\b/.test(text)) tags.add("Spice");
+  if ((input.proof || 0) >= 105 || /barrel proof|full proof|cask strength|single barrel|bond|bottled.?in.?bond|101/.test(text)) tags.add("Proof heat");
+  if (/double oak|double oaked|toasted|1910|woodford|old forester|brown.?forman|elijah craig|knob creek|russell|wild turkey/.test(text)) tags.add("Oak");
+  if (/maker|weller|larceny|wheated|rebel|old fitzgerald/.test(text)) tags.add("Sweet");
+  if (/buffalo trace|eagle rare|e\.h\.? taylor|stagg|blanton|benchmark|sazerac|1792|barton/.test(text)) tags.add("Caramel");
+  if (/four roses|high rye|redemption|bulleit|new riff|rye/.test(text)) tags.add("Spice");
+  if (/michter|angel|finished|port|sherry|rum|cognac|amburana|redwood|casey jones|jefferson/.test(text)) tags.add("Dark fruit");
+  if (/old forester|woodford|buffalo trace|eagle rare|blanton|weller|maker|four roses|russell|wild turkey|knob creek|elijah craig|1792/.test(text)) tags.add("Vanilla");
+  if (/1910|double oak|toasted|woodford|angel|honey|maple|sweet|dessert/.test(text)) tags.add("Sweet");
+  if (/booker|baker|knob creek|jim beam|beam|basil hayden/.test(text)) tags.add("Nutty");
+  if (/jack daniel|charcoal|smoke|smoky/.test(text)) tags.add("Smoky");
+  if (!tags.size) tags.add("Balanced");
+  if (tags.size < 2 && !tags.has("Balanced")) tags.add("Balanced");
+  return Array.from(tags);
 }
 
 interface StoreSelectionState {
@@ -499,6 +521,7 @@ export default function DashboardPage() {
   const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
   const [selectedCollectionBottle, setSelectedCollectionBottle] = useState<BottleOption | null>(null);
   const [collectionBibleSuggestions, setCollectionBibleSuggestions] = useState<BibleBottleSuggestion[]>([]);
+  const [broadBottleCatalog, setBroadBottleCatalog] = useState<BibleBottleSuggestion[]>([]);
   const [loadingCollectionSuggestions, setLoadingCollectionSuggestions] = useState(false);
   const [collectionRating, setCollectionRating] = useState(85);
   const [collectionTasteTags, setCollectionTasteTags] = useState<string[]>([]);
@@ -507,6 +530,7 @@ export default function DashboardPage() {
   const [savedCollection, setSavedCollection] = useState(false);
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
+  const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -624,6 +648,22 @@ export default function DashboardPage() {
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/bottle-catalog")
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (cancelled || !payload) return;
+        setBroadBottleCatalog(Array.isArray(payload.bottles) ? payload.bottles : []);
+      })
+      .catch(() => {
+        if (!cancelled) setBroadBottleCatalog([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     const query = collectionBottleQuery.trim();
     if (query.length < 2 || selectedCollectionBottle) {
       setCollectionBibleSuggestions([]);
@@ -675,7 +715,7 @@ export default function DashboardPage() {
         msrp: typeof suggestion.msrp === "number" ? suggestion.msrp : 0,
         proof: suggestion.proof,
         ageStatement: suggestion.ageStatement || undefined,
-        flavor: [],
+        flavor: inferBottleFlavorTags({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }),
         has_inventory: false,
       };
       return {
@@ -686,6 +726,32 @@ export default function DashboardPage() {
       };
     });
   }, [collectionBibleSuggestions]);
+
+  const broadCatalogBottleOptions = useMemo<BottleOption[]>(() => {
+    return broadBottleCatalog.map((suggestion) => {
+      const canonicalKey = canonicalBottleKey(suggestion.canonicalName);
+      const bottle: Bottle = {
+        id: `catalog-${suggestion.id}`,
+        name: suggestion.canonicalName,
+        canonical_id: suggestion.id,
+        canonical_name: suggestion.canonicalName,
+        canonical_key: canonicalKey,
+        aliases: suggestion.aliases || [],
+        states: [],
+        state_ids: {},
+        state_aliases: {},
+        search_aliases: [suggestion.canonicalName, suggestion.brand, ...(suggestion.aliases || [])],
+        distillery: suggestion.brand || suggestion.producer || "Bourbon Bible",
+        tier: suggestion.availability === "unicorn" ? "unicorn" : suggestion.isAlertEligible ? "limited" : "limited",
+        msrp: typeof suggestion.msrp === "number" ? suggestion.msrp : 0,
+        proof: suggestion.proof,
+        ageStatement: suggestion.ageStatement || undefined,
+        flavor: inferBottleFlavorTags({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }),
+        has_inventory: false,
+      };
+      return { canonicalKey, label: suggestion.canonicalName, bottleIds: [bottle.id], bottle };
+    });
+  }, [broadBottleCatalog]);
 
   const filteredCollectionBottleOptions = useMemo(() => {
     const query = collectionBottleQuery.trim().toLowerCase();
@@ -713,8 +779,12 @@ export default function DashboardPage() {
   const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
     const likedEntries = collectionEntries.filter((entry) => entry.rating >= 80);
     const likedKeys = new Set(likedEntries.map((entry) => entry.canonicalKey));
+    const recommendationOptionsMap = new Map<string, BottleOption>();
+    for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
+    for (const option of bottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
+    const recommendationOptions = Array.from(recommendationOptionsMap.values());
     const likedBottles = likedEntries
-      .map((entry) => bottleOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
+      .map((entry) => recommendationOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
       .filter((bottle): bottle is Bottle => Boolean(bottle));
     const favoriteFlavorTags = new Set([
       ...likedBottles.flatMap((bottle) => bottle.flavor || []),
@@ -722,7 +792,7 @@ export default function DashboardPage() {
     ].map((tag) => tag.toLowerCase()));
 
     if (!favoriteFlavorTags.size) return [];
-    return bottleOptions
+    return recommendationOptions
       .filter((option) => !likedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
       .map((option) => ({
         option,
@@ -753,7 +823,7 @@ export default function DashboardPage() {
           ? `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} and has recent market sightings.`
           : `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} from bottles you rated highly.`,
       }));
-  }, [bottleOptions, collectionEntries, localPrefs.states, recentDrops, selectedCanonicalKeys]);
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, localPrefs.states, recentDrops, selectedCanonicalKeys]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -2176,45 +2246,40 @@ export default function DashboardPage() {
               </div>
 
               {collectionEntries.length > 0 ? (
-                <div style={{ display: "grid", gap: "10px" }}>
-                  {collectionEntries.map((entry) => (
-                    <div key={entry.canonicalKey} style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.028)", padding: "15px", display: "grid", gap: "12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start", flexWrap: "wrap" }}>
-                        <div>
-                          <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "23px" }}>{entry.bottleName}</h3>
-                          <div style={{ marginTop: 6, display: "inline-flex", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", padding: "5px 8px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                            {tasteScoreLabel(entry.rating)} · {entry.rating}/100
-                          </div>
-                          {entry.notes ? <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>{entry.notes}</p> : null}
-                          {entry.tasteTags?.length ? (
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: 9 }}>
-                              {entry.tasteTags.map((tag) => (
-                                <span key={tag} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-secondary)", padding: "5px 8px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{tag}</span>
-                              ))}
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {collectionEntries.map((entry) => {
+                    const editing = editingCollectionKey === entry.canonicalKey;
+                    return (
+                      <div key={entry.canonicalKey} style={{ borderRadius: "15px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.028)", padding: "13px 14px", display: "grid", gap: editing ? "10px" : "6px", position: "relative" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start" }}>
+                          <div style={{ minWidth: 0, paddingRight: "44px" }}>
+                            <h3 style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "15px", lineHeight: 1.35, fontWeight: 800 }}>{entry.bottleName}</h3>
+                            <div style={{ marginTop: 5, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                              {tasteScoreLabel(entry.rating)} · {entry.rating}/100
                             </div>
-                          ) : null}
+                          </div>
+                          <button type="button" onClick={() => setEditingCollectionKey(editing ? null : entry.canonicalKey)} style={{ position: "absolute", right: "10px", bottom: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: editing ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.035)", color: editing ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", padding: "6px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: "pointer" }}>
+                            {editing ? "Done" : "Edit"}
+                          </button>
                         </div>
-                        <button onClick={() => removeCollectionBottle(entry.canonicalKey)} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: "rgba(255,255,255,0.03)", color: "var(--color-text-tertiary)", padding: "8px 11px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", cursor: "pointer" }}>
-                          Remove
-                        </button>
+                        {editing ? (
+                          <div style={{ display: "grid", gap: "9px", paddingRight: "52px" }}>
+                            {entry.tasteTags?.length ? (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                {entry.tasteTags.map((tag) => (
+                                  <span key={tag} style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-secondary)", padding: "5px 8px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{tag}</span>
+                                ))}
+                              </div>
+                            ) : null}
+                            {entry.notes ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "12px", lineHeight: 1.55 }}>{entry.notes}</p> : null}
+                            <button type="button" onClick={() => removeCollectionBottle(entry.canonicalKey)} style={{ justifySelf: "start", border: "1px solid rgba(215,122,97,0.30)", borderRadius: "999px", background: "rgba(215,122,97,0.08)", color: "#D77A61", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", cursor: "pointer" }}>
+                              Delete bottle
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
-                      <label style={{ display: "grid", gap: "7px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-tertiary)" }}>
-                        Taste score: <strong style={{ color: "var(--color-accent-amber)" }}>{tasteScoreLabel(collectionRatingDrafts[entry.canonicalKey] ?? entry.rating)} · {collectionRatingDrafts[entry.canonicalKey] ?? entry.rating}/100</strong>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={collectionRatingDrafts[entry.canonicalKey] ?? entry.rating}
-                          onChange={(event) => setCollectionRatingDrafts((prev) => ({ ...prev, [entry.canonicalKey]: Number(event.target.value) }))}
-                          onMouseUp={() => commitCollectionRating(entry.canonicalKey)}
-                          onTouchEnd={() => commitCollectionRating(entry.canonicalKey)}
-                          onKeyUp={(event) => {
-                            if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) commitCollectionRating(entry.canonicalKey);
-                          }}
-                        />
-                      </label>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
