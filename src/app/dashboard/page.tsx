@@ -21,6 +21,7 @@ import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
+import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -62,25 +63,6 @@ interface BibleBottleSuggestion {
   isAlertEligible?: boolean;
   summary?: string;
   guidance?: string;
-}
-
-function inferBottleFlavorTags(input: { name: string; brand?: string; producer?: string; proof?: number; category?: string; aliases?: string[] }) {
-  const text = [input.name, input.brand, input.producer, input.category, ...(input.aliases || [])].filter(Boolean).join(" ").toLowerCase();
-  const tags = new Set<string>();
-  if (input.category === "rye" || /\brye\b/.test(text)) tags.add("Spice");
-  if ((input.proof || 0) >= 105 || /barrel proof|full proof|cask strength|single barrel|bond|bottled.?in.?bond|101/.test(text)) tags.add("Proof heat");
-  if (/double oak|double oaked|toasted|1910|woodford|old forester|brown.?forman|elijah craig|knob creek|russell|wild turkey/.test(text)) tags.add("Oak");
-  if (/maker|weller|larceny|wheated|rebel|old fitzgerald/.test(text)) tags.add("Sweet");
-  if (/buffalo trace|eagle rare|e\.h\.? taylor|stagg|blanton|benchmark|sazerac|1792|barton/.test(text)) tags.add("Caramel");
-  if (/four roses|high rye|redemption|bulleit|new riff|rye/.test(text)) tags.add("Spice");
-  if (/michter|angel|finished|port|sherry|rum|cognac|amburana|redwood|casey jones|jefferson/.test(text)) tags.add("Dark fruit");
-  if (/old forester|woodford|buffalo trace|eagle rare|blanton|weller|maker|four roses|russell|wild turkey|knob creek|elijah craig|1792/.test(text)) tags.add("Vanilla");
-  if (/1910|double oak|toasted|woodford|angel|honey|maple|sweet|dessert/.test(text)) tags.add("Sweet");
-  if (/booker|baker|knob creek|jim beam|beam|basil hayden/.test(text)) tags.add("Nutty");
-  if (/jack daniel|charcoal|smoke|smoky/.test(text)) tags.add("Smoky");
-  if (!tags.size) tags.add("Balanced");
-  if (tags.size < 2 && !tags.has("Balanced")) tags.add("Balanced");
-  return Array.from(tags);
 }
 
 interface StoreSelectionState {
@@ -531,6 +513,7 @@ export default function DashboardPage() {
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
+  const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
 
   async function sendPreviewEmail() {
     setAlertPreview({ sending: true, success: false, error: null });
@@ -715,7 +698,7 @@ export default function DashboardPage() {
         msrp: typeof suggestion.msrp === "number" ? suggestion.msrp : 0,
         proof: suggestion.proof,
         ageStatement: suggestion.ageStatement || undefined,
-        flavor: inferBottleFlavorTags({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }),
+        flavor: createBourbonDnaProfile({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }).tags,
         has_inventory: false,
       };
       return {
@@ -746,7 +729,7 @@ export default function DashboardPage() {
         msrp: typeof suggestion.msrp === "number" ? suggestion.msrp : 0,
         proof: suggestion.proof,
         ageStatement: suggestion.ageStatement || undefined,
-        flavor: inferBottleFlavorTags({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }),
+        flavor: createBourbonDnaProfile({ name: suggestion.canonicalName, brand: suggestion.brand, producer: suggestion.producer, proof: suggestion.proof, category: suggestion.category, aliases: suggestion.aliases }).tags,
         has_inventory: false,
       };
       return { canonicalKey, label: suggestion.canonicalName, bottleIds: [bottle.id], bottle };
@@ -783,21 +766,32 @@ export default function DashboardPage() {
     for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
     for (const option of bottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
     const recommendationOptions = Array.from(recommendationOptionsMap.values());
-    const likedBottles = likedEntries
-      .map((entry) => recommendationOptions.find((option) => option.canonicalKey === entry.canonicalKey)?.bottle)
-      .filter((bottle): bottle is Bottle => Boolean(bottle));
-    const favoriteFlavorTags = new Set([
-      ...likedBottles.flatMap((bottle) => bottle.flavor || []),
-      ...likedEntries.flatMap((entry) => entry.tasteTags || []),
-    ].map((tag) => tag.toLowerCase()));
+    const userTasteProfile = buildUserTasteProfile(likedEntries.map((entry) => ({
+      canonicalKey: entry.canonicalKey,
+      bottleName: entry.bottleName,
+      rating: entry.rating,
+      tasteTags: entry.tasteTags,
+      wouldBuyAgain: entry.wouldBuyAgain,
+    })));
 
-    if (!favoriteFlavorTags.size) return [];
+    if (!userTasteProfile.favoriteTags.length) return [];
     return recommendationOptions
       .filter((option) => !likedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
-      .map((option) => ({
-        option,
-        matchedFlavors: (option.bottle.flavor || []).filter((tag) => favoriteFlavorTags.has(tag.toLowerCase())),
-        recentSightings: recentDrops
+      .map((option) => {
+        const dnaProfile = createBourbonDnaProfile({
+          name: option.bottle.canonical_name || option.bottle.name,
+          brand: option.bottle.distillery,
+          proof: option.bottle.proof,
+          aliases: [...(option.bottle.aliases || []), ...(option.bottle.search_aliases || [])],
+          userTags: option.bottle.flavor,
+        });
+        const dnaMatch = scoreBourbonDnaMatch(userTasteProfile, dnaProfile);
+        return {
+          option,
+          matchedFlavors: dnaMatch.matchedTags,
+          dnaScore: dnaMatch.score,
+          dnaReason: dnaMatch.explanation,
+          recentSightings: recentDrops
           .filter((drop) => dropMatchesBottle(drop, option.bottle))
           .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
           .slice(0, 3)
@@ -806,12 +800,13 @@ export default function DashboardPage() {
             state: dropStateLabel(drop),
             timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
           })),
-      }))
+        };
+      })
       .map((item) => ({
         ...item,
-        score: item.matchedFlavors.length * 3 + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
+        score: item.dnaScore + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
       }))
-      .filter((item) => item.matchedFlavors.length > 0)
+      .filter((item) => item.score > 0 && item.matchedFlavors.length > 0)
       .sort((a, b) => b.score - a.score || b.recentSightings.length - a.recentSightings.length || a.option.label.localeCompare(b.option.label))
       .slice(0, 4)
       .map((item) => ({
@@ -820,8 +815,8 @@ export default function DashboardPage() {
         matchedFlavors: item.matchedFlavors,
         recentSightings: item.recentSightings,
         reason: item.recentSightings.length
-          ? `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} and has recent market sightings.`
-          : `Matches ${item.matchedFlavors.slice(0, 2).join(" + ")} from bottles you rated highly.`,
+          ? `${item.dnaReason} Also has recent market sightings.`
+          : item.dnaReason,
       }));
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, localPrefs.states, recentDrops, selectedCanonicalKeys]);
 
@@ -1113,6 +1108,35 @@ export default function DashboardPage() {
       });
     } catch (error) {
       setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
+    }
+  };
+
+  const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own") => {
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    const stateKey = `${insight.option.canonicalKey}:${signal}`;
+    setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saving" }));
+    setCollectionError(null);
+    try {
+      const response = await fetch("/api/bourbon-dna/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bottleId: insight.option.bottle.canonical_id || insight.option.bottle.id,
+          bottleName: insight.option.label,
+          signal,
+          matchedTags: insight.matchedFlavors,
+          score: insight.score,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Could not save DNA feedback.");
+      setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saved" }));
+    } catch (error) {
+      setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "error" }));
+      setCollectionError(error instanceof Error ? error.message : "Could not save DNA feedback.");
     }
   };
 
@@ -2334,6 +2358,20 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
                         <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track suggestion</button>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {([
+                            ["useful", "Useful"],
+                            ["not_for_me", "Not for me"],
+                            ["already_own", "Already own"],
+                          ] as const).map(([signal, label]) => {
+                            const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
+                            return (
+                              <button key={signal} type="button" onClick={() => submitDnaFeedback(insight, signal)} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: status === "saved" ? "rgba(82,180,126,0.12)" : "rgba(255,255,255,0.025)", color: status === "saved" ? "#9AD4B1" : "var(--color-text-tertiary)", padding: "6px 8px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: status === "saving" ? "progress" : "pointer" }}>
+                                {status === "saving" ? "Saving…" : status === "saved" ? "Saved ✓" : label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     ))}
                   </div>
