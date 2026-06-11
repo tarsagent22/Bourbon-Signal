@@ -47,6 +47,20 @@ interface BottleOption {
   bottle: Bottle;
 }
 
+interface BibleBottleSuggestion {
+  id: string;
+  canonicalName: string;
+  brand: string;
+  category?: "bourbon" | "rye" | "american_whiskey";
+  proof?: number;
+  ageStatement?: string | null;
+  msrp?: number | null;
+  availability?: string;
+  aliases?: string[];
+  isAlertEligible?: boolean;
+  summary?: string;
+}
+
 interface StoreSelectionState {
   mode: "all" | "custom";
   storeIds: string[];
@@ -484,6 +498,8 @@ export default function DashboardPage() {
   const hydratedBottlePrefsKeyRef = useRef("");
   const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
   const [selectedCollectionBottle, setSelectedCollectionBottle] = useState<BottleOption | null>(null);
+  const [collectionBibleSuggestions, setCollectionBibleSuggestions] = useState<BibleBottleSuggestion[]>([]);
+  const [loadingCollectionSuggestions, setLoadingCollectionSuggestions] = useState(false);
   const [collectionRating, setCollectionRating] = useState(85);
   const [collectionTasteTags, setCollectionTasteTags] = useState<string[]>([]);
   const [collectionNotes, setCollectionNotes] = useState("");
@@ -607,10 +623,74 @@ export default function DashboardPage() {
   const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
 
+  useEffect(() => {
+    const query = collectionBottleQuery.trim();
+    if (query.length < 2 || selectedCollectionBottle) {
+      setCollectionBibleSuggestions([]);
+      setLoadingCollectionSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoadingCollectionSuggestions(true);
+    const timeout = window.setTimeout(() => {
+      fetch(`/api/bottle-check?q=${encodeURIComponent(query)}&state=${encodeURIComponent(localPrefs.states[0] || "NC")}`, { signal: controller.signal })
+        .then((response) => response.ok ? response.json() : null)
+        .then((payload) => {
+          if (!payload) return;
+          const suggestions = Array.isArray(payload.suggestions) ? payload.suggestions : [];
+          const bottle = payload.bottle ? [payload.bottle] : [];
+          setCollectionBibleSuggestions([...bottle, ...suggestions].filter((item): item is BibleBottleSuggestion => Boolean(item?.id && item?.canonicalName)));
+        })
+        .catch((error) => {
+          if (error?.name !== "AbortError") setCollectionBibleSuggestions([]);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoadingCollectionSuggestions(false);
+        });
+    }, 140);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [collectionBottleQuery, localPrefs.states, selectedCollectionBottle]);
+
+  const bibleSuggestionOptions = useMemo<BottleOption[]>(() => {
+    return collectionBibleSuggestions.map((suggestion) => {
+      const canonicalKey = canonicalBottleKey(suggestion.canonicalName);
+      const bottle: Bottle = {
+        id: `bible-${suggestion.id}`,
+        name: suggestion.canonicalName,
+        canonical_id: suggestion.id,
+        canonical_name: suggestion.canonicalName,
+        canonical_key: canonicalKey,
+        aliases: suggestion.aliases || [],
+        states: [],
+        state_ids: {},
+        state_aliases: {},
+        search_aliases: [suggestion.canonicalName, suggestion.brand, ...(suggestion.aliases || [])],
+        distillery: suggestion.brand || "Bourbon Bible",
+        tier: suggestion.availability === "unicorn" ? "unicorn" : suggestion.isAlertEligible ? "limited" : "limited",
+        msrp: typeof suggestion.msrp === "number" ? suggestion.msrp : 0,
+        proof: suggestion.proof,
+        ageStatement: suggestion.ageStatement || undefined,
+        flavor: [],
+        has_inventory: false,
+      };
+      return {
+        canonicalKey,
+        label: suggestion.canonicalName,
+        bottleIds: [bottle.id],
+        bottle,
+      };
+    });
+  }, [collectionBibleSuggestions]);
+
   const filteredCollectionBottleOptions = useMemo(() => {
     const query = collectionBottleQuery.trim().toLowerCase();
     if (!query) return [];
-    return bottleOptions.filter((option) => {
+    const localMatches = bottleOptions.filter((option) => {
       if (collectionKeys.has(option.canonicalKey)) return false;
       return [
         option.label,
@@ -621,8 +701,14 @@ export default function DashboardPage() {
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query));
-    }).slice(0, 6);
-  }, [bottleOptions, collectionBottleQuery, collectionKeys]);
+    });
+    const merged = new Map<string, BottleOption>();
+    for (const option of [...localMatches, ...bibleSuggestionOptions]) {
+      if (collectionKeys.has(option.canonicalKey)) continue;
+      if (!merged.has(option.canonicalKey)) merged.set(option.canonicalKey, option);
+    }
+    return Array.from(merged.values()).slice(0, 10);
+  }, [bibleSuggestionOptions, bottleOptions, collectionBottleQuery, collectionKeys]);
 
   const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
     const likedEntries = collectionEntries.filter((entry) => entry.rating >= 80);
@@ -2028,7 +2114,7 @@ export default function DashboardPage() {
                     </div>
                   ) : collectionBottleQuery.trim() && !selectedCollectionBottle ? (
                     <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(12,9,7,0.98)", boxShadow: "0 18px 42px rgba(0,0,0,0.36)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                      No matching bottle found yet. For this MVP, collection entries use the existing Bourbon Signal bottle library.
+                      {loadingCollectionSuggestions ? "Searching the broader bourbon catalog…" : "No matching bottle found yet. Try the brand, expression, or a shorter spelling."}
                     </div>
                   ) : null}
                 </div>
