@@ -16,7 +16,7 @@ import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
-import { getDisplayName, type DropEvent } from "@/lib/drops";
+import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
@@ -91,6 +91,17 @@ interface RecommendedBottleInsight {
   matchedFlavors: string[];
   recentSightings: Array<{ location: string; state: string; timestamp: string }>;
   reason: string;
+  proofMatchLabel: string;
+  proofMatchExplanation: string;
+}
+
+interface BourbonDnaSummary {
+  favoriteTags: string[];
+  preferredProof?: number;
+  preferredProofRange?: { min: number; max: number };
+  basedOnCount: number;
+  proofBottleCount: number;
+  summary: string;
 }
 
 type DashboardSection = "alerts" | "collection" | "recommendations";
@@ -768,24 +779,49 @@ export default function DashboardPage() {
     return Array.from(merged.values()).slice(0, 10);
   }, [bibleSuggestionOptions, bottleOptions, collectionBottleQuery, collectionKeys]);
 
-  const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
-    const likedEntries = collectionEntries.filter((entry) => entry.rating >= 80);
-    const likedKeys = new Set(likedEntries.map((entry) => entry.canonicalKey));
-    const recommendationOptionsMap = new Map<string, BottleOption>();
-    for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
-    for (const option of bottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
-    const recommendationOptions = Array.from(recommendationOptionsMap.values());
-    const userTasteProfile = buildUserTasteProfile(likedEntries.map((entry) => ({
+  const collectionTasteProfile = useMemo(() => {
+    const bottleLookup = new Map<string, BottleOption>();
+    for (const option of broadCatalogBottleOptions) bottleLookup.set(option.canonicalKey, option);
+    for (const option of bottleOptions) bottleLookup.set(option.canonicalKey, option);
+    return buildUserTasteProfile(collectionEntries.map((entry) => ({
       canonicalKey: entry.canonicalKey,
       bottleName: entry.bottleName,
       rating: entry.rating,
       tasteTags: entry.tasteTags,
+      proof: bottleLookup.get(entry.canonicalKey)?.bottle.proof,
       wouldBuyAgain: entry.wouldBuyAgain,
     })));
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries]);
 
-    if (!userTasteProfile.favoriteTags.length) return [];
+  const bourbonDnaSummary = useMemo<BourbonDnaSummary>(() => {
+    const proofText = collectionTasteProfile.preferredProofRange
+      ? `${collectionTasteProfile.preferredProofRange.min}-${collectionTasteProfile.preferredProofRange.max} proof`
+      : "rate more bottles with known proof to learn your proof range";
+    const tagText = collectionTasteProfile.favoriteTags.length
+      ? collectionTasteProfile.favoriteTags.slice(0, 4).join(", ")
+      : "rate bottles and pick taste cues to build this profile";
+    return {
+      favoriteTags: collectionTasteProfile.favoriteTags,
+      preferredProof: collectionTasteProfile.preferredProof,
+      preferredProofRange: collectionTasteProfile.preferredProofRange,
+      basedOnCount: collectionEntries.filter((entry) => entry.rating >= 80).length,
+      proofBottleCount: collectionTasteProfile.proofBottleCount,
+      summary: collectionTasteProfile.favoriteTags.length
+        ? `Your Bourbon DNA currently leans toward ${tagText}. Your strongest proof signal is ${proofText}.`
+        : "Rate a few bottles 80+ and choose taste cues to build your Bourbon DNA profile.",
+    };
+  }, [collectionEntries, collectionTasteProfile]);
+
+  const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
+    const ownedKeys = new Set(collectionEntries.map((entry) => entry.canonicalKey));
+    const recommendationOptionsMap = new Map<string, BottleOption>();
+    for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
+    for (const option of bottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
+    const recommendationOptions = Array.from(recommendationOptionsMap.values());
+
+    if (!collectionTasteProfile.favoriteTags.length) return [];
     return recommendationOptions
-      .filter((option) => !likedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
+      .filter((option) => !ownedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
       .map((option) => {
         const dnaProfile = createBourbonDnaProfile({
           name: option.bottle.canonical_name || option.bottle.name,
@@ -794,13 +830,16 @@ export default function DashboardPage() {
           aliases: [...(option.bottle.aliases || []), ...(option.bottle.search_aliases || [])],
           userTags: option.bottle.flavor,
         });
-        const dnaMatch = scoreBourbonDnaMatch(userTasteProfile, dnaProfile);
+        const dnaMatch = scoreBourbonDnaMatch(collectionTasteProfile, dnaProfile, option.bottle.proof);
         return {
           option,
           matchedFlavors: dnaMatch.matchedTags,
           dnaScore: dnaMatch.score,
           dnaReason: dnaMatch.explanation,
+          proofMatchLabel: dnaMatch.proofMatch.label,
+          proofMatchExplanation: dnaMatch.proofMatch.explanation,
           recentSightings: recentDrops
+          .filter((drop) => isRealDropEvent(drop))
           .filter((drop) => dropMatchesBottle(drop, option.bottle))
           .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
           .slice(0, 3)
@@ -815,7 +854,7 @@ export default function DashboardPage() {
         ...item,
         score: item.dnaScore + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
       }))
-      .filter((item) => item.score > 0 && item.matchedFlavors.length > 0)
+      .filter((item) => item.score > 0 && (item.matchedFlavors.length > 0 || item.proofMatchLabel !== "Proof unavailable"))
       .sort((a, b) => b.score - a.score || b.recentSightings.length - a.recentSightings.length || a.option.label.localeCompare(b.option.label))
       .slice(0, 4)
       .map((item) => ({
@@ -823,11 +862,13 @@ export default function DashboardPage() {
         score: item.score,
         matchedFlavors: item.matchedFlavors,
         recentSightings: item.recentSightings,
+        proofMatchLabel: item.proofMatchLabel,
+        proofMatchExplanation: item.proofMatchExplanation,
         reason: item.recentSightings.length
-          ? `${item.dnaReason} Also has recent market sightings.`
+          ? `${item.dnaReason} Visible in the Drop Feed data for your market.`
           : item.dnaReason,
       }));
-  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, localPrefs.states, recentDrops, selectedCanonicalKeys]);
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -2384,8 +2425,22 @@ export default function DashboardPage() {
                   <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Early recommendation signal</p>
                   <h3 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Based on bottles you rated 80+</h3>
                   <p style={{ margin: "7px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.65 }}>
-                    {recommendationMarketSummary.summary}
+                    {bourbonDnaSummary.summary}
                   </p>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))", gap: "10px" }}>
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
+                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Taste lean</span>
+                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{bourbonDnaSummary.favoriteTags.slice(0, 3).join(" + ") || "Needs ratings"}</strong>
+                  </div>
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
+                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Proof comfort zone</span>
+                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{bourbonDnaSummary.preferredProofRange ? `${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : "Needs proof data"}</strong>
+                  </div>
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
+                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Market check</span>
+                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{recommendationMarketSummary.summary}</strong>
+                  </div>
                 </div>
                 {collectionRecommendationInsights.length > 0 ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
@@ -2396,13 +2451,17 @@ export default function DashboardPage() {
                           <span style={{ display: "block", marginTop: 4, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>{insight.reason}</span>
                         </div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {typeof insight.option.bottle.proof === "number" ? (
+                            <span style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-secondary)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.option.bottle.proof} proof</span>
+                          ) : null}
+                          <span title={insight.proofMatchExplanation} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.proofMatchLabel}</span>
                           {insight.matchedFlavors.slice(0, 3).map((flavor) => (
                             <span key={flavor} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{flavor}</span>
                           ))}
                         </div>
                         {insight.recentSightings.length > 0 ? (
                           <div style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "9px", display: "grid", gap: "5px" }}>
-                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Recently sighted</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Visible in Drop Feed</span>
                             {insight.recentSightings.slice(0, 2).map((sighting) => (
                               <span key={`${sighting.location}-${sighting.timestamp}`} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45 }}>
                                 {sighting.state ? `${sighting.state} · ` : ""}{sighting.location} {sighting.timestamp ? `· ${formatShortDate(sighting.timestamp)}` : ""}

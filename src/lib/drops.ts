@@ -88,7 +88,7 @@ export interface GroupedDrop {
   locations: DropLocation[];
 }
 
-function isRealDropEvent(event: DropEvent): boolean {
+export function isRealDropEvent(event: DropEvent): boolean {
   const eventType = (event.event_type || '').toLowerCase();
   const locationPrecision = (event.location_precision || event.availability_scope || '').toLowerCase();
   const quantity = event.quantity_in_stock ?? event.quantity ?? 0;

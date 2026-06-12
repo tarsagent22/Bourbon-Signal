@@ -41,6 +41,7 @@ export interface CollectionTasteInput {
   bottleName: string;
   rating: number;
   tasteTags?: string[];
+  proof?: number;
   wouldBuyAgain?: boolean;
 }
 
@@ -49,6 +50,9 @@ export interface UserTasteProfile {
   favoriteTags: BourbonDnaTag[];
   avoidTags: BourbonDnaTag[];
   bottleCount: number;
+  preferredProof?: number;
+  preferredProofRange?: { min: number; max: number };
+  proofBottleCount: number;
 }
 
 const TAG_SET = new Set<string>(BOURBON_DNA_TAGS);
@@ -174,18 +178,44 @@ export function createBourbonDnaProfile(input: BourbonDnaInput): BourbonDnaProfi
   return profile;
 }
 
+function ratingSignalWeight(rating: number) {
+  if (rating >= 90) return 1.35;
+  if (rating >= 80) return 0.85 + ((rating - 80) / 10) * 0.35;
+  if (rating >= 70) return 0.22;
+  if (rating >= 60) return 0.08;
+  return 0;
+}
+
+function proofBand(proof: number) {
+  if (proof < 90) return "lower-proof";
+  if (proof <= 101) return "classic proof";
+  if (proof <= 115) return "higher-proof";
+  return "barrel-proof";
+}
+
 export function buildUserTasteProfile(collection: CollectionTasteInput[]): UserTasteProfile {
   const weights: Partial<Record<BourbonDnaTag, number>> = {};
   const avoid: Partial<Record<BourbonDnaTag, number>> = {};
+  let proofWeightTotal = 0;
+  let weightedProofTotal = 0;
+  let proofBottleCount = 0;
+  const positiveProofs: number[] = [];
 
   for (const entry of collection) {
     const rating = Math.max(0, Math.min(100, entry.rating || 0));
-    const likedWeight = rating >= 80 ? (rating - 75) / 25 : rating >= 65 ? 0.25 : 0;
-    const avoidWeight = rating < 50 ? (50 - rating) / 50 : 0;
+    const likedWeight = ratingSignalWeight(rating);
+    const avoidWeight = rating < 60 ? (60 - rating) / 60 : 0;
+    const adjustedLikedWeight = likedWeight * (entry.wouldBuyAgain === false ? 0.45 : 1);
     const tags = (entry.tasteTags || []).map((tag) => normalizeTag(tag)).filter((tag): tag is BourbonDnaTag => Boolean(tag));
     for (const tag of tags) {
-      if (likedWeight) weights[tag] = (weights[tag] || 0) + likedWeight * (entry.wouldBuyAgain === false ? 0.45 : 1);
+      if (adjustedLikedWeight) weights[tag] = (weights[tag] || 0) + adjustedLikedWeight;
       if (avoidWeight) avoid[tag] = (avoid[tag] || 0) + avoidWeight;
+    }
+    if (typeof entry.proof === "number" && Number.isFinite(entry.proof) && rating >= 80) {
+      proofBottleCount += 1;
+      positiveProofs.push(entry.proof);
+      proofWeightTotal += adjustedLikedWeight || 0.75;
+      weightedProofTotal += entry.proof * (adjustedLikedWeight || 0.75);
     }
   }
 
@@ -197,11 +227,34 @@ export function buildUserTasteProfile(collection: CollectionTasteInput[]): UserT
     .sort((a, b) => b[1] - a[1])
     .map(([tag]) => tag as BourbonDnaTag)
     .slice(0, 4);
+  const preferredProof = proofWeightTotal > 0 ? Math.round((weightedProofTotal / proofWeightTotal) * 10) / 10 : undefined;
+  const preferredProofRange = preferredProof
+    ? { min: Math.max(70, Math.round(preferredProof - 8)), max: Math.round(preferredProof + 8) }
+    : positiveProofs.length
+      ? { min: Math.min(...positiveProofs), max: Math.max(...positiveProofs) }
+      : undefined;
 
-  return { weights, favoriteTags, avoidTags, bottleCount: collection.length };
+  return { weights, favoriteTags, avoidTags, bottleCount: collection.length, preferredProof, preferredProofRange, proofBottleCount };
 }
 
-export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfile: BourbonDnaProfile) {
+export function scoreProofMatch(userProfile: UserTasteProfile, bottleProof?: number) {
+  if (!userProfile.preferredProof || typeof bottleProof !== "number" || !Number.isFinite(bottleProof)) {
+    return { score: 0, label: "Proof unavailable", explanation: "Proof data is not available yet for this bottle." };
+  }
+  const delta = Math.abs(bottleProof - userProfile.preferredProof);
+  if (delta <= 5) {
+    return { score: 4, label: "Strong proof match", explanation: `${bottleProof} proof is very close to your ${proofBand(userProfile.preferredProof)} comfort zone.` };
+  }
+  if (delta <= 10) {
+    return { score: 2.4, label: "Similar proof", explanation: `${bottleProof} proof is near bottles you rate highly.` };
+  }
+  if (delta <= 18) {
+    return { score: 0.8, label: "Adjacent proof", explanation: `${bottleProof} proof is a little outside your usual range, but still close enough to consider.` };
+  }
+  return { score: -1.2, label: "Different proof range", explanation: `${bottleProof} proof is outside your current preferred range.` };
+}
+
+export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfile: BourbonDnaProfile, bottleProof?: number) {
   let score = 0;
   const matchedTags: BourbonDnaTag[] = [];
   const avoidedTags: BourbonDnaTag[] = [];
@@ -219,12 +272,20 @@ export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfil
     }
   }
 
+  const proofMatch = scoreProofMatch(userProfile, bottleProof);
+  score += proofMatch.score;
+
+  const uniqueMatches = Array.from(new Set(matchedTags));
+  const proofPhrase = proofMatch.score > 0 ? ` ${proofMatch.label.toLowerCase()}.` : "";
   return {
     score: Math.round(score * 10) / 10,
-    matchedTags: Array.from(new Set(matchedTags)),
+    matchedTags: uniqueMatches,
     avoidedTags: Array.from(new Set(avoidedTags)),
-    explanation: matchedTags.length
-      ? `Matches your ${Array.from(new Set(matchedTags)).slice(0, 3).join(" + ")} preference signals.`
-      : "Needs more collection taste signals before this is a strong match.",
+    proofMatch,
+    explanation: uniqueMatches.length
+      ? `Matches your ${uniqueMatches.slice(0, 3).join(" + ")} preference signals.${proofPhrase}`
+      : proofMatch.score > 0
+        ? proofMatch.explanation
+        : "Needs more collection taste signals before this is a strong match.",
   };
 }
