@@ -313,52 +313,61 @@ function makeStateLabel(code: string) {
 
 function StepShell({
   step,
+  sectionLabel = "Alert setup",
   title,
   subtitle,
+  hideHeader = false,
+  attached = false,
   children,
 }: {
   step: string;
+  sectionLabel?: string;
   title: string;
   subtitle: string;
+  hideHeader?: boolean;
+  attached?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section
+      className="dashboard-drawer-shell"
+      data-attached={attached}
       style={{
-        borderRadius: "22px",
         border: "1px solid rgba(196,148,58,0.12)",
         background: "linear-gradient(180deg, rgba(17,13,10,0.92) 0%, rgba(11,9,7,0.96) 100%)",
         padding: "clamp(18px, 3vw, 28px)",
         boxShadow: "inset 0 1px 0 rgba(245,237,214,0.03)",
       }}
     >
-      <div style={{ display: "grid", gap: "20px" }}>
-        <div style={{ display: "grid", gap: "10px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: "11px",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-accent-amber)",
-            }}
-          >
-            <span>{step}</span>
-            <span style={{ width: "44px", height: "1px", background: "rgba(196,148,58,0.32)" }} />
-            <span>Alert setup</span>
+      <div style={{ display: "grid", gap: hideHeader ? "0" : "20px" }}>
+        {!hideHeader ? (
+          <div style={{ display: "grid", gap: "10px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-accent-amber)",
+              }}
+            >
+              <span>{step}</span>
+              <span style={{ width: "44px", height: "1px", background: "rgba(196,148,58,0.32)" }} />
+              <span>{sectionLabel}</span>
+            </div>
+            <div style={{ display: "grid", gap: "8px" }}>
+              <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(28px, 4vw, 36px)", color: "var(--color-cream)", margin: 0 }}>
+                {title}
+              </h2>
+              <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "60ch" }}>
+                {subtitle}
+              </p>
+            </div>
           </div>
-          <div style={{ display: "grid", gap: "8px" }}>
-            <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(28px, 4vw, 36px)", color: "var(--color-cream)", margin: 0 }}>
-              {title}
-            </h2>
-            <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "60ch" }}>
-              {subtitle}
-            </p>
-          </div>
-        </div>
+        ) : null}
         {children}
       </div>
     </section>
@@ -1388,7 +1397,7 @@ export default function DashboardPage() {
           }
           .dashboard-workspace {
             display: grid;
-            gap: 14px;
+            gap: 0;
             min-width: 0;
           }
           .dashboard-section-button {
@@ -1408,7 +1417,10 @@ export default function DashboardPage() {
             justify-content: space-between;
             gap: 18px;
             box-shadow: 0 18px 44px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.035);
-            transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 2;
+            transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease, border-radius 180ms ease, margin-bottom 180ms ease;
           }
           .dashboard-section-button:hover {
             transform: translateY(-1px);
@@ -1419,11 +1431,24 @@ export default function DashboardPage() {
           }
           .dashboard-section-button[data-active="true"] {
             border-color: rgba(196,148,58,0.42);
+            border-bottom-color: rgba(196,148,58,0.18);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
             background:
               radial-gradient(circle at 18% 0%, rgba(196,148,58,0.16), transparent 42%),
               linear-gradient(145deg, rgba(36,25,13,0.92), rgba(13,10,7,0.96));
             color: var(--color-cream);
             box-shadow: 0 22px 58px rgba(0,0,0,0.28), 0 0 0 1px rgba(196,148,58,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
+          }
+          .dashboard-section-button[data-active="true"]::after {
+            content: "";
+            position: absolute;
+            left: 1px;
+            right: 1px;
+            bottom: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(196,148,58,0.20), transparent);
           }
           .section-copy {
             min-width: 0;
@@ -1504,16 +1529,23 @@ export default function DashboardPage() {
           .dashboard-section-button[data-active="true"] .section-chevron-stack {
             transform: rotate(180deg);
           }
-          .dashboard-workspace > section {
-            margin-top: -2px;
-            margin-bottom: 4px;
-            border-color: rgba(196,148,58,0.13) !important;
+          .dashboard-drawer-shell {
+            margin-top: 0;
+            margin-bottom: 14px;
+            border-radius: 22px;
             box-shadow: 0 18px 52px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.035);
+          }
+          .dashboard-drawer-shell[data-attached="true"] {
+            margin-top: -1px;
+            border-top-color: rgba(196,148,58,0.18) !important;
+            border-radius: 0 0 22px 22px;
           }
           @media (max-width: 860px) {
             .dashboard-shell { margin-top: -6px; padding-left: 14px; padding-right: 14px; }
-            .dashboard-workspace { gap: 12px; }
-            .dashboard-section-button { border-radius: 18px; padding: 15px 14px; gap: 12px; }
+            .dashboard-section-button { border-radius: 18px; padding: 15px 14px; gap: 12px; margin-bottom: 12px; }
+            .dashboard-section-button[data-active="true"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
+            .dashboard-drawer-shell { border-radius: 18px; margin-bottom: 12px; }
+            .dashboard-drawer-shell[data-attached="true"] { border-radius: 0 0 18px 18px; }
             .section-eyebrow { font-size: 9px; }
             .section-title { font-size: 19px; font-family: var(--font-dm-sans); font-weight: 850; letter-spacing: -0.01em; }
             .section-summary { font-size: 12px; line-height: 1.45; }
@@ -1530,8 +1562,10 @@ export default function DashboardPage() {
           {activeDashboardSection === "alerts" ? (
           <StepShell
             step="01"
+            sectionLabel="Area setup"
             title="Choose your area"
             subtitle="Choose the state first, then refine to the board, city, or store level in the same place. Your current selections stay visible below."
+            attached
           >
             {(() => {
               const selectedStates = localPrefs.states;
@@ -2191,6 +2225,8 @@ export default function DashboardPage() {
             step="Collection"
             title="My Collection"
             subtitle="Add bottles you own, rate them 0-100, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
+            hideHeader
+            attached
           >
             <div id="my-collection" style={{ display: "grid", gap: "18px" }}>
               <div style={{ display: "grid", gap: "14px" }}>
@@ -2339,6 +2375,8 @@ export default function DashboardPage() {
             step="Recommendations"
             title="Recommended bottles"
             subtitle="A first pass at matching bottles you rate highly with flavor overlap and recent local sighting context."
+            hideHeader
+            attached
           >
             <div style={{ display: "grid", gap: "18px" }}>
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
