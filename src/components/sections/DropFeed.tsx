@@ -1013,7 +1013,7 @@ export default function DropFeed() {
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 30ch; }
           .dropfeed-nudge { display:none; }
-          .dropfeed-filter-row { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 18px !important; margin-left: -2px; scrollbar-width: none; }
+          .dropfeed-filter-row { overflow: visible; flex-wrap: wrap !important; padding-bottom: 12px !important; margin-left: 0; scrollbar-width: none; }
           .dropfeed-filter-row::-webkit-scrollbar { display:none; }
           .dropfeed-detail-panel { padding: 4px 2px 14px 8px !important; }
         }

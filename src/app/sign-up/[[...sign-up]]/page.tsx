@@ -17,7 +17,8 @@ export default function SignUpPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "clamp(20px, 5vw, 40px)",
+        padding: "clamp(16px, 5vw, 40px)",
+        overflowX: "hidden",
       }}
     >
       {/* Logo */}

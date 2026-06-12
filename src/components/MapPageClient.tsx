@@ -638,7 +638,7 @@ export default function MapPageClient() {
   const addBottle = useWatchlistStore((state) => state.addBottle);
   const removeBottle = useWatchlistStore((state) => state.removeBottle);
   const [mode, setMode] = useState<FinderMode>("bottle");
-  const [stateFilter, setStateFilter] = useState<FinderState>("NC");
+  const [stateFilter, setStateFilter] = useState<FinderState>("ALL");
   const [query, setQuery] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -679,7 +679,6 @@ export default function MapPageClient() {
     const activeStates = AVAILABLE_STATES
       .filter((state) => state.active && FINDER_MARKET_CODES.has(state.code))
       .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }))
-      .filter((state) => state.count > 0)
       .sort((a, b) => {
         const priorityDelta = FINDER_MARKET_PRIORITY.indexOf(a.code) - FINDER_MARKET_PRIORITY.indexOf(b.code);
         if (priorityDelta !== 0) return priorityDelta;
@@ -740,18 +739,43 @@ export default function MapPageClient() {
   }, [filteredBottles, selectedBottleId]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bottleParam = params.get("bottle") || "";
+    const stateParam = params.get("state")?.toUpperCase();
+    if (bottleParam) {
+      setMode("bottle");
+      setQuery(bottleParam);
+      setShowSuggestions(false);
+    }
+    if (stateParam && (stateParam === "ALL" || FINDER_MARKET_CODES.has(stateParam))) {
+      setStateFilter(stateParam as FinderState);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!stateOptions.length) return;
     if (stateFilter === "ALL") return;
     if (stateOptions.some((option) => option.code === stateFilter)) return;
-    const firstUseful = stateOptions.find((option) => option.code !== "ALL" && option.count > 0);
-    if (firstUseful) setStateFilter(firstUseful.code as FinderState);
+    setStateFilter("ALL");
   }, [stateFilter, stateOptions]);
 
   useEffect(() => {
-    if (mode === "bottle" && !selectedBottleId && filteredBottles[0]) {
+    if (mode !== "bottle") return;
+    const q = normalize(query);
+    if (q) {
+      const match = filteredBottles.find((bottle) => {
+        const haystack = [bottle.name, bottle.canonical_name, ...(bottle.search_aliases || [])]
+          .filter(Boolean)
+          .map((value) => normalize(String(value)));
+        return haystack.some((value) => value.includes(q) || q.includes(value));
+      });
+      if (match && selectedBottleId !== match.id) setSelectedBottleId(match.id);
+      return;
+    }
+    if (!selectedBottleId && filteredBottles[0]) {
       setSelectedBottleId(filteredBottles[0].id);
     }
-  }, [mode, filteredBottles, selectedBottleId]);
+  }, [mode, filteredBottles, query, selectedBottleId]);
 
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) return null;
@@ -1030,9 +1054,9 @@ export default function MapPageClient() {
     <section className="finder-shell">
       <div className="finder-hero-wrap">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="finder-hero"
         >
           <div className="finder-hero-copy">
@@ -1187,9 +1211,9 @@ export default function MapPageClient() {
 
       <div className="finder-main-grid finder-main-grid-single">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, x: 18 }}
-          animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          initial={false}
+          animate={{ opacity: 1, x: 0 }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="finder-panel finder-results"
         >
           <AnimatePresence mode="wait">
