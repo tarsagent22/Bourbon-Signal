@@ -1280,28 +1280,30 @@ export default function DashboardPage() {
   };
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
-    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Territory, alert mode, bottle watchlist, notification delivery, and save controls in one place.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Log bottles you own, how much you like them, tasting cues, and notes.", status: `${collectionEntries.length} owned` },
-    { key: "recommendations", label: "Recommendations", eyebrow: "Bottle matches", summary: "Suggestions based on your collection scores, taste cues, and local sighting context.", status: collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Needs ratings" },
+    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Manage your markets, bottle watchlist, and delivery preferences.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
+    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: `${collectionEntries.length} owned` },
+    { key: "recommendations", label: "Recommendations", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Needs ratings" },
   ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length]);
-
-  const activeSectionMeta = dashboardSections.find((section) => section.key === activeDashboardSection) ?? null;
 
   const toggleDashboardSection = (section: DashboardSection) => {
     setActiveDashboardSection((current) => current === section ? null : section);
   };
 
-  const renderMobileSectionButton = (sectionKey: DashboardSection) => {
+  const renderSectionButton = (sectionKey: DashboardSection) => {
     const section = dashboardSections.find((item) => item.key === sectionKey);
     if (!section) return null;
     const active = activeDashboardSection === sectionKey;
     return (
-      <button key={`mobile-${section.key}`} type="button" className="dashboard-section-button dashboard-mobile-section-button" data-active={active} onClick={() => toggleDashboardSection(section.key)}>
-        <span className="mobile-section-main">
-          <span className="mobile-section-label">{section.label}</span>
-          <span className="mobile-section-status">{section.status}</span>
+      <button key={`section-${section.key}`} type="button" className="dashboard-section-button" data-active={active} onClick={() => toggleDashboardSection(section.key)}>
+        <span className="section-copy">
+          <span className="section-eyebrow">{section.eyebrow}</span>
+          <span className="section-title-row">
+            <span className="section-title">{section.label}</span>
+            <span className="section-status">{section.status}</span>
+          </span>
+          <span className="section-summary">{section.summary}</span>
         </span>
-        <span className="mobile-section-arrow" aria-hidden="true">⌄</span>
+        <span className="section-arrow" aria-hidden="true">⌄</span>
       </button>
     );
   };
@@ -1374,143 +1376,137 @@ export default function DashboardPage() {
 
         <style>{`
           .dashboard-shell {
-            max-width: 1180px;
+            max-width: 820px;
             margin: 0 auto;
-            padding: 0 clamp(20px, 5vw, 40px) 80px;
-            display: grid;
-            grid-template-columns: 260px minmax(0, 1fr);
-            gap: 22px;
-            align-items: start;
+            padding: 0 clamp(16px, 5vw, 36px) 82px;
           }
-          .dashboard-sidebar {
-            position: sticky;
-            top: 96px;
+          .dashboard-workspace {
             display: grid;
-            gap: 10px;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 24px;
-            background: linear-gradient(180deg, rgba(17,13,10,0.88), rgba(10,8,6,0.96));
-            padding: 12px;
-            box-shadow: inset 0 1px 0 rgba(245,237,214,0.03);
+            gap: 14px;
+            min-width: 0;
           }
-          .dashboard-mobile-section-button { display: none; }
           .dashboard-section-button {
             width: 100%;
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 16px;
-            background: rgba(255,255,255,0.025);
+            min-width: 0;
+            border: 1px solid rgba(245,237,214,0.09);
+            border-radius: 22px;
+            background:
+              linear-gradient(145deg, rgba(245,237,214,0.052), rgba(245,237,214,0.018)),
+              rgba(13,10,7,0.78);
             color: var(--color-text-secondary);
-            padding: 13px;
+            padding: 18px 18px 17px;
             text-align: left;
             cursor: pointer;
-            display: grid;
-            gap: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.035);
+            transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+          }
+          .dashboard-section-button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(196,148,58,0.22);
+            background:
+              linear-gradient(145deg, rgba(196,148,58,0.075), rgba(245,237,214,0.022)),
+              rgba(16,12,8,0.84);
           }
           .dashboard-section-button[data-active="true"] {
-            border-color: rgba(196,148,58,0.38);
-            background: linear-gradient(135deg, rgba(196,148,58,0.18), rgba(196,148,58,0.06));
+            border-color: rgba(196,148,58,0.42);
+            background:
+              radial-gradient(circle at 18% 0%, rgba(196,148,58,0.16), transparent 42%),
+              linear-gradient(145deg, rgba(36,25,13,0.92), rgba(13,10,7,0.96));
             color: var(--color-cream);
+            box-shadow: 0 22px 58px rgba(0,0,0,0.28), 0 0 0 1px rgba(196,148,58,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
           }
-          .dashboard-workspace { display: grid; gap: 22px; min-width: 0; }
-          .dashboard-panel-heading {
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 22px;
-            background: rgba(255,255,255,0.025);
-            padding: 20px;
+          .section-copy {
+            min-width: 0;
+            display: grid;
+            gap: 7px;
+          }
+          .section-eyebrow {
+            font-family: var(--font-jetbrains);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: rgba(196,148,58,0.82);
+          }
+          .section-title-row {
             display: flex;
-            justify-content: space-between;
-            gap: 14px;
-            align-items: end;
+            align-items: baseline;
+            gap: 10px;
             flex-wrap: wrap;
           }
+          .section-title {
+            font-family: var(--font-playfair);
+            font-size: clamp(24px, 3vw, 31px);
+            font-weight: 700;
+            line-height: 1.02;
+            color: var(--color-cream);
+            letter-spacing: -0.015em;
+          }
+          .section-status {
+            width: fit-content;
+            border-radius: 999px;
+            border: 1px solid rgba(196,148,58,0.22);
+            background: rgba(196,148,58,0.075);
+            padding: 4px 8px 3px;
+            font-family: var(--font-jetbrains);
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--color-accent-amber);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          .section-summary {
+            max-width: 58ch;
+            font-family: var(--font-dm-sans);
+            font-size: 13px;
+            line-height: 1.55;
+            color: rgba(245,237,214,0.56);
+          }
+          .section-arrow {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid rgba(196,148,58,0.24);
+            display: grid;
+            place-items: center;
+            color: var(--color-accent-amber);
+            background: rgba(5,4,3,0.36);
+            font-size: 16px;
+            flex: 0 0 auto;
+            transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+          }
+          .dashboard-section-button[data-active="true"] .section-arrow {
+            transform: rotate(180deg);
+            background: rgba(196,148,58,0.12);
+            border-color: rgba(196,148,58,0.42);
+          }
+          .dashboard-workspace > section {
+            margin-top: -2px;
+            margin-bottom: 4px;
+            border-color: rgba(196,148,58,0.13) !important;
+            box-shadow: 0 18px 52px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.035);
+          }
           @media (max-width: 860px) {
-            .dashboard-shell { grid-template-columns: 1fr; gap: 14px; margin-top: -8px; }
-            .dashboard-sidebar { display: none; }
-            .dashboard-mobile-section-button {
-              width: 100%;
-              min-width: 0;
-              border-radius: 15px;
-              padding: 13px 14px;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              gap: 12px;
-              box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
-            }
-            .dashboard-mobile-section-button[data-active="true"] {
-              border-color: rgba(196,148,58,0.46);
-              background: linear-gradient(180deg, rgba(44,31,16,0.92), rgba(18,14,10,0.98));
-            }
-            .mobile-section-main {
-              min-width: 0;
-              display: grid;
-              gap: 3px;
-            }
-            .mobile-section-label {
-              font-family: var(--font-dm-sans);
-              font-size: 14px;
-              font-weight: 800;
-              color: var(--color-cream);
-            }
-            .mobile-section-status {
-              font-family: var(--font-jetbrains);
-              font-size: 9px;
-              color: var(--color-accent-amber);
-              letter-spacing: 0.08em;
-              text-transform: uppercase;
-            }
-            .mobile-section-arrow {
-              width: 30px;
-              height: 30px;
-              border-radius: 999px;
-              border: 1px solid rgba(196,148,58,0.22);
-              display: grid;
-              place-items: center;
-              color: var(--color-accent-amber);
-              font-size: 14px;
-              flex: 0 0 auto;
-              transition: transform 160ms ease;
-            }
-            .dashboard-mobile-section-button[data-active="true"] .mobile-section-arrow {
-              transform: rotate(180deg);
-            }
-            .dashboard-panel-heading { display: none; }
-            .dashboard-workspace { gap: 14px; }
+            .dashboard-shell { margin-top: -6px; padding-left: 14px; padding-right: 14px; }
+            .dashboard-workspace { gap: 12px; }
+            .dashboard-section-button { border-radius: 18px; padding: 15px 14px; gap: 12px; }
+            .section-eyebrow { font-size: 9px; }
+            .section-title { font-size: 19px; font-family: var(--font-dm-sans); font-weight: 850; letter-spacing: -0.01em; }
+            .section-summary { font-size: 12px; line-height: 1.45; }
+            .section-arrow { width: 32px; height: 32px; }
+            .section-status { font-size: 9px; }
           }
         `}</style>
 
         <div id="dashboard-workspace" className="dashboard-shell">
-          <aside className="dashboard-sidebar" aria-label="Dashboard sections">
-            {dashboardSections.map((section) => (
-              <button key={section.key} type="button" className="dashboard-section-button" data-active={activeDashboardSection === section.key} onClick={() => toggleDashboardSection(section.key)}>
-                <span className="section-eyebrow" style={{ fontFamily: "var(--font-jetbrains)", fontSize: 10, color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{section.eyebrow}</span>
-                <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: 14, fontWeight: 800 }}>{section.label}</span>
-                <span className="section-summary" style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, lineHeight: 1.45, color: "var(--color-text-tertiary)" }}>{section.summary}</span>
-                <span style={{ width: "fit-content", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.07)", padding: "4px 7px", fontFamily: "var(--font-jetbrains)", fontSize: 9, color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{section.status}</span>
-              </button>
-            ))}
-          </aside>
-
           <div className="dashboard-workspace">
-            {activeSectionMeta ? (
-              <div className="dashboard-panel-heading">
-                <div>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{activeSectionMeta.eyebrow}</p>
-                  <h2 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", fontSize: "32px", color: "var(--color-cream)", lineHeight: 1.08 }}>{activeSectionMeta.label}</h2>
-                </div>
-                <p style={{ margin: 0, maxWidth: "44ch", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{activeSectionMeta.summary}</p>
-              </div>
-            ) : (
-              <div className="dashboard-panel-heading dashboard-empty-heading">
-                <div>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Choose a section</p>
-                  <h2 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", fontSize: "32px", color: "var(--color-cream)", lineHeight: 1.08 }}>Dashboard tools</h2>
-                </div>
-                <p style={{ margin: 0, maxWidth: "44ch", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>Open Alerts, My Collection, or Recommendations. Open sections can be collapsed again from the same arrow.</p>
-              </div>
-            )}
 
-          {renderMobileSectionButton("alerts")}
+          {renderSectionButton("alerts")}
 
           {activeDashboardSection === "alerts" ? (
           <StepShell
@@ -2169,7 +2165,7 @@ export default function DashboardPage() {
           </StepShell>
           ) : null}
 
-          {renderMobileSectionButton("collection")}
+          {renderSectionButton("collection")}
 
           {activeDashboardSection === "collection" ? (
           <StepShell
@@ -2317,7 +2313,7 @@ export default function DashboardPage() {
           </StepShell>
           ) : null}
 
-          {renderMobileSectionButton("recommendations")}
+          {renderSectionButton("recommendations")}
 
           {activeDashboardSection === "recommendations" ? (
           <StepShell
