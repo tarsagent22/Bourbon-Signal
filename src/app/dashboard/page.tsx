@@ -1476,20 +1476,16 @@ export default function DashboardPage() {
           .section-arrow {
             width: 40px;
             height: 40px;
-            border-radius: 999px;
-            border: 1px solid rgba(196,148,58,0.22);
             display: grid;
             place-items: center;
-            background: radial-gradient(circle at 50% 25%, rgba(196,148,58,0.08), rgba(5,4,3,0.42));
             flex: 0 0 auto;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
-            transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
           }
           .section-chevron-stack {
             position: relative;
             width: 17px;
             height: 18px;
             display: block;
+            transform-origin: 50% 50%;
             transition: transform 220ms ease;
           }
           .section-chevron-stack span {
@@ -1505,12 +1501,6 @@ export default function DashboardPage() {
           .section-chevron-stack span:nth-child(1) { top: -1px; opacity: 0.42; }
           .section-chevron-stack span:nth-child(2) { top: 5px; opacity: 0.72; }
           .section-chevron-stack span:nth-child(3) { top: 11px; opacity: 1; }
-          .dashboard-section-button:hover .section-arrow,
-          .dashboard-section-button[data-active="true"] .section-arrow {
-            background: radial-gradient(circle at 50% 25%, rgba(196,148,58,0.18), rgba(8,6,4,0.58));
-            border-color: rgba(196,148,58,0.42);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 18px rgba(196,148,58,0.08);
-          }
           .dashboard-section-button[data-active="true"] .section-chevron-stack {
             transform: rotate(180deg);
           }
