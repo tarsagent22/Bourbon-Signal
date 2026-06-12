@@ -1303,7 +1303,13 @@ export default function DashboardPage() {
           </span>
           <span className="section-summary">{section.summary}</span>
         </span>
-        <span className="section-arrow" aria-hidden="true">⌄</span>
+        <span className="section-arrow" aria-hidden="true">
+          <span className="section-chevron-stack">
+            <span />
+            <span />
+            <span />
+          </span>
+        </span>
       </button>
     );
   };
@@ -1468,22 +1474,45 @@ export default function DashboardPage() {
             color: rgba(245,237,214,0.56);
           }
           .section-arrow {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 999px;
-            border: 1px solid rgba(196,148,58,0.24);
+            border: 1px solid rgba(196,148,58,0.22);
             display: grid;
             place-items: center;
-            color: var(--color-accent-amber);
-            background: rgba(5,4,3,0.36);
-            font-size: 16px;
+            background: radial-gradient(circle at 50% 25%, rgba(196,148,58,0.08), rgba(5,4,3,0.42));
             flex: 0 0 auto;
-            transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+            transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
           }
+          .section-chevron-stack {
+            position: relative;
+            width: 17px;
+            height: 18px;
+            display: block;
+            transition: transform 220ms ease;
+          }
+          .section-chevron-stack span {
+            position: absolute;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-right: 2px solid rgba(245,237,214,0.9);
+            border-bottom: 2px solid rgba(245,237,214,0.9);
+            transform: translateX(-50%) rotate(45deg);
+            filter: drop-shadow(0 0 6px rgba(196,148,58,0.18));
+          }
+          .section-chevron-stack span:nth-child(1) { top: -1px; opacity: 0.42; }
+          .section-chevron-stack span:nth-child(2) { top: 5px; opacity: 0.72; }
+          .section-chevron-stack span:nth-child(3) { top: 11px; opacity: 1; }
+          .dashboard-section-button:hover .section-arrow,
           .dashboard-section-button[data-active="true"] .section-arrow {
-            transform: rotate(180deg);
-            background: rgba(196,148,58,0.12);
+            background: radial-gradient(circle at 50% 25%, rgba(196,148,58,0.18), rgba(8,6,4,0.58));
             border-color: rgba(196,148,58,0.42);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 18px rgba(196,148,58,0.08);
+          }
+          .dashboard-section-button[data-active="true"] .section-chevron-stack {
+            transform: rotate(180deg);
           }
           .dashboard-workspace > section {
             margin-top: -2px;
