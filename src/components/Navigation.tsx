@@ -12,12 +12,13 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Finder", href: "/finder" },
   { label: "Bottle Check", href: "/bottle-check" },
+  { label: "Sightings", href: "/sightings" },
   { label: "Feedback", href: "/feedback" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check" || pathname === "/feedback";
+  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/feedback";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

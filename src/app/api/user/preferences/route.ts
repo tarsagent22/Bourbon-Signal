@@ -6,6 +6,7 @@ import {
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import type { MemberSighting, SignalReport, SignalReportKind, SightingsPreferences } from "@/lib/sightings";
 
 export interface AreaPreferences {
   states: string[];
@@ -42,6 +43,7 @@ export interface UserAlertPreferences {
   collectionPreferences: {
     bottles: CollectionBottlePreference[];
   };
+  sightingsPreferences?: SightingsPreferences;
 }
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -61,6 +63,11 @@ const EMPTY_BOTTLE_ALERT_PREFERENCES: UserAlertPreferences["bottleAlertPreferenc
 
 const EMPTY_COLLECTION_PREFERENCES: UserAlertPreferences["collectionPreferences"] = {
   bottles: [],
+};
+
+const EMPTY_SIGHTINGS_PREFERENCES: SightingsPreferences = {
+  submittedSightings: [],
+  signalReports: [],
 };
 
 function normalizeAlertMode(input: unknown): AlertMode {
@@ -136,6 +143,59 @@ function normalizeCollectionPreferences(input: unknown): UserAlertPreferences["c
   return { bottles: bottles.slice(0, 250) };
 }
 
+function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const rawSightings = Array.isArray(source.submittedSightings) ? source.submittedSightings : [];
+  const rawReports = Array.isArray(source.signalReports) ? source.signalReports : [];
+
+  const submittedSightings: MemberSighting[] = rawSightings.flatMap((raw) => {
+    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const bottleName = typeof item.bottleName === "string" ? item.bottleName.trim().slice(0, 140) : "";
+    const storeId = typeof item.storeId === "string" ? item.storeId.trim().slice(0, 160) : "";
+    const storeName = typeof item.storeName === "string" ? item.storeName.trim().slice(0, 180) : "";
+    const storeAddress = typeof item.storeAddress === "string" ? item.storeAddress.trim().slice(0, 220) : "";
+    if (!bottleName || !storeId || !storeName || !storeAddress) return [];
+    const price = typeof item.price === "number" && Number.isFinite(item.price) ? Math.max(0, Math.min(99999, item.price)) : null;
+    const sightingSource: MemberSighting["source"] = item.source === "feed" || item.source === "finder" ? item.source : "custom";
+    return [{
+      id: typeof item.id === "string" ? item.id.slice(0, 120) : `sighting_${Date.now()}`,
+      bottleName,
+      bottleId: typeof item.bottleId === "string" ? item.bottleId.slice(0, 160) : undefined,
+      storeId,
+      storeName,
+      storeAddress,
+      storeCity: typeof item.storeCity === "string" ? item.storeCity.slice(0, 120) : undefined,
+      storeState: typeof item.storeState === "string" ? item.storeState.slice(0, 10).toUpperCase() : undefined,
+      storeZip: typeof item.storeZip === "string" ? item.storeZip.slice(0, 20) : undefined,
+      quantityEstimate: typeof item.quantityEstimate === "string" ? item.quantityEstimate.slice(0, 80) : undefined,
+      price,
+      notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : undefined,
+      source: sightingSource,
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
+    }];
+  }).slice(0, 100);
+
+  const signalReports: SignalReport[] = rawReports.flatMap((raw) => {
+    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const signalId = typeof item.signalId === "string" ? item.signalId.slice(0, 260) : "";
+    const bottleName = typeof item.bottleName === "string" ? item.bottleName.trim().slice(0, 140) : "";
+    const kind: SignalReportKind | null = item.kind === "not_seen" ? "not_seen" : item.kind === "seen" ? "seen" : null;
+    if (!signalId || !bottleName || !kind) return [];
+    return [{
+      id: typeof item.id === "string" ? item.id.slice(0, 120) : `report_${Date.now()}`,
+      signalId,
+      bottleName,
+      storeName: typeof item.storeName === "string" ? item.storeName.slice(0, 180) : undefined,
+      storeAddress: typeof item.storeAddress === "string" ? item.storeAddress.slice(0, 220) : undefined,
+      state: typeof item.state === "string" ? item.state.slice(0, 10).toUpperCase() : undefined,
+      kind,
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
+    }];
+  }).slice(0, 250);
+
+  return { submittedSightings, signalReports };
+}
+
 function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
   return {
     areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
@@ -143,6 +203,7 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
     alertMode: normalizeAlertMode(user.publicMetadata?.alertMode),
     bottleAlertPreferences: normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences),
     collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
+    sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
   };
 }
 
@@ -171,10 +232,11 @@ export async function POST(req: NextRequest) {
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
+  const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
 
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences },
+    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences },
   });
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences });
 }

@@ -18,6 +18,8 @@ import DataFreshness from "@/components/DataFreshness";
 import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
+import { useSightings } from "@/hooks/useSightings";
+import { makeSightingId, type MemberSighting, type SignalReportKind } from "@/lib/sightings";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -88,6 +90,40 @@ const MOCK_DROPS: DropEvent[] = [
     retail_price: 42.99,
   },
 ];
+
+function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
+  return {
+    displayName: sighting.bottleName,
+    event_type: "user_sighting",
+    rarity_tier: "limited",
+    timestamp: sighting.createdAt,
+    counties: sighting.storeCity ? [sighting.storeCity] : [],
+    store_address: sighting.storeAddress,
+    retail_price: sighting.price ?? undefined,
+    quantity_in_stock: sighting.quantityEstimate ? 1 : undefined,
+    state: sighting.storeState,
+    id: sighting.id,
+    signalLabel: "User submitted",
+    confidenceTier: "member_sighting",
+    availabilityScope: "exact",
+    exactStore: true,
+    locationPrecision: "store_level",
+    canAlertAsInventory: false,
+    signalCategory: "community",
+    displayState: sighting.storeState,
+    locations: [
+      {
+        label: sighting.storeName,
+        city: sighting.storeCity,
+        address: sighting.storeAddress,
+        quantity: sighting.quantityEstimate ? 1 : undefined,
+      },
+    ],
+    ...(sighting.quantityEstimate ? { userQuantityEstimate: sighting.quantityEstimate } : {}),
+    ...(sighting.notes ? { userNotes: sighting.notes } : {}),
+    isUserSighting: true,
+  } as GroupedDrop;
+}
 
 function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
   const rows: GroupedDrop[] = [];
@@ -309,9 +345,11 @@ interface FeedRowProps {
   isNew: boolean;
   index: number;
   isFreeUser: boolean;
+  reportKind?: SignalReportKind;
+  onReport?: (drop: GroupedDrop, kind: SignalReportKind) => void;
 }
 
-function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
+function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedRowProps) {
   const visibleLocations = isFreeUser ? drop.locations.slice(0, 1) : drop.locations;
   const hiddenLocationCount = Math.max(drop.locations.length - visibleLocations.length, 0);
   const [expanded, setExpanded] = useState(false);
@@ -326,6 +364,10 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   const signalLabel = drop.signalLabel || "Bottle drop";
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
+  const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
+  const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
+  const canQuickReport = !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
+  const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
 
   // Glow timer for newest drop
   useEffect(() => {
@@ -343,7 +385,11 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   if (drop.signalLabel) {
     details.push({ label: "Drop type", value: drop.signalLabel });
   }
-  details.push({ label: "Evidence", value: `${accuracyBadge.label} · ${accuracyBadge.caption}` });
+  if (isUserSighting) {
+    details.push({ label: "Evidence", value: "Submitted by a member; verify before driving" });
+  } else {
+    details.push({ label: "Evidence", value: `${accuracyBadge.label} · ${accuracyBadge.caption}` });
+  }
   if (confidenceBadge) {
     details.push({ label: "Confidence", value: confidenceBadge.label });
   }
@@ -359,7 +405,9 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
   if (drop.quantity_shipped && drop.quantity_shipped > 0) {
     details.push({ label: drop.event_type === "nc_board_shipment_snapshot" ? "Board received" : "Shipped", value: `${drop.quantity_shipped} unit${drop.quantity_shipped === 1 ? "" : "s"}` });
   }
-  if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
+  if (isUserSighting && userQuantityEstimate) {
+    details.push({ label: "Member estimate", value: userQuantityEstimate });
+  } else if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
     details.push({ label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "Source-reported", value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}` });
   }
   if (drop.locations.length > 0) {
@@ -466,6 +514,12 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           {drop.displayName}
         </div>
 
+        {isUserSighting ? (
+          <div style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid rgba(196,148,58,0.28)", background: "rgba(196,148,58,0.09)", borderRadius: "999px", padding: "5px 8px", color: "rgba(232,201,122,0.95)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            User submitted
+          </div>
+        ) : null}
+
         <div className="flex items-center justify-between gap-3" style={{ marginTop: "12px", paddingTop: "11px", borderTop: "1px solid rgba(245,237,214,0.07)" }}>
           <div className="min-w-0">
             <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 650, color: "rgba(245,237,214,0.86)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -492,6 +546,19 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           <span>{signalLabel}</span>
           <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for details" : "More shown"}</span>
         </div>
+
+        {!isFreeUser ? (
+          <div className="flex items-center gap-2" style={{ marginTop: "11px", flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
+            {canQuickReport ? (
+              <>
+                <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
+                <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
+              </>
+            ) : !isUserSighting ? (
+              <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
+            ) : null}
+          </div>
+        ) : null}
 
       </div>
 
@@ -531,7 +598,12 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
           >
             {drop.displayName}
           </button>
-          <div className="flex items-center gap-2" style={{ marginTop: "2px" }}>
+          <div className="flex items-center gap-2" style={{ marginTop: "2px", flexWrap: "wrap" }}>
+            {isUserSighting ? (
+              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.09)", border: "1px solid rgba(196,148,58,0.26)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
+                User submitted
+              </span>
+            ) : null}
             {stateLabel && (
               <span
                 style={{
@@ -576,6 +648,19 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
             )}
           </div>
         </div>
+
+        {!isFreeUser ? (
+          <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "10px" }} onClick={(event) => event.stopPropagation()}>
+            {canQuickReport ? (
+              <>
+                <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
+                <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
+              </>
+            ) : !isUserSighting ? (
+              <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Right: pricing + timestamp — desktop */}
         <div
@@ -764,6 +849,7 @@ export default function DropFeed() {
   } = useStatePreferences();
   const { isSignedIn } = useAuth();
   const { prefs } = useAreaPreferences();
+  const { sightings, reportsBySignalId, addSignalReport } = useSightings(isSignedIn);
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
@@ -953,7 +1039,8 @@ export default function DropFeed() {
     return true;
   });
 
-  const finalFeed = filteredByArea;
+  const memberSightingRows = isSignedIn ? sightings.map(memberSightingToGrouped) : [];
+  const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
 
   const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
@@ -976,6 +1063,19 @@ export default function DropFeed() {
       return;
     }
     fetchOlderDrops();
+  };
+
+  const handleSignalReport = (drop: GroupedDrop, kind: SignalReportKind) => {
+    addSignalReport({
+      id: makeSightingId("report"),
+      signalId: drop.id,
+      bottleName: drop.displayName,
+      storeName: drop.locations[0]?.label,
+      storeAddress: drop.locations[0]?.address || drop.store_address,
+      state: drop.state,
+      kind,
+      createdAt: new Date().toISOString(),
+    }).catch(() => undefined);
   };
 
   return (
@@ -1016,6 +1116,35 @@ export default function DropFeed() {
           .dropfeed-filter-row { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 18px !important; margin-left: -2px; scrollbar-width: none; }
           .dropfeed-filter-row::-webkit-scrollbar { display:none; }
           .dropfeed-detail-panel { padding: 4px 2px 14px 8px !important; }
+        }
+        .sighting-chip {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(245,237,214,0.12);
+          background: rgba(245,237,214,0.045);
+          color: rgba(245,237,214,0.62);
+          border-radius: 999px;
+          padding: 5px 9px;
+          font-family: var(--font-dm-sans);
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background 150ms, color 150ms, border-color 150ms;
+        }
+        .sighting-chip:hover,
+        .sighting-chip.active {
+          border-color: rgba(196,148,58,0.42);
+          background: rgba(196,148,58,0.12);
+          color: rgba(232,201,122,0.98);
+        }
+        .sighting-chip.caution,
+        .sighting-chip.active.caution {
+          border-color: rgba(255,180,120,0.32);
+          background: rgba(255,120,80,0.1);
+          color: rgba(255,206,184,0.96);
         }
       `}</style>
 
@@ -1220,6 +1349,8 @@ export default function DropFeed() {
                     isNew={false}
                     index={index}
                     isFreeUser={isFreeUser}
+                    reportKind={reportsBySignalId.get(drop.id)?.kind}
+                    onReport={handleSignalReport}
                   />
                 ))}
               </AnimatePresence>
@@ -1270,6 +1401,8 @@ export default function DropFeed() {
                       isNew={newIds.has(drop.id)}
                       index={index}
                       isFreeUser={isFreeUser}
+                      reportKind={reportsBySignalId.get(drop.id)?.kind}
+                      onReport={handleSignalReport}
                     />
                   ))}
                 </AnimatePresence>

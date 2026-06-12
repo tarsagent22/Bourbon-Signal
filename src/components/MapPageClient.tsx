@@ -959,6 +959,7 @@ export default function MapPageClient() {
   const storeTrust = getTrustBadge(bestStoreSignal);
   const selectedBottleWatched = selectedBottle ? watchlist.includes(selectedBottle.id) : false;
   const dashboardHref = "/dashboard";
+  const selectedBottleSightingHref = selectedBottle ? `/sightings?bottle=${encodeURIComponent(selectedBottle.name)}&bottleId=${encodeURIComponent(selectedBottle.id)}${stateFilter !== "ALL" ? `&state=${encodeURIComponent(stateFilter)}` : ""}` : "/sightings";
 
   const summary = useMemo(() => {
     return {
@@ -1227,6 +1228,7 @@ export default function MapPageClient() {
                               {selectedBottleWatched ? "Watching" : "Watch this bottle"}
                             </button>
                             <a className="finder-secondary-action" href={dashboardHref}>Alert setup</a>
+                            <a className="finder-secondary-action" href={selectedBottleSightingHref}>Add sighting</a>
                           </div>
                         </div>
                       </div>
@@ -1342,6 +1344,7 @@ export default function MapPageClient() {
                         </p>
                         <div className="finder-action-row">
                           <a className="finder-primary-action" href={dashboardHref}>Set alerts for this area</a>
+                          <a className="finder-secondary-action" href={`/sightings?store=${encodeURIComponent(selectedStore.displayLabel || selectedStore.name || selectedStore.address || "")}`}>Add sighting</a>
                           {selectedStore.sourceUrl ? <a className="finder-secondary-action" href={selectedStore.sourceUrl} target="_blank" rel="noreferrer">Open source</a> : null}
                         </div>
                       </div>
