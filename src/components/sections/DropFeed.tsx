@@ -19,7 +19,10 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
+import { useStores } from "@/hooks/useStores";
 import { makeSightingId, type MemberSighting, type SignalReportKind } from "@/lib/sightings";
+
+type DropSortMode = "newest" | "nearby" | "rarity" | "az";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -123,6 +126,41 @@ function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
     ...(sighting.notes ? { userNotes: sighting.notes } : {}),
     isUserSighting: true,
   } as GroupedDrop;
+}
+
+function normalizeFilterText(value?: string | null) {
+  return (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function dropCountyCandidates(drop: GroupedDrop) {
+  return Array.from(
+    new Set(
+      [
+        ...(drop.counties || []),
+        drop.board_name,
+        drop.locations[0]?.label,
+        drop.locations[0]?.city,
+      ]
+        .map((value) => cleanCountyName(String(value || "")).trim())
+        .filter(Boolean)
+    )
+  );
+}
+
+function getDropRarityRank(drop: GroupedDrop) {
+  return drop.rarity_tier === "unicorn" ? 3 : drop.rarity_tier === "allocated" ? 2 : 1;
+}
+
+function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
+  if (!a || b?.lat == null || b?.lng == null) return Number.POSITIVE_INFINITY;
+  const r = 3958.8;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  return 2 * r * Math.asin(Math.sqrt(sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng));
 }
 
 function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
@@ -334,7 +372,7 @@ function getPrimarySignalMeta(drop: GroupedDrop, locationSummary: string, stateL
 function TierBadge({ tier }: { tier: string }) {
   const config = TIER_CONFIG[tier] || TIER_CONFIG.limited;
   return (
-    <span style={config.pillStyle as React.CSSProperties}>
+    <span className={`drop-tier-badge tier-${tier}`} style={{ borderColor: config.borderColor }}>
       {config.label}
     </span>
   );
@@ -470,18 +508,21 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
         />
 
         <div className="flex items-center justify-between gap-3" style={{ marginBottom: "8px" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: "9px",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(245,237,214,0.42)",
-            }}
-          >
-            {stateLabel}
-          </span>
+          <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
+            <TierBadge tier={drop.rarity_tier} />
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "rgba(245,237,214,0.42)",
+              }}
+            >
+              {stateLabel}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
             {hasPricing && (
@@ -599,6 +640,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             {drop.displayName}
           </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px", flexWrap: "wrap" }}>
+            <TierBadge tier={drop.rarity_tier} />
             {isUserSighting ? (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.09)", border: "1px solid rgba(196,148,58,0.26)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
                 User submitted
@@ -850,6 +892,7 @@ export default function DropFeed() {
   const { isSignedIn } = useAuth();
   const { prefs } = useAreaPreferences();
   const { sightings, reportsBySignalId, addSignalReport } = useSightings(isSignedIn);
+  const { stores } = useStores();
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
@@ -862,6 +905,11 @@ export default function DropFeed() {
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
+  const [bottleSearch, setBottleSearch] = useState("");
+  const [countyFilter, setCountyFilter] = useState("ALL");
+  const [sortMode, setSortMode] = useState<DropSortMode>("newest");
+  const [nearMe, setNearMe] = useState<{ lat: number; lng: number } | null>(null);
+  const [nearMeStatus, setNearMeStatus] = useState<string | null>(null);
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextDropOffset, setNextDropOffset] = useState(0);
@@ -969,7 +1017,8 @@ export default function DropFeed() {
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
-  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), activeTiers]);
+  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), activeTiers, bottleSearch, countyFilter, sortMode]);
+
 
   useEffect(() => {
     fetchDrops();
@@ -984,13 +1033,42 @@ export default function DropFeed() {
     return () => clearInterval(timer);
   }, []);
 
-  // Apply state and tier filters
+  const storeCoordinateLookup = new Map<string, { lat: number; lng: number }>();
+  for (const store of stores) {
+    if (store.lat == null || store.lng == null) continue;
+    const keys = [store.address, store.displayLabel, store.name]
+      .map(normalizeFilterText)
+      .filter(Boolean);
+    for (const key of keys) storeCoordinateLookup.set(key, { lat: store.lat, lng: store.lng });
+  }
+
+  const getDropDistance = (drop: GroupedDrop) => {
+    if (!nearMe) return Number.POSITIVE_INFINITY;
+    const keys = [drop.store_address, drop.locations[0]?.address, drop.locations[0]?.label]
+      .map(normalizeFilterText)
+      .filter(Boolean);
+    let best = Number.POSITIVE_INFINITY;
+    for (const [storeKey, coords] of storeCoordinateLookup.entries()) {
+      if (!keys.some((key) => key && (storeKey.includes(key) || key.includes(storeKey)))) continue;
+      best = Math.min(best, distanceMiles(nearMe, coords));
+    }
+    return best;
+  };
+
+  // Apply state, tier, bottle, county, and near-me filters
   const filteredGrouped = grouped.filter((drop) => {
     // State filtering via Zustand store (set by StateSelector above)
     if (hasSelectedStates && preferredStates.length > 0) {
       if (drop.state && !preferredStates.includes(drop.state)) return false;
     }
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
+    const bottleNeedle = normalizeFilterText(bottleSearch);
+    if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
+    if (countyFilter !== "ALL") {
+      const countyNeedle = normalizeFilterText(countyFilter);
+      if (!dropCountyCandidates(drop).some((county) => normalizeFilterText(county).includes(countyNeedle))) return false;
+    }
+    if (sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
   });
 
@@ -1039,8 +1117,26 @@ export default function DropFeed() {
     return true;
   });
 
+  const countyOptions = Array.from(
+    new Set(
+      grouped
+        .filter((drop) => {
+          if (hasSelectedStates && preferredStates.length > 0 && drop.state && !preferredStates.includes(drop.state)) return false;
+          return activeTiers.size === 0 || activeTiers.has(drop.rarity_tier);
+        })
+        .flatMap(dropCountyCandidates)
+        .map((county) => county.trim())
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
   const memberSightingRows = isSignedIn ? sightings.map(memberSightingToGrouped) : [];
-  const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
+  const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => {
+    if (sortMode === "az") return a.displayName.localeCompare(b.displayName) || +new Date(b.timestamp) - +new Date(a.timestamp);
+    if (sortMode === "rarity") return getDropRarityRank(b) - getDropRarityRank(a) || +new Date(b.timestamp) - +new Date(a.timestamp);
+    if (sortMode === "nearby" && nearMe) return getDropDistance(a) - getDropDistance(b) || +new Date(b.timestamp) - +new Date(a.timestamp);
+    return +new Date(b.timestamp) - +new Date(a.timestamp);
+  });
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
 
   const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
@@ -1063,6 +1159,28 @@ export default function DropFeed() {
       return;
     }
     fetchOlderDrops();
+  };
+
+  const activateNearMe = () => {
+    if (nearMe) {
+      setSortMode("nearby");
+      setNearMeStatus("Sorting exact-store signals near you.");
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setNearMeStatus("Location is not available in this browser. Try county filtering instead.");
+      return;
+    }
+    setNearMeStatus("Finding your location…");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setNearMe({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setSortMode("nearby");
+        setNearMeStatus("Showing mappable store-level signals closest to you first.");
+      },
+      () => setNearMeStatus("Could not use location. Try a county filter instead."),
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
   };
 
   const handleSignalReport = (drop: GroupedDrop, kind: SignalReportKind) => {
@@ -1145,6 +1263,97 @@ export default function DropFeed() {
           border-color: rgba(255,180,120,0.32);
           background: rgba(255,120,80,0.1);
           color: rgba(255,206,184,0.96);
+        }
+        .drop-tier-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid currentColor;
+          border-radius: 999px;
+          padding: 4px 8px 3px;
+          font-family: var(--font-jetbrains);
+          font-size: 9px;
+          font-weight: 900;
+          line-height: 1;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        .drop-tier-badge.tier-unicorn {
+          color: #120d08;
+          background: linear-gradient(135deg, #C4943A 0%, #E8C97A 52%, #C4943A 100%);
+          border-color: rgba(232,201,122,0.8) !important;
+        }
+        .drop-tier-badge.tier-allocated {
+          color: #FFD5A0;
+          background: rgba(184,115,51,0.22);
+          border-color: rgba(184,115,51,0.48) !important;
+        }
+        .drop-tier-badge.tier-limited {
+          color: rgba(245,237,214,0.72);
+          background: rgba(138,138,138,0.16);
+          border-color: rgba(138,138,138,0.35) !important;
+        }
+        .dropfeed-refine-grid {
+          display: grid;
+          grid-template-columns: minmax(160px, 1.25fr) minmax(130px, 0.9fr) minmax(110px, 0.7fr) auto;
+          gap: 10px;
+          align-items: end;
+        }
+        .dropfeed-refine-field span {
+          display: block;
+          margin-bottom: 6px;
+          font-family: var(--font-jetbrains);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(245,237,214,0.42);
+        }
+        .dropfeed-refine-field input,
+        .dropfeed-refine-field select {
+          width: 100%;
+          border-radius: 14px;
+          border: 1px solid rgba(212,146,11,0.18);
+          background: rgba(20,16,12,0.82);
+          color: var(--color-cream);
+          font-family: var(--font-dm-sans);
+          font-size: 13px;
+          font-weight: 600;
+          padding: 11px 12px;
+          outline: none;
+        }
+        .dropfeed-near-me {
+          height: 42px;
+          border-radius: 999px;
+          border: 1px solid rgba(196,148,58,0.28);
+          background: rgba(196,148,58,0.08);
+          color: rgba(245,237,214,0.76);
+          font-family: var(--font-dm-sans);
+          font-size: 13px;
+          font-weight: 800;
+          padding: 0 15px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .dropfeed-near-me.active,
+        .dropfeed-near-me:hover {
+          background: rgba(196,148,58,0.16);
+          color: var(--color-cream);
+          border-color: rgba(196,148,58,0.5);
+        }
+        .dropfeed-location-status {
+          margin: -4px 0 14px;
+          color: rgba(245,237,214,0.45);
+          font-family: var(--font-dm-sans);
+          font-size: 12px;
+          line-height: 1.45;
+        }
+        @media (max-width: 767px) {
+          .dropfeed-refine-grid { grid-template-columns: 1fr 1fr; }
+          .dropfeed-refine-search { grid-column: 1 / -1; }
+          .dropfeed-near-me { width: 100%; }
         }
       `}</style>
 
@@ -1244,6 +1453,53 @@ export default function DropFeed() {
               </select>
             </label>
           </motion.div>
+
+          <motion.div
+            className="dropfeed-refine-grid"
+            style={{ paddingBottom: "14px" }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-70px" }}
+            transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <label className="dropfeed-refine-field dropfeed-refine-search">
+              <span>Find bottle</span>
+              <input
+                value={bottleSearch}
+                onChange={(event) => setBottleSearch(event.target.value)}
+                placeholder="Search live drops…"
+              />
+            </label>
+            <label className="dropfeed-refine-field">
+              <span>County / area</span>
+              <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
+                <option value="ALL">All counties</option>
+                {countyOptions.map((county) => (
+                  <option key={county} value={county}>{county}</option>
+                ))}
+              </select>
+            </label>
+            <label className="dropfeed-refine-field">
+              <span>Sort</span>
+              <select value={sortMode} onChange={(event) => {
+                const next = event.target.value as DropSortMode;
+                if (next === "nearby" && !nearMe) {
+                  activateNearMe();
+                  return;
+                }
+                setSortMode(next);
+              }}>
+                <option value="newest">Newest</option>
+                <option value="nearby">Nearby</option>
+                <option value="rarity">Rarity</option>
+                <option value="az">Bottle A–Z</option>
+              </select>
+            </label>
+            <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
+              Near me
+            </button>
+          </motion.div>
+          {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
           {/* Filters row: Tier filter pills */}
           <motion.div
