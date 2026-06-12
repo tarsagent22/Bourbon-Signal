@@ -276,16 +276,16 @@ export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfil
   score += proofMatch.score;
 
   const uniqueMatches = Array.from(new Set(matchedTags));
-  const proofPhrase = proofMatch.score > 0 ? ` ${proofMatch.label.toLowerCase()}.` : "";
+  const flavorText = uniqueMatches.slice(0, 3).join(", ").toLowerCase();
   return {
     score: Math.round(score * 10) / 10,
     matchedTags: uniqueMatches,
     avoidedTags: Array.from(new Set(avoidedTags)),
     proofMatch,
     explanation: uniqueMatches.length
-      ? `Matches your ${uniqueMatches.slice(0, 3).join(" + ")} preference signals.${proofPhrase}`
+      ? `Fits your ${flavorText} profile.`
       : proofMatch.score > 0
-        ? proofMatch.explanation
-        : "Needs more collection taste signals before this is a strong match.",
+        ? "Close to your preferred proof range."
+        : "Rate more bottles to sharpen this match.",
   };
 }

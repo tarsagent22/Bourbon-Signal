@@ -906,6 +906,7 @@ export default function DropFeed() {
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
   const [bottleSearch, setBottleSearch] = useState("");
+  const [urlStateFilter, setUrlStateFilter] = useState<string | null>(null);
   const [countyFilter, setCountyFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState<DropSortMode>("newest");
   const [nearMe, setNearMe] = useState<{ lat: number; lng: number } | null>(null);
@@ -914,11 +915,19 @@ export default function DropFeed() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextDropOffset, setNextDropOffset] = useState(0);
 
-  const feedStateParam = hasSelectedStates && preferredStates.length === 1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bottleParam = params.get("bottle") || "";
+    const stateParam = params.get("state")?.toUpperCase() || null;
+    if (bottleParam) setBottleSearch(bottleParam);
+    if (stateParam) setUrlStateFilter(stateParam);
+  }, []);
+
+  const feedStateParam = urlStateFilter || (hasSelectedStates && preferredStates.length === 1
     ? preferredStates[0]
     : !hasSelectedStates && isSignedIn && areaPrefs.states.length === 1
       ? areaPrefs.states[0]
-      : null;
+      : null);
 
   const fetchDrops = useCallback(async () => {
     try {
@@ -1017,7 +1026,7 @@ export default function DropFeed() {
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
-  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), activeTiers, bottleSearch, countyFilter, sortMode]);
+  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter, sortMode]);
 
 
   useEffect(() => {
@@ -1057,10 +1066,8 @@ export default function DropFeed() {
 
   // Apply state, tier, bottle, county, and near-me filters
   const filteredGrouped = grouped.filter((drop) => {
-    // State filtering via Zustand store (set by StateSelector above)
-    if (hasSelectedStates && preferredStates.length > 0) {
-      if (drop.state && !preferredStates.includes(drop.state)) return false;
-    }
+    // State filtering via URL signal links or the feed state selector.
+    if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = normalizeFilterText(bottleSearch);
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
@@ -1078,7 +1085,7 @@ export default function DropFeed() {
     // The drop-feed state selector is an explicit browsing control and must
     // override saved alert-area preferences. Saved areas are only a default
     // when the user has not chosen a feed state/filter in this session.
-    if (hasSelectedStates) return true;
+    if (feedStateParam || hasSelectedStates) return true;
 
     // Not signed in, or no preferences set = show everything
     if (!isSignedIn || !areaPrefs.states.length) return true;
@@ -1121,7 +1128,7 @@ export default function DropFeed() {
     new Set(
       grouped
         .filter((drop) => {
-          if (hasSelectedStates && preferredStates.length > 0 && drop.state && !preferredStates.includes(drop.state)) return false;
+          if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
           return activeTiers.size === 0 || activeTiers.has(drop.rarity_tier);
         })
         .flatMap(dropCountyCandidates)

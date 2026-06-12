@@ -89,7 +89,7 @@ interface RecommendedBottleInsight {
   option: BottleOption;
   score: number;
   matchedFlavors: string[];
-  recentSightings: Array<{ location: string; state: string; timestamp: string }>;
+  recentSightings: Array<{ location: string; state: string; timestamp: string; href: string }>;
   reason: string;
   proofMatchLabel: string;
   proofMatchExplanation: string;
@@ -276,6 +276,12 @@ function dropLocationLabel(drop: DropEvent) {
 
 function dropStateLabel(drop: DropEvent) {
   return (drop.state_code || drop.state || drop.display_state || "").toUpperCase();
+}
+
+function finderSignalHref(bottleName: string, state?: string) {
+  const params = new URLSearchParams({ bottle: bottleName });
+  if (state) params.set("state", state);
+  return `/finder?${params.toString()}#drops`;
 }
 
 function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences) {
@@ -843,11 +849,15 @@ export default function DashboardPage() {
           .filter((drop) => dropMatchesBottle(drop, option.bottle))
           .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
           .slice(0, 3)
-          .map((drop) => ({
-            location: dropLocationLabel(drop),
-            state: dropStateLabel(drop),
-            timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
-          })),
+          .map((drop) => {
+            const state = dropStateLabel(drop);
+            return {
+              location: dropLocationLabel(drop),
+              state,
+              timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
+              href: finderSignalHref(option.label, state),
+            };
+          }),
         };
       })
       .map((item) => ({
@@ -865,7 +875,7 @@ export default function DashboardPage() {
         proofMatchLabel: item.proofMatchLabel,
         proofMatchExplanation: item.proofMatchExplanation,
         reason: item.recentSightings.length
-          ? `${item.dnaReason} Visible in the Drop Feed data for your market.`
+          ? `${item.dnaReason} Recent market signal found.`
           : item.dnaReason,
       }));
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys]);
@@ -2421,26 +2431,13 @@ export default function DashboardPage() {
           >
             <div style={{ display: "grid", gap: "18px" }}>
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
-                <div>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Early recommendation signal</p>
-                  <h3 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Based on bottles you rated 80+</h3>
-                  <p style={{ margin: "7px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.65 }}>
-                    {bourbonDnaSummary.summary}
+                <div style={{ display: "grid", gap: "10px" }}>
+                  <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
+                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>
+                    {bourbonDnaSummary.favoriteTags.length
+                      ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(", ")} profile${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}${recommendationMarketSummary.sightedCount ? ` · ${recommendationMarketSummary.sightedCount} with recent signals` : ""}`
+                      : "Rate a few bottles and add taste cues to build your recommendation profile."}
                   </p>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))", gap: "10px" }}>
-                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
-                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Taste lean</span>
-                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{bourbonDnaSummary.favoriteTags.slice(0, 3).join(" + ") || "Needs ratings"}</strong>
-                  </div>
-                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
-                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Proof comfort zone</span>
-                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{bourbonDnaSummary.preferredProofRange ? `${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : "Needs proof data"}</strong>
-                  </div>
-                  <div style={{ borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "12px" }}>
-                    <span style={{ display: "block", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Market check</span>
-                    <strong style={{ display: "block", marginTop: 6, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px", lineHeight: 1.45 }}>{recommendationMarketSummary.summary}</strong>
-                  </div>
                 </div>
                 {collectionRecommendationInsights.length > 0 ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
@@ -2454,22 +2451,24 @@ export default function DashboardPage() {
                           {typeof insight.option.bottle.proof === "number" ? (
                             <span style={{ borderRadius: "999px", border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-secondary)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.option.bottle.proof} proof</span>
                           ) : null}
-                          <span title={insight.proofMatchExplanation} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.proofMatchLabel}</span>
+                          {insight.proofMatchLabel !== "Proof unavailable" ? (
+                            <span title={insight.proofMatchExplanation} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.proofMatchLabel}</span>
+                          ) : null}
                           {insight.matchedFlavors.slice(0, 3).map((flavor) => (
                             <span key={flavor} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{flavor}</span>
                           ))}
                         </div>
                         {insight.recentSightings.length > 0 ? (
                           <div style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "9px", display: "grid", gap: "5px" }}>
-                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Visible in Drop Feed</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Recent signals</span>
                             {insight.recentSightings.slice(0, 2).map((sighting) => (
-                              <span key={`${sighting.location}-${sighting.timestamp}`} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45 }}>
+                              <Link key={`${sighting.location}-${sighting.timestamp}`} href={sighting.href} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45, textDecoration: "none" }}>
                                 {sighting.state ? `${sighting.state} · ` : ""}{sighting.location} {sighting.timestamp ? `· ${formatShortDate(sighting.timestamp)}` : ""}
-                              </span>
+                              </Link>
                             ))}
                           </div>
                         ) : null}
-                        <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track suggestion</button>
+                        <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                           {([
                             ["useful", "Useful"],
