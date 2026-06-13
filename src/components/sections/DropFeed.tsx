@@ -19,7 +19,7 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
-import { useStores } from "@/hooks/useStores";
+import { useStores, type Store } from "@/hooks/useStores";
 import { makeSightingId, type MemberSighting, type SignalReportKind } from "@/lib/sightings";
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -94,13 +94,16 @@ const MOCK_DROPS: DropEvent[] = [
   },
 ];
 
-function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
+function memberSightingToGrouped(sighting: MemberSighting, store?: Store): GroupedDrop {
+  const storeCounty = cleanAreaLabel(store?.county);
+  const storeCity = cleanAreaLabel(sighting.storeCity || store?.city);
+  const areaLabel = formatAreaLabel(sighting.storeState, storeCity, storeCounty, undefined, sighting.storeName);
   return {
     displayName: sighting.bottleName,
     event_type: "user_sighting",
     rarity_tier: "limited",
     timestamp: sighting.createdAt,
-    counties: sighting.storeCity ? [sighting.storeCity] : [],
+    counties: areaLabel ? [areaLabel] : storeCity ? [storeCity] : [],
     store_address: sighting.storeAddress,
     retail_price: sighting.price ?? undefined,
     quantity_in_stock: sighting.quantityEstimate ? 1 : undefined,
@@ -117,7 +120,7 @@ function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
     locations: [
       {
         label: sighting.storeName,
-        city: sighting.storeCity,
+        city: storeCity || sighting.storeCity,
         address: sighting.storeAddress,
         quantity: sighting.quantityEstimate ? 1 : undefined,
       },
@@ -151,6 +154,33 @@ function cleanAreaLabel(value?: string | null) {
     .trim();
 }
 
+function parseCityCountyLabel(label?: string | null) {
+  const cleaned = cleanAreaLabel(label);
+  const match = cleaned.match(/^(.+?)\s*\((.+?)\s+Co\.\)$/i);
+  if (!match) return { city: "", county: "" };
+  return { city: cleanAreaLabel(match[1]), county: cleanAreaLabel(match[2]) };
+}
+
+function formatAreaLabel(state?: string | null, city?: string | null, county?: string | null, board?: string | null, fallback?: string | null) {
+  const stateCode = String(state || "").toUpperCase();
+  const cleanCity = cleanAreaLabel(city);
+  const cleanCounty = cleanAreaLabel(county);
+  const cleanBoard = cleanAreaLabel(board);
+  const cleanFallback = cleanAreaLabel(fallback);
+
+  if (stateCode === "NC") {
+    const parsed = parseCityCountyLabel(cleanFallback || cleanBoard);
+    const ncCity = cleanCity || parsed.city;
+    const ncCounty = cleanCounty || parsed.county;
+    if (ncCity && ncCounty) return `${ncCity} (${ncCounty} Co.)`;
+    if (ncCity) return ncCity;
+    if (ncCounty) return `${ncCounty} County`;
+  }
+
+  if (stateCode === "PA") return cleanCounty || cleanCity || cleanFallback || cleanBoard;
+  return cleanCity || cleanCounty || cleanFallback || cleanBoard;
+}
+
 function areaKey(label?: string | null) {
   return normalizeFilterText(cleanAreaLabel(label));
 }
@@ -176,19 +206,26 @@ function isUsefulAreaLabel(label?: string | null, state?: string | null) {
 
 function areaLabelsForDrop(drop: GroupedDrop) {
   const state = drop.state || "";
-  const values = state === "NC"
-    ? [drop.board_name, ...(drop.counties || []), drop.locations[0]?.label]
-    : state === "PA"
-      ? [...(drop.counties || []), drop.locations[0]?.city, drop.locations[0]?.label]
-      : [drop.locations[0]?.city, ...(drop.counties || []), drop.locations[0]?.label, drop.board_name];
+  const primaryLocation = drop.locations[0];
+  const labels = new Set<string>();
 
-  return Array.from(
-    new Set(
-      values
-        .map((value) => cleanAreaLabel(value))
-        .filter((value) => isUsefulAreaLabel(value, state))
-    )
-  );
+  if (state === "NC") {
+    for (const value of [primaryLocation?.label, ...(drop.counties || [])]) {
+      const parsed = parseCityCountyLabel(value);
+      const label = formatAreaLabel(state, primaryLocation?.city || parsed.city, parsed.county, drop.board_name, value);
+      if (isUsefulAreaLabel(label, state)) labels.add(label);
+    }
+  } else if (state === "PA") {
+    for (const value of [...(drop.counties || []), primaryLocation?.label]) {
+      const label = formatAreaLabel(state, primaryLocation?.city, value, drop.board_name, value);
+      if (isUsefulAreaLabel(label, state)) labels.add(label);
+    }
+  } else {
+    const label = formatAreaLabel(state, primaryLocation?.city, undefined, drop.board_name, primaryLocation?.label || drop.counties?.[0]);
+    if (isUsefulAreaLabel(label, state)) labels.add(label);
+  }
+
+  return Array.from(labels);
 }
 
 function dropCountyCandidates(drop: GroupedDrop) {
@@ -1151,11 +1188,7 @@ export default function DropFeed() {
       const state = String(store.state || "").toUpperCase();
       const signalCount = typeof store.signalCount === "number" ? store.signalCount : typeof store.bottle_count === "number" ? store.bottle_count : 0;
       const hasSignal = store.hasSignals === true || signalCount > 0;
-      const label = state === "NC"
-        ? store.district || store.county || store.displayLabel
-        : state === "PA"
-          ? store.county || store.city || store.displayLabel
-          : store.city || store.county || store.displayLabel;
+      const label = formatAreaLabel(state, store.city, store.county, store.district, store.displayLabel);
       addOption(state, label, hasSignal);
     }
 
@@ -1165,7 +1198,23 @@ export default function DropFeed() {
       for (const label of areaLabelsForDrop(drop)) addOption(state, label, true);
     }
 
-    return Array.from(options.values()).sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
+    const ncCityLabelsWithCounty = new Set(
+      Array.from(options.values())
+        .filter((option) => option.state === "NC" && /\(.+? Co\.\)$/.test(option.label))
+        .map((option) => normalizeFilterText(option.label.replace(/\s*\(.+? Co\.\)$/i, "")))
+    );
+
+    return Array.from(options.values())
+      .filter((option) => {
+        if (option.state !== "NC") return true;
+        const normalized = normalizeFilterText(option.label);
+        if (/\babc\b/i.test(option.label)) return false;
+        const countyAsCity = option.label.match(/^(.+?)\s+County$/i)?.[1];
+        if (countyAsCity && ncCityLabelsWithCounty.has(normalizeFilterText(countyAsCity))) return false;
+        if (!/\(.+? Co\.\)$/.test(option.label) && ncCityLabelsWithCounty.has(normalized)) return false;
+        return true;
+      })
+      .sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
   }, [activeTiers, feedStateOptions, feedStateParam, grouped, hasSelectedStates, preferredStates, stores]);
 
   useEffect(() => {
@@ -1173,7 +1222,23 @@ export default function DropFeed() {
     if (!countyOptions.some((option) => option.value === countyFilter)) setCountyFilter("ALL");
   }, [countyFilter, countyOptions]);
 
-  const memberSightingRows = isSignedIn ? sightings.map(memberSightingToGrouped) : [];
+  const storeBySightingKey = useMemo(() => {
+    const lookup = new Map<string, Store>();
+    for (const store of stores) {
+      if (store.id) lookup.set(`id:${store.id}`, store);
+      if (store.address) lookup.set(`address:${normalizeFilterText(store.address)}`, store);
+    }
+    return lookup;
+  }, [stores]);
+
+  const memberSightingRows = isSignedIn
+    ? sightings
+      .map((sighting) => memberSightingToGrouped(
+        sighting,
+        storeBySightingKey.get(`id:${sighting.storeId}`) || storeBySightingKey.get(`address:${normalizeFilterText(sighting.storeAddress)}`)
+      ))
+      .filter((drop) => matchesActiveFeedFilters(drop) && matchesSavedAreaPreferences(drop))
+    : [];
   const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => {
     if (sortMode === "az") return a.displayName.localeCompare(b.displayName) || +new Date(b.timestamp) - +new Date(a.timestamp);
     if (sortMode === "rarity") return getDropRarityRank(b) - getDropRarityRank(a) || +new Date(b.timestamp) - +new Date(a.timestamp);
