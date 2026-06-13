@@ -1259,6 +1259,23 @@ export default function DropFeed() {
     fetchOlderDrops();
   };
 
+  const hasActiveFeedFilters = Boolean(
+    bottleSearch.trim() ||
+    countyFilter !== "ALL" ||
+    stateDropdownValue !== "ALL" ||
+    activeTiers.size > 0 ||
+    sortMode !== "newest"
+  );
+
+  const clearFeedFilters = () => {
+    setBottleSearch("");
+    setCountyFilter("ALL");
+    setSelectedStates([]);
+    setActiveTiers(new Set());
+    setSortMode("newest");
+    setNearMeStatus(null);
+  };
+
   const activateNearMe = () => {
     if (nearMe) {
       setSortMode("nearby");
@@ -1417,11 +1434,12 @@ export default function DropFeed() {
         }
         .dropfeed-refine-grid {
           display: grid;
-          grid-template-columns: minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(170px, 1.2fr) minmax(110px, 0.7fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 8px;
           align-items: end;
-          padding-bottom: 10px;
+          padding-bottom: 8px;
         }
+        .dropfeed-refine-search { grid-column: 1 / -1; }
         .dropfeed-refine-field span {
           display: block;
           margin-bottom: 6px;
@@ -1436,14 +1454,14 @@ export default function DropFeed() {
         .dropfeed-refine-field select {
           width: 100%;
           min-width: 0;
-          border-radius: 12px;
-          border: 1px solid rgba(212,146,11,0.14);
-          background: rgba(20,16,12,0.7);
+          border-radius: 11px;
+          border: 1px solid rgba(212,146,11,0.12);
+          background: rgba(20,16,12,0.64);
           color: var(--color-cream);
           font-family: var(--font-dm-sans);
           font-size: 13px;
           font-weight: 600;
-          padding: 10px 11px;
+          padding: 9px 10px;
           outline: none;
         }
         .dropfeed-location-status {
@@ -1453,16 +1471,33 @@ export default function DropFeed() {
           font-size: 12px;
           line-height: 1.45;
         }
-        .dropfeed-result-count {
-          margin: 0 0 10px;
+        .dropfeed-result-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin: -2px 0 12px;
           color: rgba(245,237,214,0.42);
           font-family: var(--font-dm-sans);
           font-size: 12px;
         }
+        .dropfeed-clear-filters {
+          border: 0;
+          background: transparent;
+          color: rgba(232,201,122,0.72);
+          font-family: var(--font-dm-sans);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 0;
+          cursor: pointer;
+          white-space: nowrap;
+        }
         @media (max-width: 767px) {
-          .dropfeed-refine-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+          .dropfeed-refine-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
           .dropfeed-refine-search { grid-column: 1 / -1; }
-          .dropfeed-refine-sort { grid-column: 1 / -1; }
+          .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
+          .dropfeed-refine-field input,
+          .dropfeed-refine-field select { font-size: 12px; padding: 9px 8px; }
           .dropfeed-filter-row {
             display: flex !important;
             flex-wrap: nowrap !important;
@@ -1521,7 +1556,7 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Divider */}
-          <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
+          <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
 
           <motion.div
             className="dropfeed-refine-grid"
@@ -1530,6 +1565,14 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-70px" }}
             transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
+            <label className="dropfeed-refine-field dropfeed-refine-search">
+              <span>Find bottle</span>
+              <input
+                value={bottleSearch}
+                onChange={(event) => setBottleSearch(event.target.value)}
+                placeholder="Search live drops…"
+              />
+            </label>
             <label className="dropfeed-refine-field">
               <span>State</span>
               <select
@@ -1562,16 +1605,8 @@ export default function DropFeed() {
                 ))}
               </select>
             </label>
-            <label className="dropfeed-refine-field dropfeed-refine-search">
-              <span>Find bottle</span>
-              <input
-                value={bottleSearch}
-                onChange={(event) => setBottleSearch(event.target.value)}
-                placeholder="Search live drops…"
-              />
-            </label>
             <label className="dropfeed-refine-field dropfeed-refine-sort">
-              <span>Sort</span>
+              <span>View</span>
               <select value={sortMode} onChange={(event) => {
                 const next = event.target.value as DropSortMode;
                 if (next === "nearby" && !nearMe) {
@@ -1581,9 +1616,9 @@ export default function DropFeed() {
                 setSortMode(next);
               }}>
                 <option value="newest">Newest</option>
-                <option value="nearby">Nearby / use location</option>
+                <option value="nearby">Nearby</option>
                 <option value="rarity">Rarity</option>
-                <option value="az">Bottle A–Z</option>
+                <option value="az">A–Z</option>
               </select>
             </label>
           </motion.div>
@@ -1600,10 +1635,10 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
-              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.13)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.035)", inactiveColor: "rgba(245,237,214,0.5)", border: "1px solid rgba(245,237,214,0.12)" },
-              { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
-              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.3)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.06)", inactiveColor: "rgba(184,115,51,0.45)", border: "1px solid rgba(184,115,51,0.2)" },
-              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.22)", activeColor: "#AAAAAA", inactiveBg: "rgba(138,138,138,0.05)", inactiveColor: "rgba(138,138,138,0.4)", border: "1px solid rgba(138,138,138,0.18)" },
+              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.025)", inactiveColor: "rgba(245,237,214,0.42)", border: "1px solid rgba(245,237,214,0.1)" },
+              { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.24)", activeColor: "#E8C97A", inactiveBg: "rgba(196,148,58,0.045)", inactiveColor: "rgba(196,148,58,0.38)", border: "1px solid rgba(196,148,58,0.16)" },
+              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.2)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.035)", inactiveColor: "rgba(184,115,51,0.36)", border: "1px solid rgba(184,115,51,0.14)" },
+              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.16)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "rgba(138,138,138,0.035)", inactiveColor: "rgba(138,138,138,0.34)", border: "1px solid rgba(138,138,138,0.14)" },
             ].map((pill) => {
               const isAll = pill.tier === "all";
               const isActive = isAll ? activeTiers.size === 0 : activeTiers.has(pill.tier);
@@ -1632,7 +1667,7 @@ export default function DropFeed() {
                   style={{
                     background: isActive ? pill.activeBg : pill.inactiveBg,
                     color: isActive ? pill.activeColor : pill.inactiveColor,
-                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.22)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.6)" : pill.tier === "allocated" ? "rgba(184,115,51,0.45)" : "rgba(138,138,138,0.4)"}` : pill.border,
+                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.2)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.38)" : pill.tier === "allocated" ? "rgba(184,115,51,0.32)" : "rgba(138,138,138,0.28)"}` : pill.border,
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "13px",
                     fontWeight: 600,
@@ -1642,7 +1677,7 @@ export default function DropFeed() {
                     whiteSpace: "nowrap" as const,
                     cursor: "pointer",
                     transition: "background 150ms, color 150ms, border-color 150ms",
-                    boxShadow: isActive ? (pill.tier === "unicorn" ? "0 0 8px rgba(196,148,58,0.2)" : "inset 0 1px 0 rgba(255,255,255,0.045)") : "none",
+                    boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.045)" : "none",
                   }}
                 >
                   {pill.label}
@@ -1652,9 +1687,10 @@ export default function DropFeed() {
           </motion.div>
 
           {data && (
-            <p className="dropfeed-result-count">
-              Showing {displayedGrouped.length} of {finalFeed.length} matching {finalFeed.length === 1 ? "drop" : "drops"}
-            </p>
+            <div className="dropfeed-result-line">
+              <span>{displayedGrouped.length} of {finalFeed.length} drops</span>
+              {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
+            </div>
           )}
 
           {/* Feed rows */}
