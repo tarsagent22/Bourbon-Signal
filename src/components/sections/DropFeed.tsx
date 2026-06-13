@@ -973,57 +973,6 @@ export default function DropFeed() {
     }
   }, [feedStateParam, isSignedIn]);
 
-  const fetchOlderDrops = useCallback(async () => {
-    if (!isSignedIn || isLoadingMore) return;
-    let nextOffset = nextDropOffset;
-    if (data && data.total <= nextOffset) return;
-
-    setIsLoadingMore(true);
-    try {
-      let latestJson: DropsResponse | null = null;
-      let accumulated: GroupedDrop[] = [];
-      let attempts = 0;
-      const existingIds = new Set(grouped.map((drop) => drop.id));
-
-      while (attempts < 8) {
-        const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
-        if (feedStateParam) query.set("state", feedStateParam);
-        const res = await fetch(`/api/drops?${query.toString()}`);
-        if (!res.ok) throw new Error("fetch failed");
-        const json: DropsResponse = await res.json();
-        latestJson = json;
-
-        const sourceDrops = json.drops.length > 0 ? json.drops : [];
-        accumulated = [
-          ...accumulated,
-          ...latestSignalRows(sourceDrops, 100).filter((drop) => !existingIds.has(drop.id)),
-        ];
-
-        nextOffset = (json.offset ?? nextOffset) + (json.limit ?? sourceDrops.length);
-        if (accumulated.length > 0 || !json.hasMore || nextOffset >= json.total) break;
-        attempts += 1;
-      }
-
-      setNextDropOffset(nextOffset);
-      if (latestJson) {
-        setData((prev) => prev ? { ...prev, total: latestJson.total, hasMore: latestJson.hasMore, offset: 0, limit: latestJson.limit } : latestJson);
-      }
-
-      if (!accumulated.length) return;
-
-      setGrouped((prev) => {
-        const currentIds = new Set(prev.map((drop) => drop.id));
-        const nextGrouped = accumulated.filter((drop) => !currentIds.has(drop.id));
-        return [...prev, ...nextGrouped].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
-      });
-      setVisibleDropCount((prev) => prev + 10);
-    } catch {
-      setError(true);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [data, feedStateParam, grouped, isLoadingMore, isSignedIn, nextDropOffset]);
-
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
   }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter, sortMode]);
@@ -1064,8 +1013,7 @@ export default function DropFeed() {
     return best;
   };
 
-  // Apply state, tier, bottle, county, and near-me filters
-  const filteredGrouped = grouped.filter((drop) => {
+  const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
@@ -1077,11 +1025,9 @@ export default function DropFeed() {
     }
     if (sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
-  });
+  };
 
-  // Apply area preferences (Clerk-backed per-user preferences)
-  // Only apply area prefs if the user is signed in AND has actually set preferences
-  const filteredByArea = filteredGrouped.filter((drop) => {
+  const matchesSavedAreaPreferences = (drop: GroupedDrop) => {
     // The drop-feed state selector is an explicit browsing control and must
     // override saved alert-area preferences. Saved areas are only a default
     // when the user has not chosen a feed state/filter in this session.
@@ -1122,7 +1068,11 @@ export default function DropFeed() {
     }
 
     return true;
-  });
+  };
+
+  // Apply state, tier, bottle, county, near-me, and saved-area filters.
+  const filteredGrouped = grouped.filter(matchesActiveFeedFilters);
+  const filteredByArea = filteredGrouped.filter(matchesSavedAreaPreferences);
 
   const countyOptions = Array.from(
     new Set(
@@ -1160,9 +1110,65 @@ export default function DropFeed() {
       ? preferredStates[0]
       : "MULTI";
 
+  const fetchOlderDrops = async () => {
+    if (!isSignedIn || isLoadingMore) return;
+    let nextOffset = nextDropOffset;
+    if (data && data.total <= nextOffset) return;
+
+    setIsLoadingMore(true);
+    try {
+      let latestJson: DropsResponse | null = null;
+      let accumulated: GroupedDrop[] = [];
+      let accumulatedMatchingCount = 0;
+      let attempts = 0;
+      const existingIds = new Set(grouped.map((drop) => drop.id));
+
+      while (attempts < 24) {
+        const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
+        if (feedStateParam) query.set("state", feedStateParam);
+        const res = await fetch(`/api/drops?${query.toString()}`);
+        if (!res.ok) throw new Error("fetch failed");
+        const json: DropsResponse = await res.json();
+        latestJson = json;
+
+        const sourceDrops = json.drops.length > 0 ? json.drops : [];
+        const nextRows = latestSignalRows(sourceDrops, 100).filter((drop) => !existingIds.has(drop.id));
+        for (const row of nextRows) existingIds.add(row.id);
+        accumulated = [...accumulated, ...nextRows];
+        accumulatedMatchingCount += nextRows.filter((drop) => matchesActiveFeedFilters(drop) && matchesSavedAreaPreferences(drop)).length;
+
+        nextOffset = (json.offset ?? nextOffset) + (json.limit ?? sourceDrops.length);
+        const exhausted = !json.hasMore || nextOffset >= json.total || sourceDrops.length === 0;
+        if (accumulatedMatchingCount >= 10 || exhausted) break;
+        attempts += 1;
+      }
+
+      setNextDropOffset(nextOffset);
+      if (latestJson) {
+        setData((prev) => prev ? { ...prev, total: latestJson.total, hasMore: latestJson.hasMore && nextOffset < latestJson.total, offset: 0, limit: latestJson.limit } : latestJson);
+      }
+
+      if (!accumulated.length) return;
+
+      setGrouped((prev) => {
+        const currentIds = new Set(prev.map((drop) => drop.id));
+        const nextGrouped = accumulated.filter((drop) => !currentIds.has(drop.id));
+        return [...prev, ...nextGrouped].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
+      });
+      if (accumulatedMatchingCount > 0) {
+        setVisibleDropCount((prev) => prev + Math.min(10, accumulatedMatchingCount));
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   const showNextDrops = () => {
-    if (finalFeed.length > baseVisibleCount) {
-      setVisibleDropCount((prev) => prev + 10);
+    const alreadyLoadedMatching = finalFeed.length - baseVisibleCount;
+    if (alreadyLoadedMatching > 0) {
+      setVisibleDropCount((prev) => prev + Math.min(10, alreadyLoadedMatching));
       return;
     }
     fetchOlderDrops();
@@ -1654,13 +1660,7 @@ export default function DropFeed() {
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <div
-                style={isSignedIn && visibleDropCount > 10 ? {
-                  maxHeight: "980px",
-                  overflowY: "auto",
-                  paddingRight: "4px",
-                } : undefined}
-              >
+              <div>
                 {displayedGrouped.length === 0 ? (
                   <div
                     style={{
