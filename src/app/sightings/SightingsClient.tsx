@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Navigation as NavigationIcon, Search, Send, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useSightings } from "@/hooks/useSightings";
@@ -31,10 +32,30 @@ function storeDisplay(store: Store) {
   return store.displayLabel || store.name || store.address || [store.city, store.state].filter(Boolean).join(", ");
 }
 
+function asBottleCheckBottle(value: unknown): Bottle | null {
+  if (!value || typeof value !== "object") return null;
+  const bottle = value as Record<string, unknown>;
+  const id = String(bottle.id || bottle.canonicalName || bottle.name || "");
+  const name = String(bottle.canonicalName || bottle.name || "");
+  if (!id || !name) return null;
+  const availability = String(bottle.availability || "");
+  const tier: Bottle["tier"] = availability === "unicorn" ? "unicorn" : availability === "allocated" || availability === "highly_allocated" ? "allocated" : "limited";
+  return {
+    id,
+    name,
+    canonical_id: id,
+    canonical_name: name,
+    aliases: Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [],
+    distillery: String(bottle.producer || bottle.brand || "Bottle Check index"),
+    tier,
+    msrp: typeof bottle.msrp === "number" ? bottle.msrp : 0,
+  };
+}
+
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
-  const { isSignedIn, isPaidUser, signIn } = useAuth();
+  const { isSignedIn, signIn } = useAuth();
   const { bottles } = useBottles();
   const { stores, loading: storesLoading } = useStores();
   const { sightings, addSighting, saving } = useSightings(isSignedIn);
@@ -50,6 +71,7 @@ export default function SightingsClient() {
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [saved, setSaved] = useState<MemberSighting | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [bottleCheckMatches, setBottleCheckMatches] = useState<Bottle[]>([]);
 
   useEffect(() => {
     const bottle = searchParams.get("bottle");
@@ -58,16 +80,47 @@ export default function SightingsClient() {
     if (store) setStoreQuery(store);
   }, [searchParams]);
 
+  useEffect(() => {
+    const query = bottleQuery.trim();
+    if (query.length < 2) {
+      setBottleCheckMatches([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      fetch(`/api/bottle-check?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          const suggestions = [data?.bottle, ...(Array.isArray(data?.suggestions) ? data.suggestions : [])].filter(Boolean);
+          setBottleCheckMatches(suggestions.map(asBottleCheckBottle).filter((bottle): bottle is Bottle => Boolean(bottle)));
+        })
+        .catch((err) => {
+          if (err?.name !== "AbortError") setBottleCheckMatches([]);
+        });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [bottleQuery]);
+
   const bottleMatches = useMemo(() => {
     const needle = norm(bottleQuery);
     if (!needle) return [];
-    return bottles
+    const matches = bottles
       .filter((bottle) => {
         const values = [bottle.name, bottle.canonical_name, bottle.canonical_id, ...(bottle.aliases || []), ...(bottle.search_aliases || [])];
         return values.some((value) => norm(value).includes(needle) || needle.includes(norm(value)));
-      })
-      .slice(0, 7);
-  }, [bottleQuery, bottles]);
+      });
+    const byId = new Map<string, Bottle>();
+    [...matches, ...bottleCheckMatches].forEach((bottle) => {
+      const key = bottle.id || bottle.canonical_id || bottle.name;
+      if (key && !byId.has(key)) byId.set(key, bottle);
+    });
+    return Array.from(byId.values()).slice(0, 7);
+  }, [bottleQuery, bottles, bottleCheckMatches]);
 
   const storeMatches = useMemo(() => {
     const needle = norm(storeQuery);
@@ -113,10 +166,6 @@ export default function SightingsClient() {
     setSubmitError(null);
     if (!isSignedIn) {
       signIn();
-      return;
-    }
-    if (!isPaidUser) {
-      setSubmitError("Sightings are a member feature in this preview.");
       return;
     }
     const bottleName = bottleQuery.trim();
