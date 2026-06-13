@@ -494,7 +494,7 @@ function FinderBottleCard({
           </div>
           <h3
             style={{
-              fontFamily: "var(--font-fraunces)",
+              fontFamily: "var(--font-playfair)",
               fontSize: "clamp(1.05rem, 2vw, 1.35rem)",
               lineHeight: 1.1,
               color: "var(--color-text-primary)",
@@ -582,7 +582,7 @@ function FinderStoreCard({
           <h3
             style={{
               marginTop: 12,
-              fontFamily: "var(--font-fraunces)",
+              fontFamily: "var(--font-playfair)",
               fontSize: "clamp(1rem, 2vw, 1.25rem)",
               lineHeight: 1.15,
               color: "var(--color-text-primary)",
