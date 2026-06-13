@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { MapPin, Navigation as NavigationIcon, Search, Send, ShieldCheck } from "lucide-react";
+import { MapPin, Navigation as NavigationIcon, Search, Send } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
@@ -198,12 +198,9 @@ export default function SightingsClient() {
     <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
         <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 11px", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.26)", background: "rgba(196,148,58,0.08)", color: "rgba(245,237,214,0.76)", fontFamily: "var(--font-jetbrains)", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            <ShieldCheck size={14} /> Member signal layer
-          </div>
-          <h1 style={{ marginTop: "18px", marginBottom: "10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Sightings</h1>
+          <h1 style={{ margin: "0 0 10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Member Sightings</h1>
           <p style={{ maxWidth: "720px", color: "rgba(245,237,214,0.68)", fontSize: "17px", lineHeight: 1.65 }}>
-            Add a store-level bottle sighting to strengthen Bourbon Signal’s trust layer. Every sighting must be tied to an exact store before it can appear in the member feed.
+            See a bottle worth reporting? Let the community know about it. It may be someone's unicorn.
           </p>
         </motion.div>
 
@@ -243,21 +240,12 @@ export default function SightingsClient() {
           </section>
 
           <aside style={{ border: "1px solid rgba(196,148,58,0.22)", borderRadius: "28px", background: "linear-gradient(145deg, rgba(196,148,58,0.12), rgba(20,14,8,0.88))", padding: "22px", alignSelf: "start" }}>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "28px" }}>Sighting card preview</h2>
-            <div style={{ marginTop: "16px", border: "1px solid rgba(245,237,214,0.12)", borderRadius: "20px", padding: "16px", background: "rgba(9,7,5,0.42)" }}>
-              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(196,148,58,0.9)", textTransform: "uppercase" }}>User submitted</div>
-              <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontWeight: 700, fontSize: "25px", lineHeight: 1.05 }}>{bottleQuery || "Bottle name"}</div>
-              <div style={{ marginTop: "14px", color: "rgba(245,237,214,0.8)", fontWeight: 650 }}>{selectedStore ? storeDisplay(selectedStore) : "Exact store required"}</div>
-              <div style={{ color: "rgba(245,237,214,0.48)", fontSize: "13px", marginTop: "3px" }}>{exactAddress}</div>
-              <div style={{ display: "flex", gap: "10px", marginTop: "14px", color: "rgba(245,237,214,0.62)", fontSize: "13px" }}>
-                {quantityEstimate ? <span>{quantityEstimate}</span> : null}
-                {price ? <span>${price}</span> : null}
-                {!quantityEstimate && !price ? <span>Quantity/price optional</span> : null}
-              </div>
-            </div>
+            <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "28px" }}>Your sightings</h2>
             {saved ? <p style={{ color: "rgba(190,232,177,0.95)", fontSize: "13px", lineHeight: 1.5 }}>Saved. Your sighting will appear in your signed-in member drop feed preview.</p> : null}
-            <h3 style={{ marginTop: "22px", marginBottom: "10px", fontFamily: "var(--font-dm-sans)", fontSize: "14px" }}>Your recent sightings</h3>
-            <div style={{ display: "grid", gap: "8px" }}>{sightings.slice(0, 4).map((item) => <div key={item.id} style={{ border: "1px solid rgba(245,237,214,0.08)", borderRadius: "14px", padding: "10px", color: "rgba(245,237,214,0.68)", fontSize: "12px" }}><strong style={{ color: "var(--color-cream)" }}>{item.bottleName}</strong><br />{item.storeName}</div>)}</div>
+            <p style={{ color: "rgba(245,237,214,0.58)", fontSize: "13px", lineHeight: 1.55 }}>Recent reports you submit here are saved to your member account and can appear in the member feed.</p>
+            <div style={{ display: "grid", gap: "8px", marginTop: "14px" }}>
+              {sightings.slice(0, 4).length ? sightings.slice(0, 4).map((item) => <div key={item.id} style={{ border: "1px solid rgba(245,237,214,0.08)", borderRadius: "14px", padding: "10px", color: "rgba(245,237,214,0.68)", fontSize: "12px" }}><strong style={{ color: "var(--color-cream)" }}>{item.bottleName}</strong><br />{item.storeName}</div>) : <div className="sighting-empty">No sightings submitted yet.</div>}
+            </div>
           </aside>
         </div>
       </div>

@@ -197,7 +197,7 @@ function PanelContent({
             margin: 0,
           }}
         >
-          Hunt Map
+          Signal Feed
         </h2>
         <div
           style={{

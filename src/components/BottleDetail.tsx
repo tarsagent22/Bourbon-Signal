@@ -380,10 +380,10 @@ export default function BottleDetail({
             </div>
           )}
 
-          {/* View on Map */}
+          {/* View in feed */}
           {mostRecentDrop && (
             <Link
-              href={`/map?lat=35.78&lng=-78.64&zoom=12`}
+              href={`/?bottle=${encodeURIComponent(bottle.name)}#drops`}
               className="w-full flex items-center justify-center gap-2"
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -409,7 +409,7 @@ export default function BottleDetail({
               }}
             >
               <MapPin size={14} />
-              View on Map — {mostRecentDrop.location}
+              View in feed — {mostRecentDrop.location}
             </Link>
           )}
 

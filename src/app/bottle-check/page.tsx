@@ -85,6 +85,7 @@ export default function BottleCheckPage() {
   const [savingTrack, setSavingTrack] = useState(false);
   const [trackError, setTrackError] = useState<string | null>(null);
   const [trackSaved, setTrackSaved] = useState(false);
+  const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -112,6 +113,35 @@ export default function BottleCheckPage() {
     setTrackingStates((prev) => Array.from(new Set([...(prev.length ? prev : []), state])));
   }, [state]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setLiveSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}`, { signal: controller.signal });
+        if (!res.ok) return setLiveSuggestions([]);
+        const data = (await res.json()) as BottleResult;
+        const suggestions = [data.bottle, ...(data.suggestions || [])]
+          .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion))
+          .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index)
+          .slice(0, 6);
+        setLiveSuggestions(suggestions);
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setLiveSuggestions([]);
+      }
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, state]);
+
   const bottle = result?.bottle || null;
   const signal = result?.localSignal;
   const bottleKey = bottle ? normalizeBottleKey(bottle.canonicalName) : "";
@@ -121,14 +151,6 @@ export default function BottleCheckPage() {
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isCommon = bottle?.availability === "common";
   const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
-
-  const suggestedNames = useMemo(() => {
-    if (!result?.showSuggestions) return [];
-    return (result?.suggestions || [])
-      .filter((suggestion): suggestion is NonNullable<typeof suggestion> => Boolean(suggestion))
-      .filter((suggestion) => suggestion.id !== bottle?.id)
-      .slice(0, 5);
-  }, [result?.showSuggestions, result?.suggestions, bottle?.id]);
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -187,11 +209,7 @@ export default function BottleCheckPage() {
         <style>{bottleCheckCss}</style>
 
         <section className="bc-hero">
-          <div className="bc-kicker">Bottle Check</div>
-          <h1>Standing in the aisle? Check the bottle before you buy.</h1>
-          <p>
-            Search a bourbon, choose your market, and get a fast read on whether it is a smart buy, a shelf staple, or a bottle worth grabbing near retail.
-          </p>
+          <h1>Standing in the aisle? See how rare it is in your area.</h1>
         </section>
 
         <section className="bc-shell">
@@ -220,6 +238,23 @@ export default function BottleCheckPage() {
                   </button>
                 ) : null}
               </div>
+              {liveSuggestions.length > 0 ? (
+                <div className="bc-live-suggestions">
+                  {liveSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => {
+                        setQuery(suggestion.canonicalName);
+                        setSubmittedQuery(suggestion.canonicalName);
+                      }}
+                    >
+                      <span>{suggestion.canonicalName}</span>
+                      <em className={`bc-tier ${suggestion.availability}`}>{availabilityLabels[suggestion.availability] || suggestion.availability}</em>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="bc-field state">
               <label htmlFor="state-select">Area</label>
@@ -320,17 +355,6 @@ export default function BottleCheckPage() {
                     <p>No recent Bourbon Signal sightings for this bottle in the current engine window.</p>
                   )}
                 </div>
-
-                {suggestedNames.length ? (
-                  <div className="bc-suggestions">
-                    <h4>Possible matches</h4>
-                    {suggestedNames.map((suggestion) => (
-                      <button key={suggestion.id} type="button" onClick={() => { setQuery(suggestion.canonicalName); setSubmittedQuery(suggestion.canonicalName); }}>
-                        {suggestion.canonicalName}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
               </aside>
             </div>
           )}
@@ -345,9 +369,7 @@ const bottleCheckCss = `
 .bottle-check-page { min-height: 100vh; padding-top: 96px; background: radial-gradient(circle at 48% 0%, rgba(196,148,58,0.14), transparent 34%), radial-gradient(circle at 82% 28%, rgba(184,115,51,0.08), transparent 30%), var(--color-bg-primary); color: var(--color-text-primary); }
 .bc-hero, .bc-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .bc-hero { padding: 54px 0 26px; }
-.bc-kicker { display: inline-flex; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; color: var(--color-accent-amber); padding: 7px 11px; font: 800 11px/1 var(--font-dm-sans); letter-spacing: .13em; text-transform: uppercase; }
-.bc-hero h1 { max-width: 920px; font-family: var(--font-playfair); font-size: clamp(42px, 7vw, 78px); line-height: .94; letter-spacing: -.045em; margin: 20px 0 0; }
-.bc-hero p { max-width: 790px; margin-top: 20px; color: var(--color-text-secondary); font: 17px/1.7 var(--font-dm-sans); }
+.bc-hero h1 { max-width: 920px; font-family: var(--font-playfair); font-size: clamp(42px, 7vw, 78px); line-height: .94; letter-spacing: -.045em; margin: 0; }
 .bc-shell { padding: 10px 0 78px; }
 .bc-search-card { display:flex; align-items:flex-end; gap:12px; padding:16px; border:1px solid rgba(196,148,58,.22); border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.025)); box-shadow:0 24px 90px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.055); }
 .bc-field { display:grid; gap:8px; }
@@ -359,6 +381,11 @@ const bottleCheckCss = `
 .bc-field input:focus { border-color:rgba(212,164,74,.78); box-shadow:0 0 0 3px rgba(212,164,74,.12); }
 .bc-search-clear { position:absolute; right:8px; top:50%; transform:translateY(-50%); appearance:none; width:32px; height:32px; border:1px solid rgba(247,240,224,.10); border-radius:999px; background:rgba(255,255,255,.045); color:var(--color-text-secondary); display:grid; place-items:center; padding:0; font:800 22px/0 var(--font-dm-sans); cursor:pointer; }
 .bc-search-clear:hover, .bc-search-clear:focus-visible { color:var(--color-text-primary); border-color:rgba(212,146,11,.34); outline:none; }
+.bc-live-suggestions { margin-top:8px; display:grid; gap:7px; }
+.bc-live-suggestions button { display:flex; align-items:center; justify-content:space-between; gap:10px; text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:13px; background:rgba(255,255,255,.035); color:var(--color-text-primary); padding:9px 10px 9px 12px; font:800 13px/1.2 var(--font-dm-sans); cursor:pointer; }
+.bc-live-suggestions button:hover, .bc-live-suggestions button:focus-visible { border-color:rgba(196,148,58,.48); background:rgba(196,148,58,.095); outline:none; }
+.bc-live-suggestions span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-live-suggestions .bc-tier { flex-shrink:0; }
 .bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
 .bc-track-box > button:disabled { cursor:default; opacity:.72; }
 .bc-panel { margin-top:18px; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:24px; background:rgba(255,255,255,.026); color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }

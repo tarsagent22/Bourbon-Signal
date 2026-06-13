@@ -664,7 +664,7 @@ export default function DashboardFeed({
                   : "Check back soon or widen your filters"}
               </p>
               <a
-                href="/map"
+                href="/#drops"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "13px",
@@ -679,7 +679,7 @@ export default function DashboardFeed({
                   transition: "all 200ms ease",
                 }}
               >
-                Check the Hunt Map
+                Check the Live Feed
               </a>
             </div>
           )}

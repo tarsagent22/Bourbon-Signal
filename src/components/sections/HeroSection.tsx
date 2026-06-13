@@ -127,7 +127,7 @@ export default function HeroSection() {
               "Multi-state coverage",
               "Live Drop Feed",
               "Email Alerts",
-              "Bottle Finder",
+              "Member Sightings",
               "Bottle Check",
             ].map((item, index, arr) => (
               <div
