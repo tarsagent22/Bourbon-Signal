@@ -1,11 +1,9 @@
 "use client";
 
 const footerLinks = [
-  { label: "How It Works", href: "/#how-we-hunt" },
   { label: "FAQ", href: "/#faq" },
   { label: "Privacy", href: "/legal/privacy" },
   { label: "Terms", href: "/legal/terms" },
-  { label: "Refunds", href: "/legal/refunds" },
   { label: "Disclaimer", href: "/legal/disclaimer" },
   { label: "Support", href: "mailto:support@bourbonsignal.com?subject=Bourbon%20Signal%20Support" },
 ];
@@ -80,7 +78,7 @@ export default function Footer() {
               paddingRight: "0",
             }}
           >
-            © 2026 Bourbon Signal
+            © 2026 Todd Digital Ventures LLC
           </p>
         </div>
 

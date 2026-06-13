@@ -51,28 +51,38 @@ export default function TermsPage() {
           ],
         },
         {
-          heading: "6. Acceptable use",
+          heading: "6. Billing, cancellations, and refunds",
+          body: [
+            "Paid Bourbon Signal plans are billed in advance on a recurring basis according to the plan you select. By subscribing, you authorize our payment processor to charge your payment method for recurring subscription fees and applicable taxes or fees.",
+            "You may cancel a recurring subscription at any time through your account settings or by contacting support. Cancellation stops future renewals but does not automatically refund charges already paid.",
+            "Monthly or annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
+            "Bourbon Signal subscriptions are generally non-refundable once a billing period begins. We do not typically provide prorated refunds for partial months or unused time after cancellation, except where required by law or at our discretion.",
+            "Temporary outages, delayed alerts, source failures, reduced coverage, or changes to public and third-party data sources do not automatically entitle you to a refund. If a major paid feature becomes unavailable for an extended period, we may choose to offer account credits, extensions, plan adjustments, or refunds at our discretion.",
+          ],
+        },
+        {
+          heading: "7. Acceptable use",
           body: [
             "You may not abuse, disrupt, reverse engineer, scrape at unreasonable volume, resell, republish, or commercially exploit Bourbon Signal data without written permission. You may not use the service to violate laws, harass retailers or staff, or interfere with source systems.",
             "We may suspend or terminate access if we believe your use creates legal, security, operational, or reputational risk for Bourbon Signal, our users, or source providers.",
           ],
         },
         {
-          heading: "7. Intellectual property",
+          heading: "8. Intellectual property",
           body: [
             "Bourbon Signal, including its design, software, data transformations, signal labels, analysis, and original content, is owned by Todd Digital Ventures LLC or its licensors. Source names, retailer names, product names, and trademarks belong to their respective owners.",
             "Reference to a retailer, government agency, product, brand, or source does not imply partnership, sponsorship, endorsement, or affiliation unless expressly stated.",
           ],
         },
         {
-          heading: "8. Disclaimers and limitation of liability",
+          heading: "9. Disclaimers and limitation of liability",
           body: [
             "The service is provided as-is and as-available. To the fullest extent permitted by law, we disclaim warranties of accuracy, availability, merchantability, fitness for a particular purpose, and non-infringement.",
             "To the fullest extent permitted by law, Todd Digital Ventures LLC and Bourbon Signal will not be liable for indirect, incidental, special, consequential, punitive, or lost-profit damages, or for decisions made based on signals, alerts, prices, availability, or source data displayed through the service.",
           ],
         },
         {
-          heading: "9. Changes to these Terms",
+          heading: "10. Changes to these Terms",
           body: [
             "We may update these Terms as Bourbon Signal evolves. The updated date above indicates the latest revision. Continued use of the service after changes means you accept the updated Terms.",
           ],
