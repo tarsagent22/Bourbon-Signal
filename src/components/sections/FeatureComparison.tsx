@@ -24,7 +24,7 @@ const categories: FeatureCategory[] = [
       { name: "Weekly email digest", free: true, standard: true, bib: true },
       { name: "Custom bottle alerts", free: false, standard: true, bib: true },
       { name: "Personal watchlist dashboard", free: false, standard: true, bib: true },
-      { name: "Bottle Finder", free: false, standard: true, bib: true },
+      { name: "Member drop feed", free: false, standard: true, bib: true },
     ],
   },
   {

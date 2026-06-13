@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { MapPin, Navigation as NavigationIcon, Search, Send, ShieldCheck } from "lucide-react";
+import { MapPin, Navigation as NavigationIcon, Search, Send } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useSightings } from "@/hooks/useSightings";
@@ -31,10 +32,30 @@ function storeDisplay(store: Store) {
   return store.displayLabel || store.name || store.address || [store.city, store.state].filter(Boolean).join(", ");
 }
 
+function asBottleCheckBottle(value: unknown): Bottle | null {
+  if (!value || typeof value !== "object") return null;
+  const bottle = value as Record<string, unknown>;
+  const id = String(bottle.id || bottle.canonicalName || bottle.name || "");
+  const name = String(bottle.canonicalName || bottle.name || "");
+  if (!id || !name) return null;
+  const availability = String(bottle.availability || "");
+  const tier: Bottle["tier"] = availability === "unicorn" ? "unicorn" : availability === "allocated" || availability === "highly_allocated" ? "allocated" : "limited";
+  return {
+    id,
+    name,
+    canonical_id: id,
+    canonical_name: name,
+    aliases: Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [],
+    distillery: String(bottle.producer || bottle.brand || "Bottle Check index"),
+    tier,
+    msrp: typeof bottle.msrp === "number" ? bottle.msrp : 0,
+  };
+}
+
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
-  const { isSignedIn, isPaidUser, signIn } = useAuth();
+  const { isSignedIn, signIn } = useAuth();
   const { bottles } = useBottles();
   const { stores, loading: storesLoading } = useStores();
   const { sightings, addSighting, saving } = useSightings(isSignedIn);
@@ -50,6 +71,7 @@ export default function SightingsClient() {
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [saved, setSaved] = useState<MemberSighting | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [bottleCheckMatches, setBottleCheckMatches] = useState<Bottle[]>([]);
 
   useEffect(() => {
     const bottle = searchParams.get("bottle");
@@ -58,16 +80,47 @@ export default function SightingsClient() {
     if (store) setStoreQuery(store);
   }, [searchParams]);
 
+  useEffect(() => {
+    const query = bottleQuery.trim();
+    if (query.length < 2) {
+      setBottleCheckMatches([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      fetch(`/api/bottle-check?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          const suggestions = [data?.bottle, ...(Array.isArray(data?.suggestions) ? data.suggestions : [])].filter(Boolean);
+          setBottleCheckMatches(suggestions.map(asBottleCheckBottle).filter((bottle): bottle is Bottle => Boolean(bottle)));
+        })
+        .catch((err) => {
+          if (err?.name !== "AbortError") setBottleCheckMatches([]);
+        });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [bottleQuery]);
+
   const bottleMatches = useMemo(() => {
     const needle = norm(bottleQuery);
     if (!needle) return [];
-    return bottles
+    const matches = bottles
       .filter((bottle) => {
         const values = [bottle.name, bottle.canonical_name, bottle.canonical_id, ...(bottle.aliases || []), ...(bottle.search_aliases || [])];
         return values.some((value) => norm(value).includes(needle) || needle.includes(norm(value)));
-      })
-      .slice(0, 7);
-  }, [bottleQuery, bottles]);
+      });
+    const byId = new Map<string, Bottle>();
+    [...matches, ...bottleCheckMatches].forEach((bottle) => {
+      const key = bottle.id || bottle.canonical_id || bottle.name;
+      if (key && !byId.has(key)) byId.set(key, bottle);
+    });
+    return Array.from(byId.values()).slice(0, 7);
+  }, [bottleQuery, bottles, bottleCheckMatches]);
 
   const storeMatches = useMemo(() => {
     const needle = norm(storeQuery);
@@ -115,10 +168,6 @@ export default function SightingsClient() {
       signIn();
       return;
     }
-    if (!isPaidUser) {
-      setSubmitError("Sightings are a member feature in this preview.");
-      return;
-    }
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
     if (!selectedStore) return setSubmitError("Select an exact store from the suggestions.");
@@ -149,12 +198,9 @@ export default function SightingsClient() {
     <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
         <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 11px", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.26)", background: "rgba(196,148,58,0.08)", color: "rgba(245,237,214,0.76)", fontFamily: "var(--font-jetbrains)", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            <ShieldCheck size={14} /> Member signal layer
-          </div>
-          <h1 style={{ marginTop: "18px", marginBottom: "10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Sightings</h1>
+          <h1 style={{ margin: "0 0 10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Member Sightings</h1>
           <p style={{ maxWidth: "720px", color: "rgba(245,237,214,0.68)", fontSize: "17px", lineHeight: 1.65 }}>
-            Add a store-level bottle sighting to strengthen Bourbon Signal’s trust layer. Every sighting must be tied to an exact store before it can appear in the member feed.
+            See a bottle worth reporting? Let the community know about it. It may be someone's unicorn.
           </p>
         </motion.div>
 
@@ -194,21 +240,12 @@ export default function SightingsClient() {
           </section>
 
           <aside style={{ border: "1px solid rgba(196,148,58,0.22)", borderRadius: "28px", background: "linear-gradient(145deg, rgba(196,148,58,0.12), rgba(20,14,8,0.88))", padding: "22px", alignSelf: "start" }}>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "28px" }}>Sighting card preview</h2>
-            <div style={{ marginTop: "16px", border: "1px solid rgba(245,237,214,0.12)", borderRadius: "20px", padding: "16px", background: "rgba(9,7,5,0.42)" }}>
-              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(196,148,58,0.9)", textTransform: "uppercase" }}>User submitted</div>
-              <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontWeight: 700, fontSize: "25px", lineHeight: 1.05 }}>{bottleQuery || "Bottle name"}</div>
-              <div style={{ marginTop: "14px", color: "rgba(245,237,214,0.8)", fontWeight: 650 }}>{selectedStore ? storeDisplay(selectedStore) : "Exact store required"}</div>
-              <div style={{ color: "rgba(245,237,214,0.48)", fontSize: "13px", marginTop: "3px" }}>{exactAddress}</div>
-              <div style={{ display: "flex", gap: "10px", marginTop: "14px", color: "rgba(245,237,214,0.62)", fontSize: "13px" }}>
-                {quantityEstimate ? <span>{quantityEstimate}</span> : null}
-                {price ? <span>${price}</span> : null}
-                {!quantityEstimate && !price ? <span>Quantity/price optional</span> : null}
-              </div>
-            </div>
+            <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "28px" }}>Your sightings</h2>
             {saved ? <p style={{ color: "rgba(190,232,177,0.95)", fontSize: "13px", lineHeight: 1.5 }}>Saved. Your sighting will appear in your signed-in member drop feed preview.</p> : null}
-            <h3 style={{ marginTop: "22px", marginBottom: "10px", fontFamily: "var(--font-dm-sans)", fontSize: "14px" }}>Your recent sightings</h3>
-            <div style={{ display: "grid", gap: "8px" }}>{sightings.slice(0, 4).map((item) => <div key={item.id} style={{ border: "1px solid rgba(245,237,214,0.08)", borderRadius: "14px", padding: "10px", color: "rgba(245,237,214,0.68)", fontSize: "12px" }}><strong style={{ color: "var(--color-cream)" }}>{item.bottleName}</strong><br />{item.storeName}</div>)}</div>
+            <p style={{ color: "rgba(245,237,214,0.58)", fontSize: "13px", lineHeight: 1.55 }}>Recent reports you submit here are saved to your member account and can appear in the member feed.</p>
+            <div style={{ display: "grid", gap: "8px", marginTop: "14px" }}>
+              {sightings.slice(0, 4).length ? sightings.slice(0, 4).map((item) => <div key={item.id} style={{ border: "1px solid rgba(245,237,214,0.08)", borderRadius: "14px", padding: "10px", color: "rgba(245,237,214,0.68)", fontSize: "12px" }}><strong style={{ color: "var(--color-cream)" }}>{item.bottleName}</strong><br />{item.storeName}</div>) : <div className="sighting-empty">No sightings submitted yet.</div>}
+            </div>
           </aside>
         </div>
       </div>

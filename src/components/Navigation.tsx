@@ -9,16 +9,16 @@ import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
 
 const navLinks = [
+  { label: "Feed", href: "/#drops" },
   { label: "Dashboard", href: "/dashboard" },
-  { label: "Finder", href: "/finder" },
-  { label: "Bottle Check", href: "/bottle-check" },
   { label: "Sightings", href: "/sightings" },
+  { label: "Bottle Check", href: "/bottle-check" },
   { label: "Feedback", href: "/feedback" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isMapPage = pathname === "/map" || pathname === "/finder" || pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/feedback";
+  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/feedback";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -51,11 +51,11 @@ export default function Navigation() {
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50"
         style={{
-          height: scrolled || isMapPage ? "64px" : "72px",
-          background: scrolled || isMapPage ? "var(--color-glass)" : "transparent",
-          backdropFilter: scrolled || isMapPage ? "blur(12px)" : "none",
-          WebkitBackdropFilter: scrolled || isMapPage ? "blur(12px)" : "none",
-          borderBottom: scrolled || isMapPage
+          height: scrolled || isGlassPage ? "64px" : "72px",
+          background: scrolled || isGlassPage ? "var(--color-glass)" : "transparent",
+          backdropFilter: scrolled || isGlassPage ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled || isGlassPage ? "blur(12px)" : "none",
+          borderBottom: scrolled || isGlassPage
             ? "1px solid rgba(212, 146, 11, 0.08)"
             : "1px solid transparent",
           transition: "all 300ms ease",

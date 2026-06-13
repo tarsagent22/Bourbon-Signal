@@ -149,7 +149,7 @@ export default function DashboardMiniMap() {
           stores active
         </span>
         <a
-          href="/map"
+          href="/#drops"
           style={{
             fontFamily: "var(--font-dm-sans)",
             fontSize: "11px",
@@ -161,7 +161,7 @@ export default function DashboardMiniMap() {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
-          View Hunt Map &rarr;
+          View Feed &rarr;
         </a>
       </div>
     </div>

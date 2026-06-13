@@ -1,15 +1,7 @@
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import MapPageClient from "@/components/MapPageClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function FinderPage() {
-  return (
-    <>
-      <Navigation />
-      <MapPageClient />
-      <Footer />
-    </>
-  );
+  redirect("/#drops");
 }

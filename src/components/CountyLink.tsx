@@ -69,7 +69,7 @@ export default function CountyLink({ county, lat, lng, children, style, classNam
 
   return (
     <Link
-      href={`/map?lat=${coords.lat}&lng=${coords.lng}&zoom=12`}
+      href="/#drops"
       className={className}
       style={{
         textDecoration: "none",

@@ -281,7 +281,7 @@ function dropStateLabel(drop: DropEvent) {
 function finderSignalHref(bottleName: string, state?: string) {
   const params = new URLSearchParams({ bottle: bottleName });
   if (state) params.set("state", state);
-  return `/finder?${params.toString()}#drops`;
+  return `/?${params.toString()}#drops`;
 }
 
 function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences) {
@@ -1340,9 +1340,9 @@ export default function DashboardPage() {
   };
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
-    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Manage your markets, bottle watchlist, and delivery preferences.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
+    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: `${collectionEntries.length} owned` },
-    { key: "recommendations", label: "Recommendations", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Needs ratings" },
+    { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Needs ratings" },
   ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length]);
 
   const toggleDashboardSection = (section: DashboardSection) => {
@@ -1434,7 +1434,7 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Your home base for alerts, tracked bottles, collection notes, and the personalized features coming next.
+                Set your alerts, score the bottles you already own in your collection, and get recommendations based on what you like.
               </p>
             </ScrollReveal>
           </div>
