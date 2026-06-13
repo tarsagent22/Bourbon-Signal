@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import CountyLink from "@/components/CountyLink";
 import {
@@ -132,19 +132,73 @@ function normalizeFilterText(value?: string | null) {
   return (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function dropCountyCandidates(drop: GroupedDrop) {
+const STATE_NAMES: Record<string, string> = Object.fromEntries(AVAILABLE_STATES.map((state) => [state.code, state.name]));
+
+function cleanAreaLabel(value?: string | null) {
+  const raw = String(value || "").trim();
+  if (!raw || raw === "__EMPTY") return "";
+  return raw
+    .replace(/\s+County\s+ABC\s+Board$/i, " County")
+    .replace(/\s+ABC\s+Board$/i, "")
+    .replace(/\s+Board$/i, "")
+    .replace(/\s+Store$/i, "")
+    .replace(/\s+Store\s*#?\d+$/i, "")
+    .replace(/^Ft\.?\s+/i, "Fort ")
+    .replace(/\bFt\.?\s+/gi, "Fort ")
+    .replace(/\bMilbrook\b/gi, "Millbrook")
+    .replace(/\bGainsville\b/gi, "Gainesville")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function areaKey(label?: string | null) {
+  return normalizeFilterText(cleanAreaLabel(label));
+}
+
+function areaFilterValue(state?: string | null, label?: string | null) {
+  const stateCode = String(state || "").toUpperCase();
+  const key = areaKey(label);
+  return stateCode && key ? `${stateCode}::${key}` : "";
+}
+
+function isUsefulAreaLabel(label?: string | null, state?: string | null) {
+  const cleaned = cleanAreaLabel(label);
+  if (!cleaned) return false;
+  const normalized = normalizeFilterText(cleaned);
+  const stateCode = String(state || "").toUpperCase();
+  const stateName = STATE_NAMES[stateCode];
+  if (normalized.length < 2) return false;
+  if (stateCode && normalized === stateCode.toLowerCase()) return false;
+  if (stateName && normalized === normalizeFilterText(stateName)) return false;
+  if (/\b(statewide|master list|coverage|inventory watch|program)\b/i.test(cleaned)) return false;
+  return true;
+}
+
+function areaLabelsForDrop(drop: GroupedDrop) {
+  const state = drop.state || "";
+  const values = state === "NC"
+    ? [drop.board_name, ...(drop.counties || []), drop.locations[0]?.label]
+    : state === "PA"
+      ? [...(drop.counties || []), drop.locations[0]?.city, drop.locations[0]?.label]
+      : [drop.locations[0]?.city, ...(drop.counties || []), drop.locations[0]?.label, drop.board_name];
+
   return Array.from(
     new Set(
-      [
-        ...(drop.counties || []),
-        drop.board_name,
-        drop.locations[0]?.label,
-        drop.locations[0]?.city,
-      ]
-        .map((value) => cleanCountyName(String(value || "")).trim())
-        .filter(Boolean)
+      values
+        .map((value) => cleanAreaLabel(value))
+        .filter((value) => isUsefulAreaLabel(value, state))
     )
   );
+}
+
+function dropCountyCandidates(drop: GroupedDrop) {
+  return areaLabelsForDrop(drop);
+}
+
+function dropAreaFilterValues(drop: GroupedDrop) {
+  return areaLabelsForDrop(drop)
+    .map((label) => areaFilterValue(drop.state, label))
+    .filter(Boolean);
 }
 
 function getDropRarityRank(drop: GroupedDrop) {
@@ -1019,10 +1073,7 @@ export default function DropFeed() {
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = normalizeFilterText(bottleSearch);
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
-    if (countyFilter !== "ALL") {
-      const countyNeedle = normalizeFilterText(countyFilter);
-      if (!dropCountyCandidates(drop).some((county) => normalizeFilterText(county).includes(countyNeedle))) return false;
-    }
+    if (countyFilter !== "ALL" && !dropAreaFilterValues(drop).includes(countyFilter)) return false;
     if (sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
   };
@@ -1073,19 +1124,54 @@ export default function DropFeed() {
   // Apply state, tier, bottle, county, near-me, and saved-area filters.
   const filteredGrouped = grouped.filter(matchesActiveFeedFilters);
   const filteredByArea = filteredGrouped.filter(matchesSavedAreaPreferences);
+  const feedStateOptions = AVAILABLE_STATES.filter((state) => state.active && !("comingSoon" in state && state.comingSoon));
 
-  const countyOptions = Array.from(
-    new Set(
-      grouped
-        .filter((drop) => {
-          if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
-          return activeTiers.size === 0 || activeTiers.has(drop.rarity_tier);
-        })
-        .flatMap(dropCountyCandidates)
-        .map((county) => county.trim())
-        .filter(Boolean)
-    )
-  ).sort((a, b) => a.localeCompare(b));
+  const countyOptions = useMemo(() => {
+    const options = new Map<string, { value: string; label: string; state: string }>();
+    const activeStateCodes = new Set(feedStateOptions.map((state) => state.code));
+    const selectedState = feedStateParam || (hasSelectedStates && preferredStates.length === 1 ? preferredStates[0] : null);
+
+    const addOption = (stateValue?: string | null, labelValue?: string | null, hasSignal: boolean = true) => {
+      const state = String(stateValue || "").toUpperCase();
+      const label = cleanAreaLabel(labelValue);
+      if (!state || !activeStateCodes.has(state)) return;
+      if (selectedState && state !== selectedState) return;
+      if (!hasSignal) return;
+      if (!isUsefulAreaLabel(label, state)) return;
+      const value = areaFilterValue(state, label);
+      if (!value || options.has(value)) return;
+      options.set(value, {
+        value,
+        label: selectedState ? label : `${label} (${state})`,
+        state,
+      });
+    };
+
+    for (const store of stores) {
+      const state = String(store.state || "").toUpperCase();
+      const signalCount = typeof store.signalCount === "number" ? store.signalCount : typeof store.bottle_count === "number" ? store.bottle_count : 0;
+      const hasSignal = store.hasSignals === true || signalCount > 0;
+      const label = state === "NC"
+        ? store.district || store.county || store.displayLabel
+        : state === "PA"
+          ? store.county || store.city || store.displayLabel
+          : store.city || store.county || store.displayLabel;
+      addOption(state, label, hasSignal);
+    }
+
+    for (const drop of grouped) {
+      const state = drop.state;
+      if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) continue;
+      for (const label of areaLabelsForDrop(drop)) addOption(state, label, true);
+    }
+
+    return Array.from(options.values()).sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
+  }, [activeTiers, feedStateOptions, feedStateParam, grouped, hasSelectedStates, preferredStates, stores]);
+
+  useEffect(() => {
+    if (countyFilter === "ALL") return;
+    if (!countyOptions.some((option) => option.value === countyFilter)) setCountyFilter("ALL");
+  }, [countyFilter, countyOptions]);
 
   const memberSightingRows = isSignedIn ? sightings.map(memberSightingToGrouped) : [];
   const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => {
@@ -1100,7 +1186,6 @@ export default function DropFeed() {
   const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
   const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
-  const feedStateOptions = AVAILABLE_STATES.filter((state) => state.active && !("comingSoon" in state && state.comingSoon));
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
     ? "Showing all covered states"
     : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
@@ -1508,9 +1593,9 @@ export default function DropFeed() {
             <label className="dropfeed-refine-field">
               <span>County / area</span>
               <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
-                <option value="ALL">All counties</option>
-                {countyOptions.map((county) => (
-                  <option key={county} value={county}>{county}</option>
+                <option value="ALL">All counties / areas</option>
+                {countyOptions.map((area) => (
+                  <option key={area.value} value={area.value}>{area.label}</option>
                 ))}
               </select>
             </label>
