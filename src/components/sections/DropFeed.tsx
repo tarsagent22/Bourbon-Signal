@@ -172,9 +172,9 @@ function formatAreaLabel(state?: string | null, city?: string | null, county?: s
     const parsed = parseCityCountyLabel(cleanFallback || cleanBoard);
     const ncCity = cleanCity || parsed.city;
     const ncCounty = cleanCounty || parsed.county;
-    if (ncCity && ncCounty) return `${ncCity} (${ncCounty} Co.)`;
+    if (ncCity && ncCounty) return `${ncCity} ${ncCounty} Co.`;
     if (ncCity) return ncCity;
-    if (ncCounty) return `${ncCounty} County`;
+    if (ncCounty) return cleanBoard || cleanFallback || `${ncCounty} area`;
   }
 
   if (stateCode === "PA") return cleanCounty || cleanCity || cleanFallback || cleanBoard;
@@ -212,7 +212,7 @@ function areaLabelsForDrop(drop: GroupedDrop) {
   if (state === "NC") {
     for (const value of [primaryLocation?.label, ...(drop.counties || [])]) {
       const parsed = parseCityCountyLabel(value);
-      const label = formatAreaLabel(state, primaryLocation?.city || parsed.city, parsed.county, drop.board_name, value);
+      const label = formatAreaLabel(state, primaryLocation?.city || parsed.city, parsed.county, undefined, value);
       if (isUsefulAreaLabel(label, state)) labels.add(label);
     }
   } else if (state === "PA") {
@@ -276,6 +276,73 @@ function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[]
 }
 
 // --- Components ---
+
+type DropdownOption = { value: string; label: string };
+
+function BourbonDropdown({
+  label,
+  value,
+  options,
+  onChange,
+  className,
+  placeholder = "Select",
+}: {
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  onChange: (value: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const selected = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className={`dropfeed-refine-field bourbon-menu ${className || ""}`}>
+      <span>{label}</span>
+      <button type="button" className="bourbon-menu-trigger" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+        <span>{selected?.label || placeholder}</span>
+        <span aria-hidden style={{ opacity: 0.55 }}>▾</span>
+      </button>
+      {open ? (
+        <div className="bourbon-menu-panel" role="listbox">
+          {options.map((option) => {
+            const active = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`bourbon-menu-option ${active ? "active" : ""}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                role="option"
+                aria-selected={active}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function SkeletonRow() {
   const shimmerBg =
@@ -1179,7 +1246,7 @@ export default function DropFeed() {
       if (!value || options.has(value)) return;
       options.set(value, {
         value,
-        label: selectedState ? label : `${label} (${state})`,
+        label: selectedState ? label : `${label} · ${state}`,
         state,
       });
     };
@@ -1200,8 +1267,8 @@ export default function DropFeed() {
 
     const ncCityLabelsWithCounty = new Set(
       Array.from(options.values())
-        .filter((option) => option.state === "NC" && /\(.+? Co\.\)$/.test(option.label))
-        .map((option) => normalizeFilterText(option.label.replace(/\s*\(.+? Co\.\)$/i, "")))
+        .filter((option) => option.state === "NC" && /\bCo\.$/.test(option.label))
+        .map((option) => normalizeFilterText(option.label.replace(/\s+[^\s]+\s+Co\.$/i, "")))
     );
 
     return Array.from(options.values())
@@ -1211,7 +1278,7 @@ export default function DropFeed() {
         if (/\babc\b/i.test(option.label)) return false;
         const countyAsCity = option.label.match(/^(.+?)\s+County$/i)?.[1];
         if (countyAsCity && ncCityLabelsWithCounty.has(normalizeFilterText(countyAsCity))) return false;
-        if (!/\(.+? Co\.\)$/.test(option.label) && ncCityLabelsWithCounty.has(normalized)) return false;
+        if (!/\bCo\.$/.test(option.label) && ncCityLabelsWithCounty.has(normalized)) return false;
         return true;
       })
       .sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
@@ -1259,6 +1326,20 @@ export default function DropFeed() {
     : preferredStates.length === 1
       ? preferredStates[0]
       : "MULTI";
+  const stateMenuOptions: DropdownOption[] = [
+    { value: "ALL", label: "All states" },
+    ...(stateDropdownValue === "MULTI" ? [{ value: "MULTI", label: "Multiple" }] : []),
+    ...feedStateOptions.map((state) => ({ value: state.code, label: `${state.name} (${state.code})` })),
+  ];
+  const areaMenuOptions: DropdownOption[] = [
+    { value: "ALL", label: "All areas" },
+    ...countyOptions.map((area) => ({ value: area.value, label: area.label })),
+  ];
+  const viewMenuOptions: DropdownOption[] = [
+    { value: "newest", label: "Newest" },
+    { value: "rarity", label: "Rarity" },
+    { value: "az", label: "A–Z" },
+  ];
 
   const fetchOlderDrops = async () => {
     if (!isSignedIn || isLoadingMore) return;
@@ -1499,7 +1580,7 @@ export default function DropFeed() {
         }
         .dropfeed-refine-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: minmax(112px, 0.95fr) minmax(150px, 1.2fr) minmax(96px, 0.75fr) minmax(126px, 0.9fr);
           gap: 8px;
           align-items: end;
           padding-bottom: 8px;
@@ -1516,9 +1597,10 @@ export default function DropFeed() {
           color: rgba(245,237,214,0.42);
         }
         .dropfeed-refine-field input,
-        .dropfeed-refine-field select {
+        .bourbon-menu-trigger {
           width: 100%;
           min-width: 0;
+          height: 39px;
           border-radius: 11px;
           border: 1px solid rgba(212,146,11,0.12);
           background: rgba(20,16,12,0.64);
@@ -1528,6 +1610,78 @@ export default function DropFeed() {
           font-weight: 600;
           padding: 9px 10px;
           outline: none;
+        }
+        .bourbon-menu { position: relative; min-width: 0; }
+        .bourbon-menu-trigger {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          text-align: left;
+          cursor: pointer;
+        }
+        .bourbon-menu-trigger span:first-child {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .bourbon-menu-panel {
+          position: absolute;
+          z-index: 40;
+          top: calc(100% + 7px);
+          left: 0;
+          right: 0;
+          max-height: 286px;
+          overflow-y: auto;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 6px;
+          padding: 8px;
+          border-radius: 16px;
+          border: 1px solid rgba(196,148,58,0.2);
+          background: rgba(17,13,10,0.98);
+          box-shadow: 0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.04);
+          scrollbar-color: rgba(245,237,214,0.48) rgba(245,237,214,0.08);
+          scrollbar-width: thin;
+        }
+        .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel { min-width: min(660px, calc(100vw - 32px)); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .bourbon-menu-option {
+          min-height: 44px;
+          border-radius: 12px;
+          border: 1px solid rgba(245,237,214,0.07);
+          background: rgba(245,237,214,0.025);
+          color: rgba(245,237,214,0.72);
+          font-family: var(--font-dm-sans);
+          font-size: 13px;
+          font-weight: 650;
+          text-align: left;
+          padding: 10px 12px;
+          cursor: pointer;
+        }
+        .bourbon-menu-option:hover,
+        .bourbon-menu-option.active {
+          border-color: rgba(196,148,58,0.34);
+          background: rgba(196,148,58,0.12);
+          color: var(--color-cream);
+        }
+        .dropfeed-near-me {
+          height: 39px;
+          border-radius: 11px;
+          border: 1px solid rgba(196,148,58,0.22);
+          background: rgba(196,148,58,0.08);
+          color: rgba(245,237,214,0.78);
+          font-family: var(--font-dm-sans);
+          font-size: 13px;
+          font-weight: 800;
+          padding: 0 12px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .dropfeed-near-me.active,
+        .dropfeed-near-me:hover {
+          background: rgba(196,148,58,0.16);
+          color: var(--color-cream);
+          border-color: rgba(196,148,58,0.42);
         }
         .dropfeed-location-status {
           margin: -2px 0 10px;
@@ -1558,11 +1712,14 @@ export default function DropFeed() {
           white-space: nowrap;
         }
         @media (max-width: 767px) {
-          .dropfeed-refine-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+          .dropfeed-refine-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
           .dropfeed-refine-search { grid-column: 1 / -1; }
           .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
           .dropfeed-refine-field input,
-          .dropfeed-refine-field select { font-size: 12px; padding: 9px 8px; }
+          .bourbon-menu-trigger,
+          .dropfeed-near-me { font-size: 12px; padding: 9px 8px; height: 38px; }
+          .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel { left: 50%; right: auto; transform: translateX(-50%); width: calc(100vw - 32px); min-width: 0; grid-template-columns: 1fr 1fr; }
+          .bourbon-menu-option { min-height: 42px; font-size: 12px; padding: 9px 10px; }
           .dropfeed-filter-row {
             display: flex !important;
             flex-wrap: nowrap !important;
@@ -1638,54 +1795,38 @@ export default function DropFeed() {
                 placeholder="Search live drops…"
               />
             </label>
-            <label className="dropfeed-refine-field">
-              <span>State</span>
-              <select
-                value={stateDropdownValue}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value === "ALL") {
-                    setSelectedStates([]);
-                    return;
-                  }
-                  setSelectedStates([value]);
-                }}
-                aria-label="Filter drop feed by state"
-              >
-                <option value="ALL">All states</option>
-                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple</option> : null}
-                {feedStateOptions.map((state) => (
-                  <option key={state.code} value={state.code}>
-                    {state.name} ({state.code})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="dropfeed-refine-field">
-              <span>Area</span>
-              <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
-                <option value="ALL">All areas</option>
-                {countyOptions.map((area) => (
-                  <option key={area.value} value={area.value}>{area.label}</option>
-                ))}
-              </select>
-            </label>
-            <label className="dropfeed-refine-field dropfeed-refine-sort">
-              <span>View</span>
-              <select value={sortMode} onChange={(event) => {
-                const next = event.target.value as DropSortMode;
-                if (next === "nearby" && !nearMe) {
-                  activateNearMe();
+            <BourbonDropdown
+              label="State"
+              value={stateDropdownValue}
+              options={stateMenuOptions}
+              onChange={(value) => {
+                if (value === "ALL") {
+                  setSelectedStates([]);
                   return;
                 }
-                setSortMode(next);
-              }}>
-                <option value="newest">Newest</option>
-                <option value="nearby">Nearby</option>
-                <option value="rarity">Rarity</option>
-                <option value="az">A–Z</option>
-              </select>
-            </label>
+                setSelectedStates([value]);
+              }}
+            />
+            <BourbonDropdown
+              label="Area"
+              value={countyFilter}
+              options={areaMenuOptions}
+              onChange={setCountyFilter}
+              className="dropfeed-area-menu"
+            />
+            <BourbonDropdown
+              label="View"
+              value={sortMode === "nearby" ? "newest" : sortMode}
+              options={viewMenuOptions}
+              onChange={(value) => setSortMode(value as DropSortMode)}
+              className="dropfeed-refine-sort"
+            />
+            <div className="dropfeed-refine-field dropfeed-near-me-field">
+              <span>Location</span>
+              <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
+                Use my location
+              </button>
+            </div>
           </motion.div>
           {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
