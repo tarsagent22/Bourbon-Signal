@@ -435,7 +435,7 @@ function FeedRow({ drop, isNew, index, isFreeUser }: FeedRowProps) {
             {stateLabel}
           </span>
 
-          <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
+          <div className="dropfeed-card-meta flex items-center gap-2" style={{ minWidth: 0 }}>
             {hasPricing && (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.5)", whiteSpace: "nowrap" }}>
                 ${pricing.msrp} MSRP
@@ -1013,8 +1013,30 @@ export default function DropFeed() {
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 30ch; }
           .dropfeed-nudge { display:none; }
-          .dropfeed-filter-row { overflow: visible; flex-wrap: wrap !important; padding-bottom: 12px !important; margin-left: 0; scrollbar-width: none; }
+          .dropfeed-filter-row {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px !important;
+            overflow: visible !important;
+            padding-bottom: 12px !important;
+            margin-left: 0 !important;
+            width: 100%;
+            scrollbar-width: none;
+          }
           .dropfeed-filter-row::-webkit-scrollbar { display:none; }
+          .dropfeed-filter-row button {
+            width: 100% !important;
+            min-width: 0 !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+            text-align: center;
+          }
+          .dropfeed-card-meta {
+            gap: 6px !important;
+          }
+          .dropfeed-card-meta span {
+            font-size: 9px !important;
+          }
           .dropfeed-detail-panel { padding: 4px 2px 14px 8px !important; }
         }
       `}</style>
@@ -1036,10 +1058,10 @@ export default function DropFeed() {
           {/* Header row */}
           <motion.div
             className="flex items-center justify-between gap-4"
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            initial={false}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
-            transition={{ duration: 0.72, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <div>
               <h2
@@ -1063,10 +1085,10 @@ export default function DropFeed() {
 
           <motion.div
             className="dropfeed-state-panel"
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            initial={false}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
-            transition={{ duration: 0.58, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <div className="dropfeed-state-panel-head">
               <div>
@@ -1120,10 +1142,10 @@ export default function DropFeed() {
           <motion.div
             className="dropfeed-filter-row flex items-center flex-wrap gap-2"
             style={{ paddingBottom: "16px" }}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            initial={false}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
-            transition={{ duration: 0.6, delay: 0.06, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {/* Tier filter pills */}
             {[
@@ -1137,10 +1159,10 @@ export default function DropFeed() {
               return (
                 <motion.button
                   key={pill.tier}
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
-                  whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                  initial={false}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.45, delay: 0.06 + (pill.tier === "unicorn" ? 0 : pill.tier === "allocated" ? 0.05 : 0.1), ease: [0.25, 0.1, 0.25, 1] }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.16, ease: [0.25, 0.1, 0.25, 1] }}
                   onClick={() => {
                     if (isAll) {
                       setActiveTiers(new Set());
