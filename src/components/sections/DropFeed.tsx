@@ -1718,7 +1718,15 @@ export default function DropFeed() {
           .dropfeed-refine-field input,
           .bourbon-menu-trigger,
           .dropfeed-near-me { font-size: 12px; padding: 9px 8px; height: 38px; }
-          .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel { left: 50%; right: auto; transform: translateX(-50%); width: calc(100vw - 32px); min-width: 0; grid-template-columns: 1fr 1fr; }
+          .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel {
+            left: 0;
+            right: 0;
+            transform: none;
+            width: 100%;
+            min-width: 0;
+            grid-template-columns: 1fr;
+            max-height: 318px;
+          }
           .bourbon-menu-option { min-height: 42px; font-size: 12px; padding: 9px 10px; }
           .dropfeed-filter-row {
             display: flex !important;
