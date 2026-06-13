@@ -24,7 +24,7 @@ export default function Navigation() {
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, memberTier, signIn, signUp, signOut } = useAuth();
+  const { isSignedIn, user, signIn, signUp, signOut } = useAuth();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -213,23 +213,6 @@ export default function Navigation() {
                         <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "var(--color-text-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {user?.emailAddresses?.[0]?.emailAddress || ""}
                         </p>
-                        {memberTier && (
-                          <span style={{
-                            display: "inline-block",
-                            marginTop: "8px",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            letterSpacing: "0.1em",
-                            textTransform: "uppercase",
-                            color: "#0D0B0E",
-                            background: "linear-gradient(135deg, var(--color-accent-amber), var(--color-accent-gold))",
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                          }}>
-                            {memberTier === "bottled-in-bond" ? "Bottled in Bond" : "Standard Proof"}
-                          </span>
-                        )}
                       </div>
 
                       {/* Divider */}

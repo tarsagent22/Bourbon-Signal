@@ -162,6 +162,33 @@ function userFacingBottle(bottle: BibleBottle) {
   };
 }
 
+function suggestionDedupeKey(bottle: BibleBottle) {
+  return normalizeBottleKey(bottle.canonicalName)
+    .replace(/\b(\d+)y\b/g, "$1 year")
+    .replace(/^w l weller\b/g, "weller")
+    .replace(/\bc y p b\b/g, "cypb")
+    .replace(/\b(kentucky|ky|straight|bourbon|whiskey|whisky)\b/g, " ")
+    .replace(/\b(750ml|1l|liter|litre|\.75l|1\.00l)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim() || normalizeBottleKey(bottle.canonicalName);
+}
+
+function suggestionRank(bottle: BibleBottle & { matchScore?: number }) {
+  return (typeof bottle.matchScore === "number" ? bottle.matchScore : 0) * 10 + (availabilityRank[bottle.availability] || 0);
+}
+
+function dedupeBottleSuggestions(suggestions: BibleBottle[]) {
+  const byKey = new Map<string, BibleBottle>();
+  for (const suggestion of suggestions) {
+    const key = suggestionDedupeKey(suggestion);
+    const existing = byKey.get(key);
+    if (!existing || suggestionRank(suggestion) > suggestionRank(existing)) {
+      byKey.set(key, suggestion);
+    }
+  }
+  return Array.from(byKey.values());
+}
+
 function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
   const drops = getDropsForBottle(bottle, state);
   const now = Date.now();
@@ -239,7 +266,7 @@ export async function GET(request: Request) {
   const state = (url.searchParams.get("state") || "NC").toUpperCase();
 
   const bottle = id ? getBottleById(id) : searchBourbonBible(query, 1)[0] || null;
-  const suggestions = query ? searchBourbonBible(query, 8) : [];
+  const suggestions = query ? dedupeBottleSuggestions(searchBourbonBible(query, 16)).slice(0, 8) : [];
 
   if (!bottle) {
     captureSearchEvent({

@@ -59,6 +59,39 @@ function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function suggestionDedupeKey(bottle: NonNullable<BottleResult["bottle"]>) {
+  return normalizeBottleKey(bottle.canonicalName)
+    .replace(/\b(\d+)y\b/g, "$1 year")
+    .replace(/^w l weller\b/g, "weller")
+    .replace(/\bc y p b\b/g, "cypb")
+    .replace(/\b(kentucky|ky|straight|bourbon|whiskey|whisky)\b/g, " ")
+    .replace(/\b(750ml|1l|liter|litre|\.75l|1\.00l)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim() || normalizeBottleKey(bottle.canonicalName);
+}
+
+const availabilityRank: Record<string, number> = {
+  common: 1,
+  regional: 2,
+  seasonal: 3,
+  limited: 4,
+  allocated: 5,
+  highly_allocated: 6,
+  unicorn: 7,
+};
+
+function dedupeSuggestions(suggestions: NonNullable<BottleResult["bottle"]>[]) {
+  const byKey = new Map<string, NonNullable<BottleResult["bottle"]>>();
+  for (const suggestion of suggestions) {
+    const key = suggestionDedupeKey(suggestion);
+    const existing = byKey.get(key);
+    const currentRank = (suggestion.matchScore || 0) * 10 + (availabilityRank[suggestion.availability] || 0);
+    const existingRank = existing ? (existing.matchScore || 0) * 10 + (availabilityRank[existing.availability] || 0) : -1;
+    if (!existing || currentRank > existingRank) byKey.set(key, suggestion);
+  }
+  return Array.from(byKey.values());
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "No signal yet";
   const time = Date.parse(value);
@@ -126,9 +159,9 @@ export default function BottleCheckPage() {
         const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}`, { signal: controller.signal });
         if (!res.ok) return setLiveSuggestions([]);
         const data = (await res.json()) as BottleResult;
-        const suggestions = [data.bottle, ...(data.suggestions || [])]
+        const suggestions = dedupeSuggestions([data.bottle, ...(data.suggestions || [])]
           .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion))
-          .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index)
+          .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index))
           .slice(0, 6);
         setLiveSuggestions(suggestions);
       } catch (error) {
