@@ -97,7 +97,7 @@ const MOCK_DROPS: DropEvent[] = [
 function memberSightingToGrouped(sighting: MemberSighting, store?: Store): GroupedDrop {
   const storeCounty = cleanAreaLabel(store?.county);
   const storeCity = cleanAreaLabel(sighting.storeCity || store?.city);
-  const areaLabel = formatAreaLabel(sighting.storeState, storeCity, storeCounty, undefined, sighting.storeName);
+  const areaLabel = formatAreaLabel(sighting.storeState, storeCity, storeCounty, undefined, displayLocationLabel(sighting.storeName, sighting.storeState));
   return {
     displayName: sighting.bottleName,
     event_type: "user_sighting",
@@ -119,7 +119,7 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
     displayState: sighting.storeState,
     locations: [
       {
-        label: sighting.storeName,
+        label: displayLocationLabel(areaLabel || sighting.storeName, sighting.storeState),
         city: storeCity || sighting.storeCity,
         address: sighting.storeAddress,
         quantity: sighting.quantityEstimate ? 1 : undefined,
@@ -179,6 +179,23 @@ function formatAreaLabel(state?: string | null, city?: string | null, county?: s
 
   if (stateCode === "PA") return cleanCounty || cleanCity || cleanFallback || cleanBoard;
   return cleanCity || cleanCounty || cleanFallback || cleanBoard;
+}
+
+function stripStatePrefix(label?: string | null, state?: string | null) {
+  const stateCode = String(state || "").toUpperCase();
+  let cleaned = cleanAreaLabel(label);
+  if (!stateCode || !cleaned) return cleaned;
+  cleaned = cleaned.replace(new RegExp(`^${stateCode}\\s*[·:-]\\s*`, "i"), "").trim();
+  cleaned = cleaned.replace(new RegExp(`^${stateCode}\\s+`, "i"), "").trim();
+  return cleaned;
+}
+
+function displayLocationLabel(label?: string | null, state?: string | null) {
+  const stripped = stripStatePrefix(label, state);
+  if (!stripped) return "";
+  const parsed = parseCityCountyLabel(stripped);
+  if (parsed.city && parsed.county) return formatAreaLabel(state, parsed.city, parsed.county, undefined, stripped);
+  return stripped;
 }
 
 function areaKey(label?: string | null) {
@@ -254,7 +271,7 @@ function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: numb
   return 2 * r * Math.asin(Math.sqrt(sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng));
 }
 
-function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[] {
+function latestSignalRows(drops: DropEvent[], limit: number = 20, excludeIds: Set<string> = new Set()): GroupedDrop[] {
   const rows: GroupedDrop[] = [];
   for (const drop of drops) {
     if (
@@ -265,9 +282,12 @@ function latestSignalRows(drops: DropEvent[], limit: number = 20): GroupedDrop[]
     }
     const row = groupDrops([drop], 1)[0];
     if (!row) continue;
+    const id = [row.id, drop.timestamp, drop.store_id, drop.store_address, drop.display_location, drop.sourceUrl].filter(Boolean).join("|");
+    if (excludeIds.has(id)) continue;
+    excludeIds.add(id);
     rows.push({
       ...row,
-      id: [row.id, drop.timestamp, drop.store_id, drop.store_address, drop.display_location, drop.sourceUrl].filter(Boolean).join("|"),
+      id,
     });
   }
   return rows
@@ -453,7 +473,7 @@ function getEventDescription(drop: GroupedDrop): string {
     if (drop.locations.length > 1) {
       return `${drop.locations.length} locations`;
     }
-    const loc = drop.locations[0]?.label || cleanCountyName(drop.store_address || drop.board_name || "");
+    const loc = displayLocationLabel(drop.locations[0]?.label || cleanCountyName(drop.store_address || drop.board_name || ""), drop.state);
     return loc || "Recent bottle drop";
   }
 
@@ -475,7 +495,7 @@ function getEventDescription(drop: GroupedDrop): string {
   }
   switch (drop.event_type) {
     case "nc_board_shipment_snapshot": {
-      const loc = cleanCountyName(drop.board_name || drop.locations[0]?.label || "");
+      const loc = displayLocationLabel(drop.board_name || drop.locations[0]?.label || "", drop.state);
       return `Board shipment${loc ? ` · ${loc}` : ""}`;
     }
     case "nc_statewide_warehouse_stock": {
@@ -486,7 +506,7 @@ function getEventDescription(drop: GroupedDrop): string {
         return `\u2192 ${drop.counties.length} NC counties`;
       }
       if (drop.counties.length === 1) {
-        return `\u2192 ${drop.counties[0]}`;
+        return `\u2192 ${displayLocationLabel(drop.counties[0], drop.state)}`;
       }
       return "\u2192 Shipped";
     }
@@ -1089,15 +1109,33 @@ export default function DropFeed() {
 
   const fetchDrops = useCallback(async () => {
     try {
-      const query = new URLSearchParams({ limit: "200" });
-      if (feedStateParam) query.set("state", feedStateParam);
-      const res = await fetch(`/api/drops?${query.toString()}`);
-      if (!res.ok) throw new Error("fetch failed");
-      const json: DropsResponse = await res.json();
-      setError(false);
+      let nextOffset = 0;
+      let latestJson: DropsResponse | null = null;
+      let sourceDrops: DropEvent[] = [];
+      let newGrouped: GroupedDrop[] = [];
+      const seenIds = new Set<string>();
 
-      const sourceDrops = json.drops.length > 0 ? json.drops : MOCK_DROPS;
-      const newGrouped = latestSignalRows(sourceDrops, 50);
+      for (let attempts = 0; attempts < 12; attempts += 1) {
+        const query = new URLSearchParams({ limit: "200", offset: String(nextOffset) });
+        if (feedStateParam) query.set("state", feedStateParam);
+        const res = await fetch(`/api/drops?${query.toString()}`);
+        if (!res.ok) throw new Error("fetch failed");
+        const json: DropsResponse = await res.json();
+        latestJson = json;
+
+        const pageDrops = json.drops.length > 0 ? json.drops : attempts === 0 ? MOCK_DROPS : [];
+        sourceDrops = [...sourceDrops, ...pageDrops];
+        newGrouped = [...newGrouped, ...latestSignalRows(pageDrops, 50, seenIds)]
+          .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
+          .slice(0, 50);
+
+        nextOffset = (json.offset ?? nextOffset) + (json.limit ?? pageDrops.length);
+        if (newGrouped.length >= (isSignedIn ? 10 : 7) || !json.hasMore || nextOffset >= json.total || pageDrops.length === 0) break;
+      }
+
+      if (!latestJson) throw new Error("fetch failed");
+      const json = latestJson;
+      setError(false);
 
       if (!isFirstLoad.current) {
         const incoming = new Set<string>();
@@ -1121,7 +1159,7 @@ export default function DropFeed() {
 
       setData(json);
       setGrouped(newGrouped);
-      setNextDropOffset((json.offset ?? 0) + (json.limit ?? json.drops.length));
+      setNextDropOffset(nextOffset);
       setVisibleDropCount(isSignedIn ? 10 : 7);
       const nowIso = new Date().toISOString();
       setLastFetch(nowIso);
