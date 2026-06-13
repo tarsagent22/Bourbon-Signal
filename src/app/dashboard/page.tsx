@@ -524,6 +524,7 @@ export default function DashboardPage() {
   const [territorySearch, setTerritorySearch] = useState("");
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
   const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(null);
+  const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const hydratedBottlePrefsKeyRef = useRef("");
   const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
@@ -655,8 +656,11 @@ export default function DashboardPage() {
 
   const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
+  const shouldPrepareCollection = preparedDashboardSections.has("collection") || preparedDashboardSections.has("recommendations");
+  const shouldPrepareRecommendations = preparedDashboardSections.has("recommendations");
 
   useEffect(() => {
+    if (!shouldPrepareCollection || broadBottleCatalog.length > 0) return;
     let cancelled = false;
     fetch("/api/bottle-catalog")
       .then((response) => response.ok ? response.json() : null)
@@ -670,7 +674,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [broadBottleCatalog.length, shouldPrepareCollection]);
 
   useEffect(() => {
     const query = collectionBottleQuery.trim();
@@ -737,7 +741,8 @@ export default function DashboardPage() {
   }, [collectionBibleSuggestions]);
 
   const broadCatalogBottleOptions = useMemo<BottleOption[]>(() => {
-    return broadBottleCatalog.map((suggestion) => {
+    if (!shouldPrepareCollection) return [];
+    return broadBottleCatalog.slice(0, 900).map((suggestion) => {
       const canonicalKey = canonicalBottleKey(suggestion.canonicalName);
       const bottle: Bottle = {
         id: `catalog-${suggestion.id}`,
@@ -760,9 +765,10 @@ export default function DashboardPage() {
       };
       return { canonicalKey, label: suggestion.canonicalName, bottleIds: [bottle.id], bottle };
     });
-  }, [broadBottleCatalog]);
+  }, [broadBottleCatalog, shouldPrepareCollection]);
 
   const filteredCollectionBottleOptions = useMemo(() => {
+    if (!shouldPrepareCollection) return [];
     const query = collectionBottleQuery.trim().toLowerCase();
     if (!query) return [];
     const localMatches = bottleOptions.filter((option) => {
@@ -783,9 +789,10 @@ export default function DashboardPage() {
       if (!merged.has(option.canonicalKey)) merged.set(option.canonicalKey, option);
     }
     return Array.from(merged.values()).slice(0, 10);
-  }, [bibleSuggestionOptions, bottleOptions, collectionBottleQuery, collectionKeys]);
+  }, [bibleSuggestionOptions, bottleOptions, collectionBottleQuery, collectionKeys, shouldPrepareCollection]);
 
   const collectionTasteProfile = useMemo(() => {
+    if (!shouldPrepareCollection) return buildUserTasteProfile([]);
     const bottleLookup = new Map<string, BottleOption>();
     for (const option of broadCatalogBottleOptions) bottleLookup.set(option.canonicalKey, option);
     for (const option of bottleOptions) bottleLookup.set(option.canonicalKey, option);
@@ -797,7 +804,7 @@ export default function DashboardPage() {
       proof: bottleLookup.get(entry.canonicalKey)?.bottle.proof,
       wouldBuyAgain: entry.wouldBuyAgain,
     })));
-  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries]);
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, shouldPrepareCollection]);
 
   const bourbonDnaSummary = useMemo<BourbonDnaSummary>(() => {
     const proofText = collectionTasteProfile.preferredProofRange
@@ -819,6 +826,7 @@ export default function DashboardPage() {
   }, [collectionEntries, collectionTasteProfile]);
 
   const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
+    if (!shouldPrepareRecommendations) return [];
     const ownedKeys = new Set(collectionEntries.map((entry) => entry.canonicalKey));
     const recommendationOptionsMap = new Map<string, BottleOption>();
     for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
@@ -878,7 +886,7 @@ export default function DashboardPage() {
           ? `${item.dnaReason} Recent market signal found.`
           : item.dnaReason,
       }));
-  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys]);
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys, shouldPrepareRecommendations]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -1341,12 +1349,31 @@ export default function DashboardPage() {
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: `${collectionEntries.length} owned` },
-    { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Needs ratings" },
-  ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length]);
+    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} owned` },
+    { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready" },
+  ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+
+  const prepareDashboardSection = (section: DashboardSection) => {
+    if (section === "alerts") return;
+    const schedule = typeof window !== "undefined" && "requestIdleCallback" in window
+      ? (callback: () => void) => window.requestIdleCallback(callback, { timeout: 450 })
+      : (callback: () => void) => window.setTimeout(callback, 0);
+    schedule(() => {
+      setPreparedDashboardSections((current) => {
+        if (current.has(section)) return current;
+        const next = new Set(current);
+        next.add(section);
+        return next;
+      });
+    });
+  };
 
   const toggleDashboardSection = (section: DashboardSection) => {
-    setActiveDashboardSection((current) => current === section ? null : section);
+    setActiveDashboardSection((current) => {
+      const next = current === section ? null : section;
+      if (next) prepareDashboardSection(next);
+      return next;
+    });
   };
 
   const renderSectionButton = (sectionKey: DashboardSection) => {
@@ -1590,6 +1617,30 @@ export default function DashboardPage() {
             margin-top: -1px;
             border-top-color: rgba(196,148,58,0.18) !important;
             border-radius: 0 0 22px 22px;
+          }
+          .dashboard-loading-panel {
+            min-height: 132px;
+            display: grid;
+            place-content: center;
+            gap: 8px;
+            text-align: center;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.018));
+            padding: 22px;
+            contain: content;
+          }
+          .dashboard-loading-panel strong {
+            font-family: var(--font-dm-sans);
+            font-size: 14px;
+            color: var(--color-cream);
+          }
+          .dashboard-loading-panel span {
+            max-width: 42ch;
+            font-family: var(--font-dm-sans);
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--color-text-tertiary);
           }
           @media (max-width: 860px) {
             .dashboard-shell { margin-top: -6px; padding-left: 14px; padding-right: 14px; }
@@ -2271,7 +2322,20 @@ export default function DashboardPage() {
 
           {renderSectionButton("collection")}
 
-          {activeDashboardSection === "collection" ? (
+          {activeDashboardSection === "collection" && !preparedDashboardSections.has("collection") ? (
+          <StepShell
+            step="Collection"
+            title="My Collection"
+            subtitle="Loading your saved bottles…"
+            hideHeader
+            attached
+          >
+            <div className="dashboard-loading-panel">
+              <strong>Loading your collection</strong>
+              <span>We’re pulling your saved bottles and taste profile without blocking the dashboard.</span>
+            </div>
+          </StepShell>
+          ) : activeDashboardSection === "collection" ? (
           <StepShell
             step="Collection"
             title="My Collection"
@@ -2421,7 +2485,20 @@ export default function DashboardPage() {
 
           {renderSectionButton("recommendations")}
 
-          {activeDashboardSection === "recommendations" ? (
+          {activeDashboardSection === "recommendations" && !preparedDashboardSections.has("recommendations") ? (
+          <StepShell
+            step="Recommendations"
+            title="Recommended bottles"
+            subtitle="Loading your bottle matches…"
+            hideHeader
+            attached
+          >
+            <div className="dashboard-loading-panel">
+              <strong>Preparing recommendations</strong>
+              <span>We’re matching your collection against the bottle catalog and recent local signal.</span>
+            </div>
+          </StepShell>
+          ) : activeDashboardSection === "recommendations" ? (
           <StepShell
             step="Recommendations"
             title="Recommended bottles"
