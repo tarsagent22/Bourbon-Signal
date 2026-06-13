@@ -1417,9 +1417,10 @@ export default function DropFeed() {
         }
         .dropfeed-refine-grid {
           display: grid;
-          grid-template-columns: minmax(160px, 1.25fr) minmax(130px, 0.9fr) minmax(110px, 0.7fr) auto;
-          gap: 10px;
+          grid-template-columns: minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(170px, 1.2fr) minmax(110px, 0.7fr);
+          gap: 8px;
           align-items: end;
+          padding-bottom: 10px;
         }
         .dropfeed-refine-field span {
           display: block;
@@ -1434,46 +1435,49 @@ export default function DropFeed() {
         .dropfeed-refine-field input,
         .dropfeed-refine-field select {
           width: 100%;
-          border-radius: 14px;
-          border: 1px solid rgba(212,146,11,0.18);
-          background: rgba(20,16,12,0.82);
+          min-width: 0;
+          border-radius: 12px;
+          border: 1px solid rgba(212,146,11,0.14);
+          background: rgba(20,16,12,0.7);
           color: var(--color-cream);
           font-family: var(--font-dm-sans);
           font-size: 13px;
           font-weight: 600;
-          padding: 11px 12px;
+          padding: 10px 11px;
           outline: none;
         }
-        .dropfeed-near-me {
-          height: 42px;
-          border-radius: 999px;
-          border: 1px solid rgba(196,148,58,0.28);
-          background: rgba(196,148,58,0.08);
-          color: rgba(245,237,214,0.76);
-          font-family: var(--font-dm-sans);
-          font-size: 13px;
-          font-weight: 800;
-          padding: 0 15px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .dropfeed-near-me.active,
-        .dropfeed-near-me:hover {
-          background: rgba(196,148,58,0.16);
-          color: var(--color-cream);
-          border-color: rgba(196,148,58,0.5);
-        }
         .dropfeed-location-status {
-          margin: -4px 0 14px;
+          margin: -2px 0 10px;
           color: rgba(245,237,214,0.45);
           font-family: var(--font-dm-sans);
           font-size: 12px;
           line-height: 1.45;
         }
+        .dropfeed-result-count {
+          margin: 0 0 10px;
+          color: rgba(245,237,214,0.42);
+          font-family: var(--font-dm-sans);
+          font-size: 12px;
+        }
         @media (max-width: 767px) {
-          .dropfeed-refine-grid { grid-template-columns: 1fr 1fr; }
+          .dropfeed-refine-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
           .dropfeed-refine-search { grid-column: 1 / -1; }
-          .dropfeed-near-me { width: 100%; }
+          .dropfeed-refine-sort { grid-column: 1 / -1; }
+          .dropfeed-filter-row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            gap: 8px !important;
+            padding-bottom: 12px !important;
+            margin: 0 -18px 0 0 !important;
+            scrollbar-width: none;
+          }
+          .dropfeed-filter-row button {
+            width: auto !important;
+            min-width: max-content !important;
+            padding: 8px 14px !important;
+            border-radius: 999px !important;
+          }
         }
       `}</style>
 
@@ -1520,23 +1524,14 @@ export default function DropFeed() {
           <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
 
           <motion.div
-            className="dropfeed-state-panel"
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
+            className="dropfeed-refine-grid"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <div className="dropfeed-state-panel-head">
-              <div>
-                <span>State coverage</span>
-                <strong>{stateFilterSummary}</strong>
-              </div>
-              {hasSelectedStates && preferredStates.length > 0 ? (
-                <button type="button" onClick={() => setSelectedStates([])}>Show all</button>
-              ) : null}
-            </div>
-            <label style={{ display: "block", marginTop: "12px" }}>
-              <span className="sr-only">Filter drop feed by state</span>
+            <label className="dropfeed-refine-field">
+              <span>State</span>
               <select
                 value={stateDropdownValue}
                 onChange={(event) => {
@@ -1548,23 +1543,9 @@ export default function DropFeed() {
                   setSelectedStates([value]);
                 }}
                 aria-label="Filter drop feed by state"
-                className="bourbon-select"
-                style={{
-                  width: "100%",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(212,146,11,0.22)",
-                  background: "rgba(20, 16, 12, 0.86)",
-                  color: "var(--color-cream)",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  padding: "12px 14px",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
               >
-                <option value="ALL">All covered states</option>
-                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
+                <option value="ALL">All states</option>
+                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple</option> : null}
                 {feedStateOptions.map((state) => (
                   <option key={state.code} value={state.code}>
                     {state.name} ({state.code})
@@ -1572,16 +1553,15 @@ export default function DropFeed() {
                 ))}
               </select>
             </label>
-          </motion.div>
-
-          <motion.div
-            className="dropfeed-refine-grid"
-            style={{ paddingBottom: "14px" }}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-            whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-70px" }}
-            transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
-          >
+            <label className="dropfeed-refine-field">
+              <span>Area</span>
+              <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
+                <option value="ALL">All areas</option>
+                {countyOptions.map((area) => (
+                  <option key={area.value} value={area.value}>{area.label}</option>
+                ))}
+              </select>
+            </label>
             <label className="dropfeed-refine-field dropfeed-refine-search">
               <span>Find bottle</span>
               <input
@@ -1590,16 +1570,7 @@ export default function DropFeed() {
                 placeholder="Search live drops…"
               />
             </label>
-            <label className="dropfeed-refine-field">
-              <span>County / area</span>
-              <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
-                <option value="ALL">All counties / areas</option>
-                {countyOptions.map((area) => (
-                  <option key={area.value} value={area.value}>{area.label}</option>
-                ))}
-              </select>
-            </label>
-            <label className="dropfeed-refine-field">
+            <label className="dropfeed-refine-field dropfeed-refine-sort">
               <span>Sort</span>
               <select value={sortMode} onChange={(event) => {
                 const next = event.target.value as DropSortMode;
@@ -1610,14 +1581,11 @@ export default function DropFeed() {
                 setSortMode(next);
               }}>
                 <option value="newest">Newest</option>
-                <option value="nearby">Nearby</option>
+                <option value="nearby">Nearby / use location</option>
                 <option value="rarity">Rarity</option>
                 <option value="az">Bottle A–Z</option>
               </select>
             </label>
-            <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
-              Near me
-            </button>
           </motion.div>
           {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
@@ -1682,6 +1650,12 @@ export default function DropFeed() {
               );
             })}
           </motion.div>
+
+          {data && (
+            <p className="dropfeed-result-count">
+              Showing {displayedGrouped.length} of {finalFeed.length} matching {finalFeed.length === 1 ? "drop" : "drops"}
+            </p>
+          )}
 
           {/* Feed rows */}
           {data?.fallback && (
@@ -1829,7 +1803,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked` : isSignedIn ? "Newest drops stay at the top as you expand the feed" : "Live feed updates automatically"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked` : isSignedIn ? "Newest matching drops stay at the top" : "Live feed updates automatically"}
               </p>
             </div>
           )}
