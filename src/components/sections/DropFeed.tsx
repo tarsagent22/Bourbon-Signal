@@ -19,7 +19,7 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
-import { useStores } from "@/hooks/useStores";
+import { useStores, type Store } from "@/hooks/useStores";
 import { makeSightingId, type MemberSighting, type SignalReportKind } from "@/lib/sightings";
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -94,13 +94,16 @@ const MOCK_DROPS: DropEvent[] = [
   },
 ];
 
-function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
+function memberSightingToGrouped(sighting: MemberSighting, store?: Store): GroupedDrop {
+  const storeCounty = cleanAreaLabel(store?.county);
+  const storeCity = cleanAreaLabel(sighting.storeCity || store?.city);
+  const areaLabel = formatAreaLabel(sighting.storeState, storeCity, storeCounty, undefined, sighting.storeName);
   return {
     displayName: sighting.bottleName,
     event_type: "user_sighting",
     rarity_tier: "limited",
     timestamp: sighting.createdAt,
-    counties: sighting.storeCity ? [sighting.storeCity] : [],
+    counties: areaLabel ? [areaLabel] : storeCity ? [storeCity] : [],
     store_address: sighting.storeAddress,
     retail_price: sighting.price ?? undefined,
     quantity_in_stock: sighting.quantityEstimate ? 1 : undefined,
@@ -117,7 +120,7 @@ function memberSightingToGrouped(sighting: MemberSighting): GroupedDrop {
     locations: [
       {
         label: sighting.storeName,
-        city: sighting.storeCity,
+        city: storeCity || sighting.storeCity,
         address: sighting.storeAddress,
         quantity: sighting.quantityEstimate ? 1 : undefined,
       },
@@ -151,6 +154,33 @@ function cleanAreaLabel(value?: string | null) {
     .trim();
 }
 
+function parseCityCountyLabel(label?: string | null) {
+  const cleaned = cleanAreaLabel(label);
+  const match = cleaned.match(/^(.+?)\s*\((.+?)\s+Co\.\)$/i);
+  if (!match) return { city: "", county: "" };
+  return { city: cleanAreaLabel(match[1]), county: cleanAreaLabel(match[2]) };
+}
+
+function formatAreaLabel(state?: string | null, city?: string | null, county?: string | null, board?: string | null, fallback?: string | null) {
+  const stateCode = String(state || "").toUpperCase();
+  const cleanCity = cleanAreaLabel(city);
+  const cleanCounty = cleanAreaLabel(county);
+  const cleanBoard = cleanAreaLabel(board);
+  const cleanFallback = cleanAreaLabel(fallback);
+
+  if (stateCode === "NC") {
+    const parsed = parseCityCountyLabel(cleanFallback || cleanBoard);
+    const ncCity = cleanCity || parsed.city;
+    const ncCounty = cleanCounty || parsed.county;
+    if (ncCity && ncCounty) return `${ncCity} (${ncCounty} Co.)`;
+    if (ncCity) return ncCity;
+    if (ncCounty) return `${ncCounty} County`;
+  }
+
+  if (stateCode === "PA") return cleanCounty || cleanCity || cleanFallback || cleanBoard;
+  return cleanCity || cleanCounty || cleanFallback || cleanBoard;
+}
+
 function areaKey(label?: string | null) {
   return normalizeFilterText(cleanAreaLabel(label));
 }
@@ -176,19 +206,26 @@ function isUsefulAreaLabel(label?: string | null, state?: string | null) {
 
 function areaLabelsForDrop(drop: GroupedDrop) {
   const state = drop.state || "";
-  const values = state === "NC"
-    ? [drop.board_name, ...(drop.counties || []), drop.locations[0]?.label]
-    : state === "PA"
-      ? [...(drop.counties || []), drop.locations[0]?.city, drop.locations[0]?.label]
-      : [drop.locations[0]?.city, ...(drop.counties || []), drop.locations[0]?.label, drop.board_name];
+  const primaryLocation = drop.locations[0];
+  const labels = new Set<string>();
 
-  return Array.from(
-    new Set(
-      values
-        .map((value) => cleanAreaLabel(value))
-        .filter((value) => isUsefulAreaLabel(value, state))
-    )
-  );
+  if (state === "NC") {
+    for (const value of [primaryLocation?.label, ...(drop.counties || [])]) {
+      const parsed = parseCityCountyLabel(value);
+      const label = formatAreaLabel(state, primaryLocation?.city || parsed.city, parsed.county, drop.board_name, value);
+      if (isUsefulAreaLabel(label, state)) labels.add(label);
+    }
+  } else if (state === "PA") {
+    for (const value of [...(drop.counties || []), primaryLocation?.label]) {
+      const label = formatAreaLabel(state, primaryLocation?.city, value, drop.board_name, value);
+      if (isUsefulAreaLabel(label, state)) labels.add(label);
+    }
+  } else {
+    const label = formatAreaLabel(state, primaryLocation?.city, undefined, drop.board_name, primaryLocation?.label || drop.counties?.[0]);
+    if (isUsefulAreaLabel(label, state)) labels.add(label);
+  }
+
+  return Array.from(labels);
 }
 
 function dropCountyCandidates(drop: GroupedDrop) {
@@ -1151,11 +1188,7 @@ export default function DropFeed() {
       const state = String(store.state || "").toUpperCase();
       const signalCount = typeof store.signalCount === "number" ? store.signalCount : typeof store.bottle_count === "number" ? store.bottle_count : 0;
       const hasSignal = store.hasSignals === true || signalCount > 0;
-      const label = state === "NC"
-        ? store.district || store.county || store.displayLabel
-        : state === "PA"
-          ? store.county || store.city || store.displayLabel
-          : store.city || store.county || store.displayLabel;
+      const label = formatAreaLabel(state, store.city, store.county, store.district, store.displayLabel);
       addOption(state, label, hasSignal);
     }
 
@@ -1165,7 +1198,23 @@ export default function DropFeed() {
       for (const label of areaLabelsForDrop(drop)) addOption(state, label, true);
     }
 
-    return Array.from(options.values()).sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
+    const ncCityLabelsWithCounty = new Set(
+      Array.from(options.values())
+        .filter((option) => option.state === "NC" && /\(.+? Co\.\)$/.test(option.label))
+        .map((option) => normalizeFilterText(option.label.replace(/\s*\(.+? Co\.\)$/i, "")))
+    );
+
+    return Array.from(options.values())
+      .filter((option) => {
+        if (option.state !== "NC") return true;
+        const normalized = normalizeFilterText(option.label);
+        if (/\babc\b/i.test(option.label)) return false;
+        const countyAsCity = option.label.match(/^(.+?)\s+County$/i)?.[1];
+        if (countyAsCity && ncCityLabelsWithCounty.has(normalizeFilterText(countyAsCity))) return false;
+        if (!/\(.+? Co\.\)$/.test(option.label) && ncCityLabelsWithCounty.has(normalized)) return false;
+        return true;
+      })
+      .sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
   }, [activeTiers, feedStateOptions, feedStateParam, grouped, hasSelectedStates, preferredStates, stores]);
 
   useEffect(() => {
@@ -1173,7 +1222,23 @@ export default function DropFeed() {
     if (!countyOptions.some((option) => option.value === countyFilter)) setCountyFilter("ALL");
   }, [countyFilter, countyOptions]);
 
-  const memberSightingRows = isSignedIn ? sightings.map(memberSightingToGrouped) : [];
+  const storeBySightingKey = useMemo(() => {
+    const lookup = new Map<string, Store>();
+    for (const store of stores) {
+      if (store.id) lookup.set(`id:${store.id}`, store);
+      if (store.address) lookup.set(`address:${normalizeFilterText(store.address)}`, store);
+    }
+    return lookup;
+  }, [stores]);
+
+  const memberSightingRows = isSignedIn
+    ? sightings
+      .map((sighting) => memberSightingToGrouped(
+        sighting,
+        storeBySightingKey.get(`id:${sighting.storeId}`) || storeBySightingKey.get(`address:${normalizeFilterText(sighting.storeAddress)}`)
+      ))
+      .filter((drop) => matchesActiveFeedFilters(drop) && matchesSavedAreaPreferences(drop))
+    : [];
   const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => {
     if (sortMode === "az") return a.displayName.localeCompare(b.displayName) || +new Date(b.timestamp) - +new Date(a.timestamp);
     if (sortMode === "rarity") return getDropRarityRank(b) - getDropRarityRank(a) || +new Date(b.timestamp) - +new Date(a.timestamp);
@@ -1257,6 +1322,23 @@ export default function DropFeed() {
       return;
     }
     fetchOlderDrops();
+  };
+
+  const hasActiveFeedFilters = Boolean(
+    bottleSearch.trim() ||
+    countyFilter !== "ALL" ||
+    stateDropdownValue !== "ALL" ||
+    activeTiers.size > 0 ||
+    sortMode !== "newest"
+  );
+
+  const clearFeedFilters = () => {
+    setBottleSearch("");
+    setCountyFilter("ALL");
+    setSelectedStates([]);
+    setActiveTiers(new Set());
+    setSortMode("newest");
+    setNearMeStatus(null);
   };
 
   const activateNearMe = () => {
@@ -1417,10 +1499,12 @@ export default function DropFeed() {
         }
         .dropfeed-refine-grid {
           display: grid;
-          grid-template-columns: minmax(160px, 1.25fr) minmax(130px, 0.9fr) minmax(110px, 0.7fr) auto;
-          gap: 10px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
           align-items: end;
+          padding-bottom: 8px;
         }
+        .dropfeed-refine-search { grid-column: 1 / -1; }
         .dropfeed-refine-field span {
           display: block;
           margin-bottom: 6px;
@@ -1434,46 +1518,66 @@ export default function DropFeed() {
         .dropfeed-refine-field input,
         .dropfeed-refine-field select {
           width: 100%;
-          border-radius: 14px;
-          border: 1px solid rgba(212,146,11,0.18);
-          background: rgba(20,16,12,0.82);
+          min-width: 0;
+          border-radius: 11px;
+          border: 1px solid rgba(212,146,11,0.12);
+          background: rgba(20,16,12,0.64);
           color: var(--color-cream);
           font-family: var(--font-dm-sans);
           font-size: 13px;
           font-weight: 600;
-          padding: 11px 12px;
+          padding: 9px 10px;
           outline: none;
         }
-        .dropfeed-near-me {
-          height: 42px;
-          border-radius: 999px;
-          border: 1px solid rgba(196,148,58,0.28);
-          background: rgba(196,148,58,0.08);
-          color: rgba(245,237,214,0.76);
-          font-family: var(--font-dm-sans);
-          font-size: 13px;
-          font-weight: 800;
-          padding: 0 15px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .dropfeed-near-me.active,
-        .dropfeed-near-me:hover {
-          background: rgba(196,148,58,0.16);
-          color: var(--color-cream);
-          border-color: rgba(196,148,58,0.5);
-        }
         .dropfeed-location-status {
-          margin: -4px 0 14px;
+          margin: -2px 0 10px;
           color: rgba(245,237,214,0.45);
           font-family: var(--font-dm-sans);
           font-size: 12px;
           line-height: 1.45;
         }
+        .dropfeed-result-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin: -2px 0 12px;
+          color: rgba(245,237,214,0.42);
+          font-family: var(--font-dm-sans);
+          font-size: 12px;
+        }
+        .dropfeed-clear-filters {
+          border: 0;
+          background: transparent;
+          color: rgba(232,201,122,0.72);
+          font-family: var(--font-dm-sans);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 0;
+          cursor: pointer;
+          white-space: nowrap;
+        }
         @media (max-width: 767px) {
-          .dropfeed-refine-grid { grid-template-columns: 1fr 1fr; }
+          .dropfeed-refine-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
           .dropfeed-refine-search { grid-column: 1 / -1; }
-          .dropfeed-near-me { width: 100%; }
+          .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
+          .dropfeed-refine-field input,
+          .dropfeed-refine-field select { font-size: 12px; padding: 9px 8px; }
+          .dropfeed-filter-row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            gap: 8px !important;
+            padding-bottom: 12px !important;
+            margin: 0 -18px 0 0 !important;
+            scrollbar-width: none;
+          }
+          .dropfeed-filter-row button {
+            width: auto !important;
+            min-width: max-content !important;
+            padding: 8px 14px !important;
+            border-radius: 999px !important;
+          }
         }
       `}</style>
 
@@ -1517,66 +1621,10 @@ export default function DropFeed() {
           </motion.div>
 
           {/* Divider */}
-          <div style={{ margin: "16px 0", borderBottom: "1px solid rgba(196, 148, 58, 0.2)" }} />
-
-          <motion.div
-            className="dropfeed-state-panel"
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-70px" }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <div className="dropfeed-state-panel-head">
-              <div>
-                <span>State coverage</span>
-                <strong>{stateFilterSummary}</strong>
-              </div>
-              {hasSelectedStates && preferredStates.length > 0 ? (
-                <button type="button" onClick={() => setSelectedStates([])}>Show all</button>
-              ) : null}
-            </div>
-            <label style={{ display: "block", marginTop: "12px" }}>
-              <span className="sr-only">Filter drop feed by state</span>
-              <select
-                value={stateDropdownValue}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value === "ALL") {
-                    setSelectedStates([]);
-                    return;
-                  }
-                  setSelectedStates([value]);
-                }}
-                aria-label="Filter drop feed by state"
-                className="bourbon-select"
-                style={{
-                  width: "100%",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(212,146,11,0.22)",
-                  background: "rgba(20, 16, 12, 0.86)",
-                  color: "var(--color-cream)",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  padding: "12px 14px",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="ALL">All covered states</option>
-                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple selected</option> : null}
-                {feedStateOptions.map((state) => (
-                  <option key={state.code} value={state.code}>
-                    {state.name} ({state.code})
-                  </option>
-                ))}
-              </select>
-            </label>
-          </motion.div>
+          <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
 
           <motion.div
             className="dropfeed-refine-grid"
-            style={{ paddingBottom: "14px" }}
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
             whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-70px" }}
@@ -1591,16 +1639,39 @@ export default function DropFeed() {
               />
             </label>
             <label className="dropfeed-refine-field">
-              <span>County / area</span>
+              <span>State</span>
+              <select
+                value={stateDropdownValue}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "ALL") {
+                    setSelectedStates([]);
+                    return;
+                  }
+                  setSelectedStates([value]);
+                }}
+                aria-label="Filter drop feed by state"
+              >
+                <option value="ALL">All states</option>
+                {stateDropdownValue === "MULTI" ? <option value="MULTI">Multiple</option> : null}
+                {feedStateOptions.map((state) => (
+                  <option key={state.code} value={state.code}>
+                    {state.name} ({state.code})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="dropfeed-refine-field">
+              <span>Area</span>
               <select value={countyFilter} onChange={(event) => setCountyFilter(event.target.value)}>
-                <option value="ALL">All counties / areas</option>
+                <option value="ALL">All areas</option>
                 {countyOptions.map((area) => (
                   <option key={area.value} value={area.value}>{area.label}</option>
                 ))}
               </select>
             </label>
-            <label className="dropfeed-refine-field">
-              <span>Sort</span>
+            <label className="dropfeed-refine-field dropfeed-refine-sort">
+              <span>View</span>
               <select value={sortMode} onChange={(event) => {
                 const next = event.target.value as DropSortMode;
                 if (next === "nearby" && !nearMe) {
@@ -1612,12 +1683,9 @@ export default function DropFeed() {
                 <option value="newest">Newest</option>
                 <option value="nearby">Nearby</option>
                 <option value="rarity">Rarity</option>
-                <option value="az">Bottle A–Z</option>
+                <option value="az">A–Z</option>
               </select>
             </label>
-            <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
-              Near me
-            </button>
           </motion.div>
           {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
@@ -1632,10 +1700,10 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
-              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.13)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.035)", inactiveColor: "rgba(245,237,214,0.5)", border: "1px solid rgba(245,237,214,0.12)" },
-              { tier: "unicorn", label: "Unicorn", activeBg: "linear-gradient(135deg, #C4943A 0%, #E8C97A 50%, #C4943A 100%)", activeColor: "#0D0B07", inactiveBg: "rgba(196,148,58,0.08)", inactiveColor: "rgba(196,148,58,0.5)", border: "1px solid rgba(196,148,58,0.25)" },
-              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.3)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.06)", inactiveColor: "rgba(184,115,51,0.45)", border: "1px solid rgba(184,115,51,0.2)" },
-              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.22)", activeColor: "#AAAAAA", inactiveBg: "rgba(138,138,138,0.05)", inactiveColor: "rgba(138,138,138,0.4)", border: "1px solid rgba(138,138,138,0.18)" },
+              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.025)", inactiveColor: "rgba(245,237,214,0.42)", border: "1px solid rgba(245,237,214,0.1)" },
+              { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.24)", activeColor: "#E8C97A", inactiveBg: "rgba(196,148,58,0.045)", inactiveColor: "rgba(196,148,58,0.38)", border: "1px solid rgba(196,148,58,0.16)" },
+              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.2)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.035)", inactiveColor: "rgba(184,115,51,0.36)", border: "1px solid rgba(184,115,51,0.14)" },
+              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.16)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "rgba(138,138,138,0.035)", inactiveColor: "rgba(138,138,138,0.34)", border: "1px solid rgba(138,138,138,0.14)" },
             ].map((pill) => {
               const isAll = pill.tier === "all";
               const isActive = isAll ? activeTiers.size === 0 : activeTiers.has(pill.tier);
@@ -1664,7 +1732,7 @@ export default function DropFeed() {
                   style={{
                     background: isActive ? pill.activeBg : pill.inactiveBg,
                     color: isActive ? pill.activeColor : pill.inactiveColor,
-                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.22)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.6)" : pill.tier === "allocated" ? "rgba(184,115,51,0.45)" : "rgba(138,138,138,0.4)"}` : pill.border,
+                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.2)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.38)" : pill.tier === "allocated" ? "rgba(184,115,51,0.32)" : "rgba(138,138,138,0.28)"}` : pill.border,
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "13px",
                     fontWeight: 600,
@@ -1674,7 +1742,7 @@ export default function DropFeed() {
                     whiteSpace: "nowrap" as const,
                     cursor: "pointer",
                     transition: "background 150ms, color 150ms, border-color 150ms",
-                    boxShadow: isActive ? (pill.tier === "unicorn" ? "0 0 8px rgba(196,148,58,0.2)" : "inset 0 1px 0 rgba(255,255,255,0.045)") : "none",
+                    boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.045)" : "none",
                   }}
                 >
                   {pill.label}
@@ -1682,6 +1750,13 @@ export default function DropFeed() {
               );
             })}
           </motion.div>
+
+          {data && (
+            <div className="dropfeed-result-line">
+              <span>{displayedGrouped.length} of {finalFeed.length} drops</span>
+              {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
+            </div>
+          )}
 
           {/* Feed rows */}
           {data?.fallback && (
@@ -1829,7 +1904,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked` : isSignedIn ? "Newest drops stay at the top as you expand the feed" : "Live feed updates automatically"}
+                {hiddenCount > 0 ? `${hiddenCount}+ more drops tracked` : isSignedIn ? "Newest matching drops stay at the top" : "Live feed updates automatically"}
               </p>
             </div>
           )}
