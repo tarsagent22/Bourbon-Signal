@@ -314,10 +314,10 @@ body::after {
 .finder-hero-copy h1 {
   max-width: 14ch;
   font-family: var(--font-playfair);
-  font-size: clamp(2.85rem, 8vw, 5.1rem);
-  line-height: 0.9;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  line-height: 1.02;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
@@ -325,10 +325,10 @@ body::after {
   max-width: 44ch;
   margin-top: 18px;
   color: var(--color-text-secondary);
-  font-family: var(--font-playfair);
+  font-family: var(--font-dm-sans);
   font-size: 15px;
-  line-height: 1.62;
-  letter-spacing: -0.01em;
+  line-height: 1.7;
+  letter-spacing: normal;
 }
 
 .finder-tool-shell {
@@ -777,9 +777,9 @@ body::after {
   display: block;
   color: var(--color-text-primary);
   font-family: var(--font-playfair);
-  font-size: 18px;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  font-size: 16px;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   word-break: break-word;
 }
 
@@ -897,9 +897,9 @@ body::after {
   display: block;
   color: var(--color-text-primary);
   font-family: var(--font-playfair);
-  font-size: 16px;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: 15px;
+  line-height: 1.14;
+  letter-spacing: -0.015em;
 }
 
 .finder-signal-click-card span {
@@ -1185,22 +1185,22 @@ body::after {
 
 .finder-result-hero h2 {
   margin-top: 14px;
-  max-width: 14ch;
+  max-width: 18ch;
   font-family: var(--font-playfair);
-  font-size: clamp(2.15rem, 5.6vw, 3.65rem);
-  line-height: 0.9;
+  font-size: clamp(1.55rem, 3.6vw, 2.55rem);
+  line-height: 1.04;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.015em;
 }
 
 .finder-result-hero p {
   margin-top: 14px;
   max-width: 60ch;
   color: var(--color-text-secondary);
-  font-family: var(--font-playfair);
+  font-family: var(--font-dm-sans);
   font-size: 15px;
-  line-height: 1.6;
-  letter-spacing: -0.01em;
+  line-height: 1.7;
+  letter-spacing: normal;
 }
 
 .finder-trust-pill {
@@ -1449,9 +1449,9 @@ body::after {
   display: block;
   color: var(--color-text-primary);
   font-family: var(--font-playfair);
-  font-size: 18px;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  font-size: 16px;
+  line-height: 1.14;
+  letter-spacing: -0.015em;
 }
 
 .finder-list-row span {
@@ -1699,16 +1699,16 @@ body::after {
   }
 
   .finder-hero-copy h1 {
-    font-size: clamp(2.55rem, 12vw, 3.15rem);
-    line-height: 0.94;
-    letter-spacing: -0.035em;
+    font-size: 34px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
   }
 
   .finder-hero-copy p {
     margin-top: 12px !important;
     max-width: 32ch;
-    font-size: 1.05rem !important;
-    line-height: 1.42 !important;
+    font-size: 0.98rem !important;
+    line-height: 1.55 !important;
   }
 
   .finder-tool-shell {
@@ -1765,8 +1765,9 @@ body::after {
 
   .finder-result-hero h2 {
     max-width: 100%;
-    font-size: clamp(2.1rem, 10.5vw, 2.8rem);
-    line-height: 0.94;
+    font-size: 21px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
   }
 
   .finder-trust-pill {

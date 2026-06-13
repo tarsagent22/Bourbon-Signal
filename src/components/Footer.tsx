@@ -82,20 +82,6 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Bottom tagline + disclaimer centered */}
-        <p
-          style={{
-            fontFamily: "var(--font-dm-sans)",
-            fontSize: "13px",
-            fontStyle: "italic",
-            color: "var(--color-text-secondary)",
-            textAlign: "center",
-            marginTop: "16px",
-          }}
-        >
-          Built by bourbon hunters, for bourbon hunters.
-        </p>
-
       </div>
     </footer>
   );
