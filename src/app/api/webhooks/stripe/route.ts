@@ -4,16 +4,20 @@ import { clerkClient } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret || !sig) {
-    console.log("[Stripe Webhook] No secret configured — skipping verification");
+    console.log("[Stripe Webhook] No secret/signature configured — skipping verification");
     return NextResponse.json({ received: true });
+  }
+
+  const stripe = getStripeClient();
+  if (!stripe) {
+    console.error("[Stripe Webhook] STRIPE_SECRET_KEY is not configured");
+    return NextResponse.json({ error: "Stripe webhook is not configured" }, { status: 503 });
   }
 
   let event: Stripe.Event;
@@ -62,4 +66,10 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey);
 }

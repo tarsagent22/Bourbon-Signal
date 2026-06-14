@@ -5,27 +5,6 @@
   "count": 100,
   "trends": [
     {
-      "state": "TX",
-      "bottleName": "Bulleit Bourbon",
-      "source": "Twin Liquors - University Marketplace",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 177,
-      "watchObservations": 177,
-      "positiveQuantities": 177,
-      "firstObservedAt": "2026-06-11T13:39:37.202Z",
-      "lastObservedAt": "2026-06-11T17:59:33.578Z",
-      "sampleSignalIds": [
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed"
-      ],
-      "observationCount": 354,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Glen Ellyn",
@@ -971,27 +950,6 @@
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
     {
-      "state": "TX",
-      "bottleName": "1792 Small Batch",
-      "source": "Twin Liquors - University Marketplace",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 80,
-      "watchObservations": 80,
-      "positiveQuantities": 80,
-      "firstObservedAt": "2026-06-11T13:39:37.202Z",
-      "lastObservedAt": "2026-06-11T17:59:33.578Z",
-      "sampleSignalIds": [
-        "c33d33633f96da5e",
-        "c33d33633f96da5e",
-        "c33d33633f96da5e",
-        "c33d33633f96da5e",
-        "c33d33633f96da5e"
-      ],
-      "observationCount": 160,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Mokena",
@@ -1723,27 +1681,6 @@
         "7bd18d4b194ca4f0"
       ],
       "observationCount": 160,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "TX",
-      "bottleName": "Wild Turkey Longbranch",
-      "source": "Twin Liquors - University Marketplace",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 40,
-      "watchObservations": 40,
-      "positiveQuantities": 40,
-      "firstObservedAt": "2026-06-11T13:39:37.202Z",
-      "lastObservedAt": "2026-06-11T17:59:33.578Z",
-      "sampleSignalIds": [
-        "0758b6525f5bcd62",
-        "0758b6525f5bcd62",
-        "0758b6525f5bcd62",
-        "0758b6525f5bcd62",
-        "0758b6525f5bcd62"
-      ],
-      "observationCount": 80,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },

@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const ONE_YEAR = 31_536_000;
 
 const nextConfig: NextConfig = {
+  // Keep Next.js output tracing rooted at this repo. Chandler's Windows home has
+  // an unrelated parent package-lock.json, which otherwise triggers noisy local
+  // build warnings and can make build output less reproducible.
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {

@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { auth } from "@clerk/nextjs/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 
 export async function POST(req: NextRequest) {
+  if (!CHECKOUT_ENABLED) {
+    return NextResponse.json(
+      { error: "Checkout is not enabled while Bourbon Signal is in founding tester mode." },
+      { status: 403 }
+    );
+  }
+
+  const stripe = getStripeClient();
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Stripe checkout is not configured." },
+      { status: 503 }
+    );
+  }
+
   const { userId } = await auth();
   const { priceId, plan } = await req.json();
 
   // Map plan to price ID
-  const priceMap: Record<string, string> = {
-    monthly: process.env.STRIPE_PRICE_MONTHLY!,
-    annual: process.env.STRIPE_PRICE_ANNUAL!,
-    founder: process.env.STRIPE_PRICE_FOUNDER!,
+  const priceMap: Record<string, string | undefined> = {
+    monthly: process.env.STRIPE_PRICE_MONTHLY,
+    annual: process.env.STRIPE_PRICE_ANNUAL,
+    founder: process.env.STRIPE_PRICE_FOUNDER,
   };
 
   const resolvedPriceId = priceId || priceMap[plan];
@@ -48,4 +62,10 @@ export async function POST(req: NextRequest) {
 
   const session = await stripe.checkout.sessions.create(sessionConfig);
   return NextResponse.json({ url: session.url });
+}
+
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey);
 }

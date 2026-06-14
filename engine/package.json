@@ -33,7 +33,8 @@
     "verify:nc": "node src/verify-nc.mjs",
     "score:nc": "node src/score-nc-user-reach.mjs",
     "verify:va": "node src/verify-va.mjs",
-    "verify:tn": "node src/verify-tn.mjs"
+    "verify:tn": "node src/verify-tn.mjs",
+    "verify:site": "node src/verify-site-contract.mjs"
   },
   "dependencies": {
     "pdf-parse": "^2.4.5"

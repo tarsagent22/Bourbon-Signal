@@ -319,6 +319,7 @@ async function main() {
       if (browserOk) lastBrowserRefreshAt = new Date().toISOString();
     }
 
+    steps.push(await runNode('src/build-bible.mjs'));
     steps.push(await runNode('src/run.mjs'));
     steps.push(await runNode('src/rare-report.mjs'));
     steps.push(await runNode('src/location-report.mjs'));

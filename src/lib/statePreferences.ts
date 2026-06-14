@@ -2,6 +2,25 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ACTIVE_ENGINE_STATE_CODES, ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
 
+const STATE_PREFERENCES_STORAGE_KEY = "bourbon-signal-state-preferences";
+const LEGACY_STATE_PREFERENCES_STORAGE_KEY = "proof-state-preferences";
+
+function migrateLegacyStatePreferences() {
+  if (typeof window === "undefined") return;
+  try {
+    const current = window.localStorage.getItem(STATE_PREFERENCES_STORAGE_KEY);
+    const legacy = window.localStorage.getItem(LEGACY_STATE_PREFERENCES_STORAGE_KEY);
+    if (!current && legacy) {
+      window.localStorage.setItem(STATE_PREFERENCES_STORAGE_KEY, legacy);
+    }
+  } catch {
+    // Local storage can be unavailable in private browsing or hardened browsers.
+    // In that case the store falls back to its default in-memory state.
+  }
+}
+
+migrateLegacyStatePreferences();
+
 interface StatePreferencesStore {
   selectedStates: string[]; // e.g. ['NC', 'VA']
   hasSelectedStates: boolean; // true once the user has made a selection (even if empty means "show all")
@@ -42,6 +61,6 @@ export const useStatePreferences = create<StatePreferencesStore>()(
       clearPreferences: () =>
         set({ selectedStates: [], hasSelectedStates: false }),
     }),
-    { name: "proof-state-preferences" }
+    { name: STATE_PREFERENCES_STORAGE_KEY }
   )
 );
