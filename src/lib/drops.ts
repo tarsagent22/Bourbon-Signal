@@ -200,22 +200,12 @@ export function formatDropTime(drop: Pick<DropEvent | GroupedDrop, "timestamp" |
   lastConfirmedAt?: string;
 }): string {
   const basis = drop.timestamp_basis || drop.timestampBasis || "last_confirmed_at";
-  const eventType = String(drop.event_type || "").toLowerCase();
   const eventAt = drop.event_at || drop.eventAt;
   const firstSeenAt = drop.first_seen_at || drop.firstSeenAt;
   const lastConfirmedAt = drop.last_confirmed_at || drop.lastConfirmedAt;
 
-  if (basis === "source_event_at" && eventAt) {
-    const prefix = eventType === "nc_board_shipment_snapshot" ? "Shipped" : "Occurred";
-    return `${prefix} ${formatRelativeTime(eventAt)}`;
-  }
-
-  if (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt) {
-    return `Seen since ${formatRelativeTime(firstSeenAt)} · last reported ${formatRelativeTime(lastConfirmedAt)}`;
-  }
-
-  if (lastConfirmedAt) return `Last reported ${formatRelativeTime(lastConfirmedAt)}`;
-  return formatRelativeTime(drop.timestamp);
+  const latestSignalAt = lastConfirmedAt || (basis === "source_event_at" ? eventAt : undefined) || firstSeenAt || drop.timestamp;
+  return `Reported ${formatRelativeTime(latestSignalAt)}`;
 }
 
 export function cleanCountyName(board: string): string {

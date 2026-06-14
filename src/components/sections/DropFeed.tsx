@@ -9,6 +9,7 @@ import {
   type DropLocation,
   groupDrops,
   formatDropTime,
+  formatRelativeTime,
   cleanCountyName,
   formatStateLabel,
   lookupPricing,
@@ -678,6 +679,14 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   }
   if (confidenceBadge) {
     details.push({ label: "Confidence", value: confidenceBadge.label });
+  }
+  const firstReportedAt = drop.firstSeenAt || drop.eventAt || drop.timestamp;
+  const lastReportedAt = drop.lastConfirmedAt || drop.timestamp;
+  if (firstReportedAt) {
+    details.push({ label: "First reported", value: formatRelativeTime(firstReportedAt) });
+  }
+  if (lastReportedAt && lastReportedAt !== firstReportedAt) {
+    details.push({ label: "Last reported", value: formatRelativeTime(lastReportedAt) });
   }
   if ((drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot") && drop.board_name) {
     details.push({ label: "Board", value: drop.board_name });
