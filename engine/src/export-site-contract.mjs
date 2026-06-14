@@ -687,6 +687,8 @@ function buildAlerts(alerts) {
     deliveryChannel: c.deliveryChannel || 'review_only',
     sendRecommendation: c.sendRecommendation || 'review_before_send',
     freshnessHours: c.freshnessHours ?? null,
+    bootstrap: Boolean(c.bootstrap),
+    changeType: c.changeType || null,
     dedupeKey: c.dedupeKey || stableId([c.state, c.bottle, c.eventType, c.locationPrecision, c.storeId || c.storeName || c.locationName || 'regional', c.availabilityStatus || '', c.quantity || 0, c.warehouseQty || 0]),
     matchKey: c.matchKey || stableId([c.state, c.bottle, c.locationPrecision, c.storeId || c.storeName || c.locationName || 'regional']),
     gates: Array.isArray(c.gates) ? c.gates : [],

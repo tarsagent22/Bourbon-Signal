@@ -76,6 +76,16 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 }
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
+const alertDelivery = read('src/lib/alert-delivery.ts');
+for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness']) {
+  if (!alertDelivery.includes(phrase)) {
+    fail(`Alert delivery guardrails should include: ${phrase}`);
+  }
+}
+if (/subject:\s*`\$\{bottleName\} just hit/.test(alertDelivery)) {
+  fail('Alert email subject must avoid overpromising with "just hit" wording.');
+}
+
 const refreshScript = read('engine/bourbon-signal-engine-refresh.ps1');
 if (/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \{ '1' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should not default to auto-deploying production.');

@@ -46,6 +46,9 @@ const MAX_DELIVERY_USERS = Number(process.env.ALERT_DELIVERY_MAX_USERS || 500);
 const MAX_EMAILS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_RUN || 250);
 const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 5);
 const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 10);
+const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
+const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || 24);
+const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
 
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -171,6 +174,28 @@ function candidateCanSendEmail(candidate: CandidateAlert) {
   if (locationPrecision === "store_level") return true;
   if (quantity > 0) return true;
   return /in_stock|limited|available|on_hand/.test(status);
+}
+
+function candidateDeliveryBlockers(candidate: CandidateAlert) {
+  return toStrings(candidate.blockers).map((blocker) => blocker.toLowerCase());
+}
+
+function candidateDeliveryCautions(candidate: CandidateAlert) {
+  return toStrings(candidate.cautions).map((caution) => caution.toLowerCase());
+}
+
+function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
+  const blockers = candidateDeliveryBlockers(candidate);
+  const cautions = candidateDeliveryCautions(candidate);
+  const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
+
+  if (asBoolean(candidate.bootstrap)) return false;
+  if (blockers.includes("bootstrap_run_not_sendable")) return false;
+  if (blockers.includes("manual_refresh_quarantine")) return false;
+  if (blockers.includes("stale_observation")) return false;
+  if (cautions.includes("unknown_freshness")) return false;
+  if (!Number.isFinite(freshnessHours)) return false;
+  return freshnessHours <= ALERT_EMAIL_MAX_FRESHNESS_HOURS;
 }
 
 function candidateTimestampLabel(candidate: CandidateAlert) {
@@ -339,18 +364,23 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
 
   const dryRun = options.dryRun === true;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
+  const rawEligibleCandidateCount = readAlertCandidates()
+    .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
+    .filter(candidateCanSendEmail).length;
   const candidates = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanSendEmail)
+    .filter(candidatePassesFreshEmailGuardrails)
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
-  const resend = dryRun ? null : getResendClient();
-  const client = await clerkClient();
   const now = new Date().toISOString();
   const summary = {
     ok: true,
     dryRun,
+    deliveryEnabled: ALERT_DELIVERY_ENABLED,
+    rawEligibleCandidateCount,
     candidateCount: candidates.length,
+    skippedSafetyGuardrail: rawEligibleCandidateCount - candidates.length,
     usersConsidered: 0,
     usersWithOnSiteEnabled: 0,
     usersWithEmailEnabled: 0,
@@ -364,6 +394,17 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     skippedSpecificBottlePrefs: 0,
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
+
+  if (!dryRun && !ALERT_DELIVERY_ENABLED) {
+    return {
+      ...summary,
+      deliveryDisabled: true,
+      reason: "ALERT_DELIVERY_ENABLED must be set to 1 before live alert delivery can create on-site alerts or send emails.",
+    };
+  }
+
+  const resend = dryRun ? null : getResendClient();
+  const client = await clerkClient();
 
   let offset = 0;
   let globalEmailCount = 0;
@@ -451,7 +492,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               from: ALERT_FROM,
               to: [email],
               replyTo: ALERT_REPLY_TO,
-              subject: `${bottleName} just hit ${storeLabel}`,
+              subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${storeLabel}`,
               react: PaidDropAlertEmail({
                 firstName: asString(user.firstName) || null,
                 bottleName,
