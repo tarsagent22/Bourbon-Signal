@@ -247,11 +247,19 @@ function signalFreshnessKey(signal) {
   ].map((value) => String(value).toLowerCase().trim()).join('|');
 }
 
+function validSourceEventAt(value, fetchedAt = null) {
+  const ts = Date.parse(value || '');
+  if (!Number.isFinite(ts)) return null;
+  const ceiling = Date.parse(fetchedAt || '') || Date.now();
+  if (ts > ceiling + 5 * 60 * 1000) return null;
+  return new Date(ts).toISOString();
+}
+
 function sourceEventAt(signal) {
   const type = String(signal.eventType || signal.type || '').toLowerCase();
   // This is a source-provided NC extract timestamp for the actual stock-shipped feed,
   // not the crawler runtime. Other inventory probes use observedAt as last-confirmed.
-  if (type === 'nc_board_shipment_snapshot') return signal.observedAt || null;
+  if (type === 'nc_board_shipment_snapshot') return validSourceEventAt(signal.sourceEventAt || signal.observedAt, signal.fetchedAt);
   return null;
 }
 

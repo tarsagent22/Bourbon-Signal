@@ -26,12 +26,13 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  const url = new URL(request.url);
+  if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (!isProtectedRoute(request)) return NextResponse.next();
 
   const { userId } = await auth();
   if (userId) return NextResponse.next();
 
-  const url = new URL(request.url);
   if (url.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Account required" }, { status: 401 });
   }

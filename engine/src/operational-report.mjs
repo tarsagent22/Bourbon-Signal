@@ -71,6 +71,7 @@ function canonicalizeSignal(signal, bible) {
     sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     observedAt: observedAt(signal),
+    sourceEventAt: signal.sourceEventAt || null,
     locationPrecision,
     locationName,
     storeName: signal.storeName || null,
