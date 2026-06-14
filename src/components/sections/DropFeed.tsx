@@ -141,6 +141,9 @@ function cleanAreaLabel(value?: string | null) {
   const raw = String(value || "").trim();
   if (!raw || raw === "__EMPTY") return "";
   return raw
+    .replace(/^NC\s+ABC\s+/i, "")
+    .replace(/^NC\s*[·:-]\s*/i, "")
+    .replace(/^NC\s+/i, "")
     .replace(/\s+County\s+ABC\s+Board$/i, " County")
     .replace(/\s+ABC\s+Board$/i, "")
     .replace(/\s+Board$/i, "")
@@ -253,6 +256,37 @@ function dropAreaFilterValues(drop: GroupedDrop) {
   return areaLabelsForDrop(drop)
     .map((label) => areaFilterValue(drop.state, label))
     .filter(Boolean);
+}
+
+function ncStoreAreaKind(store: Store): "store" | "board" | "store-group" | null {
+  if (String(store.state || "").toUpperCase() !== "NC") return null;
+  const hay = [store.name, store.displayLabel, store.district, store.locationType, store.precision, store.inventoryCapability]
+    .filter(Boolean)
+    .join(" ");
+  if (/warehouse/i.test(hay)) return null;
+  if (store.precision === "store" || store.locationType === "store") return "store";
+  if (/store[_\s-]?aggregate|store list|stores/i.test(hay)) return "store-group";
+  return "board";
+}
+
+function ncDropAreaKind(drop: GroupedDrop): "store" | "board" | "store-group" | null {
+  if (String(drop.state || "").toUpperCase() !== "NC") return null;
+  if (drop.event_type === "nc_statewide_warehouse_stock" || /warehouse/i.test(String(drop.availabilityScope || ""))) return null;
+  if (drop.locationPrecision === "store_level" || drop.availabilityScope === "exact" || drop.canAlertAsInventory) return "store";
+  if (drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board" || /board/i.test(String(drop.locationPrecision || ""))) return "board";
+  return "store-group";
+}
+
+function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: "store" | "board" | "store-group" | null) {
+  const stateCode = String(state || "").toUpperCase();
+  const label = displayLocationLabel(baseLabel, stateCode);
+  if (!label) return "";
+  if (stateCode !== "NC") return label;
+  if (/warehouse/i.test(label)) return "";
+  if (kind === "store") return `${label} · store inventory`;
+  if (kind === "board") return `${label} · ABC board shipment`;
+  if (kind === "store-group") return `${label} · store-list signal`;
+  return `${label} · local signal`;
 }
 
 function getDropRarityRank(drop: GroupedDrop) {
@@ -1269,23 +1303,35 @@ export default function DropFeed() {
   const feedStateOptions = AVAILABLE_STATES.filter((state) => state.active && !("comingSoon" in state && state.comingSoon));
 
   const countyOptions = useMemo(() => {
-    const options = new Map<string, { value: string; label: string; state: string }>();
+    const options = new Map<string, { value: string; label: string; state: string; baseLabel: string; rank: number }>();
     const activeStateCodes = new Set(feedStateOptions.map((state) => state.code));
     const selectedState = feedStateParam || (hasSelectedStates && preferredStates.length === 1 ? preferredStates[0] : null);
 
-    const addOption = (stateValue?: string | null, labelValue?: string | null, hasSignal: boolean = true) => {
+    const addOption = (
+      stateValue?: string | null,
+      labelValue?: string | null,
+      hasSignal: boolean = true,
+      kind?: "store" | "board" | "store-group" | null
+    ) => {
       const state = String(stateValue || "").toUpperCase();
-      const label = cleanAreaLabel(labelValue);
+      const baseLabel = cleanAreaLabel(labelValue);
       if (!state || !activeStateCodes.has(state)) return;
       if (selectedState && state !== selectedState) return;
       if (!hasSignal) return;
-      if (!isUsefulAreaLabel(label, state)) return;
-      const value = areaFilterValue(state, label);
-      if (!value || options.has(value)) return;
+      if (!isUsefulAreaLabel(baseLabel, state)) return;
+      const displayLabel = areaMenuLabel(state, baseLabel, kind);
+      if (!displayLabel) return;
+      const value = areaFilterValue(state, baseLabel);
+      if (!value) return;
+      const rank = kind === "store" ? 0 : kind === "store-group" ? 1 : kind === "board" ? 2 : 3;
+      const existing = options.get(value);
+      if (existing && existing.rank <= rank) return;
       options.set(value, {
         value,
-        label: selectedState ? label : `${label} · ${state}`,
+        label: selectedState ? displayLabel : `${displayLabel} · ${state}`,
         state,
+        baseLabel,
+        rank,
       });
     };
 
@@ -1294,32 +1340,33 @@ export default function DropFeed() {
       const signalCount = typeof store.signalCount === "number" ? store.signalCount : typeof store.bottle_count === "number" ? store.bottle_count : 0;
       const hasSignal = store.hasSignals === true || signalCount > 0;
       const label = formatAreaLabel(state, store.city, store.county, store.district, store.displayLabel);
-      addOption(state, label, hasSignal);
+      addOption(state, label, hasSignal, ncStoreAreaKind(store));
     }
 
     for (const drop of grouped) {
       const state = drop.state;
       if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) continue;
-      for (const label of areaLabelsForDrop(drop)) addOption(state, label, true);
+      const kind = ncDropAreaKind(drop);
+      for (const label of areaLabelsForDrop(drop)) addOption(state, label, true, kind);
     }
 
     const ncCityLabelsWithCounty = new Set(
       Array.from(options.values())
-        .filter((option) => option.state === "NC" && /\bCo\.$/.test(option.label))
-        .map((option) => normalizeFilterText(option.label.replace(/\s+[^\s]+\s+Co\.$/i, "")))
+        .filter((option) => option.state === "NC" && /\bCo\./.test(option.baseLabel))
+        .map((option) => normalizeFilterText(option.baseLabel.replace(/\s+[^\s]+\s+Co\.$/i, "")))
     );
 
     return Array.from(options.values())
       .filter((option) => {
         if (option.state !== "NC") return true;
-        const normalized = normalizeFilterText(option.label);
-        if (/\babc\b/i.test(option.label)) return false;
-        const countyAsCity = option.label.match(/^(.+?)\s+County$/i)?.[1];
+        const normalized = normalizeFilterText(option.baseLabel);
+        if (/\babc\b/i.test(option.baseLabel)) return false;
+        const countyAsCity = option.baseLabel.match(/^(.+?)\s+County$/i)?.[1];
         if (countyAsCity && ncCityLabelsWithCounty.has(normalizeFilterText(countyAsCity))) return false;
-        if (!/\bCo\.$/.test(option.label) && ncCityLabelsWithCounty.has(normalized)) return false;
+        if (!/\bCo\.$/.test(option.baseLabel) && ncCityLabelsWithCounty.has(normalized)) return false;
         return true;
       })
-      .sort((a, b) => a.state.localeCompare(b.state) || a.label.localeCompare(b.label));
+      .sort((a, b) => a.state.localeCompare(b.state) || a.rank - b.rank || a.baseLabel.localeCompare(b.baseLabel));
   }, [activeTiers, feedStateOptions, feedStateParam, grouped, hasSelectedStates, preferredStates, stores]);
 
   useEffect(() => {
@@ -1854,7 +1901,7 @@ export default function DropFeed() {
               }}
             />
             <BourbonDropdown
-              label="Area"
+              label="Area / source"
               value={countyFilter}
               options={areaMenuOptions}
               onChange={setCountyFilter}
