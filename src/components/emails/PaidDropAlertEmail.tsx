@@ -40,7 +40,7 @@ export function PaidDropAlertEmail({
         <meta name="supported-color-schemes" content="light" />
         <style>{lightEmailCss}</style>
       </Head>
-      <Preview>{`${bottleName} just hit ${storeLabel}`}</Preview>
+      <Preview>{`Fresh signal detected for ${bottleName} at ${storeLabel}`}</Preview>
       <Body className="bs-body" style={body}>
         <Container className="bs-shell" style={shell}>
           <Section className="bs-top-rail" style={topRail}>
@@ -54,7 +54,7 @@ export function PaidDropAlertEmail({
                 </tr>
                 <tr>
                   <td color="#9b671d" style={heroSubheadCell}>
-                    <LegacyFont color="#9b671d" style={heroSubheadFont}>{`${bottleName} just showed up in one of your tracked areas.`}</LegacyFont>
+                    <LegacyFont color="#9b671d" style={heroSubheadFont}>{`Fresh signal detected for ${bottleName} in one of your tracked areas.`}</LegacyFont>
                   </td>
                 </tr>
               </tbody>
@@ -64,7 +64,7 @@ export function PaidDropAlertEmail({
           <Section className="bs-content" style={contentWrap}>
             <Text className="bs-paragraph" style={paragraph}>{greeting}</Text>
             <Text className="bs-paragraph" style={paragraph}>
-              <strong className="bs-strong" style={strong}>{bottleName}</strong> just hit <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
+              Fresh signal detected for <strong className="bs-strong" style={strong}>{bottleName}</strong> at <strong className="bs-strong" style={strong}>{storeLabel}</strong>.
             </Text>
             <Text className="bs-paragraph" style={paragraph}>This matched your <strong className="bs-strong" style={strong}>{matchedArea}</strong> alert area.</Text>
 

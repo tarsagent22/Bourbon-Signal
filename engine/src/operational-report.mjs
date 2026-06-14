@@ -252,6 +252,13 @@ function candidateFromChange(change, bootstrap = false) {
   const score = changeScore(change);
   const action = sig.canAlertAsInventory ? 'inventory_alert_candidate' : sig.canAlertAsWatch ? 'watch_alert_candidate' : 'do_not_alert_context_only';
   const reliability = reliabilityForCandidate(change, sig, score);
+  const blockers = [...(reliability.blockers || [])];
+  const cautions = [...(reliability.cautions || [])];
+  if (bootstrap) blockers.push('bootstrap_run_not_sendable');
+  if (process.env.BOURBON_SIGNAL_MANUAL_REFRESH === '1' || process.env.BOURBON_SIGNAL_ALERT_QUARANTINE === '1') {
+    blockers.push('manual_refresh_quarantine');
+  }
+  const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,
@@ -276,6 +283,12 @@ function candidateFromChange(change, bootstrap = false) {
     confidence: sig.confidence,
     sampleOnly: Boolean(sig.sampleOnly),
     ...reliability,
+    eligibleForDelivery,
+    priorityClass: eligibleForDelivery ? reliability.priorityClass : 'hold',
+    deliveryChannel: eligibleForDelivery ? reliability.deliveryChannel : 'review_only',
+    blockers,
+    cautions,
+    sendRecommendation: eligibleForDelivery ? reliability.sendRecommendation : blockers.length ? 'do_not_send' : reliability.sendRecommendation,
     policyMode: sig.policyMode,
     inventorySemantics: sig.inventorySemantics,
     locationValue: locationValue(sig),

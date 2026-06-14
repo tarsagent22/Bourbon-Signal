@@ -117,9 +117,14 @@ Rules:
 - match watched bottles when user is in specific-bottle mode
 - use engine-sourced candidates only
 - do not trigger from member sightings for now
+- keep live delivery disabled unless `ALERT_DELIVERY_ENABLED=1`
+- run `/api/alerts/deliver?dryRun=1` after a refresh before enabling live delivery
+- reject email delivery for bootstrap candidates, manual refresh quarantine candidates, stale observations, unknown freshness, or candidates older than `ALERT_EMAIL_MAX_FRESHNESS_HOURS` (default 24)
+- set `BOURBON_SIGNAL_MANUAL_REFRESH=1` or `BOURBON_SIGNAL_ALERT_QUARANTINE=1` when intentionally running a manual refresh that should produce review-only candidates
 - cap emails globally and per user per run
 - dedupe aggressively
 - include source/availability caveats
+- avoid overpromising language such as “just hit”; use “Fresh signal detected” until the source proves real-time inventory
 
 ## Texas policy
 
