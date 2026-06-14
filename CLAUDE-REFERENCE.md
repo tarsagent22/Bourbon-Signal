@@ -1,4 +1,4 @@
-# Proof Design Reference — Tokens & Components
+# Bourbon Signal Design Reference — Tokens & Components
 
 Reference only. Use when needed for color codes, font specifics, or component details.
 

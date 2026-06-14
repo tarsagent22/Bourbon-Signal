@@ -2039,8 +2039,7 @@
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
-        "TN",
-        "TX"
+        "TN"
       ],
       "latestObservedAt": "2026-06-11T17:59:33.577Z"
     },
@@ -2814,7 +2813,6 @@
         "AL",
         "IN",
         "TN",
-        "TX",
         "VA"
       ],
       "latestObservedAt": "2026-06-11T17:59:33.578Z"
@@ -2862,8 +2860,7 @@
       "bestConfidence": 0.86,
       "states": [
         "IN",
-        "TN",
-        "TX"
+        "TN"
       ],
       "latestObservedAt": "2026-06-11T17:59:33.578Z"
     },
@@ -2909,8 +2906,7 @@
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
-        "IN",
-        "TX"
+        "IN"
       ],
       "latestObservedAt": "2026-06-11T17:59:33.578Z"
     },

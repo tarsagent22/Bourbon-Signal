@@ -2,20 +2,20 @@
   "contractVersion": "bourbon-signal-site-v0.1",
   "generatedAt": "2026-06-11T18:04:06.401Z",
   "engineGeneratedAt": "2026-06-11T17:59:46.226Z",
-  "stateCount": 9,
-  "signalCount": 8225,
+  "stateCount": 8,
+  "signalCount": 8099,
   "historicalSignalCount": 86758,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 139,
   "bibleRecordCount": 139,
-  "storeCount": 2526,
-  "locationCount": 3908,
+  "storeCount": 2417,
+  "locationCount": 3796,
   "officialLocationCount": 1218,
   "preloadedLocationCount": 1222,
-  "dropCount": 3437,
+  "dropCount": 3434,
   "eventCount": 0,
-  "historicalTrendCount": 100,
+  "historicalTrendCount": 0,
   "alertCandidateCount": 0,
   "roadblockCount": 28,
   "refreshHealth": {
@@ -24,11 +24,11 @@
     "failedStateCount": 0,
     "degradedStates": []
   },
-  "statesAtTargetPrecision": 9,
+  "statesAtTargetPrecision": 8,
   "rareStatesVerified": 8,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 9
+      "live_store_inventory": 8
     },
     "states": [
       {
@@ -125,18 +125,6 @@
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "license_and_policy_watch",
-        "coverageTier": "live_store_inventory"
-      },
-      {
-        "state": "TX",
-        "label": "Texas TABC + Spec's retailer watch",
-        "tier": "C",
-        "status": "useful",
-        "signalCount": 124,
-        "roadblockCount": 1,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "store_level",
-        "strategy": "retailer_catalog_and_release_watch",
         "coverageTier": "live_store_inventory"
       }
     ]
@@ -747,27 +735,6 @@
     }
   ],
   "historicalTrends": [
-    {
-      "state": "TX",
-      "bottleName": "Bulleit Bourbon",
-      "source": "Twin Liquors - University Marketplace",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 177,
-      "watchObservations": 177,
-      "positiveQuantities": 177,
-      "firstObservedAt": "2026-06-11T13:39:37.202Z",
-      "lastObservedAt": "2026-06-11T17:59:33.578Z",
-      "sampleSignalIds": [
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed",
-        "bfed736826197aed"
-      ],
-      "observationCount": 354,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
     {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",

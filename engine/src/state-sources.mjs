@@ -310,7 +310,7 @@ export const ALL_STATE_SOURCES = [
   }
 ];
 
-export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'TX', 'VA']);
+export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA']);
 
 export const STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active !== false && CUSTOMER_ACTIVE_STATE_IDS.has(source.id));
 export const DISABLED_STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active === false || !CUSTOMER_ACTIVE_STATE_IDS.has(source.id));
