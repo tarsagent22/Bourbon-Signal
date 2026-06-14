@@ -85,6 +85,14 @@ for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS
 if (/subject:\s*`\$\{bottleName\} just hit/.test(alertDelivery)) {
   fail('Alert email subject must avoid overpromising with "just hit" wording.');
 }
+const middleware = read('src/middleware.ts');
+if (!/\/api\/alerts\/deliver/.test(middleware) || !/NextResponse\.next\(\)/.test(middleware)) {
+  fail('Middleware must allow /api/alerts/deliver through to its own secret-based route authorization so Vercel cron and dry-run checks work.');
+}
+const operationalReport = read('engine/src/operational-report.mjs');
+if (!/sourceEventAt:\s*signal\.sourceEventAt/.test(operationalReport)) {
+  fail('Operational snapshots should preserve sourceEventAt so site export and alert delivery can distinguish source event time from crawler time.');
+}
 
 const refreshScript = read('engine/bourbon-signal-engine-refresh.ps1');
 if (/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \{ '1' \}/.test(refreshScript)) {
@@ -95,6 +103,12 @@ if (!/BOURBON_SIGNAL_AUTO_DEPLOY/.test(refreshScript)) {
 }
 
 const refreshSite = read('engine/src/refresh-site.mjs');
+const ncCollector = read('engine/src/collectors/north-carolina-intelligence.mjs');
+const ncExtractParser = ncCollector.match(/function isoFromNcExtract\(value\) \{[\s\S]*?\n\}/)?.[0] || '';
+if (/new Date\(\)\.toISOString\(\)/.test(ncExtractParser) || !/return null/.test(ncExtractParser)) {
+  fail('NC source extract timestamps must not fall back to crawler time; missing/invalid source timestamps should block shipment freshness.');
+}
+
 const buildBibleIndex = refreshSite.indexOf("runNode('src/build-bible.mjs')");
 const runIndex = refreshSite.indexOf("runNode('src/run.mjs')");
 if (buildBibleIndex === -1 || runIndex === -1 || buildBibleIndex > runIndex) {

@@ -117,10 +117,10 @@ function tsSlug(date = new Date()) {
 
 function isoFromNcExtract(value) {
   const text = String(value || '').trim();
-  if (!text) return new Date().toISOString();
+  if (!text) return null;
   const normalized = text.replace(' ', 'T');
   const d = new Date(`${normalized}-04:00`);
-  return Number.isFinite(d.getTime()) ? d.toISOString() : new Date().toISOString();
+  return Number.isFinite(d.getTime()) ? d.toISOString() : null;
 }
 
 function strictTrackedProduct(name) {
@@ -319,7 +319,19 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     return [];
   }
   const json = JSON.parse(res.text);
-  const observedAt = isoFromNcExtract(json.metadata?.extractDatetime);
+  const sourceEventAt = isoFromNcExtract(json.metadata?.extractDatetime);
+  if (!sourceEventAt) {
+    roadblocks.push({
+      state: config.id,
+      source: 'NC ABC Stock Shipped Data',
+      url: NC_STOCK_SHIPPED_DATA_URL,
+      status: 'missing_extract_datetime',
+      error: 'StockShippedData metadata.extractDatetime missing or invalid; refusing to emit shipment signals with crawler-time freshness.',
+      nextRoute: 'Inspect NC StockShippedData response metadata and parser.'
+    });
+    return [];
+  }
+  const observedAt = sourceEventAt;
   for (const boardName of json.lookups?.boards || []) {
     if (!boards.has(boardName)) boards.set(boardName, createBoardRecord(boardName));
   }
@@ -353,6 +365,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
       county: boardName.replace(/\s+ABC\s+Board$/i, '').replace(/\s+County$/i, ''),
       quantity,
       observedAt,
+      sourceEventAt,
       evidence: `NC ABC Stock Shipped Data reports ${quantity} unit(s) of ${row.ProductName} shipped to ${boardName}. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity.`,
       raw: { ...row, precisionCaveat: 'board shipment; exact store and shelf status unknown', extractDatetime: json.metadata?.extractDatetime }
     };
