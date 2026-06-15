@@ -219,10 +219,13 @@ export default function SightingsClient() {
         .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
         .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.075);border-radius:30px;background:radial-gradient(circle at 80% 0%,rgba(196,148,58,.09),transparent 34%),linear-gradient(180deg,rgba(245,237,214,.03),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
         .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(232,201,122,.08),transparent 18%,transparent 82%,rgba(232,201,122,.04));opacity:.72}
-        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
-        .sighting-feed-title{margin:0;font-family:var(--font-playfair);font-size:clamp(28px,7vw,42px);line-height:.98;letter-spacing:-.02em}
-        .sighting-feed-subtitle{margin:7px 0 0;color:rgba(245,237,214,.56);font-size:13px;line-height:1.55;max-width:560px}
-        .sighting-feed-count{display:inline-flex;margin-top:11px;border:1px solid rgba(232,201,122,.16);border-radius:999px;padding:6px 10px;background:rgba(5,4,3,.22);font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.52)}
+        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
+        .sighting-feed-count{display:inline-flex;border:1px solid rgba(232,201,122,.16);border-radius:999px;padding:7px 11px;background:rgba(5,4,3,.22);font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.52)}
+        .sighting-state-field{display:grid;gap:7px;min-width:180px}
+        .sighting-select-wrap{position:relative}
+        .sighting-select-wrap:after{content:"⌄";position:absolute;right:14px;top:50%;transform:translateY(-56%);color:rgba(232,201,122,.7);font-size:18px;line-height:1;pointer-events:none}
+        .sighting-select{appearance:none;-webkit-appearance:none;min-height:48px;padding-right:42px!important;background:rgba(20,16,12,.9)!important;border-color:rgba(196,148,58,.18)!important;color:var(--color-cream)!important;box-shadow:inset 0 1px 0 rgba(245,237,214,.03)!important;color-scheme:dark}
+        .sighting-select:hover,.sighting-select:focus{border-color:rgba(196,148,58,.42)!important;background:rgba(31,24,17,.94)!important;box-shadow:0 0 0 1px rgba(196,148,58,.08),inset 0 1px 0 rgba(245,237,214,.04)!important}
         .sighting-card-list{position:relative;display:grid;gap:12px;padding:14px}
         .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.13);border-radius:24px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.16),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.94),rgba(12,9,7,.97));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.04)}
         .sighting-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(232,201,122,.88),rgba(196,148,58,.24));opacity:.86}
@@ -255,7 +258,7 @@ export default function SightingsClient() {
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
         <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
           <h1 style={{ margin: "0 0 10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Member Sightings</h1>
-          <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings. These are user submitted reports, not alert-triggering engine signals.</p>
+          <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings.</p>
         </motion.div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 26, padding: 4, border: "1px solid rgba(245,237,214,.07)", borderRadius: 999, background: "rgba(5,4,3,.24)", width: "fit-content", maxWidth: "100%" }}>
@@ -285,12 +288,8 @@ export default function SightingsClient() {
         ) : (
           <section className="sighting-feed-shell">
             <div className="sighting-feed-top">
-              <div>
-                <h2 className="sighting-feed-title">Member Sightings</h2>
-                <p className="sighting-feed-subtitle">Newest first. Member-submitted field intel with clear caveats — helpful context, never an automated alert source.</p>
-                <span className="sighting-feed-count">{filteredSightings.length} {filteredSightings.length === 1 ? "report" : "reports"}</span>
-              </div>
-              <label style={{ minWidth: 154 }}><span className="sighting-label">State</span><select className="sighting-plain-input" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></label>
+              <span className="sighting-feed-count">{filteredSightings.length} {filteredSightings.length === 1 ? "report" : "reports"}</span>
+              <label className="sighting-state-field"><span className="sighting-label">State</span><span className="sighting-select-wrap"><select className="sighting-plain-input bourbon-select sighting-select" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></span></label>
             </div>
             {loading ? <div className="sighting-card-list"><div className="sighting-loading-card" /><div className="sighting-loading-card" /></div> : null}
             <div className="sighting-card-list">{filteredSightings.map((sighting) => {
