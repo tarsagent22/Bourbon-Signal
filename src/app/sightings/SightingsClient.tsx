@@ -57,6 +57,15 @@ function tierLabel(tier?: MemberSighting["rarityTier"]) {
   return "Limited";
 }
 
+function formatPrice(value?: number | null) {
+  if (value == null || Number.isNaN(value)) return null;
+  return `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
+function sightingLocationLine(sighting: MemberSighting) {
+  return [sighting.storeCity, sighting.storeState].filter(Boolean).join(", ") || sighting.storeState || "Location unknown";
+}
+
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
@@ -208,28 +217,41 @@ export default function SightingsClient() {
         .sighting-tab{border-radius:999px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.08);color:rgba(245,237,214,.58);padding:10px 16px}
         .sighting-tab.active{background:linear-gradient(135deg,rgba(196,148,58,.22),rgba(232,201,122,.11));border-color:rgba(232,201,122,.34);color:var(--color-cream);box-shadow:0 10px 30px rgba(0,0,0,.2)}
         .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
-        .sighting-feed-shell{border:1px solid rgba(245,237,214,.075);border-radius:30px;background:linear-gradient(180deg,rgba(245,237,214,.026),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
-        .sighting-feed-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
+        .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.075);border-radius:30px;background:radial-gradient(circle at 80% 0%,rgba(196,148,58,.09),transparent 34%),linear-gradient(180deg,rgba(245,237,214,.03),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
+        .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(232,201,122,.08),transparent 18%,transparent 82%,rgba(232,201,122,.04));opacity:.72}
+        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
         .sighting-feed-title{margin:0;font-family:var(--font-playfair);font-size:clamp(28px,7vw,42px);line-height:.98;letter-spacing:-.02em}
         .sighting-feed-subtitle{margin:7px 0 0;color:rgba(245,237,214,.56);font-size:13px;line-height:1.55;max-width:560px}
-        .sighting-card-list{display:grid;gap:12px;padding:14px}
-        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.12);border-radius:22px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.14),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.92),rgba(12,9,7,.96));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.035)}
+        .sighting-feed-count{display:inline-flex;margin-top:11px;border:1px solid rgba(232,201,122,.16);border-radius:999px;padding:6px 10px;background:rgba(5,4,3,.22);font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.52)}
+        .sighting-card-list{position:relative;display:grid;gap:12px;padding:14px}
+        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.13);border-radius:24px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.16),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.94),rgba(12,9,7,.97));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.04)}
         .sighting-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(232,201,122,.88),rgba(196,148,58,.24));opacity:.86}
-        .sighting-card-kicker{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+        .sighting-card:after{content:"";position:absolute;right:-46px;top:-62px;width:132px;height:132px;border:1px solid rgba(232,201,122,.09);border-radius:999px;background:radial-gradient(circle,rgba(232,201,122,.06),transparent 62%);pointer-events:none}
+        .sighting-card-kicker{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
         .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(232,201,122,.86);font-weight:800}
-        .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.38);white-space:nowrap}
-        .sighting-title{margin:0;font-family:var(--font-playfair);font-size:clamp(22px,6vw,30px);line-height:1.03;letter-spacing:-.01em;color:var(--color-cream)}
-        .sighting-meta{margin:7px 0 0;color:rgba(245,237,214,.72);font-size:14px;line-height:1.45;font-weight:650}
-        .sighting-address{margin:3px 0 0;color:rgba(245,237,214,.42);font-size:12px;line-height:1.45}
-        .sighting-note{margin:13px 0 0;padding:10px 12px;border-left:1px solid rgba(232,201,122,.28);background:rgba(5,4,3,.18);border-radius:0 12px 12px 0;color:rgba(245,237,214,.67);font-size:13px;line-height:1.5}
-        .sighting-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.065)}
+        .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.42);white-space:nowrap}
+        .sighting-title{position:relative;margin:0;font-family:var(--font-playfair);font-size:clamp(23px,6vw,31px);line-height:1.03;letter-spacing:-.01em;color:var(--color-cream);padding-right:10px}
+        .sighting-store-line{position:relative;display:flex;align-items:flex-start;gap:8px;margin-top:9px;color:rgba(245,237,214,.76);font-size:14px;line-height:1.45;font-weight:750}
+        .sighting-store-line svg{flex:0 0 auto;margin-top:2px;color:rgba(232,201,122,.55)}
+        .sighting-address{position:relative;margin:4px 0 0 22px;color:rgba(245,237,214,.43);font-size:12px;line-height:1.45}
+        .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+        .sighting-detail-pill{border:1px solid rgba(245,237,214,.08);border-radius:999px;background:rgba(5,4,3,.22);padding:6px 9px;color:rgba(245,237,214,.62);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
+        .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(232,201,122,.3);background:linear-gradient(90deg,rgba(5,4,3,.28),rgba(5,4,3,.12));border-radius:0 13px 13px 0;color:rgba(245,237,214,.68);font-size:13px;line-height:1.5}
+        .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.065)}
         .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.42)}
         .sighting-votes{display:flex;align-items:center;gap:6px;margin-left:auto}
         .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);color:rgba(245,237,214,.62);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
         .vote-button:hover{transform:translateY(-1px);border-color:rgba(232,201,122,.32);color:rgba(245,237,214,.9);background:rgba(196,148,58,.08)}
         .vote-button.active{border-color:rgba(232,201,122,.42);background:rgba(196,148,58,.14);color:var(--color-cream)}
-        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:24px;padding-top:14px}.sighting-feed-top{align-items:flex-start;padding:0 14px 13px}.sighting-card-list{padding:12px;gap:11px}.sighting-card{border-radius:20px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{flex:1}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}}
+        .sighting-empty-panel{position:relative;margin:0 14px 14px;padding:20px;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(5,4,3,.18)}
+        .sighting-empty-panel strong{display:block;margin-bottom:5px;color:var(--color-cream);font-family:var(--font-playfair);font-size:22px;font-weight:700}
+        .sighting-empty-panel span{display:block;color:rgba(245,237,214,.52);font-size:13px;line-height:1.55}
+        .sighting-loading-card{height:156px;border-radius:22px;border:1px solid rgba(245,237,214,.07);background:linear-gradient(100deg,rgba(245,237,214,.035),rgba(245,237,214,.075),rgba(245,237,214,.035));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
+        @keyframes sightingShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+        @media (prefers-reduced-motion:reduce){.sighting-loading-card{animation:none}.vote-button,.sighting-card,.sighting-location-button,.sighting-submit,.sighting-tab{transition:none!important}}
+        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:24px;padding-top:14px}.sighting-feed-top{align-items:flex-start;padding:0 14px 13px}.sighting-feed-top label{width:100%;min-width:0!important}.sighting-card-list{padding:12px;gap:11px}.sighting-card{border-radius:21px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{max-width:48%;line-height:1.45}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{flex:1}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:0}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 12px 12px;padding:18px}}
       `}</style>
+
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
         <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
           <h1 style={{ margin: "0 0 10px", fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 72px)", lineHeight: 0.95 }}>Member Sightings</h1>
@@ -265,20 +287,28 @@ export default function SightingsClient() {
             <div className="sighting-feed-top">
               <div>
                 <h2 className="sighting-feed-title">Member Sightings</h2>
-                <p className="sighting-feed-subtitle">Newest first. Community-submitted sightings for members only — useful field intel, not alert-triggering engine signals.</p>
+                <p className="sighting-feed-subtitle">Newest first. Member-submitted field intel with clear caveats — helpful context, never an automated alert source.</p>
+                <span className="sighting-feed-count">{filteredSightings.length} {filteredSightings.length === 1 ? "report" : "reports"}</span>
               </div>
               <label style={{ minWidth: 154 }}><span className="sighting-label">State</span><select className="sighting-plain-input" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></label>
             </div>
-            {loading ? <div className="sighting-empty" style={{ padding: "16px 18px" }}>Loading member sightings…</div> : null}
-            <div className="sighting-card-list">{filteredSightings.map((sighting) => <article key={sighting.id} className="sighting-card">
-              <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
-              <h3 className="sighting-title">{sighting.bottleName}</h3>
-              <p className="sighting-meta">{sighting.storeName}</p>
-              <p className="sighting-address">{[sighting.storeCity, sighting.storeState].filter(Boolean).join(", ") || sighting.storeState || "Location unknown"}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
-              {sighting.quantityEstimate || sighting.price || sighting.notes ? <div className="sighting-note">{[sighting.quantityEstimate, sighting.price ? `$${sighting.price}` : null, sighting.notes].filter(Boolean).join(" · ")}</div> : null}
-              <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
-            </article>)}</div>
-            {!loading && filteredSightings.length === 0 ? <div className="sighting-empty" style={{ margin: "0 14px 14px", padding: 18, border: "1px solid rgba(245,237,214,.09)", borderRadius: 16 }}>No member sightings match this state yet.</div> : null}
+            {loading ? <div className="sighting-card-list"><div className="sighting-loading-card" /><div className="sighting-loading-card" /></div> : null}
+            <div className="sighting-card-list">{filteredSightings.map((sighting) => {
+              const priceLabel = formatPrice(sighting.price);
+              const detailPills = [sighting.quantityEstimate, priceLabel].filter(Boolean);
+              return (
+                <article key={sighting.id} className="sighting-card">
+                  <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
+                  <h3 className="sighting-title">{sighting.bottleName}</h3>
+                  <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>
+                  <p className="sighting-address">{sightingLocationLine(sighting)}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
+                  {detailPills.length > 0 ? <div className="sighting-detail-row">{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div> : null}
+                  {sighting.notes ? <div className="sighting-note">“{sighting.notes}”</div> : null}
+                  <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
+                </article>
+              );
+            })}</div>
+            {!loading && filteredSightings.length === 0 ? <div className="sighting-empty-panel"><strong>{stateFilter === "ALL" ? "No member sightings yet." : `No ${stateFilter} sightings yet.`}</strong><span>When a member reports a bottle, it will appear here newest-first with its source caveat and voting. Be the first to add useful field intel.</span></div> : null}
           </section>
         )}
       </div>
