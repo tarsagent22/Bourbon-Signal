@@ -6,7 +6,7 @@ import {
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
-import type { MemberSighting, SignalReport, SignalReportKind, SightingsPreferences } from "@/lib/sightings";
+import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
 
 export interface AreaPreferences {
   states: string[];
@@ -68,6 +68,7 @@ const EMPTY_COLLECTION_PREFERENCES: UserAlertPreferences["collectionPreferences"
 const EMPTY_SIGHTINGS_PREFERENCES: SightingsPreferences = {
   submittedSightings: [],
   signalReports: [],
+  sightingVotes: [],
 };
 
 function normalizeAlertMode(input: unknown): AlertMode {
@@ -157,10 +158,13 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
     if (!bottleName || !storeId || !storeName || !storeAddress) return [];
     const price = typeof item.price === "number" && Number.isFinite(item.price) ? Math.max(0, Math.min(99999, item.price)) : null;
     const sightingSource: MemberSighting["source"] = item.source === "feed" || item.source === "finder" ? item.source : "custom";
+    const rarityTier: MemberSighting["rarityTier"] = item.rarityTier === "unicorn" || item.rarityTier === "allocated" || item.rarityTier === "limited" ? item.rarityTier : "limited";
+    const sightingType: SightingType = item.sightingType === "online_social" ? "online_social" : "seen_in_store";
     return [{
       id: typeof item.id === "string" ? item.id.slice(0, 120) : `sighting_${Date.now()}`,
       bottleName,
       bottleId: typeof item.bottleId === "string" ? item.bottleId.slice(0, 160) : undefined,
+      rarityTier,
       storeId,
       storeName,
       storeAddress,
@@ -171,6 +175,8 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
       price,
       notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : undefined,
       source: sightingSource,
+      sightingType,
+      reporterUserId: typeof item.reporterUserId === "string" ? item.reporterUserId.slice(0, 120) : undefined,
       createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
     }];
   }).slice(0, 100);
@@ -193,7 +199,16 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
     }];
   }).slice(0, 250);
 
-  return { submittedSightings, signalReports };
+  const rawVotes = Array.isArray(source.sightingVotes) ? source.sightingVotes : [];
+  const sightingVotes: SightingVote[] = rawVotes.flatMap((raw) => {
+    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const sightingId = typeof item.sightingId === "string" ? item.sightingId.slice(0, 160) : "";
+    const kind: SightingVoteKind | null = item.kind === "down" ? "down" : item.kind === "up" ? "up" : null;
+    if (!sightingId || !kind) return [];
+    return [{ sightingId, kind, createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString() }];
+  }).slice(0, 500);
+
+  return { submittedSightings, signalReports, sightingVotes };
 }
 
 function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {

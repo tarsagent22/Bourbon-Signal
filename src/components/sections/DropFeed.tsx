@@ -102,7 +102,7 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
   return {
     displayName: sighting.bottleName,
     event_type: "user_sighting",
-    rarity_tier: "limited",
+    rarity_tier: sighting.rarityTier || "limited",
     timestamp: sighting.createdAt,
     counties: areaLabel ? [areaLabel] : storeCity ? [storeCity] : [],
     store_address: sighting.storeAddress,
@@ -110,7 +110,7 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
     quantity_in_stock: sighting.quantityEstimate ? 1 : undefined,
     state: sighting.storeState,
     id: sighting.id,
-    signalLabel: "User submitted",
+    signalLabel: "Member sighting",
     confidenceTier: "member_sighting",
     availabilityScope: "exact",
     exactStore: true,
@@ -814,7 +814,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
 
         {isUserSighting ? (
           <div style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid rgba(196,148,58,0.28)", background: "rgba(196,148,58,0.09)", borderRadius: "999px", padding: "5px 8px", color: "rgba(232,201,122,0.95)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            User submitted
+            Member sighting
           </div>
         ) : null}
 
@@ -900,7 +900,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             <TierBadge tier={drop.rarity_tier} />
             {isUserSighting ? (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.09)", border: "1px solid rgba(196,148,58,0.26)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
-                User submitted
+                Member sighting
               </span>
             ) : null}
             {stateLabel && (
@@ -2188,7 +2188,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.25)",
                 }}
               >
-                Last updated:{" "}
+                Refreshed:{" "}
                 {new Date(lastFetch).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",

@@ -48,7 +48,7 @@ export default function SignUpPage() {
       </div>
 
       {confirmedAge ? (
-        <SignUp />
+        <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" />
       ) : (
         <section
           aria-labelledby="age-confirmation-title"
