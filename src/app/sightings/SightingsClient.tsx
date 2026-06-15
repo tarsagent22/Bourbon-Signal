@@ -276,54 +276,56 @@ export default function SightingsClient() {
         .sighting-suggestions{display:grid;gap:8px;margin-top:8px}
         .sighting-suggestions button{border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);border-radius:12px;padding:10px 12px;color:var(--color-cream);text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
         .sighting-suggestions span{display:block;color:rgba(245,237,214,.44);font-size:12px;margin-top:3px}
-        .sighting-suggestions button:hover,.sighting-suggestions button.selected{border-color:rgba(196,148,58,.35);background:rgba(196,148,58,.08);transform:translateY(-1px)}
-        .sighting-submit,.sighting-location-button,.sighting-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid rgba(196,148,58,.26);background:rgba(196,148,58,.11);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:800;padding:11px 15px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
-        .sighting-submit{margin-top:18px;width:100%}
+        .sighting-suggestions button:hover,.sighting-suggestions button.selected{border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.055);transform:translateY(-1px)}
+        .sighting-submit,.sighting-location-button,.sighting-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid rgba(245,237,214,.12);background:rgba(245,237,214,.04);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:800;padding:11px 15px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease,color .18s ease}
+        .sighting-submit{margin-top:18px;width:100%;border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.09)}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
-        .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(196,148,58,.38);background:rgba(196,148,58,.12)}
-        .sighting-tab{position:relative;border-radius:22px 22px 0 0;background:transparent;border-color:transparent;color:rgba(245,237,214,.58);padding:12px 22px 14px;min-width:112px}
-        .sighting-tab.active{background:linear-gradient(180deg,rgba(196,148,58,.18),rgba(40,31,19,.82));border-color:rgba(232,201,122,.28);border-bottom-color:rgba(40,31,19,.82);color:var(--color-cream);box-shadow:0 -8px 28px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)}
+        .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.2);background:rgba(245,237,214,.06)}
+        .sighting-tab{position:relative;border-radius:0;background:transparent;border:0;color:rgba(245,237,214,.48);padding:12px 7px 13px;min-width:86px;letter-spacing:.01em}
+        .sighting-tab:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:transparent;transition:background .18s ease,opacity .18s ease}
+        .sighting-tab.active{color:var(--color-cream);background:transparent;box-shadow:none}
+        .sighting-tab.active:after{background:rgba(196,148,58,.62)}
         .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
-        .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.075);border-radius:30px;background:radial-gradient(circle at 80% 0%,rgba(196,148,58,.09),transparent 34%),linear-gradient(180deg,rgba(245,237,214,.03),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
-        .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(232,201,122,.08),transparent 18%,transparent 82%,rgba(232,201,122,.04));opacity:.72}
-        .sighting-mode-shell{position:relative;margin-top:26px;border:1px solid rgba(196,148,58,.12);border-radius:28px 28px 0 0;background:linear-gradient(180deg,rgba(245,237,214,.035),rgba(5,4,3,.18));padding:6px 6px 0;width:fit-content;max-width:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
-        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
-        .sighting-feed-count{display:inline-flex;border:1px solid rgba(232,201,122,.16);border-radius:999px;padding:7px 11px;background:rgba(5,4,3,.22);font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.52)}
-        .sighting-menu{position:relative;min-width:min(360px,100%)}
-        .sighting-menu > span{display:block;margin-bottom:6px;font-family:var(--font-jetbrains);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,237,214,.42)}
-        .sighting-menu-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;height:48px;border-radius:14px;border:1px solid rgba(212,146,11,.18);background:rgba(20,16,12,.72);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:14px;font-weight:800;padding:10px 13px;outline:none;text-align:left;cursor:pointer;box-shadow:inset 0 1px 0 rgba(245,237,214,.035)}
-        .sighting-menu-trigger:hover,.sighting-menu-trigger[aria-expanded="true"]{border-color:rgba(196,148,58,.42);background:rgba(31,24,17,.94);box-shadow:0 0 0 1px rgba(196,148,58,.08),inset 0 1px 0 rgba(245,237,214,.04)}
+        .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.07);border-radius:24px;background:linear-gradient(180deg,rgba(16,12,9,.78),rgba(8,6,5,.46));padding:13px 0 0;box-shadow:0 20px 64px rgba(0,0,0,.24);overflow:hidden}
+        .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(245,237,214,.026),transparent 28%);opacity:.8}
+        .sighting-mode-shell{position:relative;margin-top:22px;margin-bottom:10px;border:0;border-radius:0;background:transparent;padding:0;display:flex;gap:22px;width:fit-content;max-width:100%}
+        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;padding:0 16px 12px;border-bottom:1px solid rgba(245,237,214,.055)}
+        .sighting-feed-count{display:inline-flex;font-family:var(--font-dm-sans);font-size:13px;font-weight:650;color:rgba(245,237,214,.5)}
+        .sighting-menu{position:relative;min-width:172px}
+        .sighting-menu > span{display:block;margin-bottom:5px;font-family:var(--font-jetbrains);font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,237,214,.34)}
+        .sighting-menu-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;height:40px;border-radius:12px;border:1px solid rgba(245,237,214,.105);background:rgba(12,9,7,.7);color:rgba(245,237,214,.88);font-family:var(--font-dm-sans);font-size:13px;font-weight:750;padding:9px 11px;outline:none;text-align:left;cursor:pointer;box-shadow:inset 0 1px 0 rgba(245,237,214,.025)}
+        .sighting-menu-trigger:hover,.sighting-menu-trigger[aria-expanded="true"]{border-color:rgba(196,148,58,.26);background:rgba(18,13,10,.92);box-shadow:inset 0 1px 0 rgba(245,237,214,.035)}
         .sighting-menu-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .sighting-menu-panel{position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;max-height:286px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;padding:8px;border-radius:16px;border:1px solid rgba(196,148,58,.2);background:rgba(17,13,10,.98);box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.04);scrollbar-color:rgba(245,237,214,.48) rgba(245,237,214,.08);scrollbar-width:thin}
-        .sighting-menu-option{min-height:44px;border-radius:12px;border:1px solid rgba(245,237,214,.07);background:rgba(245,237,214,.025);color:rgba(245,237,214,.72);font-family:var(--font-dm-sans);font-size:13px;font-weight:650;text-align:left;padding:10px 12px;cursor:pointer}
-        .sighting-menu-option:hover,.sighting-menu-option.active{border-color:rgba(196,148,58,.34);background:rgba(196,148,58,.12);color:var(--color-cream)}
-        .sighting-card-list{position:relative;display:grid;gap:12px;padding:14px}
-        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.13);border-radius:24px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.16),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.94),rgba(12,9,7,.97));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.04)}
-        .sighting-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(232,201,122,.88),rgba(196,148,58,.24));opacity:.86}
-        .sighting-card:after{content:"";position:absolute;right:-46px;top:-62px;width:132px;height:132px;border:1px solid rgba(232,201,122,.09);border-radius:999px;background:radial-gradient(circle,rgba(232,201,122,.06),transparent 62%);pointer-events:none}
+        .sighting-menu-panel{position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;max-height:286px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;padding:8px;border-radius:15px;border:1px solid rgba(245,237,214,.11);background:rgba(13,10,8,.98);box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-color:rgba(245,237,214,.42) rgba(245,237,214,.08);scrollbar-width:thin}
+        .sighting-menu-option{min-height:42px;border-radius:11px;border:1px solid rgba(245,237,214,.06);background:rgba(245,237,214,.022);color:rgba(245,237,214,.68);font-family:var(--font-dm-sans);font-size:13px;font-weight:650;text-align:left;padding:9px 11px;cursor:pointer}
+        .sighting-menu-option:hover,.sighting-menu-option.active{border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.075);color:var(--color-cream)}
+        .sighting-card-list{position:relative;display:grid;gap:11px;padding:12px}
+        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(245,237,214,.08);border-radius:21px;padding:17px;background:linear-gradient(145deg,rgba(23,17,12,.92),rgba(9,7,6,.97));box-shadow:0 16px 42px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)}
+        .sighting-card:before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:1px;background:rgba(196,148,58,.34);opacity:.7}
+        .sighting-card:after{content:none}
         .sighting-card-kicker{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-        .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(232,201,122,.86);font-weight:800}
+        .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(206,169,91,.68);font-weight:800}
         .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.42);white-space:nowrap}
         .sighting-title{position:relative;margin:0;font-family:var(--font-playfair);font-size:clamp(23px,6vw,31px);line-height:1.03;letter-spacing:-.01em;color:var(--color-cream);padding-right:10px}
         .sighting-store-line{position:relative;display:flex;align-items:flex-start;gap:8px;margin-top:9px;color:rgba(245,237,214,.76);font-size:14px;line-height:1.45;font-weight:750}
-        .sighting-store-line svg{flex:0 0 auto;margin-top:2px;color:rgba(232,201,122,.55)}
-        .sighting-address{position:relative;margin:4px 0 0 22px;color:rgba(245,237,214,.43);font-size:12px;line-height:1.45}
+        .sighting-store-line svg{flex:0 0 auto;margin-top:2px;color:rgba(245,237,214,.38)}
+        .sighting-address{position:relative;margin:4px 0 0 22px;color:rgba(245,237,214,.42);font-size:12px;line-height:1.45}
         .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-        .sighting-detail-pill{border:1px solid rgba(245,237,214,.08);border-radius:999px;background:rgba(5,4,3,.22);padding:6px 9px;color:rgba(245,237,214,.62);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
-        .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(232,201,122,.3);background:linear-gradient(90deg,rgba(5,4,3,.28),rgba(5,4,3,.12));border-radius:0 13px 13px 0;color:rgba(245,237,214,.68);font-size:13px;line-height:1.5}
-        .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.065)}
-        .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.42)}
+        .sighting-detail-pill{border:1px solid rgba(245,237,214,.075);border-radius:999px;background:rgba(5,4,3,.24);padding:6px 9px;color:rgba(245,237,214,.6);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
+        .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.22);border-radius:0 12px 12px 0;color:rgba(245,237,214,.64);font-size:13px;line-height:1.5}
+        .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.055)}
+        .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.38)}
         .sighting-votes{display:flex;align-items:center;gap:6px;margin-left:auto}
-        .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);color:rgba(245,237,214,.62);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
-        .vote-button:hover{transform:translateY(-1px);border-color:rgba(232,201,122,.32);color:rgba(245,237,214,.9);background:rgba(196,148,58,.08)}
-        .vote-button.active{border-color:rgba(232,201,122,.42);background:rgba(196,148,58,.14);color:var(--color-cream)}
+        .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.085);background:rgba(245,237,214,.028);color:rgba(245,237,214,.58);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
+        .vote-button:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.18);color:rgba(245,237,214,.86);background:rgba(245,237,214,.045)}
+        .vote-button.active{border-color:rgba(196,148,58,.32);background:rgba(196,148,58,.085);color:var(--color-cream)}
         .sighting-empty-panel{position:relative;margin:0 14px 14px;padding:20px;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(5,4,3,.18)}
         .sighting-empty-panel strong{display:block;margin-bottom:5px;color:var(--color-cream);font-family:var(--font-playfair);font-size:22px;font-weight:700}
         .sighting-empty-panel span{display:block;color:rgba(245,237,214,.52);font-size:13px;line-height:1.55}
-        .sighting-loading-card{height:156px;border-radius:22px;border:1px solid rgba(245,237,214,.07);background:linear-gradient(100deg,rgba(245,237,214,.035),rgba(245,237,214,.075),rgba(245,237,214,.035));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
+        .sighting-loading-card{height:156px;border-radius:20px;border:1px solid rgba(245,237,214,.06);background:linear-gradient(100deg,rgba(245,237,214,.026),rgba(245,237,214,.06),rgba(245,237,214,.026));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
         @keyframes sightingShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
         @media (prefers-reduced-motion:reduce){.sighting-loading-card{animation:none}.vote-button,.sighting-card,.sighting-location-button,.sighting-submit,.sighting-tab{transition:none!important}}
-        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:24px;padding-top:14px}.sighting-feed-top{align-items:flex-start;padding:0 14px 13px}.sighting-feed-top label{width:100%;min-width:0!important}.sighting-card-list{padding:12px;gap:11px}.sighting-card{border-radius:21px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{max-width:48%;line-height:1.45}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{flex:1}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:0}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 12px 12px;padding:18px}}
+        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-mode-shell{gap:18px;margin-top:20px;margin-bottom:9px}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:22px;padding-top:12px}.sighting-feed-top{align-items:flex-end;padding:0 13px 11px}.sighting-menu{min-width:150px}.sighting-card-list{padding:10px;gap:10px}.sighting-card{border-radius:19px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{max-width:48%;line-height:1.45}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{min-width:auto;padding-left:4px;padding-right:4px}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:0}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 10px 10px;padding:18px}}
       `}</style>
 
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
@@ -359,7 +361,7 @@ export default function SightingsClient() {
         ) : (
           <section className="sighting-feed-shell">
             <div className="sighting-feed-top">
-              <span className="sighting-feed-count">{filteredSightings.length} {filteredSightings.length === 1 ? "report" : "reports"}</span>
+              <span className="sighting-feed-count">{filteredSightings.length} member {filteredSightings.length === 1 ? "report" : "reports"}</span>
               <SightingDropdown label="State" value={stateFilter} options={sightingStateOptions} onChange={setStateFilter} />
             </div>
             {loading ? <div className="sighting-card-list"><div className="sighting-loading-card" /><div className="sighting-loading-card" /></div> : null}
