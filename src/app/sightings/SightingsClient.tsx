@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
@@ -64,6 +64,69 @@ function formatPrice(value?: number | null) {
 
 function sightingLocationLine(sighting: MemberSighting) {
   return [sighting.storeCity, sighting.storeState].filter(Boolean).join(", ") || sighting.storeState || "Location unknown";
+}
+
+type SightingDropdownOption = { value: string; label: string };
+
+function SightingDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: SightingDropdownOption[];
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const selected = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="sighting-menu">
+      <span>{label}</span>
+      <button type="button" className="sighting-menu-trigger" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+        <span>{selected?.label || "Select"}</span>
+        <span aria-hidden style={{ opacity: 0.55 }}>▾</span>
+      </button>
+      {open ? (
+        <div className="sighting-menu-panel" role="listbox">
+          {options.map((option) => {
+            const active = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`sighting-menu-option ${active ? "active" : ""}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                role="option"
+                aria-selected={active}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export default function SightingsClient() {
@@ -142,6 +205,10 @@ export default function SightingsClient() {
 
   const exactAddress = selectedStore ? formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip]) : "Select an exact store to show the address on the sighting card.";
   const stateOptions = useMemo(() => Array.from(new Set([...states, ...sightings.map((s) => s.storeState).filter(Boolean) as string[]])).sort(), [states, sightings]);
+  const sightingStateOptions = useMemo(() => [
+    { value: "ALL", label: "All states" },
+    ...stateOptions.map((state) => ({ value: state, label: state })),
+  ], [stateOptions]);
   const filteredSightings = useMemo(() => sightings.filter((sighting) => stateFilter === "ALL" || sighting.storeState === stateFilter), [sightings, stateFilter]);
 
   const requestLocation = () => {
@@ -214,18 +281,22 @@ export default function SightingsClient() {
         .sighting-submit{margin-top:18px;width:100%}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
         .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(196,148,58,.38);background:rgba(196,148,58,.12)}
-        .sighting-tab{border-radius:999px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.08);color:rgba(245,237,214,.58);padding:10px 16px}
-        .sighting-tab.active{background:linear-gradient(135deg,rgba(196,148,58,.22),rgba(232,201,122,.11));border-color:rgba(232,201,122,.34);color:var(--color-cream);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+        .sighting-tab{position:relative;border-radius:22px 22px 0 0;background:transparent;border-color:transparent;color:rgba(245,237,214,.58);padding:12px 22px 14px;min-width:112px}
+        .sighting-tab.active{background:linear-gradient(180deg,rgba(196,148,58,.18),rgba(40,31,19,.82));border-color:rgba(232,201,122,.28);border-bottom-color:rgba(40,31,19,.82);color:var(--color-cream);box-shadow:0 -8px 28px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)}
         .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
         .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.075);border-radius:30px;background:radial-gradient(circle at 80% 0%,rgba(196,148,58,.09),transparent 34%),linear-gradient(180deg,rgba(245,237,214,.03),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
         .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(232,201,122,.08),transparent 18%,transparent 82%,rgba(232,201,122,.04));opacity:.72}
+        .sighting-mode-shell{position:relative;margin-top:26px;border:1px solid rgba(196,148,58,.12);border-radius:28px 28px 0 0;background:linear-gradient(180deg,rgba(245,237,214,.035),rgba(5,4,3,.18));padding:6px 6px 0;width:fit-content;max-width:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
         .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
         .sighting-feed-count{display:inline-flex;border:1px solid rgba(232,201,122,.16);border-radius:999px;padding:7px 11px;background:rgba(5,4,3,.22);font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.52)}
-        .sighting-state-field{display:grid;gap:7px;min-width:180px}
-        .sighting-select-wrap{position:relative}
-        .sighting-select-wrap:after{content:"⌄";position:absolute;right:14px;top:50%;transform:translateY(-56%);color:rgba(232,201,122,.7);font-size:18px;line-height:1;pointer-events:none}
-        .sighting-select{appearance:none;-webkit-appearance:none;min-height:48px;padding-right:42px!important;background:rgba(20,16,12,.9)!important;border-color:rgba(196,148,58,.18)!important;color:var(--color-cream)!important;box-shadow:inset 0 1px 0 rgba(245,237,214,.03)!important;color-scheme:dark}
-        .sighting-select:hover,.sighting-select:focus{border-color:rgba(196,148,58,.42)!important;background:rgba(31,24,17,.94)!important;box-shadow:0 0 0 1px rgba(196,148,58,.08),inset 0 1px 0 rgba(245,237,214,.04)!important}
+        .sighting-menu{position:relative;min-width:min(360px,100%)}
+        .sighting-menu > span{display:block;margin-bottom:6px;font-family:var(--font-jetbrains);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,237,214,.42)}
+        .sighting-menu-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;height:48px;border-radius:14px;border:1px solid rgba(212,146,11,.18);background:rgba(20,16,12,.72);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:14px;font-weight:800;padding:10px 13px;outline:none;text-align:left;cursor:pointer;box-shadow:inset 0 1px 0 rgba(245,237,214,.035)}
+        .sighting-menu-trigger:hover,.sighting-menu-trigger[aria-expanded="true"]{border-color:rgba(196,148,58,.42);background:rgba(31,24,17,.94);box-shadow:0 0 0 1px rgba(196,148,58,.08),inset 0 1px 0 rgba(245,237,214,.04)}
+        .sighting-menu-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .sighting-menu-panel{position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;max-height:286px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;padding:8px;border-radius:16px;border:1px solid rgba(196,148,58,.2);background:rgba(17,13,10,.98);box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.04);scrollbar-color:rgba(245,237,214,.48) rgba(245,237,214,.08);scrollbar-width:thin}
+        .sighting-menu-option{min-height:44px;border-radius:12px;border:1px solid rgba(245,237,214,.07);background:rgba(245,237,214,.025);color:rgba(245,237,214,.72);font-family:var(--font-dm-sans);font-size:13px;font-weight:650;text-align:left;padding:10px 12px;cursor:pointer}
+        .sighting-menu-option:hover,.sighting-menu-option.active{border-color:rgba(196,148,58,.34);background:rgba(196,148,58,.12);color:var(--color-cream)}
         .sighting-card-list{position:relative;display:grid;gap:12px;padding:14px}
         .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.13);border-radius:24px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.16),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.94),rgba(12,9,7,.97));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.04)}
         .sighting-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(232,201,122,.88),rgba(196,148,58,.24));opacity:.86}
@@ -261,7 +332,7 @@ export default function SightingsClient() {
           <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings.</p>
         </motion.div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 26, padding: 4, border: "1px solid rgba(245,237,214,.07)", borderRadius: 999, background: "rgba(5,4,3,.24)", width: "fit-content", maxWidth: "100%" }}>
+        <div className="sighting-mode-shell">
           <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => setActiveTab("submit")}>Submit</button>
           <button type="button" className={`sighting-tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>Feed</button>
         </div>
@@ -289,7 +360,7 @@ export default function SightingsClient() {
           <section className="sighting-feed-shell">
             <div className="sighting-feed-top">
               <span className="sighting-feed-count">{filteredSightings.length} {filteredSightings.length === 1 ? "report" : "reports"}</span>
-              <label className="sighting-state-field"><span className="sighting-label">State</span><span className="sighting-select-wrap"><select className="sighting-plain-input bourbon-select sighting-select" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></span></label>
+              <SightingDropdown label="State" value={stateFilter} options={sightingStateOptions} onChange={setStateFilter} />
             </div>
             {loading ? <div className="sighting-card-list"><div className="sighting-loading-card" /><div className="sighting-loading-card" /></div> : null}
             <div className="sighting-card-list">{filteredSightings.map((sighting) => {
