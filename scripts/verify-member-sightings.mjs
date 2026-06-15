@@ -8,11 +8,11 @@ function fail(msg) { failures.push(msg); }
 function expectFile(rel) { if (!existsSync(path.join(root, rel))) fail(`Missing ${rel}`); else return read(rel); return ''; }
 
 const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
-for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in store', 'Online/Social Media', 'Member Sightings Feed', 'stateFilter', 'All states']) {
+for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in store', 'Online/Social Media', 'Member Sightings', 'stateFilter', 'All states']) {
   if (!sightingsClient.includes(phrase)) fail(`Sightings page should include ${phrase}`);
 }
-if (!/voteSighting/.test(sightingsClient) || !/▲/.test(sightingsClient) || !/▼/.test(sightingsClient)) {
-  fail('Sightings feed should include one-click upvote/downvote controls.');
+if (!/voteSighting/.test(sightingsClient) || !/ThumbsUp/.test(sightingsClient) || !/ThumbsDown/.test(sightingsClient)) {
+  fail('Sightings feed should include one-click thumbs up/down controls.');
 }
 if (!/isSignedIn/.test(sightingsClient) || !/members only/i.test(sightingsClient)) {
   fail('Sightings page should keep feed/submission member-only.');

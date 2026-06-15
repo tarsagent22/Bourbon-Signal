@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { Lock, MapPin, Navigation as NavigationIcon, Search, Send } from "lucide-react";
+import { Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
@@ -195,7 +195,40 @@ export default function SightingsClient() {
       <style>{`
         .sighting-label{display:block;margin-bottom:7px;font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(245,237,214,.46)}
         .sighting-input-wrap{display:flex;align-items:center;gap:9px;border:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.36);border-radius:14px;padding:0 12px;color:rgba(245,237,214,.42)}
-        .sighting-input-wrap input,.sighting-plain-input{width:100%;border:0;outline:0;background:transparent;color:var(--color-cream);font-family:var(--font-dm-sans);font-size:14px;padding:13px 0}.sighting-plain-input{border:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.36);border-radius:14px;padding:13px 12px}.sighting-suggestions{display:grid;gap:8px;margin-top:8px}.sighting-suggestions button{border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);border-radius:12px;padding:10px 12px;color:var(--color-cream);text-align:left;cursor:pointer}.sighting-suggestions span{display:block;color:rgba(245,237,214,.44);font-size:12px;margin-top:3px}.sighting-suggestions button:hover,.sighting-suggestions button.selected{border-color:rgba(196,148,58,.35);background:rgba(196,148,58,.08)}.sighting-submit,.sighting-location-button,.sighting-tab,.vote-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid rgba(196,148,58,.26);background:rgba(196,148,58,.11);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:800;padding:11px 15px;cursor:pointer}.sighting-submit{margin-top:18px;width:100%}.sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}.sighting-tab{border-radius:16px 16px 0 0;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.09);color:rgba(245,237,214,.54)}.sighting-tab.active{background:rgba(196,148,58,.13);border-color:rgba(196,148,58,.32);color:var(--color-cream)}.sighting-empty{color:rgba(245,237,214,.46);font-size:13px}.sighting-card{border:1px solid rgba(245,237,214,.1);border-radius:18px;padding:16px;background:linear-gradient(135deg,rgba(245,237,214,.045),rgba(196,148,58,.045));}.sighting-pill{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.08em;border:1px solid rgba(196,148,58,.22);background:rgba(196,148,58,.08);color:rgba(232,201,122,.95);border-radius:999px;padding:4px 7px}.vote-button{padding:7px 10px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.12);color:rgba(245,237,214,.7)}.vote-button.active{background:rgba(196,148,58,.14);border-color:rgba(196,148,58,.34);color:var(--color-accent-amber)}@media(max-width:820px){.sighting-grid{grid-template-columns:1fr!important}.sighting-two-col{grid-template-columns:1fr!important}}
+        .sighting-input-wrap input,.sighting-plain-input{width:100%;border:0;outline:0;background:transparent;color:var(--color-cream);font-family:var(--font-dm-sans);font-size:14px;padding:13px 0}
+        .sighting-plain-input{border:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.36);border-radius:14px;padding:13px 12px}
+        .sighting-suggestions{display:grid;gap:8px;margin-top:8px}
+        .sighting-suggestions button{border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);border-radius:12px;padding:10px 12px;color:var(--color-cream);text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
+        .sighting-suggestions span{display:block;color:rgba(245,237,214,.44);font-size:12px;margin-top:3px}
+        .sighting-suggestions button:hover,.sighting-suggestions button.selected{border-color:rgba(196,148,58,.35);background:rgba(196,148,58,.08);transform:translateY(-1px)}
+        .sighting-submit,.sighting-location-button,.sighting-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid rgba(196,148,58,.26);background:rgba(196,148,58,.11);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:800;padding:11px 15px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
+        .sighting-submit{margin-top:18px;width:100%}
+        .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
+        .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(196,148,58,.38);background:rgba(196,148,58,.12)}
+        .sighting-tab{border-radius:999px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.08);color:rgba(245,237,214,.58);padding:10px 16px}
+        .sighting-tab.active{background:linear-gradient(135deg,rgba(196,148,58,.22),rgba(232,201,122,.11));border-color:rgba(232,201,122,.34);color:var(--color-cream);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+        .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
+        .sighting-feed-shell{border:1px solid rgba(245,237,214,.075);border-radius:30px;background:linear-gradient(180deg,rgba(245,237,214,.026),rgba(245,237,214,.012));padding:16px 0 0;box-shadow:0 26px 80px rgba(0,0,0,.28);overflow:hidden}
+        .sighting-feed-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 18px 14px;border-bottom:1px solid rgba(245,237,214,.06)}
+        .sighting-feed-title{margin:0;font-family:var(--font-playfair);font-size:clamp(28px,7vw,42px);line-height:.98;letter-spacing:-.02em}
+        .sighting-feed-subtitle{margin:7px 0 0;color:rgba(245,237,214,.56);font-size:13px;line-height:1.55;max-width:560px}
+        .sighting-card-list{display:grid;gap:12px;padding:14px}
+        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(232,201,122,.12);border-radius:22px;padding:18px;background:radial-gradient(circle at 12% 0%,rgba(196,148,58,.14),transparent 34%),linear-gradient(145deg,rgba(31,22,12,.92),rgba(12,9,7,.96));box-shadow:0 18px 44px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.035)}
+        .sighting-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(232,201,122,.88),rgba(196,148,58,.24));opacity:.86}
+        .sighting-card-kicker{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+        .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(232,201,122,.86);font-weight:800}
+        .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.38);white-space:nowrap}
+        .sighting-title{margin:0;font-family:var(--font-playfair);font-size:clamp(22px,6vw,30px);line-height:1.03;letter-spacing:-.01em;color:var(--color-cream)}
+        .sighting-meta{margin:7px 0 0;color:rgba(245,237,214,.72);font-size:14px;line-height:1.45;font-weight:650}
+        .sighting-address{margin:3px 0 0;color:rgba(245,237,214,.42);font-size:12px;line-height:1.45}
+        .sighting-note{margin:13px 0 0;padding:10px 12px;border-left:1px solid rgba(232,201,122,.28);background:rgba(5,4,3,.18);border-radius:0 12px 12px 0;color:rgba(245,237,214,.67);font-size:13px;line-height:1.5}
+        .sighting-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.065)}
+        .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.42)}
+        .sighting-votes{display:flex;align-items:center;gap:6px;margin-left:auto}
+        .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);color:rgba(245,237,214,.62);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
+        .vote-button:hover{transform:translateY(-1px);border-color:rgba(232,201,122,.32);color:rgba(245,237,214,.9);background:rgba(196,148,58,.08)}
+        .vote-button.active{border-color:rgba(232,201,122,.42);background:rgba(196,148,58,.14);color:var(--color-cream)}
+        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:24px;padding-top:14px}.sighting-feed-top{align-items:flex-start;padding:0 14px 13px}.sighting-card-list{padding:12px;gap:11px}.sighting-card{border-radius:20px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{flex:1}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}}
       `}</style>
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
         <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
@@ -203,7 +236,7 @@ export default function SightingsClient() {
           <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings. These are user submitted reports, not alert-triggering engine signals.</p>
         </motion.div>
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginTop: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 26, padding: 4, border: "1px solid rgba(245,237,214,.07)", borderRadius: 999, background: "rgba(5,4,3,.24)", width: "fit-content", maxWidth: "100%" }}>
           <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => setActiveTab("submit")}>Submit</button>
           <button type="button" className={`sighting-tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>Feed</button>
         </div>
@@ -228,11 +261,24 @@ export default function SightingsClient() {
             </div>
           </section>
         ) : (
-          <section style={{ border: "1px solid rgba(245,237,214,0.1)", borderRadius: "0 28px 28px 28px", background: "rgba(245,237,214,0.045)", padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}><div><h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: 30 }}>Member Sightings Feed</h2><p style={{ margin: "5px 0 0", color: "rgba(245,237,214,.55)", fontSize: 13 }}>Newest first. User submitted sightings do not trigger alerts.</p></div><label><span className="sighting-label">State</span><select className="sighting-plain-input" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></label></div>
-            {loading ? <div className="sighting-empty">Loading member sightings…</div> : null}
-            <div style={{ display: "grid", gap: 12 }}>{filteredSightings.map((sighting) => <article key={sighting.id} className="sighting-card"><div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}><div><div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}><span className="sighting-pill">Member sighting</span><span className="sighting-pill">{tierLabel(sighting.rarityTier)}</span><span className="sighting-pill">{sightingTypeLabel(sighting.sightingType)}</span></div><h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: 24 }}>{sighting.bottleName}</h3><p style={{ margin: "6px 0 0", color: "rgba(245,237,214,.7)", lineHeight: 1.5 }}>{sighting.storeName} · {sighting.storeState || "State unknown"}</p><p style={{ margin: "4px 0 0", color: "rgba(245,237,214,.48)", fontSize: 13 }}>{sighting.storeAddress}</p>{sighting.quantityEstimate || sighting.price || sighting.notes ? <p style={{ margin: "8px 0 0", color: "rgba(245,237,214,.62)", fontSize: 13 }}>{[sighting.quantityEstimate, sighting.price ? `$${sighting.price}` : null, sighting.notes].filter(Boolean).join(" · ")}</p> : null}<p style={{ margin: "8px 0 0", color: "rgba(245,237,214,.4)", fontSize: 12 }}>Reported {formatAgo(sighting.createdAt)}</p></div><div style={{ display: "grid", gap: 6, minWidth: 82 }}><button type="button" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}>▲ {sighting.upCount || 0}</button><button type="button" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}>▼ {sighting.downCount || 0}</button></div></div></article>)}</div>
-            {!loading && filteredSightings.length === 0 ? <div className="sighting-empty" style={{ padding: 18, border: "1px solid rgba(245,237,214,.09)", borderRadius: 16 }}>No member sightings match this state yet.</div> : null}
+          <section className="sighting-feed-shell">
+            <div className="sighting-feed-top">
+              <div>
+                <h2 className="sighting-feed-title">Member Sightings</h2>
+                <p className="sighting-feed-subtitle">Newest first. Community-submitted sightings for members only — useful field intel, not alert-triggering engine signals.</p>
+              </div>
+              <label style={{ minWidth: 154 }}><span className="sighting-label">State</span><select className="sighting-plain-input" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}><option value="ALL">All states</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></label>
+            </div>
+            {loading ? <div className="sighting-empty" style={{ padding: "16px 18px" }}>Loading member sightings…</div> : null}
+            <div className="sighting-card-list">{filteredSightings.map((sighting) => <article key={sighting.id} className="sighting-card">
+              <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
+              <h3 className="sighting-title">{sighting.bottleName}</h3>
+              <p className="sighting-meta">{sighting.storeName}</p>
+              <p className="sighting-address">{[sighting.storeCity, sighting.storeState].filter(Boolean).join(", ") || sighting.storeState || "Location unknown"}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
+              {sighting.quantityEstimate || sighting.price || sighting.notes ? <div className="sighting-note">{[sighting.quantityEstimate, sighting.price ? `$${sighting.price}` : null, sighting.notes].filter(Boolean).join(" · ")}</div> : null}
+              <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
+            </article>)}</div>
+            {!loading && filteredSightings.length === 0 ? <div className="sighting-empty" style={{ margin: "0 14px 14px", padding: 18, border: "1px solid rgba(245,237,214,.09)", borderRadius: 16 }}>No member sightings match this state yet.</div> : null}
           </section>
         )}
       </div>
