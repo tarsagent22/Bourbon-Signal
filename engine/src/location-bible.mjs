@@ -83,8 +83,12 @@ export function buildLocationBible(signals = [], officialLocations = []) {
   }
 
   const activeOfficialLocations = officialLocations.filter((location) => activeStateIds.has(location.state));
-  const hasOfficialNc = activeOfficialLocations.some((location) => location.state === 'NC');
-  if (!hasOfficialNc) {
+  // Always keep NC county-board scaffolding in the site location bible. Official
+  // store/board feeds can fluctuate and may attach signals to many records, but
+  // the customer-facing finder still needs stable no-signal board locations for
+  // future collectors and search coverage. Dedupe below merges any overlapping
+  // official records.
+  if (activeStateIds.has('NC')) {
     for (const county of NC_COUNTIES) {
       locations.push(makeLocation({
         state: 'NC',
@@ -99,6 +103,18 @@ export function buildLocationBible(signals = [], officialLocations = []) {
         notes: county === 'Wake'
           ? 'Wake County has a current inventory collector attached; other NC boards are preloaded for future board/store collectors.'
           : 'Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later.'
+      }));
+      locations.push(makeLocation({
+        state: 'NC',
+        type: 'county_watch_area',
+        name: `${county} County Search Area`,
+        county,
+        precision: 'county_board',
+        source: 'NC ABC county coverage scaffold',
+        sourceUrl: 'https://www.abc.nc.gov/nc-abc-boards-and-stores',
+        inventoryCapability: county === 'Wake' ? 'store_level_partial' : 'county_board_watch',
+        collectorAttached: false,
+        notes: 'Stable no-signal county coverage row used for search/filter scaffolding even when board shipment signals are present.'
       }));
     }
   }

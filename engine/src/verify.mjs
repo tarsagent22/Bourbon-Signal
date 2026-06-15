@@ -19,6 +19,14 @@ async function orUnavailable(out) {
   return hasOfficialOutage && browserEmpty;
 }
 
+async function ohlqBrowserUnavailable(out) {
+  const browserStatus = await readJson(path.join(out, 'browser-refresh-status.json')).catch(() => null);
+  const state = await readJson(path.join(out, 'states', 'OH.json')).catch(() => null);
+  const failedPreflight = (browserStatus?.results || []).some((r) => r.id === 'ohlq' && r.ok === false && /failed|rejected|timeout/i.test(`${r.status || ''} ${r.error || ''}`));
+  const hasOhlqRoadblock = (state?.roadblocks || []).some((r) => /OHLQ/i.test(`${r.source || ''} ${r.url || ''}`) && /Cloudflare|CDP|browser|blocked|timeout|ECONNREFUSED|artifact|fixture/i.test(`${r.error || ''} ${r.nextRoute || ''}`));
+  return Boolean(failedPreflight || hasOhlqRoadblock);
+}
+
 async function main() {
   const out = path.resolve('out');
   const required = ['bourbon-bible.json', 'bourbon-bible-report.md', 'summary.json', 'signals.json', 'readable.md', 'roadblocks.md', 'rare-signals.json', 'rare-signals.md', 'current-snapshot.json', 'diff.json', 'diff.md', 'alert-candidates.json', 'alert-candidates.md', 'confidence-policy.json'];
@@ -70,7 +78,9 @@ async function main() {
   }
 
   const ohlqSignals = operational.signals.filter((s) => s.state === 'OH' && /^browser_assisted_store_inventory_/.test(String(s.eventType || '')));
-  if (!ohlqSignals.length) throw new Error('Expected decoded OHLQ browser-assisted store inventory signals');
+  const ohlqUnavailable = await ohlqBrowserUnavailable(out);
+  if (!ohlqSignals.length && !ohlqUnavailable) throw new Error('Expected decoded OHLQ browser-assisted store inventory signals');
+  if (!ohlqSignals.length && ohlqUnavailable) console.log('OHLQ browser-assisted inventory unavailable: CDP/OHLQ browser collector is currently blocked or missing a warmed session; exact OH inventory rows are not being published from stale data.');
   const invalidOhlqStatus = ohlqSignals.find((s) => !['limited_supply', 'in_stock'].includes(s.availabilityStatus));
   if (invalidOhlqStatus) throw new Error(`OHLQ emitted a non-positive availability signal: ${invalidOhlqStatus.availabilityStatus || 'missing'}`);
 

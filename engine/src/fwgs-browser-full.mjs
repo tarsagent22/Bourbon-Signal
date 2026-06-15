@@ -37,15 +37,21 @@ function runChunk(offset) {
 async function main() {
   await mkdir(path.dirname(OUT_FILE), { recursive: true });
   const chunkFiles = [];
+  const failedChunks = [];
   for (const offset of OFFSETS) {
     console.log(`=== FWGS full chunk offset ${offset} ===`);
-    chunkFiles.push(await runChunk(offset));
+    try {
+      chunkFiles.push(await runChunk(offset));
+    } catch (error) {
+      failedChunks.push({ offset, error: error.message });
+      console.warn(`FWGS chunk offset ${offset} failed; continuing with remaining chunks: ${error.message}`);
+    }
   }
 
   const chunks = [];
   for (const file of chunkFiles) chunks.push({ file, payload: JSON.parse(await readFile(file, 'utf8')) });
   const first = chunks[0]?.payload;
-  if (!first) throw new Error('No FWGS chunks were collected.');
+  if (!first) throw new Error(`No FWGS chunks were collected. Failed chunks: ${failedChunks.map((f) => `${f.offset}:${f.error}`).join('; ')}`);
 
   const locationsById = new Map();
   const rows = [];
@@ -61,6 +67,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     sourceUrl: 'https://www.finewineandgoodspirits.com/store-locator',
     chunks: chunks.map(({ file, payload }) => ({ file, generatedAt: payload.generatedAt, summary: payload.summary })),
+    failedChunks,
     locations: [...locationsById.values()].sort((a, b) => String(a.locationId).localeCompare(String(b.locationId))),
     inventoryRows: rows,
     failures,
@@ -72,7 +79,7 @@ async function main() {
     }
   };
   await writeFile(OUT_FILE, JSON.stringify(merged, null, 2));
-  console.log(`Wrote ${OUT_FILE}: ${merged.summary.productCount} products, ${merged.summary.locationCount} stores, ${merged.summary.positiveInventoryRowCount} positive store rows, ${merged.summary.failureCount} failures.`);
+  console.log(`Wrote ${OUT_FILE}: ${merged.summary.productCount} products, ${merged.summary.locationCount} stores, ${merged.summary.positiveInventoryRowCount} positive store rows, ${merged.summary.failureCount} failures, ${failedChunks.length} failed chunks.`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });
