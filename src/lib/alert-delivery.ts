@@ -50,6 +50,7 @@ const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || 24);
+const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
 
 function asString(value: unknown, fallback = "") {
@@ -361,6 +362,24 @@ function primaryEmailForUser(user: Record<string, unknown>) {
   return asString(primary?.emailAddress);
 }
 
+function emailRecipientAllowed(email: string) {
+  if (!ALERT_EMAIL_ALLOWED_RECIPIENTS.length) return true;
+  return ALERT_EMAIL_ALLOWED_RECIPIENTS.includes(email.toLowerCase());
+}
+
+function candidateEvidenceLabel(candidate: CandidateAlert) {
+  return asString(candidate.evidence) || asString(candidate.reason) || null;
+}
+
+function candidateSourceLabel(candidate: CandidateAlert) {
+  return asString(candidate.source) || null;
+}
+
+function candidateSourceUrl(candidate: CandidateAlert) {
+  const url = asString(candidate.sourceUrl);
+  return /^https?:\/\//.test(url) ? url : null;
+}
+
 export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean } = {}) {
   assertAlertDeliveryAuthorized(req);
 
@@ -394,6 +413,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     emailsSent: 0,
     emailsWouldSend: 0,
     skippedEmailDeliveryDisabled: 0,
+    skippedEmailRecipientNotAllowed: 0,
     skippedDailyRoundup: 0,
     skippedNoEmail: 0,
     skippedDedupe: 0,
@@ -474,6 +494,8 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         const email = primaryEmailForUser(user);
         if (!email) {
           summary.skippedNoEmail += 1;
+        } else if (!emailRecipientAllowed(email)) {
+          summary.skippedEmailRecipientNotAllowed += matchingPreferenceCandidates.length;
         } else {
           const delivered = recentDeliverySet(deliveryMetadata);
           const matchedCandidates = matchingPreferenceCandidates
@@ -514,6 +536,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                     state,
                     timestampLabel: candidateTimestampLabel(candidate),
                     quantityLabel: candidateQuantityLabel(candidate),
+                    evidenceLabel: candidateEvidenceLabel(candidate),
+                    sourceLabel: candidateSourceLabel(candidate),
+                    sourceUrl: candidateSourceUrl(candidate),
                     dashboardUrl: `${appUrl}/dashboard`,
                   }),
                   headers: {
@@ -528,6 +553,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                 summary.emailsWouldSend += 1;
               } else {
                 newRecords.push({ dedupeKey, deliveredAt: now, emailMode: notificationPrefs.email.mode, messageId });
+                newOnSiteAlerts = newOnSiteAlerts.map((alert) => alert.dedupeKey === dedupeKey
+                  ? { ...alert, emailDeliveredAt: now, emailModeAtSend: notificationPrefs.email.mode }
+                  : alert);
                 summary.emailsSent += 1;
               }
               globalEmailCount += 1;
