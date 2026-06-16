@@ -496,47 +496,40 @@ function SkeletonRow() {
   );
 }
 
-function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
-  if (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level") {
-    return { label: "Store-level", tone: "exact" };
-  }
-  if (drop.state === "KY") {
-    if (drop.confidenceTier === "exact_today_distillery") return { label: "KY today", tone: "exact" };
-    if (drop.confidenceTier === "official_release_live") return { label: "KY live", tone: "online" };
-    if (drop.confidenceTier === "official_window_open" || drop.availabilityScope === "release_window") return { label: "KY window", tone: "online" };
-    if (drop.confidenceTier === "official_announcement" || drop.confidenceTier === "venue_signal") return { label: "KY official", tone: "listing" };
-    return null;
-  }
-  if (drop.state === "NC") {
-    if (drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board") return { label: "NC board", tone: "online" };
-  }
-  if (drop.state !== "PA") return null;
-  if (drop.confidenceTier === "exact_store" || drop.availabilityScope === "exact" || drop.exactStore) {
-    return { label: "PA source", tone: "exact" };
-  }
-  if (drop.confidenceTier === "online_positive") {
-    return { label: "PA online", tone: "online" };
-  }
-  if (drop.confidenceTier === "listing_only") {
-    return { label: "PA listing", tone: "listing" };
-  }
-  return null;
+function isStoreLevelSignal(drop: GroupedDrop) {
+  return Boolean(drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
 }
 
-function getAccuracyBadge(drop: GroupedDrop): { label: string; caption: string; tone: "exact" | "official" | "positive" } {
-  if (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level") {
-    return { label: "Source-reported", caption: "Store-level signal; verify before driving", tone: "exact" };
-  }
+function isBoardLevelSignal(drop: GroupedDrop) {
+  return Boolean(drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board" || /board/i.test(String(drop.locationPrecision || "")));
+}
 
+function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; tone: "exact" | "official" | "positive" } {
+  if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") {
+    return { label: "Member report", detail: "Submitted by a member; verify before driving.", tone: "positive" };
+  }
+  if (isStoreLevelSignal(drop)) {
+    return { label: "Store-level", detail: "Reported at a specific store; verify before driving.", tone: "exact" };
+  }
+  if (drop.state === "NC" && isBoardLevelSignal(drop)) {
+    return { label: "Board-level lead", detail: "Reported at the ABC board level; exact store can vary.", tone: "official" };
+  }
+  if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") {
+    return { label: "Online signal", detail: "Source showed online availability; confirm at checkout.", tone: "positive" };
+  }
   if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) {
-    return { label: "Official", caption: "Official source signal", tone: "official" };
+    return { label: "Official lead", detail: "Official release or pickup signal; confirm timing before driving.", tone: "official" };
   }
+  return { label: "Area lead", detail: "Broader source signal; use as a lead, not an exact shelf count.", tone: "positive" };
+}
 
-  if (drop.state === "NC" && drop.event_type === "nc_board_shipment_snapshot") {
-    return { label: "Official", caption: "Board-level shipment", tone: "official" };
-  }
-
-  return { label: "Positive", caption: "Noise-filtered", tone: "positive" };
+function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
+  if (isStoreLevelSignal(drop)) return { label: "Store-level", tone: "exact" };
+  if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member report", tone: "listing" };
+  if (drop.state === "NC" && isBoardLevelSignal(drop)) return { label: "Board-level", tone: "online" };
+  if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") return { label: "Online", tone: "online" };
+  if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) return { label: "Official", tone: "listing" };
+  return null;
 }
 
 function getEventDescription(drop: GroupedDrop): string {
@@ -649,6 +642,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
   const primaryMeta = getPrimarySignalMeta(drop, locationSummary, stateLabel);
   const signalLabel = drop.signalLabel || "Bottle drop";
+  const signalTrust = getSignalTrust(drop);
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
@@ -668,17 +662,12 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   // Build detail fields
   const details: { label: string; value: string }[] = [];
   const confidenceBadge = getConfidenceBadge(drop);
-  const accuracyBadge = getAccuracyBadge(drop);
   if (drop.signalLabel) {
-    details.push({ label: "Drop type", value: drop.signalLabel });
+    details.push({ label: "Signal", value: drop.signalLabel });
   }
-  if (isUserSighting) {
-    details.push({ label: "Evidence", value: "Submitted by a member; verify before driving" });
-  } else {
-    details.push({ label: "Evidence", value: `${accuracyBadge.label} · ${accuracyBadge.caption}` });
-  }
-  if (confidenceBadge) {
-    details.push({ label: "Confidence", value: confidenceBadge.label });
+  details.push({ label: "Trust note", value: `${signalTrust.label} · ${signalTrust.detail}` });
+  if (confidenceBadge && confidenceBadge.label !== signalTrust.label) {
+    details.push({ label: "Precision", value: confidenceBadge.label });
   }
   const firstReportedAt = drop.firstSeenAt || drop.eventAt || drop.timestamp;
   const lastReportedAt = drop.lastConfirmedAt || drop.timestamp;
@@ -692,18 +681,21 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
     details.push({ label: "Board", value: drop.board_name });
   }
   if (drop.event_type === "nc_board_shipment_snapshot") {
-    details.push({ label: "Precision", value: "Board-level shipment, store unknown" });
+    details.push({ label: "NC board note", value: "A board received or reported stock. Treat it as an area lead, not exact shelf inventory." });
   }
   if (drop.retail_price && drop.retail_price > 0) {
     details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
   }
-  if (drop.quantity_shipped && drop.quantity_shipped > 0) {
+  if (drop.quantity_shipped && drop.quantity_shipped > 0 && (drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot")) {
     details.push({ label: drop.event_type === "nc_board_shipment_snapshot" ? "Board received" : "Shipped", value: `${drop.quantity_shipped} unit${drop.quantity_shipped === 1 ? "" : "s"}` });
   }
   if (isUserSighting && userQuantityEstimate) {
     details.push({ label: "Member estimate", value: userQuantityEstimate });
-  } else if (drop.quantity_in_stock && drop.quantity_in_stock > 0) {
-    details.push({ label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "Source-reported", value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}` });
+  } else if (drop.quantity_in_stock && drop.quantity_in_stock > 0 && !drop.locations.some((location) => Boolean(location.quantity))) {
+    details.push({
+      label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : isBoardLevelSignal(drop) ? "Board-reported" : "Source-reported",
+      value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}`,
+    });
   }
   if (drop.locations.length > 0) {
     details.push({
@@ -841,8 +833,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             color: "rgba(245,237,214,0.45)",
           }}
         >
-          <span>{signalLabel}</span>
-          <span style={{ color: "rgba(245,237,214,0.34)" }}>{hasDetails ? "Tap for details" : "More shown"}</span>
+          <span>{signalTrust.label}</span>
+          <span style={{ color: "rgba(245,237,214,0.34)" }}>{signalLabel}</span>
         </div>
 
         {!isFreeUser ? (
@@ -922,6 +914,23 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                 {stateLabel}
               </span>
             )}
+            <span
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "9px",
+                fontWeight: 800,
+                letterSpacing: "0.06em",
+                color: signalTrust.tone === "exact" ? "rgba(157,211,168,0.82)" : signalTrust.tone === "official" ? "rgba(232,201,122,0.78)" : "rgba(245,237,214,0.48)",
+                background: signalTrust.tone === "exact" ? "rgba(82,170,104,0.1)" : signalTrust.tone === "official" ? "rgba(196,148,58,0.08)" : "rgba(245,237,214,0.045)",
+                border: signalTrust.tone === "exact" ? "1px solid rgba(82,170,104,0.18)" : signalTrust.tone === "official" ? "1px solid rgba(196,148,58,0.14)" : "1px solid rgba(245,237,214,0.08)",
+                padding: "1px 5px",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {signalTrust.label}
+            </span>
             <span
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -1089,7 +1098,9 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                               <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
                                 {drop.event_type === "new_shipment"
                                   ? `${location.quantity} case${location.quantity === 1 ? "" : "s"} shipped`
-                                  : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} reported`}
+                                  : drop.event_type === "nc_board_shipment_snapshot"
+                                    ? `${location.quantity} unit${location.quantity === 1 ? "" : "s"} reported to board`
+                                    : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} reported`}
                               </div>
                             )}
                           </div>
@@ -1155,9 +1166,7 @@ export default function DropFeed() {
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
-  const [lastFetch, setLastFetch] = useState<string>("");
   const POLL_INTERVAL_SECONDS = 120;
-  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(POLL_INTERVAL_SECONDS);
   const prevIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
@@ -1240,9 +1249,6 @@ export default function DropFeed() {
       setGrouped(newGrouped);
       setNextDropOffset(nextOffset);
       setVisibleDropCount(isSignedIn ? 10 : 7);
-      const nowIso = new Date().toISOString();
-      setLastFetch(nowIso);
-      setSecondsUntilRefresh(POLL_INTERVAL_SECONDS);
     } catch {
       setError(true);
     }
@@ -1258,13 +1264,6 @@ export default function DropFeed() {
     const interval = setInterval(fetchDrops, POLL_INTERVAL_SECONDS * 1000);
     return () => clearInterval(interval);
   }, [fetchDrops]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsUntilRefresh((prev) => Math.max(prev - 1, 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const storeCoordinateLookup = new Map<string, { lat: number; lng: number }>();
   for (const store of stores) {
@@ -1433,6 +1432,7 @@ export default function DropFeed() {
     return +new Date(b.timestamp) - +new Date(a.timestamp);
   });
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
+  const engineRefreshedText = data?.lastUpdated ? `Refreshed ${formatRelativeTime(data.lastUpdated)}` : "";
 
   const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
   const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
@@ -2022,7 +2022,7 @@ export default function DropFeed() {
 
           {data && (
             <div className="dropfeed-result-line">
-              <span>{displayedGrouped.length} of {finalFeed.length} drops</span>
+              <span>{displayedGrouped.length} of {finalFeed.length} drops{engineRefreshedText ? ` · ${engineRefreshedText}` : ""}</span>
               {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
             </div>
           )}
@@ -2178,8 +2178,8 @@ export default function DropFeed() {
             </div>
           )}
 
-          {/* Last updated */}
-          {lastFetch && (
+          {/* Engine freshness */}
+          {engineRefreshedText && (
             <div className="text-center" style={{ marginTop: "16px" }}>
               <span
                 style={{
@@ -2188,11 +2188,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.25)",
                 }}
               >
-                Refreshed:{" "}
-                {new Date(lastFetch).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {engineRefreshedText} from latest engine export
               </span>
             </div>
           )}
