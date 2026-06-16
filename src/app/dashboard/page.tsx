@@ -515,6 +515,7 @@ export default function DashboardPage() {
     success: false,
     error: null,
   });
+  const [alertSetupError, setAlertSetupError] = useState<string | null>(null);
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [storeSelections, setStoreSelections] = useState<Record<string, StoreSelectionState>>({});
@@ -1320,11 +1321,31 @@ export default function DashboardPage() {
     }
   }, [territoryDropdown]);
 
+  const alertHasMarket = localPrefs.states.length > 0;
+  const alertHasBottleTarget = alertMode === "specific_bottles" && watchedBottleOptions.length > 0;
+  const alertHasDeliveryChannel = notificationPrefs.onSite.enabled || notificationPrefs.email.enabled;
+  const alertSetupComplete = alertHasMarket && alertHasDeliveryChannel && (alertMode === "anything_notable" || alertHasBottleTarget);
+  const alertSetupWarnings = [
+    !alertHasMarket ? "Pick at least one state so alerts are not accidentally nationwide." : null,
+    alertMode === "specific_bottles" && !alertHasBottleTarget ? "Add at least one bottle, or switch back to any major drop in your markets." : null,
+    !alertHasDeliveryChannel ? "Turn on at least one delivery channel: on-site inbox or email." : null,
+  ].filter((item): item is string => Boolean(item));
+  const alertSetupSummary = alertSetupComplete
+    ? alertMode === "specific_bottles"
+      ? `Watching ${watchedBottleOptions.length} bottle${watchedBottleOptions.length === 1 ? "" : "s"} in ${localPrefs.states.join(", ")}.`
+      : `Watching major drops in ${localPrefs.states.join(", ")}.`
+    : "Setup incomplete — choose where to watch, what should trigger, and where alerts should go.";
+
   const handleSaveAlertSetup = async () => {
     if (!isSignedIn) {
       signIn();
       return;
     }
+    if (!alertSetupComplete) {
+      setAlertSetupError(alertSetupWarnings[0] || "Finish the alert setup before saving.");
+      return;
+    }
+    setAlertSetupError(null);
     setSavingLocations(true);
     try {
       const nextPrefs: UserAlertPreferences = {
@@ -1348,10 +1369,10 @@ export default function DashboardPage() {
   };
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
-    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
+    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose where we watch, what counts as a hit, and how you want to hear about it.", status: alertSetupComplete ? "Ready" : "Incomplete" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} owned` },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready" },
-  ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+  ]), [alertSetupComplete, collectionEntries.length, collectionRecommendationInsights.length, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -1679,11 +1700,58 @@ export default function DashboardPage() {
           {renderSectionButton("alerts")}
 
           {activeDashboardSection === "alerts" ? (
+            <section
+              style={{
+                border: alertSetupComplete ? "1px solid rgba(83,166,117,0.24)" : "1px solid rgba(214,122,97,0.26)",
+                background: alertSetupComplete
+                  ? "linear-gradient(135deg, rgba(83,166,117,0.10), rgba(255,255,255,0.025))"
+                  : "linear-gradient(135deg, rgba(214,122,97,0.10), rgba(196,148,58,0.045))",
+                borderTop: "none",
+                borderRadius: "0 0 22px 22px",
+                padding: "16px 18px",
+                margin: "-14px 0 14px",
+                display: "grid",
+                gap: "12px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", alignItems: "flex-start" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.13em", textTransform: "uppercase", color: alertSetupComplete ? "#76C690" : "#D77A61", fontWeight: 850 }}>
+                    {alertSetupComplete ? "Alert setup ready" : "Finish these before saving"}
+                  </div>
+                  <p style={{ margin: "7px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.65 }}>
+                    {alertSetupSummary}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {[
+                    { label: "Where", ready: alertHasMarket },
+                    { label: "Trigger", ready: alertMode === "anything_notable" || alertHasBottleTarget },
+                    { label: "Delivery", ready: alertHasDeliveryChannel },
+                  ].map((item) => (
+                    <span key={item.label} style={{ borderRadius: "999px", border: item.ready ? "1px solid rgba(83,166,117,0.26)" : "1px solid rgba(214,122,97,0.22)", background: item.ready ? "rgba(83,166,117,0.08)" : "rgba(214,122,97,0.08)", color: item.ready ? "#9ED8AD" : "#E1A08D", padding: "7px 10px", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {item.ready ? "✓" : "!"} {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {alertSetupWarnings.length > 0 ? (
+                <ul style={{ margin: 0, paddingLeft: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "12px", lineHeight: 1.65 }}>
+                  {alertSetupWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+                </ul>
+              ) : null}
+              {alertSetupError ? (
+                <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "#D77A61", fontSize: "12px", lineHeight: 1.55 }}>{alertSetupError}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {activeDashboardSection === "alerts" ? (
           <StepShell
             step="01"
             sectionLabel="Area setup"
-            title="Choose your area"
-            subtitle="Choose the state first, then refine to the board, city, or store level in the same place. Your current selections stay visible below."
+            title="Where should we watch?"
+            subtitle="A state is required. Then refine to the board, city, or store level when local data supports it."
             attached
           >
             {(() => {
@@ -1891,8 +1959,8 @@ export default function DashboardPage() {
           {activeDashboardSection === "alerts" ? (
           <StepShell
             step="02"
-            title="Choose what to watch"
-            subtitle="Start broad with anything notable nearby, or narrow alerts to bottles you pick yourself."
+            title="What should trigger an alert?"
+            subtitle="Choose a broad major-drop watch in your saved markets, or narrow alerts to bottle names you pick yourself."
           >
               <div style={{ display: "grid", gap: "12px" }}>
                 <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -2046,8 +2114,8 @@ export default function DashboardPage() {
           {activeDashboardSection === "alerts" ? (
           <StepShell
             step={alertMode === "specific_bottles" ? "04" : "03"}
-            title="Notification preferences"
-            subtitle="Choose where Bourbon Signal should send matching alerts, and how loud email should be."
+            title="How should we notify you?"
+            subtitle="Delivery comes last: email or on-site alerts only matter after Bourbon Signal knows your market and trigger rules."
           >
             <div style={{ display: "grid", gap: "18px" }}>
               <div
@@ -2176,7 +2244,7 @@ export default function DashboardPage() {
                             Email alerts
                           </span>
                           <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
-                            Get email alerts when a signal matches your watchlist.
+                            Get emails only when a future signal matches the market and trigger rules above.
                           </span>
                         </div>
                         <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
@@ -2276,23 +2344,23 @@ export default function DashboardPage() {
 
                   <button
                     onClick={sendPreviewEmail}
-                    disabled={!isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending}
+                    disabled={!isSignedIn || !notificationPrefs.email.enabled || !alertSetupComplete || alertPreview.sending}
                     style={{
                       padding: "14px 20px",
                       borderRadius: "999px",
                       border: "1px solid rgba(196,148,58,0.28)",
-                      background: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
+                      background: !isSignedIn || !notificationPrefs.email.enabled || !alertSetupComplete || alertPreview.sending
                         ? "rgba(255,255,255,0.05)"
                         : "linear-gradient(135deg, rgba(68,48,26,0.95) 0%, rgba(38,28,16,0.95) 100%)",
-                      color: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
+                      color: !isSignedIn || !notificationPrefs.email.enabled || !alertSetupComplete || alertPreview.sending
                         ? "var(--color-text-tertiary)"
                         : "var(--color-accent-gold)",
                       fontFamily: "var(--font-dm-sans)",
                       fontWeight: 700,
                       fontSize: "14px",
-                      cursor: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "not-allowed" : "pointer",
+                      cursor: !isSignedIn || !notificationPrefs.email.enabled || !alertSetupComplete || alertPreview.sending ? "not-allowed" : "pointer",
                       textAlign: "left",
-                      boxShadow: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "none" : "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)",
+                      boxShadow: !isSignedIn || !notificationPrefs.email.enabled || !alertSetupComplete || alertPreview.sending ? "none" : "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)",
                     }}
                   >
                     {alertPreview.sending ? "Sending preview…" : "Send test alert email"}
@@ -2316,21 +2384,21 @@ export default function DashboardPage() {
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <button
                   onClick={handleSaveAlertSetup}
-                  disabled={savingLocations}
+                  disabled={savingLocations || (isSignedIn && !alertSetupComplete)}
                   style={{
                     padding: "12px 18px",
                     borderRadius: "12px",
                     border: savedNotifications ? "1px solid rgba(82, 180, 126, 0.45)" : "none",
-                    background: savedNotifications ? "rgba(82,180,126,0.15)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
-                    color: savedNotifications ? "#9AD4B1" : "#0D0B07",
+                    background: savedNotifications ? "rgba(82,180,126,0.15)" : isSignedIn && !alertSetupComplete ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                    color: savedNotifications ? "#9AD4B1" : isSignedIn && !alertSetupComplete ? "var(--color-text-tertiary)" : "#0D0B07",
                     fontFamily: "var(--font-dm-sans)",
                     fontWeight: 700,
                     fontSize: "14px",
-                    cursor: savingLocations ? "progress" : "pointer",
+                    cursor: savingLocations ? "progress" : isSignedIn && !alertSetupComplete ? "not-allowed" : "pointer",
                     opacity: savingLocations ? 0.7 : 1,
                   }}
                 >
-                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : "Save alert setup"}
+                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : !alertSetupComplete ? "Complete setup to save" : "Save alert setup"}
                 </button>
               </div>
             </div>
