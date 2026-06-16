@@ -36,7 +36,7 @@ export interface MemberAlertRecord {
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   onSite: { enabled: true },
-  email: { enabled: true, mode: "major_only" },
+  email: { enabled: false, mode: "major_only" },
   sms: { enabled: false, available: false },
 };
 

@@ -85,7 +85,7 @@ export function PaidDropAlertEmail({
             </Section>
 
             <Text className="bs-footer" style={footerCopy}>
-              If this looks wrong, reply and we will check it out.
+              Inventory moves quickly. Treat this as a fresh signal, verify with the store when possible, and reply if it looks wrong.
             </Text>
           </Section>
         </Container>

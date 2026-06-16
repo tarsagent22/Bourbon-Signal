@@ -47,6 +47,8 @@ const MAX_EMAILS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_RUN 
 const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 5);
 const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 10);
 const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
+const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
+const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || 24);
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
 
@@ -145,7 +147,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   return true;
 }
 
-function candidateMatchesBottlePrefs(candidate: CandidateAlert, alertMode: unknown, bottlePrefs: BottleAlertPreferences) {
+export function candidateMatchesBottlePrefs(candidate: CandidateAlert, alertMode: unknown, bottlePrefs: BottleAlertPreferences) {
   if (alertMode !== "specific_bottles") return true;
   const wanted = [...bottlePrefs.bottleKeys, ...bottlePrefs.bottleNames.map(normalizeBottleKey)].filter(Boolean);
   if (!wanted.length) return false;
@@ -160,7 +162,7 @@ function candidateMatchesEmailMode(candidate: CandidateAlert, mode: EmailAlertMo
   return false;
 }
 
-function candidateCanSendEmail(candidate: CandidateAlert) {
+export function candidateCanSendEmail(candidate: CandidateAlert) {
   const deliveryChannel = asString(candidate.deliveryChannel);
   const eventType = asString(candidate.eventType).toLowerCase();
   const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
@@ -184,7 +186,7 @@ function candidateDeliveryCautions(candidate: CandidateAlert) {
   return toStrings(candidate.cautions).map((caution) => caution.toLowerCase());
 }
 
-function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
+export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
   const blockers = candidateDeliveryBlockers(candidate);
   const cautions = candidateDeliveryCautions(candidate);
   const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
@@ -330,11 +332,11 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
 }
 
 function deliveryAuthorized(req: Request) {
-  const expected = process.env.ALERT_DELIVERY_SECRET || process.env.CRON_SECRET;
-  if (!expected) return process.env.NODE_ENV !== "production";
+  const expectedSecrets = [process.env.ALERT_DELIVERY_SECRET, process.env.CRON_SECRET].filter(Boolean);
+  if (!expectedSecrets.length) return process.env.NODE_ENV !== "production";
   const auth = req.headers.get("authorization") || "";
   const headerSecret = req.headers.get("x-alert-delivery-secret") || "";
-  return auth === `Bearer ${expected}` || headerSecret === expected;
+  return expectedSecrets.some((expected) => auth === `Bearer ${expected}` || headerSecret === expected);
 }
 
 export function assertAlertDeliveryAuthorized(req: Request) {
@@ -378,6 +380,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     ok: true,
     dryRun,
     deliveryEnabled: ALERT_DELIVERY_ENABLED,
+    onSiteDeliveryEnabled: ALERT_ONSITE_DELIVERY_ENABLED,
+    emailDeliveryEnabled: ALERT_EMAIL_DELIVERY_ENABLED,
+    emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
     rawEligibleCandidateCount,
     candidateCount: candidates.length,
     skippedSafetyGuardrail: rawEligibleCandidateCount - candidates.length,
@@ -387,6 +392,8 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     usersMatched: 0,
     onSiteAlertsCreated: 0,
     emailsSent: 0,
+    emailsWouldSend: 0,
+    skippedEmailDeliveryDisabled: 0,
     skippedDailyRoundup: 0,
     skippedNoEmail: 0,
     skippedDedupe: 0,
@@ -395,15 +402,15 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
 
-  if (!dryRun && !ALERT_DELIVERY_ENABLED) {
+  if (!dryRun && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED) {
     return {
       ...summary,
       deliveryDisabled: true,
-      reason: "ALERT_DELIVERY_ENABLED must be set to 1 before live alert delivery can create on-site alerts or send emails.",
+      reason: "Set ALERT_ONSITE_DELIVERY_ENABLED=1 for on-site inbox sync and/or ALERT_EMAIL_DELIVERY_ENABLED=1 for live email delivery. ALERT_DELIVERY_ENABLED=1 enables both for legacy full-delivery mode.",
     };
   }
 
-  const resend = dryRun ? null : getResendClient();
+  const resend = !dryRun && ALERT_EMAIL_DELIVERY_ENABLED ? getResendClient() : null;
   const client = await clerkClient();
 
   let offset = 0;
@@ -437,6 +444,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
       if (notificationPrefs.onSite.enabled) {
         summary.usersWithOnSiteEnabled += 1;
+      }
+
+      if (notificationPrefs.onSite.enabled && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
         newOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => {
@@ -458,6 +468,8 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
 
       if (notificationPrefs.email.enabled && notificationPrefs.email.mode === "daily_roundup") {
         summary.skippedDailyRoundup += 1;
+      } else if (notificationPrefs.email.enabled && !dryRun && !ALERT_EMAIL_DELIVERY_ENABLED) {
+        summary.skippedEmailDeliveryDisabled += matchingPreferenceCandidates.length;
       } else if (notificationPrefs.email.enabled) {
         const email = primaryEmailForUser(user);
         if (!email) {
@@ -465,59 +477,63 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         } else {
           const delivered = recentDeliverySet(deliveryMetadata);
           const matchedCandidates = matchingPreferenceCandidates
-        .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode))
-        .filter((candidate) => {
-          const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-          const duplicate = delivered.has(dedupeKey);
-          if (duplicate) summary.skippedDedupe += 1;
-          return !duplicate;
-        })
-        .slice(0, Math.max(1, MAX_EMAILS_PER_USER));
+            .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode))
+            .filter((candidate) => {
+              const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+              const duplicate = delivered.has(dedupeKey);
+              if (duplicate) summary.skippedDedupe += 1;
+              return !duplicate;
+            })
+            .slice(0, Math.max(1, MAX_EMAILS_PER_USER));
 
           if (matchedCandidates.length) {
             summary.usersMatched += 1;
-
-      for (const candidate of matchedCandidates) {
-        if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;
-        const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-        const bottleName = asString(candidate.bottle, "Bottle signal");
-        const storeLabel = candidateStoreLabel(candidate);
-        const matchedArea = candidateMatchedArea(candidate, areaPrefs);
-        const state = asString(candidate.state).toUpperCase();
-
-        try {
-          let messageId: string | null = null;
-          if (!dryRun && resend) {
-            const result = await resend.emails.send({
-              from: ALERT_FROM,
-              to: [email],
-              replyTo: ALERT_REPLY_TO,
-              subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${storeLabel}`,
-              react: PaidDropAlertEmail({
-                firstName: asString(user.firstName) || null,
-                bottleName,
-                storeLabel,
-                matchedArea,
-                state,
-                timestampLabel: candidateTimestampLabel(candidate),
-                quantityLabel: candidateQuantityLabel(candidate),
-                dashboardUrl: `${appUrl}/dashboard`,
-              }),
-              headers: {
-                "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
-              },
-            });
-            if (result.error) throw new Error(result.error.message);
-            messageId = result.data?.id || null;
           }
 
-          newRecords.push({ dedupeKey, deliveredAt: now, emailMode: notificationPrefs.email.mode, messageId });
-          globalEmailCount += 1;
-          summary.emailsSent += 1;
-        } catch (error) {
-          summary.errors.push({ userId, email, message: error instanceof Error ? error.message : String(error) });
-        }
-      }
+          for (const candidate of matchedCandidates) {
+            if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;
+            const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+            const bottleName = asString(candidate.bottle, "Bottle signal");
+            const storeLabel = candidateStoreLabel(candidate);
+            const matchedArea = candidateMatchedArea(candidate, areaPrefs);
+            const state = asString(candidate.state).toUpperCase();
+
+            try {
+              let messageId: string | null = null;
+              if (!dryRun && resend) {
+                const result = await resend.emails.send({
+                  from: ALERT_FROM,
+                  to: [email],
+                  replyTo: ALERT_REPLY_TO,
+                  subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${storeLabel}`,
+                  react: PaidDropAlertEmail({
+                    firstName: asString(user.firstName) || null,
+                    bottleName,
+                    storeLabel,
+                    matchedArea,
+                    state,
+                    timestampLabel: candidateTimestampLabel(candidate),
+                    quantityLabel: candidateQuantityLabel(candidate),
+                    dashboardUrl: `${appUrl}/dashboard`,
+                  }),
+                  headers: {
+                    "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
+                  },
+                });
+                if (result.error) throw new Error(result.error.message);
+                messageId = result.data?.id || null;
+              }
+
+              if (dryRun) {
+                summary.emailsWouldSend += 1;
+              } else {
+                newRecords.push({ dedupeKey, deliveredAt: now, emailMode: notificationPrefs.email.mode, messageId });
+                summary.emailsSent += 1;
+              }
+              globalEmailCount += 1;
+            } catch (error) {
+              summary.errors.push({ userId, email, message: error instanceof Error ? error.message : String(error) });
+            }
           }
         }
       }

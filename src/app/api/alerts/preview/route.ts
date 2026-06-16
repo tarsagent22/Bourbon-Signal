@@ -13,6 +13,10 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const notificationPrefs = user.publicMetadata?.notificationPreferences as { email?: { enabled?: boolean } } | undefined;
+  if (notificationPrefs?.email?.enabled !== true) {
+    return NextResponse.json({ error: "Email alerts are disabled for this account" }, { status: 403 });
+  }
   // Founding tester mode: allow signed-in testers to send themselves a preview alert.
   // Re-enable tier gating here for hard launch.
   const primaryEmail = user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId) || user.emailAddresses[0];
@@ -28,14 +32,14 @@ export async function POST(req: NextRequest) {
   const storeLabel = typeof payload.storeLabel === "string" ? payload.storeLabel : "ABC Store 112, Charlotte";
   const matchedArea = typeof payload.matchedArea === "string" ? payload.matchedArea : "Charlotte";
   const state = typeof payload.state === "string" ? payload.state : "NC";
-  const timestampLabel = typeof payload.timestampLabel === "string" ? payload.timestampLabel : "just now";
+  const timestampLabel = typeof payload.timestampLabel === "string" ? payload.timestampLabel : "recently";
   const quantityLabel = typeof payload.quantityLabel === "string" ? payload.quantityLabel : "6 bottles reported";
 
   const result = await resend.emails.send({
     from: ALERT_FROM,
     to: [primaryEmail.emailAddress],
     replyTo: ALERT_REPLY_TO,
-    subject: `${bottleName} just hit ${storeLabel}`,
+    subject: `Fresh signal detected: ${bottleName} at ${storeLabel}`,
     react: PaidDropAlertEmail({
       firstName: user.firstName,
       bottleName,

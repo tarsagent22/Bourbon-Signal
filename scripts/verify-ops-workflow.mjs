@@ -77,10 +77,17 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness']) {
+for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend']) {
   if (!alertDelivery.includes(phrase)) {
     fail(`Alert delivery guardrails should include: ${phrase}`);
   }
+}
+if (!/expectedSecrets\s*=\s*\[process\.env\.ALERT_DELIVERY_SECRET, process\.env\.CRON_SECRET\]/.test(alertDelivery)) {
+  fail('Alert delivery authorization should accept either ALERT_DELIVERY_SECRET or CRON_SECRET so Vercel cron and manual dry-runs can both work.');
+}
+const notificationPreferences = read('src/lib/notification-preferences.ts');
+if (!/email:\s*\{\s*enabled:\s*false,\s*mode:\s*"major_only"\s*\}/.test(notificationPreferences)) {
+  fail('Email alert preferences must default to opt-out until a user explicitly enables email alerts.');
 }
 if (/subject:\s*`\$\{bottleName\} just hit/.test(alertDelivery)) {
   fail('Alert email subject must avoid overpromising with "just hit" wording.');

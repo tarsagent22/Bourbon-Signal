@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
-import { candidateMatchesArea, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs } from "@/lib/alert-delivery";
+import { candidateCanSendEmail, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshEmailGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences } from "@/lib/alert-delivery";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -69,7 +69,10 @@ export async function GET() {
     candidateAlerts,
     candidateAlertCount: candidateAlerts.length,
     reliabilitySummary: reliabilitySummary(candidateAlerts),
-    alertDeliveryEnabled: Boolean(process.env.RESEND_API_KEY),
+    alertDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    onSiteDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    emailDeliveryEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
     alertPolicyNote: "Eligible engine candidates can be synced on-site and delivered by the protected email delivery worker when preferences match.",
   });
 }
@@ -86,11 +89,16 @@ export async function POST(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const areaPrefs = normalizeAreaPrefs(user.publicMetadata?.areaPreferences);
   const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
+  const bottlePrefs = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
+  const alertMode = user.publicMetadata?.alertMode;
   if (!notificationPrefs.onSite.enabled) return NextResponse.json({ ok: true, created: 0, skipped: "on_site_disabled" });
 
   const candidates = readCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
+    .filter(candidateCanSendEmail)
+    .filter(candidatePassesFreshEmailGuardrails)
     .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
+    .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore))
     .slice(0, Math.max(1, Math.min(25, asNumber(body.limit, 10))));
 
@@ -119,7 +127,10 @@ export async function POST(req: NextRequest) {
     created: created.length,
     considered: candidates.length,
     reliabilitySummary: reliabilitySummary(candidates),
-    alertDeliveryEnabled: Boolean(process.env.RESEND_API_KEY),
+    alertDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    onSiteDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    emailDeliveryEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+    emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
     note: "Created on-site inbox alerts. Email delivery is handled separately by the protected alert delivery worker.",
   });
 }
