@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
@@ -132,6 +133,7 @@ export default function RootLayout({
           <LiquidToggleFilter />
           {children}
           <ToastContainer />
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
