@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-14T14:15:53.350Z",
+  "generatedAt": "2026-06-15T16:42:32.983Z",
   "count": 1251,
   "stores": [
     {
@@ -3375,7 +3375,7 @@
       "lat": 41.72358120000001,
       "lng": -86.175613,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
@@ -3417,7 +3417,7 @@
       "lat": 41.0783865,
       "lng": -85.1338772,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d339b77cb36d0a2d2e8b",
@@ -3515,7 +3515,7 @@
       "lat": 41.102371,
       "lng": -85.0609037,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
@@ -4140,12 +4140,12 @@
       "name": "Big Red #209 - Indianapolis",
       "address": "9908 E 79th St, Indianapolis, IN 46256, USA",
       "city": "Indianapolis",
-      "county": "Marion County",
+      "county": null,
       "zip": "46256",
       "lat": 39.8993173,
       "lng": -85.99296,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -4187,7 +4187,7 @@
       "lat": 39.697918,
       "lng": -86.36907649999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "big-red:5e92549978e8f13c2cb1e1d4",
@@ -4453,7 +4453,7 @@
       "lat": 40.0440694,
       "lng": -86.14080609999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 2
     },
     {
       "id": "big-red:5e9254ca78e8f13c2cb1e21c",
@@ -4649,7 +4649,7 @@
       "lat": 39.7696497,
       "lng": -86.1546635,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "big-red:5e8d56d79ea1421aba12c049",
@@ -4663,7 +4663,7 @@
       "lat": 39.9893943,
       "lng": -85.9213908,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 5
     },
     {
       "id": "big-red:5e8d58959ea14225c1e39360",
@@ -4691,7 +4691,7 @@
       "lat": 39.9571948,
       "lng": -86.01364559999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 2
     },
     {
       "id": "big-red:5e8d597a9a81cb4383b0d828",
@@ -4719,7 +4719,7 @@
       "lat": 39.8173268,
       "lng": -85.7707095,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 2
     },
     {
       "id": "cap-n-cork:5ec5206ac306d525695bcf9c",
@@ -4761,7 +4761,7 @@
       "lat": 41.1293034,
       "lng": -85.1350928,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 18
+      "signalCount": 17
     },
     {
       "id": "cap-n-cork:5e8f2a1fb851035361e0f22c",
@@ -5069,7 +5069,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 13
+      "signalCount": 14
     },
     {
       "id": "high-point-brookridge-lane",
@@ -5083,7 +5083,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 28
+      "signalCount": 29
     },
     {
       "id": "high-point-english-rd",
@@ -5097,7 +5097,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 23
+      "signalCount": 24
     },
     {
       "id": "high-point-fairfield-rd",
@@ -5125,7 +5125,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 28
+      "signalCount": 29
     },
     {
       "id": "high-point-parris-ave",
@@ -5139,7 +5139,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 33
+      "signalCount": 31
     },
     {
       "id": "high-point-skeet-club-rd",
@@ -5167,7 +5167,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 34
+      "signalCount": 32
     },
     {
       "id": "greensboro-25",
@@ -5405,7 +5405,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 12
+      "signalCount": 13
     },
     {
       "id": "e5e9c7e6c0b04c4b",
@@ -5433,7 +5433,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "5c68752f21a6e659",
@@ -5503,7 +5503,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "03d8b44fa200eb8d",
@@ -5531,7 +5531,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "585c919dc2718815",
@@ -5559,7 +5559,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "19564b4d77d0a6ce",
@@ -5601,7 +5601,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "89048930bdb4db69",
@@ -5713,7 +5713,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "b762ed41db67e63f",
@@ -12671,7 +12671,7 @@
       "lat": 36.149323,
       "lng": -86.77812259999999,
       "source": "Frugal MacDoogal CityHive store inventory",
-      "signalCount": 13
+      "signalCount": 12
     },
     {
       "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
@@ -12713,7 +12713,7 @@
       "lat": 35.9121068,
       "lng": -86.82835680000001,
       "source": "Red Dog Wine and Spirits CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",

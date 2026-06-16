@@ -19,6 +19,7 @@
     "@react-email/components": "^1.0.12",
     "@stripe/stripe-js": "^9.0.0",
     "@types/three": "^0.183.1",
+    "@vercel/analytics": "^2.0.1",
     "framer-motion": "^12.38.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",

@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-14T14:15:53.350Z",
+  "generatedAt": "2026-06-15T16:42:32.983Z",
   "count": 140,
   "bottles": [
     {
@@ -47,10 +47,10 @@
       ],
       "tier": "unicorn",
       "producer": "Four Roses",
-      "signalCount": 24,
+      "signalCount": 23,
       "stateCount": 3,
-      "inventorySignalCount": 22,
-      "watchSignalCount": 24,
+      "inventorySignalCount": 21,
+      "watchSignalCount": 23,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -58,7 +58,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_25051cdc130afc7e",
@@ -84,7 +84,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_2b5d9987117596c4",
@@ -110,7 +110,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_cca84bbe5368acac",
@@ -126,17 +126,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 3,
+      "signalCount": 2,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "board_warehouse",
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_18013da36d2e4da4",
@@ -153,17 +153,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 3,
+      "signalCount": 2,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "board_warehouse",
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_d2b7ab7e2ebc1404",
@@ -188,7 +188,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_3566c2a0088ec99a",
@@ -213,7 +213,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_8ab6c80727eefe77",
@@ -228,17 +228,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 4,
+      "signalCount": 3,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 4,
-      "bestLocationPrecision": "board_warehouse",
+      "watchSignalCount": 3,
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -263,7 +263,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -288,7 +288,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_770b95a65307bba6",
@@ -338,7 +338,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_ea6984efad655e2d",
@@ -355,10 +355,10 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 6,
+      "signalCount": 4,
       "stateCount": 3,
       "inventorySignalCount": 0,
-      "watchSignalCount": 6,
+      "watchSignalCount": 4,
       "bestLocationPrecision": "store_aggregate",
       "bestConfidence": 0.9,
       "states": [
@@ -366,7 +366,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:24.396Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -383,17 +383,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 5,
+      "signalCount": 4,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 5,
+      "watchSignalCount": 4,
       "bestLocationPrecision": "board_warehouse",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_7f15783e8c144664",
@@ -409,17 +409,17 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 3,
+      "signalCount": 2,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "board_warehouse",
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_a3c16eb6f814785b",
@@ -444,31 +444,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
-    },
-    {
-      "id": "bb_1fd1f694742e0a1e",
-      "canonical_id": "bb_1fd1f694742e0a1e",
-      "canonical_name": "Weller Single Barrel",
-      "canonical_key": "weller",
-      "name": "Weller Single Barrel",
-      "aliases": [
-        "W.L. Weller Single Barrel",
-        "Weller Single Barrel"
-      ],
-      "tier": "unicorn",
-      "producer": "Buffalo Trace",
-      "signalCount": 2,
-      "stateCount": 2,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "board_warehouse",
-      "bestConfidence": 0.9,
-      "states": [
-        "AL",
-        "NC"
-      ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_064157246d06e7cd",
@@ -518,7 +494,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_ac855cd46254e92a",
@@ -543,7 +519,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_1ac52cea6f3d0115",
@@ -567,7 +543,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_89f4f171664009c0",
@@ -591,7 +567,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_251412a45d0064c1",
@@ -615,7 +591,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_a66a1b8df27382e5",
@@ -639,7 +615,30 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
+    },
+    {
+      "id": "bb_1fd1f694742e0a1e",
+      "canonical_id": "bb_1fd1f694742e0a1e",
+      "canonical_name": "Weller Single Barrel",
+      "canonical_key": "weller",
+      "name": "Weller Single Barrel",
+      "aliases": [
+        "W.L. Weller Single Barrel",
+        "Weller Single Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "signalCount": 1,
+      "stateCount": 1,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 1,
+      "bestLocationPrecision": "statewide_catalog",
+      "bestConfidence": 0.68,
+      "states": [
+        "AL"
+      ],
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_40a01e5c27a36a6d",
@@ -1017,10 +1016,10 @@
       ],
       "tier": "allocated",
       "producer": "Heaven Hill",
-      "signalCount": 154,
+      "signalCount": 153,
       "stateCount": 4,
       "inventorySignalCount": 83,
-      "watchSignalCount": 154,
+      "watchSignalCount": 153,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1029,7 +1028,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:14:36.145Z"
+      "latestObservedAt": "2026-06-15T14:47:02.518Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1048,10 +1047,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 834,
+      "signalCount": 826,
       "stateCount": 6,
-      "inventorySignalCount": 35,
-      "watchSignalCount": 834,
+      "inventorySignalCount": 33,
+      "watchSignalCount": 826,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1062,7 +1061,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-14T14:14:13.422Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1077,10 +1076,10 @@
       ],
       "tier": "allocated",
       "producer": "Willett",
-      "signalCount": 79,
+      "signalCount": 72,
       "stateCount": 3,
       "inventorySignalCount": 27,
-      "watchSignalCount": 78,
+      "watchSignalCount": 71,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1088,7 +1087,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1114,7 +1113,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1140,7 +1139,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:14:13.422Z"
+      "latestObservedAt": "2026-06-15T14:46:26.075Z"
     },
     {
       "id": "bb_15b34a1a107fafe0",
@@ -1186,10 +1185,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 690,
+      "signalCount": 689,
       "stateCount": 4,
       "inventorySignalCount": 2,
-      "watchSignalCount": 690,
+      "watchSignalCount": 689,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1198,7 +1197,39 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
+    },
+    {
+      "id": "bb_152c90f782b801f5",
+      "canonical_id": "bb_152c90f782b801f5",
+      "canonical_name": "E.H. Taylor Small Batch",
+      "canonical_key": "e h taylor",
+      "name": "E.H. Taylor Small Batch",
+      "aliases": [
+        "Colonel E.H. Taylor Small Batch",
+        "E H Taylor Single Barrel",
+        "E H Taylor Small Batch",
+        "E.H. Taylor SiB",
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Small Batch",
+        "EH Taylor Single Barrel",
+        "EH Taylor Small Batch"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 584,
+      "stateCount": 4,
+      "inventorySignalCount": 2,
+      "watchSignalCount": 584,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.9,
+      "states": [
+        "AL",
+        "NC",
+        "TN",
+        "VA"
+      ],
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1215,10 +1246,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 647,
+      "signalCount": 646,
       "stateCount": 5,
       "inventorySignalCount": 2,
-      "watchSignalCount": 642,
+      "watchSignalCount": 641,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1228,7 +1259,7 @@
         "OH",
         "VA"
       ],
-      "latestObservedAt": "2026-06-14T14:14:36.145Z"
+      "latestObservedAt": "2026-06-15T14:47:02.517Z"
     },
     {
       "id": "bb_b7ca7cc4ab428ba8",
@@ -1253,39 +1284,7 @@
         "AL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
-    },
-    {
-      "id": "bb_152c90f782b801f5",
-      "canonical_id": "bb_152c90f782b801f5",
-      "canonical_name": "E.H. Taylor Small Batch",
-      "canonical_key": "e h taylor",
-      "name": "E.H. Taylor Small Batch",
-      "aliases": [
-        "Colonel E.H. Taylor Small Batch",
-        "E H Taylor Single Barrel",
-        "E H Taylor Small Batch",
-        "E.H. Taylor SiB",
-        "E.H. Taylor Single Barrel",
-        "E.H. Taylor Small Batch",
-        "EH Taylor Single Barrel",
-        "EH Taylor Small Batch"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 586,
-      "stateCount": 4,
-      "inventorySignalCount": 1,
-      "watchSignalCount": 586,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.9,
-      "states": [
-        "AL",
-        "NC",
-        "TN",
-        "VA"
-      ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_7991fa37cd881dba",
@@ -1302,10 +1301,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 6,
+      "signalCount": 5,
       "stateCount": 3,
       "inventorySignalCount": 1,
-      "watchSignalCount": 6,
+      "watchSignalCount": 5,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1313,7 +1312,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_bb97e76c263976a8",
@@ -1341,7 +1340,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T13:36:11.315Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_85305a6b410701da",
@@ -1390,7 +1389,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_fd202575957d3cea",
@@ -1407,17 +1406,17 @@
       ],
       "tier": "allocated",
       "producer": "Michter's",
-      "signalCount": 3,
+      "signalCount": 2,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "board_warehouse",
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_ab29607e7117c93f",
@@ -1467,7 +1466,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1483,17 +1482,17 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 4,
+      "signalCount": 3,
       "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 4,
+      "watchSignalCount": 3,
       "bestLocationPrecision": "board_warehouse",
       "bestConfidence": 0.9,
       "states": [
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_d804fd15377958b6",
@@ -1517,7 +1516,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1541,7 +1540,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_b575401320b1c321",
@@ -1625,10 +1624,10 @@
       ],
       "tier": "limited",
       "producer": "Michter's",
-      "signalCount": 572,
+      "signalCount": 570,
       "stateCount": 6,
-      "inventorySignalCount": 568,
-      "watchSignalCount": 571,
+      "inventorySignalCount": 566,
+      "watchSignalCount": 569,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1639,7 +1638,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1653,10 +1652,10 @@
       ],
       "tier": "limited",
       "producer": "Wild Turkey",
-      "signalCount": 360,
+      "signalCount": 359,
       "stateCount": 2,
-      "inventorySignalCount": 360,
-      "watchSignalCount": 360,
+      "inventorySignalCount": 359,
+      "watchSignalCount": 359,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1678,10 +1677,10 @@
       ],
       "tier": "limited",
       "producer": "Willett Family Estate",
-      "signalCount": 386,
+      "signalCount": 380,
       "stateCount": 3,
       "inventorySignalCount": 353,
-      "watchSignalCount": 385,
+      "watchSignalCount": 379,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1689,7 +1688,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1730,7 +1729,7 @@
       "producer": "Heaven Hill",
       "signalCount": 185,
       "stateCount": 2,
-      "inventorySignalCount": 139,
+      "inventorySignalCount": 137,
       "watchSignalCount": 185,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
@@ -1738,7 +1737,7 @@
         "IL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:36.145Z"
+      "latestObservedAt": "2026-06-15T14:47:02.518Z"
     },
     {
       "id": "bb_f1bb80f4dc160729",
@@ -1765,7 +1764,7 @@
         "IL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:36.145Z"
+      "latestObservedAt": "2026-06-15T14:47:02.518Z"
     },
     {
       "id": "bb_1f0975f2e3cbd2d5",
@@ -1791,7 +1790,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:14:13.422Z"
+      "latestObservedAt": "2026-06-15T14:46:26.075Z"
     },
     {
       "id": "bb_8924180d0cc2d853",
@@ -1832,10 +1831,10 @@
       ],
       "tier": "limited",
       "producer": "Sazerac",
-      "signalCount": 12,
+      "signalCount": 11,
       "stateCount": 1,
-      "inventorySignalCount": 12,
-      "watchSignalCount": 12,
+      "inventorySignalCount": 11,
+      "watchSignalCount": 11,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
@@ -1857,17 +1856,17 @@
       ],
       "tier": "limited",
       "producer": "McCormick Distilling",
-      "signalCount": 9,
+      "signalCount": 8,
       "stateCount": 2,
-      "inventorySignalCount": 9,
-      "watchSignalCount": 9,
+      "inventorySignalCount": 8,
+      "watchSignalCount": 8,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T13:36:11.315Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_bf904ca5ccbb690d",
@@ -1894,7 +1893,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_a3b1732edd18ac89",
@@ -1920,7 +1919,31 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T13:36:11.315Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
+    },
+    {
+      "id": "bb_d99031402ce45359",
+      "canonical_id": "bb_d99031402ce45359",
+      "canonical_name": "Elijah Craig Toasted Barrel",
+      "canonical_key": "elijah craig toasted",
+      "name": "Elijah Craig Toasted Barrel",
+      "aliases": [
+        "Elijah Craig Toasted Barrel",
+        "Elijah Craig Toasted Barrel Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Heaven Hill",
+      "signalCount": 6,
+      "stateCount": 2,
+      "inventorySignalCount": 5,
+      "watchSignalCount": 6,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "AL",
+        "IN"
+      ],
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_ea538792278ccca7",
@@ -1946,7 +1969,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T13:36:11.315Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_b029b9fb7d0f5783",
@@ -1971,31 +1994,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T03:34:00.743Z"
-    },
-    {
-      "id": "bb_d99031402ce45359",
-      "canonical_id": "bb_d99031402ce45359",
-      "canonical_name": "Elijah Craig Toasted Barrel",
-      "canonical_key": "elijah craig toasted",
-      "name": "Elijah Craig Toasted Barrel",
-      "aliases": [
-        "Elijah Craig Toasted Barrel",
-        "Elijah Craig Toasted Barrel Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "Heaven Hill",
-      "signalCount": 5,
-      "stateCount": 2,
-      "inventorySignalCount": 4,
-      "watchSignalCount": 5,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.86,
-      "states": [
-        "AL",
-        "IN"
-      ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-14T13:49:19.459Z"
     },
     {
       "id": "bb_4e7a2ea067e741fd",
@@ -2043,7 +2042,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T03:34:00.743Z"
+      "latestObservedAt": "2026-06-14T13:49:19.459Z"
     },
     {
       "id": "bb_80e1a23c773972ad",
@@ -2068,7 +2067,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_71c68398a83ef404",
@@ -2117,7 +2116,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T03:34:00.743Z"
+      "latestObservedAt": "2026-06-14T13:49:19.459Z"
     },
     {
       "id": "bb_8b9546b93a7fbe72",
@@ -2206,16 +2205,16 @@
       ],
       "tier": "limited",
       "producer": "Lux Row",
-      "signalCount": 11,
+      "signalCount": 9,
       "stateCount": 1,
       "inventorySignalCount": 0,
-      "watchSignalCount": 11,
+      "watchSignalCount": 9,
       "bestLocationPrecision": "board_warehouse",
       "bestConfidence": 0.9,
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:23.747Z"
+      "latestObservedAt": "2026-06-15T14:45:33.285Z"
     },
     {
       "id": "bb_c57c8f61c0075ec5",
@@ -2241,7 +2240,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_dcbadbe1cd262fe4",
@@ -2266,7 +2265,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T14:13:18.581Z"
+      "latestObservedAt": "2026-06-15T14:45:27.687Z"
     },
     {
       "id": "bb_63d8202a47b5f253",
@@ -2289,7 +2288,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_fbdffd15c5c5d159",
@@ -2312,7 +2311,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-06-14T14:13:08.094Z"
+      "latestObservedAt": "2026-06-15T14:45:16.451Z"
     },
     {
       "id": "bb_6885046e5aeac722",
@@ -2336,7 +2335,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_78ae1c4d3ca52afc",
@@ -2837,10 +2836,10 @@
       ],
       "tier": "core",
       "producer": "Barton",
-      "signalCount": 505,
+      "signalCount": 501,
       "stateCount": 4,
-      "inventorySignalCount": 486,
-      "watchSignalCount": 504,
+      "inventorySignalCount": 482,
+      "watchSignalCount": 500,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
@@ -2849,7 +2848,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -2864,17 +2863,17 @@
       ],
       "tier": "standard",
       "producer": "Diageo",
-      "signalCount": 183,
+      "signalCount": 178,
       "stateCount": 2,
-      "inventorySignalCount": 183,
-      "watchSignalCount": 183,
+      "inventorySignalCount": 178,
+      "watchSignalCount": 178,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T13:49:19.459Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -2919,7 +2918,7 @@
         "IN",
         "NC"
       ],
-      "latestObservedAt": "2026-06-14T13:49:19.459Z"
+      "latestObservedAt": "2026-06-15T14:20:54.968Z"
     },
     {
       "id": "bb_24a388c391f6626f",
@@ -2935,10 +2934,10 @@
       ],
       "tier": "standard",
       "producer": "Bardstown Bourbon Company",
-      "signalCount": 6,
+      "signalCount": 7,
       "stateCount": 3,
-      "inventorySignalCount": 2,
-      "watchSignalCount": 3,
+      "inventorySignalCount": 3,
+      "watchSignalCount": 4,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -2946,7 +2945,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_2a3a72be37e1c233",
@@ -2968,7 +2967,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-06-14T03:34:00.743Z"
+      "latestObservedAt": "2026-06-14T13:49:19.459Z"
     },
     {
       "id": "bb_24473260f6d7da78",
@@ -3058,7 +3057,7 @@
         "OH",
         "PA"
       ],
-      "latestObservedAt": "2026-06-14T14:13:12.470Z"
+      "latestObservedAt": "2026-06-15T14:45:21.012Z"
     },
     {
       "id": "bb_768476e649819a93",
@@ -3080,7 +3079,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-06-14T14:14:42.560Z"
+      "latestObservedAt": "2026-06-15T14:47:08.822Z"
     },
     {
       "id": "bb_6593beca781b533e",
