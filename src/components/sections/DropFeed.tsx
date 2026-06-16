@@ -2188,7 +2188,7 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.25)",
                 }}
               >
-                {engineRefreshedText} from latest engine export
+                {engineRefreshedText} from latest engine run
               </span>
             </div>
           )}

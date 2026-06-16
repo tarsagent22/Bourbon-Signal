@@ -42,6 +42,13 @@ function isBoardQuery(value: string) {
   return value.toLowerCase().includes("board");
 }
 
+function engineRunTimestamp(exportGeneratedAt?: unknown) {
+  const statsPayload = readSiteExport("stats");
+  const candidates = [statsPayload?.engineGeneratedAt, statsPayload?.generatedAt, exportGeneratedAt];
+  const timestamp = candidates.find((value) => typeof value === "string" && value.trim());
+  return typeof timestamp === "string" ? timestamp : new Date().toISOString();
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
@@ -130,7 +137,7 @@ export async function GET(request: Request) {
         hasMore: isSignedIn && offset + limit < total,
         previewLocked: !isSignedIn && total > pagedDrops.length,
         requiresAccountForFullFeed: !isSignedIn,
-        lastUpdated: exportPayload?.generatedAt ?? new Date().toISOString(),
+        lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
       },
       {
         headers: {
