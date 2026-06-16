@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-15T16:42:32.983Z",
+  "generatedAt": "2026-06-16T14:06:59.212Z",
   "count": 1251,
   "stores": [
     {
@@ -5111,7 +5111,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 31
+      "signalCount": 30
     },
     {
       "id": "high-point-gate-city-blvd",
@@ -5125,7 +5125,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 29
+      "signalCount": 31
     },
     {
       "id": "high-point-parris-ave",
@@ -5167,7 +5167,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 32
+      "signalCount": 33
     },
     {
       "id": "greensboro-25",
@@ -5433,7 +5433,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "5c68752f21a6e659",
@@ -5517,7 +5517,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 11
     },
     {
       "id": "b53ab061ae00b24c",
