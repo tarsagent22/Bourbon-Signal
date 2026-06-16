@@ -1659,6 +1659,23 @@ export default function DashboardPage() {
         <div id="dashboard-workspace" className="dashboard-shell">
           <div className="dashboard-workspace">
 
+          <section style={{ border: "1px solid rgba(196,148,58,0.18)", background: "linear-gradient(135deg, rgba(196,148,58,0.09), rgba(255,255,255,0.025))", borderRadius: "22px", padding: "18px", marginBottom: "18px", boxShadow: "0 18px 48px rgba(0,0,0,0.18)" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: "10px" }}>Personal signal brief</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+              {[
+                { label: "Saved markets", value: localPrefs.states.length ? localPrefs.states.join(", ") : "Not set", sub: localPrefs.states.length ? "Coverage follows your state preferences" : "Add states for better matching" },
+                { label: "Tracked bottles", value: prefs.bottleAlertPreferences.bottleNames.length, sub: "Used for alert relevance" },
+                { label: "Recent matching drops", value: recentDrops.length, sub: "Based on current saved preferences" },
+              ].map((item) => (
+                <div key={item.label} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", background: "rgba(0,0,0,0.18)", padding: "13px" }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(245,237,214,0.42)", marginBottom: "7px" }}>{item.label}</div>
+                  <div style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)", lineHeight: 1 }}>{item.value}</div>
+                  <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.5)", lineHeight: 1.4 }}>{item.sub}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {renderSectionButton("alerts")}
 
           {activeDashboardSection === "alerts" ? (

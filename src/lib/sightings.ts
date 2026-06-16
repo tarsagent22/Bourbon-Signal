@@ -1,10 +1,19 @@
 export type SightingSource = "custom" | "feed" | "finder";
+export type SightingType = "seen_in_store" | "online_social";
+export type SightingVoteKind = "up" | "down";
 export type SignalReportKind = "seen" | "not_seen";
+
+export interface SightingVote {
+  sightingId: string;
+  kind: SightingVoteKind;
+  createdAt: string;
+}
 
 export interface MemberSighting {
   id: string;
   bottleName: string;
   bottleId?: string;
+  rarityTier?: "unicorn" | "allocated" | "limited";
   storeId: string;
   storeName: string;
   storeAddress: string;
@@ -15,7 +24,12 @@ export interface MemberSighting {
   price?: number | null;
   notes?: string;
   source: SightingSource;
+  sightingType?: SightingType;
+  reporterUserId?: string;
   createdAt: string;
+  upCount?: number;
+  downCount?: number;
+  myVote?: SightingVoteKind | null;
 }
 
 export interface SignalReport {
@@ -32,11 +46,13 @@ export interface SignalReport {
 export interface SightingsPreferences {
   submittedSightings: MemberSighting[];
   signalReports: SignalReport[];
+  sightingVotes?: SightingVote[];
 }
 
 export const EMPTY_SIGHTINGS_PREFERENCES: SightingsPreferences = {
   submittedSightings: [],
   signalReports: [],
+  sightingVotes: [],
 };
 
 export function normalizeBottleKey(value: string) {
@@ -52,4 +68,8 @@ export function makeSightingId(prefix = "sighting") {
 
 export function formatStoreAddress(parts: Array<string | undefined | null>) {
   return parts.map((part) => String(part || "").trim()).filter(Boolean).join(", ");
+}
+
+export function sightingTypeLabel(type?: SightingType) {
+  return type === "online_social" ? "Online/Social Media" : "Seen in store";
 }
