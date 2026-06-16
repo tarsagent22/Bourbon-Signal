@@ -31,6 +31,8 @@ type DeliveryRecord = {
 
 type AlertDeliveryMetadata = {
   recent?: DeliveryRecord[];
+  emailBaselineDedupeKeys?: string[];
+  lastEmailBaselineAt?: string;
   lastRunAt?: string;
 };
 
@@ -258,7 +260,7 @@ function normalizeDeliveryMetadata(input: unknown): AlertDeliveryMetadata {
         }))
         .filter((item) => item.dedupeKey && item.deliveredAt)
     : [];
-  return { recent, lastRunAt: asString(source.lastRunAt) || undefined };
+  return { recent, emailBaselineDedupeKeys: uniqueStrings(toStrings(source.emailBaselineDedupeKeys)).slice(0, 1000), lastEmailBaselineAt: asString(source.lastEmailBaselineAt) || undefined, lastRunAt: asString(source.lastRunAt) || undefined };
 }
 
 function recentDeliverySet(metadata: AlertDeliveryMetadata) {
@@ -380,10 +382,11 @@ function candidateSourceUrl(candidate: CandidateAlert) {
   return /^https?:\/\//.test(url) ? url : null;
 }
 
-export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean } = {}) {
+export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean; baselineEmailOnly?: boolean } = {}) {
   assertAlertDeliveryAuthorized(req);
 
   const dryRun = options.dryRun === true;
+  const baselineEmailOnly = options.baselineEmailOnly === true;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
   const rawEligibleCandidateCount = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
@@ -414,6 +417,8 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     emailsWouldSend: 0,
     skippedEmailDeliveryDisabled: 0,
     skippedEmailRecipientNotAllowed: 0,
+    skippedEmailBaseline: 0,
+    emailBaselinesCreated: 0,
     skippedDailyRoundup: 0,
     skippedNoEmail: 0,
     skippedDedupe: 0,
@@ -466,7 +471,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         summary.usersWithOnSiteEnabled += 1;
       }
 
-      if (notificationPrefs.onSite.enabled && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
+      if (notificationPrefs.onSite.enabled && !baselineEmailOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
         newOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => {
@@ -488,7 +493,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
 
       if (notificationPrefs.email.enabled && notificationPrefs.email.mode === "daily_roundup") {
         summary.skippedDailyRoundup += 1;
-      } else if (notificationPrefs.email.enabled && !dryRun && !ALERT_EMAIL_DELIVERY_ENABLED) {
+      } else if (notificationPrefs.email.enabled && !baselineEmailOnly && !dryRun && !ALERT_EMAIL_DELIVERY_ENABLED) {
         summary.skippedEmailDeliveryDisabled += matchingPreferenceCandidates.length;
       } else if (notificationPrefs.email.enabled) {
         const email = primaryEmailForUser(user);
@@ -497,9 +502,34 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         } else if (!emailRecipientAllowed(email)) {
           summary.skippedEmailRecipientNotAllowed += matchingPreferenceCandidates.length;
         } else {
+          const emailModeCandidates = matchingPreferenceCandidates.filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
+          if (baselineEmailOnly) {
+            const baselineDedupeKeys = uniqueStrings(emailModeCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
+            summary.emailBaselinesCreated += baselineDedupeKeys.length;
+            if (!dryRun && baselineDedupeKeys.length) {
+              await client.users.updateUserMetadata(userId, {
+                privateMetadata: {
+                  alertDelivery: {
+                    recent: deliveryMetadata.recent || [],
+                    emailBaselineDedupeKeys: baselineDedupeKeys,
+                    lastEmailBaselineAt: now,
+                    lastRunAt: deliveryMetadata.lastRunAt,
+                  },
+                },
+              });
+            }
+            continue;
+          }
+
           const delivered = recentDeliverySet(deliveryMetadata);
-          const matchedCandidates = matchingPreferenceCandidates
-            .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode))
+          const emailBaseline = new Set(deliveryMetadata.emailBaselineDedupeKeys || []);
+          const matchedCandidates = emailModeCandidates
+            .filter((candidate) => {
+              const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+              const baselineDuplicate = emailBaseline.has(dedupeKey);
+              if (baselineDuplicate) summary.skippedEmailBaseline += 1;
+              return !baselineDuplicate;
+            })
             .filter((candidate) => {
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const duplicate = delivered.has(dedupeKey);
@@ -567,25 +597,39 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       }
 
       if ((newRecords.length || newOnSiteAlerts.length) && !dryRun) {
-        const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
-          .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey) === index)
-          .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
-        const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
-          .filter((alert, index, rows) => rows.findIndex((item) => item.dedupeKey === alert.dedupeKey) === index)
-          .slice(0, MAX_RECENT_ONSITE_ALERTS_PER_USER);
-        await client.users.updateUserMetadata(userId, {
-          privateMetadata: {
-            ...privateMetadata,
-            alertDelivery: {
-              recent: nextRecent,
-              lastRunAt: now,
+        if (newRecords.length) {
+          const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
+            .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey) === index)
+            .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
+          await client.users.updateUserMetadata(userId, {
+            privateMetadata: {
+              alertDelivery: {
+                recent: nextRecent,
+                emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
+                lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
+                lastRunAt: now,
+              },
             },
-            alertInbox: {
-              recent: nextOnSiteAlerts,
-              lastSyncedAt: now,
-            },
-          },
-        });
+          });
+        }
+
+        if (newOnSiteAlerts.length) {
+          const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
+            .filter((alert, index, rows) => rows.findIndex((item) => item.dedupeKey === alert.dedupeKey) === index)
+            .slice(0, MAX_RECENT_ONSITE_ALERTS_PER_USER);
+          try {
+            await client.users.updateUserMetadata(userId, {
+              privateMetadata: {
+                alertInbox: {
+                  recent: nextOnSiteAlerts,
+                  lastSyncedAt: now,
+                },
+              },
+            });
+          } catch (error) {
+            summary.errors.push({ userId, message: `On-site alert metadata update failed: ${error instanceof Error ? error.message : String(error)}` });
+          }
+        }
       }
     }
 
