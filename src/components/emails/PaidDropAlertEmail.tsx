@@ -6,6 +6,7 @@ import {
   Section,
   Head,
   Html,
+  Link,
   Preview,
   Text,
 } from "@react-email/components";
@@ -18,6 +19,9 @@ interface PaidDropAlertEmailProps {
   state: string;
   timestampLabel: string;
   quantityLabel?: string | null;
+  evidenceLabel?: string | null;
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
   dashboardUrl: string;
 }
 
@@ -29,6 +33,9 @@ export function PaidDropAlertEmail({
   state,
   timestampLabel,
   quantityLabel,
+  evidenceLabel,
+  sourceLabel,
+  sourceUrl,
   dashboardUrl,
 }: PaidDropAlertEmailProps) {
   const greeting = firstName?.trim() ? `Hi ${firstName},` : "Hi there,";
@@ -76,6 +83,8 @@ export function PaidDropAlertEmail({
               <Text className="bs-meta-line" style={metaLine}>State: {state}</Text>
               <Text className="bs-meta-line" style={metaLine}>Reported: {timestampLabel}</Text>
               {quantityLabel ? <Text className="bs-meta-line" style={metaLine}>Reported qty: {quantityLabel}</Text> : null}
+              {sourceLabel ? <Text className="bs-meta-line" style={metaLine}>Source: {sourceUrl ? <Link href={sourceUrl} style={inlineLink}>{sourceLabel}</Link> : sourceLabel}</Text> : null}
+              {evidenceLabel ? <Text className="bs-meta-line" style={metaLine}>Evidence: {evidenceLabel}</Text> : null}
             </Section>
 
             <Section style={{ textAlign: "center", marginTop: "30px", marginBottom: "28px" }}>
@@ -304,6 +313,12 @@ const metaLine = {
   fontSize: "14px",
   lineHeight: 1.55,
   fontFamily: "Arial, Helvetica, sans-serif",
+};
+
+const inlineLink = {
+  color: "#8a5618",
+  WebkitTextFillColor: "#8a5618",
+  textDecoration: "underline",
 };
 
 const button = {

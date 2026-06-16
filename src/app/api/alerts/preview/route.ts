@@ -48,6 +48,8 @@ export async function POST(req: NextRequest) {
       state,
       timestampLabel,
       quantityLabel,
+      evidenceLabel: "Preview alert only. Real alerts include source evidence when available.",
+      sourceLabel: "Bourbon Signal preview",
       dashboardUrl: `${appUrl}/dashboard`,
     }),
     headers: {
