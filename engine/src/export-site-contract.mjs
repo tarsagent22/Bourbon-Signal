@@ -128,9 +128,14 @@ function isTennesseeCityHiveInventory(signal) {
     && Boolean(signal.storeAddress);
 }
 
+function isTennesseeAllowedRetailerSource(signal) {
+  return /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(String(signal.sourceLabel || signal.source || ''));
+}
+
 function isTennesseeRetailerInventory(signal) {
   return signal.state === 'TN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && isTennesseeAllowedRetailerSource(signal)
     && signal.locationPrecision === 'store_level'
     && Number(signal.quantity || 0) > 0
     && Boolean(signal.storeId)
@@ -412,6 +417,13 @@ function isSafePublicSignal(signal) {
   if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
   if (signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'IL' && /^(retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|knob creek|maker|pappy/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
+  if (signal.state === 'TN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type)) {
+    const name = String(signal.rawName || signal.canonicalName || '');
+    if (!isTennesseeAllowedRetailerSource(signal)) return false;
+    if (/vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|bitters|margarita|brandy|cognac|mezcal/i.test(name) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(name)) return false;
+    if (!/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(name)) return false;
+  }
+
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {
     if (!signal.storeId) return false;
     const observedAt = new Date(signal.observedAt || signal.fetchedAt || 0).getTime();
@@ -657,11 +669,20 @@ function isUpcomingActionableEvent(event) {
   const status = String(event.eventStatus || '').toLowerCase();
   const actionability = String(event.actionability || '').toLowerCase();
   const category = String(event.category || '').toLowerCase();
+  const sourceType = String(event.sourceType || '').toLowerCase();
+  const sourceUrl = String(event.sourceUrl || '');
   const eventDate = Date.parse(String(event.eventDate || ''));
   const hasFutureDate = Number.isFinite(eventDate) && eventDate >= Date.now() - 24 * 60 * 60 * 1000;
-  const hasOfficialLink = /^https?:\/\//i.test(String(event.sourceUrl || ''));
+  const hasOfficialLink = /^https?:\/\//i.test(sourceUrl);
   const isSourceWatchPage = status === 'watch_page' || category === 'release_watch' || !event.eventDate;
-  return hasOfficialLink && hasFutureDate && !isSourceWatchPage && ['high', 'medium'].includes(actionability);
+  const watchSurfaceText = `${sourceUrl} ${event.eventType || event.type || ''} ${event.title || ''} ${event.evidence || ''}`;
+  const isOfficialWatchSurface = hasOfficialLink
+    && isSourceWatchPage
+    && /^official_/.test(sourceType)
+    && Boolean(event.canAlertAsWatch)
+    && ['lottery', 'barrel_pick', 'scheduled_release', 'release_watch'].includes(category)
+    && /lottery|raffle|allocated|allocation|release|barrel|pick|bourbon|specialty|limited/i.test(watchSurfaceText);
+  return isOfficialWatchSurface || (hasOfficialLink && hasFutureDate && !isSourceWatchPage && ['high', 'medium'].includes(actionability));
 }
 
 function buildEvents(signals, bible) {

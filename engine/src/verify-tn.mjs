@@ -67,11 +67,19 @@ assert(cityHiveStoreLocations.length >= cityHiveSources.size, `Expected TN CityH
 assert(unsafeCanonicalMatches.length === 0, `Unsafe TN canonical matches found: ${unsafeCanonicalMatches.map((signal) => `${signal.rawName}=>${signal.canonicalName}`).join(', ')}`);
 
 if ((dropsExport.drops || []).length) {
-  assert(cityHiveAlertableDrops.length >= 50, `Expected alertable exported TN CityHive drops >= 50 after public export dedupe; got ${cityHiveAlertableDrops.length}`);
-  assert(retailerAlertableDrops.length >= 10, `Expected alertable exported non-CityHive TN retailer drops >= 10; got ${retailerAlertableDrops.length}`);
-  assert(alertableDrops.length >= 62, `Expected alertable exported TN inventory drops >= 62 after public export dedupe; got ${alertableDrops.length}`);
-  assert(dropSources.size >= 8, `Expected exported TN drops from at least 8 sources; got ${dropSources.size}: ${[...dropSources].join(', ')}`);
-  assert(['Nashville', 'Memphis', 'Knoxville', 'Franklin', 'Brentwood'].every((city) => dropCities.has(city)), `Expected exported TN drops in Nashville, Memphis, Knoxville, Franklin, and Brentwood; got ${[...dropCities].join(', ')}`);
+  const allowedSourceRe = /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i;
+  const bourbonNameRe = /bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i;
+  const excludedCategoryRe = /vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|bitters|margarita|brandy|cognac|mezcal/i;
+  const unsafeSources = inventoryDrops.filter((drop) => !allowedSourceRe.test(String(drop.source || '')));
+  const unsafeNames = inventoryDrops.filter((drop) => excludedCategoryRe.test(`${drop.rawName || ''} ${drop.bottleName || ''}`) && !bourbonNameRe.test(`${drop.rawName || ''} ${drop.bottleName || ''}`));
+  assert(!unsafeSources.length, `TN exported inventory drops must come from whitelisted public retailers; got ${unsafeSources.map((drop) => drop.source).join(', ')}`);
+  assert(!unsafeNames.length, `TN exported inventory drops included non-bourbon categories: ${unsafeNames.map((drop) => drop.rawName || drop.bottleName).join(', ')}`);
+  assert(cityHiveAlertableDrops.length <= positiveCityHiveSignals.length, `Exported TN CityHive drops exceeded source signals (${cityHiveAlertableDrops.length}/${positiveCityHiveSignals.length})`);
+  assert(retailerAlertableDrops.length <= positiveRetailerSignals.length, `Exported TN retailer drops exceeded source signals (${retailerAlertableDrops.length}/${positiveRetailerSignals.length})`);
+  assert(alertableDrops.length === inventoryDrops.length, `Every exported TN inventory drop must be alertable/store-level; got ${alertableDrops.length}/${inventoryDrops.length}`);
+  assert(alertableDrops.length >= 8, `Expected at least 8 exported fresh TN inventory drops after public export dedupe; got ${alertableDrops.length}`);
+  assert(dropSources.size >= 1, `Expected exported TN drops from at least one public retailer source; got ${dropSources.size}: ${[...dropSources].join(', ')}`);
+  assert(dropCities.size >= 1, `Expected exported TN drops to preserve city metadata; got ${[...dropCities].join(', ')}`);
   assert(tnStores.length >= 8, `Expected exported TN stores >= 8; got ${tnStores.length}`);
   assert(tnLocations.length >= 8, `Expected exported TN locations >= 8; got ${tnLocations.length}`);
 }

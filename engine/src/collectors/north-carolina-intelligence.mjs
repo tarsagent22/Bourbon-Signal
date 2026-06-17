@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { inflateRawSync } from 'node:zlib';
 import { extractLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
 
 const OUT = path.resolve('out');
@@ -7,15 +8,19 @@ const NC_STOCK_SHIPPED_DATA_URL = 'https://abc2.nc.gov/Search/StockShippedData';
 const NC_STOCK_SHIPPED_PAGE_URL = 'https://abc2.nc.gov/Search/StockShipped';
 const NC_WAREHOUSE_STOCK_URL = 'https://abc2.nc.gov/StoresBoards/Stocks';
 const NC_BOARD_LIST_URL = 'https://abc2.nc.gov/StoresBoards/BoardList';
+const NC_CONTROLLED_DISTRIBUTION_XLSX_URL = 'https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open';
+const NC_PRICE_EXPORT_URL = 'https://abc2.nc.gov/Pricing/ExportData';
 const NC_BOARD_HISTORY_DIR = path.join(OUT, 'history', 'nc-board-intelligence');
 const NC_WAREHOUSE_HISTORY_DIR = path.join(OUT, 'history', 'nc-warehouse');
-const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 30);
+const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 80);
 const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
 const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
 const DURHAM_STRUCTURED_PRODUCTS_URL = 'https://www.durhamabc.com/4552233';
 
-const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
+const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition|single barrel\s+(?:OES|OBS))|michter'?s\s+10|booker'?s|baker'?s|little book|parker'?s\s+heritage|old forester\s+(?:birthday|president'?s choice)|russell'?s\s+reserve\s+(?:13|15)|1792\s+(?:sweet wheat|single barrel|full proof|bottled in bond|12\s*year)|heaven hill\s+(?:heritage|grain to glass|18|17|90th)|knob creek\s+(?:12|15|18)|woodford reserve\s+(?:double double|masters collection|barrel strength)|jack daniel'?s\s+(?:10|12|14)|remus repeal|holladay|shenk'?s|bomberger'?s/i;
+const NC_CONTROLLED_PRODUCT_RE = /bourbon|whiskey|whisky|rye|blanton|weller|eagle rare|stagg|taylor|buffalo trace|pappy|van winkle|michter|willett|old fitz|fitzgerald|elmer|rock hill|blood oath|four roses|1792|russell|old forester|heaven hill|knob creek|booker|baker|parker|little book|woodford|maker|sazerac|holladay|remus|jack daniel|shenk|bomberger|ben holladay/i;
+const NC_CONTROLLED_EXCLUDE_RE = /tequila|vodka|gin|rum|liqueur|cordial|cognac|hennessy|crown royal|cream|wine|beer|cocktail|mezcal|scotch|single malt|irish|brandy|absinthe|schnapps|moonshine/i;
 const RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|bourbon|barrel|drop|specialty|special release|rare|whiskey|whisky|product search|inventory|stock|coming soon|release calendar/i;
 const STRONG_RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|specialty|special release|bourbon blast|barrel pick|release calendar|drops?\b|raffle|rare/i;
 const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|jack daniel|old forester|heaven hill|four roses|woodford|still austin|bardstown|yellowstone|wilderness trail|knob creek|elijah craig|ezra brooks/i;
@@ -53,6 +58,179 @@ function decodeHtml(text = '') {
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
+function normalizeNcCode(value = '') {
+  return String(value || '').replace(/[^0-9]/g, '').padStart(5, '0').slice(-5);
+}
+
+function parseMoney(value = '') {
+  const n = Number(String(value || '').replace(/[$,\s]/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function csvRows(text = '') {
+  const rows = [];
+  let row = [], cell = '', quote = false;
+  const input = String(text || '');
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i], next = input[i + 1];
+    if (ch === '"' && quote && next === '"') { cell += '"'; i += 1; continue; }
+    if (ch === '"') { quote = !quote; continue; }
+    if (ch === ',' && !quote) { row.push(cell); cell = ''; continue; }
+    if ((ch === '\n' || ch.charCodeAt(0) === 13) && !quote) {
+      if (cell || row.length) { row.push(cell); rows.push(row); row = []; cell = ''; }
+      if (ch.charCodeAt(0) === 13 && next === '\n') i += 1;
+      continue;
+    }
+    cell += ch;
+  }
+  if (cell || row.length) rows.push([...row, cell]);
+  const header = (rows.shift() || []).map((h) => String(h || '').trim());
+  return rows
+    .filter((values) => values.some((value) => String(value || '').trim()))
+    .map((values) => Object.fromEntries(header.map((h, i) => [h || `column_${i}`, values[i] ?? ''])));
+}
+
+async function bufferFetch(url, options = {}) {
+  const timeout = withTimeout(options.timeoutMs || 30000);
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      signal: timeout.signal,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (BourbonSignal NC official-source collector; +https://bourbonsignal.com)',
+        accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*',
+        referer: options.referer || 'https://www.abc.nc.gov/',
+        ...(options.headers || {})
+      }
+    });
+    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', buffer: Buffer.from(await res.arrayBuffer()) };
+  } finally {
+    timeout.done();
+  }
+}
+
+async function safeBufferFetch(url, options = {}) {
+  try {
+    return await bufferFetch(url, options);
+  } catch (error) {
+    return { ok: false, status: 0, url, contentType: '', buffer: Buffer.alloc(0), error: error.name === 'AbortError' ? 'timeout' : error.message };
+  }
+}
+
+function zipEntries(buffer) {
+  let eocd = -1;
+  for (let i = buffer.length - 22; i >= 0; i -= 1) {
+    if (buffer.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('ZIP end-of-central-directory not found');
+  const entryCount = buffer.readUInt16LE(eocd + 10);
+  let ptr = buffer.readUInt32LE(eocd + 16);
+  const entries = new Map();
+  for (let i = 0; i < entryCount; i += 1) {
+    if (buffer.readUInt32LE(ptr) !== 0x02014b50) throw new Error('Invalid ZIP central directory');
+    const method = buffer.readUInt16LE(ptr + 10);
+    const compressedSize = buffer.readUInt32LE(ptr + 20);
+    const fileNameLength = buffer.readUInt16LE(ptr + 28);
+    const extraLength = buffer.readUInt16LE(ptr + 30);
+    const commentLength = buffer.readUInt16LE(ptr + 32);
+    const localOffset = buffer.readUInt32LE(ptr + 42);
+    const name = buffer.slice(ptr + 46, ptr + 46 + fileNameLength).toString('utf8');
+    entries.set(name, { method, compressedSize, localOffset });
+    ptr += 46 + fileNameLength + extraLength + commentLength;
+  }
+  return entries;
+}
+
+function unzipEntry(buffer, entries, name) {
+  const entry = entries.get(name);
+  if (!entry) return null;
+  const ptr = entry.localOffset;
+  if (buffer.readUInt32LE(ptr) !== 0x04034b50) throw new Error(`Invalid ZIP local header for ${name}`);
+  const fileNameLength = buffer.readUInt16LE(ptr + 26);
+  const extraLength = buffer.readUInt16LE(ptr + 28);
+  const start = ptr + 30 + fileNameLength + extraLength;
+  const compressed = buffer.slice(start, start + entry.compressedSize);
+  if (entry.method === 0) return compressed.toString('utf8');
+  if (entry.method === 8) return inflateRawSync(compressed).toString('utf8');
+  throw new Error(`Unsupported ZIP compression method ${entry.method} for ${name}`);
+}
+
+function attrValue(attrs = '', name) {
+  return attrs.match(new RegExp(`\\b${name}=["']([^"']*)`, 'i'))?.[1] || null;
+}
+
+function columnIndex(cellRef = '') {
+  const letters = String(cellRef || '').match(/^[A-Z]+/i)?.[0] || '';
+  let n = 0;
+  for (const ch of letters.toUpperCase()) n = n * 26 + ch.charCodeAt(0) - 64;
+  return Math.max(0, n - 1);
+}
+
+function sharedStringsXml(xml = '') {
+  const strings = [];
+  for (const si of String(xml || '').matchAll(/<si\b[^>]*>([\s\S]*?)<\/si>/gi)) {
+    const parts = [...si[1].matchAll(/<t\b[^>]*>([\s\S]*?)<\/t>/gi)].map((m) => decodeHtml(m[1]));
+    strings.push(parts.join(''));
+  }
+  return strings;
+}
+
+function parseXlsxRows(buffer) {
+  const entries = zipEntries(buffer);
+  const shared = sharedStringsXml(unzipEntry(buffer, entries, 'xl/sharedStrings.xml') || '');
+  const sheet = unzipEntry(buffer, entries, 'xl/worksheets/sheet1.xml');
+  if (!sheet) throw new Error('XLSX sheet1.xml not found');
+  const rows = [];
+  for (const rowMatch of sheet.matchAll(/<row\b([^>]*)>([\s\S]*?)<\/row>/gi)) {
+    const rowNumber = Number(attrValue(rowMatch[1], 'r') || rows.length + 1) || rows.length + 1;
+    const values = [];
+    for (const cellMatch of rowMatch[2].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/gi)) {
+      const attrs = cellMatch[1];
+      const body = cellMatch[2];
+      const ref = attrValue(attrs, 'r') || '';
+      const t = attrValue(attrs, 't') || '';
+      let value = body.match(/<v>([\s\S]*?)<\/v>/i)?.[1] || '';
+      if (t === 's') value = shared[Number(value)] || '';
+      else if (t === 'inlineStr') value = [...body.matchAll(/<t\b[^>]*>([\s\S]*?)<\/t>/gi)].map((m) => decodeHtml(m[1])).join('');
+      else value = decodeHtml(value);
+      values[columnIndex(ref)] = value;
+    }
+    rows.push({ rowNumber, values });
+  }
+  return rows;
+}
+
+function parseNcDateLabel(value = '') {
+  const text = String(value || '').trim();
+  const match = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!match) return null;
+  const d = new Date(Date.UTC(Number(match[3]), Number(match[1]) - 1, Number(match[2])));
+  return Number.isFinite(d.getTime()) ? d.toISOString() : null;
+}
+
+function controlledDistributionKind(category = '') {
+  return /allocated/i.test(category) ? 'allocated' : /limited/i.test(category) ? 'limited_distribution' : 'controlled_distribution';
+}
+
+function relevantControlledProduct(row, bible) {
+  const text = `${row.product || ''} ${row.ncCode || ''}`;
+  if (!NC_CONTROLLED_PRODUCT_RE.test(text) || NC_CONTROLLED_EXCLUDE_RE.test(text)) return false;
+  return Boolean(bible.match(row.product)?.record || STRICT_TRACKED_RE.test(text) || /bourbon|rye|whiskey|whisky/i.test(text));
+}
+
+function enrichWithPrice(row, priceByCode) {
+  const price = priceByCode.get(normalizeNcCode(row.ncCode));
+  return {
+    ...row,
+    supplier: price?.supplier || null,
+    proof: price?.proof || null,
+    size: price?.size || null,
+    price: price?.price || null,
+    mixedBeveragePrice: price?.mixedBeveragePrice || null,
+    priceName: price?.brandName || null
+  };
 }
 
 function normalizeWebsite(website = '') {
@@ -312,7 +490,131 @@ async function collectBoardDirectory(config, roadblocks, dossier, boards) {
   dossier.boardDirectory = { sourceUrl: NC_BOARD_LIST_URL, parsedBoardCount: parsed, websiteCount: [...boards.values()].filter((b) => b.website).length, observedAt: new Date().toISOString() };
 }
 
-async function collectStockShipped(config, bible, signals, roadblocks, dossier, boards) {
+async function collectCurrentPriceList(config, roadblocks, dossier) {
+  const res = await safeTextFetch(NC_PRICE_EXPORT_URL, { headers: { accept: 'text/csv,*/*' }, referer: 'https://abc2.nc.gov/Pricing/PriceList', timeoutMs: 45000 });
+  if (!res.ok) {
+    roadblocks.push({ state: config.id, source: 'NC ABC current quarterly price export', url: NC_PRICE_EXPORT_URL, status: res.status, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry official Pricing/ExportData CSV or inspect current quarterly price page form.' });
+    dossier.currentPriceList = { sourceUrl: NC_PRICE_EXPORT_URL, status: res.status, rowCount: 0, observedAt: new Date().toISOString() };
+    return new Map();
+  }
+
+  const rows = csvRows(res.text).map((row) => ({
+    ncCode: normalizeNcCode(row['NC Code']),
+    supplier: String(row.Supplier || '').trim() || null,
+    brandName: String(row['Brand Name'] || '').trim(),
+    age: String(row.Age || '').trim() || null,
+    proof: String(row.Proof || '').trim() || null,
+    size: String(row['Bottle Size'] || '').trim() || null,
+    price: parseMoney(row['Retail Bottle Price']),
+    mixedBeveragePrice: parseMoney(row['Mixed Beverage Price'])
+  })).filter((row) => row.ncCode && row.brandName);
+
+  const priceByCode = new Map(rows.map((row) => [row.ncCode, row]));
+  dossier.currentPriceList = {
+    sourceUrl: NC_PRICE_EXPORT_URL,
+    status: res.status,
+    rowCount: rows.length,
+    bourbonOrWhiskeyRowCount: rows.filter((row) => NC_CONTROLLED_PRODUCT_RE.test(row.brandName) && !NC_CONTROLLED_EXCLUDE_RE.test(row.brandName)).length,
+    observedAt: new Date().toISOString(),
+    note: 'Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code.'
+  };
+  return priceByCode;
+}
+
+async function collectControlledDistributionList(config, bible, signals, roadblocks, dossier, priceByCode) {
+  const res = await safeBufferFetch(NC_CONTROLLED_DISTRIBUTION_XLSX_URL, { timeoutMs: 45000 });
+  if (!res.ok) {
+    roadblocks.push({ state: config.id, source: 'NC ABC controlled distribution product spreadsheet', url: NC_CONTROLLED_DISTRIBUTION_XLSX_URL, status: res.status, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry official public allocated/limited distribution spreadsheet or inspect NC ABCC pricing reports page for moved document.' });
+    dossier.controlledDistributionList = { sourceUrl: NC_CONTROLLED_DISTRIBUTION_XLSX_URL, status: res.status, itemCount: 0, observedAt: new Date().toISOString() };
+    return new Map();
+  }
+
+  let rows;
+  try {
+    rows = parseXlsxRows(res.buffer);
+  } catch (error) {
+    roadblocks.push({ state: config.id, source: 'NC ABC controlled distribution product spreadsheet', url: NC_CONTROLLED_DISTRIBUTION_XLSX_URL, status: 'xlsx_parse_failed', error: error.message, nextRoute: 'Inspect XLSX workbook structure and update the lightweight sheet parser.' });
+    dossier.controlledDistributionList = { sourceUrl: NC_CONTROLLED_DISTRIBUTION_XLSX_URL, status: 'xlsx_parse_failed', itemCount: 0, observedAt: new Date().toISOString() };
+    return new Map();
+  }
+
+  let category = null;
+  let updatedLabel = null;
+  const rawItems = [];
+  for (const row of rows) {
+    const [a = '', b = ''] = row.values.map((value) => String(value || '').replace(/\s+/g, ' ').trim());
+    if (row.rowNumber === 1 && b) updatedLabel = b;
+    if (b && !a && /ITEMS|DISTRIBUTION/i.test(b)) { category = b; continue; }
+    if (!a || !b || /^NC\s*Code$/i.test(a)) continue;
+    if (!/^\d{3,6}$/.test(a.replace(/[^0-9]/g, ''))) continue;
+    rawItems.push({
+      ncCode: normalizeNcCode(a),
+      product: b,
+      category: category || 'Controlled Distribution Items',
+      controlledDistributionType: controlledDistributionKind(category || ''),
+      sourceRow: row.rowNumber
+    });
+  }
+
+  const items = rawItems.map((row) => enrichWithPrice(row, priceByCode));
+  const relevantItems = items.filter((row) => relevantControlledProduct(row, bible));
+  const updatedAt = parseNcDateLabel(updatedLabel);
+  const observedAt = new Date().toISOString();
+
+  for (const row of relevantItems) {
+    const base = signalBase(config, 'NC ABC controlled distribution product list', NC_CONTROLLED_DISTRIBUTION_XLSX_URL, row.product, bible, 0.68);
+    signals.push({
+      id: stableId([config.id, 'controlled-distribution-product', row.ncCode, row.product, row.controlledDistributionType, updatedAt || updatedLabel || 'current']),
+      ...base,
+      eventType: 'nc_controlled_distribution_product_reference',
+      locationPrecision: 'statewide_catalog',
+      locationName: 'NC ABC controlled distribution product list',
+      ncCode: row.ncCode,
+      controlledDistributionType: row.controlledDistributionType,
+      price: row.price,
+      proof: row.proof,
+      size: row.size,
+      supplier: row.supplier,
+      observedAt,
+      sourceEventAt: updatedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      inventorySemantics: 'Official NC ABC product-control reference. This confirms the bottle is managed specially by the state, but it is not shipment or shelf availability by itself.',
+      evidence: `NC ABC public product-control spreadsheet includes ${row.product} (NC Code ${row.ncCode})${row.price ? ` at $${row.price.toFixed(2)}` : ''}. Use this as bottle-intelligence context; pair it with shipment, warehouse, board, or store signals for availability.`,
+      raw: { ...row, sourceUrl: NC_CONTROLLED_DISTRIBUTION_XLSX_URL, updatedLabel, precisionCaveat: 'product-control reference only; no board/store quantity' }
+    });
+  }
+
+  dossier.controlledDistributionList = {
+    sourceUrl: NC_CONTROLLED_DISTRIBUTION_XLSX_URL,
+    status: res.status,
+    updatedLabel,
+    updatedAt,
+    itemCount: items.length,
+    relevantBourbonOrWhiskeyItemCount: relevantItems.length,
+    allocatedItemCount: items.filter((row) => row.controlledDistributionType === 'allocated').length,
+    limitedDistributionItemCount: items.filter((row) => row.controlledDistributionType === 'limited_distribution').length,
+    relevantItems: relevantItems.slice(0, 300),
+    observedAt,
+    note: 'Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability.'
+  };
+  return new Map(items.map((row) => [row.ncCode, row]));
+}
+
+function controlledContext(controlledByCode, code) {
+  return controlledByCode.get(normalizeNcCode(code || '')) || null;
+}
+
+function priceContext(priceByCode, code) {
+  return priceByCode.get(normalizeNcCode(code || '')) || null;
+}
+
+function controlledEvidence(controlled) {
+  if (!controlled) return '';
+  return ` NC ABC also flags this NC Code in its product-control spreadsheet (${controlled.controlledDistributionType.replace(/_/g, ' ')}), which helps distinguish ordinary replenishment from high-demand controlled-product movement.`;
+}
+
+async function collectStockShipped(config, bible, signals, roadblocks, dossier, boards, controlledByCode = new Map(), priceByCode = new Map()) {
   const res = await textFetch(NC_STOCK_SHIPPED_DATA_URL, { headers: { accept: 'application/json,*/*' }, referer: NC_STOCK_SHIPPED_PAGE_URL, timeoutMs: 45000 });
   if (!res.ok) {
     roadblocks.push({ state: config.id, source: 'NC ABC Stock Shipped Data', url: NC_STOCK_SHIPPED_DATA_URL, status: res.status, error: res.text.slice(0, 300), nextRoute: 'Retry official StockShippedData JSON endpoint or inspect browser network for changed route.' });
@@ -349,7 +651,10 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     boards.set(boardName, board);
 
     if (!strictTrackedProduct(row.ProductName)) continue;
+    const ncCode = normalizeNcCode(row.NCcode);
     const quantity = Number(row.NUMUNITS || 0) || 0;
+    const controlled = controlledContext(controlledByCode, ncCode);
+    const price = priceContext(priceByCode, ncCode);
     board.trackedShipmentRows += 1;
     board.trackedUnits += quantity;
     addCapability(board, 'tracked_board_shipments');
@@ -363,11 +668,17 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
       locationPrecision: 'board_county',
       locationName: boardName,
       county: boardName.replace(/\s+ABC\s+Board$/i, '').replace(/\s+County$/i, ''),
+      ncCode,
+      controlledDistributionType: controlled?.controlledDistributionType || null,
+      price: price?.price || controlled?.price || null,
+      proof: price?.proof || controlled?.proof || null,
+      size: price?.size || controlled?.size || null,
+      supplier: price?.supplier || controlled?.supplier || null,
       quantity,
       observedAt,
       sourceEventAt,
-      evidence: `NC ABC Stock Shipped Data reports ${quantity} unit(s) of ${row.ProductName} shipped to ${boardName}. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity.`,
-      raw: { ...row, precisionCaveat: 'board shipment; exact store and shelf status unknown', extractDatetime: json.metadata?.extractDatetime }
+      evidence: `NC ABC Stock Shipped Data reports ${quantity} unit(s) of ${row.ProductName} shipped to ${boardName}. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity.${controlledEvidence(controlled)}`,
+      raw: { ...row, ncCode, controlledDistribution: controlled, priceList: price, precisionCaveat: 'board shipment; exact store and shelf status unknown', extractDatetime: json.metadata?.extractDatetime }
     };
     trackedRows.push(signal);
     signals.push(signal);
@@ -380,6 +691,8 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     productCount: json.lookups?.products?.length || 0,
     recordCount: json.records?.length || 0,
     trackedSignalCount: trackedRows.length,
+    controlledDistributionSignalCount: trackedRows.filter((signal) => signal.controlledDistributionType).length,
+    priceEnrichedSignalCount: trackedRows.filter((signal) => signal.price || signal.proof || signal.size || signal.supplier).length,
     strictProductPolicy: 'Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.'
   };
   await mkdir(NC_BOARD_HISTORY_DIR, { recursive: true });
@@ -408,7 +721,7 @@ function warehouseDelta(row, previousByCode) {
   return { kind: 'warehouse_qty_unchanged', previousQty: previous.totalAvailable, deltaQty: 0 };
 }
 
-async function collectWarehouse(config, bible, signals, roadblocks, dossier) {
+async function collectWarehouse(config, bible, signals, roadblocks, dossier, controlledByCode = new Map(), priceByCode = new Map()) {
   const res = await textFetch(NC_WAREHOUSE_STOCK_URL, { timeoutMs: 45000 });
   if (!res.ok) {
     roadblocks.push({ state: config.id, source: 'NC ABC Warehouse Stock Status', url: NC_WAREHOUSE_STOCK_URL, status: res.status, error: res.text.slice(0, 300), nextRoute: 'Retry official Stocks page or inspect form/export endpoint.' });
@@ -424,17 +737,26 @@ async function collectWarehouse(config, bible, signals, roadblocks, dossier) {
   for (const row of trackedRows) {
     const sourceUrl = row.itemId ? `https://abc2.nc.gov/Pricing/ViewItemDetails/${row.itemId}` : NC_WAREHOUSE_STOCK_URL;
     const delta = warehouseDelta(row, previousByCode);
+    const ncCode = normalizeNcCode(row.ncCode);
+    const controlled = controlledContext(controlledByCode, ncCode);
+    const price = priceContext(priceByCode, ncCode);
     const signal = {
       id: stableId([config.id, 'warehouse-stock', row.ncCode, row.totalAvailable, row.itemId]),
       ...signalBase(config, 'NC ABC Warehouse Stock Status', sourceUrl, row.productName, bible, 0.74),
       eventType: row.totalAvailable > 0 ? 'nc_statewide_warehouse_stock' : 'nc_statewide_warehouse_out_of_stock',
       locationPrecision: 'board_warehouse',
       locationName: 'NC ABC state warehouse',
+      ncCode,
+      controlledDistributionType: controlled?.controlledDistributionType || null,
+      price: price?.price || controlled?.price || null,
+      proof: price?.proof || controlled?.proof || null,
+      size: row.size || price?.size || controlled?.size || null,
+      supplier: row.supplier || price?.supplier || controlled?.supplier || null,
       warehouseQty: row.totalAvailable,
       quantity: row.totalAvailable,
       observedAt,
-      evidence: `NC ABC warehouse stock page shows ${row.totalAvailable} unit(s) available statewide for ${row.productName}${delta.previousQty == null ? '' : ` (${delta.deltaQty >= 0 ? '+' : ''}${delta.deltaQty} since previous Bourbon Signal snapshot)`}. This is early-warning radar only; it does not identify receiving boards or shelf inventory.`,
-      raw: { ...row, ...delta, precisionCaveat: 'state warehouse availability; no board/store assignment' }
+      evidence: `NC ABC warehouse stock page shows ${row.totalAvailable} unit(s) available statewide for ${row.productName}${delta.previousQty == null ? '' : ` (${delta.deltaQty >= 0 ? '+' : ''}${delta.deltaQty} since previous Bourbon Signal snapshot)`}. This is early-warning radar only; it does not identify receiving boards or shelf inventory.${controlledEvidence(controlled)}`,
+      raw: { ...row, ncCode, controlledDistribution: controlled, priceList: price, ...delta, precisionCaveat: 'state warehouse availability; no board/store assignment' }
     };
     warehouseSignals.push(signal);
     signals.push(signal);
@@ -448,6 +770,8 @@ async function collectWarehouse(config, bible, signals, roadblocks, dossier) {
     positiveTrackedRowCount: trackedRows.filter((row) => row.totalAvailable > 0).length,
     observedAt,
     increaseCount: increases.length,
+    controlledDistributionSignalCount: warehouseSignals.filter((signal) => signal.controlledDistributionType).length,
+    priceEnrichedSignalCount: warehouseSignals.filter((signal) => signal.price || signal.proof || signal.size || signal.supplier).length,
     topIncreases: increases.sort((a, b) => b.deltaQty - a.deltaQty).slice(0, 25),
     updateNote: 'Official page states warehouse stock status is refreshed frequently; treat as statewide radar, not store inventory.'
   };
@@ -708,8 +1032,10 @@ export async function collectNorthCarolinaIntelligence(config, bible, collectSto
   };
 
   await collectBoardDirectory(config, roadblocks, dossier, boards);
-  await collectStockShipped(config, bible, signals, roadblocks, dossier, boards);
-  await collectWarehouse(config, bible, signals, roadblocks, dossier);
+  const priceByCode = await collectCurrentPriceList(config, roadblocks, dossier);
+  const controlledByCode = await collectControlledDistributionList(config, bible, signals, roadblocks, dossier, priceByCode);
+  await collectStockShipped(config, bible, signals, roadblocks, dossier, boards, controlledByCode, priceByCode);
+  await collectWarehouse(config, bible, signals, roadblocks, dossier, controlledByCode, priceByCode);
   await collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards);
   await collectDurhamStructuredProducts(config, bible, signals, roadblocks, dossier, boards);
   await collectNewHanoverPublicProducts(config, bible, signals, roadblocks, dossier, boards);

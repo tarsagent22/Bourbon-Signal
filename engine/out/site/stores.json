@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-17T02:59:49.965Z",
-  "count": 2629,
+  "generatedAt": "2026-06-17T13:59:50.714Z",
+  "count": 2655,
   "stores": [
     {
       "id": "alabc:001",
@@ -28,8 +28,8 @@
       "zip": "36117",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:003",
@@ -56,8 +56,8 @@
       "zip": "36830",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 26
     },
     {
       "id": "alabc:005",
@@ -84,8 +84,8 @@
       "zip": "36527",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
     },
     {
       "id": "alabc:008",
@@ -140,8 +140,8 @@
       "zip": "35233",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:012",
@@ -168,8 +168,8 @@
       "zip": "35906",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:014",
@@ -182,8 +182,8 @@
       "zip": "35022",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:015",
@@ -196,8 +196,8 @@
       "zip": "35055",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 12
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 22
     },
     {
       "id": "alabc:017",
@@ -238,8 +238,8 @@
       "zip": "35601",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 27
     },
     {
       "id": "alabc:020",
@@ -266,8 +266,8 @@
       "zip": "36526",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 10
     },
     {
       "id": "alabc:022",
@@ -308,8 +308,8 @@
       "zip": "36104",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:026",
@@ -322,8 +322,8 @@
       "zip": "35022",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:027",
@@ -364,8 +364,8 @@
       "zip": "35080",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:030",
@@ -392,8 +392,8 @@
       "zip": "36830",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 5
     },
     {
       "id": "alabc:032",
@@ -406,8 +406,8 @@
       "zip": "36701",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 19
     },
     {
       "id": "alabc:033",
@@ -462,8 +462,8 @@
       "zip": "35235",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:040",
@@ -518,8 +518,8 @@
       "zip": "36535",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 5
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 3
     },
     {
       "id": "alabc:044",
@@ -532,8 +532,8 @@
       "zip": "35501",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 21
     },
     {
       "id": "alabc:045",
@@ -546,8 +546,8 @@
       "zip": "35803",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 28
     },
     {
       "id": "alabc:046",
@@ -574,8 +574,8 @@
       "zip": "35758",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 13
     },
     {
       "id": "alabc:049",
@@ -588,8 +588,8 @@
       "zip": "36081",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 19
     },
     {
       "id": "alabc:050",
@@ -644,8 +644,8 @@
       "zip": "35758",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 28
     },
     {
       "id": "alabc:054",
@@ -672,8 +672,8 @@
       "zip": "35223",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 21
     },
     {
       "id": "alabc:056",
@@ -714,8 +714,8 @@
       "zip": "35244",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 28
     },
     {
       "id": "alabc:059",
@@ -728,8 +728,8 @@
       "zip": "36066",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:060",
@@ -744,20 +744,6 @@
       "lng": null,
       "source": "Alabama ABC monthly additional distribution list",
       "signalCount": 1
-    },
-    {
-      "id": "alabc:061",
-      "sourceStoreId": "alabc:061",
-      "state": "AL",
-      "name": "Alabama ABC Store #061",
-      "address": "710 INDUSTRIAL PKWY STE A, SARALAND, AL 36571",
-      "city": "Saraland",
-      "county": null,
-      "zip": "36571",
-      "lat": null,
-      "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
     },
     {
       "id": "alabc:062",
@@ -798,8 +784,8 @@
       "zip": "36609",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 18
     },
     {
       "id": "alabc:066",
@@ -812,8 +798,8 @@
       "zip": "35661",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:067",
@@ -826,8 +812,8 @@
       "zip": "36532",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
     },
     {
       "id": "alabc:068",
@@ -840,8 +826,8 @@
       "zip": "35160",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:069",
@@ -854,8 +840,8 @@
       "zip": "35976",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:070",
@@ -896,8 +882,8 @@
       "zip": "36117",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 28
     },
     {
       "id": "alabc:073",
@@ -910,8 +896,8 @@
       "zip": "36507",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:074",
@@ -938,8 +924,8 @@
       "zip": "36545",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 20
     },
     {
       "id": "alabc:076",
@@ -952,8 +938,8 @@
       "zip": "36203",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 20
     },
     {
       "id": "alabc:077",
@@ -966,8 +952,8 @@
       "zip": "35801",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 7
     },
     {
       "id": "alabc:078",
@@ -1008,8 +994,8 @@
       "zip": "35242",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:082",
@@ -1022,8 +1008,8 @@
       "zip": "35476",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:083",
@@ -1036,8 +1022,8 @@
       "zip": "35023",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:084",
@@ -1050,8 +1036,8 @@
       "zip": "36693",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 27
     },
     {
       "id": "alabc:086",
@@ -1078,8 +1064,8 @@
       "zip": "36582",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:089",
@@ -1106,8 +1092,8 @@
       "zip": "35802",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 13
     },
     {
       "id": "alabc:092",
@@ -1120,8 +1106,8 @@
       "zip": "35244",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:093",
@@ -1162,8 +1148,8 @@
       "zip": "35603",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:096",
@@ -1190,8 +1176,8 @@
       "zip": "35741",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 10
     },
     {
       "id": "alabc:098",
@@ -1204,8 +1190,8 @@
       "zip": "35216",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:099",
@@ -1218,8 +1204,8 @@
       "zip": "36853",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 17
     },
     {
       "id": "alabc:101",
@@ -1232,8 +1218,8 @@
       "zip": "35010",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:102",
@@ -1246,8 +1232,8 @@
       "zip": "35405",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 26
     },
     {
       "id": "alabc:103",
@@ -1274,8 +1260,8 @@
       "zip": "35128",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 13
     },
     {
       "id": "alabc:105",
@@ -1288,8 +1274,8 @@
       "zip": "36527",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:107",
@@ -1302,8 +1288,8 @@
       "zip": "35146",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:108",
@@ -1316,8 +1302,8 @@
       "zip": "36303",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 26
     },
     {
       "id": "alabc:109",
@@ -1330,8 +1316,8 @@
       "zip": "35068",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 13
     },
     {
       "id": "alabc:110",
@@ -1344,8 +1330,8 @@
       "zip": "36078",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:111",
@@ -1358,8 +1344,8 @@
       "zip": "35209",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:113",
@@ -1374,6 +1360,20 @@
       "lng": null,
       "source": "Alabama ABC monthly additional distribution list",
       "signalCount": 1
+    },
+    {
+      "id": "alabc:114",
+      "sourceStoreId": "alabc:114",
+      "state": "AL",
+      "name": "Alabama ABC Store #114",
+      "address": "COMMERCE PKWY, PELHAM, AL 35124",
+      "city": "Pelham",
+      "county": null,
+      "zip": "35124",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 5
     },
     {
       "id": "alabc:115",
@@ -1418,20 +1418,6 @@
       "signalCount": 3
     },
     {
-      "id": "alabc:120",
-      "sourceStoreId": "alabc:120",
-      "state": "AL",
-      "name": "Alabama ABC Store #120",
-      "address": "680 S DALEVILLE AVE, DALEVILLE, AL 36322",
-      "city": "Daleville",
-      "county": null,
-      "zip": "36322",
-      "lat": null,
-      "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
-    },
-    {
       "id": "alabc:121",
       "sourceStoreId": "alabc:121",
       "state": "AL",
@@ -1456,8 +1442,8 @@
       "zip": "35954",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:123",
@@ -1484,8 +1470,8 @@
       "zip": "36330",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:125",
@@ -1498,8 +1484,8 @@
       "zip": "35124",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 26
     },
     {
       "id": "alabc:126",
@@ -1526,8 +1512,8 @@
       "zip": "36092",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:129",
@@ -1540,8 +1526,8 @@
       "zip": "35950",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:131",
@@ -1638,8 +1624,8 @@
       "zip": "36037",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:143",
@@ -1652,8 +1638,8 @@
       "zip": "35235",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
     },
     {
       "id": "alabc:144",
@@ -1680,8 +1666,8 @@
       "zip": "35124",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:148",
@@ -1694,8 +1680,8 @@
       "zip": "35769",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 10
     },
     {
       "id": "alabc:150",
@@ -1708,8 +1694,8 @@
       "zip": "35630",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 20
     },
     {
       "id": "alabc:151",
@@ -1722,8 +1708,8 @@
       "zip": "35806",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 13
     },
     {
       "id": "alabc:152",
@@ -1736,8 +1722,8 @@
       "zip": "35611",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 10
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
     },
     {
       "id": "alabc:153",
@@ -1750,8 +1736,8 @@
       "zip": "35903",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 18
     },
     {
       "id": "alabc:155",
@@ -1764,8 +1750,8 @@
       "zip": "35967",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 3
     },
     {
       "id": "alabc:156",
@@ -1780,6 +1766,34 @@
       "lng": null,
       "source": "Alabama ABC monthly limited release hold list",
       "signalCount": 2
+    },
+    {
+      "id": "alabc:160",
+      "sourceStoreId": "alabc:160",
+      "state": "AL",
+      "name": "Alabama ABC Store #160",
+      "address": "MARKET PLACE CIRCLE SUITE 101, CALERA, AL 35040",
+      "city": "Calera",
+      "county": null,
+      "zip": "35040",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 6
+    },
+    {
+      "id": "alabc:163",
+      "sourceStoreId": "alabc:163",
+      "state": "AL",
+      "name": "Alabama ABC Store #163",
+      "address": "PLAZA LN, OXFORD, AL 36203",
+      "city": "Oxford",
+      "county": null,
+      "zip": "36203",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 6
     },
     {
       "id": "alabc:164",
@@ -1820,8 +1834,8 @@
       "zip": "36117",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:176",
@@ -1834,8 +1848,8 @@
       "zip": "35043",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:177",
@@ -1848,8 +1862,8 @@
       "zip": "35210",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 8
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 11
     },
     {
       "id": "alabc:179",
@@ -1904,8 +1918,8 @@
       "zip": "35404",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:184",
@@ -1918,8 +1932,8 @@
       "zip": "35040",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 7
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 4
     },
     {
       "id": "alabc:185",
@@ -1932,8 +1946,8 @@
       "zip": "35094",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 11
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 14
     },
     {
       "id": "alabc:186",
@@ -1946,8 +1960,64 @@
       "zip": "35806",
       "lat": null,
       "lng": null,
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
+    },
+    {
+      "id": "alabc:201",
+      "sourceStoreId": "alabc:201",
+      "state": "AL",
+      "name": "Alabama ABC Store #201",
+      "address": "RELE ST.0, MTN BROOK, AL 35223",
+      "city": "Mtn Brook",
+      "county": null,
+      "zip": "35223",
+      "lat": null,
+      "lng": null,
       "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:208",
+      "sourceStoreId": "alabc:208",
+      "state": "AL",
+      "name": "Alabama ABC Store #208",
+      "address": "W GRAND AVE, RAINBOW CITY, AL 35906",
+      "city": "Rainbow City",
+      "county": null,
+      "zip": "35906",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 5
+    },
+    {
+      "id": "alabc:209",
+      "sourceStoreId": "alabc:209",
+      "state": "AL",
+      "name": "Alabama ABC Store #209",
+      "address": "E MEIGHAN BLVD, GADSDEN, AL 35903",
+      "city": "Gadsden",
+      "county": null,
+      "zip": "35903",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 6
+    },
+    {
+      "id": "alabc:210",
+      "sourceStoreId": "alabc:210",
+      "state": "AL",
+      "name": "Alabama ABC Store #210",
+      "address": "DEKALB PLAZA BLVD SW, FORT PAYNE, AL 35967",
+      "city": "Fort Payne",
+      "county": null,
+      "zip": "35967",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
     },
     {
       "id": "alabc:225",
@@ -1974,8 +2044,8 @@
       "zip": "36801",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
     },
     {
       "id": "alabc:227",
@@ -2044,8 +2114,8 @@
       "zip": "35121",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC monthly additional distribution list",
+      "signalCount": 1
     },
     {
       "id": "alabc:233",
@@ -2058,8 +2128,8 @@
       "zip": "35007",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 3
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 6
     },
     {
       "id": "alabc:234",
@@ -2100,8 +2170,8 @@
       "zip": "35405",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 8
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 11
     },
     {
       "id": "alabc:239",
@@ -2114,8 +2184,8 @@
       "zip": "36561",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 2
+      "source": "Alabama ABC quarterly limited release products and stores",
+      "signalCount": 19
     },
     {
       "id": "alabc:240",
@@ -2128,8 +2198,8 @@
       "zip": "36542",
       "lat": null,
       "lng": null,
-      "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 6
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 9
     },
     {
       "id": "alabc:243",
@@ -2142,8 +2212,288 @@
       "zip": "35640",
       "lat": null,
       "lng": null,
+      "source": "Alabama ABC quarterly Staycation release products and stores",
+      "signalCount": 12
+    },
+    {
+      "id": "alabc:261",
+      "sourceStoreId": "alabc:261",
+      "state": "AL",
+      "name": "Alabama ABC Store #261",
+      "address": "W VALLEY AVE, HOMEWOOD, AL 35209",
+      "city": "Homewood",
+      "county": null,
+      "zip": "35209",
+      "lat": null,
+      "lng": null,
       "source": "Alabama ABC monthly limited release hold list",
-      "signalCount": 9
+      "signalCount": 5
+    },
+    {
+      "id": "alabc:270",
+      "sourceStoreId": "alabc:270",
+      "state": "AL",
+      "name": "Alabama ABC Store #270",
+      "address": "HWY 78 W, JASPER, AL 35501",
+      "city": "Jasper",
+      "county": null,
+      "zip": "35501",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:300",
+      "sourceStoreId": "alabc:300",
+      "state": "AL",
+      "name": "Alabama ABC Store #300",
+      "address": "SPRINGVILLE STATION BLVD. STE. 800, SPRINGVILLE, AL 35146",
+      "city": "Springville",
+      "county": null,
+      "zip": "35146",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:308",
+      "sourceStoreId": "alabc:308",
+      "state": "AL",
+      "name": "Alabama ABC Store #308",
+      "address": "SECOND AVENUE WEST, ONEONTA, AL 35121",
+      "city": "Oneonta",
+      "county": null,
+      "zip": "35121",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:312",
+      "sourceStoreId": "alabc:312",
+      "state": "AL",
+      "name": "Alabama ABC Store #312",
+      "address": "SCHILLINGER ROAD, S. STE H & L, MOBILE, AL 36609",
+      "city": "Mobile",
+      "county": null,
+      "zip": "36609",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 5
+    },
+    {
+      "id": "alabc:368",
+      "sourceStoreId": "alabc:368",
+      "state": "AL",
+      "name": "Alabama ABC Store #368",
+      "address": "North Broadnax Street, Dadeville, AL 36853",
+      "city": "Dadeville",
+      "county": null,
+      "zip": "36853",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:405",
+      "sourceStoreId": "alabc:405",
+      "state": "AL",
+      "name": "Alabama ABC Store #405",
+      "address": "HELENA MARKET PL, HELENA, AL 35080",
+      "city": "Helena",
+      "county": null,
+      "zip": "35080",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:423",
+      "sourceStoreId": "alabc:423",
+      "state": "AL",
+      "name": "Alabama ABC Store #423",
+      "address": "GILMER AVE. , TALLASSEE, AL 36078",
+      "city": "Tallassee",
+      "county": null,
+      "zip": "36078",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:461",
+      "sourceStoreId": "alabc:461",
+      "state": "AL",
+      "name": "Alabama ABC Store #461",
+      "address": "N EASTERN BLVD STE I, MONTGOMERY, AL 36117",
+      "city": "Montgomery",
+      "county": null,
+      "zip": "36117",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:605",
+      "sourceStoreId": "alabc:605",
+      "state": "AL",
+      "name": "Alabama ABC Store #605",
+      "address": "GILBERT FERRY RD., ATTALLA, AL 35954",
+      "city": "Attalla",
+      "county": null,
+      "zip": "35954",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:614",
+      "sourceStoreId": "alabc:614",
+      "state": "AL",
+      "name": "Alabama ABC Store #614",
+      "address": "US HIGHWAY 31 S , ATHENS, AL 35611",
+      "city": "Athens",
+      "county": null,
+      "zip": "35611",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:630",
+      "sourceStoreId": "alabc:630",
+      "state": "AL",
+      "name": "Alabama ABC Store #630",
+      "address": "S DECATUR ST, MONTGOMERY, AL 36104",
+      "city": "Montgomery",
+      "county": null,
+      "zip": "36104",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:680",
+      "sourceStoreId": "alabc:680",
+      "state": "AL",
+      "name": "Alabama ABC Store #680",
+      "address": "S DALEVILLE AVE, DALEVILLE, AL 36322",
+      "city": "Daleville",
+      "county": null,
+      "zip": "36322",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:700",
+      "sourceStoreId": "alabc:700",
+      "state": "AL",
+      "name": "Alabama ABC Store #700",
+      "address": "PRATT AVE NW STE A, HUNTSVILLE, AL 35801",
+      "city": "Huntsville",
+      "county": null,
+      "zip": "35801",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:705",
+      "sourceStoreId": "alabc:705",
+      "state": "AL",
+      "name": "Alabama ABC Store #705",
+      "address": "CULLMAN SHOPPING Ctr NW, CULLMAN, AL 35055",
+      "city": "Cullman",
+      "county": null,
+      "zip": "35055",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:710",
+      "sourceStoreId": "alabc:710",
+      "state": "AL",
+      "name": "Alabama ABC Store #710",
+      "address": "INDUSTRIAL PKWY STE A, SARALAND, AL 36571",
+      "city": "Saraland",
+      "county": null,
+      "zip": "36571",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:719",
+      "sourceStoreId": "alabc:719",
+      "state": "AL",
+      "name": "Alabama ABC Store #719",
+      "address": "E MAIN ST, PRATTVILLE, AL 36066",
+      "city": "Prattville",
+      "county": null,
+      "zip": "36066",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 4
+    },
+    {
+      "id": "alabc:804",
+      "sourceStoreId": "alabc:804",
+      "state": "AL",
+      "name": "Alabama ABC Store #804",
+      "address": "US HIGHWAY 31 S., BAY MINETTE, AL 36507",
+      "city": "Bay Minette",
+      "county": null,
+      "zip": "36507",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 2
+    },
+    {
+      "id": "alabc:924",
+      "sourceStoreId": "alabc:924",
+      "state": "AL",
+      "name": "Alabama ABC Store #924",
+      "address": "FLORENCE BLVD, FLORENCE, AL 35630",
+      "city": "Florence",
+      "county": null,
+      "zip": "35630",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 7
+    },
+    {
+      "id": "alabc:931",
+      "sourceStoreId": "alabc:931",
+      "state": "AL",
+      "name": "Alabama ABC Store #931",
+      "address": "N MCKENZIE ST, FOLEY, AL 36535",
+      "city": "Foley",
+      "county": null,
+      "zip": "36535",
+      "lat": null,
+      "lng": null,
+      "source": "Alabama ABC monthly limited release hold list",
+      "signalCount": 5
     },
     {
       "id": "binnys:12",
@@ -10515,7 +10865,7 @@
       "lat": 39.8498,
       "lng": -86.1226,
       "source": "Kahn's Fine Wines & Spirits in-stock bourbon API",
-      "signalCount": 34
+      "signalCount": 20
     },
     {
       "id": "DL4931513",
@@ -18509,7 +18859,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 29
     },
     {
       "id": "high-point-parris-ave",
@@ -25173,7 +25523,7 @@
       "lat": -75.58496837331654,
       "lng": 39.94303004573259,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "2221",
@@ -25621,7 +25971,7 @@
       "lat": 40.459164,
       "lng": -79.927412,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "249",
@@ -30314,6 +30664,20 @@
       "signalCount": 4
     },
     {
+      "id": "4809",
+      "sourceStoreId": "4809",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 4809",
+      "address": "Bath Shopping Center, 362 South Walnut Street, Bath, PA, 18014",
+      "city": "Bath",
+      "county": null,
+      "zip": null,
+      "lat": 40.721962,
+      "lng": -75.392734,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "4810",
       "sourceStoreId": "4810",
       "state": "PA",
@@ -30983,7 +31347,7 @@
       "lat": 40.65509,
       "lng": -76.109509,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "5412",
@@ -31907,7 +32271,7 @@
       "lat": 35.955476,
       "lng": -86.817278,
       "source": "Cool Springs Wine & Spirits public catalog API",
-      "signalCount": 12
+      "signalCount": 11
     },
     {
       "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",
