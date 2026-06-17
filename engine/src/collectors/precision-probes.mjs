@@ -56,8 +56,12 @@ const BINNYS_EXCLUDE_RE = /vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltz
 const AL_ABC_BASE_URL = 'https://alabcboard.gov';
 const AL_MONTHLY_RELEASE_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/monthly`;
 const AL_QUARTERLY_RELEASE_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/quarterly`;
+const AL_QUARTERLY_PRODUCTS_URL = `${AL_ABC_BASE_URL}/stores/events/limited-releases/Limited-Release`;
+const AL_ANNUAL_RELEASE_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/annual`;
+const AL_ANNUAL_PRODUCTS_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/annual/price-products`;
+const AL_ANNUAL_LOCATIONS_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/annual/times-locations`;
 const AL_ALLOCATED_LIST_URL = `${AL_ABC_BASE_URL}/stores/events/limited-releases/Allocated-Spirits-List`;
-const AL_RELEASE_ROW_RE = /^(?:(\d{1,2}\/\d{1,2}\/\d{4})\s+)?(\d{3})\s+(.+?,\s*AL,?\s+\d{5})\s+([A-Z]\d{6})\s+(.+?)\s+\$([\d,]+\.\d{2})$/;
+const AL_RELEASE_ROW_RE = /^(?:(\d{1,2}\/\d{1,2}\/\d{4})\s+(?:(\d+)\s+)?)?(\d{3})\s+(.+?,\s*AL,?\s+\d{5})\s+([A-Z]\d{6})\s+(.+?)\s+\$([\d,]+\.\d{2})$/;
 const AL_PRODUCT_CODE_RE = /^[A-Z]\d{6}$/;
 const AL_BOURBON_RE = /bourbon|whiskey|whisky|rye|blanton|weller|eagle rare|stagg|taylor|buffalo trace|pappy|van winkle|michter|willett|old fitz|fitzgerald|elijah craig|russell|four roses|booker|baker|1792|maker|woodford|knob creek|jack daniel|blood oath|parker|henry mckenna|sazerac|little book|birthday bourbon|king of kentucky|rock hill|elmer/i;
 const AL_STRONG_RELEASE_RE = /blanton|weller|eagle rare|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|pappy|van winkle|michter|willett|old fitz|fitzgerald|elijah craig|russell|four roses|booker|baker|1792|blood oath|parker|henry mckenna|sazerac|little book|birthday bourbon|king of kentucky|rock hill|elmer|knob creek|yellowstone|penelope|wild turkey/i;
@@ -483,11 +487,12 @@ function parseAlabamaReleaseRows(text, sourceKind) {
       misses.push(line);
       continue;
     }
-    const [, releaseDate, storeNumber, rawAddress, code, rawName, priceText] = match;
+    const [, releaseDate, tableNumber, storeNumber, rawAddress, code, rawName, priceText] = match;
     const storeAddress = normalizeAlabamaAddress(rawAddress);
     rows.push({
       sourceKind,
       releaseDate: releaseDate || null,
+      tableNumber: tableNumber || null,
       storeNumber,
       storeAddress,
       city: cityFromAlabamaAddress(storeAddress),
@@ -528,6 +533,38 @@ function parseAlabamaAllocatedPdfRows(text) {
     });
   }
   return rows;
+}
+
+function parseAlabamaAnnualDate(text = '') {
+  const clean = stripHtml(String(text || '')).replace(/\s+/g, ' ');
+  const match = clean.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s*(20\d{2})/i);
+  if (!match) return null;
+  return `${match[1]} ${match[2]}, ${match[3]}`;
+}
+
+function parseAlabamaAnnualProductRows(html = '') {
+  const rows = [];
+  let tableNumber = null;
+  for (const tr of String(html || '').matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const cells = [...tr[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
+      .map((m) => decodeHtml(stripHtml(m[1])).replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    const tableCell = cells.find((cell) => /^Table\s+\d+/i.test(cell));
+    if (tableCell) tableNumber = tableCell.match(/\d+/)?.[0] || tableNumber;
+    const codeIndex = cells.findIndex((cell) => AL_PRODUCT_CODE_RE.test(cell));
+    if (codeIndex < 0) continue;
+    const code = cells[codeIndex].match(AL_PRODUCT_CODE_RE)?.[0];
+    const priceText = cells.find((cell, idx) => idx > codeIndex && /\$[\d,]+\.\d{2}/.test(cell)) || cells.find((cell) => /\$[\d,]+\.\d{2}/.test(cell));
+    const rawName = cells.slice(codeIndex + 1).find((cell) => cell !== priceText && AL_BOURBON_RE.test(cell)) || cells[codeIndex + 1] || '';
+    if (!code || !rawName || !AL_BOURBON_RE.test(rawName)) continue;
+    rows.push({
+      tableNumber,
+      code,
+      rawName: decodeHtml(rawName).replace(/\s+/g, ' ').trim(),
+      price: priceText ? Number(priceText.replace(/[$,]/g, '')) || null : null
+    });
+  }
+  return [...new Map(rows.map((row) => [`${row.tableNumber}|${row.code}|${row.rawName}`, row])).values()];
 }
 
 function aspNetHiddenValue(html, name) {
@@ -867,12 +904,13 @@ function cityHiveSafeBottleMatch(rawName, bible) {
   if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
   const raw = normalizedBottleText(rawName);
   const canonical = normalizedBottleText(record.canonical);
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(canonical)) return { match, record: null, unsafeReason: 'flavored_or_liqueur_matched_core_bottle' };
   if (/\brye\b/.test(raw) && !/\brye\b/.test(canonical)) return { match, record: null, unsafeReason: 'rye_matched_non_rye' };
   if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return { match, record: null, unsafeReason: 'bourbon_matched_rye' };
   if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return { match, record: null, unsafeReason: 'wheated_matched_non_wheated' };
   const requiredPhrases = [
     'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
-    'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
+    'small batch', 'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
   ];
   for (const phrase of requiredPhrases) {
     if (canonical.includes(phrase) && !raw.includes(phrase)) return { match, record: null, unsafeReason: `missing_modifier:${phrase}` };
@@ -1044,7 +1082,7 @@ async function collectIndianaKahns(config, bible, observedAt) {
       seenProducts.add(product.id);
       if (!isKahnsBourbonRelevantProduct(product)) continue;
       const rawName = product.title || product.bigcomTitle || product.sku || "Kahn's product";
-      const { match, record } = bottleMatch(rawName, bible);
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record) continue;
       const quantity = Math.max(0, Number(product.qtyAvailableStandalone ?? product.qtyInStock_rollup ?? 0) || 0);
       if (quantity <= 0) continue;
@@ -1083,7 +1121,7 @@ async function collectIndianaKahns(config, bible, observedAt) {
         canAlertAsWatch: true,
         inventorySemantics: "Kahn's public Sante e-commerce API reports in-stock spirits products and available standalone quantity for online/store purchase. Treat as retailer-published availability and verify before driving.",
         evidence: `Kahn's public shop API reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}${latestReceived ? `; latest inventory receipt ${latestReceived}` : ''}.`,
-        raw: { chain: 'kahns', product: { id: product.id, publicId: product.publicId, sku: product.sku, upc: product.upc, tags, qtyInStockRollup: product.qtyInStock_rollup, qtyAvailableStandalone: product.qtyAvailableStandalone, latestReceived } }
+        raw: { chain: 'kahns', product: { id: product.id, publicId: product.publicId, sku: product.sku, upc: product.upc, tags, qtyInStockRollup: product.qtyInStock_rollup, qtyAvailableStandalone: product.qtyAvailableStandalone, latestReceived }, matchGuard: unsafeReason }
       });
     }
     if (!page.products?.length || (pageIndex + 1) * IN_KAHNS_PAGE_SIZE >= totalCount) break;
@@ -2014,8 +2052,10 @@ async function collectAlabama(config, bible) {
   const observedAt = new Date().toISOString();
 
   const monthly = await textFetch(AL_MONTHLY_RELEASE_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+  const quarterlyProducts = await textFetch(AL_QUARTERLY_PRODUCTS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
   const allocatedPage = await textFetch(AL_ALLOCATED_LIST_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
   const releaseDocs = [];
+  let monthlyMissingCurrentReleasePdf = false;
 
   if (monthly.ok) {
     const links = htmlLinks(monthly.text, AL_MONTHLY_RELEASE_URL).filter((link) => /\.pdf(?:$|[?#])/i.test(link.href));
@@ -2025,16 +2065,7 @@ async function collectAlabama(config, bible) {
     if (hold) releaseDocs.push({ kind: 'monthly_hold', label: 'Alabama ABC monthly limited release hold list', url: hold.href, linkText: hold.text });
     if (additional) releaseDocs.push({ kind: 'monthly_additional_distribution', label: 'Alabama ABC monthly additional distribution list', url: additional.href, linkText: additional.text });
     if (schedule) releaseDocs.push({ kind: 'limited_release_schedule', label: 'Alabama ABC limited release schedule', url: schedule.href, linkText: schedule.text });
-    if (!hold && !additional) {
-      roadblocks.push({
-        state: config.id,
-        source: 'Alabama ABC monthly limited release page',
-        url: AL_MONTHLY_RELEASE_URL,
-        status: 'reachable_no_current_release_pdf',
-        error: 'Monthly page loaded but current Hold / Additional Distribution PDF links were not found.',
-        nextRoute: 'Inspect monthly page link labels and update Alabama release PDF discovery patterns.'
-      });
-    }
+    if (!hold && !additional) monthlyMissingCurrentReleasePdf = true;
   } else {
     roadblocks.push({
       state: config.id,
@@ -2046,7 +2077,18 @@ async function collectAlabama(config, bible) {
     });
   }
 
+  if (quarterlyProducts.ok) {
+    const links = htmlLinks(quarterlyProducts.text, AL_QUARTERLY_PRODUCTS_URL).filter((link) => /\.pdf(?:$|[?#])/i.test(link.href));
+    const quarterly = links.find((link) => /quarterly\s+release|web_\d+/i.test(`${link.text} ${decodeURIComponent(link.href)}`));
+    const staycation = links.find((link) => /staycation/i.test(`${link.text} ${decodeURIComponent(link.href)}`));
+    if (quarterly) releaseDocs.push({ kind: 'quarterly_release', label: 'Alabama ABC quarterly limited release products and stores', url: quarterly.href, linkText: quarterly.text });
+    if (staycation) releaseDocs.push({ kind: 'quarterly_staycation_release', label: 'Alabama ABC quarterly Staycation release products and stores', url: staycation.href, linkText: staycation.text });
+  } else {
+    roadblocks.push({ state: config.id, source: 'Alabama ABC quarterly product/PDF page', url: AL_QUARTERLY_PRODUCTS_URL, status: quarterlyProducts.status || 0, error: quarterlyProducts.error || `HTTP ${quarterlyProducts.status}`, nextRoute: 'Retry quarterly limited-release product page and discover current PDF links.' });
+  }
+
   // Stable fallbacks keep the collector useful if Drupal link text changes but the current official file paths remain live.
+  if (!releaseDocs.some((doc) => doc.kind === 'quarterly_release')) releaseDocs.push({ kind: 'quarterly_release', label: 'Alabama ABC quarterly limited release products and stores', url: `${AL_ABC_BASE_URL}/sites/default/files/inline-files/Web_23.pdf`, fallback: true });
   if (!releaseDocs.some((doc) => doc.kind === 'monthly_hold')) releaseDocs.push({ kind: 'monthly_hold', label: 'Alabama ABC monthly limited release hold list', url: `${AL_ABC_BASE_URL}/sites/default/files/inline-files/Web%20Hold_20.pdf`, fallback: true });
   if (!releaseDocs.some((doc) => doc.kind === 'monthly_additional_distribution')) releaseDocs.push({ kind: 'monthly_additional_distribution', label: 'Alabama ABC monthly additional distribution list', url: `${AL_ABC_BASE_URL}/sites/default/files/inline-files/Web%20Do%20Not%20Hold_20.pdf`, fallback: true });
   if (!releaseDocs.some((doc) => doc.kind === 'limited_release_schedule')) releaseDocs.push({ kind: 'limited_release_schedule', label: 'Alabama ABC limited release schedule', url: `${AL_ABC_BASE_URL}/sites/default/files/inline-files/2026%20Limited%20Release%20Schedule.pdf`, fallback: true });
@@ -2141,6 +2183,66 @@ async function collectAlabama(config, bible) {
         raw: { lines, pages: schedule.pages }
       });
     }
+  }
+
+  const annualProducts = await textFetch(AL_ANNUAL_PRODUCTS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+  const annualHome = await textFetch(AL_ANNUAL_RELEASE_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 18_000 });
+  const annualLocations = await textFetch(AL_ANNUAL_LOCATIONS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 18_000 });
+  const annualDate = parseAlabamaAnnualDate(`${annualHome.text || ''} ${annualProducts.text || ''} ${annualLocations.text || ''}`);
+  if (annualProducts.ok) {
+    const annualRows = parseAlabamaAnnualProductRows(annualProducts.text);
+    const locationText = annualLocations.ok ? stripHtml(annualLocations.text).replace(/\s+/g, ' ').trim() : '';
+    for (const row of annualRows) {
+      if (!AL_STRONG_RELEASE_RE.test(row.rawName)) continue;
+      const { match, record } = alabamaBottleMatch(row.rawName, bible, row.code);
+      if (!record) continue;
+      signals.push({
+        id: stableId([config.id, 'alabc-annual-limited-release-product', annualDate || 'annual', row.tableNumber || 'table', row.code]),
+        state: config.id,
+        sourceLabel: 'Alabama ABC annual limited release products and pricing',
+        sourceUrl: AL_ANNUAL_PRODUCTS_URL,
+        rawName: row.rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.66, match?.confidence || 0.5),
+        eventType: 'alabc_annual_limited_release_lottery_product',
+        locationPrecision: 'statewide_policy',
+        locationName: 'Alabama ABC annual limited release program',
+        stateCode: 'AL',
+        quantity: 0,
+        price: row.price,
+        observedAt,
+        releaseDate: annualDate,
+        canAlertAsInventory: false,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Alabama ABC annual limited-release product/pricing table and times/locations pages are lottery/scheduled event intelligence. They are not live shelf inventory.',
+        evidence: `Alabama ABC annual limited-release program lists ${row.rawName}${row.tableNumber ? ` on Table ${row.tableNumber}` : ''}${row.price ? ` for $${row.price.toFixed(2)}` : ''}${annualDate ? ` for the ${annualDate} event` : ''}. Sweepstakes/line rules and store times must be verified at the official source.`,
+        raw: { product: row, annualDate, locationsUrl: AL_ANNUAL_LOCATIONS_URL, locationSample: locationText.slice(0, 1200) }
+      });
+    }
+    signals.push({
+      id: stableId([config.id, 'alabc-annual-limited-release-program', annualDate || 'annual', annualRows.length]),
+      state: config.id,
+      sourceLabel: 'Alabama ABC annual limited release program',
+      sourceUrl: AL_ANNUAL_RELEASE_URL,
+      rawName: 'Alabama ABC annual limited release program',
+      canonicalBottleId: null,
+      canonicalName: null,
+      confidence: 0.64,
+      eventType: 'alabc_annual_limited_release_calendar',
+      locationPrecision: 'statewide_policy',
+      locationName: 'Alabama ABC annual limited release program',
+      stateCode: 'AL',
+      observedAt,
+      releaseDate: annualDate,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Alabama annual limited-release pages describe sweepstakes, product tables, and participating store times/locations. This is official event intelligence, not inventory.',
+      evidence: `Alabama ABC annual limited-release pages expose ${annualRows.length} product/pricing rows${annualDate ? ` for ${annualDate}` : ''} plus participating-store times/locations.`,
+      raw: { annualDate, productRowCount: annualRows.length, productsUrl: AL_ANNUAL_PRODUCTS_URL, locationsUrl: AL_ANNUAL_LOCATIONS_URL, locationSample: locationText.slice(0, 1200) }
+    });
+  } else {
+    roadblocks.push({ state: config.id, source: 'Alabama ABC annual limited release products and pricing', url: AL_ANNUAL_PRODUCTS_URL, status: annualProducts.status || 0, error: annualProducts.error || `HTTP ${annualProducts.status}`, nextRoute: 'Retry annual product/pricing page and inspect table markup.' });
   }
 
   const allocatedLinks = allocatedPage.ok ? htmlLinks(allocatedPage.text, AL_ALLOCATED_LIST_URL) : [];
@@ -3184,8 +3286,8 @@ async function collectHighPointPowerBiNc(config, bible) {
       signals.push({
         id: stableId([config.id, 'high-point-powerbi-store-inventory', ncCode, store.storeId, qty, price]),
         ...base,
-        canonicalBottleId: null,
-        canonicalName: titleCase(rawName),
+        canonicalBottleId: base.canonicalBottleId,
+        canonicalName: base.canonicalName || titleCase(rawName),
         confidence: Math.max(0.82, base.confidence),
         eventType: 'store_inventory_result',
         locationPrecision: 'store_level',
@@ -3381,6 +3483,9 @@ async function collectGreensboroNc(config, bible) {
           observedAt,
           availabilityStatus: 'in_stock',
           availabilityLabel: `${qty} reported available for pickup`,
+          canAlertAsInventory: true,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Greensboro ABC public SuiteCommerce pickup API reports positive per-store pickup quantity. Treat as official storefront availability and verify before driving.',
           evidence: `Greensboro ABC public storefront reports ${qty} bottle(s) of ${rawName} available for pickup at ${store.name}, ${store.address}. Verify with the store before driving.`,
           raw: {
             item: {
@@ -3442,7 +3547,7 @@ async function collectNcStoreInventory(config, bible) {
     boardCapabilities: [
       { boardName: 'Wake County ABC Board', capabilities: ['store_inventory_search_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' },
       { boardName: 'Greensboro ABC Board', capabilities: ['suitecommerce_pickup_inventory_attached', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' },
-      { boardName: 'High Point ABC Board', capabilities: ['shopify_product_availability_attached', 'official_board_storefront_availability'], precisionLevel: 'store_aggregate' }
+      { boardName: 'High Point ABC Board', capabilities: ['public_powerbi_store_inventory_attached', 'shopify_product_availability_attached', 'official_board_storefront_availability', 'store_level_probe_attached'], precisionLevel: 'store_inventory_search' }
     ]
   };
 }

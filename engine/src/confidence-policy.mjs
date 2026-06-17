@@ -84,6 +84,9 @@ function policyForSignal(signal) {
   const eventType = String(signal.eventType || signal.signalType || '');
   const source = String(signal.sourceLabel || signal.source || '');
   if (signal.state === 'TN' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
+  if (signal.state === 'TN'
+    && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
   if (signal.state === 'TX' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TEXAS_CITYHIVE_POLICY;
   return basePolicy;
 }
