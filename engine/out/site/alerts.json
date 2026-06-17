@@ -1,50 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-17T13:59:50.714Z",
-  "count": 1,
-  "alerts": [
-    {
-      "id": "add3f2880c2c38eb",
-      "action": "inventory_alert_candidate",
-      "score": 181,
-      "reliabilityScore": 100,
-      "eligibleForDelivery": true,
-      "priorityClass": "major",
-      "deliveryChannel": "onsite_candidate",
-      "sendRecommendation": "send_to_matching_testers",
-      "freshnessHours": 0,
-      "bootstrap": false,
-      "changeType": "changed_signal",
-      "dedupeKey": "c056f2ccdf26ed16",
-      "matchKey": "ed88729604ddd8a0",
-      "gates": [
-        "bottle_matched",
-        "fresh_24h",
-        "confidence_high",
-        "store_level"
-      ],
-      "blockers": [],
-      "cautions": [],
-      "state": "IL",
-      "bottle": "Michter's US 1 Straight Bourbon Small Batch",
-      "tier": "limited",
-      "eventType": "retailer_store_inventory_result",
-      "source": "Binny's Beverage Depot public store inventory",
-      "sourceUrl": "https://www.binnys.com/spirits/whiskey/michters-us-small-batch-bourbon-194814/",
-      "locationPrecision": "store_level",
-      "locationName": "Binny's Lincoln Park",
-      "storeName": "Binny's Lincoln Park",
-      "storeAddress": "1720 N. Marcey St., Chicago, IL, 60614",
-      "quantity": 27,
-      "availabilityStatus": "in_stock",
-      "availabilityLabel": "In Stock",
-      "warehouseQty": 0,
-      "price": 46.99,
-      "confidence": 0.86,
-      "policyMode": "alert_retailer_store_inventory_caveat",
-      "inventorySemantics": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat.",
-      "reason": "Changed signal for Michter's US 1 Straight Bourbon Small Batch in IL: quantity: 21 → 27.",
-      "evidence": "Binny's reports In Stock for Michter's US*1 Small Batch Bourbon at Binny's Lincoln Park in Chicago for $46.99 (BOURBON)."
-    }
-  ]
+  "generatedAt": "2026-06-17T18:19:48.988Z",
+  "count": 0,
+  "alerts": []
 }

@@ -17,7 +17,12 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a
   // real collector problem, not a too-short parent watchdog.
-  NC: Number(process.env.BOURBON_SIGNAL_NC_STATE_TIMEOUT_MS || 420_000)
+  NC: Number(process.env.BOURBON_SIGNAL_NC_STATE_TIMEOUT_MS || 420_000),
+  // New control/county expansion states can fan out across official CSV/API rows.
+  IA: Number(process.env.BOURBON_SIGNAL_IA_STATE_TIMEOUT_MS || 300_000),
+  UT: Number(process.env.BOURBON_SIGNAL_UT_STATE_TIMEOUT_MS || 300_000),
+  ID: Number(process.env.BOURBON_SIGNAL_ID_STATE_TIMEOUT_MS || 240_000),
+  'MD-MONTGOMERY': Number(process.env.BOURBON_SIGNAL_MD_MONTGOMERY_STATE_TIMEOUT_MS || 300_000)
 };
 const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0';
