@@ -35,12 +35,6 @@ const EMPTY_PREFS: AreaPreferences = {
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
 
-interface AlertPreviewState {
-  sending: boolean;
-  success: boolean;
-  error: string | null;
-}
-
 interface BottleOption {
   canonicalKey: string;
   label: string;
@@ -122,6 +116,10 @@ function tasteScoreDescription(score: number) {
   if (score >= 70) return "Good fit, but not a must-chase bottle.";
   if (score >= 50) return "Useful context, but weaker recommendation signal.";
   return "Negative signal so we can avoid similar bottles later.";
+}
+
+function formatTasteScore(score: number) {
+  return (Math.max(10, Math.min(100, score)) / 10).toFixed(1);
 }
 
 function isWhiskeyProduct(name: string) {
@@ -510,11 +508,6 @@ export default function DashboardPage() {
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
   const [alertMode, setAlertMode] = useState<AlertMode>("anything_notable");
-  const [alertPreview, setAlertPreview] = useState<AlertPreviewState>({
-    sending: false,
-    success: false,
-    error: null,
-  });
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
   const [storeSelections, setStoreSelections] = useState<Record<string, StoreSelectionState>>({});
@@ -541,31 +534,6 @@ export default function DashboardPage() {
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
-
-  async function sendPreviewEmail() {
-    setAlertPreview({ sending: true, success: false, error: null });
-    try {
-      const response = await fetch("/api/alerts/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(typeof payload.error === "string" ? payload.error : "Failed to send preview email");
-      }
-
-      setAlertPreview({ sending: false, success: true, error: null });
-    } catch (error) {
-      setAlertPreview({
-        sending: false,
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to send preview email",
-      });
-    }
-  }
 
   useEffect(() => {
     setMounted(true);
@@ -2194,120 +2162,6 @@ export default function DashboardPage() {
                   );
                 })()}
               </div>
-
-              <div
-                style={{
-                  background: "linear-gradient(180deg, rgba(18,14,10,0.96) 0%, rgba(11,9,7,0.96) 100%)",
-                  border: "1px solid rgba(196,148,58,0.14)",
-                  borderRadius: "22px",
-                  padding: "22px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                  boxShadow: "inset 0 1px 0 rgba(239,192,80,0.04)",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "radial-gradient(circle at top right, rgba(212,146,11,0.14), transparent 36%)",
-                    pointerEvents: "none",
-                  }}
-                />
-                <div style={{ position: "relative" }}>
-                  <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                    Alert setup snapshot
-                  </p>
-                  <h3 style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "30px", color: "var(--color-cream)" }}>
-                    Preference summary
-                  </h3>
-                  <p style={{ margin: "10px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "42ch" }}>
-                    Your watchlist, territory, and delivery choices combine here into one alert setup snapshot.
-                  </p>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", position: "relative" }}>
-                  {[
-                    { label: "Alert type", value: alertMode === "anything_notable" ? "Notable" : "Bottles" },
-                    { label: "Watched bottles", value: String(watchedBottleOptions.length) },
-                    { label: "Recent matched drops", value: String(watchlistSignals.length) },
-                    { label: "States", value: String(localPrefs.states.length) },
-                    { label: "Channels", value: String([
-                      notificationPrefs.onSite.enabled,
-                      notificationPrefs.email.enabled,
-                      notificationPrefs.sms.enabled,
-                    ].filter(Boolean).length) },
-                  ].map((item) => (
-                    <div key={item.label} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" }}>
-                      <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{item.label}</div>
-                      <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)" }}>{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-
-                <div
-                  style={{
-                    borderTop: "1px solid rgba(255,255,255,0.08)",
-                    paddingTop: "20px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                    position: "relative",
-                  }}
-                >
-                  <div>
-                    <p style={{ margin: 0, fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                      Member email
-                    </p>
-                    <p style={{ margin: "10px 0 0", fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>
-                      Premium email preview
-                    </p>
-                    <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8, maxWidth: "38ch" }}>
-                      Send a sample alert to your inbox and see exactly what the email experience feels like before the next real drop hits.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={sendPreviewEmail}
-                    disabled={!isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending}
-                    style={{
-                      padding: "14px 20px",
-                      borderRadius: "999px",
-                      border: "1px solid rgba(196,148,58,0.28)",
-                      background: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
-                        ? "rgba(255,255,255,0.05)"
-                        : "linear-gradient(135deg, rgba(68,48,26,0.95) 0%, rgba(38,28,16,0.95) 100%)",
-                      color: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending
-                        ? "var(--color-text-tertiary)"
-                        : "var(--color-accent-gold)",
-                      fontFamily: "var(--font-dm-sans)",
-                      fontWeight: 700,
-                      fontSize: "14px",
-                      cursor: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "not-allowed" : "pointer",
-                      textAlign: "left",
-                      boxShadow: !isSignedIn || !notificationPrefs.email.enabled || alertPreview.sending ? "none" : "inset 0 1px 0 rgba(239,192,80,0.1), 0 0 24px rgba(212,146,11,0.08)",
-                    }}
-                  >
-                    {alertPreview.sending ? "Sending preview…" : "Send test alert email"}
-                  </button>
-
-                  {alertPreview.success ? (
-                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-accent-amber)" }}>
-                      Preview sent. Check your inbox.
-                    </p>
-                  ) : null}
-
-                  {alertPreview.error ? (
-                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>
-                      {alertPreview.error}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
@@ -2353,7 +2207,7 @@ export default function DashboardPage() {
           <StepShell
             step="Collection"
             title="My Collection"
-            subtitle="Add bottles you own, rate them 0-100, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
+            subtitle="Add bottles you own, rate them 1.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
             hideHeader
             attached
           >
@@ -2408,14 +2262,15 @@ export default function DashboardPage() {
                       <div style={{ marginTop: 5, fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{tasteScoreLabel(collectionRating)}</div>
                       <p style={{ margin: "4px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.55 }}>{tasteScoreDescription(collectionRating)}</p>
                     </div>
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "42px", color: "var(--color-accent-amber)", lineHeight: 1 }}>{collectionRating}</div>
+                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "42px", color: "var(--color-accent-amber)", lineHeight: 1 }}>{formatTasteScore(collectionRating)}</div>
                   </div>
                   <input
                     type="range"
-                    min={0}
+                    min={10}
                     max={100}
+                    step={1}
                     value={collectionRating}
-                    onChange={(event) => setCollectionRating(Math.max(0, Math.min(100, Number(event.target.value) || 0)))}
+                    onChange={(event) => setCollectionRating(Math.max(10, Math.min(100, Number(event.target.value) || 10)))}
                   />
                 </div>
                 <div style={{ display: "grid", gap: "9px" }}>
@@ -2459,7 +2314,7 @@ export default function DashboardPage() {
                           <div style={{ minWidth: 0, paddingRight: "44px" }}>
                             <h3 style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "15px", lineHeight: 1.35, fontWeight: 800 }}>{entry.bottleName}</h3>
                             <div style={{ marginTop: 5, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                              {tasteScoreLabel(entry.rating)} · {entry.rating}/100
+                              {tasteScoreLabel(entry.rating)} · {formatTasteScore(entry.rating)}/10
                             </div>
                           </div>
                           <button type="button" onClick={() => setEditingCollectionKey(editing ? null : entry.canonicalKey)} style={{ position: "absolute", right: "10px", bottom: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: editing ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.035)", color: editing ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", padding: "6px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: "pointer" }}>

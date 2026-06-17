@@ -15,7 +15,6 @@ import {
   lookupPricing,
   TIER_CONFIG,
 } from "@/lib/drops";
-import DataFreshness from "@/components/DataFreshness";
 import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
@@ -404,8 +403,13 @@ function BourbonDropdown({
 
   return (
     <div ref={ref} className={`dropfeed-refine-field bourbon-menu ${className || ""}`}>
-      <span>{label}</span>
-      <button type="button" className="bourbon-menu-trigger" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+      <button
+        type="button"
+        className="bourbon-menu-trigger"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        aria-label={label}
+      >
         <span>{selected?.label || placeholder}</span>
         <span aria-hidden style={{ opacity: 0.55 }}>▾</span>
       </button>
@@ -1451,8 +1455,10 @@ export default function DropFeed() {
     ...(stateDropdownValue === "MULTI" ? [{ value: "MULTI", label: "Multiple" }] : []),
     ...feedStateOptions.map((state) => ({ value: state.code, label: `${state.name} (${state.code})` })),
   ];
+  const selectedSingleState = stateDropdownValue !== "ALL" && stateDropdownValue !== "MULTI" ? stateDropdownValue : null;
+  const areaDropdownLabel = !selectedSingleState || selectedSingleState === "NC" ? "Areas/Boards" : "Areas";
   const areaMenuOptions: DropdownOption[] = [
-    { value: "ALL", label: "All areas" },
+    { value: "ALL", label: `All ${areaDropdownLabel.toLowerCase()}` },
     ...countyOptions.map((area) => ({ value: area.value, label: area.label })),
   ];
   const viewMenuOptions: DropdownOption[] = [
@@ -1916,11 +1922,11 @@ export default function DropFeed() {
             transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <label className="dropfeed-refine-field dropfeed-refine-search">
-              <span>Find bottle</span>
               <input
                 value={bottleSearch}
                 onChange={(event) => setBottleSearch(event.target.value)}
-                placeholder="Search live drops…"
+                placeholder="Search a bottle…"
+                aria-label="Search bottle"
               />
             </label>
             <BourbonDropdown
@@ -1936,7 +1942,7 @@ export default function DropFeed() {
               }}
             />
             <BourbonDropdown
-              label={feedStateParam === "NC" ? "NC board" : "Area / source"}
+              label={areaDropdownLabel}
               value={countyFilter}
               options={areaMenuOptions}
               onChange={setCountyFilter}
@@ -1950,7 +1956,6 @@ export default function DropFeed() {
               className="dropfeed-refine-sort"
             />
             <div className="dropfeed-refine-field dropfeed-near-me-field">
-              <span>Location</span>
               <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
                 Use my location
               </button>
