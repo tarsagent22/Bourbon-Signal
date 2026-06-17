@@ -1709,7 +1709,7 @@ export default function DashboardPage() {
                 <div style={{ display: "grid", gap: "18px" }}>
                   <div style={{ display: "grid", gap: "10px" }}>
                     <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                      1. Select state
+                      Select state
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                       {SIMPLE_STATE_CODES.map((stateCode) => {
@@ -1753,7 +1753,7 @@ export default function DashboardPage() {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
                           <div>
                             <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                              2. Refine {stateLabel}
+                              Refine {stateLabel}
                             </div>
                             <h3 style={{ margin: "8px 0 0", fontFamily: "var(--font-playfair)", fontSize: "28px", color: "var(--color-cream)" }}>
                               {stateLabel}
@@ -1891,6 +1891,7 @@ export default function DashboardPage() {
           {activeDashboardSection === "alerts" ? (
           <StepShell
             step="02"
+            sectionLabel="Watchlist"
             title="Choose what to watch"
             subtitle="Start broad with anything notable nearby, or narrow alerts to bottles you pick yourself."
           >
@@ -1943,7 +1944,8 @@ export default function DashboardPage() {
           {activeDashboardSection === "alerts" ? (
           alertMode === "specific_bottles" ? (
           <StepShell
-            step="03"
+            step="02"
+            sectionLabel="Watchlist"
             title="Bottle watchlist"
             subtitle="Add bottles only when you want alerts limited to specific names in your selected area."
           >
@@ -2034,18 +2036,13 @@ export default function DashboardPage() {
               ) : null}
             </div>
           </StepShell>
-          ) : (
-            <StepShell step="Bottle watchlist" title="Bottle watchlist" subtitle="Switch alert mode to specific bottles before managing a bottle-only watchlist.">
-              <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                Your current alert mode is anything notable nearby. Open Alert mode if you want to limit alerts to specific bottles.
-              </div>
-            </StepShell>
-          )
+          ) : null
           ) : null}
 
           {activeDashboardSection === "alerts" ? (
           <StepShell
-            step={alertMode === "specific_bottles" ? "04" : "03"}
+            step="03"
+            sectionLabel="Delivery Preferences"
             title="Notification preferences"
             subtitle="Choose where Bourbon Signal should send matching alerts, and how loud email should be."
           >
