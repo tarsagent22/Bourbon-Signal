@@ -161,6 +161,7 @@ export function candidateCanSendEmail(candidate: CandidateAlert) {
   const status = `${asString(candidate.availabilityStatus)} ${asString(candidate.availabilityLabel)}`.toLowerCase();
 
   if (state === "IA" && /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot/.test(eventType)) return false;
+  if ((state === "MD-MONTGOMERY" || state === "UT") && /county_inventory_aggregate|board_inventory_aggregate|county_product|county_allocated|catalog_row|release_document|allocated_release/.test(eventType)) return false;
   if (deliveryChannel === "watch_candidate") return false;
   if (eventType.includes("release_surface") || eventType.includes("release-watch")) return false;
   if (eventType.includes("policy") || eventType.includes("license")) return false;

@@ -11,7 +11,7 @@ const { PDFParse } = require('pdf-parse');
 const TRACKED_TERMS = {
   OH: ['Eagle Rare'],
   IA: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Baker', 'Willett', 'Michter', 'Elijah Craig Barrel Proof'],
-  UT: ['Eagle Rare', 'Blanton', 'Elijah Craig'],
+  UT: ['Eagle Rare', 'Blanton', 'Elijah Craig', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Stagg', 'Baker'],
   NC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Willett'],
   IL: ['Blanton', 'Eagle Rare', 'Weller', 'Stagg', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker'],
   VA: ['Blanton', 'Eagle Rare', 'Buffalo Trace', 'Taylor', 'Old Fitzgerald', '1792 Small Batch'],
@@ -2065,6 +2065,44 @@ function signalBase(state, sourceLabel, sourceUrl, rawName, bible) {
     fetchedAt: new Date().toISOString()
   }};
 }
+function stateAggregateUnsafeMatchReason(state, rawName, record) {
+  if (!record) return null;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(record.canonical);
+  if (!['MD-MONTGOMERY', 'UT'].includes(state)) return null;
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(canonical)) return 'non_bourbon_or_flavored_matched_core_bottle';
+  if (/four roses/.test(raw) && /\b(single barrel|small batch|bourbon)\b/.test(raw) && /limited edition/.test(canonical)) return 'four_roses_standard_not_limited_edition';
+  if (/elijah craig/.test(raw) && /small batch/.test(raw) && /barrel proof/.test(canonical)) return 'elijah_craig_small_batch_not_barrel_proof';
+  if (/woodford reserve/.test(raw) && !/batch proof/.test(raw) && /batch proof/.test(canonical)) return 'woodford_reserve_not_batch_proof';
+  if (/weller/.test(raw) && /reserve/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'weller_reserve_not_single_barrel';
+  if (/henry mckenna/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'henry_mckenna_not_single_barrel';
+  if (state === 'UT' && /bakers? bourbon/.test(raw) && !/13|thirteen/.test(raw) && /13/.test(canonical)) return 'bakers_standard_not_13_year';
+  return null;
+}
+
+function stateAggregateSafeBottleMatch(state, rawName, bible) {
+  const { match, record } = bottleMatch(rawName, bible);
+  const unsafeReason = stateAggregateUnsafeMatchReason(state, rawName, record);
+  if (unsafeReason) return { match, record: null, unsafeReason };
+  if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
+  return { match, record, unsafeReason: null };
+}
+
+function aggregateSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = stateAggregateSafeBottleMatch(state, rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: record ? Math.max(0.68, match?.confidence || 0.35) : 0.58,
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
 
 async function collectAlabama(config, bible) {
   const signals = [];
@@ -3166,8 +3204,10 @@ async function collectUtah(config, bible) {
         const res = await textFetch('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
         const json = JSON.parse(res.text);
         for (const row of json.data || []) {
-          const { base } = signalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
-          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty: row.storeQty ?? null, warehouseQty: row.warehouseQty ?? null, onOrderQty: row.onOrderQty ?? null, price: row.currentPrice ?? null, observedAt: base.fetchedAt, evidence: `Utah DABS API row: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}.`, raw: row });
+          const { base, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
+          const storeQty = Number(row.storeQty || 0) || 0;
+          const warehouseQty = Number(row.warehouseQty || 0) || 0;
+          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: storeQty, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
         }
       }
     } catch (error) {
@@ -4306,8 +4346,8 @@ async function collectMontgomery(config, bible) {
       const json = JSON.parse(res.text);
       for (const row of json.d || []) {
         const name = row.text || row.value;
-        const { base } = signalBase(config.id, 'Montgomery County ABS product autocomplete', url, name, bible);
-        signals.push({ id: stableId([config.id, 'moco', name]), ...base, eventType: 'county_product_search_match', locationPrecision: 'board_county', locationName: 'Montgomery County ABS', county: 'Montgomery', observedAt: base.fetchedAt, evidence: `Montgomery ABS product search match: ${name}. Store inventory modal exists but needs ASP.NET postback/viewstate extraction.`, raw: row });
+        const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS product autocomplete', url, name, bible);
+        signals.push({ id: stableId([config.id, 'moco', name]), ...base, eventType: 'county_product_search_match', locationPrecision: 'board_county', locationName: 'Montgomery County ABS', county: 'Montgomery', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Montgomery County ABS product search rows are county/product intelligence, not exact store shelf inventory.', evidence: `Montgomery ABS product search match: ${name}. Store inventory modal exists but needs ASP.NET postback/viewstate extraction.`, raw: { ...row, sourceCaveat: 'Product search/autocomplete row; not inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
       }
     } catch (error) { roadblocks.push({ state: config.id, source: 'Montgomery ABS SearchByName', url, status: 0, error: error.message, nextRoute: 'Replay ASP.NET selected item/postback to open StoreInventory modal.' }); }
   }
@@ -4340,7 +4380,7 @@ async function collectMontgomery(config, bible) {
         const price = Number((card.match(/item-price">\$([0-9,.]+)/i)?.[1] || '').replace(/,/g, '').trim()) || null;
         const allocated = /ALLOCATED/i.test(card);
         const highlyAllocated = /HIGHLY\s+ALLOCATED/i.test(card);
-        const { base } = signalBase(config.id, 'Montgomery County ABS ASP.NET product search', pageUrl, rawName, bible);
+        const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS ASP.NET product search', pageUrl, rawName, bible);
         signals.push({
           id: stableId([config.id, 'moco-product-postback', code || rawName, price]),
           ...base,
@@ -4351,7 +4391,7 @@ async function collectMontgomery(config, bible) {
           price,
           observedAt: base.fetchedAt,
           evidence: `Montgomery ABS ASP.NET product search row: ${rawName}${code ? ` (#${code})` : ''}${price ? ` at $${price}` : ''}${allocated ? '; marked allocated' : ''}. Store-level modal is not exposed for these allocated rows in the product-card HTML.`,
-          raw: { code, size, price, allocated, highlyAllocated, term }
+          raw: { code, size, price, allocated, highlyAllocated, term, sourceCaveat: 'County product/HAL search row; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
     } catch (error) {
@@ -4402,7 +4442,7 @@ async function collectMontgomeryOpenData(config, bible, signals, roadblocks) {
     if (seen.has(key)) continue;
     seen.add(key);
     const rawName = row.description;
-    const { base } = signalBase(config.id, 'Montgomery County ABS open inventory dataset', sourceUrl, rawName, bible);
+    const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS open inventory dataset', sourceUrl, rawName, bible);
     const qty = row.totalinventoryNumber;
     const rare = MONTGOMERY_BOURBON_RE.test(rawName) && (RARE_RE.test(rawName) || /buffalo trace|michter/i.test(rawName));
     const onSale = row.salePriceNumber != null && row.salePriceNumber > 0;
@@ -4417,9 +4457,14 @@ async function collectMontgomeryOpenData(config, bible, signals, roadblocks) {
       quantity: qty,
       price: row.priceNumber,
       salePrice: row.salePriceNumber,
+      availabilityStatus: qty > 0 ? 'COUNTY_AGGREGATE_POSITIVE' : 'COUNTY_AGGREGATE_ZERO',
+      availabilityLabel: qty > 0 ? `${qty} total county inventory units reported` : 'No positive county aggregate inventory reported',
       observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      inventorySemantics: 'Montgomery County ABS open data reports countywide aggregate inventory/pricing by product. This is Montgomery County intelligence, not exact per-store shelf inventory.',
       evidence: `Montgomery County ABS open data lists ${rawName}${row.code ? ` (#${row.code})` : ''}${qty > 0 ? ` with ${qty} total bottle(s) across ABS inventory` : ' with no positive total inventory in the open dataset'}${row.priceNumber ? ` at $${row.priceNumber}` : ''}${onSale ? `, sale $${row.salePriceNumber}` : ''}. This is county inventory/pricing intelligence, not a per-store shelf count.`,
-      raw: { ...row, precisionCaveat: 'County aggregate/open-data inventory; per-store rows require ABS search/modal extraction.', sourceDataset: 'ib5t-5ncy' }
+      raw: { ...row, precisionCaveat: 'County aggregate/open-data inventory; per-store rows require ABS search/modal extraction.', sourceDataset: 'ib5t-5ncy', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
     });
   }
 }

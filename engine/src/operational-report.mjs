@@ -50,7 +50,7 @@ function optionalNumber(...values) {
 
 function canonicalizeSignal(signal, bible) {
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
-  const unsafeSourceMatch = ['ID', 'IA'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:');
+  const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
   const match = name && !unsafeSourceMatch ? bible.match(name) : null;
   const record = match?.record || null;
   const canonicalName = record?.canonical || name;

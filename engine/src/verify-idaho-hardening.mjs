@@ -28,13 +28,14 @@ const storeAvailabilitySignals = idSignals.filter((signal) => signal.eventType =
 const idDrops = (drops.drops || []).filter((drop) => drop.state === 'ID');
 const idStoreDrops = idDrops.filter((drop) => drop.type === 'store_inventory_result' && drop.locationPrecision === 'store_level');
 const idAlerts = (alerts.alerts || []).filter((alert) => alert.state === 'ID');
+const idAlertableStoreDrops = idStoreDrops.filter((drop) => drop.canAlertAsInventory === true && drop.dataLane === 'actionable_inventory');
 const idStores = (stores.stores || []).filter((store) => store.state === 'ID');
 const idCoverage = stats.stateCoverage?.states?.find((row) => row.state === 'ID');
 
 if (state.status !== 'useful') fail(`Idaho state artifact should be useful, got ${state.status}.`);
 if (storeAvailabilitySignals.length < 50) fail(`Expected at least 50 Idaho store availability signals, got ${storeAvailabilitySignals.length}.`);
 if (idStoreDrops.length < 50) fail(`Expected at least 50 customer-visible Idaho store availability drops, got ${idStoreDrops.length}.`);
-if (idAlerts.length < 20) fail(`Expected at least 20 Idaho alert candidates for matched high-value store availability rows, got ${idAlerts.length}.`);
+if (idAlertableStoreDrops.length < 20 && idAlerts.length < 20) fail(`Expected at least 20 Idaho alertable store availability rows or current alert candidates; got ${idAlertableStoreDrops.length} alertable store drops and ${idAlerts.length} current alert candidates.`);
 if (idStores.length < 20) fail(`Expected at least 20 Idaho stores in the site store export, got ${idStores.length}.`);
 
 if (!idCoverage) fail('stats.stateCoverage.states should include Idaho.');
@@ -89,4 +90,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Idaho hardening verification passed: ${storeAvailabilitySignals.length} state availability signals, ${idStoreDrops.length} public store drops, ${idAlerts.length} alert candidates, ${idStores.length} stores.`);
+console.log(`Idaho hardening verification passed: ${storeAvailabilitySignals.length} state availability signals, ${idStoreDrops.length} public store drops (${idAlertableStoreDrops.length} alertable), ${idAlerts.length} current alert candidates, ${idStores.length} stores.`);

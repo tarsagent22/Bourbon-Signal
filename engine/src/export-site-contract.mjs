@@ -98,11 +98,16 @@ function bibleLookup(records = []) {
 }
 
 function findBibleRecord(signal, bible) {
+  const type = String(signal.eventType || signal.type || '');
   const isIowaUnmatchedDeliveryLead = signal.state === 'IA'
-    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || signal.type || ''))
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(type)
     && !signal.bottleId
     && !signal.canonicalBottleId;
-  if ((['ID', 'IA'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead) return null;
+  const isAggregateSourceNamedLead = ['MD-MONTGOMERY', 'UT'].includes(signal.state)
+    && /^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(type)
+    && (!signal.bottleId || String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:'))
+    && !signal.canonicalBottleId;
+  if ((['ID', 'IA', 'MD-MONTGOMERY', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead || isAggregateSourceNamedLead) return null;
   const id = signal.bottleId || signal.canonicalBottleId;
   if (id && bible.byId.has(id)) return bible.byId.get(id);
   for (const name of [signal.canonicalName, signal.rawName]) {
@@ -202,7 +207,7 @@ function publicSignal(signal, bible, freshness = null) {
     zip: signal.zip,
     lat: signal.lat,
     lng: signal.lng,
-    quantity: signal.quantity || 0,
+    quantity: signal.quantity || signal.storeQty || 0,
     availabilityStatus: signal.availabilityStatus,
     availabilityLabel: signal.availabilityLabel,
     warehouseQty: signal.warehouseQty || 0,
@@ -215,7 +220,9 @@ function publicSignal(signal, bible, freshness = null) {
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
-      : 'Informational/watch data only; not live shelf inventory.',
+      : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
+        ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
+        : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
@@ -388,6 +395,8 @@ function dropPriority(signal) {
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (signalCanAlertAsInventory(signal)) return 50;
+  if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
+  if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
   if (/store_delivery_snapshot|store_allocation_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
@@ -399,7 +408,7 @@ function hasPositiveAvailabilityStatus(signal) {
 
 function isUserFacingDropSignal(signal) {
   const type = String(signal.eventType || '').toLowerCase();
-  const quantity = Number(signal.quantity || signal.storeQty || 0) || 0;
+  const quantity = Number(signal.quantity || signal.storeQty || signal.warehouseQty || 0) || 0;
   const precision = String(signal.locationPrecision || '').toLowerCase();
   const canAlert = signalCanAlertAsInventory(signal);
 
@@ -414,6 +423,8 @@ function isUserFacingDropSignal(signal) {
   if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (type === 'store_delivery_snapshot') return quantity > 0;
   if (type === 'store_allocation_snapshot') return signal.state === 'IA' && precision === 'store_level' && quantity > 0;
+  if (type === 'county_inventory_aggregate') return signal.state === 'MD-MONTGOMERY' && precision === 'store_aggregate' && quantity > 0;
+  if (type === 'board_inventory_aggregate') return signal.state === 'UT' && precision === 'board_warehouse' && quantity > 0;
   if (type === 'store_inventory_aggregate') return quantity > 0;
   if (type === 'store_inventory_result') {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
@@ -435,6 +446,41 @@ function isIowaSourceNamedDeliveryLead(signal) {
   if (!isStoreLead) return false;
   if (String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) return true;
   return !signal.bottleId && !signal.canonicalBottleId && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isMarylandAggregateLead(signal) {
+  const quantity = Number(signal.quantity || 0) || 0;
+  return signal.state === 'MD-MONTGOMERY'
+    && /^county_inventory_aggregate$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'store_aggregate'
+    && quantity > 0
+    && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isUtahAggregateLead(signal) {
+  const quantity = Number(signal.quantity || signal.storeQty || signal.warehouseQty || 0) || 0;
+  return signal.state === 'UT'
+    && /^board_inventory_aggregate$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'board_warehouse'
+    && quantity > 0
+    && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isMarylandOrUtahAggregateLead(signal) {
+  return isMarylandAggregateLead(signal) || isUtahAggregateLead(signal);
+}
+
+function aggregateLeadIdentity(signal) {
+  return [
+    signal.state || '',
+    signal.eventType || signal.type || '',
+    signal.rawName || signal.canonicalName || '',
+    signal.sourceLabel || signal.source || '',
+    signal.locationName || '',
+    signal.county || '',
+    signal.quantity || signal.storeQty || signal.warehouseQty || 0,
+    signal.price || 0
+  ].map((value) => String(value).toLowerCase().replace(/\s+/g, ' ').trim()).join('|');
 }
 
 function isSafePublicSignal(signal) {
@@ -477,6 +523,11 @@ function buildDrops(signals, bible, currentSignals = []) {
     .filter((signal) => signal.state === 'IA' && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || '')))
     .map((signal) => signal.key || signal.id || signal.sourceSignalId)
     .filter(Boolean));
+  const currentAggregateLeadIds = new Set((currentSignals || [])
+    .filter((signal) => isMarylandOrUtahAggregateLead(signal))
+    .map(aggregateLeadIdentity)
+    .filter(Boolean));
+  const seenAggregateLeadIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
@@ -485,7 +536,11 @@ function buildDrops(signals, bible, currentSignals = []) {
       const sourceId = s.key || s.id || s.sourceSignalId;
       return Boolean(sourceId && currentIowaLeadSourceIds.has(sourceId));
     })
-    .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => {
+      if (!isMarylandOrUtahAggregateLead(s)) return true;
+      return currentAggregateLeadIds.has(aggregateLeadIdentity(s));
+    })
+    .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
@@ -493,6 +548,13 @@ function buildDrops(signals, bible, currentSignals = []) {
       if (!sourceId) return true;
       if (seenSourceIds.has(sourceId)) return false;
       seenSourceIds.add(sourceId);
+      return true;
+    })
+    .filter((s) => {
+      if (!isMarylandOrUtahAggregateLead(s)) return true;
+      const aggregateId = aggregateLeadIdentity(s);
+      if (seenAggregateLeadIds.has(aggregateId)) return false;
+      seenAggregateLeadIds.add(aggregateId);
       return true;
     })
     .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
@@ -741,6 +803,7 @@ function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
     .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
+    .filter((c) => !['MD-MONTGOMERY', 'UT'].includes(c.state) || !/^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(String(c.eventType || '')))
     .map((c) => ({
     id: c.id,
     action: c.action,

@@ -21,6 +21,8 @@
     "verify:in": "node src/verify-in.mjs",
     "verify:idaho": "node src/verify-idaho-hardening.mjs",
     "verify:ia": "node src/verify-iowa-hardening.mjs",
+    "verify:md": "node src/verify-maryland-hardening.mjs",
+    "verify:ut": "node src/verify-utah-hardening.mjs",
     "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",
     "ohlq": "node src/ohlq-browser-collector.mjs",

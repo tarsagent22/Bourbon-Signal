@@ -67,6 +67,12 @@ const MODE_CAPS = {
 
 const NON_INVENTORY_ALERT_EVENT_RE = /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot|board_shipment|shipment_snapshot|stock_shipped|allocated|lottery|release|catalog|policy|official-source-seed/i;
 
+function watchAlertsBlockedByStateSemantics(signal, eventType) {
+  if (signal.state === 'MD-MONTGOMERY' && /county_inventory_aggregate|county_product|county_allocated|catalog|product_search/i.test(eventType)) return true;
+  if (signal.state === 'UT' && /board_inventory_aggregate|catalog|release_document|allocated_release|bottle_inventory_signal/i.test(eventType)) return true;
+  return false;
+}
+
 function clamp(n, min = 0, max = 1) { return Math.max(min, Math.min(max, n)); }
 
 const TENNESSEE_CITYHIVE_POLICY = {
@@ -112,12 +118,13 @@ export function confidenceForSignal(signal) {
   const positiveAvailabilityStatus = /in_stock|limited_supply/i.test(String(signal.availabilityStatus || signal.raw?.availability?.status || ''));
   const hasPositiveInventory = (qty > 0 || positiveAvailabilityStatus) && !/out_of_stock|sold_out|not_available/i.test(eventType);
   const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
+  const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
     canAlertAsInventory: hasPositiveInventory && !isVirginiaLimitedCaveat && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !isSampleOnly && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

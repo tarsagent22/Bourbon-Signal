@@ -45,6 +45,39 @@ function summarizeText(text, matchedBottles) {
   ].filter(Boolean).join(' ').slice(0, 1800);
 }
 
+function normalizedBottleText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stateUnsafeMatchReason(stateId, rawName, record) {
+  if (!record) return null;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(record.canonical);
+  const isTargetState = stateId === 'MD-MONTGOMERY' || stateId === 'UT';
+  if (!isTargetState) return null;
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(canonical)) return 'non_bourbon_or_flavored_matched_core_bottle';
+  if (/four roses/.test(raw) && /\b(single barrel|small batch|bourbon)\b/.test(raw) && /limited edition/.test(canonical)) return 'four_roses_standard_not_limited_edition';
+  if (/elijah craig/.test(raw) && /small batch/.test(raw) && /barrel proof/.test(canonical)) return 'elijah_craig_small_batch_not_barrel_proof';
+  if (/woodford reserve/.test(raw) && !/batch proof/.test(raw) && /batch proof/.test(canonical)) return 'woodford_reserve_not_batch_proof';
+  if (/weller/.test(raw) && /reserve/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'weller_reserve_not_single_barrel';
+  if (/henry mckenna/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'henry_mckenna_not_single_barrel';
+  if (stateId === 'UT' && /bakers? bourbon/.test(raw) && !/13|thirteen/.test(raw) && /13/.test(canonical)) return 'bakers_standard_not_13_year';
+  return null;
+}
+
+function stateSafeBibleMatch(stateId, rawName, bible) {
+  const match = bible.match(rawName);
+  const record = match?.record || null;
+  const unsafeReason = stateUnsafeMatchReason(stateId, rawName, record);
+  if (unsafeReason) return { match, record: null, unsafeReason };
+  return { match, record, unsafeReason: null };
+}
+
 function recordsFromJson(source, json, bible, stateId) {
   const rows = Array.isArray(json) ? json : Array.isArray(json?.results) ? json.results : Array.isArray(json?.items) ? json.items : [];
   const records = [];
@@ -67,7 +100,7 @@ function recordsFromJson(source, json, bible, stateId) {
     const focusedBottle = /bourbon|weller|blanton|eagle rare|stagg|taylor|michter|pappy|winkle|fitzgerald|booker|baker|barrell|bardstown|penelope|yellowstone|willett|bowman|handy|sazerac|parker|blood oath|king of kentucky|double eagle/i.test(rawName)
       || /bourbon/.test(rowCategory);
     if (!focusedBottle) continue;
-    const match = bible.match(rawName);
+    const { match, record, unsafeReason } = stateSafeBibleMatch(stateId, rawName, bible);
     records.push({
       id: stableId([stateId, source.url, rawName, JSON.stringify(row).slice(0, 200)]),
       state: stateId,
@@ -75,9 +108,10 @@ function recordsFromJson(source, json, bible, stateId) {
       sourceLabel: source.label,
       eventType: 'catalog_row',
       rawName,
-      canonicalBottleId: match?.record.id || null,
-      canonicalName: match?.record.canonical || titleCase(rawName),
-      confidence: match?.confidence || 0.35,
+      canonicalBottleId: record?.id || null,
+      canonicalName: record?.canonical || titleCase(rawName),
+      confidence: record ? (match?.confidence || 0.35) : 0.35,
+      sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
       quantity: Number(row.quantity || row.qty || row.on_hand || row.inventory || 0) || null,
       price: Number(row.price || row.retail_price || row.bottle_retail || 0) || null,
       location: row.store || row.store_name || row.city || row.county || null,
@@ -88,7 +122,7 @@ function recordsFromJson(source, json, bible, stateId) {
       city: row.city || row.store_city || null,
       county: row.county || row.store_county || null,
       stateCode: row.state || row.state_code || stateId,
-      raw: row
+      raw: { ...row, sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match', unsafeReason: unsafeReason || null }
     });
   }
   return records.slice(0, 1000);
@@ -151,7 +185,7 @@ async function collectBrowserDiscoverySignals(config, bible) {
       .slice(0, 60);
     for (const link of productLinks) {
       const rawName = String(link.text || '').replace(/\$[0-9,.]+.*$/, '').replace(/\s+/g, ' ').trim();
-      const match = bible.match(rawName || link.href);
+      const { match, record, unsafeReason } = stateSafeBibleMatch(config.id, rawName || link.href, bible);
       signals.push({
         id: stableId([config.id, 'browser-product-link', page.url, link.href, rawName]),
         state: config.id,
@@ -159,14 +193,15 @@ async function collectBrowserDiscoverySignals(config, bible) {
         sourceLabel: `${page.source?.label || config.label} rendered product link`,
         eventType: 'browser_rendered_product_link',
         rawName: rawName || link.href,
-        canonicalBottleId: match?.record.id || null,
-        canonicalName: match?.record.canonical || titleCase(rawName || link.href),
-        confidence: match?.confidence || 0.45,
+        canonicalBottleId: record?.id || null,
+        canonicalName: record?.canonical || titleCase(rawName || link.href),
+        confidence: record ? Math.max(0.45, match?.confidence || 0.45) : 0.35,
+        sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
         locationPrecision: 'statewide_catalog',
         locationName: config.label,
         fetchedAt: discovery.generatedAt || new Date().toISOString(),
         evidence: `Browser-rendered ${config.label} page exposed product/catalog link: ${rawName || link.href}.`,
-        raw: { browserDiscovery: true, pageUrl: page.url, link }
+        raw: { browserDiscovery: true, pageUrl: page.url, link, sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match', unsafeReason: unsafeReason || null }
       });
     }
 
