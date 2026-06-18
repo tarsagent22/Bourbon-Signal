@@ -98,7 +98,11 @@ function bibleLookup(records = []) {
 }
 
 function findBibleRecord(signal, bible) {
-  if (signal.state === 'ID' && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) return null;
+  const isIowaUnmatchedDeliveryLead = signal.state === 'IA'
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || signal.type || ''))
+    && !signal.bottleId
+    && !signal.canonicalBottleId;
+  if ((['ID', 'IA'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead) return null;
   const id = signal.bottleId || signal.canonicalBottleId;
   if (id && bible.byId.has(id)) return bible.byId.get(id);
   for (const name of [signal.canonicalName, signal.rawName]) {
@@ -384,7 +388,7 @@ function dropPriority(signal) {
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (signalCanAlertAsInventory(signal)) return 50;
-  if (/store_delivery_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
+  if (/store_delivery_snapshot|store_allocation_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
 }
@@ -409,6 +413,7 @@ function isUserFacingDropSignal(signal) {
   if (type === 'nc_board_shipment_snapshot') return quantity > 0;
   if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (type === 'store_delivery_snapshot') return quantity > 0;
+  if (type === 'store_allocation_snapshot') return signal.state === 'IA' && precision === 'store_level' && quantity > 0;
   if (type === 'store_inventory_aggregate') return quantity > 0;
   if (type === 'store_inventory_result') {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
@@ -420,6 +425,16 @@ function isUserFacingDropSignal(signal) {
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
 
   return canAlert && precision === 'store_level';
+}
+
+function isIowaSourceNamedDeliveryLead(signal) {
+  const isStoreLead = signal.state === 'IA'
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'store_level'
+    && Number(signal.quantity || 0) > 0;
+  if (!isStoreLead) return false;
+  if (String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) return true;
+  return !signal.bottleId && !signal.canonicalBottleId && Boolean(signal.canonicalName || signal.rawName);
 }
 
 function isSafePublicSignal(signal) {
@@ -458,10 +473,19 @@ function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
+  const currentIowaLeadSourceIds = new Set((currentSignals || [])
+    .filter((signal) => signal.state === 'IA' && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || '')))
+    .map((signal) => signal.key || signal.id || signal.sourceSignalId)
+    .filter(Boolean));
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
-    .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => {
+      if (s.state !== 'IA' || !/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(s.eventType || ''))) return true;
+      const sourceId = s.key || s.id || s.sourceSignalId;
+      return Boolean(sourceId && currentIowaLeadSourceIds.has(sourceId));
+    })
+    .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
@@ -716,6 +740,7 @@ function buildEvents(signals, bible) {
 function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
+    .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
     .map((c) => ({
     id: c.id,
     action: c.action,

@@ -155,10 +155,12 @@ function candidateMatchesEmailMode(candidate: CandidateAlert, mode: EmailAlertMo
 export function candidateCanSendEmail(candidate: CandidateAlert) {
   const deliveryChannel = asString(candidate.deliveryChannel);
   const eventType = asString(candidate.eventType).toLowerCase();
+  const state = asString(candidate.state).toUpperCase();
   const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
   const quantity = asNumber(candidate.quantity) || asNumber(candidate.warehouseQty);
   const status = `${asString(candidate.availabilityStatus)} ${asString(candidate.availabilityLabel)}`.toLowerCase();
 
+  if (state === "IA" && /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot/.test(eventType)) return false;
   if (deliveryChannel === "watch_candidate") return false;
   if (eventType.includes("release_surface") || eventType.includes("release-watch")) return false;
   if (eventType.includes("policy") || eventType.includes("license")) return false;

@@ -2950,8 +2950,51 @@ function iowaBottleLooksRelevant(rawName = '', category = '', bible) {
   if (!rawName) return false;
   if (IOWA_EXCLUDED_RE.test(hay) && !IOWA_BOURBON_CATEGORY_RE.test(category)) return false;
   if (IOWA_STRONG_WATCH_RE.test(hay)) return true;
-  const { record } = bottleMatch(rawName, bible);
+  const { record } = iowaSafeBottleMatch(rawName, category, bible);
   return Boolean(record && IOWA_BOURBON_CATEGORY_RE.test(hay));
+}
+
+function iowaSafeBottleMatch(rawName, category = '', bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  if (!safe.record) return safe;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record.canonical);
+  const hay = normalizedBottleText(`${rawName} ${category}`);
+
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer)\b/.test(hay) && !/\b(bourbon|whiskey|whisky|rye)\b/.test(hay)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_non_whiskey_product' };
+  }
+  if (/four roses/.test(raw) && /\b(single barrel|small batch|bourbon)\b/.test(raw) && /limited edition/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_four_roses_standard_not_limited_edition' };
+  }
+  if (/elijah craig/.test(raw) && /small batch/.test(raw) && /barrel proof/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_elijah_craig_small_batch_not_barrel_proof' };
+  }
+  if (/woodford reserve/.test(raw) && !/batch proof/.test(raw) && /batch proof/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_woodford_reserve_not_batch_proof' };
+  }
+  if (/weller/.test(raw) && /reserve/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_weller_reserve_not_single_barrel' };
+  }
+  if (/henry mckenna/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_henry_mckenna_not_single_barrel' };
+  }
+  return safe;
+}
+
+function iowaSignalBase(state, sourceLabel, sourceUrl, rawName, category, bible) {
+  const { match, record, unsafeReason } = iowaSafeBottleMatch(rawName, category, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: Math.max(record ? 0.72 : 0.68, match?.confidence || 0.35),
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
 }
 
 function iowaProductPriority(row, bible) {
@@ -2959,7 +3002,7 @@ function iowaProductPriority(row, bible) {
   const category = row.Category || row.category || '';
   const delivered = iowaNumber(row.Delivered);
   const stock = iowaNumber(row.Stock);
-  const { record } = bottleMatch(rawName, bible);
+  const { record } = iowaSafeBottleMatch(rawName, category, bible);
   return (IOWA_STRONG_WATCH_RE.test(`${rawName} ${category}`) ? 10000 : 0)
     + (record?.tier === 'unicorn' ? 5000 : record?.tier === 'allocated' ? 3500 : record?.tier === 'limited' ? 2000 : 0)
     + Math.min(delivered, 1500)
@@ -2985,7 +3028,7 @@ async function collectIowa(config, bible) {
     for (const row of productRows.slice(0, 120)) {
       productByCode.set(String(row.Code).trim(), row);
       const rawName = row.Name;
-      const { base } = signalBase(config.id, 'Iowa ABD product inventory/delivery CSV', IOWA_INVENTORY_CSV_URL, rawName, bible);
+      const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD product inventory/delivery CSV', IOWA_INVENTORY_CSV_URL, rawName, row.Category, bible);
       signals.push({
         id: stableId([config.id, 'iowa-product-snapshot', row.Code, row.Stock, row.Delivered]),
         ...base,
@@ -3004,7 +3047,7 @@ async function collectIowa(config, bible) {
         canAlertAsWatch: true,
         inventorySemantics: 'Official Iowa ABD product snapshot reports statewide warehouse stock and 14-day delivered bottle totals. This is statewide delivery/warehouse intelligence, not live shelf inventory.',
         evidence: `Iowa ABD snapshot lists ${rawName} (#${row.Code}) with ${row.stockNumber} warehouse stock and ${row.deliveredNumber} bottles delivered statewide in the last 14 days.`,
-        raw: { product: row, endpoint: IOWA_INVENTORY_CSV_URL, sourceCaveat: 'Statewide product/warehouse/delivery CSV; use code-specific CSV for licensee delivery rows. Not live shelf inventory.' }
+        raw: { product: row, endpoint: IOWA_INVENTORY_CSV_URL, sourceCaveat: 'Statewide product/warehouse/delivery CSV; use code-specific CSV for licensee delivery rows. Not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
       });
     }
   }
@@ -3027,7 +3070,7 @@ async function collectIowa(config, bible) {
         if (!qty || !row.Location) continue;
         storeDeliveryRows += 1;
         const rawName = product.Name;
-        const { base } = signalBase(config.id, 'Iowa ABD 14-day store delivery snapshot', url, rawName, bible);
+        const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD 14-day store delivery snapshot', url, rawName, product.Category, bible);
         const storeAddress = [row.Street, row.City, row.State, row.Zip].filter(Boolean).join(', ');
         signals.push({
           id: stableId([config.id, 'iowa-store-delivery', code, row.Location, row.Street, row.Zip, qty]),
@@ -3054,7 +3097,7 @@ async function collectIowa(config, bible) {
           canAlertAsWatch: true,
           inventorySemantics: 'Official Iowa ABD code-specific CSV reports bottles delivered to a Class E licensee/store in the last 14 days. Delivery is a strong lead, but it is not current shelf stock or a hold/reservation.',
           evidence: `Iowa ABD reports ${qty} bottle(s) of ${rawName} (#${code}) delivered to ${row.Location}${storeAddress ? ` at ${storeAddress}` : ''} in the last 14 days. Verify directly before driving.`,
-          raw: { code, product, delivery: row, endpoint: url, sourceCaveat: '14-day licensee delivery snapshot; not live shelf inventory.' }
+          raw: { code, product, delivery: row, endpoint: url, sourceCaveat: '14-day licensee delivery snapshot; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
     } catch (error) {
@@ -3074,7 +3117,7 @@ async function collectIowa(config, bible) {
       const qty = iowaNumber(row.Bottles);
       if (!qty || !row.Location) continue;
       lotteryRows += 1;
-      const { base } = signalBase(config.id, 'Iowa ABD allocated lottery store distribution CSV', IOWA_LOTTERY_ALLOCATIONS_CSV_URL, rawName, bible);
+      const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD allocated lottery store distribution CSV', IOWA_LOTTERY_ALLOCATIONS_CSV_URL, rawName, 'allocated bourbon whiskey lottery', bible);
       const storeAddress = [row.Street, row.City, row.State, row.Zip].filter(Boolean).join(', ');
       signals.push({
         id: stableId([config.id, 'iowa-store-allocation', row.Code, row.Location, row.Street, row.Zip, qty]),
@@ -3099,7 +3142,7 @@ async function collectIowa(config, bible) {
         canAlertAsWatch: true,
         inventorySemantics: 'Official Iowa ABD lottery allocation CSV reports allocated bottles distributed to licensee/store locations. This is release/distribution intelligence, not live shelf inventory.',
         evidence: `Iowa ABD lottery allocation CSV lists ${qty} bottle(s) of ${rawName}${row.Code ? ` (#${row.Code})` : ''} for ${row.Location}${storeAddress ? ` at ${storeAddress}` : ''}. Verify lottery/distribution timing and store handling before driving.`,
-        raw: { allocation: row, endpoint: IOWA_LOTTERY_ALLOCATIONS_CSV_URL, sourceCaveat: 'Allocated lottery distribution CSV; not live shelf inventory.' }
+        raw: { allocation: row, endpoint: IOWA_LOTTERY_ALLOCATIONS_CSV_URL, sourceCaveat: 'Allocated lottery distribution CSV; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
       });
     }
   }
