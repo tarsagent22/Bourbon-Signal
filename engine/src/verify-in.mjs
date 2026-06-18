@@ -30,6 +30,7 @@ const ilgTastingDrops = inDrops.filter((drop) => drop.type === 'retailer_tasting
 const cityHiveInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const kahnsInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Kahn/i.test(String(signal.sourceLabel || '')));
 const paylessInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Payless Liquors/i.test(String(signal.sourceLabel || '')));
+const penguinInventorySignals = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Penguin Liquor/i.test(String(signal.sourceLabel || '')));
 const retailerInventorySignals = (state.signals || []).filter((signal) => ['cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(signal.eventType));
 const retailerInventoryCities = new Set(retailerInventorySignals.map((signal) => String(signal.city || '').trim()).filter(Boolean));
 const cityHiveStoreLocations = (state.signals || []).filter((signal) => signal.eventType === 'retailer_store_location' && /CityHive/i.test(String(signal.sourceLabel || '')));
@@ -65,7 +66,9 @@ assert(cityHiveInventorySources.has('Belmont Beverage & Chalet Party Shoppe City
 assert(cityHiveInventorySignals.length >= 250, `Expected Indiana CityHive inventory signals after safe export freshness filtering; got ${cityHiveInventorySignals.length}`);
 assert(kahnsInventorySignals.length >= 15, `Expected Kahn's Indianapolis inventory signals; got ${kahnsInventorySignals.length}`);
 assert(paylessInventorySignals.length >= 1, `Expected Payless East Street barrel-selection inventory signals; got ${paylessInventorySignals.length}`);
-assert(retailerInventoryCities.size >= 24, `Expected broad Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
+assert(penguinInventorySignals.length >= 5, `Expected Penguin Liquor Lafayette inventory signals; got ${penguinInventorySignals.length}`);
+assert(retailerInventoryCities.size >= 27, `Expected broad Indiana retailer inventory city coverage; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
+assert(retailerInventoryCities.has('Lafayette'), `Expected Lafayette retailer inventory coverage from Penguin Liquor; got ${[...retailerInventoryCities].sort().join(', ')}`);
 for (const city of ['South Bend', 'Mishawaka', 'Elkhart', 'Avon', 'Plainfield', 'Noblesville', 'Speedway']) {
   assert(retailerInventoryCities.has(city), `Expected northern Indiana retailer inventory coverage in ${city}; got ${[...retailerInventoryCities].sort().join(', ')}`);
 }
@@ -102,6 +105,7 @@ console.log(JSON.stringify({
   cityHiveInventorySignals: cityHiveInventorySignals.length,
   kahnsInventorySignals: kahnsInventorySignals.length,
   paylessInventorySignals: paylessInventorySignals.length,
+  penguinInventorySignals: penguinInventorySignals.length,
   retailerInventoryCities: [...retailerInventoryCities].sort(),
   cityHiveDropSources: [...cityHiveDropSources].sort(),
   cityHiveDrops: cityHiveDrops.length,

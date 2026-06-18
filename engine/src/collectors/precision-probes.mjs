@@ -1,4 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
@@ -7,6 +9,7 @@ import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
+const execFileAsync = promisify(execFile);
 
 const TRACKED_TERMS = {
   OH: ['Eagle Rare'],
@@ -177,6 +180,41 @@ const IN_PAYLESS_EAST_STREET_STORE = {
   lat: 39.7106,
   lng: -86.1484
 };
+const IN_PENGUIN_BASE_URL = 'https://www.penguinliquor.com';
+const IN_PENGUIN_CATEGORY_URLS = [
+  `${IN_PENGUIN_BASE_URL}/c/spirits/whiskey/19`
+];
+const IN_PENGUIN_SEED_PRODUCT_URLS = [
+  `${IN_PENGUIN_BASE_URL}/p/buffalo-trace-bourbon/1138`,
+  `${IN_PENGUIN_BASE_URL}/p/colonel-eh-taylor-small-batch-bourbon/1164`,
+  `${IN_PENGUIN_BASE_URL}/p/blantons-the-original-single-barrel-bourbon/3259`,
+  `${IN_PENGUIN_BASE_URL}/p/bookers-bourbon/2626`,
+  `${IN_PENGUIN_BASE_URL}/p/eagle-rare-10-year-old-bourbon/4847`,
+  `${IN_PENGUIN_BASE_URL}/p/four-roses-small-batch-select-bourbon/6259`
+];
+const IN_PENGUIN_STORE = {
+  id: '96',
+  name: 'Penguin Liquor - Teal Road',
+  address: '3295 Teal Road, Lafayette, IN 47905',
+  city: 'Lafayette',
+  zip: '47905',
+  lat: 40.3849,
+  lng: -86.8556
+};
+const IN_PENGUIN_MAX_PRODUCT_PAGES = Number(process.env.BOURBON_SIGNAL_IN_PENGUIN_MAX_PRODUCT_PAGES || 36);
+const PENGUIN_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
+const IN_DOORDASH_FRONTIER_STORE = {
+  id: '26286224',
+  businessId: '11821467',
+  name: 'Frontier Liquors - Oak Hill Road',
+  url: 'https://www.doordash.com/convenience/store/frontier-liquors-evansville-26286224/',
+  address: '1701 Oak Hill Road, Evansville, IN 47711',
+  city: 'Evansville',
+  zip: '47711',
+  lat: 37.992805,
+  lng: -87.52567
+};
+const IN_DOORDASH_MAX_FRONTIER_ITEMS = Number(process.env.BOURBON_SIGNAL_IN_DOORDASH_MAX_FRONTIER_ITEMS || 60);
 const IN_KAHNS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_KAHNS_MAX_PAGES || 4);
 const IN_KAHNS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_IN_KAHNS_PAGE_SIZE || 100));
 const IN_CITYHIVE_SOURCES = [
@@ -423,6 +461,30 @@ async function textFetch(url, options = {}) {
   }
 }
 
+async function curlTextFetch(url, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || process.env.BOURBON_SIGNAL_PRECISION_FETCH_TIMEOUT_MS || 25_000);
+  const timeoutSeconds = String(Math.max(1, Math.ceil(timeoutMs / 1000)));
+  const marker = '\n__BOURBON_SIGNAL_HTTP_STATUS__:';
+  const args = [
+    '-L',
+    '--max-time', timeoutSeconds,
+    '-sS',
+    '-A', options.userAgent || PENGUIN_BROWSER_UA
+  ];
+  const headers = { accept: 'text/html,application/xhtml+xml,*/*', 'accept-language': 'en-US,en;q=0.9', ...(options.headers || {}) };
+  for (const [name, value] of Object.entries(headers)) args.push('-H', `${name}: ${value}`);
+  args.push('-w', `${marker}%{http_code}`, url);
+  try {
+    const { stdout } = await execFileAsync(options.command || 'curl', args, { maxBuffer: options.maxBuffer || 3 * 1024 * 1024, windowsHide: true });
+    const splitAt = stdout.lastIndexOf(marker);
+    const text = splitAt >= 0 ? stdout.slice(0, splitAt) : stdout;
+    const status = splitAt >= 0 ? Number(stdout.slice(splitAt + marker.length).trim()) || 0 : 0;
+    return { ok: status >= 200 && status < 300, status, url, contentType: '', rawSetCookie: '', text, error: status >= 200 && status < 300 ? null : `HTTP ${status || 'unknown'}` };
+  } catch (error) {
+    return { ok: false, status: 0, url, contentType: '', rawSetCookie: '', text: error?.stdout || '', error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 function decodeHtml(value = '') {
   return String(value)
     .replace(/&amp;/g, '&')
@@ -432,6 +494,8 @@ function decodeHtml(value = '') {
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+    .replace(/&#x([0-9a-f]+);/gi, (_match, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_match, dec) => String.fromCodePoint(Number.parseInt(dec, 10)))
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -742,9 +806,15 @@ function parseIndianaBourbonWorldAllocated(text) {
   }));
 }
 
-function indianaLiquorGroupEventDateIsCurrent(dateText, observedAt) {
+function indianaBourbonWorldBottleMatchName(rawName) {
+  const text = String(rawName || '').replace(/\s+/g, ' ').trim();
+  if (/^Weller\s+12\s*yr\b/i.test(text)) return 'Weller 12 Year';
+  if (/^Weller\s+Single\s+Barrel\b/i.test(text)) return 'Weller Single Barrel';
+  return text;
+}
+
+function indianaLiquorGroupEventDateParts(dateText, observedAt) {
   const now = new Date(observedAt);
-  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const text = String(dateText || '').split(/\s*&\s*/)[0].trim();
   let year = now.getUTCFullYear();
   let month = null;
@@ -762,8 +832,23 @@ function indianaLiquorGroupEventDateIsCurrent(dateText, observedAt) {
       if (named[3]) year = Number(named[3]);
     }
   }
-  if (!month || !day) return false;
-  const eventDate = new Date(Date.UTC(year, month - 1, day));
+  return month && day ? { year, month, day } : null;
+}
+
+function indianaLiquorGroupEventIsoDate(dateText, observedAt) {
+  const parts = indianaLiquorGroupEventDateParts(dateText, observedAt);
+  if (!parts) return null;
+  const mm = String(parts.month).padStart(2, '0');
+  const dd = String(parts.day).padStart(2, '0');
+  return `${parts.year}-${mm}-${dd}`;
+}
+
+function indianaLiquorGroupEventDateIsCurrent(dateText, observedAt) {
+  const now = new Date(observedAt);
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const parts = indianaLiquorGroupEventDateParts(dateText, observedAt);
+  if (!parts) return false;
+  const eventDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
   const maxFuture = new Date(today.getTime() + 370 * 24 * 60 * 60_000);
   return eventDate >= today && eventDate <= maxFuture;
 }
@@ -797,7 +882,50 @@ function parseIndianaLiquorGroupEvents(html, observedAt = new Date().toISOString
         locationText,
         dateText: dateMatch[0],
         timeText: timeMatch?.[0] || null,
+        eventDate: indianaLiquorGroupEventIsoDate(dateMatch[0], observedAt),
         rawLine: `${rawName} ${city} ${chunk}`.trim()
+      });
+    }
+  }
+  events.push(...parseIndianaLiquorGroupFeaturedWhiskeyEvents(cleanText, observedAt));
+  return events;
+}
+
+function indianaLiquorGroupBottleMatchName(rawName) {
+  const text = String(rawName || '').replace(/\s+/g, ' ').trim();
+  const withoutPick = text.replace(/\s+ILG\s+Pick\b/i, '').trim();
+  if (/^Eagle Rare\b/i.test(withoutPick)) return 'Eagle Rare';
+  if (/^Buffalo Trace\b/i.test(withoutPick)) return 'Buffalo Trace';
+  return text;
+}
+
+function parseIndianaLiquorGroupFeaturedWhiskeyEvents(cleanText, observedAt = new Date().toISOString()) {
+  const normalized = String(cleanText || '').replace(/[–—]/g, '-');
+  const section = normalized.match(/Jeff Clark Whiskey Tastings in June\s+Featuring:\s+([\s\S]*?)\s+Dates:\s+([\s\S]*?)(?=\s+JEFF CLARK ILG WHISKEY EVENTS|\s+Explore Careers|$)/i);
+  if (!section) return [];
+  const products = [...new Set((section[1].match(/(?:Old Forester 100pf Black Label|Eagle Rare|Buffalo Trace|Green River Bourbon|Green River Wheated|Barrell Bourbon Foundation)(?:\s+ILG Pick)?/gi) || [])
+    .map((value) => value.replace(/\s+/g, ' ').trim()))];
+  if (!products.length) return [];
+  const events = [];
+  const dateVenueRe = /\bo\s+(\d{1,2}\/\d{1,2})\s*@\s*([^•]+?)\s*•\s*([^•]+?)\s*-\s*([0-9][^o]+?)(?=\s+o\s+\d{1,2}\/\d{1,2}\s*@|\s+JEFF CLARK|$)/gi;
+  const cityRe = /\b(Anderson|Noblesville|Muncie|Marion|New Castle|Bargersville|Franklin|Yorktown|Kokomo|Carmel|Huntington)\b/i;
+  for (const match of section[2].matchAll(dateVenueRe)) {
+    const dateText = match[1];
+    if (!indianaLiquorGroupEventDateIsCurrent(dateText, observedAt)) continue;
+    const venueLabel = match[2].replace(/\s+/g, ' ').trim();
+    const address = match[3].replace(/\s+/g, ' ').trim();
+    const timeText = match[4].replace(/\s+/g, ' ').trim();
+    const city = titleCase(venueLabel.match(cityRe)?.[1] || address.match(cityRe)?.[1] || venueLabel.replace(/^NWS\s+/i, '').trim());
+    const locationText = [venueLabel, address].filter(Boolean).join(' — ');
+    for (const rawName of products) {
+      events.push({
+        rawName,
+        city,
+        locationText,
+        dateText,
+        timeText,
+        eventDate: indianaLiquorGroupEventIsoDate(dateText, observedAt),
+        rawLine: `${rawName} tasting at ${locationText} on ${dateText} ${timeText}`.trim()
       });
     }
   }
@@ -963,6 +1091,277 @@ function kahnsProductUrl(product) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'product';
   return `https://www.kahnsfinewines.com/products/${slug}-${product.publicId}`;
+}
+
+function htmlTagAttribute(tag, name) {
+  const match = String(tag || '').match(new RegExp(`${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
+  return match ? decodeHtml(match[2]) : null;
+}
+
+function htmlMetaContent(html, propertyName) {
+  const wanted = String(propertyName || '').toLowerCase();
+  for (const match of String(html || '').matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = match[0];
+    const property = (htmlTagAttribute(tag, 'property') || htmlTagAttribute(tag, 'name') || '').toLowerCase();
+    if (property === wanted) return htmlTagAttribute(tag, 'content') || null;
+  }
+  return null;
+}
+
+function htmlTitle(html) {
+  const match = String(html || '').match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return match ? decodeHtml(stripHtml(match[1])) : null;
+}
+
+function penguinProductLinks(html) {
+  const links = [];
+  for (const match of String(html || '').matchAll(/href=["']([^"']*\/p\/[^"'#?]+(?:\?[^"'#]*)?)["']/gi)) {
+    try {
+      const href = new URL(decodeHtml(match[1]), IN_PENGUIN_BASE_URL).href;
+      if (href.startsWith(`${IN_PENGUIN_BASE_URL}/p/`) && !links.includes(href)) links.push(href);
+    } catch {}
+  }
+  return links;
+}
+
+function parsePenguinProductPage(html, url) {
+  const title = htmlMetaContent(html, 'og:title') || htmlTitle(html) || '';
+  const rawName = decodeHtml(title)
+    .replace(/\s+-\s+Buy Online\s*\|\s*Penguin Liquor$/i, '')
+    .replace(/\s*\|\s*Penguin Liquor$/i, '')
+    .trim();
+  const availability = (htmlMetaContent(html, 'product:availability') || '').toLowerCase().trim();
+  const price = Number(htmlMetaContent(html, 'product:price:amount') || '') || null;
+  const retailerItemId = htmlMetaContent(html, 'product:retailer_item_id') || url.match(/\/(\d+)(?:[?#].*)?$/)?.[1] || null;
+  const size = decodeHtml(stripHtml(String(html).match(/id=["']productSize["'][^>]*>([\s\S]*?)<\//i)?.[1] || '')) || null;
+  const storeAddress = String(html).includes(IN_PENGUIN_STORE.address) ? IN_PENGUIN_STORE.address : null;
+  return { rawName, availability, price, retailerItemId, size, storeAddress };
+}
+
+function isPenguinBourbonCandidate(product) {
+  const text = normalizedBottleText(`${product.rawName || ''} ${product.size || ''}`);
+  if (!text) return false;
+  const include = /\b(bourbon|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|booker|baker|four roses|1792|elijah craig|woodford|angels envy|basil hayden|jefferson|rare character)\b/i.test(text);
+  const excluded = /\b(scotch|irish|canadian|japanese|vodka|gin|rum|tequila|mezcal|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|peanut butter|vanilla|chocolate|cinnamon|honey|apple|peach|cream)\b/i.test(text);
+  return include && (!excluded || /\bbourbon\b/i.test(text));
+}
+
+async function collectIndianaPenguinLiquor(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const productUrls = new Set(IN_PENGUIN_SEED_PRODUCT_URLS);
+
+  for (const categoryUrl of IN_PENGUIN_CATEGORY_URLS) {
+    const res = await curlTextFetch(categoryUrl, { timeoutMs: 30_000 });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Penguin Liquor Lafayette product category pages',
+        url: categoryUrl,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Penguin rejects Node fetch; retry source-specific curl/browser fetch or inspect GotoLiquorStore page changes.'
+      });
+      continue;
+    }
+    for (const href of penguinProductLinks(res.text)) {
+      productUrls.add(href);
+      if (productUrls.size >= IN_PENGUIN_MAX_PRODUCT_PAGES) break;
+    }
+  }
+
+  const seenProducts = new Set();
+  let parsedPages = 0;
+  for (const productUrl of [...productUrls].slice(0, IN_PENGUIN_MAX_PRODUCT_PAGES)) {
+    const res = await curlTextFetch(productUrl, { timeoutMs: 30_000 });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Penguin Liquor Lafayette product pages',
+        url: productUrl,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Retry with curl/browser fetch; keep Penguin rows fail-closed when product pages cannot be read.'
+      });
+      continue;
+    }
+    parsedPages += 1;
+    const product = parsePenguinProductPage(res.text, productUrl);
+    if (!product.rawName || product.availability !== 'in stock' || !product.storeAddress) continue;
+    if (!isPenguinBourbonCandidate(product)) continue;
+    const { match, record, unsafeReason } = cityHiveSafeBottleMatch(product.rawName, bible);
+    if (!record) continue;
+    const key = `${record.id}|${product.retailerItemId || productUrl}`;
+    if (seenProducts.has(key)) continue;
+    seenProducts.add(key);
+    signals.push({
+      id: stableId([config.id, 'penguin-liquor-lafayette-in-stock', product.retailerItemId || productUrl, record.id, product.price]),
+      state: config.id,
+      sourceLabel: 'Penguin Liquor Lafayette in-stock product pages',
+      sourceUrl: productUrl,
+      rawName: product.rawName,
+      canonicalBottleId: record.id,
+      canonicalName: record.canonical,
+      confidence: Math.max(0.80, match?.confidence || 0.5),
+      eventType: 'retailer_store_inventory_result',
+      locationPrecision: 'store_level',
+      locationName: IN_PENGUIN_STORE.name,
+      storeName: IN_PENGUIN_STORE.name,
+      storeId: `penguin-liquor:${IN_PENGUIN_STORE.id}`,
+      storeAddress: IN_PENGUIN_STORE.address,
+      city: IN_PENGUIN_STORE.city,
+      stateCode: 'IN',
+      postalCode: IN_PENGUIN_STORE.zip,
+      zip: IN_PENGUIN_STORE.zip,
+      lat: IN_PENGUIN_STORE.lat,
+      lng: IN_PENGUIN_STORE.lng,
+      quantity: 1,
+      price: product.price,
+      availabilityStatus: 'in_stock',
+      availabilityLabel: 'In stock',
+      observedAt,
+      canAlertAsInventory: true,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Penguin Liquor/GotoLiquorStore product pages publish store-level in-stock status and price for the Lafayette Teal Road store, but do not expose exact bottle counts. Quantity is a lower-bound availability marker; verify before driving.',
+      evidence: `Penguin Liquor product page reports ${product.rawName}${product.size ? ` (${product.size})` : ''} in stock at ${IN_PENGUIN_STORE.address}${product.price ? ` for $${product.price.toFixed(2)}` : ''}; exact count is not exposed.`,
+      raw: { source: 'penguin_liquor_gotoliquorstore_product_page', retailerItemId: product.retailerItemId, product, quantitySemantics: 'in_stock_no_exact_count', matchGuard: unsafeReason }
+    });
+    await sleep(200);
+  }
+
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Penguin Liquor Lafayette in-stock product pages',
+      url: IN_PENGUIN_CATEGORY_URLS.join(', '),
+      status: parsedPages ? 'reachable_no_matched_inventory' : 'no_product_pages_read',
+      error: parsedPages ? `Read ${parsedPages} Penguin product pages, but no in-stock Bourbon Signal bottle matches survived source guards.` : 'Penguin category/product pages did not return parseable product HTML.',
+      nextRoute: 'Inspect Penguin/GotoLiquorStore page HTML and tune strict bourbon link discovery without promoting non-bourbon whiskey rows.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
+function decodeDoorDashEscaped(value = '') {
+  const text = String(value || '');
+  try { return JSON.parse(`"${text.replace(/"/g, '\\"')}"`); }
+  catch {
+    return text
+      .replace(/\\u0026/g, '&')
+      .replace(/\\u0027/g, "'")
+      .replace(/\\n/g, ' ')
+      .replace(/\\\//g, '/')
+      .replace(/\\"/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+}
+
+function parseDoorDashRetailItems(html, store) {
+  const rows = [];
+  const seen = new Set();
+  const text = String(html || '');
+  const nameRe = /\\"item_name\\":\\"([^\\"]+)\\"/g;
+  for (const match of text.matchAll(nameRe)) {
+    const context = text.slice(Math.max(0, match.index - 2500), Math.min(text.length, match.index + 5000));
+    if (!context.includes(`\\"store_id\\":\\"${store.id}\\"`)) continue;
+    if (!context.includes('\\"item_data\\"') && !context.includes('\\"retail_item_card\\"')) continue;
+    if (/\\"is_out_of_stock\\":true|\\"is_likely_out_of_stock\\":true/i.test(context)) continue;
+    const itemName = decodeDoorDashEscaped(match[1]);
+    const itemId = context.match(/\\"item_id\\":\\"([^\\"]+)\\"/)?.[1] || null;
+    const itemMsid = context.match(/\\"item_msid\\":\\"([^\\"]+)\\"/)?.[1] || null;
+    const menuId = context.match(/\\"menu_id\\":\\"([^\\"]+)\\"/)?.[1] || null;
+    const priceDisplay = decodeDoorDashEscaped(context.match(/\\"display_string\\":\\"([^\\"]+)\\"/)?.[1] || '');
+    const unitAmount = Number(context.match(/\\"unit_amount\\":(\d+)/)?.[1] || '') || null;
+    const price = unitAmount ? unitAmount / 100 : Number(String(priceDisplay).replace(/[^0-9.]/g, '')) || null;
+    const isOutOfStock = /\\"is_out_of_stock\\":false/i.test(context) ? false : null;
+    const isLikelyOutOfStock = /\\"is_likely_out_of_stock\\":false/i.test(context) ? false : null;
+    const key = itemId || itemMsid || `${itemName}|${priceDisplay}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rows.push({ itemName, itemId, itemMsid, menuId, price, priceDisplay, isOutOfStock, isLikelyOutOfStock });
+    if (rows.length >= IN_DOORDASH_MAX_FRONTIER_ITEMS) break;
+  }
+  return rows;
+}
+
+function isDoorDashBourbonCandidate(item) {
+  const text = normalizedBottleText(item.itemName || '');
+  if (!text) return false;
+  if (!/\b(bourbon|american whiskey|straight whiskey|rabbit hole|tincup|green river|barrell bourbon|bulleit|maker|woodford|wild turkey|elijah craig|old forester|four roses|knob creek|1792)\b/i.test(text)) return false;
+  if (/\b(scotch|irish|canadian|japanese|vodka|gin|rum|tequila|mezcal|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|crown royal|johnnie walker|glenlivet|balvenie|oban|hibiki|monkey shoulder|sexton)\b/i.test(text)) return false;
+  if (/\b(apple|peach|honey|vanilla|cinnamon|maple|cream|peanut butter|chocolate|coffee)\b/i.test(text)) return false;
+  return /\bbourbon\b/i.test(text);
+}
+
+async function collectIndianaDoorDashFrontier(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const store = IN_DOORDASH_FRONTIER_STORE;
+  const res = await curlTextFetch(store.url, { timeoutMs: 45_000, maxBuffer: 6 * 1024 * 1024 });
+  if (!res.ok) {
+    roadblocks.push({
+      state: config.id,
+      source: 'DoorDash Frontier Liquors Evansville marketplace page',
+      url: store.url,
+      status: res.status || 0,
+      error: res.error || `HTTP ${res.status}`,
+      nextRoute: 'Retry DoorDash public store page or inspect Frontier/marketplace page shape; keep rows fail-closed when embedded retail item cards are unavailable.'
+    });
+    return { signals, roadblocks };
+  }
+  const items = parseDoorDashRetailItems(res.text, store).filter(isDoorDashBourbonCandidate);
+  const seen = new Set();
+  for (const item of items) {
+    const { match, record, unsafeReason } = cityHiveSafeBottleMatch(item.itemName, bible);
+    if (!record) continue;
+    const key = `${record.id}|${item.itemId || item.itemMsid || item.itemName}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    signals.push({
+      id: stableId([config.id, 'doordash-frontier-evansville-in-stock', item.itemId || item.itemMsid || item.itemName, record.id, item.price]),
+      state: config.id,
+      sourceLabel: 'DoorDash Frontier Liquors Evansville marketplace inventory',
+      sourceUrl: store.url,
+      rawName: item.itemName,
+      canonicalBottleId: record.id,
+      canonicalName: record.canonical,
+      confidence: Math.max(0.78, match?.confidence || 0.5),
+      eventType: 'retailer_store_inventory_result',
+      locationPrecision: 'store_level',
+      locationName: store.name,
+      storeName: store.name,
+      storeId: `doordash:${store.id}`,
+      storeAddress: store.address,
+      city: store.city,
+      stateCode: 'IN',
+      postalCode: store.zip,
+      zip: store.zip,
+      lat: store.lat,
+      lng: store.lng,
+      quantity: 1,
+      price: item.price,
+      availabilityStatus: 'marketplace_listed_not_out_of_stock',
+      availabilityLabel: 'Listed on DoorDash; not marked out of stock',
+      observedAt,
+      canAlertAsInventory: true,
+      canAlertAsWatch: true,
+      inventorySemantics: 'DoorDash public retail item cards list this SKU for Frontier Liquors in Evansville with price and no out-of-stock flags. DoorDash does not expose exact bottle count; quantity is a lower-bound marketplace availability marker and should be verified before driving/order placement.',
+      evidence: `DoorDash lists ${item.itemName} at ${store.name}, ${store.address}${item.price ? ` for $${item.price.toFixed(2)}` : ''}, with no out-of-stock flag in the public retail item card.`,
+      raw: { source: 'doordash_frontier_liquors_public_store_page', store, item, quantitySemantics: 'listed_not_out_of_stock_no_exact_count', matchGuard: unsafeReason }
+    });
+  }
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'DoorDash Frontier Liquors Evansville marketplace inventory',
+      url: store.url,
+      status: 'reachable_no_safe_bourbon_inventory',
+      error: `Read DoorDash Frontier public page and parsed ${items.length} bourbon-like item(s), but none survived bottle-bible and false-positive guards.`,
+      nextRoute: 'Inspect embedded DoorDash retail item cards for new bourbon SKUs and add exact standard bottle aliases only when identities are unambiguous.'
+    });
+  }
+  return { signals, roadblocks };
 }
 
 function parsePaylessBarrelSelections(html) {
@@ -1202,7 +1601,7 @@ async function writeIndianaCityHiveCache(signals, roadblocks) {
 function cachedIndianaCityHiveSignals(cache, observedAt) {
   return (cache?.signals || []).map((signal) => ({
     ...signal,
-    observedAt: signal.observedAt || cache.generatedAt || observedAt,
+    observedAt: cache.generatedAt || signal.observedAt || observedAt,
     raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: IN_CITYHIVE_ARTIFACT_PATH }
   }));
 }
@@ -1296,7 +1695,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
   const roadblocks = [];
   const cache = await readIndianaCityHiveCache();
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
-  if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= IN_CITYHIVE_CACHE_MAX_AGE_MS) {
+  if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
     return {
       signals: cachedIndianaCityHiveSignals(cache, observedAt),
       roadblocks: [
@@ -1311,9 +1710,6 @@ async function collectIndianaCityHive(config, bible, observedAt) {
         }
       ]
     };
-  }
-  if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
-    return { signals: cachedIndianaCityHiveSignals(cache, observedAt), roadblocks: cache.roadblocks || [] };
   }
   const seenPageFirstProducts = new Set();
   const seenProductOptions = new Set();
@@ -2608,9 +3004,10 @@ async function collectIllinois(config, bible) {
 
 async function collectIndiana(config, bible) {
   const signals = [], roadblocks = [];
+  const observedAt = new Date().toISOString();
   try {
     const artifact = await collectIndianaAtcPackageStores();
-    const observedAt = artifact.generatedAt;
+    const atcObservedAt = artifact.generatedAt || observedAt;
     if (artifact.cacheReuse) {
       roadblocks.push({
         state: config.id,
@@ -2621,6 +3018,7 @@ async function collectIndiana(config, bible) {
         nextRoute: 'Force live ATC refresh during maintenance; permit rows are store-coverage infrastructure, not bottle inventory.'
       });
     }
+
     for (const store of artifact.stores || []) {
       signals.push({
         id: stableId([config.id, 'atc-package-store-permit', store.permitNumber]),
@@ -2642,7 +3040,7 @@ async function collectIndiana(config, bible) {
         postalCode: store.zip || null,
         zip: store.zip || null,
         quantity: 0,
-        observedAt,
+        observedAt: atcObservedAt,
         canAlertAsInventory: false,
         canAlertAsWatch: false,
         inventorySemantics: 'Indiana ATC permits identify active package-store license locations. This is store coverage infrastructure, not bottle inventory or allocation evidence.',
@@ -2664,7 +3062,8 @@ async function collectIndiana(config, bible) {
       const allocatedItems = parseIndianaBourbonWorldAllocated(bourbonWorld.text)
         .filter((item) => RARE_RE.test(item.rawName) || /van winkle|blanton|buffalo trace/i.test(item.rawName));
       for (const item of allocatedItems) {
-        const { match, record } = bottleMatch(item.rawName, bible);
+        const matchName = indianaBourbonWorldBottleMatchName(item.rawName);
+        const { match, record } = bottleMatch(matchName, bible);
         if (!record) continue;
         signals.push({
           id: stableId([config.id, 'bourbon-world-allocated-raffle', record.id, item.rawName, item.quantity, item.price]),
@@ -2688,7 +3087,7 @@ async function collectIndiana(config, bible) {
           canAlertAsWatch: true,
           inventorySemantics: 'Bourbon World lists monthly rare/allocated raffle bottles across Big Red Liquors, Vine & Table, and Cap n Cork locations. This is an actionable retailer watch signal, not guaranteed shelf inventory.',
           evidence: `${item.rawName} appears on Bourbon World's current rare/allocated bottle list with ${item.quantity} bottle${item.quantity === 1 ? '' : 's'}${item.price ? ` at $${item.price.toFixed(2)}` : ''}. Winners are drawn from VIP entrants; verify details with Bourbon World/Big Red.`,
-          raw: { item, source: 'bourbonworld_current_rare_allocated_bottles' }
+          raw: { item, source: 'bourbonworld_current_rare_allocated_bottles', matchName }
         });
       }
       if (!allocatedItems.length) {
@@ -2715,7 +3114,8 @@ async function collectIndiana(config, bible) {
     const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' } });
     if (ilgEvents.ok) {
       for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text, observedAt)) {
-        const { match, record } = bottleMatch(event.rawName, bible);
+        const matchName = indianaLiquorGroupBottleMatchName(event.rawName);
+        const { match, record } = bottleMatch(matchName, bible);
         if (!record) continue;
         signals.push({
           id: stableId([config.id, 'indiana-liquor-group-tasting-event', record.id, event.city, event.locationText, event.dateText, event.timeText]),
@@ -2735,6 +3135,9 @@ async function collectIndiana(config, bible) {
           stateCode: 'IN',
           observedAt,
           fetchedAt: observedAt,
+          eventDate: event.eventDate || null,
+          releaseDate: event.eventDate || null,
+          eventTime: event.timeText || null,
           quantity: null,
           price: null,
           availabilityStatus: 'retailer_event_watch',
@@ -2742,7 +3145,7 @@ async function collectIndiana(config, bible) {
           canAlertAsWatch: true,
           inventorySemantics: 'Indiana Liquor Group publishes dated store tasting events. These are actionable retailer watch/event signals, not bottle inventory.',
           evidence: `${event.rawName} tasting/event listed by Indiana Liquor Group at ${event.locationText}, ${event.city}${event.dateText ? ` on ${event.dateText}` : ''}${event.timeText ? ` ${event.timeText}` : ''}. Verify with the retailer before driving.`,
-          raw: { source: 'indiana_liquor_group_events', event }
+          raw: { source: 'indiana_liquor_group_events', event, matchName }
         });
       }
     } else {
@@ -2763,6 +3166,14 @@ async function collectIndiana(config, bible) {
     const payless = await collectIndianaPaylessBarrelSelections(config, bible, observedAt);
     signals.push(...payless.signals);
     roadblocks.push(...payless.roadblocks);
+
+    const penguin = await collectIndianaPenguinLiquor(config, bible, observedAt);
+    signals.push(...penguin.signals);
+    roadblocks.push(...penguin.roadblocks);
+
+    const doorDashFrontier = await collectIndianaDoorDashFrontier(config, bible, observedAt);
+    signals.push(...doorDashFrontier.signals);
+    roadblocks.push(...doorDashFrontier.roadblocks);
 
     const cityHive = await collectIndianaCityHive(config, bible, observedAt);
     signals.push(...cityHive.signals);

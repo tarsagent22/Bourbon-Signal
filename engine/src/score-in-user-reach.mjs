@@ -6,6 +6,7 @@ async function readJson(file, fallback = null) {
 
 const state = await readJson('out/states/IN.json', { signals: [], roadblocks: [] });
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
+const eventsExport = await readJson('out/site/events.json', { events: [] });
 const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 
@@ -29,10 +30,24 @@ function unique(values) { return [...new Set(values.filter(Boolean))]; }
 
 const stateSignals = state.signals || [];
 const exportedDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'IN');
+const exportedEvents = (eventsExport.events || []).filter((event) => event.state === 'IN');
 const sourceRows = exportedDrops.length ? exportedDrops : stateSignals;
-const inventoryRows = sourceRows.filter((row) => ['cityhive_store_inventory_result', 'retailer_store_inventory_result', 'store_inventory_result'].includes(row.type || row.eventType));
+const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result', 'store_inventory_result']);
+const inventoryRows = sourceRows.filter((row) => inventoryTypes.has(row.type || row.eventType));
 const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && Number(row.quantity || 0) > 0 && row.storeId && row.storeAddress);
-const watchRows = sourceRows.filter((row) => /allocated|lottery|event|tasting|release/i.test(`${row.type || row.eventType || ''} ${row.source || row.sourceLabel || ''} ${row.evidence || ''}`));
+function rowKey(row) { return [row.type || row.eventType, row.source || row.sourceLabel, row.rawName || row.bottleName || row.canonicalName, norm(row.city), norm(row.storeName || row.locationName), row.eventDate || row.releaseDate || ''].join('|').toLowerCase(); }
+const watchMap = new Map();
+for (const row of [...stateSignals, ...exportedEvents, ...exportedDrops]) {
+  if (row.state && row.state !== 'IN') continue;
+  const type = row.type || row.eventType || '';
+  const watchText = `${type} ${row.source || row.sourceLabel || ''}`;
+  const explicitWatch = Boolean(row.canAlertAsWatch) && /allocated|lottery|event|tasting|raffle|release|barrel selection|barrel-selection|barrel pick/i.test(watchText);
+  const eventWatch = /allocated|lottery|event|tasting|raffle|release/i.test(watchText);
+  if (!eventWatch && !explicitWatch) continue;
+  if (inventoryTypes.has(type) && !explicitWatch) continue;
+  watchMap.set(rowKey(row), row);
+}
+const watchRows = [...watchMap.values()];
 const storeLocationRows = stateSignals.filter((row) => row.eventType === 'licensed_package_store_location' || row.eventType === 'retailer_store_location');
 const exportedStores = (storesExport.stores || []).filter((store) => store.state === 'IN');
 const exportedLocations = (locationsExport.locations || []).filter((location) => location.state === 'IN');

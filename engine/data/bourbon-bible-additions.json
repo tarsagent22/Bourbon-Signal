@@ -990,6 +990,84 @@
       "sourceStates": [
         "PA"
       ]
+    },
+    {
+      "canonical": "Rabbit Hole Heigold Kentucky Straight Bourbon",
+      "aliases": [
+        "Rabbit Hole Heigold Bourbon",
+        "Rabbit Hole Heigold High Rye Double Malt Kentucky Straight Bourbon",
+        "Rabbit Hole Heigold High Rye Double Malt 95 Proof Kentucky Straight Bourbon Whiskey Bottle (750 ml)"
+      ],
+      "tier": "standard",
+      "producer": "Rabbit Hole",
+      "sourceStates": [
+        "IN"
+      ]
+    },
+    {
+      "canonical": "Tincup 10 Year Mountain Bourbon",
+      "aliases": [
+        "Tincup 10 Year Bourbon",
+        "Tincup American Whiskey 84 Proof 10 Year Mountain Bourbon Whiskey Bottle (750 ml)"
+      ],
+      "tier": "standard",
+      "producer": "Tincup",
+      "sourceStates": [
+        "IN"
+      ]
+    },
+    {
+      "canonical": "Green River Kentucky Straight Bourbon",
+      "aliases": [
+        "Green River Bourbon",
+        "Green River Bourbon ILG Pick",
+        "Green River Kentucky Straight Bourbon ILG Pick"
+      ],
+      "tier": "standard",
+      "producer": "Green River Distilling",
+      "sourceStates": [
+        "IN"
+      ]
+    },
+    {
+      "canonical": "Green River Wheated Bourbon",
+      "aliases": [
+        "Green River Wheated",
+        "Green River Wheated Bourbon",
+        "Green River Wheated ILG Pick",
+        "Green River Wheated Bourbon ILG Pick"
+      ],
+      "tier": "standard",
+      "producer": "Green River Distilling",
+      "sourceStates": [
+        "IN"
+      ]
+    },
+    {
+      "canonical": "Barrell Bourbon Foundation",
+      "aliases": [
+        "Barrell Bourbon Foundation",
+        "Barrell Bourbon Foundation ILG Pick"
+      ],
+      "tier": "standard",
+      "producer": "Barrell Craft Spirits",
+      "sourceStates": [
+        "IN"
+      ]
+    },
+    {
+      "canonical": "Old Forester 100 Proof Bourbon",
+      "aliases": [
+        "Old Forester 100pf Black Label",
+        "Old Forester 100pf Black Label ILG Pick",
+        "Old Forester 100 Proof",
+        "Old Forester 100 Proof Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Old Forester",
+      "sourceStates": [
+        "IN"
+      ]
     }
   ],
   "verifiedAliasNotes": [
