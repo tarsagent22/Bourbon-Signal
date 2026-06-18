@@ -98,6 +98,7 @@ function bibleLookup(records = []) {
 }
 
 function findBibleRecord(signal, bible) {
+  if (signal.state === 'ID' && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) return null;
   const id = signal.bottleId || signal.canonicalBottleId;
   if (id && bible.byId.has(id)) return bible.byId.get(id);
   for (const name of [signal.canonicalName, signal.rawName]) {
@@ -266,6 +267,7 @@ function sourceEventAt(signal) {
   // This is a source-provided NC extract timestamp for the actual stock-shipped feed,
   // not the crawler runtime. Other inventory probes use observedAt as last-confirmed.
   if (type === 'nc_board_shipment_snapshot') return validSourceEventAt(signal.sourceEventAt || signal.observedAt, signal.fetchedAt);
+  if (signal.state === 'ID' && type === 'store_inventory_result') return validSourceEventAt(signal.sourceEventAt, signal.observedAt || signal.fetchedAt);
   return null;
 }
 
@@ -387,6 +389,10 @@ function dropPriority(signal) {
   return 0;
 }
 
+function hasPositiveAvailabilityStatus(signal) {
+  return /\b(in_stock|available|limited supply|on hand)\b/i.test(`${signal.availabilityStatus || ''} ${signal.availabilityLabel || ''} ${signal.availabilityValue || ''}`);
+}
+
 function isUserFacingDropSignal(signal) {
   const type = String(signal.eventType || '').toLowerCase();
   const quantity = Number(signal.quantity || signal.storeQty || 0) || 0;
@@ -404,7 +410,10 @@ function isUserFacingDropSignal(signal) {
   if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (type === 'store_delivery_snapshot') return quantity > 0;
   if (type === 'store_inventory_aggregate') return quantity > 0;
-  if (type === 'store_inventory_result') return quantity > 0;
+  if (type === 'store_inventory_result') {
+    if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
+    return quantity > 0;
+  }
   if (type === 'retailer_store_inventory_result') return quantity > 0;
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;

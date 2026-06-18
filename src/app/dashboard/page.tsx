@@ -30,12 +30,13 @@ const EMPTY_PREFS: AreaPreferences = {
   vaCities: [],
   ohCities: [],
   iaCities: [],
+  idCities: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "VA", "OH", "PA"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 
 interface BottleOption {
@@ -304,6 +305,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -892,7 +894,7 @@ export default function DashboardPage() {
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};
-    for (const state of ["IA", "VA", "OH", "PA"] as const) {
+    for (const state of ["IA", "ID", "VA", "OH", "PA"] as const) {
       grouped[state] = Array.from(
         new Set(
           stores.flatMap((store) => {
@@ -909,7 +911,7 @@ export default function DashboardPage() {
     const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
       if (!isSelectableStoreLocation(store)) continue;
-      if (["IA", "VA", "OH"].includes(store.state) && store.city) {
+      if (["IA", "ID", "VA", "OH"].includes(store.state) && store.city) {
         const city = titleCase(store.city);
         const key = `${store.state}:${city}`;
         if (!(grouped.get(key) ?? []).some((existing) => existing.id === store.id || storePhysicalKey(existing) === storePhysicalKey(store))) {
@@ -1001,6 +1003,14 @@ export default function DashboardPage() {
       totalCount: citiesByState.IA?.length ?? 0,
     },
     {
+      stateCode: "ID",
+      label: "Idaho",
+      detailLabel: "cities",
+      summary: "Idaho Liquor store availability status is available by city with store/as-of details.",
+      selectedCount: localPrefs.idCities.length,
+      totalCount: citiesByState.ID?.length ?? 0,
+    },
+    {
       stateCode: "PA",
       label: "Pennsylvania",
       detailLabel: "cities",
@@ -1008,7 +1018,7 @@ export default function DashboardPage() {
       selectedCount: localPrefs.paCounties.length,
       totalCount: citiesByState.PA?.length ?? 0,
     },
-  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
+  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1182,6 +1192,7 @@ export default function DashboardPage() {
         vaCities: state === "VA" && removing ? [] : prev.vaCities,
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
         iaCities: state === "IA" && removing ? [] : prev.iaCities,
+        idCities: state === "ID" && removing ? [] : prev.idCities,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1216,6 +1227,13 @@ export default function DashboardPage() {
         return {
           ...prev,
           iaCities: has ? prev.iaCities.filter((item) => item !== value) : [...prev.iaCities, value],
+        };
+      }
+      if (state === "ID") {
+        const has = prev.idCities.includes(value);
+        return {
+          ...prev,
+          idCities: has ? prev.idCities.filter((item) => item !== value) : [...prev.idCities, value],
         };
       }
       if (state === "PA") {
@@ -1666,7 +1684,9 @@ export default function DashboardPage() {
                 ? localPrefs.ncBoards
                 : activeState === "IA"
                   ? localPrefs.iaCities
-                  : activeState === "VA"
+                  : activeState === "ID"
+                    ? localPrefs.idCities
+                    : activeState === "VA"
                     ? localPrefs.vaCities
                     : activeState === "OH"
                       ? localPrefs.ohCities
@@ -1679,7 +1699,7 @@ export default function DashboardPage() {
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
               const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 
@@ -1742,7 +1762,9 @@ export default function DashboardPage() {
                                 : isCityRefinable
                                   ? activeState === "IA"
                                     ? "Pick Iowa cities from ABD store-delivery data. Leave cities blank to keep statewide Iowa coverage."
-                                    : "Pick cities first. Store-level narrowing is available where Bourbon Signal has durable store identifiers."
+                                    : activeState === "ID"
+                                      ? "Pick Idaho cities from official Idaho Liquor store availability status. Store rows include as-of dates and should be verified before driving."
+                                      : "Pick cities first. Store-level narrowing is available where Bourbon Signal has durable store identifiers."
                                   : customerAreaLabel
                                     ? `${stateLabel} coverage currently starts with ${customerAreaLabel}. We’ll add more areas as durable public data supports them.`
                                     : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}

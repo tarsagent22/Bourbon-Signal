@@ -14,6 +14,7 @@ export interface AreaPreferences {
   vaCities: string[];
   ohCities: string[];
   iaCities: string[];
+  idCities: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -52,6 +53,7 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   vaCities: [],
   ohCities: [],
   iaCities: [],
+  idCities: [],
   paCounties: [],
   paStores: [],
 };
@@ -89,6 +91,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     vaCities: toStringArray(source.vaCities),
     ohCities: toStringArray(source.ohCities),
     iaCities: toStringArray(source.iaCities),
+    idCities: toStringArray(source.idCities),
     paCounties: toStringArray(source.paCounties),
     paStores: toStringArray(source.paStores),
   };

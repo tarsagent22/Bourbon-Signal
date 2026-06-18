@@ -76,9 +76,9 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
       : { matched: false };
   }
 
-  if (state === "VA" || state === "OH" || state === "IA") {
-    const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : prefs.iaCities;
-    const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : "Iowa";
+  if (state === "VA" || state === "OH" || state === "IA" || state === "ID") {
+    const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : state === "IA" ? prefs.iaCities : prefs.idCities;
+    const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : state === "IA" ? "Iowa" : "Idaho";
     const city = (drop.store_city || drop.store_county || drop.board_name || "").trim();
     if (cityPrefs.length === 0) return { matched: true, matchedState: state, matchedArea: city || fallbackLabel };
     const normalizedCity = city.toLowerCase();

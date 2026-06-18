@@ -11,6 +11,7 @@ export interface AreaPreferences {
   vaCities: string[];
   ohCities: string[];
   iaCities: string[];
+  idCities: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -80,6 +81,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
     vaCities: toStrings(source.vaCities),
     ohCities: toStrings(source.ohCities),
     iaCities: toStrings(source.iaCities),
+    idCities: toStrings(source.idCities),
     paCounties: toStrings(source.paCounties),
     paStores: toStrings(source.paStores),
   };
@@ -129,6 +131,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((county) => location.includes(normalizeLocationText(county)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((store) => location.includes(normalizeLocationText(store)));
   return true;
@@ -225,6 +228,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);
   if (state === "OH" && areaPrefs.ohCities.length) return matchedLocationFromOptions(candidate, areaPrefs.ohCities) || locationName || stateLabel(state);
   if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
+  if (state === "ID" && areaPrefs.idCities.length) return matchedLocationFromOptions(candidate, areaPrefs.idCities) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paStores.length) return matchedLocationFromOptions(candidate, areaPrefs.paStores) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;

@@ -50,7 +50,8 @@ function optionalNumber(...values) {
 
 function canonicalizeSignal(signal, bible) {
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
-  const match = name ? bible.match(name) : null;
+  const unsafeSourceMatch = signal.state === 'ID' && String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:');
+  const match = name && !unsafeSourceMatch ? bible.match(name) : null;
   const record = match?.record || null;
   const canonicalName = record?.canonical || name;
   const bottleId = record?.id || signal.canonicalBottleId || null;

@@ -52,13 +52,14 @@ const IDAHO_LIMITED_PRODUCTS_URL = 'https://idaholiquor.com/limited-availability
 const IDAHO_SPECIAL_RELEASES_URL = 'https://idaholiquor.com/special-releases/';
 const IDAHO_PRODUCT_BASE_URL = 'https://idaholiquor.com/product';
 const IDAHO_AVAILABILITY_AJAX_URL = 'https://idaholiquor.com/wp-admin/admin-ajax.php';
-const IDAHO_AVAILABILITY_PRODUCT_LIMIT = Number(process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_PRODUCT_LIMIT || 10);
-const IDAHO_AVAILABILITY_LOCATIONS = (process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_LOCATIONS || 'Boise,Idaho Falls,Twin Falls,Coeur d\'Alene,Pocatello')
+const IDAHO_AVAILABILITY_PRODUCT_LIMIT = Number(process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_PRODUCT_LIMIT || 16);
+const IDAHO_AVAILABILITY_LOCATIONS = (process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_LOCATIONS || 'Boise,Meridian,Nampa,Idaho Falls,Twin Falls,Coeur d\'Alene,Pocatello,Lewiston,Moscow,McCall')
   .split(',')
   .map((value) => value.trim())
   .filter(Boolean);
 const IDAHO_WATCH_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|george t|william larue|thomas h|sazerac|heaven hill|yellowstone|penelope|four roses|old forester|1792|knob creek|russell|parker'?s|little book|blood oath|king of kentucky|woodford/i;
 const IDAHO_EXCLUDE_RE = /scotch|rum|tequila|mezcal|vodka|gin|liqueur|cordial|wine|beer|cocktail|ready to drink|seltzer|cream/i;
+const IDAHO_POSITIVE_AVAILABILITY_RE = /\b(in stock|available|limited supply|on hand)\b/i;
 const MONTGOMERY_BOURBON_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|michter|buffalo trace|elijah craig|george t|william larue|thomas h/i;
 
 const BINNYS_ALGOLIA_APP_ID = process.env.BOURBON_SIGNAL_BINNYS_ALGOLIA_APP_ID || 'Z25A2A928M';
@@ -426,7 +427,7 @@ function decodeHtml(value = '') {
   return String(value)
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&#8217;|&rsquo;|&apos;/g, "'")
+    .replace(/&#0*39;|&#8217;|&rsquo;|&apos;/g, "'")
     .replace(/&#8211;|&#8212;|&ndash;|&mdash;/g, '-')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
@@ -935,10 +936,10 @@ function cityHiveSafeBottleMatch(rawName, bible) {
     if (canonical.includes(phrase) && !raw.includes(phrase)) return { match, record: null, unsafeReason: `missing_modifier:${phrase}` };
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*year\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
+    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*y\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:y|year)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}y` };
+    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}y` };
   }
   return { match, record, unsafeReason: null };
 }
@@ -3168,12 +3169,52 @@ function idahoProductRelevant(product, bible) {
   return Boolean(record && /bourbon|whiskey|whisky/i.test(hay));
 }
 
+function idahoSafeBottleMatch(rawName, bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  if (!safe.record) return safe;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record.canonical);
+  if (/four roses/.test(raw) && /single barrel/.test(raw) && /limited edition|small batch/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'idaho_four_roses_single_barrel_not_limited_edition' };
+  }
+  if (/taylor/.test(raw) && /single barrel/.test(raw) && /small batch/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'idaho_taylor_single_barrel_not_small_batch' };
+  }
+  return safe;
+}
+
 function idahoProductPriority(product, bible) {
-  const { record } = bottleMatch(product.rawName, bible);
+  const { record } = idahoSafeBottleMatch(product.rawName, bible);
   return (RARE_RE.test(product.rawName) ? 10000 : 0)
     + (record?.tier === 'unicorn' ? 5000 : record?.tier === 'allocated' ? 3500 : record?.tier === 'limited' ? 2000 : 0)
+    + (/single barrel|barrel|private|store pick|limited availability|special releases/i.test(product.rawName) ? 900 : 0)
     + (/special releases/i.test(product.sourceLabel) ? 700 : 0)
     + (/limited availability/i.test(product.sourceLabel) ? 500 : 0);
+}
+
+function idahoSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = idahoSafeBottleMatch(rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: Math.max(record ? 0.76 : 0.72, match?.confidence || 0.35),
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
+function idahoSourceEventAt(asOfText, observedAt) {
+  const clean = String(asOfText || '').replace(/^as of\s+/i, '').trim();
+  if (!clean) return null;
+  const parsed = Date.parse(clean);
+  if (!Number.isFinite(parsed)) return null;
+  const ceiling = Date.parse(observedAt || '') || Date.now();
+  if (parsed > ceiling + 5 * 60 * 1000) return null;
+  return new Date(parsed).toISOString();
 }
 
 function parseIdahoAvailabilityRows(html = '') {
@@ -3185,11 +3226,11 @@ function parseIdahoAvailabilityRows(html = '') {
     const phone = decodeHtml(stripHtml(block.match(/<strong>\s*Phone:\s*<\/strong>\s*([\s\S]*?)(?:<a\b|<br\s*\/?>|<\/div>)/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
     const statusText = decodeHtml(stripHtml(block.match(/<span\b[^>]*class=["'][^"']*\bqty\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '')).replace(/\s+/g, ' ').trim();
     const asOfText = decodeHtml(stripHtml(block.match(/<small\b[^>]*>([\s\S]*?)<\/small>/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
-    if (!storeRaw || !/available/i.test(statusText) || /not\s+available|unavailable/i.test(statusText)) continue;
+    if (!storeRaw || !IDAHO_POSITIVE_AVAILABILITY_RE.test(statusText) || /not\s+available|unavailable/i.test(statusText)) continue;
     const storeNumber = storeRaw.match(/Store\s+(\d+)/i)?.[1] || null;
     const distanceMiles = Number(storeRaw.match(/\((\d+(?:\.\d+)?)mi\)/i)?.[1]) || null;
     const storeName = storeRaw.replace(/\s*\(\d+(?:\.\d+)?mi\)\s*$/i, '').trim();
-    const city = storeName.replace(/\s*\(Store\s+\d+\).*$/i, '').trim() || address.match(/,\s*([^,]+),\s*ID\s+\d{5}/i)?.[1] || null;
+    const city = address.match(/,\s*([^,]+),\s*ID\s+\d{5}/i)?.[1]?.trim() || storeName.replace(/\s*\(Store\s+\d+\).*$/i, '').trim() || null;
     const zip = address.match(/\bID\s+(\d{5})(?:-\d{4})?\b/i)?.[1] || null;
     rows.push({ storeRaw, storeName, storeNumber, distanceMiles, address, phone, statusText, asOfText, city, zip });
   }
@@ -3238,7 +3279,7 @@ async function collectIdaho(config, bible) {
     .slice(0, IDAHO_AVAILABILITY_PRODUCT_LIMIT);
 
   for (const product of products) {
-    const { base } = signalBase(config.id, product.sourceLabel, product.href, product.rawName, bible);
+    const { base, unsafeReason } = idahoSignalBase(config.id, product.sourceLabel, product.href, product.rawName, bible);
     signals.push({
       id: stableId([config.id, 'idaho-limited-product', product.code, product.rawName, product.sourceLabel]),
       ...base,
@@ -3256,7 +3297,7 @@ async function collectIdaho(config, bible) {
       canAlertAsWatch: true,
       inventorySemantics: 'Idaho Liquor product-list pages expose limited/special-release catalog rows. Catalog rows are watch intelligence until a store availability row is separately extracted.',
       evidence: `Idaho Liquor lists ${product.rawName}${product.code ? ` (#${product.code})` : ''}${product.price ? ` at $${product.price.toFixed(2)}` : ''} on ${product.sourceLabel}.`,
-      raw: { product }
+      raw: { product, sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
     });
   }
 
@@ -3277,11 +3318,12 @@ async function collectIdaho(config, bible) {
       }
       const rows = parseIdahoAvailabilityRows(res.text);
       for (const row of rows) {
+        const sourceEventAt = idahoSourceEventAt(row.asOfText, observedAt);
         const key = `${product.code}|${row.storeNumber || row.storeName}|${row.address}`;
         if (seenStoreRows.has(key)) continue;
         seenStoreRows.add(key);
         availabilityRows += 1;
-        const { base } = signalBase(config.id, 'Idaho Liquor product availability AJAX', product.href, product.rawName, bible);
+        const { base, unsafeReason } = idahoSignalBase(config.id, 'Idaho Liquor product availability AJAX', product.href, product.rawName, bible);
         signals.push({
           id: stableId([config.id, 'idaho-store-availability', product.code, row.storeNumber || row.storeName, row.address, row.asOfText]),
           ...base,
@@ -3304,12 +3346,14 @@ async function collectIdaho(config, bible) {
           quantity: 0,
           availabilityStatus: 'in_stock',
           availabilityLabel: row.asOfText ? `Available (${row.asOfText})` : 'Available',
+          availabilityValue: 'official_available_status',
           observedAt,
+          sourceEventAt,
           canAlertAsInventory: true,
           canAlertAsWatch: true,
-          inventorySemantics: 'Official Idaho Liquor public availability modal reports store-level Available status by product and searched location. It does not expose bottle count; availability date/status must be shown with a verify-before-driving caveat.',
+          inventorySemantics: 'Official Idaho Liquor public availability modal reports store-level Available status by product and searched location. It exposes status/as-of-date, not a bottle count or reservation; verify before driving.',
           evidence: `Idaho Liquor reports ${product.rawName}${product.code ? ` (#${product.code})` : ''} as Available at ${row.storeName}${row.address ? ` (${row.address})` : ''}${row.asOfText ? `, ${row.asOfText}` : ''}. Verify before driving; no bottle count is exposed.`,
-          raw: { product, availability: row, searchedLocation: location, endpoint: IDAHO_AVAILABILITY_AJAX_URL, sourceCaveat: 'Store-level official availability status, not a bottle count or reservation.' }
+          raw: { product, availability: row, searchedLocation: location, endpoint: IDAHO_AVAILABILITY_AJAX_URL, sourceCaveat: 'Store-level official availability status/as-of date, not a bottle count or reservation.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
       await sleep(150);

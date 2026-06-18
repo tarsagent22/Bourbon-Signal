@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-17T18:19:48.988Z",
-  "count": 1652,
+  "generatedAt": "2026-06-18T03:00:27.279Z",
+  "count": 1666,
   "stores": [
     {
       "id": "alabc:001",
@@ -6917,7 +6917,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-222",
@@ -6931,7 +6931,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-101",
@@ -6945,7 +6945,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-102",
@@ -6959,7 +6959,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-103",
@@ -6973,7 +6973,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-104",
@@ -6987,7 +6987,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-107",
@@ -7001,7 +7001,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-108",
@@ -7015,7 +7015,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-109",
@@ -7029,7 +7029,21 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 9
+    },
+    {
+      "id": "idaho-liquor-store-110",
+      "sourceStoreId": "idaho-liquor-store-110",
+      "state": "ID",
+      "name": "Boise (Store 110)",
+      "address": "808 S. Vista Ave., Boise, ID 83705",
+      "city": "Boise",
+      "county": null,
+      "zip": "83705",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-112",
@@ -7043,7 +7057,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-113",
@@ -7057,7 +7071,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-114",
@@ -7071,7 +7085,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-116",
@@ -7085,7 +7099,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-125",
@@ -7099,7 +7113,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-329",
@@ -7110,6 +7124,20 @@
       "city": "Bonners Ferry",
       "county": null,
       "zip": "83805",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 2
+    },
+    {
+      "id": "idaho-liquor-store-246",
+      "sourceStoreId": "idaho-liquor-store-246",
+      "state": "ID",
+      "name": "Bottoms Up Liquor Store (Store 246)",
+      "address": "471 N. State Street, Preston, ID 83263",
+      "city": "Preston",
+      "county": null,
+      "zip": "83263",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
@@ -7127,7 +7155,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-106",
@@ -7141,7 +7169,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-136",
@@ -7155,7 +7183,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-205",
@@ -7169,49 +7197,91 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-302",
       "sourceStoreId": "idaho-liquor-store-302",
       "state": "ID",
-      "name": "Coeur d&#039;Alene (Store 302)",
-      "address": "1201 E. Sherman Ave., Coeur d&#039;Alene, ID 83814",
-      "city": "Coeur d&#039;Alene",
+      "name": "Coeur d'Alene (Store 302)",
+      "address": "1201 E. Sherman Ave., Coeur d'Alene, ID 83814",
+      "city": "Coeur d'Alene",
       "county": null,
       "zip": "83814",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-305",
       "sourceStoreId": "idaho-liquor-store-305",
       "state": "ID",
-      "name": "Coeur d&#039;Alene (Store 305)",
-      "address": "2640 N. Government Way, Coeur d&#039;Alene, ID 83815",
-      "city": "Coeur d&#039;Alene",
+      "name": "Coeur d'Alene (Store 305)",
+      "address": "2640 N. Government Way, Coeur d'Alene, ID 83815",
+      "city": "Coeur d'Alene",
       "county": null,
       "zip": "83815",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-319",
       "sourceStoreId": "idaho-liquor-store-319",
       "state": "ID",
-      "name": "Coeur d&#039;Alene (Store 319)",
-      "address": "1607 Northwest Blvd., Coeur d&#039;Alene, ID 83814",
-      "city": "Coeur d&#039;Alene",
+      "name": "Coeur d'Alene (Store 319)",
+      "address": "1607 Northwest Blvd., Coeur d'Alene, ID 83814",
+      "city": "Coeur d'Alene",
       "county": null,
       "zip": "83814",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 8
+    },
+    {
+      "id": "idaho-liquor-store-117",
+      "sourceStoreId": "idaho-liquor-store-117",
+      "state": "ID",
+      "name": "Eagle (Store 117)",
+      "address": "74 W. State Street, Eagle, ID 83616",
+      "city": "Eagle",
+      "county": null,
+      "zip": "83616",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 2
+    },
+    {
+      "id": "idaho-liquor-store-119",
+      "sourceStoreId": "idaho-liquor-store-119",
+      "state": "ID",
+      "name": "Eagle (Store 119)",
+      "address": "3172 E. State Street, Eagle, ID 83616",
+      "city": "Eagle",
+      "county": null,
+      "zip": "83616",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 2
+    },
+    {
+      "id": "idaho-liquor-store-279",
+      "sourceStoreId": "idaho-liquor-store-279",
+      "state": "ID",
+      "name": "Fish Haven General Store (Store 279)",
+      "address": "2637 US HWY 89, Fish Haven, ID 83287",
+      "city": "Fish Haven",
+      "county": null,
+      "zip": "83287",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-111",
@@ -7222,6 +7292,20 @@
       "city": "Garden City",
       "county": null,
       "zip": "83714",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 4
+    },
+    {
+      "id": "idaho-liquor-store-210",
+      "sourceStoreId": "idaho-liquor-store-210",
+      "state": "ID",
+      "name": "Hailey (Store 210)",
+      "address": "205 S. Main, Hailey, ID 83333",
+      "city": "Hailey",
+      "county": null,
+      "zip": "83333",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
@@ -7239,7 +7323,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-203",
@@ -7253,7 +7337,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-206",
@@ -7267,7 +7351,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-208",
@@ -7281,7 +7365,21 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 6
+    },
+    {
+      "id": "idaho-liquor-store-287",
+      "sourceStoreId": "idaho-liquor-store-287",
+      "state": "ID",
+      "name": "Island Park Liquor & Sports (Store 287)",
+      "address": "3974 N. Hwy. 20, Island Park, ID 83429",
+      "city": "Island Park",
+      "county": null,
+      "zip": "83429",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 1
     },
     {
       "id": "idaho-liquor-store-220",
@@ -7295,7 +7393,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-323",
@@ -7309,7 +7407,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-209",
@@ -7323,7 +7421,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-129",
@@ -7337,7 +7435,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-301",
@@ -7351,7 +7449,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-321",
@@ -7365,7 +7463,21 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
+    },
+    {
+      "id": "idaho-liquor-store-289",
+      "sourceStoreId": "idaho-liquor-store-289",
+      "state": "ID",
+      "name": "Liquor Market (Store 289)",
+      "address": "65 S. Main St., Driggs, ID 83422",
+      "city": "Driggs",
+      "county": null,
+      "zip": "83422",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 1
     },
     {
       "id": "idaho-liquor-store-124",
@@ -7379,7 +7491,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-132",
@@ -7393,7 +7505,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-133",
@@ -7407,7 +7519,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-134",
@@ -7421,7 +7533,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-135",
@@ -7435,7 +7547,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-137",
@@ -7449,7 +7561,21 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 6
+    },
+    {
+      "id": "idaho-liquor-store-259",
+      "sourceStoreId": "idaho-liquor-store-259",
+      "state": "ID",
+      "name": "Moonshine (Store 259)",
+      "address": "170 N Main Street, Victor, ID 83455",
+      "city": "Victor",
+      "county": null,
+      "zip": "83455",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 1
     },
     {
       "id": "idaho-liquor-store-303",
@@ -7463,7 +7589,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-309",
@@ -7474,6 +7600,20 @@
       "city": "Moscow",
       "county": null,
       "zip": "83843",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 4
+    },
+    {
+      "id": "idaho-liquor-store-122",
+      "sourceStoreId": "idaho-liquor-store-122",
+      "state": "ID",
+      "name": "Mountain Home (Store 122)",
+      "address": "275 E Jackson St,, Mountain Home, ID 83647",
+      "city": "Mountain Home",
+      "county": null,
+      "zip": "83647",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
@@ -7491,7 +7631,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-115",
@@ -7505,7 +7645,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-118",
@@ -7519,7 +7659,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-325",
@@ -7533,7 +7673,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-123",
@@ -7561,7 +7701,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-204",
@@ -7575,7 +7715,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-320",
@@ -7589,7 +7729,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-304",
@@ -7603,7 +7743,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-306",
@@ -7617,7 +7757,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-331",
@@ -7631,7 +7771,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-318",
@@ -7645,7 +7785,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-224",
@@ -7659,7 +7799,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-327",
@@ -7687,7 +7827,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-322",
@@ -7701,7 +7841,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-120",
@@ -7712,6 +7852,34 @@
       "city": "Star",
       "county": null,
       "zip": "83669",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 3
+    },
+    {
+      "id": "idaho-liquor-store-307",
+      "sourceStoreId": "idaho-liquor-store-307",
+      "state": "ID",
+      "name": "Stateline (Store 307)",
+      "address": "7209 West Seltice Way, State Line, ID 83854",
+      "city": "State Line",
+      "county": null,
+      "zip": "83854",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 2
+    },
+    {
+      "id": "idaho-liquor-store-174",
+      "sourceStoreId": "idaho-liquor-store-174",
+      "state": "ID",
+      "name": "The Valley Store (Store 174)",
+      "address": "112 West Market St., Cascade, ID 83611",
+      "city": "Cascade",
+      "county": null,
+      "zip": "83611",
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
@@ -7729,7 +7897,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-207",
@@ -7743,7 +7911,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-214",
@@ -7757,7 +7925,35 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 6
+    },
+    {
+      "id": "idaho-liquor-store-196",
+      "sourceStoreId": "idaho-liquor-store-196",
+      "state": "ID",
+      "name": "Valley View Chevron (Store 196)",
+      "address": "459 Hwy. 55, Horseshoe Bend, ID 83629",
+      "city": "Horseshoe Bend",
+      "county": null,
+      "zip": "83629",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 1
+    },
+    {
+      "id": "idaho-liquor-store-384",
+      "sourceStoreId": "idaho-liquor-store-384",
+      "state": "ID",
+      "name": "Worley Liquor Store (Store 384)",
+      "address": "9924 West F Street, Worley, ID 83876",
+      "city": "Worley",
+      "county": null,
+      "zip": "83876",
+      "lat": null,
+      "lng": null,
+      "source": "Idaho Liquor product availability AJAX",
+      "signalCount": 1
     },
     {
       "id": "binnys:12",
@@ -10739,7 +10935,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 29
+      "signalCount": 30
     },
     {
       "id": "high-point-parris-ave",
@@ -10767,7 +10963,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 31
     },
     {
       "id": "high-point-wendover-ave",
@@ -11131,7 +11327,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 11
+      "signalCount": 12
     },
     {
       "id": "b53ab061ae00b24c",
@@ -11201,7 +11397,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 11
+      "signalCount": 12
     },
     {
       "id": "80202712503f1e52",
@@ -11369,7 +11565,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "40954",
@@ -18229,7 +18425,7 @@
       "lat": 35.955476,
       "lng": -86.817278,
       "source": "Cool Springs Wine & Spirits public catalog API",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",

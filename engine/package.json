@@ -19,6 +19,7 @@
     "verify:pa": "node src/verify-pa.mjs",
     "verify:al": "node src/verify-al.mjs",
     "verify:in": "node src/verify-in.mjs",
+    "verify:idaho": "node src/verify-idaho-hardening.mjs",
     "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",
     "ohlq": "node src/ohlq-browser-collector.mjs",

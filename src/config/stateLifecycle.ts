@@ -66,9 +66,9 @@ export const STATE_LIFECYCLE_CONFIG = {
       "sourceLabel": "Idaho State Liquor Division",
       "publicStatus": "active",
       "lifecycle": "store_availability_status",
-      "coverageTier": "live_store_inventory",
-      "refinementLevel": "statewide",
-      "customerSummary": "Official Idaho Liquor store availability status and as-of-date rows. No bottle-count or reservation guarantee."
+      "coverageTier": "store_availability_status",
+      "refinementLevel": "city",
+      "customerSummary": "Official Idaho Liquor store availability status and as-of-date rows by store/city. No bottle-count or reservation guarantee; verify before driving."
     },
     "AL": {
       "customerLabel": "Alabama",
@@ -189,4 +189,6 @@ export const STATE_LIFECYCLE_CONFIG = {
   }
 } as const;
 
-export type StateLifecycleCode = keyof typeof STATE_LIFECYCLE_CONFIG.states;
+export type StateLifecycleConfig = typeof STATE_LIFECYCLE_CONFIG;
+export type ActiveStateCode = typeof STATE_LIFECYCLE_CONFIG.activeStates[number];
+export type StateLifecycleEntry = StateLifecycleConfig["states"][keyof StateLifecycleConfig["states"]];

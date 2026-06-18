@@ -1338,6 +1338,7 @@ export default function DropFeed() {
     if (dropState === "VA" && areaPrefs.vaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.vaCities);
     if (dropState === "OH" && areaPrefs.ohCities.length > 0) return matchesAnyLocationPreference(areaPrefs.ohCities);
     if (dropState === "IA" && areaPrefs.iaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.iaCities);
+    if (dropState === "ID" && areaPrefs.idCities.length > 0) return matchesAnyLocationPreference(areaPrefs.idCities);
 
     // PA city/store filter
     if (dropState === "PA" && areaPrefs.paCounties.length > 0) return matchesAnyLocationPreference(areaPrefs.paCounties);
