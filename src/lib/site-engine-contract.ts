@@ -199,6 +199,7 @@ export function isUserFacingDropSignal(drop: {
   if (type === "nc_statewide_warehouse_stock") return quantity > 0;
   if (canAlert && precision === "store_level") return true;
   if (type === "store_delivery_snapshot") return quantity > 0;
+  if (type === "store_allocation_snapshot" && precision === "store_level") return quantity > 0;
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
@@ -217,6 +218,7 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
   if (normalized === "retailer_tasting_event") return "retailer_watch";
   if (normalized === "alabc_limited_release_store_drop") return "release_watch";
   if (normalized === "store_delivery_snapshot") return "delivery";
+  if (normalized === "store_allocation_snapshot") return "delivery";
   if (normalized === "store_inventory_aggregate" && quantity > 0) return "inventory";
   if (normalized === "store_inventory_result" && (quantity > 0 || canAlertAsInventory)) return "inventory";
   if (locationPrecision === "store_level" && canAlertAsInventory) return "inventory";
