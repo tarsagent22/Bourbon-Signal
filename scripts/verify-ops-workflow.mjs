@@ -43,18 +43,49 @@ if (!enginePackageJson.scripts?.['verify:site']) {
   fail('engine/package.json should expose verify:site for lightweight CI checks against checked-in site exports.');
 }
 
+const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
+const customerStates = new Set(stateLifecycleConfig.activeStates || []);
 const stateSources = read('engine/src/state-sources.mjs');
-const customerLine = stateSources.match(/CUSTOMER_ACTIVE_STATE_IDS\s*=\s*new Set\(\[([^\]]+)\]\)/s)?.[1] || '';
-if (/['"]TX['"]/.test(customerLine)) {
-  fail('TX must not be in CUSTOMER_ACTIVE_STATE_IDS until Texas has stronger customer-facing data.');
+if (!/state-lifecycle\.mjs/.test(stateSources)) {
+  fail('engine/src/state-sources.mjs should source CUSTOMER_ACTIVE_STATE_IDS from the shared state lifecycle config.');
 }
-for (const state of ['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA']) {
-  if (!new RegExp(`["']${state}["']`).test(customerLine)) {
-    fail(`Expected active customer state ${state} missing from CUSTOMER_ACTIVE_STATE_IDS.`);
+if (customerStates.has('TX')) {
+  fail('TX must not be in activeStates until Texas has stronger customer-facing data.');
+}
+for (const state of ['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA', 'IA', 'ID', 'UT', 'MD-MONTGOMERY']) {
+  if (!customerStates.has(state)) {
+    fail(`Expected active customer state ${state} missing from shared state lifecycle config.`);
   }
+}
+for (const state of ['FL', 'GA', 'KY', 'NH', 'OR', 'SC']) {
+  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage.`);
+  if (stateLifecycleConfig.states?.[state]?.publicStatus !== 'research_only') {
+    fail(`${state} should have explicit research_only lifecycle status.`);
+  }
+}
+if (stateLifecycleConfig.states?.['MD-MONTGOMERY']?.customerLabel !== 'Maryland') {
+  fail('MD-MONTGOMERY should display to users as Maryland.');
+}
+if (stateLifecycleConfig.states?.['MD-MONTGOMERY']?.customerAreaLabel !== 'Montgomery County') {
+  fail('Maryland coverage should expose Montgomery County as the current area label.');
+}
+if (stateLifecycleConfig.states?.IA?.coverageTier === 'live_store_inventory') {
+  fail('Iowa delivery/allocation data must not be classified as live_store_inventory.');
+}
+const stateLifecycleTs = read('src/config/stateLifecycle.ts');
+for (const state of Object.keys(stateLifecycleConfig.states || {})) {
+  if (!stateLifecycleTs.includes(`"${state}"`)) {
+    fail(`src/config/stateLifecycle.ts is missing shared lifecycle state ${state}.`);
+  }
+}
+if (!stateLifecycleTs.includes('"customerLabel": "Maryland"') || !stateLifecycleTs.includes('"customerAreaLabel": "Montgomery County"')) {
+  fail('src/config/stateLifecycle.ts should mirror Maryland customer label/area from the JSON lifecycle config.');
 }
 
 const activeStates = read('src/lib/activeStates.ts');
+if (!/STATE_LIFECYCLE_CONFIG/.test(activeStates)) {
+  fail('src/lib/activeStates.ts should derive UI active states from the shared state lifecycle config.');
+}
 if (/"TX"|'TX'/.test(activeStates)) {
   fail('TX must not appear in src/lib/activeStates.ts active UI states.');
 }

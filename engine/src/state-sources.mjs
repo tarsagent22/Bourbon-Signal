@@ -1,3 +1,5 @@
+import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
+
 export const ALL_STATE_SOURCES = [
   {
     id: 'OH', label: 'Ohio OHLQ', tier: 'A', strategy: 'inventory_locator', cadence: '15-60m',
@@ -30,11 +32,11 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'IA', label: 'Iowa ABD', tier: 'A', strategy: 'public_data_portal', cadence: 'daily-60m',
-    value: 'Excellent public data posture: product catalog and 14-day inventory/delivery snapshot.',
+    value: 'Excellent public data posture: official product inventory CSV, 14-day licensee delivery snapshots, and allocated lottery distribution CSV. Delivery/allocation rows are strong store-level leads, not live shelf inventory.',
     sources: [
-      { kind: 'json', url: 'https://data.iowa.gov/resource/gckp-fe7r.json?$limit=50000', label: 'Iowa Liquor Products Socrata' },
-      { kind: 'html', url: 'https://abd.iowa.gov/alcohol/snapshot', label: '14-day inventory/delivery snapshot' },
-      { kind: 'html', url: 'https://abd.iowa.gov/alcohol/lottery', label: 'Highly allocated lottery' }
+      { kind: 'csv', url: 'https://shop.iowaabd.com/snapshot/inventory?download', label: 'Iowa ABD product inventory/delivery CSV' },
+      { kind: 'html', url: 'https://shop.iowaabd.com/snapshot/inventory', label: '14-day inventory/delivery snapshot' },
+      { kind: 'csv', url: 'https://shop.iowaabd.com/snapshot/lottery?download=allocations', label: 'Highly allocated lottery allocations CSV' }
     ],
     apiCandidates: []
   },
@@ -48,7 +50,7 @@ export const ALL_STATE_SOURCES = [
       { kind: 'html', url: 'https://abs.utah.gov/dabs-special-barrel-selections/', label: 'Special barrel selections' }
     ],
     apiCandidates: [
-      'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Product/Search?search=bourbon'
+      'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetItemsForTerm?term=bourbon'
     ]
   },
   {
@@ -89,11 +91,12 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'ID', label: 'Idaho State Liquor Division', tier: 'B', strategy: 'catalog_limited_release_watch', cadence: 'daily',
-    value: 'Product catalog, special releases, and allocation policy. Inventory depth may lag or be centralized.',
+    value: 'Product catalog, special releases, allocation policy, and official product availability modal rows. Store rows expose Available status/as-of date but not bottle count.',
     sources: [
       { kind: 'html', url: 'https://idaholiquor.com/products/', label: 'Idaho products' },
       { kind: 'html', url: 'https://idaholiquor.com/limited-availability-products/', label: 'Limited availability products' },
       { kind: 'html', url: 'https://idaholiquor.com/special-releases/', label: 'Special releases' },
+      { kind: 'api', url: 'https://idaholiquor.com/wp-admin/admin-ajax.php', label: 'Idaho product availability AJAX', precisionOnly: true },
       { kind: 'html', url: 'https://liquor.idaho.gov/product-allocation.html', label: 'Allocation policy' }
     ],
     apiCandidates: []
@@ -310,7 +313,7 @@ export const ALL_STATE_SOURCES = [
   }
 ];
 
-export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA']);
+export const CUSTOMER_ACTIVE_STATE_IDS = CONFIG_CUSTOMER_ACTIVE_STATE_IDS;
 
 export const STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active !== false && CUSTOMER_ACTIVE_STATE_IDS.has(source.id));
 export const DISABLED_STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active === false || !CUSTOMER_ACTIVE_STATE_IDS.has(source.id));

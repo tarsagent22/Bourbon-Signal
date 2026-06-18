@@ -21,6 +21,7 @@ import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
+import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 
 const EMPTY_PREFS: AreaPreferences = {
@@ -29,11 +30,14 @@ const EMPTY_PREFS: AreaPreferences = {
   vaCities: [],
   ohCities: [],
   iaCities: [],
+  idCities: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA"]);
+const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 
 interface BottleOption {
   canonicalKey: string;
@@ -300,6 +304,8 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.some((board) => location.includes(normalizeLocationText(board)));
   if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -307,23 +313,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
 
 
 function makeStateLabel(code: string) {
-  const labels: Record<string, string> = {
-    NC: "North Carolina",
-    VA: "Virginia",
-    OH: "Ohio",
-    IA: "Iowa",
-    PA: "Pennsylvania",
-    AL: "Alabama",
-    IN: "Indiana",
-    WV: "West Virginia",
-    MS: "Mississippi",
-    GA: "Georgia",
-    KY: "Kentucky",
-    TN: "Tennessee",
-    FL: "Florida",
-    "MD-MONTGOMERY": "Montgomery, MD",
-  };
-  return labels[code] || code;
+  return getActiveEngineStateName(code);
 }
 
 function StepShell({
@@ -904,7 +894,7 @@ export default function DashboardPage() {
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};
-    for (const state of ["VA", "OH", "PA"] as const) {
+    for (const state of ["IA", "ID", "VA", "OH", "PA"] as const) {
       grouped[state] = Array.from(
         new Set(
           stores.flatMap((store) => {
@@ -921,7 +911,7 @@ export default function DashboardPage() {
     const grouped = new Map<string, typeof stores>();
     for (const store of stores) {
       if (!isSelectableStoreLocation(store)) continue;
-      if (["VA", "OH"].includes(store.state) && store.city) {
+      if (["IA", "ID", "VA", "OH"].includes(store.state) && store.city) {
         const city = titleCase(store.city);
         const key = `${store.state}:${city}`;
         if (!(grouped.get(key) ?? []).some((existing) => existing.id === store.id || storePhysicalKey(existing) === storePhysicalKey(store))) {
@@ -1005,6 +995,22 @@ export default function DashboardPage() {
       totalCount: citiesByState.OH?.length ?? 0,
     },
     {
+      stateCode: "IA",
+      label: "Iowa",
+      detailLabel: "cities",
+      summary: "Iowa ABD store-delivery data is available by city.",
+      selectedCount: localPrefs.iaCities.length,
+      totalCount: citiesByState.IA?.length ?? 0,
+    },
+    {
+      stateCode: "ID",
+      label: "Idaho",
+      detailLabel: "cities",
+      summary: "Idaho Liquor store availability status is available by city with store/as-of details.",
+      selectedCount: localPrefs.idCities.length,
+      totalCount: citiesByState.ID?.length ?? 0,
+    },
+    {
       stateCode: "PA",
       label: "Pennsylvania",
       detailLabel: "cities",
@@ -1012,7 +1018,7 @@ export default function DashboardPage() {
       selectedCount: localPrefs.paCounties.length,
       totalCount: citiesByState.PA?.length ?? 0,
     },
-  ]), [citiesByState, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
+  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1185,7 +1191,8 @@ export default function DashboardPage() {
         ncBoards: state === "NC" && removing ? [] : prev.ncBoards,
         vaCities: state === "VA" && removing ? [] : prev.vaCities,
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
-        iaCities: [],
+        iaCities: state === "IA" && removing ? [] : prev.iaCities,
+        idCities: state === "ID" && removing ? [] : prev.idCities,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1213,6 +1220,20 @@ export default function DashboardPage() {
         return {
           ...prev,
           ohCities: has ? prev.ohCities.filter((item) => item !== value) : [...prev.ohCities, value],
+        };
+      }
+      if (state === "IA") {
+        const has = prev.iaCities.includes(value);
+        return {
+          ...prev,
+          iaCities: has ? prev.iaCities.filter((item) => item !== value) : [...prev.iaCities, value],
+        };
+      }
+      if (state === "ID") {
+        const has = prev.idCities.includes(value);
+        return {
+          ...prev,
+          idCities: has ? prev.idCities.filter((item) => item !== value) : [...prev.idCities, value],
         };
       }
       if (state === "PA") {
@@ -1658,18 +1679,27 @@ export default function DashboardPage() {
               const selectedStates = localPrefs.states;
               const activeState = selectedStates.includes(activeTerritoryState) ? activeTerritoryState : selectedStates[0] || activeTerritoryState;
               const stateLabel = makeStateLabel(activeState);
+              const customerAreaLabel = getActiveEngineStateAreaLabel(activeState);
               const selectedDetails = activeState === "NC"
                 ? localPrefs.ncBoards
-                : activeState === "VA"
-                  ? localPrefs.vaCities
-                  : activeState === "OH"
-                    ? localPrefs.ohCities
-                    : activeState === "PA"
-                      ? localPrefs.paCounties
-                      : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
-              const detailLabel = activeState === "NC" ? "boards" : activeState === "PA" ? "cities / stores" : ["VA", "OH"].includes(activeState) ? "cities" : "coverage";
+                : activeState === "IA"
+                  ? localPrefs.iaCities
+                  : activeState === "ID"
+                    ? localPrefs.idCities
+                    : activeState === "VA"
+                    ? localPrefs.vaCities
+                    : activeState === "OH"
+                      ? localPrefs.ohCities
+                      : activeState === "PA"
+                        ? localPrefs.paCounties
+                        : customerAreaLabel
+                          ? [customerAreaLabel]
+                          : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+              const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
+              const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
+              const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 
@@ -1729,9 +1759,15 @@ export default function DashboardPage() {
                             <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
                               {activeState === "NC"
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
-                                : ["VA", "OH", "PA"].includes(activeState)
-                                  ? "Pick cities first. For states with reliable store-level data, selected cities can be narrowed to specific stores."
-                                  : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
+                                : isCityRefinable
+                                  ? activeState === "IA"
+                                    ? "Pick Iowa cities from ABD store-delivery data. Leave cities blank to keep statewide Iowa coverage."
+                                    : activeState === "ID"
+                                      ? "Pick Idaho cities from official Idaho Liquor store availability status. Store rows include as-of dates and should be verified before driving."
+                                      : "Pick cities first. Store-level narrowing is available where Bourbon Signal has durable store identifiers."
+                                  : customerAreaLabel
+                                    ? `${stateLabel} coverage currently starts with ${customerAreaLabel}. We’ll add more areas as durable public data supports them.`
+                                    : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
                             </p>
                           </div>
                           <div style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.10)", padding: "8px 12px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -1739,7 +1775,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        {["NC", "VA", "OH", "PA"].includes(activeState) ? (
+                        {(activeState === "NC" || isCityRefinable) ? (
                           <input
                             value={territorySearch}
                             onChange={(event) => setTerritorySearch(event.target.value)}
@@ -1775,7 +1811,7 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
 
-                        {["VA", "OH", "PA"].includes(activeState) ? (
+                        {isCityRefinable ? (
                           <div style={{ display: "grid", gap: "12px" }}>
                             <div style={{ maxHeight: "360px", overflowY: "auto", display: "grid", gap: "8px" }}>
                               {filteredCities.map((city) => {
@@ -1788,7 +1824,7 @@ export default function DashboardPage() {
                                     <button onClick={() => updateStateDetail(activeState, city)} style={{ width: "100%", padding: "10px 12px", borderRadius: "12px", border: "none", background: "transparent", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700 }}>
                                       {active ? "✓ " : ""}{city}
                                     </button>
-                                    {active && cityStores.length > 0 ? (
+                                    {active && isStoreRefinable && cityStores.length > 0 ? (
                                       <div style={{ display: "grid", gap: "8px", padding: "0 4px 4px" }}>
                                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                           <button onClick={() => updateStoreSelectionMode(activeState, city, "all")} style={{ padding: "7px 10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: selection?.mode !== "custom" ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.03)", color: selection?.mode !== "custom" ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: "pointer", fontSize: "12px" }}>All stores in {city}</button>
@@ -1816,9 +1852,11 @@ export default function DashboardPage() {
                           </div>
                         ) : null}
 
-                        {!(["NC", "VA", "OH", "PA"].includes(activeState)) ? (
+                        {!(activeState === "NC" || isCityRefinable) ? (
                           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                            {makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.
+                            {customerAreaLabel
+                              ? `${makeStateLabel(activeState)} currently includes ${customerAreaLabel}. No narrower city/store selector is shown until a clean per-store source is wired in.`
+                              : `${makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.`}
                           </div>
                         ) : null}
                       </div>

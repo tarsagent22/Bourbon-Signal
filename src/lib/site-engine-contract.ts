@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { getActiveEngineStateName } from "@/lib/activeStates";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
@@ -176,13 +177,17 @@ export function isUserFacingDropSignal(drop: {
   event_type?: string;
   quantity?: number;
   quantity_in_stock?: number;
+  storeQty?: number;
+  store_qty?: number;
+  warehouseQty?: number;
+  warehouse_qty?: number;
   locationPrecision?: string;
   location_precision?: string;
   canAlertAsInventory?: boolean;
   can_alert_as_inventory?: boolean;
 }) {
   const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
-  const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock));
+  const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))));
   const precision = String(drop.locationPrecision ?? drop.location_precision ?? "").toLowerCase();
   const canAlert = drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true;
 
@@ -198,6 +203,9 @@ export function isUserFacingDropSignal(drop: {
   if (type === "nc_statewide_warehouse_stock") return quantity > 0;
   if (canAlert && precision === "store_level") return true;
   if (type === "store_delivery_snapshot") return quantity > 0;
+  if (type === "store_allocation_snapshot" && precision === "store_level") return quantity > 0;
+  if (type === "county_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
+  if (type === "board_inventory_aggregate" && precision === "board_warehouse") return quantity > 0;
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
@@ -216,6 +224,9 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
   if (normalized === "retailer_tasting_event") return "retailer_watch";
   if (normalized === "alabc_limited_release_store_drop") return "release_watch";
   if (normalized === "store_delivery_snapshot") return "delivery";
+  if (normalized === "store_allocation_snapshot") return "delivery";
+  if (normalized === "county_inventory_aggregate") return "warehouse";
+  if (normalized === "board_inventory_aggregate") return "warehouse";
   if (normalized === "store_inventory_aggregate" && quantity > 0) return "inventory";
   if (normalized === "store_inventory_result" && (quantity > 0 || canAlertAsInventory)) return "inventory";
   if (locationPrecision === "store_level" && canAlertAsInventory) return "inventory";
@@ -233,14 +244,15 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   if (normalized === "retailer_tasting_event") return "Retailer tasting watch";
   if (normalized === "alabc_limited_release_store_drop") return "Scheduled ABC release";
   if (category === "delivery") return "Bottle shipment";
+  if (normalized === "county_inventory_aggregate") return "County aggregate lead";
+  if (normalized === "board_inventory_aggregate") return "State aggregate lead";
   if (normalized === "store_inventory_aggregate") return "Statewide inventory";
   if (category === "inventory") return quantity > 0 ? "Store availability reported" : "Store-level bottle signal";
   return "Bottle drop";
 }
 
 function getPublicStateLabel(state: string) {
-  if (state === "MD-MONTGOMERY") return "Montgomery, MD";
-  return state;
+  return getActiveEngineStateName(state);
 }
 
 function getPublicLocationLabel(state: string, locationName: string, city: string, county: string) {

@@ -10,8 +10,8 @@ const { PDFParse } = require('pdf-parse');
 
 const TRACKED_TERMS = {
   OH: ['Eagle Rare'],
-  IA: ['Blanton', 'Old Fitzgerald', 'Baker'],
-  UT: ['Eagle Rare', 'Blanton', 'Elijah Craig'],
+  IA: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Baker', 'Willett', 'Michter', 'Elijah Craig Barrel Proof'],
+  UT: ['Eagle Rare', 'Blanton', 'Elijah Craig', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Stagg', 'Baker'],
   NC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Willett'],
   IL: ['Blanton', 'Eagle Rare', 'Weller', 'Stagg', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker'],
   VA: ['Blanton', 'Eagle Rare', 'Buffalo Trace', 'Taylor', 'Old Fitzgerald', '1792 Small Batch'],
@@ -40,6 +40,26 @@ const HIGH_POINT_WATCH_ITEM_RE = /blanton|eagle rare|weller|buffalo trace|stagg|
 const HIGH_POINT_EXCLUDED_ITEM_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|elijah\s+craig\s+small\s+batch(?![^\n]{0,50}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail|glass|display|shirt|sign/i;
 
 const RARE_RE = /blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|elijah craig|george t|william larue|thomas h/i;
+const IOWA_INVENTORY_CSV_URL = 'https://shop.iowaabd.com/snapshot/inventory?download';
+const IOWA_SNAPSHOT_PAGE_URL = 'https://shop.iowaabd.com/snapshot/inventory';
+const IOWA_LOTTERY_ALLOCATIONS_CSV_URL = 'https://shop.iowaabd.com/snapshot/lottery?download=allocations';
+const IOWA_CODE_DELIVERY_FANOUT_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_CODE_DELIVERY_LIMIT || 24);
+const IOWA_STORE_ROW_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_STORE_ROW_LIMIT || 360);
+const IOWA_STRONG_WATCH_RE = /blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|george t|william larue|thomas h|sazerac|elijah craig[^\n]{0,60}(barrel proof|single barrel|toasted|cask strength)|angels? envy[^\n]{0,60}(cask strength|10yr|10 year)|four roses[^\n]{0,60}(limited|barrel strength|single barrel|small batch select)|old forester[^\n]{0,60}(birthday|single barrel|barrel strength)|1792[^\n]{0,60}(full proof|sweet wheat|12 year|bottled in bond)|knob creek[^\n]{0,60}(12|15|18)|russell'?s[^\n]{0,60}(13|15|single barrel)|parker'?s|little book|blood oath|king of kentucky/i;
+const IOWA_BOURBON_CATEGORY_RE = /bourbon|american whiskey|straight whiskey|blended whiskies/i;
+const IOWA_EXCLUDED_RE = /cream|liqueur|cordial|rum|tequila|mezcal|vodka|gin|wine|beer|cocktail|ready to drink|seltzer|scotch|irish|canadian|john\s+d\s+taylor|falernum/i;
+const IDAHO_LIMITED_PRODUCTS_URL = 'https://idaholiquor.com/limited-availability-products/';
+const IDAHO_SPECIAL_RELEASES_URL = 'https://idaholiquor.com/special-releases/';
+const IDAHO_PRODUCT_BASE_URL = 'https://idaholiquor.com/product';
+const IDAHO_AVAILABILITY_AJAX_URL = 'https://idaholiquor.com/wp-admin/admin-ajax.php';
+const IDAHO_AVAILABILITY_PRODUCT_LIMIT = Number(process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_PRODUCT_LIMIT || 16);
+const IDAHO_AVAILABILITY_LOCATIONS = (process.env.BOURBON_SIGNAL_IDAHO_AVAILABILITY_LOCATIONS || 'Boise,Meridian,Nampa,Idaho Falls,Twin Falls,Coeur d\'Alene,Pocatello,Lewiston,Moscow,McCall')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+const IDAHO_WATCH_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|george t|william larue|thomas h|sazerac|heaven hill|yellowstone|penelope|four roses|old forester|1792|knob creek|russell|parker'?s|little book|blood oath|king of kentucky|woodford/i;
+const IDAHO_EXCLUDE_RE = /scotch|rum|tequila|mezcal|vodka|gin|liqueur|cordial|wine|beer|cocktail|ready to drink|seltzer|cream/i;
+const IDAHO_POSITIVE_AVAILABILITY_RE = /\b(in stock|available|limited supply|on hand)\b/i;
 const MONTGOMERY_BOURBON_RE = /bourbon|whiskey|whisky|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|baker|willett|pappy|van winkle|michter|buffalo trace|elijah craig|george t|william larue|thomas h/i;
 
 const BINNYS_ALGOLIA_APP_ID = process.env.BOURBON_SIGNAL_BINNYS_ALGOLIA_APP_ID || 'Z25A2A928M';
@@ -407,7 +427,7 @@ function decodeHtml(value = '') {
   return String(value)
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&#8217;|&rsquo;|&apos;/g, "'")
+    .replace(/&#0*39;|&#8217;|&rsquo;|&apos;/g, "'")
     .replace(/&#8211;|&#8212;|&ndash;|&mdash;/g, '-')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
@@ -916,10 +936,10 @@ function cityHiveSafeBottleMatch(rawName, bible) {
     if (canonical.includes(phrase) && !raw.includes(phrase)) return { match, record: null, unsafeReason: `missing_modifier:${phrase}` };
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*year\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
+    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*y\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:y|year)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}y` };
+    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}y` };
   }
   return { match, record, unsafeReason: null };
 }
@@ -2045,6 +2065,44 @@ function signalBase(state, sourceLabel, sourceUrl, rawName, bible) {
     fetchedAt: new Date().toISOString()
   }};
 }
+function stateAggregateUnsafeMatchReason(state, rawName, record) {
+  if (!record) return null;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(record.canonical);
+  if (!['MD-MONTGOMERY', 'UT'].includes(state)) return null;
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|scotch)\b/.test(canonical)) return 'non_bourbon_or_flavored_matched_core_bottle';
+  if (/four roses/.test(raw) && /\b(single barrel|small batch|bourbon)\b/.test(raw) && /limited edition/.test(canonical)) return 'four_roses_standard_not_limited_edition';
+  if (/elijah craig/.test(raw) && /small batch/.test(raw) && /barrel proof/.test(canonical)) return 'elijah_craig_small_batch_not_barrel_proof';
+  if (/woodford reserve/.test(raw) && !/batch proof/.test(raw) && /batch proof/.test(canonical)) return 'woodford_reserve_not_batch_proof';
+  if (/weller/.test(raw) && /reserve/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'weller_reserve_not_single_barrel';
+  if (/henry mckenna/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) return 'henry_mckenna_not_single_barrel';
+  if (state === 'UT' && /bakers? bourbon/.test(raw) && !/13|thirteen/.test(raw) && /13/.test(canonical)) return 'bakers_standard_not_13_year';
+  return null;
+}
+
+function stateAggregateSafeBottleMatch(state, rawName, bible) {
+  const { match, record } = bottleMatch(rawName, bible);
+  const unsafeReason = stateAggregateUnsafeMatchReason(state, rawName, record);
+  if (unsafeReason) return { match, record: null, unsafeReason };
+  if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
+  return { match, record, unsafeReason: null };
+}
+
+function aggregateSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = stateAggregateSafeBottleMatch(state, rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: record ? Math.max(0.68, match?.confidence || 0.35) : 0.58,
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
 
 async function collectAlabama(config, bible) {
   const signals = [];
@@ -2309,6 +2367,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'OR') return collectOregon(config, bible);
   if (config.id === 'IA') return collectIowa(config, bible, existingSignals);
   if (config.id === 'UT') return collectUtah(config, bible);
+  if (config.id === 'ID') return collectIdaho(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
   if (config.id === 'IL') return collectIllinois(config, bible);
@@ -2761,6 +2820,31 @@ async function collectOregon(config, bible) {
   return { signals, roadblocks };
 }
 
+function ohlqSafeBottleMatch(rawName, bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record?.canonical || '');
+  if (/\b(cocktail|rtp|ready to pour|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|seltzer|liqueur|cream)\b/.test(raw) && !/\b(cocktail|ready to drink|liqueur|cream)\b/.test(canonical)) return { ...safe, record: null, unsafeReason: 'non_bourbon_or_rtd_matched_core_bottle' };
+  if (/yellowstone/.test(raw) && /\b(small batch|select|6yr|6 year)\b/.test(raw) && /limited edition/.test(canonical)) return { ...safe, record: null, unsafeReason: 'yellowstone_standard_not_limited_edition' };
+  if (/bulleit/.test(raw) && /mesquite/.test(raw) && !/mesquite/.test(canonical)) return { ...safe, record: null, unsafeReason: 'bulleit_mesquite_not_core_bottle' };
+  return safe;
+}
+
+function ohlqSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = ohlqSafeBottleMatch(rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: record ? Math.max(0.78, match?.confidence || 0.35) : 0.45,
+    sourceMatchStatus: record ? 'bottle_bible_match' : `source_name_kept:${unsafeReason || 'no_safe_bible_match'}`,
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
 async function collectOhio(config, bible) {
   const signals = [], roadblocks = [];
   const browserOutPath = 'out/browser/ohlq-availability.json';
@@ -2770,7 +2854,9 @@ async function collectOhio(config, bible) {
     for (const product of browserRun.products || []) {
       if (!product.ok || !Array.isArray(product.inventories)) continue;
       const productSku = String(product.sku || '').toLowerCase();
-      const matchingRows = product.inventories.filter((store) => String(store.VariantCode || '').toLowerCase() === productSku);
+      const variantRows = product.inventories.filter((store) => String(store.VariantCode || '').toLowerCase() === productSku);
+      const hasVariantCodes = product.inventories.some((store) => Boolean(store.VariantCode));
+      const matchingRows = variantRows.length ? variantRows : hasVariantCodes ? [] : product.inventories;
       const bucketCounts = matchingRows.reduce((counts, store) => {
         const availability = ohlqAvailability(store.I);
         counts[availability.status] = (counts[availability.status] || 0) + 1;
@@ -2779,7 +2865,7 @@ async function collectOhio(config, bible) {
       const positiveRows = matchingRows.filter((store) => ohlqAvailability(store.I).positive);
       for (const store of positiveRows) {
         const availability = ohlqAvailability(store.I);
-        const { base } = signalBase(config.id, 'OHLQ browser-assisted product availability API', product.pageUrl || product.endpoint, product.productName || product.sku, bible);
+        const { base, unsafeReason } = ohlqSignalBase(config.id, 'OHLQ browser-assisted product availability API', product.pageUrl || product.endpoint, product.productName || product.sku, bible);
         signals.push({
           id: stableId([config.id, 'ohlq-browser-live', product.sku, store.AgencyId, store.I, store.LastModified]),
           ...base,
@@ -2800,10 +2886,10 @@ async function collectOhio(config, bible) {
           availabilityLabel: availability.label,
           availabilityValue: availability.value,
           evidence: `OHLQ browser-assisted collector decoded ${availability.label} for ${product.productName || product.sku} at ${store.AgencyName || store.AgencyId}${store.City ? ` in ${store.City}` : ''}. VariantCode=${product.sku}; bucket=${store.I || 'unknown'}; last modified=${store.LastModified || 'unknown'}. OHLQ exposes stock status buckets, not explicit bottle counts.`,
-          raw: { product: { sku: product.sku, productName: product.productName, endpoint: product.endpoint, displayStatus: product.displayStatus, inventoryCount: product.inventoryCount, matchingVariantRowCount: matchingRows.length, positiveVariantRowCount: positiveRows.length, bucketCounts, generatedAt: browserRun.generatedAt }, availability: { ...availability, bucket: store.I || null }, store }
+          raw: { product: { sku: product.sku, productName: product.productName, endpoint: product.endpoint, displayStatus: product.displayStatus, inventoryCount: product.inventoryCount, matchingVariantRowCount: matchingRows.length, positiveVariantRowCount: positiveRows.length, bucketCounts, generatedAt: browserRun.generatedAt }, availability: { ...availability, bucket: store.I || null }, store, sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
-      if (!matchingRows.length) {
+      if (!matchingRows.length && hasVariantCodes) {
         roadblocks.push({ state: config.id, source: 'OHLQ browser-assisted product availability API', url: product.pageUrl || product.endpoint || browserOutPath, status: product.status || 200, error: `Browser collector returned ${product.inventoryCount || product.inventories.length} agency rows, but none matched VariantCode=${product.sku}.`, nextRoute: 'Inspect OHLQ availability bucket semantics and selected SKU/exclusive flag.' });
       }
     }
@@ -2919,46 +3005,217 @@ function htmlAttrDecode(text = '') {
     .replace(/&gt;/g, '>');
 }
 
-async function collectIowa(config, bible, existingSignals) {
+function iowaNumber(value) {
+  const n = Number(String(value ?? '').replace(/,/g, '').trim());
+  return Number.isFinite(n) ? n : 0;
+}
+
+function iowaBottleLooksRelevant(rawName = '', category = '', bible) {
+  const hay = `${rawName} ${category}`;
+  if (!rawName) return false;
+  if (IOWA_EXCLUDED_RE.test(hay) && !IOWA_BOURBON_CATEGORY_RE.test(category)) return false;
+  if (IOWA_STRONG_WATCH_RE.test(hay)) return true;
+  const { record } = iowaSafeBottleMatch(rawName, category, bible);
+  return Boolean(record && IOWA_BOURBON_CATEGORY_RE.test(hay));
+}
+
+function iowaSafeBottleMatch(rawName, category = '', bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  if (!safe.record) return safe;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record.canonical);
+  const hay = normalizedBottleText(`${rawName} ${category}`);
+
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer)\b/.test(hay) && !/\b(bourbon|whiskey|whisky|rye)\b/.test(hay)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_non_whiskey_product' };
+  }
+  if (/four roses/.test(raw) && /\b(single barrel|small batch|bourbon)\b/.test(raw) && /limited edition/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_four_roses_standard_not_limited_edition' };
+  }
+  if (/elijah craig/.test(raw) && /small batch/.test(raw) && /barrel proof/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_elijah_craig_small_batch_not_barrel_proof' };
+  }
+  if (/woodford reserve/.test(raw) && !/batch proof/.test(raw) && /batch proof/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_woodford_reserve_not_batch_proof' };
+  }
+  if (/weller/.test(raw) && /reserve/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_weller_reserve_not_single_barrel' };
+  }
+  if (/henry mckenna/.test(raw) && !/single barrel/.test(raw) && /single barrel/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'iowa_henry_mckenna_not_single_barrel' };
+  }
+  return safe;
+}
+
+function iowaSignalBase(state, sourceLabel, sourceUrl, rawName, category, bible) {
+  const { match, record, unsafeReason } = iowaSafeBottleMatch(rawName, category, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: Math.max(record ? 0.72 : 0.68, match?.confidence || 0.35),
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
+function iowaProductPriority(row, bible) {
+  const rawName = row.Name || row.name || '';
+  const category = row.Category || row.category || '';
+  const delivered = iowaNumber(row.Delivered);
+  const stock = iowaNumber(row.Stock);
+  const { record } = iowaSafeBottleMatch(rawName, category, bible);
+  return (IOWA_STRONG_WATCH_RE.test(`${rawName} ${category}`) ? 10000 : 0)
+    + (record?.tier === 'unicorn' ? 5000 : record?.tier === 'allocated' ? 3500 : record?.tier === 'limited' ? 2000 : 0)
+    + Math.min(delivered, 1500)
+    + Math.min(stock, 800);
+}
+
+async function collectIowa(config, bible) {
   const signals = [], roadblocks = [];
-  const productRows = existingSignals.filter((s) => s.raw && (s.raw.item_code || s.raw.itemno || s.raw.item_number || s.raw.code) && RARE_RE.test(`${s.rawName || ''} ${s.canonicalName || ''}`)).slice(0, 24);
-  const seenCodes = new Set();
-  for (const sig of productRows) {
-    const code = sig.raw.item_code || sig.raw.itemno || sig.raw.item_number || sig.raw.code;
-    if (!code || seenCodes.has(code)) continue;
-    seenCodes.add(code);
-    const url = `https://shop.iowaabd.com/snapshot/inventory?code=${encodeURIComponent(code)}&download=`;
+  const observedAt = new Date().toISOString();
+  const productByCode = new Map();
+  let productRows = [];
+
+  const inventoryRes = await textFetch(IOWA_INVENTORY_CSV_URL, { headers: { accept: 'text/csv,*/*', referer: IOWA_SNAPSHOT_PAGE_URL }, timeoutMs: 45_000 });
+  if (!inventoryRes.ok || !/Name\s*,\s*Code\s*,\s*Category\s*,\s*Size\s*,\s*Stock\s*,\s*Delivered/i.test(inventoryRes.text)) {
+    roadblocks.push({ state: config.id, source: 'Iowa ABD product inventory/delivery CSV', url: IOWA_INVENTORY_CSV_URL, status: inventoryRes.status || 0, error: inventoryRes.error || inventoryRes.text.slice(0, 240) || 'No product inventory CSV returned', nextRoute: 'Retry official shop.iowaabd.com/snapshot/inventory?download CSV or inspect the snapshot page for changed download parameters.' });
+  } else {
+    productRows = csvRows(inventoryRes.text)
+      .filter((row) => row.Code && iowaBottleLooksRelevant(row.Name, row.Category, bible))
+      .map((row) => ({ ...row, stockNumber: iowaNumber(row.Stock), deliveredNumber: iowaNumber(row.Delivered), priority: iowaProductPriority(row, bible) }))
+      .filter((row) => row.stockNumber > 0 || row.deliveredNumber > 0)
+      .sort((a, b) => b.priority - a.priority || b.deliveredNumber - a.deliveredNumber || b.stockNumber - a.stockNumber);
+
+    for (const row of productRows.slice(0, 120)) {
+      productByCode.set(String(row.Code).trim(), row);
+      const rawName = row.Name;
+      const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD product inventory/delivery CSV', IOWA_INVENTORY_CSV_URL, rawName, row.Category, bible);
+      signals.push({
+        id: stableId([config.id, 'iowa-product-snapshot', row.Code, row.Stock, row.Delivered]),
+        ...base,
+        confidence: Math.max(0.72, base.confidence),
+        eventType: row.deliveredNumber > 0 ? 'statewide_product_delivery_snapshot' : 'statewide_product_inventory_snapshot',
+        locationPrecision: 'board_warehouse',
+        locationName: 'Iowa ABD statewide product snapshot',
+        stateCode: 'IA',
+        itemCode: String(row.Code).trim(),
+        size: row.Size || null,
+        category: row.Category || null,
+        quantity: row.deliveredNumber,
+        warehouseQty: row.stockNumber,
+        observedAt,
+        canAlertAsInventory: false,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Official Iowa ABD product snapshot reports statewide warehouse stock and 14-day delivered bottle totals. This is statewide delivery/warehouse intelligence, not live shelf inventory.',
+        evidence: `Iowa ABD snapshot lists ${rawName} (#${row.Code}) with ${row.stockNumber} warehouse stock and ${row.deliveredNumber} bottles delivered statewide in the last 14 days.`,
+        raw: { product: row, endpoint: IOWA_INVENTORY_CSV_URL, sourceCaveat: 'Statewide product/warehouse/delivery CSV; use code-specific CSV for licensee delivery rows. Not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
+      });
+    }
+  }
+
+  const deliveryProducts = productRows.filter((row) => row.deliveredNumber > 0).slice(0, IOWA_CODE_DELIVERY_FANOUT_LIMIT);
+  let storeDeliveryRows = 0;
+  for (const product of deliveryProducts) {
+    if (storeDeliveryRows >= IOWA_STORE_ROW_LIMIT) break;
+    const code = String(product.Code).trim();
+    const url = `https://shop.iowaabd.com/snapshot/inventory?code=${encodeURIComponent(code)}&download`;
     try {
-      const res = await textFetch(url);
-      if (!res.ok || !/csv|Location,Street,City/i.test(res.text)) {
-        roadblocks.push({ state: config.id, source: 'Iowa 14-day inventory CSV', url, status: res.status, error: 'No downloadable store CSV returned', nextRoute: 'Re-check current snapshot host/code mapping.' });
+      const res = await textFetch(url, { headers: { accept: 'text/csv,*/*', referer: `${IOWA_SNAPSHOT_PAGE_URL}?code=${encodeURIComponent(code)}` }, timeoutMs: 30_000 });
+      if (!res.ok || !/Location\s*,\s*Street\s*,\s*City\s*,\s*State\s*,\s*Zip\s*,\s*"?Bottles Delivered"?/i.test(res.text)) {
+        roadblocks.push({ state: config.id, source: 'Iowa ABD code-specific 14-day delivery CSV', url, status: res.status || 0, error: res.error || res.text.slice(0, 180) || 'No code-specific delivery CSV returned', nextRoute: 'Retry code-specific snapshot CSV for the product code or inspect current snapshot parameters.' });
         continue;
       }
       for (const row of csvRows(res.text)) {
-        const qty = Number(row['Bottles Delivered'] || 0) || null;
-        const rawName = sig.rawName || sig.canonicalName;
-        const { base } = signalBase(config.id, 'Iowa ABD 14-day store delivery snapshot', url, rawName, bible);
+        if (storeDeliveryRows >= IOWA_STORE_ROW_LIMIT) break;
+        const qty = iowaNumber(row['Bottles Delivered']);
+        if (!qty || !row.Location) continue;
+        storeDeliveryRows += 1;
+        const rawName = product.Name;
+        const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD 14-day store delivery snapshot', url, rawName, product.Category, bible);
+        const storeAddress = [row.Street, row.City, row.State, row.Zip].filter(Boolean).join(', ');
         signals.push({
-          id: stableId([config.id, code, row.Location, row.Street, qty]),
+          id: stableId([config.id, 'iowa-store-delivery', code, row.Location, row.Street, row.Zip, qty]),
           ...base,
+          confidence: Math.max(0.78, base.confidence),
           eventType: 'store_delivery_snapshot',
           locationPrecision: 'store_level',
           locationName: row.Location || null,
           storeName: row.Location || null,
-          storeAddress: [row.Street, row.City, row.State, row.Zip].filter(Boolean).join(', '),
+          storeId: stableId(['iowa-abd-licensee', row.Location, row.Street, row.Zip]),
+          storeAddress,
           city: row.City || null,
           stateCode: row.State || 'IA',
           postalCode: row.Zip || null,
+          zip: row.Zip || null,
+          itemCode: code,
+          size: product.Size || null,
           quantity: qty,
-          observedAt: base.fetchedAt,
-          evidence: `${qty ?? 'unknown'} bottles delivered to ${row.Location || 'store'} in Iowa ABD 14-day snapshot.`,
-          raw: { code, product: sig.raw, delivery: row }
+          warehouseQty: product.stockNumber,
+          availabilityStatus: 'recent_delivery',
+          availabilityLabel: `${qty} delivered in last 14 days`,
+          observedAt,
+          canAlertAsInventory: false,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Official Iowa ABD code-specific CSV reports bottles delivered to a Class E licensee/store in the last 14 days. Delivery is a strong lead, but it is not current shelf stock or a hold/reservation.',
+          evidence: `Iowa ABD reports ${qty} bottle(s) of ${rawName} (#${code}) delivered to ${row.Location}${storeAddress ? ` at ${storeAddress}` : ''} in the last 14 days. Verify directly before driving.`,
+          raw: { code, product, delivery: row, endpoint: url, sourceCaveat: '14-day licensee delivery snapshot; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
     } catch (error) {
-      roadblocks.push({ state: config.id, source: 'Iowa 14-day inventory CSV', url, status: 0, error: error.message, nextRoute: 'Retry snapshot CSV.' });
+      roadblocks.push({ state: config.id, source: 'Iowa ABD code-specific 14-day delivery CSV', url, status: 0, error: error.message, nextRoute: 'Retry code-specific snapshot CSV.' });
     }
   }
+
+  const lotteryRes = await textFetch(IOWA_LOTTERY_ALLOCATIONS_CSV_URL, { headers: { accept: 'text/csv,*/*', referer: 'https://shop.iowaabd.com/snapshot/lottery' }, timeoutMs: 45_000 });
+  if (!lotteryRes.ok || !/Code\s*,\s*Name\s*,\s*Bottles\s*,\s*Location/i.test(lotteryRes.text)) {
+    roadblocks.push({ state: config.id, source: 'Iowa ABD allocated lottery allocations CSV', url: IOWA_LOTTERY_ALLOCATIONS_CSV_URL, status: lotteryRes.status || 0, error: lotteryRes.error || lotteryRes.text.slice(0, 240) || 'No lottery allocation CSV returned', nextRoute: 'Retry official lottery allocation CSV or inspect current Iowa ABD snapshot lottery download route.' });
+  } else {
+    let lotteryRows = 0;
+    for (const row of csvRows(lotteryRes.text)) {
+      if (lotteryRows >= IOWA_STORE_ROW_LIMIT) break;
+      const rawName = row.Name || productByCode.get(row.Code)?.Name || '';
+      if (!iowaBottleLooksRelevant(rawName, 'allocated bourbon whiskey lottery', bible)) continue;
+      const qty = iowaNumber(row.Bottles);
+      if (!qty || !row.Location) continue;
+      lotteryRows += 1;
+      const { base, unsafeReason } = iowaSignalBase(config.id, 'Iowa ABD allocated lottery store distribution CSV', IOWA_LOTTERY_ALLOCATIONS_CSV_URL, rawName, 'allocated bourbon whiskey lottery', bible);
+      const storeAddress = [row.Street, row.City, row.State, row.Zip].filter(Boolean).join(', ');
+      signals.push({
+        id: stableId([config.id, 'iowa-store-allocation', row.Code, row.Location, row.Street, row.Zip, qty]),
+        ...base,
+        confidence: Math.max(0.8, base.confidence),
+        eventType: 'store_allocation_snapshot',
+        locationPrecision: 'store_level',
+        locationName: row.Location || null,
+        storeName: row.Location || null,
+        storeId: stableId(['iowa-abd-licensee', row.Location, row.Street, row.Zip]),
+        storeAddress,
+        city: row.City || null,
+        stateCode: row.State || 'IA',
+        postalCode: row.Zip || null,
+        zip: row.Zip || null,
+        itemCode: row.Code || null,
+        quantity: qty,
+        availabilityStatus: 'allocated_distribution',
+        availabilityLabel: `${qty} allocated via Iowa ABD lottery distribution`,
+        observedAt,
+        canAlertAsInventory: false,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Official Iowa ABD lottery allocation CSV reports allocated bottles distributed to licensee/store locations. This is release/distribution intelligence, not live shelf inventory.',
+        evidence: `Iowa ABD lottery allocation CSV lists ${qty} bottle(s) of ${rawName}${row.Code ? ` (#${row.Code})` : ''} for ${row.Location}${storeAddress ? ` at ${storeAddress}` : ''}. Verify lottery/distribution timing and store handling before driving.`,
+        raw: { allocation: row, endpoint: IOWA_LOTTERY_ALLOCATIONS_CSV_URL, sourceCaveat: 'Allocated lottery distribution CSV; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
+      });
+    }
+  }
+
+  if (!signals.some((signal) => signal.eventType === 'store_delivery_snapshot' || signal.eventType === 'store_allocation_snapshot')) {
+    roadblocks.push({ state: config.id, source: 'Iowa ABD store-level snapshot expansion', url: IOWA_SNAPSHOT_PAGE_URL, status: 'no_store_rows', error: 'Official Iowa CSV endpoints were checked but no matching store-level delivery/allocation rows were emitted.', nextRoute: 'Inspect CSV filters/product-code fanout and broaden watch terms carefully.' });
+  }
+
   return { signals, roadblocks };
 }
 
@@ -2974,14 +3231,249 @@ async function collectUtah(config, bible) {
         const res = await textFetch('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
         const json = JSON.parse(res.text);
         for (const row of json.data || []) {
-          const { base } = signalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
-          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty: row.storeQty ?? null, warehouseQty: row.warehouseQty ?? null, onOrderQty: row.onOrderQty ?? null, price: row.currentPrice ?? null, observedAt: base.fetchedAt, evidence: `Utah DABS API row: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}.`, raw: row });
+          const { base, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
+          const storeQty = Number(row.storeQty || 0) || 0;
+          const warehouseQty = Number(row.warehouseQty || 0) || 0;
+          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: storeQty, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
         }
       }
     } catch (error) {
       roadblocks.push({ state: config.id, source: 'Utah DABS Product Locator API', url: 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', status: 0, error: error.message, nextRoute: 'Inspect product-detail session flow for per-store breakout.' });
     }
   }
+  return { signals, roadblocks };
+}
+
+function idahoPriceFromCard(card = '') {
+  const priceMatch = card.match(/product-price[\s\S]*?\$\s*([\d,]+)\s*<sup>(\d{2})<\/sup>/i);
+  if (!priceMatch) return null;
+  const dollars = Number(priceMatch[1].replace(/,/g, ''));
+  const cents = Number(priceMatch[2]);
+  if (!Number.isFinite(dollars) || !Number.isFinite(cents)) return null;
+  return dollars + cents / 100;
+}
+
+function parseIdahoProductCards(html = '', pageUrl, sourceLabel) {
+  const cards = [];
+  const re = /<a\b[^>]*class=["'][^"']*\bproduct-loop-item\b[^"']*["'][^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of String(html || '').matchAll(re)) {
+    const href = new URL(decodeHtml(match[1]), pageUrl).href;
+    const card = match[2];
+    const rawName = decodeHtml(stripHtml(card.match(/<h3\b[^>]*class=["'][^"']*\bproduct-title\b[^"']*["'][^>]*>([\s\S]*?)<\/h3>/i)?.[1] || '')).replace(/\s+/g, ' ').trim();
+    const code = decodeHtml(stripHtml(card.match(/Product\s+Code:\s*([^<]+)/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || href.match(/[?&]nabca=(\d+)/i)?.[1] || null;
+    const size = decodeHtml(stripHtml(card.match(/<span\b[^>]*class=["'][^"']*\bproduct-size\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
+    const proof = decodeHtml(stripHtml(card.match(/<span\b[^>]*class=["'][^"']*\bproduct-proof\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
+    const price = idahoPriceFromCard(card);
+    if (!rawName || !code) continue;
+    cards.push({ rawName, code, size, proof, price, href, sourceLabel, pageUrl });
+  }
+  return cards;
+}
+
+function idahoProductRelevant(product, bible) {
+  const hay = `${product.rawName || ''} ${product.description || ''}`;
+  if (!hay.trim()) return false;
+  if (IDAHO_EXCLUDE_RE.test(hay)) return false;
+  if (IDAHO_WATCH_RE.test(hay)) return true;
+  const { record } = bottleMatch(product.rawName, bible);
+  return Boolean(record && /bourbon|whiskey|whisky/i.test(hay));
+}
+
+function idahoSafeBottleMatch(rawName, bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  if (!safe.record) return safe;
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record.canonical);
+  if (/four roses/.test(raw) && /single barrel/.test(raw) && /limited edition|small batch/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'idaho_four_roses_single_barrel_not_limited_edition' };
+  }
+  if (/taylor/.test(raw) && /single barrel/.test(raw) && /small batch/.test(canonical)) {
+    return { ...safe, record: null, unsafeReason: 'idaho_taylor_single_barrel_not_small_batch' };
+  }
+  return safe;
+}
+
+function idahoProductPriority(product, bible) {
+  const { record } = idahoSafeBottleMatch(product.rawName, bible);
+  return (RARE_RE.test(product.rawName) ? 10000 : 0)
+    + (record?.tier === 'unicorn' ? 5000 : record?.tier === 'allocated' ? 3500 : record?.tier === 'limited' ? 2000 : 0)
+    + (/single barrel|barrel|private|store pick|limited availability|special releases/i.test(product.rawName) ? 900 : 0)
+    + (/special releases/i.test(product.sourceLabel) ? 700 : 0)
+    + (/limited availability/i.test(product.sourceLabel) ? 500 : 0);
+}
+
+function idahoSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = idahoSafeBottleMatch(rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: Math.max(record ? 0.76 : 0.72, match?.confidence || 0.35),
+    sourceMatchStatus: record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match',
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
+function idahoSourceEventAt(asOfText, observedAt) {
+  const clean = String(asOfText || '').replace(/^as of\s+/i, '').trim();
+  if (!clean) return null;
+  const parsed = Date.parse(clean);
+  if (!Number.isFinite(parsed)) return null;
+  const ceiling = Date.parse(observedAt || '') || Date.now();
+  if (parsed > ceiling + 5 * 60 * 1000) return null;
+  return new Date(parsed).toISOString();
+}
+
+function parseIdahoAvailabilityRows(html = '') {
+  const rows = [];
+  const blocks = [...String(html || '').matchAll(/<li\b[^>]*class=["'][^"']*\blist-item\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/gi)].map((m) => m[1]);
+  for (const block of blocks) {
+    const storeRaw = decodeHtml(stripHtml(block.match(/<strong>\s*Store:\s*<\/strong>\s*([\s\S]*?)<br\s*\/?>/i)?.[1] || '')).replace(/\s+/g, ' ').trim();
+    const address = decodeHtml(stripHtml(block.match(/<strong>\s*Address:\s*<\/strong>\s*([\s\S]*?)<br\s*\/?>/i)?.[1] || '')).replace(/\s+/g, ' ').trim();
+    const phone = decodeHtml(stripHtml(block.match(/<strong>\s*Phone:\s*<\/strong>\s*([\s\S]*?)(?:<a\b|<br\s*\/?>|<\/div>)/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
+    const statusText = decodeHtml(stripHtml(block.match(/<span\b[^>]*class=["'][^"']*\bqty\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '')).replace(/\s+/g, ' ').trim();
+    const asOfText = decodeHtml(stripHtml(block.match(/<small\b[^>]*>([\s\S]*?)<\/small>/i)?.[1] || '')).replace(/\s+/g, ' ').trim() || null;
+    if (!storeRaw || !IDAHO_POSITIVE_AVAILABILITY_RE.test(statusText) || /not\s+available|unavailable/i.test(statusText)) continue;
+    const storeNumber = storeRaw.match(/Store\s+(\d+)/i)?.[1] || null;
+    const distanceMiles = Number(storeRaw.match(/\((\d+(?:\.\d+)?)mi\)/i)?.[1]) || null;
+    const storeName = storeRaw.replace(/\s*\(\d+(?:\.\d+)?mi\)\s*$/i, '').trim();
+    const city = address.match(/,\s*([^,]+),\s*ID\s+\d{5}/i)?.[1]?.trim() || storeName.replace(/\s*\(Store\s+\d+\).*$/i, '').trim() || null;
+    const zip = address.match(/\bID\s+(\d{5})(?:-\d{4})?\b/i)?.[1] || null;
+    rows.push({ storeRaw, storeName, storeNumber, distanceMiles, address, phone, statusText, asOfText, city, zip });
+  }
+  return rows;
+}
+
+async function fetchIdahoAvailability(product, location) {
+  const body = new URLSearchParams({ action: 'check_availability', location, nabca: product.code, name: product.rawName });
+  return textFetch(IDAHO_AVAILABILITY_AJAX_URL, {
+    method: 'POST',
+    headers: {
+      accept: 'text/html,*/*',
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'x-requested-with': 'XMLHttpRequest',
+      referer: product.href || `${IDAHO_PRODUCT_BASE_URL}/?nabca=${encodeURIComponent(product.code)}`
+    },
+    body,
+    timeoutMs: 30_000
+  });
+}
+
+async function collectIdaho(config, bible) {
+  const signals = [];
+  const roadblocks = [];
+  const observedAt = new Date().toISOString();
+  const productMap = new Map();
+
+  for (const source of [
+    { url: IDAHO_LIMITED_PRODUCTS_URL, label: 'Idaho Liquor limited availability products' },
+    { url: IDAHO_SPECIAL_RELEASES_URL, label: 'Idaho Liquor special releases' }
+  ]) {
+    const res = await textFetch(source.url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000 });
+    if (!res.ok) {
+      roadblocks.push({ state: config.id, source: source.label, url: source.url, status: res.status || 0, error: res.error || res.text.slice(0, 180), nextRoute: 'Retry Idaho Liquor public product-list page.' });
+      continue;
+    }
+    for (const product of parseIdahoProductCards(res.text, source.url, source.label)) {
+      if (!idahoProductRelevant(product, bible)) continue;
+      const existing = productMap.get(product.code);
+      if (!existing || idahoProductPriority(product, bible) > idahoProductPriority(existing, bible)) productMap.set(product.code, product);
+    }
+  }
+
+  const products = [...productMap.values()]
+    .sort((a, b) => idahoProductPriority(b, bible) - idahoProductPriority(a, bible) || String(a.rawName).localeCompare(String(b.rawName)))
+    .slice(0, IDAHO_AVAILABILITY_PRODUCT_LIMIT);
+
+  for (const product of products) {
+    const { base, unsafeReason } = idahoSignalBase(config.id, product.sourceLabel, product.href, product.rawName, bible);
+    signals.push({
+      id: stableId([config.id, 'idaho-limited-product', product.code, product.rawName, product.sourceLabel]),
+      ...base,
+      confidence: Math.max(0.68, base.confidence),
+      eventType: /special releases/i.test(product.sourceLabel) ? 'state_release_product_row' : 'limited_availability_product_row',
+      locationPrecision: 'statewide_catalog',
+      locationName: 'Idaho State Liquor Division',
+      stateCode: 'ID',
+      itemCode: product.code,
+      size: product.size,
+      proof: product.proof,
+      price: product.price,
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Idaho Liquor product-list pages expose limited/special-release catalog rows. Catalog rows are watch intelligence until a store availability row is separately extracted.',
+      evidence: `Idaho Liquor lists ${product.rawName}${product.code ? ` (#${product.code})` : ''}${product.price ? ` at $${product.price.toFixed(2)}` : ''} on ${product.sourceLabel}.`,
+      raw: { product, sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
+    });
+  }
+
+  const seenStoreRows = new Set();
+  let availabilityRows = 0;
+  for (const product of products) {
+    for (const location of IDAHO_AVAILABILITY_LOCATIONS) {
+      let res;
+      try {
+        res = await fetchIdahoAvailability(product, location);
+      } catch (error) {
+        roadblocks.push({ state: config.id, source: 'Idaho Liquor product availability AJAX', url: IDAHO_AVAILABILITY_AJAX_URL, status: 0, error: error.message, nextRoute: 'Retry public WordPress check_availability AJAX endpoint.' });
+        continue;
+      }
+      if (!res.ok) {
+        roadblocks.push({ state: config.id, source: 'Idaho Liquor product availability AJAX', url: IDAHO_AVAILABILITY_AJAX_URL, status: res.status || 0, error: res.error || res.text.slice(0, 180), nextRoute: 'Retry public WordPress check_availability AJAX endpoint or inspect availability-modal.js for action parameter changes.' });
+        continue;
+      }
+      const rows = parseIdahoAvailabilityRows(res.text);
+      for (const row of rows) {
+        const sourceEventAt = idahoSourceEventAt(row.asOfText, observedAt);
+        const key = `${product.code}|${row.storeNumber || row.storeName}|${row.address}`;
+        if (seenStoreRows.has(key)) continue;
+        seenStoreRows.add(key);
+        availabilityRows += 1;
+        const { base, unsafeReason } = idahoSignalBase(config.id, 'Idaho Liquor product availability AJAX', product.href, product.rawName, bible);
+        signals.push({
+          id: stableId([config.id, 'idaho-store-availability', product.code, row.storeNumber || row.storeName, row.address, row.asOfText]),
+          ...base,
+          confidence: Math.max(0.82, base.confidence),
+          eventType: 'store_inventory_result',
+          locationPrecision: 'store_level',
+          locationName: row.storeName,
+          storeName: row.storeName,
+          storeId: row.storeNumber ? `idaho-liquor-store-${row.storeNumber}` : stableId(['idaho-liquor-store', row.storeName, row.address]),
+          storeAddress: row.address,
+          city: row.city,
+          stateCode: 'ID',
+          postalCode: row.zip,
+          zip: row.zip,
+          phone: row.phone,
+          itemCode: product.code,
+          size: product.size,
+          proof: product.proof,
+          price: product.price,
+          quantity: 0,
+          availabilityStatus: 'in_stock',
+          availabilityLabel: row.asOfText ? `Available (${row.asOfText})` : 'Available',
+          availabilityValue: 'official_available_status',
+          observedAt,
+          sourceEventAt,
+          canAlertAsInventory: true,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Official Idaho Liquor public availability modal reports store-level Available status by product and searched location. It exposes status/as-of-date, not a bottle count or reservation; verify before driving.',
+          evidence: `Idaho Liquor reports ${product.rawName}${product.code ? ` (#${product.code})` : ''} as Available at ${row.storeName}${row.address ? ` (${row.address})` : ''}${row.asOfText ? `, ${row.asOfText}` : ''}. Verify before driving; no bottle count is exposed.`,
+          raw: { product, availability: row, searchedLocation: location, endpoint: IDAHO_AVAILABILITY_AJAX_URL, sourceCaveat: 'Store-level official availability status/as-of date, not a bottle count or reservation.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
+        });
+      }
+      await sleep(150);
+    }
+  }
+
+  if (products.length && !availabilityRows) {
+    roadblocks.push({ state: config.id, source: 'Idaho Liquor product availability AJAX', url: IDAHO_AVAILABILITY_AJAX_URL, status: 'no_available_rows', error: 'Product-list pages were reachable but availability AJAX returned no parsed Available store rows for the configured Idaho location probes.', nextRoute: 'Inspect availability-modal.js/check_availability output shape or expand location probes.' });
+  }
+
   return { signals, roadblocks };
 }
 
@@ -3881,8 +4373,8 @@ async function collectMontgomery(config, bible) {
       const json = JSON.parse(res.text);
       for (const row of json.d || []) {
         const name = row.text || row.value;
-        const { base } = signalBase(config.id, 'Montgomery County ABS product autocomplete', url, name, bible);
-        signals.push({ id: stableId([config.id, 'moco', name]), ...base, eventType: 'county_product_search_match', locationPrecision: 'board_county', locationName: 'Montgomery County ABS', county: 'Montgomery', observedAt: base.fetchedAt, evidence: `Montgomery ABS product search match: ${name}. Store inventory modal exists but needs ASP.NET postback/viewstate extraction.`, raw: row });
+        const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS product autocomplete', url, name, bible);
+        signals.push({ id: stableId([config.id, 'moco', name]), ...base, eventType: 'county_product_search_match', locationPrecision: 'board_county', locationName: 'Montgomery County ABS', county: 'Montgomery', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Montgomery County ABS product search rows are county/product intelligence, not exact store shelf inventory.', evidence: `Montgomery ABS product search match: ${name}. Store inventory modal exists but needs ASP.NET postback/viewstate extraction.`, raw: { ...row, sourceCaveat: 'Product search/autocomplete row; not inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
       }
     } catch (error) { roadblocks.push({ state: config.id, source: 'Montgomery ABS SearchByName', url, status: 0, error: error.message, nextRoute: 'Replay ASP.NET selected item/postback to open StoreInventory modal.' }); }
   }
@@ -3915,7 +4407,7 @@ async function collectMontgomery(config, bible) {
         const price = Number((card.match(/item-price">\$([0-9,.]+)/i)?.[1] || '').replace(/,/g, '').trim()) || null;
         const allocated = /ALLOCATED/i.test(card);
         const highlyAllocated = /HIGHLY\s+ALLOCATED/i.test(card);
-        const { base } = signalBase(config.id, 'Montgomery County ABS ASP.NET product search', pageUrl, rawName, bible);
+        const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS ASP.NET product search', pageUrl, rawName, bible);
         signals.push({
           id: stableId([config.id, 'moco-product-postback', code || rawName, price]),
           ...base,
@@ -3926,7 +4418,7 @@ async function collectMontgomery(config, bible) {
           price,
           observedAt: base.fetchedAt,
           evidence: `Montgomery ABS ASP.NET product search row: ${rawName}${code ? ` (#${code})` : ''}${price ? ` at $${price}` : ''}${allocated ? '; marked allocated' : ''}. Store-level modal is not exposed for these allocated rows in the product-card HTML.`,
-          raw: { code, size, price, allocated, highlyAllocated, term }
+          raw: { code, size, price, allocated, highlyAllocated, term, sourceCaveat: 'County product/HAL search row; not live shelf inventory.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
     } catch (error) {
@@ -3977,7 +4469,7 @@ async function collectMontgomeryOpenData(config, bible, signals, roadblocks) {
     if (seen.has(key)) continue;
     seen.add(key);
     const rawName = row.description;
-    const { base } = signalBase(config.id, 'Montgomery County ABS open inventory dataset', sourceUrl, rawName, bible);
+    const { base, unsafeReason } = aggregateSignalBase(config.id, 'Montgomery County ABS open inventory dataset', sourceUrl, rawName, bible);
     const qty = row.totalinventoryNumber;
     const rare = MONTGOMERY_BOURBON_RE.test(rawName) && (RARE_RE.test(rawName) || /buffalo trace|michter/i.test(rawName));
     const onSale = row.salePriceNumber != null && row.salePriceNumber > 0;
@@ -3992,9 +4484,14 @@ async function collectMontgomeryOpenData(config, bible, signals, roadblocks) {
       quantity: qty,
       price: row.priceNumber,
       salePrice: row.salePriceNumber,
+      availabilityStatus: qty > 0 ? 'COUNTY_AGGREGATE_POSITIVE' : 'COUNTY_AGGREGATE_ZERO',
+      availabilityLabel: qty > 0 ? `${qty} total county inventory units reported` : 'No positive county aggregate inventory reported',
       observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      inventorySemantics: 'Montgomery County ABS open data reports countywide aggregate inventory/pricing by product. This is Montgomery County intelligence, not exact per-store shelf inventory.',
       evidence: `Montgomery County ABS open data lists ${rawName}${row.code ? ` (#${row.code})` : ''}${qty > 0 ? ` with ${qty} total bottle(s) across ABS inventory` : ' with no positive total inventory in the open dataset'}${row.priceNumber ? ` at $${row.priceNumber}` : ''}${onSale ? `, sale $${row.salePriceNumber}` : ''}. This is county inventory/pricing intelligence, not a per-store shelf count.`,
-      raw: { ...row, precisionCaveat: 'County aggregate/open-data inventory; per-store rows require ABS search/modal extraction.', sourceDataset: 'ib5t-5ncy' }
+      raw: { ...row, precisionCaveat: 'County aggregate/open-data inventory; per-store rows require ABS search/modal extraction.', sourceDataset: 'ib5t-5ncy', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
     });
   }
 }

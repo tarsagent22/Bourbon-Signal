@@ -50,9 +50,10 @@ function optionalNumber(...values) {
 
 function canonicalizeSignal(signal, bible) {
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
-  const match = name ? bible.match(name) : null;
+  const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
+  const match = name && !unsafeSourceMatch ? bible.match(name) : null;
   const record = match?.record || null;
-  const canonicalName = record?.canonical || name;
+  const canonicalName = record?.canonical || (unsafeSourceMatch ? null : name);
   const bottleId = record?.id || signal.canonicalBottleId || null;
   const locationName = signal.storeName || signal.locationName || signal.location || signal.city || signal.county || null;
   const locationPrecision = signal.locationPrecision || 'statewide_catalog';
@@ -179,11 +180,19 @@ function reliabilityForCandidate(change, sig, score) {
   const isWatch = Boolean(sig.canAlertAsWatch) && !isInventory;
   const eventType = String(sig.eventType || '').toLowerCase();
   const isSourceDiscovery = /surface|policy|license|catalog|tasting|raffle/.test(eventType);
+  const isIowaStoreLead = sig.state === 'IA'
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(eventType)
+    && String(precision).toLowerCase() === 'store_level'
+    && quantity > 0;
+  const isIowaNonStoreLead = sig.state === 'IA' && !isIowaStoreLead;
   const isActionableWatch = isWatch && !isSourceDiscovery && (
-    quantity > 0
-    || /^alabc_limited_release_store_drop$/i.test(eventType)
-    || /^nc_board_shipment_snapshot$/i.test(eventType)
-    || /^nc_statewide_warehouse_stock$/i.test(eventType)
+    isIowaStoreLead
+    || (sig.state !== 'IA' && (
+      quantity > 0
+      || /^alabc_limited_release_store_drop$/i.test(eventType)
+      || /^nc_board_shipment_snapshot$/i.test(eventType)
+      || /^nc_statewide_warehouse_stock$/i.test(eventType)
+    ))
   );
   const isNewOrPositive = change.type === 'new_signal'
     || changedIncrease(change, 'quantity')
@@ -198,6 +207,7 @@ function reliabilityForCandidate(change, sig, score) {
   if (sig.sampleOnly) blockers.push('sample_only');
   if (!isInventory && !sig.canAlertAsWatch) blockers.push('policy_not_alertable');
   if (isSourceDiscovery) blockers.push('source_discovery_not_user_alert');
+  if (isIowaNonStoreLead) blockers.push('iowa_non_store_delivery_not_alertable');
   if (isWatch && !isActionableWatch) blockers.push('watch_signal_not_actionable');
 
   if (ageHours == null) cautions.push('unknown_freshness');

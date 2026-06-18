@@ -4,6 +4,7 @@ import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs'
 import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -97,6 +98,16 @@ function bibleLookup(records = []) {
 }
 
 function findBibleRecord(signal, bible) {
+  const type = String(signal.eventType || signal.type || '');
+  const isIowaUnmatchedDeliveryLead = signal.state === 'IA'
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(type)
+    && !signal.bottleId
+    && !signal.canonicalBottleId;
+  const isAggregateSourceNamedLead = ['MD-MONTGOMERY', 'UT'].includes(signal.state)
+    && /^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(type)
+    && (!signal.bottleId || String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:'))
+    && !signal.canonicalBottleId;
+  if ((['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead || isAggregateSourceNamedLead) return null;
   const id = signal.bottleId || signal.canonicalBottleId;
   if (id && bible.byId.has(id)) return bible.byId.get(id);
   for (const name of [signal.canonicalName, signal.rawName]) {
@@ -163,8 +174,9 @@ function publicSignal(signal, bible, freshness = null) {
   const eventAt = freshness?.eventAt || null;
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
-  const displayAt = eventAt || firstSeenAt || lastConfirmedAt;
-  const timestampBasis = eventAt ? 'source_event_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
+  const useLastConfirmedForDisplay = canAlertAsInventory && signal.locationPrecision === 'store_level';
+  const displayAt = eventAt || (useLastConfirmedForDisplay ? (lastConfirmedAt || firstSeenAt) : (firstSeenAt || lastConfirmedAt));
+  const timestampBasis = eventAt ? 'source_event_at' : useLastConfirmedForDisplay ? 'last_confirmed_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,
@@ -196,7 +208,7 @@ function publicSignal(signal, bible, freshness = null) {
     zip: signal.zip,
     lat: signal.lat,
     lng: signal.lng,
-    quantity: signal.quantity || 0,
+    quantity: signal.quantity || signal.storeQty || 0,
     availabilityStatus: signal.availabilityStatus,
     availabilityLabel: signal.availabilityLabel,
     warehouseQty: signal.warehouseQty || 0,
@@ -209,7 +221,9 @@ function publicSignal(signal, bible, freshness = null) {
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
-      : 'Informational/watch data only; not live shelf inventory.',
+      : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
+        ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
+        : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
@@ -265,6 +279,7 @@ function sourceEventAt(signal) {
   // This is a source-provided NC extract timestamp for the actual stock-shipped feed,
   // not the crawler runtime. Other inventory probes use observedAt as last-confirmed.
   if (type === 'nc_board_shipment_snapshot') return validSourceEventAt(signal.sourceEventAt || signal.observedAt, signal.fetchedAt);
+  if (signal.state === 'ID' && type === 'store_inventory_result') return validSourceEventAt(signal.sourceEventAt, signal.observedAt || signal.fetchedAt);
   return null;
 }
 
@@ -381,14 +396,20 @@ function dropPriority(signal) {
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (signalCanAlertAsInventory(signal)) return 50;
-  if (/store_delivery_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
+  if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
+  if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
+  if (/store_delivery_snapshot|store_allocation_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
 }
 
+function hasPositiveAvailabilityStatus(signal) {
+  return /\b(in_stock|available|limited supply|on hand)\b/i.test(`${signal.availabilityStatus || ''} ${signal.availabilityLabel || ''} ${signal.availabilityValue || ''}`);
+}
+
 function isUserFacingDropSignal(signal) {
   const type = String(signal.eventType || '').toLowerCase();
-  const quantity = Number(signal.quantity || signal.storeQty || 0) || 0;
+  const quantity = Number(signal.quantity || signal.storeQty || signal.warehouseQty || 0) || 0;
   const precision = String(signal.locationPrecision || '').toLowerCase();
   const canAlert = signalCanAlertAsInventory(signal);
 
@@ -402,14 +423,65 @@ function isUserFacingDropSignal(signal) {
   if (type === 'nc_board_shipment_snapshot') return quantity > 0;
   if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (type === 'store_delivery_snapshot') return quantity > 0;
+  if (type === 'store_allocation_snapshot') return signal.state === 'IA' && precision === 'store_level' && quantity > 0;
+  if (type === 'county_inventory_aggregate') return signal.state === 'MD-MONTGOMERY' && precision === 'store_aggregate' && quantity > 0;
+  if (type === 'board_inventory_aggregate') return signal.state === 'UT' && precision === 'board_warehouse' && quantity > 0;
   if (type === 'store_inventory_aggregate') return quantity > 0;
-  if (type === 'store_inventory_result') return quantity > 0;
+  if (type === 'store_inventory_result') {
+    if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
+    return quantity > 0;
+  }
   if (type === 'retailer_store_inventory_result') return quantity > 0;
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
 
   return canAlert && precision === 'store_level';
+}
+
+function isIowaSourceNamedDeliveryLead(signal) {
+  const isStoreLead = signal.state === 'IA'
+    && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'store_level'
+    && Number(signal.quantity || 0) > 0;
+  if (!isStoreLead) return false;
+  if (String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:')) return true;
+  return !signal.bottleId && !signal.canonicalBottleId && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isMarylandAggregateLead(signal) {
+  const quantity = Number(signal.quantity || 0) || 0;
+  return signal.state === 'MD-MONTGOMERY'
+    && /^county_inventory_aggregate$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'store_aggregate'
+    && quantity > 0
+    && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isUtahAggregateLead(signal) {
+  const quantity = Number(signal.quantity || signal.storeQty || signal.warehouseQty || 0) || 0;
+  return signal.state === 'UT'
+    && /^board_inventory_aggregate$/i.test(String(signal.eventType || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'board_warehouse'
+    && quantity > 0
+    && Boolean(signal.canonicalName || signal.rawName);
+}
+
+function isMarylandOrUtahAggregateLead(signal) {
+  return isMarylandAggregateLead(signal) || isUtahAggregateLead(signal);
+}
+
+function aggregateLeadIdentity(signal) {
+  return [
+    signal.state || '',
+    signal.eventType || signal.type || '',
+    signal.rawName || signal.canonicalName || '',
+    signal.sourceLabel || signal.source || '',
+    signal.locationName || '',
+    signal.county || '',
+    signal.quantity || signal.storeQty || signal.warehouseQty || 0,
+    signal.price || 0
+  ].map((value) => String(value).toLowerCase().replace(/\s+/g, ' ').trim()).join('|');
 }
 
 function isSafePublicSignal(signal) {
@@ -448,10 +520,28 @@ function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
+  const currentIowaLeadSourceIds = new Set((currentSignals || [])
+    .filter((signal) => signal.state === 'IA' && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || '')))
+    .map((signal) => signal.key || signal.id || signal.sourceSignalId)
+    .filter(Boolean));
+  const currentAggregateLeadIds = new Set((currentSignals || [])
+    .filter((signal) => isMarylandOrUtahAggregateLead(signal))
+    .map(aggregateLeadIdentity)
+    .filter(Boolean));
+  const seenAggregateLeadIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
-    .filter((s) => findBibleRecord(s, bible) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => {
+      if (s.state !== 'IA' || !/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(s.eventType || ''))) return true;
+      const sourceId = s.key || s.id || s.sourceSignalId;
+      return Boolean(sourceId && currentIowaLeadSourceIds.has(sourceId));
+    })
+    .filter((s) => {
+      if (!isMarylandOrUtahAggregateLead(s)) return true;
+      return currentAggregateLeadIds.has(aggregateLeadIdentity(s));
+    })
+    .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
@@ -459,6 +549,13 @@ function buildDrops(signals, bible, currentSignals = []) {
       if (!sourceId) return true;
       if (seenSourceIds.has(sourceId)) return false;
       seenSourceIds.add(sourceId);
+      return true;
+    })
+    .filter((s) => {
+      if (!isMarylandOrUtahAggregateLead(s)) return true;
+      const aggregateId = aggregateLeadIdentity(s);
+      if (seenAggregateLeadIds.has(aggregateId)) return false;
+      seenAggregateLeadIds.add(aggregateId);
       return true;
     })
     .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
@@ -706,6 +803,8 @@ function buildEvents(signals, bible) {
 function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
+    .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
+    .filter((c) => !['MD-MONTGOMERY', 'UT'].includes(c.state) || !/^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(String(c.eventType || '')))
     .map((c) => ({
     id: c.id,
     action: c.action,
@@ -790,6 +889,9 @@ function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
 }
 
 function stateCoverageTier(state) {
+  const lifecycle = getStateLifecycle(state.state);
+  if (lifecycle?.coverageTier) return lifecycle.coverageTier;
+  if (state.coverageTier) return state.coverageTier;
   const precision = state.bestLocationPrecision || state.targetLocationPrecision || 'blocked';
   const strategy = String(state.strategy || '');
   const status = String(state.status || '');
@@ -802,22 +904,44 @@ function stateCoverageTier(state) {
   return 'policy_source_discovery';
 }
 
+function stateCoverageTesterValue(coverageTier) {
+  if (coverageTier === 'live_store_inventory') return 'Live/store inventory where public source permits.';
+  if (coverageTier === 'store_availability_status') return 'Official store availability status; verify before driving.';
+  if (coverageTier === 'store_delivery_leads') return 'Official delivery/allocation leads; useful leads, not live shelf stock.';
+  if (coverageTier === 'aggregate_inventory_watch') return 'Aggregate inventory, warehouse, or program-watch data; useful context, not exact store shelf stock.';
+  if (coverageTier === 'store_location_watch') return 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.';
+  if (coverageTier === 'shipment_drop_intelligence') return 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.';
+  if (coverageTier === 'catalog_watch') return 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.';
+  return 'Policy/source-discovery only.';
+}
+
 function buildStateCoverage(summary, options = {}) {
   const stateFilter = options.stateFilter || null;
   const states = (summary.states || [])
     .filter((state) => !stateFilter || stateFilter.has(state.state))
-    .map((state) => ({
-    state: state.state,
-    label: state.label,
-    tier: state.tier,
-    status: state.status,
-    signalCount: state.signalCount || 0,
-    roadblockCount: state.roadblockCount || 0,
-    targetLocationPrecision: state.targetLocationPrecision || null,
-    bestLocationPrecision: state.bestLocationPrecision || null,
-    strategy: state.strategy || null,
-    coverageTier: stateCoverageTier(state)
-  }));
+    .map((state) => {
+      const lifecycle = getStateLifecycle(state.state);
+      const coverageTier = stateCoverageTier(state);
+      return {
+        state: state.state,
+        label: lifecycle?.customerLabel || state.label,
+        sourceLabel: lifecycle?.sourceLabel || state.sourceLabel || state.label,
+        tier: state.tier,
+        status: state.status,
+        publicStatus: lifecycle?.publicStatus || state.publicStatus || null,
+        lifecycle: lifecycle?.lifecycle || state.lifecycle || null,
+        signalCount: state.signalCount || 0,
+        roadblockCount: state.roadblockCount || 0,
+        targetLocationPrecision: state.targetLocationPrecision || null,
+        bestLocationPrecision: state.bestLocationPrecision || null,
+        strategy: state.strategy || null,
+        refinementLevel: lifecycle?.refinementLevel || state.refinementLevel || null,
+        customerAreaLabel: lifecycle?.customerAreaLabel || state.customerAreaLabel || null,
+        areaOptions: lifecycle?.areaOptions || [],
+        customerSummary: lifecycle?.customerSummary || state.customerSummary || null,
+        coverageTier
+      };
+    });
   const counts = states.reduce((acc, state) => {
     acc[state.coverageTier] = (acc[state.coverageTier] || 0) + 1;
     return acc;
@@ -863,11 +987,9 @@ function buildSoutheastReadiness(summary, signals) {
     coverageTier: state.coverageTier,
     signalCount: state.signalCount,
     bestLocationPrecision: state.bestLocationPrecision,
-    testerValue: state.coverageTier === 'live_store_inventory' ? 'Live/store inventory where public source permits.'
-      : state.coverageTier === 'store_location_watch' ? 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.'
-      : state.coverageTier === 'shipment_drop_intelligence' ? 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.'
-      : state.coverageTier === 'catalog_watch' ? 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.'
-      : 'Policy/source-discovery only.'
+    testerValue: stateCoverageTesterValue(state.coverageTier),
+    customerAreaLabel: state.customerAreaLabel || null,
+    customerSummary: state.customerSummary || null
   }]));
 
   return {

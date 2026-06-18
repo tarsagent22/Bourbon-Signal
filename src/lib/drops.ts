@@ -1,3 +1,5 @@
+import { getActiveEngineStateName } from "@/lib/activeStates";
+
 export interface DropEvent {
   timestamp: string;
   event_type: string;
@@ -220,8 +222,7 @@ export function cleanCountyName(board: string): string {
 
 export function formatStateLabel(state?: string): string {
   if (!state) return "";
-  if (state === "MD-MONTGOMERY") return "Montgomery, MD";
-  return state;
+  return getActiveEngineStateName(state);
 }
 
 function getPublicSignalLabel(event: DropEvent): string | undefined {

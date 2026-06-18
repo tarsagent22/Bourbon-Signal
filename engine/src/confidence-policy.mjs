@@ -8,7 +8,7 @@ export const STATE_CONFIDENCE_POLICY = {
   AL: { maxAlertMode: 'release_watch', inventorySemantics: 'Alabama ABC official limited-release PDFs list allocated products by release/distribution, store number, address, item code, and price. Treat these as scheduled release/drop intelligence, not live shelf inventory or quantity-on-hand.', defaultCadence: 'daily-monthly' },
   VA: { maxAlertMode: 'normal_product_store_only', inventorySemantics: 'Virginia normal products may expose store availability. Limited availability inventory is intentionally hidden before release and must stay watch/policy only.', defaultCadence: 'daily-60m' },
   PA: { maxAlertMode: 'alert_store_inventory_pickup_api', inventorySemantics: 'FWGS browser/CDP collection uses the Oracle Commerce store-location endpoint plus /ccstorex/custom/v1/b2b/get-inventory to collect pickup quantity by SKU and store. Direct server fetch is Akamai/session gated, so scheduled collection needs a browser-assisted session bootstrap.', defaultCadence: '15-60m' },
-  ID: { maxAlertMode: 'release_watch', inventorySemantics: 'Idaho public sources are catalog/special-release/allocated context. Store-level quantity route not found.', defaultCadence: 'daily' },
+  ID: { maxAlertMode: 'alert_store_inventory_daily_caveat', inventorySemantics: 'Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats.', defaultCadence: 'daily' },
   NC: { maxAlertMode: 'alert_county_store_inventory', inventorySemantics: 'NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory.', defaultCadence: '15-60m' },
   IN: { maxAlertMode: 'alert_retailer_store_inventory_caveat', inventorySemantics: 'Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat.', defaultCadence: 'daily-60m' },
   IL: { maxAlertMode: 'alert_retailer_store_inventory_caveat', inventorySemantics: "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat.", defaultCadence: '15-60m' },
@@ -65,6 +65,14 @@ const MODE_CAPS = {
   alert_delivery_snapshot: 0.92
 };
 
+const NON_INVENTORY_ALERT_EVENT_RE = /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot|board_shipment|shipment_snapshot|stock_shipped|allocated|lottery|release|catalog|policy|official-source-seed/i;
+
+function watchAlertsBlockedByStateSemantics(signal, eventType) {
+  if (signal.state === 'MD-MONTGOMERY' && /county_inventory_aggregate|county_product|county_allocated|catalog|product_search/i.test(eventType)) return true;
+  if (signal.state === 'UT' && /board_inventory_aggregate|catalog|release_document|allocated_release|bottle_inventory_signal/i.test(eventType)) return true;
+  return false;
+}
+
 function clamp(n, min = 0, max = 1) { return Math.max(min, Math.min(max, n)); }
 
 const TENNESSEE_CITYHIVE_POLICY = {
@@ -109,12 +117,14 @@ export function confidenceForSignal(signal) {
   confidence = Math.min(confidence, MODE_CAPS[policy.maxAlertMode] ?? 0.7);
   const positiveAvailabilityStatus = /in_stock|limited_supply/i.test(String(signal.availabilityStatus || signal.raw?.availability?.status || ''));
   const hasPositiveInventory = (qty > 0 || positiveAvailabilityStatus) && !/out_of_stock|sold_out|not_available/i.test(eventType);
+  const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
+  const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: hasPositiveInventory && !isVirginiaLimitedCaveat && rank >= 6 && confidence >= 0.72 && !/policy|catalog|official-source-seed/i.test(`${eventType} ${signal.mode || ''}`),
-    canAlertAsWatch: !isSampleOnly && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: hasPositiveInventory && !isVirginiaLimitedCaveat && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

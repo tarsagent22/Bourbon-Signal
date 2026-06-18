@@ -1323,24 +1323,25 @@ export default function DropFeed() {
       );
     }
 
-    // VA city filter
-    if (dropState === "VA" && areaPrefs.vaCities.length > 0) {
-      if (drop.counties?.length > 0) {
-        return areaPrefs.vaCities.some((city) =>
-          drop.counties.some((c) =>
-            c.toLowerCase().includes(city.toLowerCase())
-          )
-        );
-      }
-    }
+    const locationText = normalizeFilterText([
+      drop.board_name,
+      drop.store_address,
+      ...(drop.counties || []),
+      ...drop.locations.flatMap((location) => [location.label, location.city, location.address]),
+    ].filter(Boolean).join(" "));
+    const matchesAnyLocationPreference = (values: string[]) => values.some((value) => {
+      const normalized = normalizeFilterText(value);
+      return normalized && locationText && (locationText.includes(normalized) || normalized.includes(locationText));
+    });
 
-    // PA county filter
-    if (dropState === "PA" && areaPrefs.paCounties.length > 0) {
-      const county = drop.counties?.[0] || "";
-      return areaPrefs.paCounties.some((c) =>
-        county.toLowerCase().includes(c.toLowerCase())
-      );
-    }
+    // City-level filters for states where the site stores city preferences.
+    if (dropState === "VA" && areaPrefs.vaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.vaCities);
+    if (dropState === "OH" && areaPrefs.ohCities.length > 0) return matchesAnyLocationPreference(areaPrefs.ohCities);
+    if (dropState === "IA" && areaPrefs.iaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.iaCities);
+    if (dropState === "ID" && areaPrefs.idCities.length > 0) return matchesAnyLocationPreference(areaPrefs.idCities);
+
+    // PA city/store filter
+    if (dropState === "PA" && areaPrefs.paCounties.length > 0) return matchesAnyLocationPreference(areaPrefs.paCounties);
 
     return true;
   };

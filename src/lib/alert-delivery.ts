@@ -3,7 +3,7 @@ import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord } from "@/lib/notification-preferences";
 import { readSiteExport } from "@/lib/site-engine-contract";
-import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 
 export interface AreaPreferences {
   states: string[];
@@ -11,6 +11,7 @@ export interface AreaPreferences {
   vaCities: string[];
   ohCities: string[];
   iaCities: string[];
+  idCities: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -80,6 +81,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
     vaCities: toStrings(source.vaCities),
     ohCities: toStrings(source.ohCities),
     iaCities: toStrings(source.iaCities),
+    idCities: toStrings(source.idCities),
     paCounties: toStrings(source.paCounties),
     paStores: toStrings(source.paStores),
   };
@@ -106,23 +108,7 @@ function normalizeLocationText(value: string) {
 }
 
 function stateLabel(state: string) {
-  const labels: Record<string, string> = {
-    AL: "Alabama",
-    FL: "Florida",
-    GA: "Georgia",
-    IA: "Iowa",
-    IL: "Illinois",
-    IN: "Indiana",
-    KY: "Kentucky",
-    NC: "North Carolina",
-    OH: "Ohio",
-    PA: "Pennsylvania",
-    TN: "Tennessee",
-    TX: "Texas",
-    VA: "Virginia",
-    "MD-MONTGOMERY": "Montgomery County, MD",
-  };
-  return labels[state] || state || "your area";
+  return getActiveEngineStateName(state) || state || "your area";
 }
 
 export function readAlertCandidates() {
@@ -145,6 +131,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((county) => location.includes(normalizeLocationText(county)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((store) => location.includes(normalizeLocationText(store)));
   return true;
@@ -168,10 +155,13 @@ function candidateMatchesEmailMode(candidate: CandidateAlert, mode: EmailAlertMo
 export function candidateCanSendEmail(candidate: CandidateAlert) {
   const deliveryChannel = asString(candidate.deliveryChannel);
   const eventType = asString(candidate.eventType).toLowerCase();
+  const state = asString(candidate.state).toUpperCase();
   const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
   const quantity = asNumber(candidate.quantity) || asNumber(candidate.warehouseQty);
   const status = `${asString(candidate.availabilityStatus)} ${asString(candidate.availabilityLabel)}`.toLowerCase();
 
+  if (state === "IA" && /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot/.test(eventType)) return false;
+  if ((state === "MD-MONTGOMERY" || state === "UT") && /county_inventory_aggregate|board_inventory_aggregate|county_product|county_allocated|catalog_row|release_document|allocated_release/.test(eventType)) return false;
   if (deliveryChannel === "watch_candidate") return false;
   if (eventType.includes("release_surface") || eventType.includes("release-watch")) return false;
   if (eventType.includes("policy") || eventType.includes("license")) return false;
@@ -241,6 +231,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);
   if (state === "OH" && areaPrefs.ohCities.length) return matchedLocationFromOptions(candidate, areaPrefs.ohCities) || locationName || stateLabel(state);
   if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
+  if (state === "ID" && areaPrefs.idCities.length) return matchedLocationFromOptions(candidate, areaPrefs.idCities) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paStores.length) return matchedLocationFromOptions(candidate, areaPrefs.paStores) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;
