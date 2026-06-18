@@ -84,7 +84,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
 
   return {
-    states: toStringArray(source.states).filter((state) => supportedStates.has(state)),
+    states: toStringArray(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
     ncBoards: toStringArray(source.ncBoards),
     vaCities: toStringArray(source.vaCities),
     ohCities: toStringArray(source.ohCities),

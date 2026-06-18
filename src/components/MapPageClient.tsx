@@ -19,7 +19,11 @@ type FinderMode = "bottle" | "store";
 type FinderState = string;
 
 const FINDER_MARKET_CODES = new Set<string>(ENGINE_COVERED_STATE_CODES);
-const FINDER_MARKET_PRIORITY = ["NC", "VA", "PA", "OH", "IA", "IN", "AL"];
+const FINDER_MARKET_PRIORITY = ["NC", "VA", "PA", "OH", "IA", "ID", "AL", "IL", "IN", "TN", "UT", "MD-MONTGOMERY"];
+function finderMarketRank(code: string) {
+  const rank = FINDER_MARKET_PRIORITY.indexOf(code);
+  return rank === -1 ? Number.MAX_SAFE_INTEGER : rank;
+}
 
 const tierStyles: Record<string, { label: string; color: string; glow: string }> = {
   unicorn: {
@@ -680,7 +684,7 @@ export default function MapPageClient() {
       .filter((state) => state.active && FINDER_MARKET_CODES.has(state.code))
       .map((state) => ({ code: state.code, name: state.name, count: counts.get(state.code) || 0 }))
       .sort((a, b) => {
-        const priorityDelta = FINDER_MARKET_PRIORITY.indexOf(a.code) - FINDER_MARKET_PRIORITY.indexOf(b.code);
+        const priorityDelta = finderMarketRank(a.code) - finderMarketRank(b.code);
         if (priorityDelta !== 0) return priorityDelta;
         return (b.count - a.count) || a.name.localeCompare(b.name);
       });

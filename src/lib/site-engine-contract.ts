@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { getActiveEngineStateName } from "@/lib/activeStates";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
@@ -240,7 +241,7 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
 
 function getPublicStateLabel(state: string) {
   if (state === "MD-MONTGOMERY") return "Montgomery, MD";
-  return state;
+  return getActiveEngineStateName(state);
 }
 
 function getPublicLocationLabel(state: string, locationName: string, city: string, county: string) {

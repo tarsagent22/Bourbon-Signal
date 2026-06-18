@@ -3,7 +3,7 @@ import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord } from "@/lib/notification-preferences";
 import { readSiteExport } from "@/lib/site-engine-contract";
-import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 
 export interface AreaPreferences {
   states: string[];
@@ -106,23 +106,7 @@ function normalizeLocationText(value: string) {
 }
 
 function stateLabel(state: string) {
-  const labels: Record<string, string> = {
-    AL: "Alabama",
-    FL: "Florida",
-    GA: "Georgia",
-    IA: "Iowa",
-    IL: "Illinois",
-    IN: "Indiana",
-    KY: "Kentucky",
-    NC: "North Carolina",
-    OH: "Ohio",
-    PA: "Pennsylvania",
-    TN: "Tennessee",
-    TX: "Texas",
-    VA: "Virginia",
-    "MD-MONTGOMERY": "Montgomery County, MD",
-  };
-  return labels[state] || state || "your area";
+  return getActiveEngineStateName(state) || state || "your area";
 }
 
 export function readAlertCandidates() {

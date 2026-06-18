@@ -76,10 +76,13 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
       : { matched: false };
   }
 
-  if (state === "VA") {
-    const city = (drop.store_city || "").trim();
-    if (prefs.vaCities.length === 0) return { matched: true, matchedState: state, matchedArea: city || "Virginia" };
-    const matchedCity = prefs.vaCities.find((candidate) => candidate.toLowerCase() === city.toLowerCase());
+  if (state === "VA" || state === "OH" || state === "IA") {
+    const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : prefs.iaCities;
+    const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : "Iowa";
+    const city = (drop.store_city || drop.store_county || drop.board_name || "").trim();
+    if (cityPrefs.length === 0) return { matched: true, matchedState: state, matchedArea: city || fallbackLabel };
+    const normalizedCity = city.toLowerCase();
+    const matchedCity = cityPrefs.find((candidate) => normalizedCity === candidate.toLowerCase() || normalizedCity.includes(candidate.toLowerCase()));
     return matchedCity
       ? { matched: true, matchedState: state, matchedArea: matchedCity }
       : { matched: false };
