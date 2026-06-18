@@ -6,8 +6,10 @@ const PRODUCTS_FILE = process.env.OHLQ_PRODUCTS_FILE || 'data/ohlq-products.json
 const OUT_FILE = process.env.OHLQ_OUT_FILE || 'out/browser/ohlq-availability.json';
 const PAGE_TIMEOUT_MS = Number(process.env.OHLQ_PAGE_TIMEOUT_MS || 45000);
 const DISCOVER = process.argv.includes('--discover') || process.env.OHLQ_DISCOVER === '1';
-const DISCOVERY_PAGES = Number(process.env.OHLQ_DISCOVERY_PAGES || 2);
-const DISCOVERY_LIMIT = Number(process.env.OHLQ_DISCOVERY_LIMIT || 20);
+const DISCOVERY_PAGES = Number(process.env.OHLQ_DISCOVERY_PAGES || 5);
+const DISCOVERY_LIMIT = Number(process.env.OHLQ_DISCOVERY_LIMIT || 60);
+const PRODUCT_READY_TIMEOUT_MS = Number(process.env.OHLQ_PRODUCT_READY_TIMEOUT_MS || 60000);
+const PRODUCT_DELAY_MS = Number(process.env.OHLQ_PRODUCT_DELAY_MS || 1500);
 const DISCOVERY_FILE = process.env.OHLQ_DISCOVERY_FILE || 'data/browser-discovery/ohlq-bourbon-discovered-products.json';
 const BOURBON_LISTING_URL = 'https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american';
 
@@ -145,7 +147,7 @@ async function discoverBourbonProducts(page, seedProducts) {
 
 async function collectProduct(page, product) {
   await page.navigate(product.pageUrl);
-  await sleep(1800);
+  await waitForOhlqProductReady(page, product);
   const result = await page.evaluate(`(async () => {
     const pageUrl = location.href;
     const title = document.title;
@@ -211,6 +213,33 @@ async function collectProduct(page, product) {
   return result;
 }
 
+async function waitForOhlqProductReady(page, product) {
+  const started = Date.now();
+  let lastState = null;
+  while (Date.now() - started < PRODUCT_READY_TIMEOUT_MS) {
+    lastState = await page.evaluate(`(() => {
+      const product = window.Ohlq?.renderProductDetail?.Product || null;
+      const selectedVariant = product?.ProductVariants?.find(v => v.Code === product?.PreferredVariantSku)
+        || product?.ProductVariants?.[0]
+        || null;
+      return {
+        href: location.href,
+        title: document.title,
+        readyState: document.readyState,
+        hasCsrf: Boolean(document.documentElement.dataset.csrfToken),
+        productName: product?.ProductName || null,
+        sku: selectedVariant?.Code || product?.PreferredVariantSku || product?.BaseSku || ${JSON.stringify(product.sku || null)} || null
+      };
+    })()`, true).catch((error) => ({ error: error.message }));
+    if (lastState?.hasCsrf && (lastState.productName || lastState.sku) && !/just a moment/i.test(String(lastState.title || ''))) return lastState;
+    if (/access denied|restrict access|forbidden/i.test(String(lastState?.title || ''))) {
+      throw new Error(`OHLQ/Cloudflare access denied for ${product.pageUrl}; last state=${JSON.stringify(lastState)}`);
+    }
+    await sleep(750);
+  }
+  throw new Error(`Timed out waiting for rendered OHLQ product data on ${product.pageUrl}; last state=${JSON.stringify(lastState)}`);
+}
+
 async function main() {
   const seedProducts = JSON.parse(await readFile(PRODUCTS_FILE, 'utf8'));
   const target = await getOrCreateTarget(DEFAULT_CDP);
@@ -236,7 +265,7 @@ async function main() {
         results.push({ ok: false, productName: product.name, pageUrl: product.pageUrl, sku: product.sku || null, status: 0, error: error.message, inventories: [] });
         console.log(`  error: ${error.message}`);
       }
-      await sleep(1000);
+      await sleep(PRODUCT_DELAY_MS);
     }
   } finally {
     page.close();

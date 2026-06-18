@@ -2820,6 +2820,31 @@ async function collectOregon(config, bible) {
   return { signals, roadblocks };
 }
 
+function ohlqSafeBottleMatch(rawName, bible) {
+  const safe = cityHiveSafeBottleMatch(rawName, bible);
+  const raw = normalizedBottleText(rawName);
+  const canonical = normalizedBottleText(safe.record?.canonical || '');
+  if (/\b(cocktail|rtp|ready to pour|ready to drink|vodka|gin|rum|tequila|mezcal|wine|beer|seltzer|liqueur|cream)\b/.test(raw) && !/\b(cocktail|ready to drink|liqueur|cream)\b/.test(canonical)) return { ...safe, record: null, unsafeReason: 'non_bourbon_or_rtd_matched_core_bottle' };
+  if (/yellowstone/.test(raw) && /\b(small batch|select|6yr|6 year)\b/.test(raw) && /limited edition/.test(canonical)) return { ...safe, record: null, unsafeReason: 'yellowstone_standard_not_limited_edition' };
+  if (/bulleit/.test(raw) && /mesquite/.test(raw) && !/mesquite/.test(canonical)) return { ...safe, record: null, unsafeReason: 'bulleit_mesquite_not_core_bottle' };
+  return safe;
+}
+
+function ohlqSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
+  const { match, record, unsafeReason } = ohlqSafeBottleMatch(rawName, bible);
+  return { match, record, unsafeReason, base: {
+    state,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: record ? Math.max(0.78, match?.confidence || 0.35) : 0.45,
+    sourceMatchStatus: record ? 'bottle_bible_match' : `source_name_kept:${unsafeReason || 'no_safe_bible_match'}`,
+    fetchedAt: new Date().toISOString()
+  }};
+}
+
 async function collectOhio(config, bible) {
   const signals = [], roadblocks = [];
   const browserOutPath = 'out/browser/ohlq-availability.json';
@@ -2829,7 +2854,9 @@ async function collectOhio(config, bible) {
     for (const product of browserRun.products || []) {
       if (!product.ok || !Array.isArray(product.inventories)) continue;
       const productSku = String(product.sku || '').toLowerCase();
-      const matchingRows = product.inventories.filter((store) => String(store.VariantCode || '').toLowerCase() === productSku);
+      const variantRows = product.inventories.filter((store) => String(store.VariantCode || '').toLowerCase() === productSku);
+      const hasVariantCodes = product.inventories.some((store) => Boolean(store.VariantCode));
+      const matchingRows = variantRows.length ? variantRows : hasVariantCodes ? [] : product.inventories;
       const bucketCounts = matchingRows.reduce((counts, store) => {
         const availability = ohlqAvailability(store.I);
         counts[availability.status] = (counts[availability.status] || 0) + 1;
@@ -2838,7 +2865,7 @@ async function collectOhio(config, bible) {
       const positiveRows = matchingRows.filter((store) => ohlqAvailability(store.I).positive);
       for (const store of positiveRows) {
         const availability = ohlqAvailability(store.I);
-        const { base } = signalBase(config.id, 'OHLQ browser-assisted product availability API', product.pageUrl || product.endpoint, product.productName || product.sku, bible);
+        const { base, unsafeReason } = ohlqSignalBase(config.id, 'OHLQ browser-assisted product availability API', product.pageUrl || product.endpoint, product.productName || product.sku, bible);
         signals.push({
           id: stableId([config.id, 'ohlq-browser-live', product.sku, store.AgencyId, store.I, store.LastModified]),
           ...base,
@@ -2859,10 +2886,10 @@ async function collectOhio(config, bible) {
           availabilityLabel: availability.label,
           availabilityValue: availability.value,
           evidence: `OHLQ browser-assisted collector decoded ${availability.label} for ${product.productName || product.sku} at ${store.AgencyName || store.AgencyId}${store.City ? ` in ${store.City}` : ''}. VariantCode=${product.sku}; bucket=${store.I || 'unknown'}; last modified=${store.LastModified || 'unknown'}. OHLQ exposes stock status buckets, not explicit bottle counts.`,
-          raw: { product: { sku: product.sku, productName: product.productName, endpoint: product.endpoint, displayStatus: product.displayStatus, inventoryCount: product.inventoryCount, matchingVariantRowCount: matchingRows.length, positiveVariantRowCount: positiveRows.length, bucketCounts, generatedAt: browserRun.generatedAt }, availability: { ...availability, bucket: store.I || null }, store }
+          raw: { product: { sku: product.sku, productName: product.productName, endpoint: product.endpoint, displayStatus: product.displayStatus, inventoryCount: product.inventoryCount, matchingVariantRowCount: matchingRows.length, positiveVariantRowCount: positiveRows.length, bucketCounts, generatedAt: browserRun.generatedAt }, availability: { ...availability, bucket: store.I || null }, store, sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null }
         });
       }
-      if (!matchingRows.length) {
+      if (!matchingRows.length && hasVariantCodes) {
         roadblocks.push({ state: config.id, source: 'OHLQ browser-assisted product availability API', url: product.pageUrl || product.endpoint || browserOutPath, status: product.status || 200, error: `Browser collector returned ${product.inventoryCount || product.inventories.length} agency rows, but none matched VariantCode=${product.sku}.`, nextRoute: 'Inspect OHLQ availability bucket semantics and selected SKU/exclusive flag.' });
       }
     }

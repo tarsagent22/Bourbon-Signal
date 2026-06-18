@@ -50,10 +50,10 @@ function optionalNumber(...values) {
 
 function canonicalizeSignal(signal, bible) {
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
-  const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
+  const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
   const match = name && !unsafeSourceMatch ? bible.match(name) : null;
   const record = match?.record || null;
-  const canonicalName = record?.canonical || name;
+  const canonicalName = record?.canonical || (unsafeSourceMatch ? null : name);
   const bottleId = record?.id || signal.canonicalBottleId || null;
   const locationName = signal.storeName || signal.locationName || signal.location || signal.city || signal.county || null;
   const locationPrecision = signal.locationPrecision || 'statewide_catalog';
