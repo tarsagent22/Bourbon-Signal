@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
+import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -407,23 +408,33 @@ async function main() {
     degradedStateCount: allReports.filter((r) => r.stale || /^failed_/.test(String(r.status || ''))).length,
     staleStateCount: allReports.filter((r) => r.stale).length,
     failedStateCount: allReports.filter((r) => /^failed_/.test(String(r.status || ''))).length,
-    states: allReports.map((r) => ({
-      state: r.state,
-      label: r.label,
-      tier: r.tier,
-      status: r.status,
-      stale: Boolean(r.stale),
-      staleReason: r.staleReason || null,
-      staleFallbackAt: r.staleFallbackAt || null,
-      previousFinishedAt: r.previousFinishedAt || null,
-      sourceCount: r.sources.length,
-      reachableSourceCount: r.sources.filter((s) => s.ok).length,
-      signalCount: r.signals.length,
-      roadblockCount: r.roadblocks.length,
-      targetLocationPrecision: LOCATION_PROFILES[r.state]?.target || null,
-      bestLocationPrecision: bestPrecision(r.signals),
-      strategy: r.strategy
-    }))
+    states: allReports.map((r) => {
+      const lifecycle = getStateLifecycle(r.state);
+      return {
+        state: r.state,
+        label: customerStateLabel(r.state, r.label),
+        sourceLabel: sourceStateLabel(r.state, r.label),
+        tier: r.tier,
+        status: r.status,
+        stale: Boolean(r.stale),
+        staleReason: r.staleReason || null,
+        staleFallbackAt: r.staleFallbackAt || null,
+        previousFinishedAt: r.previousFinishedAt || null,
+        sourceCount: r.sources.length,
+        reachableSourceCount: r.sources.filter((s) => s.ok).length,
+        signalCount: r.signals.length,
+        roadblockCount: r.roadblocks.length,
+        targetLocationPrecision: LOCATION_PROFILES[r.state]?.target || null,
+        bestLocationPrecision: bestPrecision(r.signals),
+        strategy: r.strategy,
+        publicStatus: lifecycle?.publicStatus || null,
+        lifecycle: lifecycle?.lifecycle || null,
+        coverageTier: lifecycle?.coverageTier || null,
+        refinementLevel: lifecycle?.refinementLevel || null,
+        customerAreaLabel: lifecycle?.customerAreaLabel || null,
+        customerSummary: lifecycle?.customerSummary || null
+      };
+    })
   };
 
   await writeFile(path.join(OUT, 'summary.json'), JSON.stringify(summary, null, 2));

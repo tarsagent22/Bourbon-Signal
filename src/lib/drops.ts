@@ -222,7 +222,6 @@ export function cleanCountyName(board: string): string {
 
 export function formatStateLabel(state?: string): string {
   if (!state) return "";
-  if (state === "MD-MONTGOMERY") return "Montgomery, MD";
   return getActiveEngineStateName(state);
 }
 

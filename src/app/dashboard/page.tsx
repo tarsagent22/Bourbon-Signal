@@ -21,7 +21,7 @@ import { LiquidToggle } from "@/components/LiquidToggle";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
-import { getActiveEngineStateName } from "@/lib/activeStates";
+import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 
 const EMPTY_PREFS: AreaPreferences = {
@@ -1661,6 +1661,7 @@ export default function DashboardPage() {
               const selectedStates = localPrefs.states;
               const activeState = selectedStates.includes(activeTerritoryState) ? activeTerritoryState : selectedStates[0] || activeTerritoryState;
               const stateLabel = makeStateLabel(activeState);
+              const customerAreaLabel = getActiveEngineStateAreaLabel(activeState);
               const selectedDetails = activeState === "NC"
                 ? localPrefs.ncBoards
                 : activeState === "IA"
@@ -1671,10 +1672,12 @@ export default function DashboardPage() {
                       ? localPrefs.ohCities
                       : activeState === "PA"
                         ? localPrefs.paCounties
-                        : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+                        : customerAreaLabel
+                          ? [customerAreaLabel]
+                          : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
-              const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : "coverage";
+              const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
               const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
@@ -1740,7 +1743,9 @@ export default function DashboardPage() {
                                   ? activeState === "IA"
                                     ? "Pick Iowa cities from ABD store-delivery data. Leave cities blank to keep statewide Iowa coverage."
                                     : "Pick cities first. Store-level narrowing is available where Bourbon Signal has durable store identifiers."
-                                  : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
+                                  : customerAreaLabel
+                                    ? `${stateLabel} coverage currently starts with ${customerAreaLabel}. We’ll add more areas as durable public data supports them.`
+                                    : "This market is currently tracked as statewide engine coverage. City/store refinement can be added once a reliable local source is wired in."}
                             </p>
                           </div>
                           <div style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.10)", padding: "8px 12px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -1827,7 +1832,9 @@ export default function DashboardPage() {
 
                         {!(activeState === "NC" || isCityRefinable) ? (
                           <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                            {makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.
+                            {customerAreaLabel
+                              ? `${makeStateLabel(activeState)} currently includes ${customerAreaLabel}. No narrower city/store selector is shown until a clean per-store source is wired in.`
+                              : `${makeStateLabel(activeState)} is currently one statewide engine coverage area. No city/store selector is shown until a clean local source is wired in.`}
                           </div>
                         ) : null}
                       </div>

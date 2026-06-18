@@ -4,6 +4,7 @@ import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs'
 import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -790,6 +791,9 @@ function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
 }
 
 function stateCoverageTier(state) {
+  const lifecycle = getStateLifecycle(state.state);
+  if (lifecycle?.coverageTier) return lifecycle.coverageTier;
+  if (state.coverageTier) return state.coverageTier;
   const precision = state.bestLocationPrecision || state.targetLocationPrecision || 'blocked';
   const strategy = String(state.strategy || '');
   const status = String(state.status || '');
@@ -802,22 +806,44 @@ function stateCoverageTier(state) {
   return 'policy_source_discovery';
 }
 
+function stateCoverageTesterValue(coverageTier) {
+  if (coverageTier === 'live_store_inventory') return 'Live/store inventory where public source permits.';
+  if (coverageTier === 'store_availability_status') return 'Official store availability status; verify before driving.';
+  if (coverageTier === 'store_delivery_leads') return 'Official delivery/allocation leads; useful leads, not live shelf stock.';
+  if (coverageTier === 'aggregate_inventory_watch') return 'Aggregate inventory, warehouse, or program-watch data; useful context, not exact store shelf stock.';
+  if (coverageTier === 'store_location_watch') return 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.';
+  if (coverageTier === 'shipment_drop_intelligence') return 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.';
+  if (coverageTier === 'catalog_watch') return 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.';
+  return 'Policy/source-discovery only.';
+}
+
 function buildStateCoverage(summary, options = {}) {
   const stateFilter = options.stateFilter || null;
   const states = (summary.states || [])
     .filter((state) => !stateFilter || stateFilter.has(state.state))
-    .map((state) => ({
-    state: state.state,
-    label: state.label,
-    tier: state.tier,
-    status: state.status,
-    signalCount: state.signalCount || 0,
-    roadblockCount: state.roadblockCount || 0,
-    targetLocationPrecision: state.targetLocationPrecision || null,
-    bestLocationPrecision: state.bestLocationPrecision || null,
-    strategy: state.strategy || null,
-    coverageTier: stateCoverageTier(state)
-  }));
+    .map((state) => {
+      const lifecycle = getStateLifecycle(state.state);
+      const coverageTier = stateCoverageTier(state);
+      return {
+        state: state.state,
+        label: lifecycle?.customerLabel || state.label,
+        sourceLabel: lifecycle?.sourceLabel || state.sourceLabel || state.label,
+        tier: state.tier,
+        status: state.status,
+        publicStatus: lifecycle?.publicStatus || state.publicStatus || null,
+        lifecycle: lifecycle?.lifecycle || state.lifecycle || null,
+        signalCount: state.signalCount || 0,
+        roadblockCount: state.roadblockCount || 0,
+        targetLocationPrecision: state.targetLocationPrecision || null,
+        bestLocationPrecision: state.bestLocationPrecision || null,
+        strategy: state.strategy || null,
+        refinementLevel: lifecycle?.refinementLevel || state.refinementLevel || null,
+        customerAreaLabel: lifecycle?.customerAreaLabel || state.customerAreaLabel || null,
+        areaOptions: lifecycle?.areaOptions || [],
+        customerSummary: lifecycle?.customerSummary || state.customerSummary || null,
+        coverageTier
+      };
+    });
   const counts = states.reduce((acc, state) => {
     acc[state.coverageTier] = (acc[state.coverageTier] || 0) + 1;
     return acc;
@@ -863,11 +889,9 @@ function buildSoutheastReadiness(summary, signals) {
     coverageTier: state.coverageTier,
     signalCount: state.signalCount,
     bestLocationPrecision: state.bestLocationPrecision,
-    testerValue: state.coverageTier === 'live_store_inventory' ? 'Live/store inventory where public source permits.'
-      : state.coverageTier === 'store_location_watch' ? 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.'
-      : state.coverageTier === 'shipment_drop_intelligence' ? 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.'
-      : state.coverageTier === 'catalog_watch' ? 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.'
-      : 'Policy/source-discovery only.'
+    testerValue: stateCoverageTesterValue(state.coverageTier),
+    customerAreaLabel: state.customerAreaLabel || null,
+    customerSummary: state.customerSummary || null
   }]));
 
   return {

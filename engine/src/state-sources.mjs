@@ -1,3 +1,5 @@
+import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
+
 export const ALL_STATE_SOURCES = [
   {
     id: 'OH', label: 'Ohio OHLQ', tier: 'A', strategy: 'inventory_locator', cadence: '15-60m',
@@ -311,7 +313,7 @@ export const ALL_STATE_SOURCES = [
   }
 ];
 
-export const CUSTOMER_ACTIVE_STATE_IDS = new Set(['AL', 'IA', 'ID', 'IL', 'IN', 'MD-MONTGOMERY', 'NC', 'OH', 'PA', 'TN', 'UT', 'VA']);
+export const CUSTOMER_ACTIVE_STATE_IDS = CONFIG_CUSTOMER_ACTIVE_STATE_IDS;
 
 export const STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active !== false && CUSTOMER_ACTIVE_STATE_IDS.has(source.id));
 export const DISABLED_STATE_SOURCES = ALL_STATE_SOURCES.filter((source) => source.active === false || !CUSTOMER_ACTIVE_STATE_IDS.has(source.id));

@@ -240,7 +240,6 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
 }
 
 function getPublicStateLabel(state: string) {
-  if (state === "MD-MONTGOMERY") return "Montgomery, MD";
   return getActiveEngineStateName(state);
 }
 
