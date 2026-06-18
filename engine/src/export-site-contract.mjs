@@ -174,8 +174,9 @@ function publicSignal(signal, bible, freshness = null) {
   const eventAt = freshness?.eventAt || null;
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
-  const displayAt = eventAt || firstSeenAt || lastConfirmedAt;
-  const timestampBasis = eventAt ? 'source_event_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
+  const useLastConfirmedForDisplay = canAlertAsInventory && signal.locationPrecision === 'store_level';
+  const displayAt = eventAt || (useLastConfirmedForDisplay ? (lastConfirmedAt || firstSeenAt) : (firstSeenAt || lastConfirmedAt));
+  const timestampBasis = eventAt ? 'source_event_at' : useLastConfirmedForDisplay ? 'last_confirmed_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
   return {
     id: signal.key || signal.sourceSignalId,
     state: signal.state,

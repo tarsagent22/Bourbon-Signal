@@ -35,6 +35,7 @@ async function main() {
   const stores = (storesPayload.stores || []).filter((store) => store.state === 'PA');
   const locations = (locationsPayload.locations || []).filter((location) => location.state === 'PA');
   const staleExactDrops = exactDrops.filter((drop) => ageHours(drop.observedAt) > MAX_AGE_HOURS);
+  const staleDisplayExactDrops = exactDrops.filter((drop) => ageHours(drop.displayAt || drop.observedAt) > MAX_AGE_HOURS || drop.timestampBasis !== 'last_confirmed_at');
   const missingStoreIds = exactDrops.filter((drop) => !drop.storeId);
   const storeIds = new Set(stores.map((store) => String(store.id)).filter(Boolean));
   const unmatchedDropStores = exactDrops.filter((drop) => drop.storeId && !storeIds.has(String(drop.storeId)));
@@ -47,6 +48,7 @@ async function main() {
   assert(stores.length >= 450, 'PA site store count is below threshold.', stores.length);
   assert(locations.length >= stores.length, 'PA locations should include at least all PA stores.', { stores: stores.length, locations: locations.length });
   assert(!staleExactDrops.length, 'PA exact-store user-facing drops include stale inventory.', staleExactDrops.slice(0, 10));
+  assert(!staleDisplayExactDrops.length, 'PA exact-store drops must display last-confirmed freshness, not first-seen age.', staleDisplayExactDrops.slice(0, 10));
   assert(!missingStoreIds.length, 'PA exact-store drops are missing storeId needed for dashboard store targeting.', missingStoreIds.slice(0, 10));
   assert(!unmatchedDropStores.length, 'PA exact-store drops reference store ids not present in stores export.', unmatchedDropStores.slice(0, 10));
 

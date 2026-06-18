@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-18T18:25:12.004Z",
-  "count": 2211,
+  "generatedAt": "2026-06-18T19:16:05.843Z",
+  "count": 2210,
   "stores": [
     {
       "id": "alabc:001",
@@ -19272,14 +19272,14 @@
       "sourceStoreId": "0215",
       "state": "PA",
       "name": "Fine Wine & Good Spirits #0215",
-      "address": "1601 Liberty Ave, Pittsburgh, PA, 15222",
+      "address": "LSC_0215 Dummy Site, Pittsburgh, PA, 15222",
       "city": "Pittsburgh",
       "county": "Allegheny",
       "zip": null,
       "lat": 40.448363,
       "lng": -79.986832,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "0222",
@@ -19296,20 +19296,6 @@
       "signalCount": 3
     },
     {
-      "id": "0940",
-      "sourceStoreId": "0940",
-      "state": "PA",
-      "name": "Fine Wine & Good Spirits #0940",
-      "address": "855B Pennsylvania Blvd, Feasterville Trevose, PA, 19053",
-      "city": "Feasterville Trevose",
-      "county": "Bucks",
-      "zip": null,
-      "lat": -75.01257792913097,
-      "lng": 40.15094889677739,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
       "id": "1532",
       "sourceStoreId": "1532",
       "state": "PA",
@@ -19321,7 +19307,7 @@
       "lat": -75.58496837331654,
       "lng": 39.94303004573259,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "2221",
@@ -19364,20 +19350,6 @@
       "lng": 40.06246033814345,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 3
-    },
-    {
-      "id": "4004",
-      "sourceStoreId": "4004",
-      "state": "PA",
-      "name": "Fine Wine & Good Spirits #4004",
-      "address": "1492 Highway 315, Suite #1, Wilkes Barre, PA, 18702",
-      "city": "Wilkes Barre",
-      "county": "Luzerne",
-      "zip": null,
-      "lat": -75.80024265978842,
-      "lng": 41.27571847996155,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
     },
     {
       "id": "4508",
@@ -19769,7 +19741,7 @@
       "lat": 40.459164,
       "lng": -79.927412,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "249",
@@ -20007,7 +19979,7 @@
       "lat": 40.359141,
       "lng": -80.001291,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "290",
@@ -20231,7 +20203,7 @@
       "lat": 40.314608,
       "lng": -75.870482,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "605",
@@ -20357,7 +20329,7 @@
       "lat": 40.430931,
       "lng": -78.418983,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "704",
@@ -20525,7 +20497,7 @@
       "lat": 40.319784,
       "lng": -75.305773,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "912",
@@ -20609,7 +20581,7 @@
       "lat": 40.443736,
       "lng": -75.357123,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "927",
@@ -20693,7 +20665,7 @@
       "lat": 40.230742,
       "lng": -75.136906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "933",
@@ -20777,7 +20749,7 @@
       "lat": 40.224023,
       "lng": -75.138129,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "941",
@@ -20819,7 +20791,7 @@
       "lat": 40.225863,
       "lng": -74.937305,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "944",
@@ -20889,7 +20861,7 @@
       "lat": 40.875807,
       "lng": -79.94905,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "1004",
@@ -21211,7 +21183,7 @@
       "lat": 40.022891,
       "lng": -75.62798,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "1506",
@@ -21267,7 +21239,7 @@
       "lat": 39.991867,
       "lng": -75.771223,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "1512",
@@ -21435,7 +21407,7 @@
       "lat": 40.04805,
       "lng": -75.412271,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "1528",
@@ -21449,7 +21421,7 @@
       "lat": 40.041821,
       "lng": -75.48004,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "1529",
@@ -21477,7 +21449,7 @@
       "lat": 39.962383,
       "lng": -75.62328,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "1531",
@@ -21505,7 +21477,7 @@
       "lat": 40.133083,
       "lng": -75.535559,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "1601",
@@ -21561,21 +21533,7 @@
       "lat": 41.12335,
       "lng": -78.726906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "1705",
-      "sourceStoreId": "1705",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 1705",
-      "address": "Clearfield Mall, 1824 Daisy Street, Clearfield, PA, 16830",
-      "city": "Clearfield",
-      "county": null,
-      "zip": null,
-      "lat": 41.022348,
-      "lng": -78.414363,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 4
     },
     {
       "id": "1706",
@@ -21631,7 +21589,7 @@
       "lat": 41.005134,
       "lng": -76.438736,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "2001",
@@ -21883,7 +21841,7 @@
       "lat": 40.308586,
       "lng": -76.804015,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2211",
@@ -21897,7 +21855,7 @@
       "lat": 40.271922,
       "lng": -76.686527,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "2213",
@@ -21953,7 +21911,7 @@
       "lat": 40.331418,
       "lng": -76.86134,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2223",
@@ -22009,7 +21967,7 @@
       "lat": 39.917462,
       "lng": -75.393539,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2320",
@@ -22135,7 +22093,7 @@
       "lat": 39.874886,
       "lng": -75.542261,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "2339",
@@ -22163,7 +22121,7 @@
       "lat": 39.987523,
       "lng": -75.404709,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2342",
@@ -22191,7 +22149,7 @@
       "lat": 40.044225,
       "lng": -75.388856,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "2344",
@@ -22205,7 +22163,7 @@
       "lat": 39.915131,
       "lng": -75.342406,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2401",
@@ -22261,7 +22219,7 @@
       "lat": 42.072779,
       "lng": -80.182572,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "2504",
@@ -22457,7 +22415,7 @@
       "lat": 39.914213,
       "lng": -77.653216,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "2803",
@@ -22877,7 +22835,7 @@
       "lat": 40.227691,
       "lng": -76.088965,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3611",
@@ -22975,7 +22933,7 @@
       "lat": 40.089839,
       "lng": -76.280243,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3622",
@@ -22989,7 +22947,7 @@
       "lat": 40.128312,
       "lng": -76.30527,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "3625",
@@ -23073,7 +23031,7 @@
       "lat": 41.057172,
       "lng": -80.356268,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3711",
@@ -23255,7 +23213,7 @@
       "lat": 40.642569,
       "lng": -75.402736,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "3916",
@@ -23283,7 +23241,7 @@
       "lat": 40.557603,
       "lng": -75.410906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "3919",
@@ -23339,7 +23297,7 @@
       "lat": 40.592546,
       "lng": -75.631265,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3924",
@@ -23353,7 +23311,7 @@
       "lat": 40.565557,
       "lng": -75.562243,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "3925",
@@ -23675,7 +23633,7 @@
       "lat": 41.249848,
       "lng": -76.962068,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4201",
@@ -23718,6 +23676,20 @@
       "lng": -78.285228,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 2
+    },
+    {
+      "id": "4303",
+      "sourceStoreId": "4303",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 4303",
+      "address": "Greenville Plaza, 100 Hadley Road, Greenville, PA, 16125",
+      "city": "Greenville",
+      "county": null,
+      "zip": null,
+      "lat": 41.413665,
+      "lng": -80.354985,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
     },
     {
       "id": "4304",
@@ -23955,7 +23927,7 @@
       "lat": 40.106742,
       "lng": -75.123103,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4614",
@@ -24011,7 +23983,7 @@
       "lat": 40.104066,
       "lng": -75.213044,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4624",
@@ -24081,7 +24053,7 @@
       "lat": 40.208843,
       "lng": -75.224932,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4635",
@@ -24095,7 +24067,7 @@
       "lat": 40.154427,
       "lng": -75.121544,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "4636",
@@ -24277,7 +24249,7 @@
       "lat": 40.16186,
       "lng": -75.292414,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "4654",
@@ -24291,7 +24263,7 @@
       "lat": 40.143673,
       "lng": -75.312768,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4656",
@@ -24319,7 +24291,7 @@
       "lat": 40.105483,
       "lng": -75.293281,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "4658",
@@ -24333,7 +24305,7 @@
       "lat": 40.262639,
       "lng": -75.317186,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "4659",
@@ -24347,7 +24319,7 @@
       "lat": 40.158905,
       "lng": -75.149402,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4701",
@@ -24462,6 +24434,20 @@
       "signalCount": 4
     },
     {
+      "id": "4809",
+      "sourceStoreId": "4809",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 4809",
+      "address": "Bath Shopping Center, 362 South Walnut Street, Bath, PA, 18014",
+      "city": "Bath",
+      "county": null,
+      "zip": null,
+      "lat": 40.721962,
+      "lng": -75.392734,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "4810",
       "sourceStoreId": "4810",
       "state": "PA",
@@ -24543,7 +24529,7 @@
       "lat": 40.650444,
       "lng": -75.294233,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "4902",
@@ -25131,7 +25117,7 @@
       "lat": 40.65509,
       "lng": -76.109509,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "5412",
@@ -25201,7 +25187,7 @@
       "lat": 40.034048,
       "lng": -79.075122,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "5603",
@@ -25299,7 +25285,7 @@
       "lat": 40.962201,
       "lng": -76.894226,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "6101",
@@ -25369,7 +25355,7 @@
       "lat": 40.259076,
       "lng": -80.185704,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "6307",
@@ -25551,7 +25537,7 @@
       "lat": 40.350481,
       "lng": -79.647464,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "6517",
@@ -25593,7 +25579,7 @@
       "lat": 40.587968,
       "lng": -79.745631,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "6523",
@@ -25831,7 +25817,7 @@
       "lat": 39.970206,
       "lng": -76.771609,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "6717",
