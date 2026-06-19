@@ -509,7 +509,75 @@ function isBoardLevelSignal(drop: GroupedDrop) {
 }
 
 function isDistillerySignal(drop: GroupedDrop) {
-  return Boolean(drop.availabilityScope === "distillery" || drop.locationPrecision === "distillery" || drop.event_type === "distillery_gift_shop_availability");
+  return Boolean(drop.availabilityScope === "distillery" || drop.locationPrecision === "distillery" || drop.event_type === "distillery_gift_shop_availability" || drop.dataLane === "distillery_release_watch");
+}
+
+function formatCalendarDate(value?: string | null) {
+  if (!value) return "";
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
+}
+
+function compactSourceLabel(drop: GroupedDrop) {
+  const source = String(drop.source || "").trim();
+  if (!source) return "Official distillery source";
+  if (/buffalo trace/i.test(source)) return "Buffalo Trace official product availability page";
+  if (/gift[-\s]?shop|availability/i.test(source)) return source.replace(/\s+/g, " ");
+  return source;
+}
+
+function limitLineFromEvidence(evidence?: string | null) {
+  const text = String(evidence || "").replace(/\s+/g, " ").trim();
+  const match = text.match(/\*?Limit\s+[^.]+\.?/i);
+  if (!match) return "";
+  return match[0].replace(/^\*/, "").replace(/\.$/, "").trim();
+}
+
+function distilleryKind(drop: GroupedDrop) {
+  const type = String(drop.event_type || "").toLowerCase();
+  const category = String(drop.signalCategory || "").toLowerCase();
+  if (type === "distillery_gift_shop_availability" || category === "distillery_drop") return "drop";
+  if (/event|lottery|raffle|tasting|ticket/i.test(type)) return "event";
+  return "release";
+}
+
+function getDistilleryCardMeta(drop: GroupedDrop) {
+  if (!isDistillerySignal(drop)) return null;
+  const kind = distilleryKind(drop);
+  const dateLabel = formatCalendarDate(drop.releaseDate || drop.eventDate || drop.eventAt);
+  const venue = cleanAreaLabel(drop.storeName || drop.locationName || (drop.producer ? `${drop.producer} Distillery` : "")) || "Official distillery source";
+  const city = cleanAreaLabel(drop.locations[0]?.city || "");
+  const state = String(drop.state || "").toUpperCase();
+  const primaryLine = [venue, city ? `${city}${state ? `, ${state}` : ""}` : state].filter(Boolean).join(" · ");
+  const limitLine = limitLineFromEvidence(drop.evidence);
+  const availabilityLabel = String(drop.availabilityLabel || "").replace(/\s+·\s+\d{4}-\d{2}-\d{2}/, "").trim();
+  const checkedAt = drop.lastConfirmedAt || drop.firstSeenAt || drop.timestamp;
+  const checkedLabel = checkedAt ? `Checked ${formatRelativeTime(checkedAt)}` : "Checked recently";
+  const sourceLabel = compactSourceLabel(drop);
+  const statusLine = kind === "drop"
+    ? [availabilityLabel || "Gift-shop availability", dateLabel ? `listed for ${dateLabel}` : "date/source listed"].join(" · ")
+    : kind === "event"
+      ? [dateLabel ? `Event date ${dateLabel}` : "Event/release details monitored", "not shelf inventory"].join(" · ")
+      : [dateLabel ? `Release window ${dateLabel}` : "Release page monitored", "not shelf inventory"].join(" · ");
+  const caveat = drop.inventoryCaveat || (kind === "drop"
+    ? "Distillery gift-shop availability, not retailer inventory. Limits and same-day sellouts can apply."
+    : "Official distillery release intelligence, not a current inventory alert.");
+  return {
+    kind,
+    eyebrow: kind === "drop" ? "Distillery drop" : kind === "event" ? "Distillery event" : "Release watch",
+    trustChip: "Official source",
+    primaryLine,
+    statusLine,
+    limitLine,
+    checkedLabel,
+    sourceLabel,
+    sourceUrl: drop.sourceUrl,
+    caveat,
+    detailHeading: kind === "drop" ? "Distillery pickup lead" : kind === "event" ? "Distillery event lead" : "Release watch lead",
+    ctaLabel: kind === "drop" ? "View official page" : kind === "event" ? "View event details" : "View release page",
+  };
 }
 
 function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; tone: "exact" | "official" | "positive" } {
@@ -517,7 +585,8 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
     return { label: "Member report", detail: "Submitted by a member; verify before driving.", tone: "positive" };
   }
   if (isDistillerySignal(drop)) {
-    return { label: "Distillery drop", detail: "Official distillery availability/release lead; not retailer store inventory.", tone: "official" };
+    const meta = getDistilleryCardMeta(drop);
+    return { label: meta?.eyebrow || "Official distillery", detail: meta?.caveat || "Official distillery availability/release lead; not retailer store inventory.", tone: "official" };
   }
   if (isStoreLevelSignal(drop)) {
     return { label: "Store-level", detail: "Reported at a specific store; verify before driving.", tone: "exact" };
@@ -537,7 +606,7 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
 function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
   if (isStoreLevelSignal(drop)) return { label: "Store-level", tone: "exact" };
   if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member report", tone: "listing" };
-  if (isDistillerySignal(drop)) return { label: "Distillery", tone: "listing" };
+  if (isDistillerySignal(drop)) return { label: getDistilleryCardMeta(drop)?.eyebrow || "Distillery", tone: "listing" };
   if (drop.state === "NC" && isBoardLevelSignal(drop)) return { label: "Board-level", tone: "online" };
   if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") return { label: "Online", tone: "online" };
   if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) return { label: "Official", tone: "listing" };
@@ -650,18 +719,20 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   const [hovered, setHovered] = useState(false);
   const [glowing, setGlowing] = useState(isNew);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
+  const distilleryMeta = getDistilleryCardMeta(drop);
   const description = getEventDescription(drop);
   const stateLabel = drop.displayState || formatStateLabel(drop.state);
   const primaryLocation = drop.locations[0]?.label || description;
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
-  const primaryMeta = getPrimarySignalMeta(drop, locationSummary, stateLabel);
+  const primaryMeta = distilleryMeta?.primaryLine || getPrimarySignalMeta(drop, locationSummary, stateLabel);
   const signalLabel = drop.signalLabel || "Bottle drop";
   const signalTrust = getSignalTrust(drop);
+  const signalTime = distilleryMeta?.checkedLabel || formatDropTime(drop);
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
   const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
-  const canQuickReport = !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
+  const canQuickReport = !distilleryMeta && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
   const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
 
   // Glow timer for newest drop
@@ -682,6 +753,13 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   details.push({ label: "Trust note", value: `${signalTrust.label} · ${signalTrust.detail}` });
   if (confidenceBadge && confidenceBadge.label !== signalTrust.label) {
     details.push({ label: "Precision", value: confidenceBadge.label });
+  }
+  if (distilleryMeta) {
+    details.push({ label: "Distillery lane", value: distilleryMeta.detailHeading });
+    details.push({ label: "Source", value: distilleryMeta.sourceLabel });
+    details.push({ label: distilleryMeta.kind === "drop" ? "Availability" : "Timing", value: distilleryMeta.statusLine });
+    if (distilleryMeta.limitLine) details.push({ label: "Limit / rules", value: distilleryMeta.limitLine });
+    details.push({ label: "Caveat", value: distilleryMeta.caveat });
   }
   const firstReportedAt = drop.firstSeenAt || drop.eventAt || drop.timestamp;
   const lastReportedAt = drop.lastConfirmedAt || drop.timestamp;
@@ -747,9 +825,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
           marginBottom: "12px",
           padding: "15px 15px 14px",
           borderRadius: "22px",
-          border: `1px solid ${glowing && index === 0 ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
+          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : glowing && index === 0 ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
           background:
-            index === 0
+            distilleryMeta
+              ? "linear-gradient(145deg, rgba(196,148,58,0.11) 0%, rgba(31,22,12,0.94) 42%, rgba(11,9,7,0.96) 100%)"
+              : index === 0
               ? "linear-gradient(145deg, rgba(196,148,58,0.14) 0%, rgba(31,22,12,0.94) 42%, rgba(12,10,7,0.96) 100%)"
               : "linear-gradient(145deg, rgba(245,237,214,0.055) 0%, rgba(24,18,12,0.92) 44%, rgba(11,9,7,0.94) 100%)",
           boxShadow: index === 0 ? "0 18px 42px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.045)" : "0 14px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.035)",
@@ -773,6 +853,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
         <div className="flex items-center justify-between gap-3" style={{ marginBottom: "8px" }}>
           <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
             <TierBadge tier={drop.rarity_tier} />
+            {distilleryMeta ? (
+              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 850, letterSpacing: "0.08em", color: "rgba(232,201,122,0.96)", background: "rgba(196,148,58,0.11)", border: "1px solid rgba(196,148,58,0.24)", padding: "3px 7px", borderRadius: "999px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                {distilleryMeta.eyebrow}
+              </span>
+            ) : null}
             <span
               style={{
                 fontFamily: "var(--font-jetbrains)",
@@ -794,7 +879,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
               </span>
             )}
             <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
-              {formatDropTime(drop)}
+              {signalTime}
             </span>
           </div>
         </div>
@@ -817,6 +902,19 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
         >
           {drop.displayName}
         </div>
+
+        {distilleryMeta ? (
+          <div style={{ marginTop: "10px", padding: "9px 10px", borderRadius: "14px", border: "1px solid rgba(196,148,58,0.16)", background: "linear-gradient(135deg, rgba(196,148,58,0.08), rgba(245,237,214,0.025))" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, color: "rgba(245,237,214,0.88)", lineHeight: 1.25 }}>
+              {distilleryMeta.statusLine}
+            </div>
+            {distilleryMeta.limitLine ? (
+              <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(232,201,122,0.78)", lineHeight: 1.3 }}>
+                {distilleryMeta.limitLine}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {isUserSighting ? (
           <div style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid rgba(196,148,58,0.28)", background: "rgba(196,148,58,0.09)", borderRadius: "999px", padding: "5px 8px", color: "rgba(232,201,122,0.95)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -847,18 +945,21 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             color: "rgba(245,237,214,0.45)",
           }}
         >
-          <span>{signalTrust.label}</span>
-          <span style={{ color: "rgba(245,237,214,0.34)" }}>{signalLabel}</span>
+          <span>{distilleryMeta ? distilleryMeta.trustChip : signalTrust.label}</span>
+          <span style={{ color: "rgba(245,237,214,0.34)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{distilleryMeta ? distilleryMeta.sourceLabel : signalLabel}</span>
         </div>
 
-        {!isFreeUser ? (
+        {distilleryMeta?.sourceUrl || !isFreeUser ? (
           <div className="flex items-center gap-2" style={{ marginTop: "11px", flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
-            {canQuickReport ? (
+            {distilleryMeta?.sourceUrl ? (
+              <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>
+            ) : null}
+            {!distilleryMeta && canQuickReport ? (
               <>
                 <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
                 <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
               </>
-            ) : !isUserSighting ? (
+            ) : !distilleryMeta && !isUserSighting ? (
               <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
             ) : null}
           </div>
@@ -871,9 +972,9 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
         className="hidden md:flex items-center"
         style={{
           padding: "16px 20px",
-          borderLeft: `3px solid ${tier.borderColor}`,
+          borderLeft: `3px solid ${distilleryMeta ? "rgba(196,148,58,0.9)" : tier.borderColor}`,
           cursor: hasDetails ? "pointer" : "default",
-          background: hovered ? "rgba(196, 148, 58, 0.08)" : "transparent",
+          background: hovered ? "rgba(196, 148, 58, 0.08)" : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : "transparent",
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
           borderColor: hovered ? "rgba(212, 146, 11, 0.5)" : tier.borderColor,
@@ -904,6 +1005,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
           </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px", flexWrap: "wrap" }}>
             <TierBadge tier={drop.rarity_tier} />
+            {distilleryMeta ? (
+              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 850, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.10)", border: "1px solid rgba(196,148,58,0.22)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
+                {distilleryMeta.trustChip}
+              </span>
+            ) : null}
             {isUserSighting ? (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.09)", border: "1px solid rgba(196,148,58,0.26)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
                 Member sighting
@@ -969,16 +1075,26 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
               </span>
             )}
           </div>
+          {distilleryMeta ? (
+            <div style={{ marginTop: "7px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", fontFamily: "var(--font-dm-sans)", fontSize: "12px", lineHeight: 1.35 }}>
+              <span style={{ color: "rgba(245,237,214,0.82)", fontWeight: 700 }}>{distilleryMeta.statusLine}</span>
+              {distilleryMeta.limitLine ? <span style={{ color: "rgba(232,201,122,0.72)" }}>{distilleryMeta.limitLine}</span> : null}
+              <span style={{ color: "rgba(245,237,214,0.36)" }}>{distilleryMeta.sourceLabel}</span>
+            </div>
+          ) : null}
         </div>
 
-        {!isFreeUser ? (
+        {distilleryMeta?.sourceUrl || !isFreeUser ? (
           <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "10px" }} onClick={(event) => event.stopPropagation()}>
-            {canQuickReport ? (
+            {distilleryMeta?.sourceUrl ? (
+              <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>
+            ) : null}
+            {!distilleryMeta && canQuickReport ? (
               <>
                 <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
                 <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
               </>
-            ) : !isUserSighting ? (
+            ) : !distilleryMeta && !isUserSighting ? (
               <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
             ) : null}
           </div>
@@ -1013,7 +1129,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                 whiteSpace: "nowrap",
               }}
             >
-              {formatDropTime(drop)}
+              {signalTime}
             </span>
           )}
           {/* Timestamp below pricing */}
@@ -1027,7 +1143,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                 marginTop: "3px",
               }}
             >
-              {formatDropTime(drop)}
+              {signalTime}
             </span>
           )}
         </div>
@@ -1045,7 +1161,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
               whiteSpace: "nowrap",
             }}
           >
-            {formatDropTime(drop)}
+            {signalTime}
           </span>
         </div>
       </div>
@@ -1081,12 +1197,13 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                         fontFamily: "var(--font-jetbrains)",
                       }}
                     >
-                      {stateLabel ? `${stateLabel} drop/shipment` : "Drop/shipment"}
+                      {distilleryMeta ? distilleryMeta.detailHeading : stateLabel ? `${stateLabel} drop/shipment` : "Drop/shipment"}
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       {visibleLocations.map((location: DropLocation) => {
-                        const destinationLabel = drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
-                        const secondaryLine = location.address || location.boardName;
+                        const destinationLabel = distilleryMeta ? "Official distillery source" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
+                        const sourceLocationLabel = distilleryMeta?.primaryLine || location.label;
+                        const secondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
                         return (
                           <div
                             key={`${location.label}-${location.address ?? ""}`}
@@ -1101,7 +1218,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                               {destinationLabel}
                             </div>
                             <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
-                              <CountyLink county={location.label}>{location.label}</CountyLink>
+                              {distilleryMeta ? sourceLocationLabel : <CountyLink county={location.label}>{location.label}</CountyLink>}
                             </div>
                             {secondaryLine && (
                               <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>

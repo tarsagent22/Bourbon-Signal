@@ -28,12 +28,18 @@ export interface DropEvent {
   state_code?: string;
   source?: string;
   sourceUrl?: string;
+  producer?: string;
   observed_at?: string;
   event_at?: string;
+  releaseDate?: string;
+  eventDate?: string;
   first_seen_at?: string;
   last_confirmed_at?: string;
   timestamp_basis?: "source_event_at" | "first_seen_at" | "last_confirmed_at" | string;
   evidence?: string | null;
+  availabilityLabel?: string | null;
+  inventoryCaveat?: string | null;
+  dataLane?: string | null;
   inventorySemantics?: string | null;
   canAlertAsWatch?: boolean;
   exact_store?: boolean;
@@ -45,6 +51,7 @@ export interface DropEvent {
   signal_category?: string;
   display_state?: string;
   display_location?: string;
+  locationName?: string;
   is_user_facing_drop?: boolean;
   online_orderable_quantity?: number | null;
   online_in_stock_quantity?: number | null;
@@ -69,6 +76,7 @@ export interface GroupedDrop {
   counties: string[];
   board_name?: string;
   store_address?: string;
+  store_name?: string;
   retail_price?: number | null;
   quantity_shipped?: number;
   quantity_in_stock?: number;
@@ -83,6 +91,18 @@ export interface GroupedDrop {
   canAlertAsInventory?: boolean;
   signalCategory?: string;
   displayState?: string;
+  producer?: string;
+  source?: string;
+  sourceUrl?: string;
+  storeName?: string;
+  locationName?: string;
+  releaseDate?: string;
+  eventDate?: string;
+  availabilityLabel?: string | null;
+  inventoryCaveat?: string | null;
+  evidence?: string | null;
+  dataLane?: string | null;
+  canAlertAsWatch?: boolean;
   timestampBasis?: string;
   eventAt?: string;
   firstSeenAt?: string;
@@ -151,7 +171,7 @@ export function cleanBrandName(name: string): string {
 }
 
 function toTitleCase(str: string): string {
-  const preserveUppercase = new Set(["E.H.", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XV", "XX", "XXV", "EH", "VSOP", "XO", "VS"]);
+  const preserveUppercase = new Set(["E.H.", "C.Y.P.B.", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XV", "XX", "XXV", "EH", "CYPB", "VSOP", "XO", "VS"]);
   return str
     .split(/\s+/)
     .map((word) => {
@@ -357,6 +377,18 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.canAlertAsInventory && event.can_alert_as_inventory) {
         existing.canAlertAsInventory = event.can_alert_as_inventory;
       }
+      if (!existing.producer && event.producer) existing.producer = event.producer;
+      if (!existing.source && event.source) existing.source = event.source;
+      if (!existing.sourceUrl && event.sourceUrl) existing.sourceUrl = event.sourceUrl;
+      if (!existing.storeName && event.store_name) existing.storeName = event.store_name;
+      if (!existing.locationName && event.locationName) existing.locationName = event.locationName;
+      if (!existing.releaseDate && event.releaseDate) existing.releaseDate = event.releaseDate;
+      if (!existing.eventDate && event.eventDate) existing.eventDate = event.eventDate;
+      if (!existing.availabilityLabel && event.availabilityLabel) existing.availabilityLabel = event.availabilityLabel;
+      if (!existing.inventoryCaveat && event.inventoryCaveat) existing.inventoryCaveat = event.inventoryCaveat;
+      if (!existing.evidence && event.evidence) existing.evidence = event.evidence;
+      if (!existing.dataLane && event.dataLane) existing.dataLane = event.dataLane;
+      if (!existing.canAlertAsWatch && event.canAlertAsWatch) existing.canAlertAsWatch = event.canAlertAsWatch;
       if (!existing.eventAt && event.event_at) existing.eventAt = event.event_at;
       if (!existing.firstSeenAt || (event.first_seen_at && event.first_seen_at < existing.firstSeenAt)) existing.firstSeenAt = event.first_seen_at;
       if (!existing.lastConfirmedAt || (event.last_confirmed_at && event.last_confirmed_at > existing.lastConfirmedAt)) existing.lastConfirmedAt = event.last_confirmed_at;
@@ -373,6 +405,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         counties: locations.map((location) => location.label),
         board_name: event.board_name || event.store_city,
         store_address: event.store_address,
+        store_name: event.store_name,
         retail_price: event.retail_price,
         quantity_shipped: event.quantity_shipped ?? event.quantity,
         quantity_in_stock: event.quantity_in_stock,
@@ -387,6 +420,18 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         canAlertAsInventory: event.can_alert_as_inventory,
         signalCategory: event.signal_category,
         displayState: event.display_state || formatStateLabel(event.state || event.state_code),
+        producer: event.producer,
+        source: event.source,
+        sourceUrl: event.sourceUrl,
+        storeName: event.store_name,
+        locationName: event.locationName,
+        releaseDate: event.releaseDate,
+        eventDate: event.eventDate,
+        availabilityLabel: event.availabilityLabel,
+        inventoryCaveat: event.inventoryCaveat,
+        evidence: event.evidence,
+        dataLane: event.dataLane,
+        canAlertAsWatch: event.canAlertAsWatch,
         timestampBasis: event.timestamp_basis,
         eventAt: event.event_at,
         firstSeenAt: event.first_seen_at,
