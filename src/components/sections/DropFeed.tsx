@@ -101,7 +101,7 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
   return {
     displayName: sighting.bottleName,
     event_type: "user_sighting",
-    rarity_tier: sighting.rarityTier || "limited",
+    rarity_tier: sighting.rarityTier || "unknown",
     timestamp: sighting.createdAt,
     counties: areaLabel ? [areaLabel] : storeCity ? [storeCity] : [],
     store_address: sighting.storeAddress,
@@ -326,7 +326,7 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
 }
 
 function getDropRarityRank(drop: GroupedDrop) {
-  return drop.rarity_tier === "unicorn" ? 3 : drop.rarity_tier === "allocated" ? 2 : 1;
+  return drop.rarity_tier === "unicorn" ? 3 : drop.rarity_tier === "allocated" ? 2 : drop.rarity_tier === "limited" ? 1 : 0;
 }
 
 function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
@@ -616,9 +616,9 @@ function getPrimarySignalMeta(drop: GroupedDrop, locationSummary: string, stateL
 }
 
 function TierBadge({ tier }: { tier: string }) {
-  const config = TIER_CONFIG[tier] || TIER_CONFIG.limited;
+  const config = TIER_CONFIG[tier] || TIER_CONFIG.unknown;
   return (
-    <span className={`drop-tier-badge tier-${tier}`} style={{ borderColor: config.borderColor }}>
+    <span className={`drop-tier-badge tier-${TIER_CONFIG[tier] ? tier : "unknown"}`} style={{ borderColor: config.borderColor }}>
       {config.label}
     </span>
   );
@@ -639,7 +639,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [glowing, setGlowing] = useState(isNew);
-  const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
+  const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
   const description = getEventDescription(drop);
   const stateLabel = drop.displayState || formatStateLabel(drop.state);
   const primaryLocation = drop.locations[0]?.label || description;
@@ -1704,6 +1704,19 @@ export default function DropFeed() {
           color: rgba(245,237,214,0.72);
           background: rgba(138,138,138,0.16);
           border-color: rgba(138,138,138,0.35) !important;
+        }
+        .drop-tier-badge.tier-standard,
+        .drop-tier-badge.tier-core,
+        .drop-tier-badge.tier-unknown {
+          color: rgba(245,237,214,0.58);
+          background: rgba(166,157,132,0.10);
+          border-color: rgba(166,157,132,0.26) !important;
+        }
+        .drop-tier-badge.tier-core,
+        .drop-tier-badge.tier-unknown {
+          color: rgba(245,237,214,0.48);
+          background: rgba(166,157,132,0.07);
+          border-color: rgba(166,157,132,0.18) !important;
         }
         .dropfeed-refine-grid {
           display: grid;

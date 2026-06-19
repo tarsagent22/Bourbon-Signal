@@ -30,7 +30,7 @@ const NC_COUNTIES = [
 ] as const;
 
 function TierBadge({ tier }: { tier: string }) {
-  const config = TIER_CONFIG[tier] || TIER_CONFIG.limited;
+  const config = TIER_CONFIG[tier] || TIER_CONFIG.unknown;
   return <span style={config.pillStyle}>{config.label}</span>;
 }
 
@@ -50,12 +50,12 @@ interface FeedItemProps {
 function FeedItem({ drop, onWatchlist }: FeedItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
+  const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
   const description = getEventDescription(drop);
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const multColors =
-    MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.limited;
+    MULTIPLIER_COLORS[drop.rarity_tier] || MULTIPLIER_COLORS.unknown;
 
   const details: { label: string; value: string }[] = [];
   if (drop.counties.length > 0) {

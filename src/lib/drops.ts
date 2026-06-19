@@ -519,12 +519,66 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
       whiteSpace: "nowrap" as const,
     },
   },
+  standard: {
+    label: "STANDARD",
+    borderColor: "rgba(166,157,132,0.42)",
+    pillStyle: {
+      background: "rgba(166,157,132,0.10)",
+      border: "1px solid rgba(166,157,132,0.24)",
+      color: "rgba(245,237,214,0.66)",
+      fontFamily: "var(--font-dm-sans)",
+      fontSize: "9px",
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.1em",
+      padding: "3px 10px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap" as const,
+    },
+  },
+  core: {
+    label: "CORE",
+    borderColor: "rgba(166,157,132,0.30)",
+    pillStyle: {
+      background: "rgba(166,157,132,0.08)",
+      border: "1px solid rgba(166,157,132,0.18)",
+      color: "rgba(245,237,214,0.58)",
+      fontFamily: "var(--font-dm-sans)",
+      fontSize: "9px",
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.1em",
+      padding: "3px 10px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap" as const,
+    },
+  },
+  unknown: {
+    label: "SIGNAL",
+    borderColor: "rgba(166,157,132,0.24)",
+    pillStyle: {
+      background: "rgba(166,157,132,0.06)",
+      border: "1px solid rgba(166,157,132,0.16)",
+      color: "rgba(245,237,214,0.52)",
+      fontFamily: "var(--font-dm-sans)",
+      fontSize: "9px",
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.1em",
+      padding: "3px 10px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap" as const,
+    },
+  },
 };
 
 export const MULTIPLIER_COLORS: Record<string, { bg: string; color: string; border: string }> = {
   unicorn: { bg: "rgba(196,148,58,0.15)", color: "#C4943A", border: "rgba(196,148,58,0.3)" },
   allocated: { bg: "rgba(184,115,51,0.15)", color: "#B87333", border: "rgba(184,115,51,0.3)" },
   limited: { bg: "rgba(138,138,138,0.12)", color: "#8A8A8A", border: "rgba(138,138,138,0.25)" },
+  standard: { bg: "rgba(166,157,132,0.10)", color: "rgba(245,237,214,0.66)", border: "rgba(166,157,132,0.24)" },
+  core: { bg: "rgba(166,157,132,0.08)", color: "rgba(245,237,214,0.58)", border: "rgba(166,157,132,0.18)" },
+  unknown: { bg: "rgba(166,157,132,0.06)", color: "rgba(245,237,214,0.52)", border: "rgba(166,157,132,0.16)" },
 };
 
 export function lookupPricing(

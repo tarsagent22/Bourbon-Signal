@@ -1,10 +1,10 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T01:19:32.661Z",
-  "engineGeneratedAt": "2026-06-19T01:19:16.479Z",
+  "generatedAt": "2026-06-19T10:07:20.809Z",
+  "engineGeneratedAt": "2026-06-19T10:07:03.827Z",
   "stateCount": 13,
-  "signalCount": 14927,
-  "historicalSignalCount": 101064,
+  "signalCount": 14938,
+  "historicalSignalCount": 104135,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 151,
@@ -13,10 +13,10 @@
   "locationCount": 3538,
   "officialLocationCount": 0,
   "preloadedLocationCount": 156,
-  "dropCount": 3781,
-  "eventCount": 1562,
+  "dropCount": 3596,
+  "eventCount": 1635,
   "historicalTrendCount": 100,
-  "alertCandidateCount": 8,
+  "alertCandidateCount": 1,
   "roadblockCount": 19,
   "refreshHealth": {
     "degradedStateCount": 0,
@@ -157,7 +157,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_availability_status",
-        "signalCount": 387,
+        "signalCount": 394,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -176,7 +176,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_inventory_and_board_leads",
-        "signalCount": 2119,
+        "signalCount": 2121,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -195,7 +195,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 1511,
+        "signalCount": 1512,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -273,7 +273,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 89,
+        "signalCount": 90,
         "roadblockCount": 1,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "store_level",
@@ -287,7 +287,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-19T01:19:32.663Z",
+    "generatedAt": "2026-06-19T10:07:20.813Z",
     "focusStates": [
       "AL",
       "VA",
@@ -324,7 +324,7 @@
         "label": "North Carolina",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 2119,
+        "signalCount": 2121,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -344,7 +344,7 @@
         "label": "South Carolina",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 89,
+        "signalCount": 90,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -840,7 +840,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -856,7 +856,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "043b9c8f4cc5473e",
@@ -882,7 +882,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 169,
-    "boardsWithReleasePages": 13,
+    "boardsWithReleasePages": 14,
     "boardsWithInventoryPages": 7,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
@@ -894,10 +894,10 @@
       "source": "Iowa ABD statewide product snapshot",
       "locationPrecision": "board_warehouse",
       "inventoryObservations": 0,
-      "watchObservations": 147,
-      "positiveQuantities": 147,
+      "watchObservations": 161,
+      "positiveQuantities": 161,
       "firstObservedAt": "2026-06-17T18:14:52.351Z",
-      "lastObservedAt": "2026-06-19T01:13:48.642Z",
+      "lastObservedAt": "2026-06-19T10:01:54.523Z",
       "sampleSignalIds": [
         "9b24ddebf3e1e87f",
         "9b24ddebf3e1e87f",
@@ -905,7 +905,7 @@
         "9b24ddebf3e1e87f",
         "9b24ddebf3e1e87f"
       ],
-      "observationCount": 147,
+      "observationCount": 161,
       "current": true,
       "trendLabel": "repeated_release_watch_signal"
     },
@@ -917,8 +917,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "3e7c64958ddd9174",
         "3e7c64958ddd9174",
@@ -938,8 +938,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "8a737d57a80f4aff",
         "8a737d57a80f4aff",
@@ -959,8 +959,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "86bd9c689f80aadd",
         "86bd9c689f80aadd",
@@ -980,8 +980,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7",
@@ -1001,8 +1001,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "8b92cd04bccd07d7",
         "8b92cd04bccd07d7",
@@ -1022,8 +1022,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "26be2dbafd38edcb",
         "26be2dbafd38edcb",
@@ -1043,8 +1043,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "9b1619082b879b4c",
         "9b1619082b879b4c",
@@ -1064,8 +1064,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 92,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "1b891de9cacf3736",
         "1b891de9cacf3736",
@@ -1082,11 +1082,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Orland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 89,
-      "watchObservations": 89,
-      "positiveQuantities": 89,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "inventoryObservations": 91,
+      "watchObservations": 91,
+      "positiveQuantities": 91,
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "3dbaa2eb38360026",
         "3dbaa2eb38360026",
@@ -1094,7 +1094,7 @@
         "3dbaa2eb38360026",
         "3dbaa2eb38360026"
       ],
-      "observationCount": 178,
+      "observationCount": 182,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1106,8 +1106,8 @@
       "inventoryObservations": 77,
       "watchObservations": 77,
       "positiveQuantities": 77,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "b50a74e8814d1b0f",
         "b50a74e8814d1b0f",
@@ -1120,6 +1120,27 @@
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
     {
+      "state": "IA",
+      "bottleName": "1792 Small Batch",
+      "source": "Iowa ABD statewide product snapshot",
+      "locationPrecision": "board_warehouse",
+      "inventoryObservations": 0,
+      "watchObservations": 71,
+      "positiveQuantities": 71,
+      "firstObservedAt": "2026-06-17T18:14:52.351Z",
+      "lastObservedAt": "2026-06-19T10:01:54.523Z",
+      "sampleSignalIds": [
+        "bf1919a1d03c1f95",
+        "bf1919a1d03c1f95",
+        "bf1919a1d03c1f95",
+        "bf1919a1d03c1f95",
+        "bf1919a1d03c1f95"
+      ],
+      "observationCount": 71,
+      "current": true,
+      "trendLabel": "repeated_release_watch_signal"
+    },
+    {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomingdale",
@@ -1127,8 +1148,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "c94866150695edc7",
         "c94866150695edc7",
@@ -1148,8 +1169,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "078466be5913d6de",
         "078466be5913d6de",
@@ -1169,8 +1190,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "7fb6c8166a2e069e",
         "7fb6c8166a2e069e",
@@ -1190,8 +1211,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "ab97754c766a5a02",
         "ab97754c766a5a02",
@@ -1211,8 +1232,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "f00246d9d22b4e4e",
         "f00246d9d22b4e4e",
@@ -1227,13 +1248,34 @@
     {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Bolingbrook",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 92,
+      "watchObservations": 92,
+      "positiveQuantities": 69,
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
+      "sampleSignalIds": [
+        "9d6769d03aa2d785",
+        "9d6769d03aa2d785",
+        "9d6769d03aa2d785",
+        "e0e01a38713fae1a",
+        "9d6769d03aa2d785"
+      ],
+      "observationCount": 184,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Vernon Hills",
       "locationPrecision": "store_level",
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "5b36f09df2a283e0",
         "5b36f09df2a283e0",
@@ -1253,8 +1295,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "5a5850a4622538b6",
         "5a5850a4622538b6",
@@ -1274,8 +1316,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "0d8da579399c2f2a",
         "0d8da579399c2f2a",
@@ -1295,8 +1337,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "bd691c9eea587de2",
         "bd691c9eea587de2",
@@ -1311,13 +1353,34 @@
     {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Lincoln Park",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 92,
+      "watchObservations": 92,
+      "positiveQuantities": 69,
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
+      "sampleSignalIds": [
+        "e121df744bd2001a",
+        "e121df744bd2001a",
+        "e121df744bd2001a",
+        "b2edc2fa7bee19a0",
+        "e121df744bd2001a"
+      ],
+      "observationCount": 184,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Montgomery",
       "locationPrecision": "store_level",
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "b4dfe16d254eb78b",
         "b4dfe16d254eb78b",
@@ -1337,8 +1400,8 @@
       "inventoryObservations": 92,
       "watchObservations": 92,
       "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
+      "firstObservedAt": "2026-06-17T18:17:12.588Z",
+      "lastObservedAt": "2026-06-19T10:05:28.338Z",
       "sampleSignalIds": [
         "35f41c3a2bdcb20e",
         "35f41c3a2bdcb20e",
@@ -1347,69 +1410,6 @@
         "35f41c3a2bdcb20e"
       ],
       "observationCount": 184,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Lincolnwood",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 92,
-      "watchObservations": 92,
-      "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
-      "sampleSignalIds": [
-        "25c56338c991635f",
-        "25c56338c991635f",
-        "25c56338c991635f",
-        "4a20577ca9c3fb21",
-        "25c56338c991635f"
-      ],
-      "observationCount": 184,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Lincoln Park",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 90,
-      "watchObservations": 90,
-      "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:02.518Z",
-      "lastObservedAt": "2026-06-19T01:17:39.032Z",
-      "sampleSignalIds": [
-        "e121df744bd2001a",
-        "e121df744bd2001a",
-        "e121df744bd2001a",
-        "b2edc2fa7bee19a0",
-        "e121df744bd2001a"
-      ],
-      "observationCount": 180,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "TN",
-      "bottleName": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
-      "source": "Cool Springs Wine & Spirits",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 69,
-      "watchObservations": 69,
-      "positiveQuantities": 69,
-      "firstObservedAt": "2026-06-15T14:47:08.822Z",
-      "lastObservedAt": "2026-06-19T01:18:29.774Z",
-      "sampleSignalIds": [
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7"
-      ],
-      "observationCount": 138,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     }

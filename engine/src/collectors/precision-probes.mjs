@@ -482,7 +482,7 @@ const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|c
 
 const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
 const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 3);
-const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
+const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 90 * 60_000);
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_CITYHIVE_SOURCES = [
   {

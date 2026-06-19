@@ -121,6 +121,11 @@ function findBibleRecord(signal, bible) {
   return null;
 }
 
+function exportedTier(signal, bibleRecord) {
+  const signalTier = signal.tier && signal.tier !== 'unknown' ? signal.tier : null;
+  return signalTier || bibleRecord?.tier || null;
+}
+
 function tierWeight(tier) {
   return tier === 'unicorn' ? 4 : tier === 'allocated' ? 3 : tier === 'limited' ? 2 : tier === 'core' ? 1 : 0;
 }
@@ -204,7 +209,7 @@ function publicSignal(signal, bible, freshness = null) {
     canonicalName,
     rawName: signal.rawName || null,
     aliases: preferOfficialSourceName ? [] : (bibleRecord?.aliases || []),
-    tier: preferOfficialSourceName ? null : ((signal.tier && signal.tier !== 'unknown' ? signal.tier : bibleRecord?.tier) || null),
+    tier: exportedTier(signal, bibleRecord),
     producer: preferOfficialSourceName ? null : (signal.producer || bibleRecord?.producer || null),
     type: signal.eventType,
     source: signal.sourceLabel,

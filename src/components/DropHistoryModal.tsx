@@ -284,7 +284,7 @@ export default function DropHistoryModal({ bottle, isOpen, onClose }: DropHistor
             /* Drop timeline */
             <div className="flex flex-col" style={{ gap: "10px" }}>
               {recentDrops.map((drop, i) => {
-                const tierCfg = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.limited;
+                const tierCfg = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
                 const storeName = getStoreName(drop);
                 const location = getDropLocation(drop);
                 const timeAgo = formatRelativeTime(drop.timestamp);

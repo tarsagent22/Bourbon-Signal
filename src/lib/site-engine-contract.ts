@@ -64,7 +64,7 @@ export function normalizeBottleForSite(bottle: JsonRecord) {
   const aliases = Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [];
   const inventorySignalCount = asNumber(bottle.inventorySignalCount);
   const signalCount = asNumber(bottle.signalCount);
-  const tier = asString(bottle.tier, "limited");
+  const tier = asString(bottle.tier, "unknown");
 
   return {
     ...bottle,
@@ -149,7 +149,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: type === "nc_board_shipment_snapshot" ? quantity || undefined : undefined,
     quantity: quantity || undefined,
-    rarity_tier: asString(drop.tier, "limited"),
+    rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
     state,
     state_code: state,
