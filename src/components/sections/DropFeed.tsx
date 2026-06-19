@@ -36,7 +36,6 @@ interface DropsResponse {
 }
 
 const KENTUCKY_RELEASE_WATCH_SOURCE_COUNT = 8;
-const KENTUCKY_RELEASE_WATCH_SOURCE_NAMES = "Old Forester, Four Roses, Heaven Hill, Maker’s Mark, and Wild Turkey";
 
 const MOCK_DROPS: DropEvent[] = [
   {
@@ -2221,11 +2220,6 @@ export default function DropFeed() {
                 </span>
                 {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
               </div>
-              {isKentuckyFeed ? (
-                <div style={{ margin: "-4px 0 14px", padding: "11px 12px", borderRadius: "15px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", fontFamily: "var(--font-dm-sans)", color: "rgba(245,237,214,0.62)", fontSize: "12.5px", lineHeight: 1.45 }}>
-                  Kentucky is split into <strong style={{ color: "rgba(245,237,214,0.86)" }}>pickup leads</strong> and <strong style={{ color: "rgba(245,237,214,0.86)" }}>release watch</strong>. The cards below are current official gift-shop pickup leads. We also monitor {KENTUCKY_RELEASE_WATCH_SOURCE_NAMES} for release pages, but those stay watch-only until a distillery confirms pickup availability.
-                </div>
-              ) : null}
             </>
           )}
 
