@@ -28,7 +28,12 @@ async function main() {
   const releaseWatchSignals = distillerySignals.filter((signal) => signal.eventType === 'distillery_release_watch');
   if (ky.status !== 'useful') fail('KY state report should be useful.', { status: ky.status });
   if (!giftShopDrops.length) fail('KY should include at least one official distillery gift-shop availability signal.');
-  if (!releaseWatchSignals.length) fail('KY should include at least one official distillery release-watch source.');
+  if (releaseWatchSignals.length < 8) fail('KY should include the expanded official distillery release-watch source set.', releaseWatchSignals.map((signal) => signal.sourceLabel));
+  for (const label of ['Old Forester', 'Four Roses', 'Heaven Hill', "Maker's Mark", 'Wild Turkey']) {
+    if (!releaseWatchSignals.some((signal) => String(signal.sourceLabel || signal.rawName || '').includes(label))) {
+      fail(`KY release-watch sources should include ${label}.`, releaseWatchSignals.map((signal) => signal.sourceLabel));
+    }
+  }
   const badInventorySignals = distillerySignals.filter((signal) => signal.canAlertAsInventory || signal.locationPrecision !== 'distillery');
   if (badInventorySignals.length) fail('Distillery signals must not be retailer inventory and must use distillery precision.', badInventorySignals.slice(0, 5));
   const weakSemantics = distillerySignals.filter((signal) => !/not retailer store inventory|not.*store shipment/i.test(String(signal.inventorySemantics || '')));

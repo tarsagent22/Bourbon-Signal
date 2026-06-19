@@ -3520,12 +3520,64 @@ const KY_DISTILLERY_RELEASE_WATCH_PAGES = [
   {
     label: 'Old Forester Birthday Bourbon official release FAQ',
     url: 'https://www.oldforester.com/birthday-bourbon-faqs/',
-    bottle: 'Old Forester Birthday Bourbon'
+    bottle: 'Old Forester Birthday Bourbon',
+    distillery: 'Old Forester Distillery',
+    expectedText: ['Birthday Bourbon', 'Old Forester']
   },
   {
     label: 'Four Roses Limited Edition official release page',
     url: 'https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch',
-    bottle: 'Four Roses Limited Edition Small Batch'
+    bottle: 'Four Roses Limited Edition Small Batch',
+    distillery: 'Four Roses Distillery',
+    expectedText: ['Limited Edition Small Batch', 'Four Roses']
+  },
+  {
+    label: 'Heaven Hill Heritage Collection official release page',
+    url: 'https://heavenhilldistillery.com/heavenhill-heritage-collection.php',
+    bottle: 'Heaven Hill Heritage Collection 22-Year-Old Kentucky Straight Bourbon',
+    canonicalName: 'Heaven Hill Heritage Collection 22-Year-Old Kentucky Straight Bourbon',
+    distillery: 'Heaven Hill Distillery',
+    expectedText: ['Heaven Hill Heritage Collection', 'Kentucky Straight Bourbon']
+  },
+  {
+    label: "Maker's Mark Greats of the Gate official release page",
+    url: 'https://www.makersmark.com/bourbons/greats-of-the-gate',
+    bottle: "Maker's Mark Greats of the Gate 2026",
+    canonicalName: "Maker's Mark Greats of the Gate 2026",
+    distillery: "Maker's Mark Distillery",
+    expectedText: ['Greats of the Gate', 'Maker']
+  },
+  {
+    label: "Maker's Mark Cellar Aged official limited-release page",
+    url: 'https://www.makersmark.com/bourbons/makers-mark-cellar-aged',
+    bottle: "Maker's Mark Cellar Aged",
+    canonicalName: "Maker's Mark Cellar Aged",
+    distillery: "Maker's Mark Distillery",
+    expectedText: ['Cellar Aged', 'Maker']
+  },
+  {
+    label: "Maker's Mark Wood Finishing Series official limited-release page",
+    url: 'https://www.makersmark.com/bourbons/makers-mark-wood-finishing-series-collection',
+    bottle: "Maker's Mark Wood Finishing Series",
+    canonicalName: "Maker's Mark Wood Finishing Series",
+    distillery: "Maker's Mark Distillery",
+    expectedText: ['Wood Finishing Series', 'Maker']
+  },
+  {
+    label: "Wild Turkey Master's Keep Beacon official release page",
+    url: 'https://www.wildturkeybourbon.com/en-us/products/masters-keep-beacon/',
+    bottle: "Wild Turkey Master's Keep Beacon",
+    canonicalName: "Wild Turkey Master's Keep Beacon",
+    distillery: 'Wild Turkey Distilling Co.',
+    expectedText: ["Master's Keep", 'Beacon', 'Wild Turkey']
+  },
+  {
+    label: 'Wild Turkey Austin Nichols Archives official release page',
+    url: 'https://www.wildturkeybourbon.com/en-us/products/austin-nichols-archives-bourbons/',
+    bottle: 'Wild Turkey Austin Nichols Archives Gold Foil Edition',
+    canonicalName: 'Wild Turkey Austin Nichols Archives Gold Foil Edition',
+    distillery: 'Wild Turkey Distilling Co.',
+    expectedText: ['Austin Nichols Archives', 'Gold Foil Edition', 'Wild Turkey']
   }
 ];
 
@@ -3637,6 +3689,12 @@ function kyReleaseDateFromText(text) {
   return null;
 }
 
+function kyPageContainsExpectedText(text, page) {
+  const haystack = String(text || '').toLowerCase();
+  const expected = page.expectedText?.length ? page.expectedText : [page.bottle];
+  return expected.some((needle) => haystack.includes(String(needle || '').toLowerCase()));
+}
+
 async function collectKentuckyBuffaloTraceAvailability(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -3739,8 +3797,20 @@ async function collectKentuckyReleaseWatchPages(config, bible, observedAt) {
       });
       continue;
     }
-    const text = kyDecodeEscapedText(res.text).slice(0, 5000);
+    const text = kyDecodeEscapedText(res.text).slice(0, 7000);
+    if (!kyPageContainsExpectedText(text, page)) {
+      roadblocks.push({
+        state: config.id,
+        source: page.label,
+        url: page.url,
+        status: res.status || 200,
+        error: `Official release-watch page did not contain expected release text for ${page.bottle}.`,
+        nextRoute: 'Inspect the page copy before surfacing this distillery release-watch signal.'
+      });
+      continue;
+    }
     const { record } = bottleMatch(page.bottle, bible);
+    const releaseDate = kyReleaseDateFromText(text);
     signals.push({
       id: stableId([config.id, 'official-distillery-release-watch', page.url, page.bottle]),
       state: config.id,
@@ -3748,22 +3818,22 @@ async function collectKentuckyReleaseWatchPages(config, bible, observedAt) {
       sourceUrl: page.url,
       rawName: page.bottle,
       canonicalBottleId: record?.id || null,
-      canonicalName: record?.canonical || page.bottle,
+      canonicalName: page.canonicalName || record?.canonical || page.bottle,
       confidence: 0.64,
       eventType: 'distillery_release_watch',
       locationPrecision: 'distillery',
-      locationName: 'Kentucky distillery release watch',
+      locationName: page.distillery ? `${page.distillery} release watch` : 'Kentucky distillery release watch',
       quantity: 0,
       availabilityStatus: 'release_watch',
       availabilityLabel: 'Official distillery release-watch page',
-      releaseDate: kyReleaseDateFromText(text),
-      eventDate: kyReleaseDateFromText(text),
+      releaseDate,
+      eventDate: releaseDate,
       observedAt,
       canAlertAsInventory: false,
       canAlertAsWatch: true,
       inventorySemantics: 'Official Kentucky distillery release page. Release-watch intelligence only; not retailer store inventory or a store shipment alert.',
       evidence: `${page.label} is reachable and references ${page.bottle}. Treat as official distillery release-watch context unless/until the page publishes a current pickup/drop window.`,
-      raw: { sourceKind: 'official_distillery_release_watch', title: htmlTitle(res.text), excerpt: text.slice(0, 700), precisionCaveat: 'official release-watch page; exact pickup inventory not exposed' }
+      raw: { sourceKind: 'official_distillery_release_watch', distillery: page.distillery || null, expectedText: page.expectedText || [], title: htmlTitle(res.text), excerpt: text.slice(0, 900), precisionCaveat: 'official release-watch page; exact pickup inventory not exposed' }
     });
   }
   return { signals, roadblocks };

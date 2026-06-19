@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T13:01:02.730Z",
+  "generatedAt": "2026-06-19T15:46:01.448Z",
   "count": 151,
   "bottles": [
     {
@@ -60,7 +60,7 @@
         "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-19T12:54:31.435Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -144,7 +144,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_3566c2a0088ec99a",
@@ -225,7 +225,7 @@
         "TN",
         "UT"
       ],
-      "latestObservedAt": "2026-06-19T12:54:31.435Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_770b95a65307bba6",
@@ -283,7 +283,7 @@
         "TN",
         "UT"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_67bcd6d3c76d2c50",
@@ -431,17 +431,18 @@
       ],
       "tier": "unicorn",
       "producer": "Heaven Hill",
-      "signalCount": 4,
-      "stateCount": 2,
+      "signalCount": 5,
+      "stateCount": 3,
       "inventorySignalCount": 0,
-      "watchSignalCount": 4,
-      "bestLocationPrecision": "store_aggregate",
+      "watchSignalCount": 5,
+      "bestLocationPrecision": "distillery",
       "bestConfidence": 0.9,
       "states": [
         "ID",
+        "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-19T12:47:26.910Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_78043ec3da926c43",
@@ -456,16 +457,17 @@
       ],
       "tier": "unicorn",
       "producer": "Maker's Mark",
-      "signalCount": 3,
-      "stateCount": 1,
+      "signalCount": 4,
+      "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
-      "bestLocationPrecision": "statewide_catalog",
+      "watchSignalCount": 4,
+      "bestLocationPrecision": "distillery",
       "bestConfidence": 0.9,
       "states": [
+        "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-19T12:47:24.736Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -541,7 +543,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_a66a1b8df27382e5",
@@ -618,7 +620,7 @@
         "NC",
         "UT"
       ],
-      "latestObservedAt": "2026-06-19T12:54:31.435Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_a3c16eb6f814785b",
@@ -673,6 +675,31 @@
       "latestObservedAt": "2026-06-19T12:45:38.670Z"
     },
     {
+      "id": "bb_7027ba16ae56677c",
+      "canonical_id": "bb_7027ba16ae56677c",
+      "canonical_name": "Wild Turkey Master's Keep",
+      "canonical_key": "wild turkey master s keep",
+      "name": "Wild Turkey Master's Keep",
+      "aliases": [
+        "Masters Keep",
+        "Wild Turkey Master Keep",
+        "Wild Turkey Master's Keep"
+      ],
+      "tier": "unicorn",
+      "producer": "Wild Turkey",
+      "signalCount": 3,
+      "stateCount": 2,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 3,
+      "bestLocationPrecision": "distillery",
+      "bestConfidence": 0.88,
+      "states": [
+        "KY",
+        "MD-MONTGOMERY"
+      ],
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
+    },
+    {
       "id": "bb_ac855cd46254e92a",
       "canonical_id": "bb_ac855cd46254e92a",
       "canonical_name": "Old Fitzgerald Bottled-in-Bond",
@@ -699,30 +726,6 @@
         "UT"
       ],
       "latestObservedAt": "2026-06-19T12:54:19.000Z"
-    },
-    {
-      "id": "bb_7027ba16ae56677c",
-      "canonical_id": "bb_7027ba16ae56677c",
-      "canonical_name": "Wild Turkey Master's Keep",
-      "canonical_key": "wild turkey master s keep",
-      "name": "Wild Turkey Master's Keep",
-      "aliases": [
-        "Masters Keep",
-        "Wild Turkey Master Keep",
-        "Wild Turkey Master's Keep"
-      ],
-      "tier": "unicorn",
-      "producer": "Wild Turkey",
-      "signalCount": 2,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 2,
-      "bestLocationPrecision": "store_aggregate",
-      "bestConfidence": 0.78,
-      "states": [
-        "MD-MONTGOMERY"
-      ],
-      "latestObservedAt": "2026-06-19T12:53:46.214Z"
     },
     {
       "id": "bb_3e51382764120baa",
@@ -1090,7 +1093,7 @@
         "UT",
         "VA"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1149,7 +1152,7 @@
         "TN",
         "UT"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1176,7 +1179,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1212,7 +1215,7 @@
         "UT",
         "VA"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_5afa9241206ab963",
@@ -1250,7 +1253,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1739,7 +1742,7 @@
         "TN",
         "UT"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1843,7 +1846,7 @@
         "IL",
         "IN"
       ],
-      "latestObservedAt": "2026-06-19T12:53:41.197Z"
+      "latestObservedAt": "2026-06-19T15:45:27.479Z"
     },
     {
       "id": "bb_8b9546b93a7fbe72",
@@ -1898,7 +1901,7 @@
         "IA",
         "IL"
       ],
-      "latestObservedAt": "2026-06-19T12:53:41.197Z"
+      "latestObservedAt": "2026-06-19T15:45:27.479Z"
     },
     {
       "id": "bb_1f0975f2e3cbd2d5",
@@ -2095,7 +2098,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_d99031402ce45359",
@@ -2204,7 +2207,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_21f337f08eaf6bdd",
@@ -2358,7 +2361,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_c57c8f61c0075ec5",
@@ -2677,16 +2680,17 @@
       ],
       "tier": "limited",
       "producer": "Maker's Mark",
-      "signalCount": 1,
-      "stateCount": 1,
+      "signalCount": 2,
+      "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.7799999999999999,
+      "watchSignalCount": 2,
+      "bestLocationPrecision": "distillery",
+      "bestConfidence": 0.88,
       "states": [
+        "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-06-19T12:47:21.036Z"
+      "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
     {
       "id": "bb_63d8202a47b5f253",
@@ -3069,7 +3073,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -3249,7 +3253,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_24a388c391f6626f",
@@ -3277,7 +3281,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_dfd57a8fdc086894",
@@ -3305,7 +3309,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_cd5d49e4d71817d0",
@@ -3425,7 +3429,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-06-19T12:54:33.975Z"
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
     {
       "id": "bb_dab3d03d7632a821",

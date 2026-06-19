@@ -241,8 +241,8 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'KY', label: 'Kentucky distillery release watch', tier: 'B', strategy: 'official_distillery_drop_and_release_watch', cadence: 'daily-60m',
-    value: 'Kentucky is the distillery Mecca. Customer-facing value comes from official distillery gift-shop availability and release-watch pages, explicitly separated from retailer store inventory.',
+    id: 'KY', label: 'Kentucky official distillery drops + release watch', tier: 'B', strategy: 'official_distillery_drop_and_release_watch', cadence: 'daily-60m',
+    value: 'Kentucky is the distillery Mecca. Customer-facing value comes from Buffalo Trace gift-shop availability plus official release-watch pages from major Kentucky distilleries, explicitly separated from retailer store inventory.',
     rareSignalTarget: true,
     sources: [
       { kind: 'html', url: 'https://abc.ky.gov/', label: 'Kentucky ABC homepage' },
@@ -250,7 +250,13 @@ export const ALL_STATE_SOURCES = [
       { kind: 'html', url: 'https://abc.ky.gov/new_docs.aspx?cat=80', label: 'Kentucky ABC forms and guidance' },
       { kind: 'html', url: 'https://www.buffalotracedistillery.com/visit-us/product-availability/', label: 'Buffalo Trace Distillery daily gift-shop product availability', precisionOnly: true },
       { kind: 'html', url: 'https://www.oldforester.com/birthday-bourbon-faqs/', label: 'Old Forester Birthday Bourbon official release FAQ', precisionOnly: true },
-      { kind: 'html', url: 'https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch', label: 'Four Roses Limited Edition official release page', precisionOnly: true }
+      { kind: 'html', url: 'https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch', label: 'Four Roses Limited Edition official release page', precisionOnly: true },
+      { kind: 'html', url: 'https://heavenhilldistillery.com/heavenhill-heritage-collection.php', label: 'Heaven Hill Heritage Collection official release page', precisionOnly: true },
+      { kind: 'html', url: 'https://www.makersmark.com/bourbons/greats-of-the-gate', label: "Maker's Mark Greats of the Gate official release page", precisionOnly: true },
+      { kind: 'html', url: 'https://www.makersmark.com/bourbons/makers-mark-cellar-aged', label: "Maker's Mark Cellar Aged official limited-release page", precisionOnly: true },
+      { kind: 'html', url: 'https://www.makersmark.com/bourbons/makers-mark-wood-finishing-series-collection', label: "Maker's Mark Wood Finishing Series official limited-release page", precisionOnly: true },
+      { kind: 'html', url: 'https://www.wildturkeybourbon.com/en-us/products/masters-keep-beacon/', label: "Wild Turkey Master's Keep Beacon official release page", precisionOnly: true },
+      { kind: 'html', url: 'https://www.wildturkeybourbon.com/en-us/products/austin-nichols-archives-bourbons/', label: 'Wild Turkey Austin Nichols Archives official release page', precisionOnly: true }
     ],
     apiCandidates: []
   },

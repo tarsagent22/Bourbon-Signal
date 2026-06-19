@@ -175,7 +175,8 @@ function isSouthCarolinaRetailerInventory(signal) {
 function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
-  const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
+  const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
+  const preferOfficialSourceName = preferRetailerName || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
@@ -188,7 +189,7 @@ function publicSignal(signal, bible, freshness = null) {
       : signal.inventorySemantics;
   const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
   const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
-  const dataLane = isKentuckyDistilleryDrop(signal)
+  const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'actionable_inventory'
@@ -202,7 +203,7 @@ function publicSignal(signal, bible, freshness = null) {
   const displayAt = eventAt || (useLastConfirmedForDisplay ? (lastConfirmedAt || firstSeenAt) : (firstSeenAt || lastConfirmedAt));
   const timestampBasis = eventAt ? 'source_event_at' : useLastConfirmedForDisplay ? 'last_confirmed_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
   return {
-    id: signal.key || signal.sourceSignalId,
+    id: signal.key || signal.sourceSignalId || signal.id,
     state: signal.state,
     bottleId: canonicalId,
     canonicalId,
@@ -247,6 +248,8 @@ function publicSignal(signal, bible, freshness = null) {
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: isKentuckyDistilleryDrop(signal)
       ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
+      : isKyOfficialDistillery
+        ? 'Official distillery release-watch intelligence only; not retailer store inventory or a store shipment alert.'
       : canAlertAsInventory && signal.locationPrecision === 'store_level'
         ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
         : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
@@ -413,6 +416,18 @@ function signalCanAlertAsInventory(signal) {
 
 function signalCanAlertAsWatch(signal) {
   return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal);
+}
+
+function isKentuckyOfficialDistillerySignal(signal) {
+  return signal.state === 'KY'
+    && /^distillery_(gift_shop_availability|release_watch)$/i.test(String(signal.eventType || signal.type || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'distillery';
+}
+
+function isKentuckyOfficialDistilleryReleaseWatchSignal(signal) {
+  return signal.state === 'KY'
+    && /^distillery_release_watch$/i.test(String(signal.eventType || signal.type || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'distillery';
 }
 
 function isKentuckyDistilleryDrop(signal) {
@@ -775,6 +790,9 @@ function publicEvent(signal, bible) {
   else if (category === 'tasting') titleParts.push('tasting event');
   else titleParts.push('release watch');
   const title = titleParts.join(' — ');
+  const eventKey = isKentuckyOfficialDistillerySignal(signal)
+    ? stableId([drop.state, drop.type, drop.sourceUrl, drop.rawName || displayBottleName || title])
+    : stableId([drop.state, category, drop.sourceUrl, eventDate, products.join('|') || displayBottleName || title, drop.storeId || drop.locationName]);
   return {
     ...drop,
     bottleName: displayBottleName || drop.bottleName,
@@ -791,7 +809,7 @@ function publicEvent(signal, bible) {
     actionability: eventActionability({ category, eventDate, sourceUrl: drop.sourceUrl, canAlertAsWatch: drop.canAlertAsWatch, sourceType }),
     detectedProducts: products,
     contentSignature: stableId([drop.state, drop.type, drop.sourceUrl, drop.bottleName, drop.rawName, drop.locationName, signal.evidence, signal.inventorySemantics]),
-    eventKey: stableId([drop.state, category, drop.sourceUrl, eventDate, products.join('|') || displayBottleName || title, drop.storeId || drop.locationName]),
+    eventKey,
     actionLabel: category === 'scheduled_release' ? 'Verify release rules before driving'
       : category === 'lottery' ? 'Check entry rules at source'
       : category === 'tasting' ? 'Check event details at source'
@@ -826,7 +844,7 @@ function buildEvents(signals, bible) {
   return signals
     .filter((signal) => isSafePublicSignal(signal))
     .filter((signal) => isEventSignal(signal))
-    .filter((signal) => findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
+    .filter((signal) => isKentuckyOfficialDistillerySignal(signal) || findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
     .map((signal) => publicEvent(signal, bible))
     .filter((event) => isUpcomingActionableEvent(event))
     .filter((event) => {

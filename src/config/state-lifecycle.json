@@ -170,12 +170,12 @@
     },
     "KY": {
       "customerLabel": "Kentucky",
-      "sourceLabel": "Kentucky distillery release watch",
+      "sourceLabel": "Kentucky official distillery drops + release watch",
       "publicStatus": "active",
       "lifecycle": "distillery_drop_release_watch",
       "coverageTier": "distillery_release_watch",
       "refinementLevel": "distillery",
-      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts."
+      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts."
     },
     "SC": {
       "customerLabel": "South Carolina",
