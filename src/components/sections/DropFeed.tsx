@@ -1302,8 +1302,14 @@ export default function DropFeed() {
   const isFirstLoad = useRef(true);
   const [grouped, setGrouped] = useState<GroupedDrop[]>([]);
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set());
-  const [bottleSearch, setBottleSearch] = useState("");
-  const [urlStateFilter, setUrlStateFilter] = useState<string | null>(null);
+  const [bottleSearch, setBottleSearch] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("bottle") || "";
+  });
+  const [urlStateFilter, setUrlStateFilter] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("state")?.toUpperCase() || null;
+  });
   const [countyFilter, setCountyFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState<DropSortMode>("newest");
   const [nearMe, setNearMe] = useState<{ lat: number; lng: number } | null>(null);
