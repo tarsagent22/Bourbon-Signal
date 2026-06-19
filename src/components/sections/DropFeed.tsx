@@ -1359,7 +1359,9 @@ export default function DropFeed() {
   // Apply state, tier, bottle, county, near-me, and saved-area filters.
   const filteredGrouped = grouped.filter(matchesActiveFeedFilters);
   const filteredByArea = filteredGrouped.filter(matchesSavedAreaPreferences);
-  const feedStateOptions = AVAILABLE_STATES.filter((state) => state.active && !("comingSoon" in state && state.comingSoon));
+  const feedStateOptions = AVAILABLE_STATES
+    .filter((state) => state.active && !("comingSoon" in state && state.comingSoon))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const countyOptions = useMemo(() => {
     const options = new Map<string, { value: string; label: string; state: string; baseLabel: string; rank: number }>();
