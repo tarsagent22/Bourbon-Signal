@@ -6,6 +6,7 @@
   "description": "Bourbon Signal active-market data engine and site export pipeline.",
   "scripts": {
     "run": "node src/run.mjs",
+    "aggregate:states": "node src/aggregate-state-reports.mjs",
     "probe": "node src/probe.mjs",
     "bible": "node src/build-bible.mjs",
     "rare": "node src/rare-report.mjs",
@@ -23,6 +24,7 @@
     "verify:ia": "node src/verify-iowa-hardening.mjs",
     "verify:md": "node src/verify-maryland-hardening.mjs",
     "verify:ut": "node src/verify-utah-hardening.mjs",
+    "verify:ky": "node src/verify-ky-hardening.mjs",
     "verify:oh": "node src/verify-ohio-hardening.mjs",
     "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",

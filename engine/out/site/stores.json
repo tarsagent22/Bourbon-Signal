@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T10:07:20.809Z",
+  "generatedAt": "2026-06-19T13:01:02.730Z",
   "count": 3188,
   "stores": [
     {
@@ -11943,7 +11943,7 @@
       "lat": 39.6136857,
       "lng": -86.1569734,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -25075,7 +25075,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 17
+      "signalCount": 18
     },
     {
       "id": "DL4901139",

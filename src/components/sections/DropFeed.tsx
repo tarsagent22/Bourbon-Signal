@@ -508,9 +508,16 @@ function isBoardLevelSignal(drop: GroupedDrop) {
   return Boolean(drop.event_type === "nc_board_shipment_snapshot" || drop.availabilityScope === "board" || /board/i.test(String(drop.locationPrecision || "")));
 }
 
+function isDistillerySignal(drop: GroupedDrop) {
+  return Boolean(drop.availabilityScope === "distillery" || drop.locationPrecision === "distillery" || drop.event_type === "distillery_gift_shop_availability");
+}
+
 function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; tone: "exact" | "official" | "positive" } {
   if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") {
     return { label: "Member report", detail: "Submitted by a member; verify before driving.", tone: "positive" };
+  }
+  if (isDistillerySignal(drop)) {
+    return { label: "Distillery drop", detail: "Official distillery availability/release lead; not retailer store inventory.", tone: "official" };
   }
   if (isStoreLevelSignal(drop)) {
     return { label: "Store-level", detail: "Reported at a specific store; verify before driving.", tone: "exact" };
@@ -530,6 +537,7 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
 function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
   if (isStoreLevelSignal(drop)) return { label: "Store-level", tone: "exact" };
   if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member report", tone: "listing" };
+  if (isDistillerySignal(drop)) return { label: "Distillery", tone: "listing" };
   if (drop.state === "NC" && isBoardLevelSignal(drop)) return { label: "Board-level", tone: "online" };
   if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") return { label: "Online", tone: "online" };
   if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) return { label: "Official", tone: "listing" };
@@ -547,6 +555,8 @@ function getEventDescription(drop: GroupedDrop): string {
 
   if (drop.state === "KY") {
     switch (drop.event_type) {
+      case "distillery_gift_shop_availability":
+        return "Available - distillery";
       case "in_stock":
         return "Available - distillery";
       case "in_store":

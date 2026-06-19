@@ -241,13 +241,16 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'KY', label: 'Kentucky ABC', tier: 'C', strategy: 'license_and_active_brand_watch', cadence: 'weekly-monthly',
-    value: 'High bourbon relevance but weak consumer availability data; useful for active-brand/licensing intelligence and Kentucky-only release watch.',
-    rareSignalTarget: false,
+    id: 'KY', label: 'Kentucky distillery release watch', tier: 'B', strategy: 'official_distillery_drop_and_release_watch', cadence: 'daily-60m',
+    value: 'Kentucky is the distillery Mecca. Customer-facing value comes from official distillery gift-shop availability and release-watch pages, explicitly separated from retailer store inventory.',
+    rareSignalTarget: true,
     sources: [
       { kind: 'html', url: 'https://abc.ky.gov/', label: 'Kentucky ABC homepage' },
       { kind: 'html', url: 'https://abc.ky.gov/Licensing/Pages/default.aspx', label: 'Kentucky ABC licensing / active brands portal' },
-      { kind: 'html', url: 'https://abc.ky.gov/new_docs.aspx?cat=80', label: 'Kentucky ABC forms and guidance' }
+      { kind: 'html', url: 'https://abc.ky.gov/new_docs.aspx?cat=80', label: 'Kentucky ABC forms and guidance' },
+      { kind: 'html', url: 'https://www.buffalotracedistillery.com/visit-us/product-availability/', label: 'Buffalo Trace Distillery daily gift-shop product availability', precisionOnly: true },
+      { kind: 'html', url: 'https://www.oldforester.com/birthday-bourbon-faqs/', label: 'Old Forester Birthday Bourbon official release FAQ', precisionOnly: true },
+      { kind: 'html', url: 'https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch', label: 'Four Roses Limited Edition official release page', precisionOnly: true }
     ],
     apiCandidates: []
   },

@@ -21,7 +21,7 @@ export const STATE_CONFIDENCE_POLICY = {
   WV: { maxAlertMode: 'catalog_release_watch', inventorySemantics: 'WV sources are product/search/release context. No live store inventory route found.', defaultCadence: 'daily-weekly' },
   WY: { maxAlertMode: 'wholesale_catalog_watch', inventorySemantics: 'Wyoming public data is wholesale/product-level. No consumer store inventory found.', defaultCadence: 'monthly-weekly' },
   MS: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Mississippi public sources expose monthly SPA/bailment price-change PDFs plus vendor/product policy. Treat as product/price-change intelligence, not live store inventory.', defaultCadence: 'monthly-weekly' },
-  KY: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Kentucky ABC official public surfaces found so far are active-brand/licensing context, not consumer store inventory. Treat Kentucky as product/brand watch only until a bottle-level public feed is found.', defaultCadence: 'weekly-monthly' },
+  KY: { maxAlertMode: 'distillery_release_watch', inventorySemantics: 'Kentucky has official distillery gift-shop/product availability and release-watch pages. Treat these as a distinct distillery drop/release lane, not retailer store inventory. Alerts/cards must clearly distinguish distillery pickup/release leads from store shipment/inventory alerts.', defaultCadence: 'daily-60m' },
   TN: { maxAlertMode: 'license_document_watch', inventorySemantics: 'Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory.', defaultCadence: 'daily-60m' },
   TX: { maxAlertMode: 'catalog_release_watch', inventorySemantics: "Texas is a private retail market. TABC/comptroller pages are policy/license context; Spec's public product/event pages are retailer catalog or release-watch signals, not live shelf inventory unless a store-specific row is later extracted.", defaultCadence: 'daily-weekly' },
   SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.', defaultCadence: 'weekly-monthly' },
@@ -62,6 +62,7 @@ const MODE_CAPS = {
   normal_product_store_only: 0.78,
   alert_county_product_or_store_when_available: 0.78,
   alert_county_store_inventory: 0.9,
+  distillery_release_watch: 0.88,
   alert_delivery_snapshot: 0.92
 };
 
@@ -93,6 +94,12 @@ const SOUTH_CAROLINA_RETAILER_POLICY = {
   defaultCadence: 'daily-60m'
 };
 
+const KENTUCKY_DISTILLERY_POLICY = {
+  maxAlertMode: 'distillery_release_watch',
+  inventorySemantics: 'Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory.',
+  defaultCadence: 'daily-60m'
+};
+
 function policyForSignal(signal) {
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
@@ -105,6 +112,7 @@ function policyForSignal(signal) {
   if (signal.state === 'SC'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
+  if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   return basePolicy;
 }
 
@@ -127,13 +135,14 @@ export function confidenceForSignal(signal) {
   const positiveAvailabilityStatus = /in_stock|limited_supply/i.test(String(signal.availabilityStatus || signal.raw?.availability?.status || ''));
   const hasPositiveInventory = (qty > 0 || positiveAvailabilityStatus) && !/out_of_stock|sold_out|not_available/i.test(eventType);
   const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
+  const isDistilleryLane = signal.state === 'KY' && /^distillery_/i.test(eventType);
   const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: hasPositiveInventory && !isVirginiaLimitedCaveat && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsInventory: !isDistilleryLane && hasPositiveInventory && !isVirginiaLimitedCaveat && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
     canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

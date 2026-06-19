@@ -1,50 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T10:07:20.809Z",
-  "count": 1,
-  "alerts": [
-    {
-      "id": "5181118656e3bbe0",
-      "action": "inventory_alert_candidate",
-      "score": 171,
-      "reliabilityScore": 100,
-      "eligibleForDelivery": true,
-      "priorityClass": "major",
-      "deliveryChannel": "onsite_candidate",
-      "sendRecommendation": "send_to_matching_testers",
-      "freshnessHours": 0.1,
-      "bootstrap": false,
-      "changeType": "new_signal",
-      "dedupeKey": "3794245878f7e8bd",
-      "matchKey": "61520e5a2af9595d",
-      "gates": [
-        "bottle_matched",
-        "fresh_24h",
-        "confidence_high",
-        "store_level"
-      ],
-      "blockers": [],
-      "cautions": [],
-      "state": "SC",
-      "bottle": "Blue Note Juke Joint Bourbon",
-      "tier": "standard",
-      "eventType": "cityhive_store_inventory_result",
-      "source": "Green's Beverage South Carolina CityHive store inventory",
-      "sourceUrl": "https://greensbeverages.com/shop/product/blue-note-juke-joint-bourbon/5eff87876faf2c269b8a9504?option-id=695f2afd3235a6d3daa4caaa5579ff426ec63024c07aef8902c82bfd1c29810d",
-      "locationPrecision": "store_level",
-      "locationName": "Green's Beverage - Greenville SC",
-      "storeName": "Green's Beverage - Greenville SC",
-      "storeAddress": "445 Congaree Rd, Greenville, SC 29607, USA",
-      "quantity": 3,
-      "availabilityStatus": "in_stock",
-      "availabilityLabel": "In stock",
-      "warehouseQty": 0,
-      "price": 34.98,
-      "confidence": 0.86,
-      "policyMode": "alert_retailer_store_inventory_caveat",
-      "inventorySemantics": "South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.",
-      "reason": "New store_level cityhive_store_inventory_result signal for Blue Note Juke Joint Bourbon in SC.",
-      "evidence": "Green's Beverage CityHive reports 3 750mls of Blue Note Juke Joint Bourbon at Green's Beverage - Greenville SC (445 Congaree Rd, Greenville, SC 29607, USA) for $34.98."
-    }
-  ]
+  "generatedAt": "2026-06-19T13:01:02.730Z",
+  "count": 0,
+  "alerts": []
 }

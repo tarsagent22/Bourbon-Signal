@@ -5,6 +5,7 @@ export const PRECISION_RANK = {
   board_county: 3,
   board_warehouse: 4,
   store_aggregate: 5,
+  distillery: 6,
   store_level: 6
 };
 
@@ -29,7 +30,7 @@ export const LOCATION_PROFILES = {
   WV: { target: 'statewide_catalog', note: 'WV ABCA search/barrel-pick pages are statewide product/release signals; no public store inventory located.' },
   WY: { target: 'statewide_catalog', note: 'Wyoming Liquor Division product pages are wholesale/product-level; no consumer store inventory found.' },
   MS: { target: 'statewide_catalog', note: 'Mississippi ABC public pages expose SPA/bailment price-change PDFs and vendor/product policy, not bottle/store inventory.' },
-  KY: { target: 'statewide_catalog', note: 'Kentucky ABC has active-brand/licensing surfaces but no official consumer store inventory or allocation feed found.' },
+  KY: { target: 'distillery', note: 'Kentucky public value comes from official distillery gift-shop/drop and release-watch sources. Treat distillery signals separately from retailer store inventory.' },
   TN: { target: 'store_level', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, while selected public retailer e-commerce pages can expose store-level quantity/price with a verify-before-driving caveat.' },
   TX: { target: 'statewide_catalog', note: "Texas is a private retail market. Current public coverage is TABC/comptroller context plus Spec's retailer catalog/release pages; store-level inventory remains a future retailer-specific extraction target." },
   SC: { target: 'statewide_policy', note: 'South Carolina DOR ABL pages expose liquor licensing/regulatory context, not bottle/store inventory.' },
@@ -52,7 +53,8 @@ export function locationValue(signal) {
   const level = signal.locationPrecision || 'statewide_catalog';
   const rank = precisionRank(level);
   const qty = Number(signal.quantity || signal.storeQty || signal.raw?.storeQty || 0) || 0;
-  if (rank >= 6 && qty > 0) return 'high_live_store_signal';
+  if (rank >= 6 && qty > 0) return level === 'distillery' ? 'high_distillery_drop_signal' : 'high_live_store_signal';
+  if (level === 'distillery') return 'high_distillery_release_watch';
   if (rank >= 6) return 'high_precision_store_signal_no_stock';
   if (rank >= 5) return 'medium_store_aggregate_signal';
   if (rank >= 4) return 'medium_board_warehouse_signal';

@@ -188,11 +188,13 @@ function publicSignal(signal, bible, freshness = null) {
       : signal.inventorySemantics;
   const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
   const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
-  const dataLane = canAlertAsInventory && signal.locationPrecision === 'store_level'
-    ? 'actionable_inventory'
-    : canAlertAsWatch
-      ? 'actionable_watch'
-      : 'informational';
+  const dataLane = isKentuckyDistilleryDrop(signal)
+    ? 'distillery_release_watch'
+    : canAlertAsInventory && signal.locationPrecision === 'store_level'
+      ? 'actionable_inventory'
+      : canAlertAsWatch
+        ? 'actionable_watch'
+        : 'informational';
   const eventAt = freshness?.eventAt || null;
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
@@ -215,6 +217,8 @@ function publicSignal(signal, bible, freshness = null) {
     source: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     observedAt: signal.observedAt,
+    releaseDate: signal.releaseDate || signal.eventDate || null,
+    eventDate: signal.eventDate || signal.releaseDate || null,
     eventAt,
     firstSeenAt,
     lastConfirmedAt,
@@ -241,11 +245,13 @@ function publicSignal(signal, bible, freshness = null) {
     canAlertAsWatch,
     dataLane,
     informationalOnly: dataLane === 'informational',
-    inventoryCaveat: canAlertAsInventory && signal.locationPrecision === 'store_level'
-      ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
-      : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
-        ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
-        : 'Informational/watch data only; not live shelf inventory.',
+    inventoryCaveat: isKentuckyDistilleryDrop(signal)
+      ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
+      : canAlertAsInventory && signal.locationPrecision === 'store_level'
+        ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
+        : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
+          ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
+          : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
     evidence: safeString(signal.evidence, 700)
   };
@@ -409,12 +415,20 @@ function signalCanAlertAsWatch(signal) {
   return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal);
 }
 
+function isKentuckyDistilleryDrop(signal) {
+  return signal.state === 'KY'
+    && /^distillery_gift_shop_availability$/i.test(String(signal.eventType || signal.type || ''))
+    && String(signal.locationPrecision || '').toLowerCase() === 'distillery'
+    && /in_stock|limited_supply|available|while supplies last/i.test(`${signal.availabilityStatus || ''} ${signal.availabilityLabel || ''}`);
+}
+
 function dropPriority(signal) {
   const type = String(signal.eventType || '');
   if (signal.state === 'NC' && signalCanAlertAsInventory(signal) && signal.locationPrecision === 'store_level') return 78;
   if (type === 'nc_board_shipment_snapshot') return 64;
   if (signal.state === 'VA' && type === 'store_inventory_result') return 62;
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') return 68;
+  if (isKentuckyDistilleryDrop(signal)) return 66;
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (signalCanAlertAsInventory(signal)) return 50;
@@ -457,6 +471,7 @@ function isUserFacingDropSignal(signal) {
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
+  if (isKentuckyDistilleryDrop(signal)) return true;
 
   return canAlert && precision === 'store_level';
 }
@@ -620,6 +635,7 @@ function eventPriority(event) {
 
 function eventSourceType(signal, category) {
   const hay = `${signal.eventType || ''} ${signal.sourceLabel || ''} ${signal.source || ''} ${signal.sourceUrl || ''}`.toLowerCase();
+  if (/distillery|buffalo trace|old forester|four roses|maker'?s mark|woodford reserve|wild turkey|heaven hill/.test(hay)) return 'official_distillery';
   if (/abc|abca|alcoholic beverage|liquor control|fine wine|fwgs|ohlq|virginia abc|nc board|county abc/.test(hay)) {
     if (category === 'lottery') return 'official_lottery';
     if (category === 'scheduled_release') return 'official_schedule';
@@ -635,6 +651,7 @@ function eventSourceLabel(sourceType) {
     official_lottery: 'Official lottery page',
     official_schedule: 'Official release schedule',
     official_board_page: 'Official ABC / control-board page',
+    official_distillery: 'Official distillery page',
     retailer_event: 'Retailer event page',
     retailer_page: 'Retailer release page',
     release_watch: 'Release-watch source'
@@ -800,7 +817,7 @@ function isUpcomingActionableEvent(event) {
     && /^official_/.test(sourceType)
     && Boolean(event.canAlertAsWatch)
     && ['lottery', 'barrel_pick', 'scheduled_release', 'release_watch'].includes(category)
-    && /lottery|raffle|allocated|allocation|release|barrel|pick|bourbon|specialty|limited/i.test(watchSurfaceText);
+    && /lottery|raffle|allocated|allocation|release|barrel|pick|bourbon|specialty|limited|distillery|gift shop/i.test(watchSurfaceText);
   return isOfficialWatchSurface || (hasOfficialLink && hasFutureDate && !isSourceWatchPage && ['high', 'medium'].includes(actionability));
 }
 
@@ -931,6 +948,7 @@ function stateCoverageTesterValue(coverageTier) {
   if (coverageTier === 'store_availability_status') return 'Official store availability status; verify before driving.';
   if (coverageTier === 'store_delivery_leads') return 'Official delivery/allocation leads; useful leads, not live shelf stock.';
   if (coverageTier === 'aggregate_inventory_watch') return 'Aggregate inventory, warehouse, or program-watch data; useful context, not exact store shelf stock.';
+  if (coverageTier === 'distillery_release_watch') return 'Official distillery gift-shop drops and release-watch pages; distinct from retailer store inventory.';
   if (coverageTier === 'store_location_watch') return 'Licensed store/location coverage and retailer-watch infrastructure; useful for routing users, not bottle inventory yet.';
   if (coverageTier === 'shipment_drop_intelligence') return 'Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.';
   if (coverageTier === 'catalog_watch') return 'Catalog, product, price, brand, or license-document watch; useful context, not inventory.';
@@ -1099,7 +1117,7 @@ async function main() {
           staleFallbackAt: state.staleFallbackAt || null
         }))
     },
-    statesAtTargetPrecision: Array.isArray(location.states) ? location.states.filter((s) => s.hardened || s.hardenedToTarget).length : null,
+    statesAtTargetPrecision: activeSummaryStates.filter((state) => precisionRank(state.bestLocationPrecision || 'blocked') >= precisionRank(state.targetLocationPrecision || 'blocked')).length,
     rareStatesVerified: Array.isArray(rare.states) ? rare.states.filter((s) => s.status === 'verified_3_rare_signals').length : null,
     stateCoverage,
     southeastReadiness,

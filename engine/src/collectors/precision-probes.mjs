@@ -3505,7 +3505,282 @@ async function collectAlabama(config, bible) {
   return { signals, roadblocks };
 }
 
+const KY_BUFFALO_TRACE_AVAILABILITY_URL = 'https://www.buffalotracedistillery.com/visit-us/product-availability/';
+const KY_BUFFALO_TRACE_DISTILLERY = {
+  id: 'buffalo-trace-distillery-gift-shop',
+  name: 'Buffalo Trace Distillery Gift Shop',
+  address: '113 Great Buffalo Trace, Frankfort, KY 40601',
+  city: 'Frankfort',
+  county: 'Franklin',
+  zip: '40601',
+  lat: 38.2195,
+  lng: -84.8687
+};
+const KY_DISTILLERY_RELEASE_WATCH_PAGES = [
+  {
+    label: 'Old Forester Birthday Bourbon official release FAQ',
+    url: 'https://www.oldforester.com/birthday-bourbon-faqs/',
+    bottle: 'Old Forester Birthday Bourbon'
+  },
+  {
+    label: 'Four Roses Limited Edition official release page',
+    url: 'https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch',
+    bottle: 'Four Roses Limited Edition Small Batch'
+  }
+];
+
+function kyDecodeEscapedText(value = '') {
+  let text = String(value || '');
+  for (let i = 0; i < 3; i += 1) {
+    text = text
+      .replace(/\\\\u003c/g, '<')
+      .replace(/\\u003c/g, '<')
+      .replace(/\\\\u003e/g, '>')
+      .replace(/\\u003e/g, '>')
+      .replace(/\\\\u0026/g, '&')
+      .replace(/\\u0026/g, '&')
+      .replace(/\\\\u0027/g, "'")
+      .replace(/\\u0027/g, "'")
+      .replace(/\\\\u0022/g, '"')
+      .replace(/\\u0022/g, '"')
+      .replace(/\\\\\//g, '/')
+      .replace(/\\\//g, '/')
+      .replace(/\\\\n/g, ' ')
+      .replace(/\\n/g, ' ')
+      .replace(/\\"/g, '"');
+  }
+  return decodeHtml(stripHtml(text)).replace(/\s+/g, ' ').trim();
+}
+
+function kyIsoFromDmy(dayDate) {
+  const match = String(dayDate || '').match(/^(\d{1,2})\/(\d{1,2})\/(20\d{2})$/);
+  if (!match) return null;
+  const [, dd, mm, yyyy] = match;
+  return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+}
+
+function kyDateWithinDropWindow(isoDate) {
+  if (!isoDate) return true;
+  const ts = Date.parse(`${isoDate}T12:00:00-04:00`);
+  if (!Number.isFinite(ts)) return true;
+  const day = 24 * 60 * 60 * 1000;
+  return ts >= Date.now() - day && ts <= Date.now() + 14 * day;
+}
+
+function kyNormalizeBuffaloTraceBottleName(rawName) {
+  const name = decodeHtml(String(rawName || '').replace(/\s+/g, ' ').trim());
+  if (/^blanton'?s?\s+375\s*m?l?\b/i.test(name)) return "Blanton's Single Barrel Bourbon 375mL";
+  if (/^blanton'?s?\b/i.test(name)) return "Blanton's Single Barrel Bourbon";
+  if (/^weller\s+c\.?y\.?p\.?b\.?$/i.test(name)) return 'Weller C.Y.P.B.';
+  if (/^e\.?\s*h\.?\s*taylor.*small batch/i.test(name)) return 'E.H. Taylor Small Batch';
+  return name;
+}
+
+function kyAvailabilityNameFromText(text) {
+  const match = String(text || '').match(/^(.+?)\s+is\s+available\b/i);
+  if (!match) return null;
+  const raw = match[1]
+    .replace(/^today[:,]?\s*/i, '')
+    .replace(/\s+at\s+the\s+gift\s+shop$/i, '')
+    .trim();
+  if (!raw || /coffee|cocktail|engraving|sandwich|salad|flatbread/i.test(raw)) return null;
+  return raw;
+}
+
+function kyNearestDayDateBefore(html, index) {
+  const before = String(html || '').slice(Math.max(0, index - 5_000), index);
+  const matches = [...before.matchAll(/\\"day_date\\":\\"([^\\"]+)\\"/g)];
+  return matches.length ? matches[matches.length - 1][1] : null;
+}
+
+function kyExtractBuffaloTraceGiftShopRows(html) {
+  const rows = [];
+  const eventRe = /\{\\"time\\":\\"([^\\"]*)\\",\\"location\\":\\"([^\\"]*)\\",\\"description\\":\\"([\s\S]*?)\\",\\"sub_description\\":\\"([^\\"]*)\\"\}/g;
+  for (const match of String(html || '').matchAll(eventRe)) {
+    const [, time, location, description] = match;
+    if (!/gift shop/i.test(location)) continue;
+    const text = kyDecodeEscapedText(description);
+    const rawName = kyAvailabilityNameFromText(text);
+    if (!rawName) continue;
+    const dayDate = kyNearestDayDateBefore(html, match.index || 0);
+    const releaseDate = kyIsoFromDmy(dayDate);
+    if (!kyDateWithinDropWindow(releaseDate)) continue;
+    rows.push({
+      rawName,
+      matchName: kyNormalizeBuffaloTraceBottleName(rawName),
+      time: kyDecodeEscapedText(time) || 'While supplies last',
+      dayDate,
+      releaseDate,
+      text
+    });
+  }
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = [row.rawName, row.releaseDate || row.dayDate || '', row.time].join('|').toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function kyReleaseDateFromText(text) {
+  const named = String(text || '').match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2}(?:st|nd|rd|th)?(?:,)?\s+20\d{2}\b/i);
+  if (named) {
+    const parsed = Date.parse(named[0].replace(/(\d{1,2})(st|nd|rd|th)/i, '$1'));
+    if (Number.isFinite(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+  }
+  const numeric = String(text || '').match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+  if (numeric) {
+    const parsed = Date.parse(`${numeric[1]}/${numeric[2]}/${numeric[3]}`);
+    if (Number.isFinite(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+async function collectKentuckyBuffaloTraceAvailability(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const res = await curlTextFetch(KY_BUFFALO_TRACE_AVAILABILITY_URL, { timeoutMs: 30_000, maxBuffer: 5 * 1024 * 1024 });
+  if (!res.ok) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Buffalo Trace Distillery product availability page',
+      url: KY_BUFFALO_TRACE_AVAILABILITY_URL,
+      status: res.status || 0,
+      error: res.error || `HTTP ${res.status}`,
+      nextRoute: 'Retry the official product-availability page or inspect the current Next.js RSC payload for gift-shop availability rows.'
+    });
+    return { signals, roadblocks };
+  }
+
+  const rows = kyExtractBuffaloTraceGiftShopRows(res.text);
+  if (!rows.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Buffalo Trace Distillery product availability page',
+      url: KY_BUFFALO_TRACE_AVAILABILITY_URL,
+      status: res.status || 200,
+      error: 'No dated Gift Shop availability rows parsed from the public page.',
+      nextRoute: 'Inspect the page payload for changed day_date/events structure before surfacing distillery-drop alerts.'
+    });
+    return { signals, roadblocks };
+  }
+
+  for (const row of rows) {
+    const { record, unsafeReason } = cityHiveSafeBottleMatch(row.matchName, bible);
+    if (!record) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Buffalo Trace Distillery product availability page',
+        url: KY_BUFFALO_TRACE_AVAILABILITY_URL,
+        status: res.status || 200,
+        error: `Could not safely match Buffalo Trace gift-shop bottle "${row.rawName}" (${unsafeReason || 'no_bottle_bible_match'}).`,
+        nextRoute: 'Add/adjust bottle-bible alias only if the official distillery text clearly identifies the bottle.'
+      });
+      continue;
+    }
+    signals.push({
+      id: stableId([config.id, 'buffalo-trace-distillery-gift-shop-availability', row.releaseDate || row.dayDate || observedAt.slice(0, 10), row.rawName]),
+      state: config.id,
+      sourceLabel: 'Buffalo Trace Distillery gift-shop product availability',
+      sourceUrl: KY_BUFFALO_TRACE_AVAILABILITY_URL,
+      rawName: row.rawName,
+      canonicalBottleId: record.id,
+      canonicalName: record.canonical,
+      confidence: 0.84,
+      eventType: 'distillery_gift_shop_availability',
+      locationPrecision: 'distillery',
+      locationName: KY_BUFFALO_TRACE_DISTILLERY.name,
+      storeName: KY_BUFFALO_TRACE_DISTILLERY.name,
+      storeId: KY_BUFFALO_TRACE_DISTILLERY.id,
+      storeAddress: KY_BUFFALO_TRACE_DISTILLERY.address,
+      city: KY_BUFFALO_TRACE_DISTILLERY.city,
+      county: KY_BUFFALO_TRACE_DISTILLERY.county,
+      zip: KY_BUFFALO_TRACE_DISTILLERY.zip,
+      lat: KY_BUFFALO_TRACE_DISTILLERY.lat,
+      lng: KY_BUFFALO_TRACE_DISTILLERY.lng,
+      quantity: 1,
+      availabilityStatus: 'limited_supply',
+      availabilityLabel: [row.time, row.releaseDate].filter(Boolean).join(' · '),
+      releaseDate: row.releaseDate,
+      eventDate: row.releaseDate,
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Official Buffalo Trace Distillery gift-shop product availability. This is a distillery drop/pickup lead, not retailer store inventory or a store shipment alert. Limits and same-day sellouts can apply.',
+      evidence: `Buffalo Trace public product-availability page lists ${row.rawName} for the Gift Shop${row.releaseDate ? ` on ${row.releaseDate}` : ''}: ${row.text}`,
+      raw: {
+        sourceKind: 'official_distillery_product_availability',
+        distilleryLane: true,
+        dayDate: row.dayDate,
+        releaseDate: row.releaseDate,
+        time: row.time,
+        rawAvailabilityText: row.text,
+        precisionCaveat: 'distillery gift-shop availability; not retailer store inventory'
+      }
+    });
+  }
+  return { signals, roadblocks };
+}
+
+async function collectKentuckyReleaseWatchPages(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  for (const page of KY_DISTILLERY_RELEASE_WATCH_PAGES) {
+    const res = await curlTextFetch(page.url, { timeoutMs: 25_000, maxBuffer: 2 * 1024 * 1024 });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: page.label,
+        url: page.url,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Retry the official distillery release page; keep as watch-only until a current product/date is parseable.'
+      });
+      continue;
+    }
+    const text = kyDecodeEscapedText(res.text).slice(0, 5000);
+    const { record } = bottleMatch(page.bottle, bible);
+    signals.push({
+      id: stableId([config.id, 'official-distillery-release-watch', page.url, page.bottle]),
+      state: config.id,
+      sourceLabel: page.label,
+      sourceUrl: page.url,
+      rawName: page.bottle,
+      canonicalBottleId: record?.id || null,
+      canonicalName: record?.canonical || page.bottle,
+      confidence: 0.64,
+      eventType: 'distillery_release_watch',
+      locationPrecision: 'distillery',
+      locationName: 'Kentucky distillery release watch',
+      quantity: 0,
+      availabilityStatus: 'release_watch',
+      availabilityLabel: 'Official distillery release-watch page',
+      releaseDate: kyReleaseDateFromText(text),
+      eventDate: kyReleaseDateFromText(text),
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: true,
+      inventorySemantics: 'Official Kentucky distillery release page. Release-watch intelligence only; not retailer store inventory or a store shipment alert.',
+      evidence: `${page.label} is reachable and references ${page.bottle}. Treat as official distillery release-watch context unless/until the page publishes a current pickup/drop window.`,
+      raw: { sourceKind: 'official_distillery_release_watch', title: htmlTitle(res.text), excerpt: text.slice(0, 700), precisionCaveat: 'official release-watch page; exact pickup inventory not exposed' }
+    });
+  }
+  return { signals, roadblocks };
+}
+
+async function collectKentucky(config, bible) {
+  const observedAt = new Date().toISOString();
+  const availability = await collectKentuckyBuffaloTraceAvailability(config, bible, observedAt);
+  const releaseWatch = await collectKentuckyReleaseWatchPages(config, bible, observedAt);
+  return {
+    signals: [...availability.signals, ...releaseWatch.signals],
+    roadblocks: [...availability.roadblocks, ...releaseWatch.roadblocks]
+  };
+}
+
 export async function collectPrecisionProbes(config, bible, existingSignals = []) {
+  if (config.id === 'KY') return collectKentucky(config, bible);
   if (config.id === 'OH') return collectOhio(config, bible);
   if (config.id === 'OR') return collectOregon(config, bible);
   if (config.id === 'IA') return collectIowa(config, bible, existingSignals);

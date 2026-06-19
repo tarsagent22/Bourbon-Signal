@@ -12,7 +12,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "TN",
     "SC",
     "UT",
-    "MD-MONTGOMERY"
+    "MD-MONTGOMERY",
+    "KY"
   ],
   "states": {
     "NC": {
@@ -171,12 +172,12 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "KY": {
       "customerLabel": "Kentucky",
-      "sourceLabel": "Kentucky ABC + retailer/event target",
-      "publicStatus": "research_only",
-      "lifecycle": "retailer_event_candidate",
-      "coverageTier": "catalog_watch",
-      "refinementLevel": "statewide",
-      "customerSummary": "High-value bourbon market, but active customer coverage needs retailer/distillery/event sources rather than weak official licensing pages."
+      "sourceLabel": "Kentucky distillery release watch",
+      "publicStatus": "active",
+      "lifecycle": "distillery_drop_release_watch",
+      "coverageTier": "distillery_release_watch",
+      "refinementLevel": "distillery",
+      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts."
     },
     "SC": {
       "customerLabel": "South Carolina",

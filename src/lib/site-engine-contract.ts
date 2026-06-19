@@ -59,6 +59,10 @@ function isStoreLevelInventory(type: string, locationPrecision: string, canAlert
   return locationPrecision === "store_level" && (canAlertAsInventory || normalized.includes("store_inventory") || normalized.includes("limited_supply") || normalized.includes("in_stock"));
 }
 
+function isDistilleryDrop(type: string, locationPrecision: string) {
+  return locationPrecision === "distillery" && type.toLowerCase() === "distillery_gift_shop_availability";
+}
+
 export function normalizeBottleForSite(bottle: JsonRecord) {
   const states = Array.isArray(bottle.states) ? bottle.states.map(String) : [];
   const aliases = Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [];
@@ -155,8 +159,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
     exact_store: locationPrecision === "store_level",
-    availability_scope: isStoreInventory ? "store_reported" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
-    confidence_tier: isStoreInventory ? "source_reported_store" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
+    availability_scope: isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    confidence_tier: isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
     signal_label: signalLabel,
@@ -209,6 +213,7 @@ export function isUserFacingDropSignal(drop: {
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
+  if (type === "distillery_gift_shop_availability" && precision === "distillery") return true;
   if (type === "store_inventory_result") return quantity > 0;
 
   return false;
@@ -217,6 +222,7 @@ export function isUserFacingDropSignal(drop: {
 function getPublicSignalCategory(type: string, locationPrecision: string, quantity: number, canAlertAsInventory: boolean) {
   const normalized = type.toLowerCase();
   if (normalized.includes("limited_supply")) return "inventory";
+  if (normalized === "distillery_gift_shop_availability") return "distillery_drop";
   if (normalized.includes("in_stock")) return "inventory";
   if (normalized === "nc_board_shipment_snapshot") return "delivery";
   if (normalized === "nc_statewide_warehouse_stock") return "warehouse";
@@ -239,6 +245,7 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   if (normalized === "nc_board_shipment_snapshot") return "Board shipment";
   if (normalized === "nc_statewide_warehouse_stock") return "Warehouse shipment";
   if (normalized.includes("limited_supply")) return "Limited supply reported";
+  if (normalized === "distillery_gift_shop_availability") return "Distillery drop";
   if (normalized.includes("in_stock")) return "Availability reported";
   if (normalized === "retailer_allocated_raffle_item") return "Retailer allocated watch";
   if (normalized === "retailer_tasting_event") return "Retailer tasting watch";
