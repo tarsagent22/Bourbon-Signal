@@ -10,6 +10,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "IL",
     "IN",
     "TN",
+    "SC",
     "UT",
     "MD-MONTGOMERY"
   ],
@@ -179,12 +180,12 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "SC": {
       "customerLabel": "South Carolina",
-      "sourceLabel": "South Carolina DOR ABL + retailer mesh target",
-      "publicStatus": "research_only",
-      "lifecycle": "retailer_mesh_candidate",
-      "coverageTier": "policy_source_discovery",
+      "sourceLabel": "South Carolina retailer inventory mesh",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
-      "customerSummary": "Retailer-mesh candidate. Official DOR ABL pages are liquor licensing/regulatory context, not bottle availability."
+      "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only."
     }
   }
 } as const;

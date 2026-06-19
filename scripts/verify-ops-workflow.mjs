@@ -52,16 +52,21 @@ if (!/state-lifecycle\.mjs/.test(stateSources)) {
 if (customerStates.has('TX')) {
   fail('TX must not be in activeStates until Texas has stronger customer-facing data.');
 }
-for (const state of ['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'TN', 'VA', 'IA', 'ID', 'UT', 'MD-MONTGOMERY']) {
+for (const state of ['AL', 'IL', 'IN', 'NC', 'OH', 'PA', 'SC', 'TN', 'VA', 'IA', 'ID', 'UT', 'MD-MONTGOMERY']) {
   if (!customerStates.has(state)) {
     fail(`Expected active customer state ${state} missing from shared state lifecycle config.`);
   }
 }
-for (const state of ['FL', 'GA', 'KY', 'NH', 'OR', 'SC']) {
+for (const state of ['FL', 'GA', 'KY', 'NH', 'OR']) {
   if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage.`);
   if (stateLifecycleConfig.states?.[state]?.publicStatus !== 'research_only') {
     fail(`${state} should have explicit research_only lifecycle status.`);
   }
+}
+if (stateLifecycleConfig.states?.SC?.publicStatus !== 'active'
+  || stateLifecycleConfig.states?.SC?.coverageTier !== 'live_store_inventory'
+  || stateLifecycleConfig.states?.SC?.lifecycle !== 'retailer_store_inventory') {
+  fail('SC should be active live_store_inventory only after verified 90+ public retailer store-inventory hardening.');
 }
 if (stateLifecycleConfig.states?.['MD-MONTGOMERY']?.customerLabel !== 'Maryland') {
   fail('MD-MONTGOMERY should display to users as Maryland.');

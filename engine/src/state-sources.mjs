@@ -278,12 +278,16 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'SC', label: 'South Carolina DOR ABL', tier: 'C', strategy: 'license_and_regulatory_watch', cadence: 'weekly-monthly',
-    value: 'Private retail market; official pages expose liquor licensing and regulatory context, not public bottle/store inventory.',
+    id: 'SC', label: 'South Carolina retailer inventory mesh', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
+    value: 'South Carolina is a private retail market. Customer-facing value now comes from whitelisted public retailer sources that expose store-level rows: Green\'s Beverage and Wine & Bourbon Barn CityHive merchant-id pages with quantities, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only.',
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
-      { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl', label: 'South Carolina alcohol beverage licensing' }
+      { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl', label: 'South Carolina alcohol beverage licensing' },
+      { kind: 'html', url: 'https://www.greensbeverages.com/shop/?subtype=bourbon', label: "Green's Beverage SC CityHive merchant-id bourbon inventory", precisionOnly: true },
+      { kind: 'html', url: 'https://winebarnsc.com/shop/?subtype=bourbon', label: 'Wine & Bourbon Barn CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://dabrownbag.com/wp-json/moo-clover/v1/search/bourbon', label: 'Da Brown Bag Clover bourbon stockCount API', precisionOnly: true },
+      { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true }
     ],
     apiCandidates: []
   },

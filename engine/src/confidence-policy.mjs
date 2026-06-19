@@ -24,7 +24,7 @@ export const STATE_CONFIDENCE_POLICY = {
   KY: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Kentucky ABC official public surfaces found so far are active-brand/licensing context, not consumer store inventory. Treat Kentucky as product/brand watch only until a bottle-level public feed is found.', defaultCadence: 'weekly-monthly' },
   TN: { maxAlertMode: 'license_document_watch', inventorySemantics: 'Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory.', defaultCadence: 'daily-60m' },
   TX: { maxAlertMode: 'catalog_release_watch', inventorySemantics: "Texas is a private retail market. TABC/comptroller pages are policy/license context; Spec's public product/event pages are retailer catalog or release-watch signals, not live shelf inventory unless a store-specific row is later extracted.", defaultCadence: 'daily-weekly' },
-  SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability.', defaultCadence: 'weekly-monthly' },
+  SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.', defaultCadence: 'weekly-monthly' },
   GA: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Georgia DOR official pages expose brand/label registration guidance, active alcohol license reports, and shipment reporting context. Treat as source-discovery/catalog infrastructure, not consumer bottle inventory.', defaultCadence: 'weekly-monthly' },
   FL: { maxAlertMode: 'policy_only', inventorySemantics: 'Florida ABT official pages expose licensing/quota-license lottery context, not bourbon product availability.', defaultCadence: 'weekly-monthly' }
 };
@@ -87,6 +87,12 @@ const TEXAS_CITYHIVE_POLICY = {
   defaultCadence: 'daily-60m'
 };
 
+const SOUTH_CAROLINA_RETAILER_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
+  defaultCadence: 'daily-60m'
+};
+
 function policyForSignal(signal) {
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
@@ -96,6 +102,9 @@ function policyForSignal(signal) {
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
   if (signal.state === 'TX' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TEXAS_CITYHIVE_POLICY;
+  if (signal.state === 'SC'
+    && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
   return basePolicy;
 }
 

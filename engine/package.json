@@ -41,6 +41,8 @@
     "verify:va": "node src/verify-va.mjs",
     "verify:tn": "node src/verify-tn.mjs",
     "score:tn": "node src/score-tn-user-reach.mjs",
+    "verify:sc": "node src/verify-sc.mjs",
+    "score:sc": "node src/score-sc-user-reach.mjs",
     "verify:site": "node src/verify-site-contract.mjs"
   },
   "dependencies": {

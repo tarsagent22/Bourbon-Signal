@@ -1068,6 +1068,84 @@
       "sourceStates": [
         "IN"
       ]
+    },
+    {
+      "canonical": "Yellowstone 250th Anniversary Single Barrel",
+      "aliases": [
+        "YELLOWSTONE 250th Anniversary Single Barrel \"Of Course!\"",
+        "Yellowstone 250th Anniversary Single Barrel",
+        "Yellowstone Single Barrel Of Course"
+      ],
+      "tier": "limited",
+      "producer": "Limestone Branch Distillery",
+      "sourceStates": [
+        "SC"
+      ]
+    },
+    {
+      "canonical": "Jack Daniel's Barrel Heritage Barrel Toasted",
+      "aliases": [
+        "JACK DANIELS BARREL HERITAGE BARREL (TOASTED)",
+        "Jack Daniels Barrel Heritage Barrel Toasted",
+        "Jack Daniel's Barrel Heritage Toasted"
+      ],
+      "tier": "limited",
+      "producer": "Jack Daniel's",
+      "sourceStates": [
+        "SC"
+      ]
+    },
+    {
+      "canonical": "Sazerac Rye Single Barrel",
+      "aliases": [
+        "SAZERAC RYE SINGLE BARREL RYE WHISKEY 100 PROOF (1L)",
+        "Sazerac Rye Single Barrel 100 Proof",
+        "Sazerac Rye Single Barrel Rye Whiskey"
+      ],
+      "tier": "limited",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "SC"
+      ]
+    },
+    {
+      "canonical": "Blue Note Juke Joint Bourbon",
+      "aliases": [
+        "Blue Note Juke Joint \"Bob Peters\"",
+        "Blue Note Juke Joint Bob Peters",
+        "Blue Note Juke Joint Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "B.R. Distilling",
+      "sourceStates": [
+        "SC"
+      ]
+    },
+    {
+      "canonical": "Minor Case Rye",
+      "aliases": [
+        "MINOR CASE \"RYE COOKIE\"",
+        "Minor Case Rye Cookie",
+        "Minor Case Rye"
+      ],
+      "tier": "standard",
+      "producer": "Limestone Branch Distillery",
+      "sourceStates": [
+        "SC"
+      ]
+    },
+    {
+      "canonical": "Knob Creek Rye Single Barrel",
+      "aliases": [
+        "KNOB CREEK RYE SINGLE BARREL \"THE WILD ONE\"",
+        "Knob Creek Rye Single Barrel The Wild One",
+        "Knob Creek Single Barrel Rye"
+      ],
+      "tier": "standard",
+      "producer": "Jim Beam",
+      "sourceStates": [
+        "SC"
+      ]
     }
   ],
   "verifiedAliasNotes": [

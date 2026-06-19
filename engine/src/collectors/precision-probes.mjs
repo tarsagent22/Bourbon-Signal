@@ -19,6 +19,7 @@ const TRACKED_TERMS = {
   IL: ['Blanton', 'Eagle Rare', 'Weller', 'Stagg', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker'],
   VA: ['Blanton', 'Eagle Rare', 'Buffalo Trace', 'Taylor', 'Old Fitzgerald', '1792 Small Batch'],
   PA: ['Buffalo Trace', 'Weller', 'Blanton', 'Eagle Rare', 'Stagg', 'Old Fitzgerald'],
+  SC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Stagg', '1792'],
   'MD-MONTGOMERY': ['Blanton', 'Eagle Rare', 'Weller', 'Buffalo Trace', 'Taylor', 'Stagg', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker']
 };
 
@@ -478,6 +479,66 @@ const TX_CITYHIVE_SOURCES = [
   }
 ];
 const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|bardstown|holladay|single barrel|barrel pick|rare|allocated/i;
+
+const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
+const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 3);
+const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
+const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
+const SC_CITYHIVE_SOURCES = [
+  {
+    id: 'greens-beverage',
+    chainName: "Green's Beverage",
+    sourceLabel: "Green's Beverage South Carolina CityHive store inventory",
+    baseUrl: 'https://www.greensbeverages.com',
+    urls: [
+      'https://www.greensbeverages.com/shop/?subtype=bourbon',
+      'https://www.greensbeverages.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: [
+      '61dc4ab6a1d5721307e9c20e',
+      '61e1d04c823936166693c7f3',
+      '61dc62fca1d5721d92e837cf',
+      '61dc583152bc522be69a8b9e',
+      '61b7517362f55f727e469da5'
+    ]
+  },
+  {
+    id: 'wine-bourbon-barn',
+    chainName: 'Wine & Bourbon Barn',
+    sourceLabel: 'Wine & Bourbon Barn CityHive store inventory',
+    baseUrl: 'https://winebarnsc.com',
+    urls: [
+      'https://winebarnsc.com/shop/?subtype=bourbon',
+      'https://winebarnsc.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: [
+      '69930e7bed5bdd2a34c085c3',
+      '699754a7b0035e3df3e7f3a4',
+      '69977a118f10a026bd985189'
+    ]
+  }
+];
+const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
+const SC_DA_BROWN_BAG_BASE_URL = 'https://dabrownbag.com';
+const SC_DA_BROWN_BAG_SEARCH_TERMS = ['bourbon', 'whiskey', 'weller', 'buffalo', 'blanton', 'eagle rare', 'taylor', 'stagg', '1792', 'four roses', 'woodford', 'elijah craig', 'old forester', 'knob creek', 'maker', 'willett', 'michter'];
+const SC_DA_BROWN_BAG_STORE = {
+  id: 'da-brown-bag-north-charleston',
+  name: 'Da Brown Bag ABC Store',
+  address: '1709 Remount Road, Suite 107, North Charleston, SC 29406',
+  city: 'North Charleston',
+  zip: '29406'
+};
+const SC_SOUTHERN_SPIRITS_STORE = {
+  id: 'southern-spirits-indian-land',
+  name: 'Southern Spirits',
+  address: '9989 Charlotte Hwy, Indian Land, SC 29707',
+  city: 'Indian Land',
+  zip: '29707'
+};
+const SC_SOUTHERN_SPIRITS_PRODUCTS_URL = 'https://southernspirits.com/products.json?limit=250';
+const SC_SOUTHERN_SPIRITS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_SOUTHERN_SPIRITS_MAX_PAGES || 2);
+const SC_RETAILER_WATCH_RE = /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|green river|bardstown|knob creek|bulleit|maker'?s|yellowstone|penelope|jack daniel/i;
+const SC_RETAILER_EXCLUDE_RE = /gift\s*card|bundle|curated\s*bundle|wine\s*bundle|event|ticket|shirt|hat|glass|cup|stout|beer|wine|vodka|gin|rum|tequila|mezcal|brandy|cognac|liqueur|cordial|cocktail|ready\s*to\s*drink|seltzer|cream|coffee|cinnamon|peach|apple|honey|vanilla|peanut\s*butter|chocolate/i;
 
 const OHLQ_SHA256_AVAILABILITY_BUCKETS = {
   '3:1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464': { value: -1, status: 'not_available', label: 'Not Available', positive: false },
@@ -2396,6 +2457,463 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+function isSouthCarolinaRetailerCandidate(value) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text || !SC_RETAILER_WATCH_RE.test(text)) return false;
+  if (SC_RETAILER_EXCLUDE_RE.test(text)) return false;
+  return true;
+}
+
+function southCarolinaStoreLocationSignal(config, sourceLabel, sourceUrl, store, observedAt, chain) {
+  return {
+    id: stableId([config.id, 'retailer-store-location', chain, store.id]),
+    state: config.id,
+    sourceLabel,
+    sourceUrl,
+    rawName: store.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.72,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: `${chain}:${store.id}`,
+    storeAddress: store.address,
+    city: store.city,
+    stateCode: 'SC',
+    postalCode: store.zip,
+    zip: store.zip,
+    lat: store.lat || null,
+    lng: store.lng || null,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: `${store.name} location metadata identifies a public South Carolina retailer source. Store-location rows are not bottle inventory by themselves.`,
+    evidence: `${sourceLabel} identifies ${store.name} at ${store.address}.`,
+    raw: { chain, store }
+  };
+}
+
+async function readSouthCarolinaCityHiveCache() {
+  try {
+    const cache = JSON.parse(await readFile(SC_CITYHIVE_ARTIFACT_PATH, 'utf8'));
+    const generatedMs = new Date(cache.generatedAt || 0).getTime();
+    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS;
+    if (!fresh) return null;
+    const signals = Array.isArray(cache.signals) ? cache.signals : [];
+    const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
+    if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
+    return { ...cache, signals, roadblocks };
+  } catch {
+    return null;
+  }
+}
+
+function cachedSouthCarolinaCityHiveSignals(cache, observedAt) {
+  return (cache?.signals || []).map((signal) => ({
+    ...signal,
+    observedAt: cache.generatedAt || signal.observedAt || observedAt,
+    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_CITYHIVE_ARTIFACT_PATH }
+  }));
+}
+
+function southCarolinaCityHiveSignalChain(signal) {
+  if (signal?.raw?.chain) return signal.raw.chain;
+  const label = String(signal?.sourceLabel || signal?.source || '');
+  const source = SC_CITYHIVE_SOURCES.find((item) => label.includes(item.chainName) || label.includes(item.sourceLabel));
+  return source?.id || null;
+}
+
+function southCarolinaCityHivePositiveInventoryChains(signals = []) {
+  return new Set(signals
+    .filter((signal) => signal.eventType === 'cityhive_store_inventory_result')
+    .map(southCarolinaCityHiveSignalChain)
+    .filter(Boolean));
+}
+
+async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
+  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextChains = southCarolinaCityHivePositiveInventoryChains(signals);
+  const previous = await readSouthCarolinaCityHiveCache();
+  const previousChains = southCarolinaCityHivePositiveInventoryChains(previous?.signals || []);
+  if (previousChains.size >= 2 && nextChains.size < previousChains.size) return;
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    source: 'South Carolina CityHive retailer inventory cache',
+    cacheMaxAgeMs: SC_CITYHIVE_CACHE_MAX_AGE_MS,
+    sourceChainCount: nextChains.size,
+    sourceChains: [...nextChains].sort(),
+    signalCount: signals.length,
+    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
+    signals,
+    roadblocks
+  };
+  await mkdir(path.dirname(SC_CITYHIVE_ARTIFACT_PATH), { recursive: true });
+  await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+}
+
+async function collectSouthCarolinaCityHive(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const cache = await readSouthCarolinaCityHiveCache();
+  const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
+  if (process.env.BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS) {
+    return {
+      signals: cachedSouthCarolinaCityHiveSignals(cache, observedAt),
+      roadblocks: [
+        ...(cache.roadblocks || []),
+        {
+          state: config.id,
+          source: 'South Carolina CityHive retailer inventory cache reuse',
+          url: SC_CITYHIVE_ARTIFACT_PATH,
+          status: 200,
+          error: `Using ${cache.signals.length} cached CityHive store-level rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer traffic unless BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE=1.`,
+          nextRoute: 'Force live South Carolina CityHive refresh during a maintenance window; otherwise keep cache-backed rows inside the freshness window.'
+        }
+      ]
+    };
+  }
+
+  const seenProductOptions = new Set();
+  const seenStores = new Set();
+  for (const source of SC_CITYHIVE_SOURCES) {
+    for (const seedUrl of source.urls) {
+      for (const merchantId of source.merchantIds || []) {
+        for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, SC_CITYHIVE_MAX_PAGES)) {
+          const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
+          if (!res.ok) {
+            roadblocks.push({
+              state: config.id,
+              source: source.sourceLabel,
+              url,
+              status: res.status || 0,
+              error: res.error || `HTTP ${res.status}`,
+              nextRoute: 'Retry the selected South Carolina CityHive merchant-id page or inspect rendered/network calls for current product JSON shape.'
+            });
+            continue;
+          }
+          const blobs = cityHiveJsonBlobs(res.text);
+          const products = cityHiveProducts(blobs);
+          for (const cfg of cityHiveMerchantConfigs(blobs)) {
+            const merchant = cfg?.merchant || cfg;
+            if (!merchant?.id || !SC_CITYHIVE_MERCHANT_IDS.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+            const a = cityHiveAddressParts(merchant.address || {});
+            if ((a.state || '').toUpperCase() !== 'SC' && !/,\s*SC\s+\d{5}/i.test(a.fullAddress || '')) continue;
+            seenStores.add(`${source.id}|${merchant.id}`);
+            signals.push({
+              id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]),
+              state: config.id,
+              sourceLabel: `${source.chainName} CityHive store locator`,
+              sourceUrl: source.baseUrl,
+              rawName: merchant.display_name || merchant.name,
+              canonicalBottleId: null,
+              canonicalName: null,
+              confidence: 0.72,
+              eventType: 'retailer_store_location',
+              locationPrecision: 'store_level',
+              locationName: merchant.display_name || merchant.name,
+              storeName: merchant.display_name || merchant.name,
+              storeId: `${source.id}:${merchant.id}`,
+              storeAddress: a.fullAddress || [a.street, a.city, 'SC', a.zip].filter(Boolean).join(', '),
+              city: a.city,
+              county: a.county,
+              stateCode: 'SC',
+              postalCode: a.zip,
+              zip: a.zip,
+              lat: a.lat,
+              lng: a.lng,
+              quantity: 0,
+              observedAt,
+              canAlertAsInventory: false,
+              canAlertAsWatch: false,
+              inventorySemantics: `${source.chainName} CityHive store rows identify South Carolina retailer locations/order-capable branches. Store rows are not bottle inventory by themselves.`,
+              evidence: `${source.chainName} CityHive configuration lists ${merchant.display_name || merchant.name}${a.fullAddress ? ` at ${a.fullAddress}` : ''}.`,
+              raw: { chain: source.id, merchant }
+            });
+          }
+
+          for (const product of products) {
+            for (const merchant of product.merchants || []) {
+              for (const option of merchant.product_options || []) {
+                const optionMerchantId = String(option.merchant_id || '');
+                if (!SC_CITYHIVE_MERCHANT_IDS.has(optionMerchantId)) continue;
+                const fullAddress = option.full_address || '';
+                if (!/,\s*SC\s+\d{5}/i.test(fullAddress)) continue;
+                const rawName = option.option_display_data?.name || product.name || '';
+                const candidateText = JSON.stringify({ name: rawName, productName: product.name, category: product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
+                if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+                const quantity = Number(option.quantity || 0) || 0;
+                if (quantity <= 0) continue;
+                const key = `${source.id}|${optionMerchantId}|${option.product_id}|${option.option_id}`;
+                if (seenProductOptions.has(key)) continue;
+                seenProductOptions.add(key);
+                const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+                if (!record) continue;
+                const city = fullAddress.match(/,\s*([^,]+),\s*SC\s+\d{5}/i)?.[1] || null;
+                const zip = fullAddress.match(/\bSC\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
+                const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
+                const price = Number(option.price || 0) || null;
+                signals.push({
+                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id, quantity, price]),
+                  state: config.id,
+                  sourceLabel: source.sourceLabel,
+                  sourceUrl: option.product_url || url,
+                  rawName,
+                  canonicalBottleId: record.id,
+                  canonicalName: record.canonical,
+                  confidence: Math.max(0.8, match?.confidence || 0.5),
+                  eventType: 'cityhive_store_inventory_result',
+                  locationPrecision: 'store_level',
+                  locationName: option.merchant_name || source.chainName,
+                  storeName: option.merchant_name || source.chainName,
+                  storeId: `${source.id}:${optionMerchantId}`,
+                  storeAddress: fullAddress,
+                  city,
+                  stateCode: 'SC',
+                  postalCode: zip,
+                  zip,
+                  lat: Number(option.coordinates?.[1]) || null,
+                  lng: Number(option.coordinates?.[0]) || null,
+                  quantity,
+                  price,
+                  availabilityStatus: 'in_stock',
+                  availabilityLabel: 'In stock',
+                  observedAt,
+                  canAlertAsInventory: true,
+                  canAlertAsWatch: true,
+                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected South Carolina branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                  evidence: `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}.`,
+                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
+                });
+              }
+            }
+          }
+          await sleep(SC_CITYHIVE_PAGE_DELAY_MS);
+        }
+      }
+    }
+  }
+
+  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
+    if (cache) {
+      signals.push(...cachedSouthCarolinaCityHiveSignals(cache, observedAt));
+      roadblocks.push({
+        state: config.id,
+        source: 'South Carolina CityHive retailer inventory cache',
+        url: SC_CITYHIVE_ARTIFACT_PATH,
+        status: 'fresh_cache_fallback',
+        error: `Live South Carolina CityHive fetch did not produce positive inventory rows; reused fresh cache from ${cache.generatedAt}.`,
+        nextRoute: 'Keep selected merchant-id CityHive requests paced and retry live retailer pages on next scheduled run.'
+      });
+    } else {
+      roadblocks.push({
+        state: config.id,
+        source: 'South Carolina CityHive retailer inventory pages',
+        url: SC_CITYHIVE_SOURCES.map((source) => source.baseUrl).join(', '),
+        status: 'reachable_no_inventory_rows',
+        error: 'Selected SC CityHive pages were reachable but no positive bourbon/whiskey store inventory rows were parsed.',
+        nextRoute: 'Inspect embedded CityHive product JSON, merchant-id selection, and product_options quantity fields.'
+      });
+    }
+  } else {
+    await writeSouthCarolinaCityHiveCache(signals, roadblocks);
+  }
+  return { signals, roadblocks };
+}
+
+async function fetchDaBrownBagSearch(term) {
+  const url = `${SC_DA_BROWN_BAG_BASE_URL}/wp-json/moo-clover/v1/search/${encodeURIComponent(term)}`;
+  const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 24_000 });
+  if (!res.ok) return { ok: false, status: res.status || 0, error: res.error || `HTTP ${res.status}`, url, items: [] };
+  try {
+    const json = JSON.parse(res.text);
+    return { ok: true, status: res.status, url, items: Array.isArray(json.items) ? json.items : [] };
+  } catch (error) {
+    return { ok: false, status: res.status || 0, error: error instanceof Error ? error.message : String(error), url, items: [] };
+  }
+}
+
+async function collectSouthCarolinaDaBrownBag(config, bible, observedAt) {
+  const signals = [southCarolinaStoreLocationSignal(config, 'Da Brown Bag Clover public inventory API', SC_DA_BROWN_BAG_BASE_URL, SC_DA_BROWN_BAG_STORE, observedAt, 'da-brown-bag')];
+  const roadblocks = [];
+  const seenItems = new Set();
+  let returnedRows = 0;
+  for (const term of SC_DA_BROWN_BAG_SEARCH_TERMS) {
+    const page = await fetchDaBrownBagSearch(term);
+    if (!page.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Da Brown Bag Clover public inventory API',
+        url: page.url,
+        status: page.status || 0,
+        error: page.error || 'Da Brown Bag Clover search did not return parseable JSON.',
+        nextRoute: 'Retry public moo-clover search endpoints or inspect the WordPress route index for endpoint changes.'
+      });
+      continue;
+    }
+    returnedRows += page.items.length;
+    for (const item of page.items) {
+      if (!item?.uuid || seenItems.has(item.uuid)) continue;
+      const rawName = item.name || item.alternate_name || '';
+      if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+      const quantity = Number(item.stockCount || 0) || 0;
+      if (quantity <= 0 || item.forcedOutOfStock) continue;
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record) continue;
+      seenItems.add(item.uuid);
+      const price = Number(item.price || 0) / 100 || null;
+      signals.push({
+        id: stableId([config.id, 'clover-store-inventory', SC_DA_BROWN_BAG_STORE.id, item.uuid, quantity, item.price || null]),
+        state: config.id,
+        sourceLabel: 'Da Brown Bag Clover public inventory API',
+        sourceUrl: page.url,
+        rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.8, match?.confidence || 0.5),
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: SC_DA_BROWN_BAG_STORE.name,
+        storeName: SC_DA_BROWN_BAG_STORE.name,
+        storeId: `da-brown-bag:${SC_DA_BROWN_BAG_STORE.id}`,
+        storeAddress: SC_DA_BROWN_BAG_STORE.address,
+        city: SC_DA_BROWN_BAG_STORE.city,
+        stateCode: 'SC',
+        postalCode: SC_DA_BROWN_BAG_STORE.zip,
+        zip: SC_DA_BROWN_BAG_STORE.zip,
+        quantity,
+        price,
+        availabilityStatus: 'in_stock',
+        availabilityLabel: 'In stock',
+        observedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Da Brown Bag public WordPress/Clover online-order API reports per-item stockCount and price for its North Charleston store. Treat as retailer-published pickup/order availability and verify before driving.',
+        evidence: `Da Brown Bag Clover API reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} at ${SC_DA_BROWN_BAG_STORE.address}.`,
+        raw: { chain: 'da-brown-bag', term, item, matchGuard: unsafeReason }
+      });
+    }
+    await sleep(250);
+  }
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Da Brown Bag Clover public inventory API',
+      url: `${SC_DA_BROWN_BAG_BASE_URL}/wp-json/moo-clover/v1/search/bourbon`,
+      status: 'reachable_no_safe_bourbon_inventory',
+      error: `Da Brown Bag Clover searches returned ${returnedRows} rows but no positive safe Bourbon Signal matches survived filtering.`,
+      nextRoute: 'Inspect Clover search names and add exact aliases only when identities are unambiguous.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
+function southernSpiritsProductText(product, variant) {
+  return `${product?.title || ''} ${product?.product_type || ''} ${variant?.title || ''}`;
+}
+
+function southernSpiritsProductUrl(product) {
+  return product?.handle ? `https://southernspirits.com/products/${product.handle}` : 'https://southernspirits.com/products';
+}
+
+async function collectSouthCarolinaSouthernSpirits(config, bible, observedAt) {
+  const signals = [southCarolinaStoreLocationSignal(config, 'Southern Spirits Shopify products feed', 'https://southernspirits.com/', SC_SOUTHERN_SPIRITS_STORE, observedAt, 'southern-spirits')];
+  const roadblocks = [];
+  const seenProducts = new Set();
+  let returnedRows = 0;
+  for (let pageNumber = 1; pageNumber <= SC_SOUTHERN_SPIRITS_MAX_PAGES; pageNumber++) {
+    const url = `${SC_SOUTHERN_SPIRITS_PRODUCTS_URL}&page=${pageNumber}`;
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000 });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Southern Spirits Shopify products feed',
+        url,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Retry Shopify products.json or inspect storefront product JSON paths.'
+      });
+      break;
+    }
+    let products = [];
+    try { products = JSON.parse(res.text)?.products || []; } catch (error) {
+      roadblocks.push({ state: config.id, source: 'Southern Spirits Shopify products feed', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect Shopify products.json response shape.' });
+      break;
+    }
+    if (!products.length) break;
+    returnedRows += products.length;
+    for (const product of products) {
+      if (!product?.id || seenProducts.has(product.id)) continue;
+      const variants = Array.isArray(product.variants) ? product.variants : [];
+      const availableVariant = variants.find((variant) => variant?.available);
+      if (!availableVariant) continue;
+      const candidateText = southernSpiritsProductText(product, availableVariant);
+      if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+      const rawName = [product.title, availableVariant.title && !/^default title$/i.test(availableVariant.title) ? availableVariant.title : null].filter(Boolean).join(' ');
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record) continue;
+      seenProducts.add(product.id);
+      const price = Number(availableVariant.price || 0) || null;
+      signals.push({
+        id: stableId([config.id, 'shopify-store-inventory', SC_SOUTHERN_SPIRITS_STORE.id, product.id, availableVariant.id || '', price]),
+        state: config.id,
+        sourceLabel: 'Southern Spirits Shopify products feed',
+        sourceUrl: southernSpiritsProductUrl(product),
+        rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        confidence: Math.max(0.78, match?.confidence || 0.5),
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: SC_SOUTHERN_SPIRITS_STORE.name,
+        storeName: SC_SOUTHERN_SPIRITS_STORE.name,
+        storeId: `southern-spirits:${SC_SOUTHERN_SPIRITS_STORE.id}`,
+        storeAddress: SC_SOUTHERN_SPIRITS_STORE.address,
+        city: SC_SOUTHERN_SPIRITS_STORE.city,
+        stateCode: 'SC',
+        postalCode: SC_SOUTHERN_SPIRITS_STORE.zip,
+        zip: SC_SOUTHERN_SPIRITS_STORE.zip,
+        quantity: 1,
+        price,
+        availabilityStatus: 'listed_available',
+        availabilityLabel: 'Listed available',
+        observedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'Southern Spirits Shopify products feed exposes public online availability for a verified single South Carolina store, but not exact bottle count. Quantity is a lower-bound availability marker; verify before driving/order placement.',
+        evidence: `Southern Spirits Shopify feed lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} as available for ${SC_SOUTHERN_SPIRITS_STORE.address}; exact count is not exposed.`,
+        raw: { chain: 'southern-spirits', product: { id: product.id, handle: product.handle, product_type: product.product_type, tags: product.tags }, variant: availableVariant, quantitySemantics: 'listed_available_no_exact_count', matchGuard: unsafeReason }
+      });
+    }
+    await sleep(250);
+  }
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Southern Spirits Shopify products feed',
+      url: SC_SOUTHERN_SPIRITS_PRODUCTS_URL,
+      status: 'reachable_no_safe_bourbon_inventory',
+      error: `Southern Spirits Shopify feed returned ${returnedRows} product rows but no available safe Bourbon Signal matches survived filtering.`,
+      nextRoute: 'Inspect product titles/tags and avoid bundles, gift cards, beer, wine, and other non-bottle rows.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
+async function collectSouthCarolina(config, bible) {
+  const observedAt = new Date().toISOString();
+  const cityHive = await collectSouthCarolinaCityHive(config, bible, observedAt);
+  const daBrownBag = await collectSouthCarolinaDaBrownBag(config, bible, observedAt);
+  const southernSpirits = await collectSouthCarolinaSouthernSpirits(config, bible, observedAt);
+  return {
+    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals],
+    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks]
+  };
+}
+
 async function collectTennessee(config, bible) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
@@ -2998,6 +3516,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
+  if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
   if (config.id === 'PA') return collectPennsylvania(config, bible);

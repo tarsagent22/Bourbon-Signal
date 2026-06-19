@@ -153,19 +153,36 @@ function isTennesseeRetailerInventory(signal) {
     && Boolean(signal.storeAddress);
 }
 
+function isSouthCarolinaAllowedRetailerSource(signal) {
+  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(String(signal.sourceLabel || signal.source || ''));
+}
+
+function isSouthCarolinaRetailerInventory(signal) {
+  return signal.state === 'SC'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && isSouthCarolinaAllowedRetailerSource(signal)
+    && signal.locationPrecision === 'store_level'
+    && Number(signal.quantity || 0) > 0
+    && Boolean(signal.storeId)
+    && /,\s*SC\s+\d{5}/i.test(String(signal.storeAddress || ''));
+}
+
 function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
-  const preferRetailerName = ['IN', 'IL', 'TN'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
+  const preferRetailerName = ['IN', 'IL', 'TN', 'SC'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const preferOfficialSourceName = preferRetailerName || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
   const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
+  const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
   const inventorySemantics = isTnRetailerInventory
     ? 'Tennessee is a private retail market. Retailer e-commerce pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
-    : signal.inventorySemantics;
-  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory;
-  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory;
+    : isScRetailerInventory
+      ? 'South Carolina is a private retail market. Whitelisted public retailer sources can expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
+      : signal.inventorySemantics;
+  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
+  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
   const dataLane = canAlertAsInventory && signal.locationPrecision === 'store_level'
     ? 'actionable_inventory'
     : canAlertAsWatch
@@ -214,7 +231,7 @@ function publicSignal(signal, bible, freshness = null) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isTnRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isTnRetailerInventory || isScRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
     dataLane,
