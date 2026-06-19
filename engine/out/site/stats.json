@@ -1,23 +1,23 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T15:46:01.448Z",
-  "engineGeneratedAt": "2026-06-19T15:45:46.760Z",
-  "stateCount": 14,
-  "signalCount": 14954,
-  "historicalSignalCount": 105332,
+  "generatedAt": "2026-06-19T20:14:43.012Z",
+  "engineGeneratedAt": "2026-06-19T20:14:26.009Z",
+  "stateCount": 12,
+  "signalCount": 10992,
+  "historicalSignalCount": 97256,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 151,
   "bibleRecordCount": 151,
-  "storeCount": 3188,
-  "locationCount": 3545,
+  "storeCount": 2700,
+  "locationCount": 3052,
   "officialLocationCount": 0,
-  "preloadedLocationCount": 156,
-  "dropCount": 2780,
-  "eventCount": 1562,
+  "preloadedLocationCount": 154,
+  "dropCount": 4969,
+  "eventCount": 1545,
   "historicalTrendCount": 100,
   "alertCandidateCount": 0,
-  "roadblockCount": 19,
+  "roadblockCount": 12,
   "refreshHealth": {
     "degradedStateCount": 1,
     "staleStateCount": 1,
@@ -34,37 +34,18 @@
       }
     ]
   },
-  "statesAtTargetPrecision": 14,
+  "statesAtTargetPrecision": 12,
   "rareStatesVerified": 14,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 8,
       "store_delivery_leads": 1,
-      "aggregate_inventory_watch": 2,
       "shipment_drop_intelligence": 1,
+      "live_store_inventory": 7,
       "store_availability_status": 1,
+      "aggregate_inventory_watch": 1,
       "distillery_release_watch": 1
     },
     "states": [
-      {
-        "state": "OH",
-        "label": "Ohio",
-        "sourceLabel": "Ohio OHLQ",
-        "tier": "A",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "store_inventory",
-        "signalCount": 3900,
-        "roadblockCount": 7,
-        "targetLocationPrecision": "store_level",
-        "bestLocationPrecision": "store_level",
-        "strategy": "inventory_locator",
-        "refinementLevel": "city",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "OHLQ browser-assisted store availability where the public source is reachable.",
-        "coverageTier": "live_store_inventory"
-      },
       {
         "state": "IA",
         "label": "Iowa",
@@ -83,25 +64,6 @@
         "areaOptions": [],
         "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory.",
         "coverageTier": "store_delivery_leads"
-      },
-      {
-        "state": "UT",
-        "label": "Utah",
-        "sourceLabel": "Utah DABS",
-        "tier": "A",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "aggregate_inventory_watch",
-        "signalCount": 62,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "board_warehouse",
-        "bestLocationPrecision": "store_aggregate",
-        "strategy": "product_locator_and_drawings",
-        "refinementLevel": "statewide",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "DABS product locator, warehouse/store aggregate, allocated, and barrel-selection watch data. Not exact per-store shelf inventory yet.",
-        "coverageTier": "aggregate_inventory_watch"
       },
       {
         "state": "AL",
@@ -317,7 +279,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-19T15:46:01.451Z",
+    "generatedAt": "2026-06-19T20:14:43.015Z",
     "focusStates": [
       "AL",
       "VA",

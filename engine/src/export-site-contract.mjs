@@ -13,7 +13,7 @@ const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
 const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHOT_LIMIT || 40);
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
-const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 2);
+const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 12);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
@@ -279,7 +279,10 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
   if (!currentKeys.has(signalFreshnessKey(signal))) return false;
   const observedAt = asTime(signal.observedAt || signal.fetchedAt);
   if (!observedAt) return false;
-  return Date.now() - observedAt <= FAST_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
+  const maxAgeHours = signal.state === 'PA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
+    ? PA_STORE_INVENTORY_MAX_AGE_HOURS
+    : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
+  return Date.now() - observedAt <= maxAgeHours * 60 * 60 * 1000;
 }
 
 function signalFreshnessKey(signal) {
@@ -411,11 +414,11 @@ function buildStores(signals) {
 }
 
 function signalCanAlertAsInventory(signal) {
-  return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal);
+  return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }
 
 function signalCanAlertAsWatch(signal) {
-  return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal);
+  return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }
 
 function isKentuckyOfficialDistillerySignal(signal) {

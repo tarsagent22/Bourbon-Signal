@@ -3,7 +3,6 @@
     "NC",
     "VA",
     "PA",
-    "OH",
     "IA",
     "ID",
     "AL",
@@ -11,7 +10,6 @@
     "IN",
     "TN",
     "SC",
-    "UT",
     "MD-MONTGOMERY",
     "KY"
   ],
@@ -46,7 +44,7 @@
     "OH": {
       "customerLabel": "Ohio",
       "sourceLabel": "Ohio OHLQ",
-      "publicStatus": "active",
+      "publicStatus": "research_only",
       "lifecycle": "store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
@@ -111,7 +109,7 @@
     "UT": {
       "customerLabel": "Utah",
       "sourceLabel": "Utah DABS",
-      "publicStatus": "active",
+      "publicStatus": "research_only",
       "lifecycle": "aggregate_inventory_watch",
       "coverageTier": "aggregate_inventory_watch",
       "refinementLevel": "statewide",

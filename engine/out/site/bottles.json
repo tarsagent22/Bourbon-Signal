@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T15:46:01.448Z",
+  "generatedAt": "2026-06-19T20:14:43.012Z",
   "count": 151,
   "bottles": [
     {
@@ -103,8 +103,8 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 32,
-      "stateCount": 5,
+      "signalCount": 31,
+      "stateCount": 4,
       "inventorySignalCount": 1,
       "watchSignalCount": 29,
       "bestLocationPrecision": "store_level",
@@ -113,8 +113,7 @@
         "AL",
         "MD-MONTGOMERY",
         "NC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T12:53:58.921Z"
     },
@@ -212,8 +211,8 @@
       ],
       "tier": "unicorn",
       "producer": "Brown-Forman",
-      "signalCount": 9,
-      "stateCount": 5,
+      "signalCount": 8,
+      "stateCount": 4,
       "inventorySignalCount": 1,
       "watchSignalCount": 8,
       "bestLocationPrecision": "distillery",
@@ -222,8 +221,7 @@
         "AL",
         "KY",
         "NC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
@@ -269,8 +267,8 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 33,
-      "stateCount": 6,
+      "signalCount": 31,
+      "stateCount": 5,
       "inventorySignalCount": 1,
       "watchSignalCount": 30,
       "bestLocationPrecision": "store_level",
@@ -280,8 +278,7 @@
         "NC",
         "PA",
         "SC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
@@ -325,8 +322,8 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 393,
-      "stateCount": 5,
+      "signalCount": 392,
+      "stateCount": 4,
       "inventorySignalCount": 0,
       "watchSignalCount": 392,
       "bestLocationPrecision": "store_level",
@@ -335,8 +332,7 @@
         "AL",
         "IA",
         "IN",
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T12:48:33.917Z"
     },
@@ -482,16 +478,15 @@
       ],
       "tier": "unicorn",
       "producer": "Michter's",
-      "signalCount": 4,
-      "stateCount": 3,
+      "signalCount": 3,
+      "stateCount": 2,
       "inventorySignalCount": 0,
       "watchSignalCount": 3,
-      "bestLocationPrecision": "board_warehouse",
+      "bestLocationPrecision": "board_county",
       "bestConfidence": 0.9,
       "states": [
         "AL",
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T12:45:38.670Z"
     },
@@ -608,8 +603,8 @@
       ],
       "tier": "unicorn",
       "producer": "Buffalo Trace",
-      "signalCount": 7,
-      "stateCount": 4,
+      "signalCount": 6,
+      "stateCount": 3,
       "inventorySignalCount": 0,
       "watchSignalCount": 6,
       "bestLocationPrecision": "distillery",
@@ -617,8 +612,7 @@
       "states": [
         "AL",
         "KY",
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T15:40:03.243Z"
     },
@@ -713,8 +707,8 @@
       ],
       "tier": "unicorn",
       "producer": "Heaven Hill",
-      "signalCount": 67,
-      "stateCount": 4,
+      "signalCount": 66,
+      "stateCount": 3,
       "inventorySignalCount": 0,
       "watchSignalCount": 62,
       "bestLocationPrecision": "store_level",
@@ -722,8 +716,7 @@
       "states": [
         "AL",
         "MD-MONTGOMERY",
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T12:54:19.000Z"
     },
@@ -1058,73 +1051,6 @@
       "latestObservedAt": null
     },
     {
-      "id": "bb_317836b9e64a7620",
-      "canonical_id": "bb_317836b9e64a7620",
-      "canonical_name": "Buffalo Trace Bourbon",
-      "canonical_key": "buffalo trace",
-      "name": "Buffalo Trace Bourbon",
-      "aliases": [
-        "BUFFALO TRACE LITER",
-        "BUFFALO TRACE bourbon",
-        "Buffalo Trace",
-        "Buffalo Trace Bourbon",
-        "Buffalo Trace KY Straight Bourbon",
-        "Buffalo Trace Kentucky Straight Bourbon",
-        "Buffalo Trace Liter"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 1339,
-      "stateCount": 11,
-      "inventorySignalCount": 378,
-      "watchSignalCount": 1335,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "AL",
-        "IA",
-        "IN",
-        "MD-MONTGOMERY",
-        "NC",
-        "OH",
-        "PA",
-        "SC",
-        "TN",
-        "UT",
-        "VA"
-      ],
-      "latestObservedAt": "2026-06-19T15:45:33.585Z"
-    },
-    {
-      "id": "bb_54f5df2f8ee5d7c9",
-      "canonical_id": "bb_54f5df2f8ee5d7c9",
-      "canonical_name": "Weller Special Reserve",
-      "canonical_key": "weller special",
-      "name": "Weller Special Reserve",
-      "aliases": [
-        "W.L. Weller Special Reserve",
-        "WL Weller SR",
-        "Weller SR",
-        "Weller Special Reserve"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 231,
-      "stateCount": 5,
-      "inventorySignalCount": 203,
-      "watchSignalCount": 230,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.9,
-      "states": [
-        "AL",
-        "NC",
-        "OH",
-        "TN",
-        "UT"
-      ],
-      "latestObservedAt": "2026-06-19T12:47:26.910Z"
-    },
-    {
       "id": "bb_be6a0afd4ba5f963",
       "canonical_id": "bb_be6a0afd4ba5f963",
       "canonical_name": "Elijah Craig Barrel Proof",
@@ -1137,8 +1063,8 @@
       ],
       "tier": "allocated",
       "producer": "Heaven Hill",
-      "signalCount": 157,
-      "stateCount": 7,
+      "signalCount": 156,
+      "stateCount": 6,
       "inventorySignalCount": 78,
       "watchSignalCount": 153,
       "bestLocationPrecision": "store_level",
@@ -1149,8 +1075,7 @@
         "IL",
         "MD-MONTGOMERY",
         "NC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
@@ -1196,10 +1121,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 826,
-      "stateCount": 11,
-      "inventorySignalCount": 65,
-      "watchSignalCount": 820,
+      "signalCount": 807,
+      "stateCount": 9,
+      "inventorySignalCount": 49,
+      "watchSignalCount": 804,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1210,9 +1135,43 @@
         "IN",
         "MD-MONTGOMERY",
         "NC",
-        "OH",
         "TN",
-        "UT",
+        "VA"
+      ],
+      "latestObservedAt": "2026-06-19T15:45:33.585Z"
+    },
+    {
+      "id": "bb_317836b9e64a7620",
+      "canonical_id": "bb_317836b9e64a7620",
+      "canonical_name": "Buffalo Trace Bourbon",
+      "canonical_key": "buffalo trace",
+      "name": "Buffalo Trace Bourbon",
+      "aliases": [
+        "BUFFALO TRACE LITER",
+        "BUFFALO TRACE bourbon",
+        "Buffalo Trace",
+        "Buffalo Trace Bourbon",
+        "Buffalo Trace KY Straight Bourbon",
+        "Buffalo Trace Kentucky Straight Bourbon",
+        "Buffalo Trace Liter"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 1004,
+      "stateCount": 9,
+      "inventorySignalCount": 44,
+      "watchSignalCount": 1001,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "AL",
+        "IA",
+        "IN",
+        "MD-MONTGOMERY",
+        "NC",
+        "PA",
+        "SC",
+        "TN",
         "VA"
       ],
       "latestObservedAt": "2026-06-19T15:45:33.585Z"
@@ -1235,10 +1194,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 802,
-      "stateCount": 10,
-      "inventorySignalCount": 49,
-      "watchSignalCount": 799,
+      "signalCount": 790,
+      "stateCount": 9,
+      "inventorySignalCount": 37,
+      "watchSignalCount": 787,
       "bestLocationPrecision": "distillery",
       "bestConfidence": 0.92,
       "states": [
@@ -1249,7 +1208,6 @@
         "KY",
         "MD-MONTGOMERY",
         "NC",
-        "OH",
         "TN",
         "VA"
       ],
@@ -1298,16 +1256,15 @@
       ],
       "tier": "allocated",
       "producer": "Jim Beam",
-      "signalCount": 12,
-      "stateCount": 3,
+      "signalCount": 10,
+      "stateCount": 2,
       "inventorySignalCount": 6,
       "watchSignalCount": 10,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "AL",
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T12:48:31.334Z"
     },
@@ -1487,6 +1444,33 @@
       "latestObservedAt": "2026-06-19T12:45:16.862Z"
     },
     {
+      "id": "bb_54f5df2f8ee5d7c9",
+      "canonical_id": "bb_54f5df2f8ee5d7c9",
+      "canonical_name": "Weller Special Reserve",
+      "canonical_key": "weller special",
+      "name": "Weller Special Reserve",
+      "aliases": [
+        "W.L. Weller Special Reserve",
+        "WL Weller SR",
+        "Weller SR",
+        "Weller Special Reserve"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 28,
+      "stateCount": 3,
+      "inventorySignalCount": 1,
+      "watchSignalCount": 28,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.9,
+      "states": [
+        "AL",
+        "NC",
+        "TN"
+      ],
+      "latestObservedAt": "2026-06-19T12:47:26.910Z"
+    },
+    {
       "id": "bb_b575401320b1c321",
       "canonical_id": "bb_b575401320b1c321",
       "canonical_name": "E.H. Taylor Straight Rye",
@@ -1501,15 +1485,14 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 2,
-      "stateCount": 2,
+      "signalCount": 1,
+      "stateCount": 1,
       "inventorySignalCount": 0,
       "watchSignalCount": 1,
-      "bestLocationPrecision": "board_warehouse",
+      "bestLocationPrecision": "statewide_catalog",
       "bestConfidence": 0.9,
       "states": [
-        "NC",
-        "UT"
+        "NC"
       ],
       "latestObservedAt": "2026-06-19T12:47:24.736Z"
     },
@@ -1725,8 +1708,8 @@
       ],
       "tier": "limited",
       "producer": "Michter's",
-      "signalCount": 569,
-      "stateCount": 9,
+      "signalCount": 566,
+      "stateCount": 8,
       "inventorySignalCount": 562,
       "watchSignalCount": 566,
       "bestLocationPrecision": "store_level",
@@ -1739,8 +1722,7 @@
         "NC",
         "PA",
         "SC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T15:45:33.585Z"
     },
@@ -1784,16 +1766,15 @@
       ],
       "tier": "limited",
       "producer": "Willett Family Estate",
-      "signalCount": 377,
-      "stateCount": 3,
+      "signalCount": 375,
+      "stateCount": 2,
       "inventorySignalCount": 350,
       "watchSignalCount": 375,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "NC",
-        "PA",
-        "UT"
+        "PA"
       ],
       "latestObservedAt": "2026-06-19T12:48:31.334Z"
     },
@@ -1916,8 +1897,8 @@
       ],
       "tier": "limited",
       "producer": "Jim Beam",
-      "signalCount": 31,
-      "stateCount": 6,
+      "signalCount": 30,
+      "stateCount": 5,
       "inventorySignalCount": 24,
       "watchSignalCount": 30,
       "bestLocationPrecision": "store_level",
@@ -1927,8 +1908,7 @@
         "IA",
         "IN",
         "NC",
-        "TN",
-        "UT"
+        "TN"
       ],
       "latestObservedAt": "2026-06-19T12:48:33.917Z"
     },
@@ -2112,8 +2092,8 @@
       ],
       "tier": "limited",
       "producer": "Heaven Hill",
-      "signalCount": 11,
-      "stateCount": 6,
+      "signalCount": 10,
+      "stateCount": 5,
       "inventorySignalCount": 5,
       "watchSignalCount": 9,
       "bestLocationPrecision": "store_level",
@@ -2123,8 +2103,7 @@
         "IA",
         "IN",
         "MD-MONTGOMERY",
-        "SC",
-        "UT"
+        "SC"
       ],
       "latestObservedAt": "2026-06-19T12:53:50.548Z"
     },
@@ -3490,17 +3469,15 @@
       ],
       "tier": "unknown",
       "producer": null,
-      "signalCount": 4,
-      "stateCount": 4,
+      "signalCount": 2,
+      "stateCount": 2,
       "inventorySignalCount": 0,
-      "watchSignalCount": 3,
+      "watchSignalCount": 2,
       "bestLocationPrecision": "store_aggregate",
       "bestConfidence": 0.92,
       "states": [
         "IA",
-        "OH",
-        "PA",
-        "UT"
+        "PA"
       ],
       "latestObservedAt": "2026-06-19T12:45:44.701Z"
     },
