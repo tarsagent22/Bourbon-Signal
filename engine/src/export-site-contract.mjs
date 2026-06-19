@@ -140,7 +140,7 @@ function isTennesseeCityHiveInventory(signal) {
 }
 
 function isTennesseeAllowedRetailerSource(signal) {
-  return /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(String(signal.sourceLabel || signal.source || ''));
+  return /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside|Gateway|Grabbl/i.test(String(signal.sourceLabel || signal.source || ''));
 }
 
 function isTennesseeRetailerInventory(signal) {

@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-18T23:16:16.590Z",
-  "count": 3170,
+  "generatedAt": "2026-06-19T00:07:44.024Z",
+  "count": 3179,
   "stores": [
     {
       "id": "alabc:001",
@@ -39509,7 +39509,7 @@
       "lat": 36.1570489,
       "lng": -86.7943734,
       "source": "Corkdorks CityHive store inventory",
-      "signalCount": 18
+      "signalCount": 20
     },
     {
       "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
@@ -39526,6 +39526,20 @@
       "signalCount": 4
     },
     {
+      "id": "discount-liquor-chattanooga:699b529abc7a0517b781e2e0",
+      "sourceStoreId": "discount-liquor-chattanooga:699b529abc7a0517b781e2e0",
+      "state": "TN",
+      "name": "Discount Liquor",
+      "address": "6231 Perimeter Dr #213, Chattanooga, TN 37421, USA",
+      "city": "Chattanooga",
+      "county": null,
+      "zip": "37421",
+      "lat": 35.0298185,
+      "lng": -85.18369369999999,
+      "source": "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store inventory",
+      "signalCount": 13
+    },
+    {
       "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "sourceStoreId": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "state": "TN",
@@ -39537,6 +39551,20 @@
       "lat": 36.149323,
       "lng": -86.77812259999999,
       "source": "Frugal MacDoogal CityHive store inventory",
+      "signalCount": 13
+    },
+    {
+      "id": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
+      "sourceStoreId": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
+      "state": "TN",
+      "name": "Gateway Wine & Spirits",
+      "address": "3119 Medical Center Parkway A5, Murfreesboro, TN 37129",
+      "city": "Murfreesboro",
+      "county": null,
+      "zip": "37129",
+      "lat": 35.8660287,
+      "lng": -86.45380279999999,
+      "source": "Gateway Wine & Spirits Grabbl public store API",
       "signalCount": 12
     },
     {
@@ -39554,6 +39582,48 @@
       "signalCount": 8
     },
     {
+      "id": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
+      "sourceStoreId": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
+      "state": "TN",
+      "name": "Lake District Wine and Liquor",
+      "address": "9845 Lake District Dr, Lakeland, TN 38002, USA",
+      "city": "Lakeland",
+      "county": null,
+      "zip": "38002",
+      "lat": 35.2218551,
+      "lng": -89.7345481,
+      "source": "Lake District Wine and Liquor CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "liquor-vault-knoxville:6862952392864d25df3762b8",
+      "sourceStoreId": "liquor-vault-knoxville:6862952392864d25df3762b8",
+      "state": "TN",
+      "name": "Liquor Vault Knoxville",
+      "address": "2901 Tazewell Pike, Knoxville, TN 37918, USA",
+      "city": "Knoxville",
+      "county": null,
+      "zip": "37918",
+      "lat": 36.0240857,
+      "lng": -83.9248823,
+      "source": "Liquor Vault Knoxville CityHive store inventory",
+      "signalCount": 10
+    },
+    {
+      "id": "m-and-j-liquor:6978c02491ff50558a0168d5",
+      "sourceStoreId": "m-and-j-liquor:6978c02491ff50558a0168d5",
+      "state": "TN",
+      "name": "M&J Liquor Wine Tobacoo",
+      "address": "309 Morrison Springs Rd, Chattanooga, TN 37415, USA",
+      "city": "Chattanooga",
+      "county": null,
+      "zip": "37415",
+      "lat": 35.1217967,
+      "lng": -85.2939899,
+      "source": "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory",
+      "signalCount": 14
+    },
+    {
       "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
       "sourceStoreId": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
       "state": "TN",
@@ -39568,6 +39638,62 @@
       "signalCount": 10
     },
     {
+      "id": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
+      "sourceStoreId": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
+      "state": "TN",
+      "name": "My Discount Liquor Tobacco",
+      "address": "2004 Dayton Blvd, Chattanooga, TN 37415, USA",
+      "city": "Chattanooga",
+      "county": null,
+      "zip": "37415",
+      "lat": 35.089561,
+      "lng": -85.31184019999999,
+      "source": "My Discount Liquor Tobacco RedBank TN CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "northshore-wine-spirits:5980fcddd05b4360e32f7f02",
+      "sourceStoreId": "northshore-wine-spirits:5980fcddd05b4360e32f7f02",
+      "state": "TN",
+      "name": "Northshore Wine & Spirits",
+      "address": "9427 S Northshore Dr, Knoxville, TN 37922, USA",
+      "city": "Knoxville",
+      "county": null,
+      "zip": "37922",
+      "lat": 35.8630651,
+      "lng": -84.06586,
+      "source": "Northshore Wine & Spirits CityHive store inventory",
+      "signalCount": 9
+    },
+    {
+      "id": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
+      "sourceStoreId": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
+      "state": "TN",
+      "name": "One Stop Wines & Spirits - Franklin Rd",
+      "address": "1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA",
+      "city": "Johnson City",
+      "county": "Washington County",
+      "zip": "37604",
+      "lat": 36.3008869,
+      "lng": -82.37741079999999,
+      "source": "One Stop Wines & Spirits Johnson City TN CityHive store locator",
+      "signalCount": 1
+    },
+    {
+      "id": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
+      "sourceStoreId": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
+      "state": "TN",
+      "name": "One Stop Wines & Spirits - Roan St",
+      "address": "2710 N Roan St, Johnson City, TN 37601, USA",
+      "city": "Johnson City",
+      "county": null,
+      "zip": "37601",
+      "lat": 36.3560166,
+      "lng": -82.38251729999999,
+      "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
+      "signalCount": 8
+    },
+    {
       "id": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
       "sourceStoreId": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
       "state": "TN",
@@ -39579,7 +39705,7 @@
       "lat": 35.9121068,
       "lng": -86.82835680000001,
       "source": "Red Dog Wine and Spirits CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",

@@ -40,6 +40,7 @@
     "score:nc": "node src/score-nc-user-reach.mjs",
     "verify:va": "node src/verify-va.mjs",
     "verify:tn": "node src/verify-tn.mjs",
+    "score:tn": "node src/score-tn-user-reach.mjs",
     "verify:site": "node src/verify-site-contract.mjs"
   },
   "dependencies": {

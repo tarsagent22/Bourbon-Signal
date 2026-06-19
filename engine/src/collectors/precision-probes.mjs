@@ -278,6 +278,21 @@ const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIV
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
 const TN_COOL_SPRINGS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_PAGE_SIZE || 100));
 const TN_COOL_SPRINGS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_MAX_PAGES || 3);
+const TN_GRABBL_BASE_URL = 'https://backend-prod.grabbl.io';
+const TN_GRABBL_GATEWAY_APP_ID = '40b00b93-3936-4edc-a8a9-eb3ea9d8c83a';
+const TN_GRABBL_GATEWAY_SEARCH_TERMS = ['bourbon', 'blanton', 'eagle rare', 'buffalo trace', 'weller', '1792', 'four roses', 'woodford', 'elijah craig', 'old forester', 'knob creek', 'maker'];
+const TN_GRABBL_SEARCH_LIMIT = Math.min(50, Number(process.env.BOURBON_SIGNAL_TN_GRABBL_SEARCH_LIMIT || 30));
+const TN_GRABBL_MAX_TERMS = Math.min(TN_GRABBL_GATEWAY_SEARCH_TERMS.length, Number(process.env.BOURBON_SIGNAL_TN_GRABBL_MAX_TERMS || TN_GRABBL_GATEWAY_SEARCH_TERMS.length));
+const TN_GRABBL_GATEWAY_STORE = {
+  appId: TN_GRABBL_GATEWAY_APP_ID,
+  id: '528698ef-ebe1-4778-a583-c4be1cc29693',
+  name: 'Gateway Wine & Spirits',
+  address: '3119 Medical Center Parkway A5, Murfreesboro, TN 37129',
+  city: 'Murfreesboro',
+  zip: '37129',
+  lat: 35.8660287,
+  lng: -86.4538028
+};
 const TN_COOL_SPRINGS_STORE = {
   id: '1000-1057',
   name: 'Cool Springs Wine & Spirits',
@@ -369,6 +384,76 @@ const TN_CITYHIVE_SOURCES = [
     urls: [
       'https://westsidewineandspirits.com/shop/?subtype=bourbon',
       'https://westsidewineandspirits.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'lake-district-wine-liquor',
+    chainName: 'Lake District Wine and Liquor',
+    sourceLabel: 'Lake District Wine and Liquor CityHive store inventory',
+    baseUrl: 'https://lakedistrictwineandliquor.com',
+    urls: [
+      'https://lakedistrictwineandliquor.com/shop/?subtype=bourbon',
+      'https://lakedistrictwineandliquor.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'm-and-j-liquor',
+    chainName: 'M&J Liquor Wine Tobacoo Chattanooga TN',
+    sourceLabel: 'M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory',
+    baseUrl: 'https://mnjliquor.com',
+    urls: [
+      'https://mnjliquor.com/shop/?subtype=bourbon',
+      'https://mnjliquor.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'red-bank-liquor',
+    chainName: 'My Discount Liquor Tobacco RedBank TN',
+    sourceLabel: 'My Discount Liquor Tobacco RedBank TN CityHive store inventory',
+    baseUrl: 'https://redbankliquor.com',
+    urls: [
+      'https://redbankliquor.com/shop/?subtype=bourbon',
+      'https://redbankliquor.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'discount-liquor-chattanooga',
+    chainName: 'Ma Kalika Partnership dba Discount liquor Chattanooga TN',
+    sourceLabel: 'Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store inventory',
+    baseUrl: 'https://chattliquor.com',
+    urls: [
+      'https://chattliquor.com/shop/?subtype=bourbon',
+      'https://chattliquor.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'one-stop-wines-johnson-city',
+    chainName: 'One Stop Wines & Spirits Johnson City TN',
+    sourceLabel: 'One Stop Wines & Spirits Johnson City TN CityHive store inventory',
+    baseUrl: 'https://onestopwines.net',
+    urls: [
+      'https://onestopwines.net/shop/?subtype=bourbon',
+      'https://onestopwines.net/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'northshore-wine-spirits',
+    chainName: 'Northshore Wine & Spirits',
+    sourceLabel: 'Northshore Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://northshorews.com',
+    urls: [
+      'https://northshorews.com/shop/?subtype=bourbon',
+      'https://northshorews.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'liquor-vault-knoxville',
+    chainName: 'Liquor Vault Knoxville',
+    sourceLabel: 'Liquor Vault Knoxville CityHive store inventory',
+    baseUrl: 'https://liquorvault.com',
+    urls: [
+      'https://liquorvault.com/shop/?subtype=bourbon',
+      'https://liquorvault.com/shop/?subtype=whiskey'
     ]
   }
 ];
@@ -2168,11 +2253,155 @@ async function collectTennesseeCoolSprings(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+function isGrabblBourbonRelevantProduct(item) {
+  const text = `${item?.productName || ''} ${item?.brand || ''} ${item?.productSubCategory || ''} ${item?.productDescription || ''}`;
+  if (/vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|bitters|margarita|brandy|cognac|mezcal/i.test(text)
+    && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(text)) return false;
+  if (/honey|vanilla|apple|peach|cinnamon|peanut butter|chocolate|salted caramel|flavored/i.test(text)
+    && !/single barrel|full proof|barrel proof|bottled.?in.?bond|store pick|private barrel|allocated|limited|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz/i.test(text)) return false;
+  return /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|1792|booker|baker|woodford|four roses|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker'?s mark|benchmark/i.test(text);
+}
+
+function grabblProductUrl(product) {
+  const id = product?.storeProduct?.[0]?.storeProductId || product?.productId || '';
+  return id ? `https://gatewaywineandspirit.com/products/${encodeURIComponent(id)}` : 'https://gatewaywineandspirit.com/';
+}
+
+async function fetchGatewayGrabblProducts(search) {
+  const url = new URL(`/product-web/store/${TN_GRABBL_GATEWAY_STORE.id}/search`, TN_GRABBL_BASE_URL);
+  url.searchParams.set('page', '1');
+  url.searchParams.set('limit', String(TN_GRABBL_SEARCH_LIMIT));
+  url.searchParams.set('search', search);
+  const res = await textFetch(url.toString(), {
+    headers: { accept: 'application/json,*/*', 'x-store-id': TN_GRABBL_GATEWAY_STORE.id },
+    timeoutMs: 24_000
+  });
+  if (!res.ok) return { ok: false, status: res.status || 0, error: res.error || `HTTP ${res.status}`, products: [], count: 0, url: url.toString() };
+  try {
+    const json = JSON.parse(res.text);
+    const data = json?.data || {};
+    return { ok: true, status: res.status, products: Array.isArray(data.data) ? data.data : [], count: Number(data.count || 0) || 0, url: url.toString() };
+  } catch (error) {
+    return { ok: false, status: res.status || 0, error: error instanceof Error ? error.message : String(error), products: [], count: 0, url: url.toString() };
+  }
+}
+
+async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seen = new Set();
+  signals.push({
+    id: stableId([config.id, 'grabbl-store-location', TN_GRABBL_GATEWAY_STORE.id]),
+    state: config.id,
+    sourceLabel: 'Gateway Wine & Spirits Grabbl public store API',
+    sourceUrl: 'https://gatewaywineandspirit.com/',
+    rawName: TN_GRABBL_GATEWAY_STORE.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.72,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: TN_GRABBL_GATEWAY_STORE.name,
+    storeName: TN_GRABBL_GATEWAY_STORE.name,
+    storeId: `grabbl-gateway:${TN_GRABBL_GATEWAY_STORE.id}`,
+    storeAddress: TN_GRABBL_GATEWAY_STORE.address,
+    city: TN_GRABBL_GATEWAY_STORE.city,
+    stateCode: 'TN',
+    postalCode: TN_GRABBL_GATEWAY_STORE.zip,
+    zip: TN_GRABBL_GATEWAY_STORE.zip,
+    lat: TN_GRABBL_GATEWAY_STORE.lat,
+    lng: TN_GRABBL_GATEWAY_STORE.lng,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'Gateway Wine & Spirits Grabbl rows identify the retailer location. Store rows are not bottle inventory by themselves.',
+    evidence: `Grabbl public white-label metadata identifies ${TN_GRABBL_GATEWAY_STORE.name} at ${TN_GRABBL_GATEWAY_STORE.address}.`,
+    raw: { chain: 'gateway-grabbl', store: TN_GRABBL_GATEWAY_STORE }
+  });
+
+  let returnedRows = 0;
+  for (const term of TN_GRABBL_GATEWAY_SEARCH_TERMS.slice(0, TN_GRABBL_MAX_TERMS)) {
+    const page = await fetchGatewayGrabblProducts(term);
+    if (!page.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Gateway Wine & Spirits Grabbl public store API',
+        url: page.url,
+        status: page.status || 0,
+        error: page.error || 'Gateway Grabbl search API did not return parseable JSON.',
+        nextRoute: 'Retry the public Grabbl white-label product search or inspect the current web app bundle for endpoint changes.'
+      });
+      continue;
+    }
+    returnedRows += page.products.length;
+    for (const product of page.products) {
+      if (!product?.productId || !isGrabblBourbonRelevantProduct(product)) continue;
+      const storeProducts = Array.isArray(product.storeProduct) ? product.storeProduct : [];
+      for (const storeProduct of storeProducts) {
+        if (storeProduct?.storeId && storeProduct.storeId !== TN_GRABBL_GATEWAY_STORE.id) continue;
+        const rawName = [product.productName, product.size].filter(Boolean).join(' ');
+        const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+        if (!record) continue;
+        const key = `${product.productId}|${storeProduct.storeProductId || ''}|${rawName}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const price = Number(storeProduct.productPrice || 0) || null;
+        signals.push({
+          id: stableId([config.id, 'gateway-grabbl-store-listing', product.productId, storeProduct.storeProductId || '', price]),
+          state: config.id,
+          sourceLabel: 'Gateway Wine & Spirits Grabbl public store API',
+          sourceUrl: grabblProductUrl(product),
+          rawName,
+          canonicalBottleId: record.id,
+          canonicalName: record.canonical,
+          confidence: Math.max(0.78, match?.confidence || 0.5),
+          eventType: 'retailer_store_inventory_result',
+          locationPrecision: 'store_level',
+          locationName: TN_GRABBL_GATEWAY_STORE.name,
+          storeName: TN_GRABBL_GATEWAY_STORE.name,
+          storeId: `grabbl-gateway:${TN_GRABBL_GATEWAY_STORE.id}`,
+          storeAddress: TN_GRABBL_GATEWAY_STORE.address,
+          city: TN_GRABBL_GATEWAY_STORE.city,
+          stateCode: 'TN',
+          postalCode: TN_GRABBL_GATEWAY_STORE.zip,
+          zip: TN_GRABBL_GATEWAY_STORE.zip,
+          lat: Number(storeProduct.latitude || TN_GRABBL_GATEWAY_STORE.lat) || TN_GRABBL_GATEWAY_STORE.lat,
+          lng: Number(storeProduct.longitude || TN_GRABBL_GATEWAY_STORE.lng) || TN_GRABBL_GATEWAY_STORE.lng,
+          quantity: 1,
+          price,
+          availabilityStatus: 'listed_for_pickup',
+          availabilityLabel: 'Listed online',
+          observedAt,
+          canAlertAsInventory: true,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Gateway Wine & Spirits public Grabbl web app lists this product for the named Murfreesboro store with price. Exact bottle count is not exposed; treat as retailer-published online pickup/order availability and verify before driving.',
+          evidence: `Gateway Wine & Spirits Grabbl search lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} for ${TN_GRABBL_GATEWAY_STORE.address}; exact count is not exposed.`,
+          raw: { chain: 'gateway-grabbl', term, product, storeProduct, matchGuard: unsafeReason }
+        });
+      }
+    }
+    await sleep(250);
+  }
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Gateway Wine & Spirits Grabbl public store API',
+      url: 'https://gatewaywineandspirit.com/',
+      status: 'reachable_no_safe_bourbon_inventory',
+      error: `Gateway Grabbl product search returned ${returnedRows} product rows but no safe Bourbon Signal matches survived relevance and bottle-bible guards.`,
+      nextRoute: 'Inspect Grabbl product names and add exact aliases only when identities are unambiguous.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function collectTennessee(config, bible) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
   const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt);
-  return { signals: [...cityHive.signals, ...coolSprings.signals], roadblocks: [...cityHive.roadblocks, ...coolSprings.roadblocks] };
+  const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt);
+  return { signals: [...cityHive.signals, ...coolSprings.signals, ...gatewayGrabbl.signals], roadblocks: [...cityHive.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks] };
 }
 
 function specsProductNameFromText(text, fallbackUrl) {
