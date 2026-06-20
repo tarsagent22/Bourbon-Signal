@@ -27,15 +27,28 @@ for (const phrase of ['SightingType', 'seen_in_store', 'online_social', 'Sightin
 }
 
 const storeMap = read('src/lib/store-map.ts');
-for (const phrase of ['rawPrecision', 'store_level', 'hasExactStoreAddress']) {
+for (const phrase of ['rawPrecision', 'store_level', 'hasExactStoreAddress', 'sourceStoreId']) {
   if (!storeMap.includes(phrase)) fail(`Store map normalization should preserve exact store records for sightings search: ${phrase}`);
 }
 
+const locationsRoute = read('src/app/api/locations/route.ts');
+for (const phrase of ['storesPayload', 'locationLookupKey', 'combinedRawLocations']) {
+  if (!locationsRoute.includes(phrase)) fail(`Locations API should merge exact store export rows for sightings search: ${phrase}`);
+}
+
 const locationsPayload = JSON.parse(read('engine/out/site/locations.json'));
+const storesPayload = JSON.parse(read('engine/out/site/stores.json'));
 const locations = Array.isArray(locationsPayload.locations) ? locationsPayload.locations : [];
-const ncExactStores = locations.filter((location) => location.state === 'NC' && location.locationType === 'store' && location.precision === 'store_level' && location.address);
-if (ncExactStores.length < 40) {
+const stores = Array.isArray(storesPayload.stores) ? storesPayload.stores : [];
+const allLocationInputs = [...locations, ...stores];
+const ncExactStores = allLocationInputs.filter((location) => location.state === 'NC' && location.address && (location.locationType === 'store' || location.type === 'store' || location.sourceStoreId));
+if (ncExactStores.length < 45) {
   fail(`NC should expose exact ABC store rows for sightings submissions; found ${ncExactStores.length}.`);
+}
+for (const query of ['wake county abc', 'apex', '27502', 'williams']) {
+  if (!stores.some((store) => `${store.name} ${store.address} ${store.city} ${store.zip} ${store.state}`.toLowerCase().includes(query))) {
+    fail(`Store export should include searchable NC store query: ${query}`);
+  }
 }
 if (!ncExactStores.some((location) => /wake county abc/i.test(`${location.name} ${location.address} ${location.city}`))) {
   fail('NC exact store rows should include searchable Wake County ABC stores, not just board-level records.');

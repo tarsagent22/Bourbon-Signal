@@ -43,6 +43,18 @@ function dropLocationValues(drop: Record<string, unknown>) {
     .filter(Boolean);
 }
 
+function locationLookupKey(location: Record<string, unknown>) {
+  const state = normalizeText(location.state ?? location.state_code).toUpperCase();
+  const id = normalizeText(location.id ?? location.sourceStoreId);
+  const address = normalizeText(location.address);
+  const city = normalizeText(location.city);
+  const name = normalizeText(location.name ?? location.displayLabel);
+
+  if (state && address) return `address:${state}:${address}:${city}`;
+  if (state && id) return `id:${state}:${id}`;
+  return `name:${state}:${name}:${city}`;
+}
+
 type ActionableDropLocation = {
   values: string[];
   precision: string;
@@ -79,12 +91,24 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state")?.toUpperCase();
 
   try {
-    const exportPayload = readSiteExport("locations") ?? readSiteExport("stores");
-    const rawLocations = Array.isArray(exportPayload?.locations)
-      ? exportPayload.locations
-      : Array.isArray(exportPayload?.stores)
-        ? exportPayload.stores
+    const locationsPayload = readSiteExport("locations");
+    const storesPayload = readSiteExport("stores");
+    const exportPayload = locationsPayload ?? storesPayload;
+    const rawLocations = Array.isArray(locationsPayload?.locations)
+      ? locationsPayload.locations
+      : Array.isArray(locationsPayload?.stores)
+        ? locationsPayload.stores
         : [];
+    const rawStores = Array.isArray(storesPayload?.stores) ? storesPayload.stores : [];
+    const seenLocationKeys = new Set<string>();
+    const combinedRawLocations: Record<string, unknown>[] = [];
+    for (const location of [...rawLocations, ...rawStores]) {
+      const record = location as Record<string, unknown>;
+      const key = locationLookupKey(record);
+      if (seenLocationKeys.has(key)) continue;
+      seenLocationKeys.add(key);
+      combinedRawLocations.push(record);
+    }
     const dropsPayload = readSiteExport("drops");
     const dropsByState = new Map<string, ActionableDropLocation[]>();
     (Array.isArray(dropsPayload?.drops) ? dropsPayload.drops : [])
@@ -104,7 +128,7 @@ export async function GET(request: Request) {
         });
         dropsByState.set(dropState, existing);
       });
-    let locations = rawLocations.map((location) => normalizeStoreForSite(location as Record<string, unknown>));
+    let locations = combinedRawLocations.map((location) => normalizeStoreForSite(location as Record<string, unknown>));
 
     locations = locations.map((location) => {
       const locationRecord = location as Record<string, unknown>;

@@ -43,6 +43,7 @@ export function normalizeMapStore(raw: Record<string, unknown>): MapStoreRecord 
   const rawName = typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : undefined;
   const locationType = typeof raw.locationType === "string" ? raw.locationType : typeof raw.type === "string" ? raw.type : undefined;
   const rawPrecision = typeof raw.precision === "string" ? raw.precision : typeof raw.locationPrecision === "string" ? raw.locationPrecision : undefined;
+  const sourceStoreId = typeof raw.sourceStoreId === "string" && raw.sourceStoreId.trim() ? raw.sourceStoreId.trim() : undefined;
   const source = typeof raw.source === "string" ? raw.source : undefined;
   const sourceUrl = typeof raw.sourceUrl === "string" ? raw.sourceUrl : undefined;
   const inventoryCapability = typeof raw.inventoryCapability === "string" ? raw.inventoryCapability : undefined;
@@ -54,15 +55,16 @@ export function normalizeMapStore(raw: Record<string, unknown>): MapStoreRecord 
         : undefined;
 
   const hasExactStoreAddress = Boolean(address);
+  const hasExactStoreIdentity = Boolean(sourceStoreId || locationType === "store" || hasExactStoreAddress);
   const isMappable = Boolean(address && lat != null && lng != null);
   const isExplicitBoardType = locationType === "state_board" || locationType === "county_board" || locationType === "area";
   const isStoreLevelPrecision = Boolean(rawPrecision && /store_level|store-level|store_aggregate|store-aggregate|\bstore\b/.test(rawPrecision));
   const looksLikeBoard = Boolean(
     isExplicitBoardType ||
-      (!hasExactStoreAddress && rawName && /\babc\b|\bboard\b|\babs\b|\bolcc\b|\bohlq\b|\bdabs\b|\bplcb\b/i.test(rawName)) ||
-      (!hasExactStoreAddress && district && /\babc\b|\bboard\b/i.test(district))
+      (!hasExactStoreIdentity && rawName && /\babc\b|\bboard\b|\babs\b|\bolcc\b|\bohlq\b|\bdabs\b|\bplcb\b/i.test(rawName)) ||
+      (!hasExactStoreIdentity && district && /\babc\b|\bboard\b/i.test(district))
   );
-  const precision = locationType === "store" || isStoreLevelPrecision || (hasExactStoreAddress && !isExplicitBoardType) || (isMappable && !looksLikeBoard) ? "store" : "board";
+  const precision = locationType === "store" || Boolean(sourceStoreId) || isStoreLevelPrecision || (hasExactStoreAddress && !isExplicitBoardType) || (isMappable && !looksLikeBoard) ? "store" : "board";
   const displayLabel = rawName || address || district || county || [city, state].filter(Boolean).join(", ") || String(raw.id ?? "Unknown store");
 
   return {
