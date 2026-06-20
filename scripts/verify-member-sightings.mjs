@@ -11,6 +11,9 @@ const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
 for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in store', 'Online/Social Media', 'Member Sightings', 'stateFilter', 'All states']) {
   if (!sightingsClient.includes(phrase)) fail(`Sightings page should include ${phrase}`);
 }
+if (!sightingsClient.includes('store.precision === "store"')) {
+  fail('Sightings store search should restrict submissions to exact stores, not board/area records.');
+}
 if (!/voteSighting/.test(sightingsClient) || !/ThumbsUp/.test(sightingsClient) || !/ThumbsDown/.test(sightingsClient)) {
   fail('Sightings feed should include one-click thumbs up/down controls.');
 }
@@ -21,6 +24,21 @@ if (!/isSignedIn/.test(sightingsClient) || !/members only/i.test(sightingsClient
 const lib = read('src/lib/sightings.ts');
 for (const phrase of ['SightingType', 'seen_in_store', 'online_social', 'SightingVote', 'upCount', 'downCount']) {
   if (!lib.includes(phrase)) fail(`Sightings model should include ${phrase}`);
+}
+
+const storeMap = read('src/lib/store-map.ts');
+for (const phrase of ['rawPrecision', 'store_level', 'hasExactStoreAddress']) {
+  if (!storeMap.includes(phrase)) fail(`Store map normalization should preserve exact store records for sightings search: ${phrase}`);
+}
+
+const locationsPayload = JSON.parse(read('engine/out/site/locations.json'));
+const locations = Array.isArray(locationsPayload.locations) ? locationsPayload.locations : [];
+const ncExactStores = locations.filter((location) => location.state === 'NC' && location.locationType === 'store' && location.precision === 'store_level' && location.address);
+if (ncExactStores.length < 40) {
+  fail(`NC should expose exact ABC store rows for sightings submissions; found ${ncExactStores.length}.`);
+}
+if (!ncExactStores.some((location) => /wake county abc/i.test(`${location.name} ${location.address} ${location.city}`))) {
+  fail('NC exact store rows should include searchable Wake County ABC stores, not just board-level records.');
 }
 
 const api = expectFile('src/app/api/sightings/route.ts');
@@ -36,6 +54,9 @@ for (const phrase of ['/api/sightings', 'voteSighting', 'addSignalReport']) {
 const dropFeed = read('src/components/sections/DropFeed.tsx');
 for (const phrase of ['Member sighting', 'sighting.rarityTier', 'lastUpdated', 'Refreshed']) {
   if (!dropFeed.includes(phrase)) fail(`Drop feed should include ${phrase}`);
+}
+for (const phrase of ['memberSightingToGrouped', 'store_address: sighting.storeAddress', 'locationPrecision: "store_level"', 'exactStore: true', 'displayLocationLabel(sighting.storeName']) {
+  if (!dropFeed.includes(phrase)) fail(`Drop feed should preserve exact member sighting store details: ${phrase}`);
 }
 if (/User submitted/.test(dropFeed)) fail('Drop feed should label member sightings as Member sighting, not User submitted.');
 
