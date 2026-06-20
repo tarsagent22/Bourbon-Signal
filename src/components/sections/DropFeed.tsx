@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import CountyLink from "@/components/CountyLink";
 import {
   type DropEvent,
@@ -20,7 +21,7 @@ import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
 import { useStores, type Store } from "@/hooks/useStores";
-import { makeSightingId, type MemberSighting, type SignalReportKind } from "@/lib/sightings";
+import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
 
@@ -129,6 +130,9 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
     ],
     ...(sighting.quantityEstimate ? { userQuantityEstimate: sighting.quantityEstimate } : {}),
     ...(sighting.notes ? { userNotes: sighting.notes } : {}),
+    upCount: sighting.upCount || 0,
+    downCount: sighting.downCount || 0,
+    myVote: sighting.myVote,
     isUserSighting: true,
   } as GroupedDrop;
 }
@@ -592,7 +596,7 @@ function getDistilleryCardMeta(drop: GroupedDrop) {
 
 function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; tone: "exact" | "official" | "positive" } {
   if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") {
-    return { label: "Member report", detail: "Submitted by a member; verify before driving.", tone: "positive" };
+    return { label: "Member sighting", detail: "Submitted by a member; verify before driving.", tone: "positive" };
   }
   if (isDistillerySignal(drop)) {
     const meta = getDistilleryCardMeta(drop);
@@ -615,7 +619,7 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
 
 function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
   if (isStoreLevelSignal(drop)) return { label: "Store-level", tone: "exact" };
-  if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member report", tone: "listing" };
+  if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member sighting", tone: "listing" };
   if (isDistillerySignal(drop)) return { label: getDistilleryCardMeta(drop)?.eyebrow || "Distillery", tone: "listing" };
   if (drop.state === "NC" && isBoardLevelSignal(drop)) return { label: "Board-level", tone: "online" };
   if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") return { label: "Online", tone: "online" };
@@ -720,9 +724,10 @@ interface FeedRowProps {
   isFreeUser: boolean;
   reportKind?: SignalReportKind;
   onReport?: (drop: GroupedDrop, kind: SignalReportKind) => void;
+  onVoteSighting?: (sightingId: string, vote: SightingVoteKind) => void;
 }
 
-function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedRowProps) {
+function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteSighting }: FeedRowProps) {
   const visibleLocations = isFreeUser ? drop.locations.slice(0, 1) : drop.locations;
   const hiddenLocationCount = Math.max(drop.locations.length - visibleLocations.length, 0);
   const [expanded, setExpanded] = useState(false);
@@ -744,6 +749,26 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
   const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
   const canQuickReport = !distilleryMeta && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
   const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
+  const memberVoteControls = isUserSighting && onVoteSighting ? (
+    <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        aria-label="Thumbs up this sighting"
+        onClick={() => onVoteSighting(drop.id, "up")}
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, border: `1px solid ${drop.myVote === "up" ? "rgba(196,148,58,.34)" : "rgba(245,237,214,.09)"}`, background: drop.myVote === "up" ? "rgba(196,148,58,.09)" : "rgba(245,237,214,.03)", color: drop.myVote === "up" ? "var(--color-cream)" : "rgba(245,237,214,.58)", fontFamily: "var(--font-jetbrains)", fontSize: 10, fontWeight: 850, borderRadius: 999, padding: "6px 8px", cursor: "pointer" }}
+      >
+        <ThumbsUp size={13} /> {drop.upCount || 0}
+      </button>
+      <button
+        type="button"
+        aria-label="Thumbs down this sighting"
+        onClick={() => onVoteSighting(drop.id, "down")}
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, border: `1px solid ${drop.myVote === "down" ? "rgba(196,148,58,.34)" : "rgba(245,237,214,.09)"}`, background: drop.myVote === "down" ? "rgba(196,148,58,.09)" : "rgba(245,237,214,.03)", color: drop.myVote === "down" ? "var(--color-cream)" : "rgba(245,237,214,.58)", fontFamily: "var(--font-jetbrains)", fontSize: 10, fontWeight: 850, borderRadius: 999, padding: "6px 8px", cursor: "pointer" }}
+      >
+        <ThumbsDown size={13} /> {drop.downCount || 0}
+      </button>
+    </div>
+  ) : null;
 
   // Glow timer for newest drop
   useEffect(() => {
@@ -963,7 +988,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
           </div>
         </div>
 
-        {!distilleryMeta ? (
+        {!distilleryMeta && !isUserSighting ? (
           <div
             style={{
               marginTop: "10px",
@@ -993,6 +1018,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             ) : !distilleryMeta && !isUserSighting ? (
               <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
             ) : null}
+            {memberVoteControls}
           </div>
         ) : null}
 
@@ -1065,7 +1091,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
                 {stateLabel}
               </span>
             )}
-            {!distilleryMeta ? (
+            {!distilleryMeta && !isUserSighting ? (
               <span
                 style={{
                   fontFamily: "var(--font-jetbrains)",
@@ -1129,6 +1155,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport }: FeedR
             ) : !distilleryMeta && !isUserSighting ? (
               <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
             ) : null}
+            {memberVoteControls}
           </div>
         ) : null}
 
@@ -1323,7 +1350,7 @@ export default function DropFeed() {
   } = useStatePreferences();
   const { isSignedIn } = useAuth();
   const { prefs } = useAreaPreferences();
-  const { sightings, reportsBySignalId, addSignalReport } = useSightings(isSignedIn);
+  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn);
   const { stores } = useStores();
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = !isSignedIn;
@@ -2267,6 +2294,7 @@ export default function DropFeed() {
                     isFreeUser={isFreeUser}
                     reportKind={reportsBySignalId.get(drop.id)?.kind}
                     onReport={handleSignalReport}
+                    onVoteSighting={(sightingId, vote) => voteSighting(sightingId, vote).catch(() => undefined)}
                   />
                 ))}
               </AnimatePresence>
@@ -2313,7 +2341,8 @@ export default function DropFeed() {
                       isFreeUser={isFreeUser}
                       reportKind={reportsBySignalId.get(drop.id)?.kind}
                       onReport={handleSignalReport}
-                    />
+                      onVoteSighting={(sightingId, vote) => voteSighting(sightingId, vote).catch(() => undefined)}
+                      />
                   ))}
                 </AnimatePresence>
               </div>

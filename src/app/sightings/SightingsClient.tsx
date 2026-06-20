@@ -277,6 +277,10 @@ export default function SightingsClient() {
         .sighting-suggestions button{border:1px solid rgba(245,237,214,.09);background:rgba(245,237,214,.035);border-radius:12px;padding:10px 12px;color:var(--color-cream);text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
         .sighting-suggestions span{display:block;color:rgba(245,237,214,.44);font-size:12px;margin-top:3px}
         .sighting-suggestions button:hover,.sighting-suggestions button.selected{border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.055);transform:translateY(-1px)}
+        .selected-store-card{margin-top:12px;border:1px solid rgba(196,148,58,.18);border-radius:15px;background:linear-gradient(135deg,rgba(196,148,58,.08),rgba(245,237,214,.025));padding:12px 13px;box-shadow:inset 0 1px 0 rgba(245,237,214,.035)}
+        .selected-store-card strong{display:block;color:var(--color-cream);font-family:var(--font-dm-sans);font-size:14px;font-weight:850;line-height:1.25}
+        .selected-store-card span{display:block;margin-top:4px;color:rgba(245,237,214,.58);font-family:var(--font-dm-sans);font-size:12px;line-height:1.45}
+        .selected-store-card button{margin-top:9px;border:0;background:transparent;color:rgba(232,201,122,.82);font-family:var(--font-jetbrains);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;padding:0;cursor:pointer}
         .sighting-submit,.sighting-location-button,.sighting-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid rgba(245,237,214,.12);background:rgba(245,237,214,.04);color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:800;padding:11px 15px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease,color .18s ease}
         .sighting-submit{margin-top:18px;width:100%;border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.09)}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
@@ -346,7 +350,15 @@ export default function SightingsClient() {
                 <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" /></div>{bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}</label>
                 <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="City, ZIP, street, or store name" /></div></label>
                 <button type="button" onClick={requestLocation} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
-                <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location.</div> : null}{storeMatches.map((store) => <button key={store.id} type="button" className={selectedStore?.id === store.id ? "selected" : ""} onClick={() => { setSelectedStore(store); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                {selectedStore ? (
+                  <div className="selected-store-card" aria-live="polite">
+                    <strong>{storeDisplay(selectedStore)}</strong>
+                    <span>{formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip])}</span>
+                    <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
+                  </div>
+                ) : (
+                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location.</div> : null}{storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                )}
               </div>
               <div>
                 <span className="sighting-label">Sighting type</span>

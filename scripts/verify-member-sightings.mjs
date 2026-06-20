@@ -14,6 +14,9 @@ for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in st
 if (!sightingsClient.includes('store.precision === "store"')) {
   fail('Sightings store search should restrict submissions to exact stores, not board/area records.');
 }
+if (!sightingsClient.includes('selected-store-card') || !sightingsClient.includes('Change store')) {
+  fail('Sightings store picker should collapse suggestions and show the selected store/address after selection.');
+}
 if (!/voteSighting/.test(sightingsClient) || !/ThumbsUp/.test(sightingsClient) || !/ThumbsDown/.test(sightingsClient)) {
   fail('Sightings feed should include one-click thumbs up/down controls.');
 }
@@ -68,10 +71,11 @@ const dropFeed = read('src/components/sections/DropFeed.tsx');
 for (const phrase of ['Member sighting', 'sighting.rarityTier', 'lastUpdated', 'Refreshed']) {
   if (!dropFeed.includes(phrase)) fail(`Drop feed should include ${phrase}`);
 }
-for (const phrase of ['memberSightingToGrouped', 'store_address: sighting.storeAddress', 'locationPrecision: "store_level"', 'exactStore: true', 'displayLocationLabel(sighting.storeName']) {
-  if (!dropFeed.includes(phrase)) fail(`Drop feed should preserve exact member sighting store details: ${phrase}`);
+for (const phrase of ['memberSightingToGrouped', 'store_address: sighting.storeAddress', 'locationPrecision: "store_level"', 'exactStore: true', 'displayLocationLabel(sighting.storeName', 'onVoteSighting', 'voteSighting(sightingId, vote)', 'upCount: sighting.upCount']) {
+  if (!dropFeed.includes(phrase)) fail(`Drop feed should preserve exact member sighting store details and voting: ${phrase}`);
 }
 if (/User submitted/.test(dropFeed)) fail('Drop feed should label member sightings as Member sighting, not User submitted.');
+if (/Member report/.test(dropFeed)) fail('Drop feed should not show the redundant Member report tag for member sightings.');
 
 const dashboard = read('src/app/dashboard/page.tsx');
 for (const phrase of ['Personal signal brief', 'Saved markets', 'Tracked bottles', 'Recent matching drops']) {

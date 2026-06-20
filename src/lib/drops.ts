@@ -108,6 +108,12 @@ export interface GroupedDrop {
   firstSeenAt?: string;
   lastConfirmedAt?: string;
   locations: DropLocation[];
+  isUserSighting?: boolean;
+  userQuantityEstimate?: string;
+  userNotes?: string;
+  upCount?: number;
+  downCount?: number;
+  myVote?: "up" | "down";
 }
 
 export function isRealDropEvent(event: DropEvent): boolean {
