@@ -10,7 +10,8 @@ const LOCK = path.join(OUT, 'refresh.lock.json');
 const STATUS = path.join(OUT, 'site-refresh-status.json');
 const DEPLOY_STATUS = path.join(OUT, 'site-deploy-status.json');
 const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS || 25 * 60_000);
-const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 15);
+const REFRESH_CADENCE_MINUTES = Number(process.env.BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES || 30);
+const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 30);
 const AUTO_DEPLOY = process.env.BOURBON_SIGNAL_AUTO_DEPLOY === '1';
 const AUTO_DEPLOY_MINUTES = Number(process.env.BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES || 30);
 const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS || 15 * 60_000);
@@ -304,7 +305,7 @@ async function main() {
   try {
     if (await shouldRunBrowserCollectors()) {
       // Browser-assisted sources are heavier and can take longer than the base run. Refresh them on a
-      // controlled cadence, then every 5-minute base run folds the newest artifacts into the site export.
+      // controlled cadence, then each base run folds the newest complete artifacts into the site export.
       let browserOk = false;
       let launchedBrowser = null;
       lastBrowserAttemptAt = new Date().toISOString();
@@ -365,7 +366,7 @@ async function main() {
       ok: true,
       startedAt,
       finishedAt,
-      cadenceMinutes: 5,
+      cadenceMinutes: REFRESH_CADENCE_MINUTES,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
       autoDeploy: AUTO_DEPLOY,
       autoDeployMinutes: AUTO_DEPLOY_MINUTES,
@@ -383,7 +384,7 @@ async function main() {
       ok: false,
       startedAt,
       finishedAt,
-      cadenceMinutes: 5,
+      cadenceMinutes: REFRESH_CADENCE_MINUTES,
       browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
       autoDeploy: AUTO_DEPLOY,
       autoDeployMinutes: AUTO_DEPLOY_MINUTES,

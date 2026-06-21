@@ -152,6 +152,9 @@ if (!/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \
 if (!/BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should throttle auto-deploys with BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES.');
 }
+if (!/BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should advertise the real 30-minute cadence rather than the old 5-minute loop.');
+}
 if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIGHT \} else \{ '0' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should disable duplicate run.mjs browser preflight; refresh-site owns browser collector cadence.');
 }
@@ -159,6 +162,10 @@ if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIG
 const refreshSite = read('engine/src/refresh-site.mjs');
 if (!/PRODUCTION_CUSTOM_DOMAINS/.test(refreshSite) || !/alias', 'set'/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should move production custom-domain aliases after local auto-deploy.');
+}
+const fwgsFull = read('engine/src/fwgs-browser-full.mjs');
+if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)) {
+  fail('FWGS full browser refresh should be all-or-nothing by default, with valid recent chunk fallback, so partial chunk failures do not degrade production coverage.');
 }
 const ncCollector = read('engine/src/collectors/north-carolina-intelligence.mjs');
 const ncExtractParser = ncCollector.match(/function isoFromNcExtract\(value\) \{[\s\S]*?\n\}/)?.[0] || '';

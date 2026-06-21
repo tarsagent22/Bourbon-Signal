@@ -43,12 +43,12 @@ Expected output is empty. If it is not empty, either commit the change intention
 Current local Windows Task Scheduler task:
 
 - Task: `Bourbon Signal Engine Refresh`
-- Cadence: every 5 minutes
+- Cadence: every 30 minutes
 - Command: `wscript.exe C:\Users\chand\Projects\Bourbon-Signal-inspect\engine\bourbon-signal-engine-refresh-hidden.vbs`
 - PowerShell wrapper: `engine/bourbon-signal-engine-refresh.ps1`
 - Engine command: `node src/refresh-site.mjs`
 
-The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys changed site exports at most every 30 minutes so the public API does not lag behind fresh local engine data. Disable auto-deploy explicitly when doing local/debug work:
+The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys changed site exports at most every 30 minutes so the public API does not lag behind fresh local engine data. Browser-assisted FWGS refreshes are all-or-nothing by default: if a chunk fails, the previous complete artifact stays in use instead of publishing partial store coverage. Disable auto-deploy explicitly when doing local/debug work:
 
 ```powershell
 $env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'
