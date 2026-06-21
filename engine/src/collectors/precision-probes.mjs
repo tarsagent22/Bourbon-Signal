@@ -1209,6 +1209,10 @@ function cityHiveSafeBottleMatch(rawName, bible) {
   for (const phrase of requiredPhrases) {
     if (canonical.includes(phrase) && !raw.includes(phrase)) return { match, record: null, unsafeReason: `missing_modifier:${phrase}` };
   }
+  if (/\bfour roses\b/.test(canonical) && /\bbarrel strength\b/.test(canonical)) {
+    const hasBarrelStrengthSignal = /\b(barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
+    if (!hasBarrelStrengthSignal) return { match, record: null, unsafeReason: 'four_roses_standard_single_barrel_not_barrel_strength' };
+  }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
     if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
   }
@@ -3196,7 +3200,8 @@ function alabamaBottleMatch(raw, bible, code = null) {
 }
 
 function signalBase(state, sourceLabel, sourceUrl, rawName, bible) {
-  const { match, record } = bottleMatch(rawName, bible);
+  const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+  const sourceMatchStatus = record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match';
   return { match, record, base: {
     state,
     sourceLabel,
@@ -3204,7 +3209,9 @@ function signalBase(state, sourceLabel, sourceUrl, rawName, bible) {
     rawName,
     canonicalBottleId: record?.id || null,
     canonicalName: record?.canonical || titleCase(rawName),
-    confidence: Math.max(0.68, match?.confidence || 0.35),
+    confidence: record ? Math.max(0.68, match?.confidence || 0.35) : 0.35,
+    sourceMatchStatus,
+    raw: { sourceMatchStatus, unsafeReason: unsafeReason || null },
     fetchedAt: new Date().toISOString()
   }};
 }

@@ -20,8 +20,26 @@ const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+
 const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
 const CUSTOMER_DROP_TIERS = new Set(['unicorn', 'allocated', 'limited']);
 
+function normalizedDropText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isKnownFalseRareMatch(drop) {
+  const raw = normalizedDropText(drop.rawName || drop.bottleName || drop.canonicalName);
+  if (/\bfour roses\b/.test(raw) && /\b(small batch|small batch select|single barrel)\b/.test(raw)) {
+    const hasRareModifier = /\b(limited edition|limited release|le|barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
+    if (!hasRareModifier) return true;
+  }
+  return false;
+}
+
 function isCustomerDropTier(drop) {
-  return CUSTOMER_DROP_TIERS.has(String(drop.tier || '').toLowerCase());
+  return CUSTOMER_DROP_TIERS.has(String(drop.tier || '').toLowerCase()) && !isKnownFalseRareMatch(drop);
 }
 
 async function readJson(file, fallback = null) {

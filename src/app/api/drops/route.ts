@@ -14,6 +14,24 @@ function dropRarityTier(drop: Record<string, unknown>) {
   return String(drop.rarity_tier ?? drop.tier ?? "").toLowerCase();
 }
 
+function normalizedDropText(value: unknown) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isKnownFalseRareMatch(drop: Record<string, unknown>) {
+  const raw = normalizedDropText(drop.rawName ?? drop.raw_name ?? drop.bottleName ?? drop.brand_name ?? drop.canonicalName);
+  if (/\bfour roses\b/.test(raw) && /\b(small batch|small batch select|single barrel)\b/.test(raw)) {
+    const hasRareModifier = /\b(limited edition|limited release|le|barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
+    if (!hasRareModifier) return true;
+  }
+  return false;
+}
+
 function parseTierFilter(url: URL) {
   const raw = [url.searchParams.get("tier"), url.searchParams.get("tiers"), url.searchParams.get("rarity")]
     .filter(Boolean)
@@ -28,7 +46,7 @@ function parseTierFilter(url: URL) {
 }
 
 function isDropFeedRarity(drop: Record<string, unknown>) {
-  return DROP_FEED_TIERS.has(dropRarityTier(drop));
+  return DROP_FEED_TIERS.has(dropRarityTier(drop)) && !isKnownFalseRareMatch(drop);
 }
 
 function includesNeedle(value: unknown, needle: string) {

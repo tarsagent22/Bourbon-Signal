@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-21T21:20:55.915Z",
-  "count": 2699,
+  "generatedAt": "2026-06-21T23:33:58.572Z",
+  "count": 2700,
   "stores": [
     {
       "id": "alabc:001",
@@ -17196,6 +17196,20 @@
       "signalCount": 1
     },
     {
+      "id": "kahns:69",
+      "sourceStoreId": "kahns:69",
+      "state": "IN",
+      "name": "Kahn's Fine Wines & Spirits",
+      "address": "5341 N Keystone Ave, Indianapolis, IN 46220",
+      "city": "Indianapolis",
+      "county": null,
+      "zip": "46220",
+      "lat": 39.8498,
+      "lng": -86.1226,
+      "source": "Kahn's Fine Wines & Spirits in-stock bourbon API",
+      "signalCount": 25
+    },
+    {
       "id": "DL4931513",
       "sourceStoreId": "DL4931513",
       "state": "IN",
@@ -19853,7 +19867,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "DL4913533",
@@ -25061,7 +25075,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 18
+      "signalCount": 17
     },
     {
       "id": "DL4901139",

@@ -16,6 +16,21 @@ function rarity(drop) {
   return String(drop.rarity_tier || drop.tier || '').toLowerCase();
 }
 
+function normalizedName(drop) {
+  return String(drop.rawName || drop.raw_name || drop.bottleName || drop.brand_name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function looksLikeFalseFourRosesRare(drop) {
+  const name = normalizedName(drop);
+  return /\bfour roses\b/.test(name)
+    && /\b(small batch|small batch select|single barrel)\b/.test(name)
+    && !/\b(limited edition|limited release|le|barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(name);
+}
+
 const dropWorthyTiers = new Set(['unicorn', 'allocated', 'limited']);
 
 const allStates = await getJson('/api/drops?state=all&limit=20');
@@ -30,6 +45,10 @@ const defaultBadTiers = (defaultFeed.drops || [])
 if (defaultBadTiers.length > 0) {
   fail(`/api/drops default feed should not return standard/core/unknown bottles; saw tiers: ${Array.from(new Set(defaultBadTiers)).join(', ')}`);
 }
+const defaultFalseRare = (defaultFeed.drops || []).filter(looksLikeFalseFourRosesRare);
+if (defaultFalseRare.length > 0) {
+  fail('/api/drops default feed should not show standard Four Roses rows as rare drops.');
+}
 
 const unicornFeed = await getJson('/api/drops?tier=unicorn&limit=7');
 if (!Array.isArray(unicornFeed.drops) || unicornFeed.drops.length === 0 || Number(unicornFeed.total || 0) === 0) {
@@ -38,6 +57,10 @@ if (!Array.isArray(unicornFeed.drops) || unicornFeed.drops.length === 0 || Numbe
   const nonUnicorn = unicornFeed.drops.filter((drop) => rarity(drop) !== 'unicorn');
   if (nonUnicorn.length > 0) {
     fail(`/api/drops?tier=unicorn should return only unicorn rows; saw ${nonUnicorn.map((drop) => rarity(drop) || 'missing').join(', ')}`);
+  }
+  const falseRareRows = unicornFeed.drops.filter(looksLikeFalseFourRosesRare);
+  if (falseRareRows.length > 0) {
+    fail('/api/drops?tier=unicorn should not return regular Four Roses Small Batch/Single Barrel rows caused by broad bible matching.');
   }
 }
 
