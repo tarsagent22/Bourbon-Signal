@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-21T20:27:47.290Z",
-  "count": 2700,
+  "generatedAt": "2026-06-21T20:49:18.370Z",
+  "count": 2699,
   "stores": [
     {
       "id": "alabc:001",
@@ -14463,20 +14463,6 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
-    },
-    {
-      "id": "doordash:26286224",
-      "sourceStoreId": "doordash:26286224",
-      "state": "IN",
-      "name": "Frontier Liquors - Oak Hill Road",
-      "address": "1701 Oak Hill Road, Evansville, IN 47711",
-      "city": "Evansville",
-      "county": null,
-      "zip": "47711",
-      "lat": 37.992805,
-      "lng": -87.52567,
-      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
       "signalCount": 1
     },
     {

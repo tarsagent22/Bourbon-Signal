@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-21T20:17:13.194Z",
+  "generatedAt": "2026-06-21T20:38:17.105Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-06-21T20:17:13.300Z"
+    "observedAt": "2026-06-21T20:38:17.257Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
     "rowCount": 3279,
     "bourbonOrWhiskeyRowCount": 665,
-    "observedAt": "2026-06-21T20:17:13.497Z",
+    "observedAt": "2026-06-21T20:38:17.558Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -1945,7 +1945,7 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-06-21T20:17:13.551Z",
+    "observedAt": "2026-06-21T20:38:17.612Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
@@ -1964,7 +1964,7 @@
     "rowCount": 3222,
     "trackedRowCount": 104,
     "positiveTrackedRowCount": 30,
-    "observedAt": "2026-06-21T20:17:15.301Z",
+    "observedAt": "2026-06-21T20:38:20.040Z",
     "increaseCount": 0,
     "controlledDistributionSignalCount": 59,
     "priceEnrichedSignalCount": 104,
@@ -2329,7 +2329,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65903,
+      "bytes": 65828,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2452,7 +2452,7 @@
       "finalUrl": "https://wakeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 86340,
+      "bytes": 86215,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2519,7 +2519,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65903,
+      "bytes": 65828,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3558,7 +3558,7 @@
       "finalUrl": "https://www.greensboroabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 170913,
+      "bytes": 170930,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -3707,7 +3707,7 @@
       "finalUrl": "https://highpointabc.com/products",
       "ok": true,
       "status": 200,
-      "bytes": 132288,
+      "bytes": 131115,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -3756,7 +3756,7 @@
       "finalUrl": "https://highpointabc.com/pages/view-inventory",
       "ok": true,
       "status": 200,
-      "bytes": 115910,
+      "bytes": 117083,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -4104,7 +4104,7 @@
       "finalUrl": "https://carteretcountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 29683,
+      "bytes": 29684,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -5272,7 +5272,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-06-21T20:17:55.776Z",
+    "observedAt": "2026-06-21T20:39:04.096Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5370,7 +5370,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-06-21T20:17:56.363Z",
+    "observedAt": "2026-06-21T20:39:04.499Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
