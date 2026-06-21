@@ -48,7 +48,7 @@ Current local Windows Task Scheduler task:
 - PowerShell wrapper: `engine/bourbon-signal-engine-refresh.ps1`
 - Engine command: `node src/refresh-site.mjs`
 
-The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys changed site exports at most every 30 minutes so the public API does not lag behind fresh local engine data. Browser-assisted FWGS refreshes are all-or-nothing by default: if a chunk fails, the previous complete artifact stays in use instead of publishing partial store coverage. Disable auto-deploy explicitly when doing local/debug work:
+The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys changed site exports at most every 30 minutes so the public API does not lag behind fresh local engine data. Deploy eligibility hashes the whole `engine/out/site/*.json` export, not just alert rows, so a fresh successful engine export can promote even when the bottle/inventory row set is unchanged. Heavy browser-assisted FWGS refreshes run on a slower 240-minute cadence and are all-or-nothing by default: if a chunk fails, the previous complete artifact stays in use instead of publishing partial store coverage. Disable auto-deploy explicitly when doing local/debug work:
 
 ```powershell
 $env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'

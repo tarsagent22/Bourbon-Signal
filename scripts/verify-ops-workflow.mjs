@@ -155,6 +155,12 @@ if (!/BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES/.test(refreshScript) || !/else \{ '30' 
 if (!/BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should advertise the real 30-minute cadence rather than the old 5-minute loop.');
 }
+if (!/BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES/.test(refreshScript) || !/else \{ '240' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should keep heavyweight browser collectors off the every-30-minute base path.');
+}
+if (!/BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS/.test(refreshScript) || !/2100000/.test(refreshScript)) {
+  fail('Scheduled engine refresh should give the full state run enough watchdog budget to finish instead of failing at 15 minutes.');
+}
 if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIGHT \} else \{ '0' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should disable duplicate run.mjs browser preflight; refresh-site owns browser collector cadence.');
 }
@@ -162,6 +168,15 @@ if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIG
 const refreshSite = read('engine/src/refresh-site.mjs');
 if (!/PRODUCTION_CUSTOM_DOMAINS/.test(refreshSite) || !/alias', 'set'/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should move production custom-domain aliases after local auto-deploy.');
+}
+if (!/readdir\(siteDir\)/.test(refreshSite) || !/siteExportFileCount/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should hash the whole checked-in site export, not only alert rows, so production freshness is deployed even when inventory rows are unchanged.');
+}
+if (!/pidAlive\) \{[\s\S]*?return false;/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should never ignore a live refresh lock just because the run is older than the stale-lock threshold.');
+}
+if (!/Math\.max\(\.\.\.candidates\)/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should throttle browser refreshes from the most recent browser attempt or success, not only the last success.');
 }
 const fwgsFull = read('engine/src/fwgs-browser-full.mjs');
 if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)) {
@@ -174,7 +189,7 @@ if (/new Date\(\)\.toISOString\(\)/.test(ncExtractParser) || !/return null/.test
 }
 
 const buildBibleIndex = refreshSite.indexOf("runNode('src/build-bible.mjs')");
-const runIndex = refreshSite.indexOf("runNode('src/run.mjs')");
+const runIndex = refreshSite.indexOf("runNode('src/run.mjs'");
 if (buildBibleIndex === -1 || runIndex === -1 || buildBibleIndex > runIndex) {
   fail('engine/src/refresh-site.mjs should build the bourbon bible before state collection so clean clones can refresh.');
 }

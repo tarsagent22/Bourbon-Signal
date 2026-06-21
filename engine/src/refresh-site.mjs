@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -11,12 +11,13 @@ const STATUS = path.join(OUT, 'site-refresh-status.json');
 const DEPLOY_STATUS = path.join(OUT, 'site-deploy-status.json');
 const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS || 25 * 60_000);
 const REFRESH_CADENCE_MINUTES = Number(process.env.BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES || 30);
-const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 30);
+const BROWSER_REFRESH_MINUTES = Number(process.env.BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES || 240);
 const AUTO_DEPLOY = process.env.BOURBON_SIGNAL_AUTO_DEPLOY === '1';
 const AUTO_DEPLOY_MINUTES = Number(process.env.BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES || 30);
 const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS || 15 * 60_000);
+const RUN_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS || 35 * 60_000);
 const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
-const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 12 * 60_000);
+const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 22 * 60_000);
 const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 8 * 60_000);
 const DEPLOY_RETRIES = Number(process.env.BOURBON_SIGNAL_DEPLOY_RETRIES || 3);
 const VERCEL_SCOPE = process.env.VERCEL_SCOPE || 'tarsagent22s-projects';
@@ -47,11 +48,11 @@ async function acquireLock() {
   if (lock?.startedAt) {
     const age = Date.now() - new Date(lock.startedAt).getTime();
     const pidAlive = lock.pid ? (() => { try { process.kill(lock.pid, 0); return true; } catch { return false; } })() : false;
-    if (pidAlive && age >= 0 && age < LOCK_STALE_MS) {
+    if (pidAlive) {
       console.log(`Another refresh appears active (pid=${lock.pid}, age=${Math.round(age / 1000)}s). Skipping.`);
       return false;
     }
-    console.warn(`Ignoring stale refresh lock (pid=${lock.pid}, alive=${pidAlive}, age=${Math.round(age / 1000)}s).`);
+    console.warn(`Ignoring stale refresh lock from dead process (pid=${lock.pid}, age=${Math.round(age / 1000)}s, staleAfter=${Math.round(LOCK_STALE_MS / 1000)}s).`);
   }
   await writeFile(LOCK, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }, null, 2));
   return true;
@@ -133,8 +134,24 @@ function runCommand(command, args = [], options = {}) {
 }
 
 async function siteDeliverySignature() {
+  const siteDir = path.join(OUT, 'site');
+  const siteFiles = (await readdir(siteDir))
+    .filter((file) => file.endsWith('.json'))
+    .sort((a, b) => a.localeCompare(b));
+  const exportHash = createHash('sha256');
+  let exportBytes = 0;
+  for (const file of siteFiles) {
+    const contents = await readFile(path.join(siteDir, file));
+    const digest = createHash('sha256').update(contents).digest('hex');
+    exportBytes += contents.length;
+    exportHash.update(file);
+    exportHash.update('\0');
+    exportHash.update(digest);
+    exportHash.update('\0');
+  }
   const dropsPayload = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
   const alertsPayload = await readJson(path.join(OUT, 'site', 'alerts.json'), { alerts: [] });
+  const statsPayload = await readJson(path.join(OUT, 'site', 'stats.json'), {});
   const inventoryRows = (dropsPayload.drops || [])
     .filter((drop) => drop.is_user_facing_drop || drop.can_alert_as_inventory || drop.canAlertAsInventory)
     .map((drop) => ({
@@ -158,10 +175,13 @@ async function siteDeliverySignature() {
     }))
     .sort((a, b) => `${a.state}|${a.dedupeKey}`.localeCompare(`${b.state}|${b.dedupeKey}`));
   return {
-    hash: createHash('sha256').update(JSON.stringify({ inventoryRows, alertRows })).digest('hex'),
+    hash: exportHash.digest('hex'),
+    fileCount: siteFiles.length,
+    byteCount: exportBytes,
     rowCount: inventoryRows.length,
     alertCandidateCount: alertRows.length,
-    generatedAt: dropsPayload.generatedAt || alertsPayload.generatedAt || null
+    generatedAt: statsPayload.generatedAt || dropsPayload.generatedAt || alertsPayload.generatedAt || null,
+    engineGeneratedAt: statsPayload.engineGeneratedAt || null
   };
 }
 
@@ -183,6 +203,9 @@ async function maybeDeploySite() {
     siteDeliverySignature: signature.hash,
     userFacingDropCount: signature.rowCount,
     alertCandidateCount: signature.alertCandidateCount,
+    siteExportFileCount: signature.fileCount,
+    siteExportByteCount: signature.byteCount,
+    engineGeneratedAt: signature.engineGeneratedAt,
     siteGeneratedAt: signature.generatedAt,
     lastDeployAt: previous.lastDeployAt || null,
     lastDeploymentUrl: previous.lastDeploymentUrl || null
@@ -285,9 +308,12 @@ async function ensureHeadlessCdp() {
 
 async function shouldRunBrowserCollectors() {
   const last = await readJson(STATUS);
-  const lastBrowserActivityAt = last?.lastBrowserRefreshAt || last?.lastBrowserAttemptAt;
-  if (!lastBrowserActivityAt) return true;
-  const ageMs = Date.now() - new Date(lastBrowserActivityAt).getTime();
+  const candidates = [last?.lastBrowserRefreshAt, last?.lastBrowserAttemptAt]
+    .map((value) => value ? new Date(value).getTime() : NaN)
+    .filter((value) => Number.isFinite(value));
+  if (!candidates.length) return true;
+  const lastBrowserActivityMs = Math.max(...candidates);
+  const ageMs = Date.now() - lastBrowserActivityMs;
   return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
 }
 
@@ -339,7 +365,7 @@ async function main() {
     }
 
     steps.push(await runNode('src/build-bible.mjs'));
-    steps.push(await runNode('src/run.mjs'));
+    steps.push(await runNode('src/run.mjs', [], { timeoutMs: RUN_STEP_TIMEOUT_MS }));
     steps.push(await runNode('src/rare-report.mjs'));
     steps.push(await runNode('src/location-report.mjs'));
     steps.push(await runNode('src/operational-report.mjs'));
