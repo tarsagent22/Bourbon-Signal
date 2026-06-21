@@ -18,6 +18,11 @@ const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
 const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
+const CUSTOMER_DROP_TIERS = new Set(['unicorn', 'allocated', 'limited']);
+
+function isCustomerDropTier(drop) {
+  return CUSTOMER_DROP_TIERS.has(String(drop.tier || '').toLowerCase());
+}
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -614,6 +619,7 @@ function buildDrops(signals, bible, currentSignals = []) {
       return true;
     })
     .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
+    .filter((drop) => isCustomerDropTier(drop))
     .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.locationName, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.locationName, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
     .slice(0, 10000);
 }

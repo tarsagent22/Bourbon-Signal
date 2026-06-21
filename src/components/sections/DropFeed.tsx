@@ -143,6 +143,11 @@ function normalizeFilterText(value?: string | null) {
 
 const STATE_NAMES: Record<string, string> = Object.fromEntries(AVAILABLE_STATES.map((state) => [state.code, state.name]));
 
+function normalizeStateCodeParam(value?: string | null) {
+  const state = String(value || "").trim().toUpperCase();
+  return state && state !== "ALL" ? state : null;
+}
+
 function cleanAreaLabel(value?: string | null) {
   const raw = String(value || "").trim();
   if (!raw || raw === "__EMPTY") return "";
@@ -1368,7 +1373,7 @@ export default function DropFeed() {
   });
   const [urlStateFilter, setUrlStateFilter] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
-    return new URLSearchParams(window.location.search).get("state")?.toUpperCase() || null;
+    return normalizeStateCodeParam(new URLSearchParams(window.location.search).get("state"));
   });
   const [countyFilter, setCountyFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState<DropSortMode>("newest");
@@ -1381,10 +1386,12 @@ export default function DropFeed() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const bottleParam = params.get("bottle") || "";
-    const stateParam = params.get("state")?.toUpperCase() || null;
+    const stateParam = normalizeStateCodeParam(params.get("state"));
     if (bottleParam) setBottleSearch(bottleParam);
     if (stateParam) setUrlStateFilter(stateParam);
   }, []);
+
+  const activeTierParam = useMemo(() => Array.from(activeTiers).sort().join(","), [activeTiers]);
 
   const feedStateParam = urlStateFilter || (hasSelectedStates && preferredStates.length === 1
     ? preferredStates[0]
@@ -1403,6 +1410,7 @@ export default function DropFeed() {
       for (let attempts = 0; attempts < 12; attempts += 1) {
         const query = new URLSearchParams({ limit: "200", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
+        if (activeTierParam) query.set("tier", activeTierParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
@@ -1449,7 +1457,7 @@ export default function DropFeed() {
     } catch {
       setError(true);
     }
-  }, [feedStateParam, isSignedIn]);
+  }, [activeTierParam, feedStateParam, isSignedIn]);
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
@@ -1680,6 +1688,7 @@ export default function DropFeed() {
       while (attempts < 24) {
         const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
+        if (activeTierParam) query.set("tier", activeTierParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
@@ -1739,6 +1748,7 @@ export default function DropFeed() {
   const clearFeedFilters = () => {
     setBottleSearch("");
     setCountyFilter("ALL");
+    setUrlStateFilter(null);
     setSelectedStates([]);
     setActiveTiers(new Set());
     setSortMode("newest");
@@ -2146,10 +2156,13 @@ export default function DropFeed() {
               value={stateDropdownValue}
               options={stateMenuOptions}
               onChange={(value) => {
+                setUrlStateFilter(null);
+                setCountyFilter("ALL");
                 if (value === "ALL") {
                   setSelectedStates([]);
                   return;
                 }
+                if (value === "MULTI") return;
                 setSelectedStates([value]);
               }}
             />
