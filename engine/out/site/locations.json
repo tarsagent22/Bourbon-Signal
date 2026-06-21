@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-21T23:33:58.572Z",
-  "count": 4262,
+  "generatedAt": "2026-06-21T23:50:41.977Z",
+  "count": 4263,
   "locations": [
     {
       "id": "7e4332f37178b757",
@@ -17783,7 +17783,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 20,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17831,7 +17831,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17855,7 +17855,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17879,7 +17879,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17903,7 +17903,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17927,7 +17927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17951,7 +17951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17975,7 +17975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -17999,7 +17999,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18023,7 +18023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18047,7 +18047,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18071,7 +18071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18095,7 +18095,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18119,7 +18119,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18143,7 +18143,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18167,7 +18167,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18191,7 +18191,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18215,7 +18215,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18239,7 +18239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18263,7 +18263,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18287,7 +18287,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18311,7 +18311,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18335,7 +18335,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18359,7 +18359,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18383,7 +18383,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18407,7 +18407,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18431,7 +18431,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18455,7 +18455,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18479,7 +18479,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18503,7 +18503,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18527,7 +18527,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18551,7 +18551,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18575,7 +18575,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18599,7 +18599,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18623,7 +18623,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18647,7 +18647,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18671,7 +18671,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18695,7 +18695,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18719,7 +18719,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18743,7 +18743,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18767,7 +18767,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18791,7 +18791,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18815,7 +18815,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18839,7 +18839,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18863,7 +18863,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18887,7 +18887,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18911,7 +18911,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18935,7 +18935,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18959,7 +18959,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -18983,7 +18983,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19007,7 +19007,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19031,7 +19031,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19055,7 +19055,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19079,7 +19079,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19103,7 +19103,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19127,7 +19127,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19151,7 +19151,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19175,7 +19175,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19199,7 +19199,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19223,7 +19223,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19247,7 +19247,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19271,7 +19271,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19295,7 +19295,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19319,7 +19319,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19343,7 +19343,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19367,7 +19367,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19391,7 +19391,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19415,7 +19415,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19439,7 +19439,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19463,7 +19463,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19487,7 +19487,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19511,7 +19511,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19535,7 +19535,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19559,7 +19559,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19583,7 +19583,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19607,7 +19607,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19631,7 +19631,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:00:23.457Z",
+      "lastSignalAt": "2026-06-21T23:32:26.621Z",
       "lastVerifiedAt": null,
       "notes": "Idaho Liquor public product pages expose a store-level availability modal via WordPress AJAX. Rows report Available status and an as-of date, not bottle counts or reservations, so alerts must carry verify-before-driving caveats."
     },
@@ -19655,7 +19655,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:13:39.067Z",
+      "lastSignalAt": "2026-06-21T23:39:39.081Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19679,7 +19679,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19703,7 +19703,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19727,7 +19727,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19751,7 +19751,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19775,7 +19775,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19799,7 +19799,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19823,7 +19823,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19847,7 +19847,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19871,7 +19871,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19895,7 +19895,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19919,7 +19919,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19943,7 +19943,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19967,7 +19967,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -19991,7 +19991,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20015,7 +20015,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20039,7 +20039,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20063,7 +20063,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20087,7 +20087,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20111,7 +20111,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20135,7 +20135,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20159,7 +20159,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20183,7 +20183,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20207,7 +20207,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20231,7 +20231,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20255,7 +20255,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20279,7 +20279,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20303,7 +20303,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20327,7 +20327,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20351,7 +20351,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20375,7 +20375,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20399,7 +20399,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20423,7 +20423,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20447,7 +20447,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20471,7 +20471,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20495,7 +20495,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20519,7 +20519,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20543,7 +20543,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20567,7 +20567,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20591,7 +20591,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20615,7 +20615,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20639,7 +20639,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20663,7 +20663,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20687,7 +20687,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20711,7 +20711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20735,7 +20735,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20759,7 +20759,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20783,7 +20783,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:13:39.068Z",
+      "lastSignalAt": "2026-06-21T23:39:39.082Z",
       "lastVerifiedAt": null,
       "notes": "Illinois is a private retail market. Binny's public Algolia product/store index can produce store-level retailer inventory rows with purchase availability, stock labels, price, and aisle metadata; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -20807,7 +20807,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -26524,6 +26524,30 @@
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
     {
+      "id": "doordash:26286224",
+      "state": "IN",
+      "type": "store",
+      "locationType": "store",
+      "name": "Frontier Liquors - Oak Hill Road",
+      "address": "1701 Oak Hill Road, Evansville, IN 47711",
+      "city": "Evansville",
+      "county": null,
+      "zip": "47711",
+      "lat": 37.992805,
+      "lng": -87.52567,
+      "precision": "store_level",
+      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
+      "sourceUrl": "https://www.doordash.com/convenience/store/frontier-liquors-evansville-26286224/",
+      "inventoryCapability": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true,
+      "signalCount": 1,
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
+      "lastVerifiedAt": null,
+      "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
+    },
+    {
       "id": "DL4303279",
       "state": "IN",
       "type": "store",
@@ -31223,7 +31247,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 25,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -34703,7 +34727,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -35135,7 +35159,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -35783,7 +35807,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:38:54.673Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44831,7 +44855,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44855,7 +44879,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 17,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44879,7 +44903,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44903,7 +44927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44927,7 +44951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44951,7 +44975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44975,7 +44999,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -44999,7 +45023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45023,7 +45047,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45047,7 +45071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45071,7 +45095,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45095,7 +45119,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45119,7 +45143,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45143,7 +45167,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45167,7 +45191,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45191,7 +45215,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45215,7 +45239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45239,7 +45263,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45263,7 +45287,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45287,7 +45311,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 20,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45311,7 +45335,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45335,7 +45359,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45359,7 +45383,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45383,7 +45407,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45407,7 +45431,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45431,7 +45455,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45455,7 +45479,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45479,7 +45503,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45503,7 +45527,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45527,7 +45551,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45551,7 +45575,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45575,7 +45599,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45599,7 +45623,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45623,7 +45647,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45647,7 +45671,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45671,7 +45695,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45695,7 +45719,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45719,7 +45743,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45743,7 +45767,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45767,7 +45791,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45791,7 +45815,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45815,7 +45839,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45839,7 +45863,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45863,7 +45887,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45887,7 +45911,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45911,7 +45935,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45935,7 +45959,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45959,7 +45983,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -45983,7 +46007,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46007,7 +46031,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46031,7 +46055,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46055,7 +46079,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46079,7 +46103,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46103,7 +46127,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46127,7 +46151,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46151,7 +46175,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46175,7 +46199,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46199,7 +46223,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46223,7 +46247,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46247,7 +46271,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46271,7 +46295,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46295,7 +46319,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46319,7 +46343,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46343,7 +46367,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46367,7 +46391,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46391,7 +46415,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46415,7 +46439,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46439,7 +46463,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46463,7 +46487,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46487,7 +46511,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46511,7 +46535,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46535,7 +46559,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46559,7 +46583,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46583,7 +46607,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46607,7 +46631,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46631,7 +46655,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46655,7 +46679,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46679,7 +46703,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46703,7 +46727,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46727,7 +46751,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46751,7 +46775,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46775,7 +46799,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46799,7 +46823,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46823,7 +46847,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46847,7 +46871,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46871,7 +46895,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46895,7 +46919,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46919,7 +46943,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46943,7 +46967,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46967,7 +46991,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -46991,7 +47015,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47015,7 +47039,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47039,7 +47063,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47063,7 +47087,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47087,7 +47111,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47111,7 +47135,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47135,7 +47159,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47159,7 +47183,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47183,7 +47207,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47207,7 +47231,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47231,7 +47255,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47255,7 +47279,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47279,7 +47303,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47303,7 +47327,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47327,7 +47351,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 17,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47351,7 +47375,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47375,7 +47399,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47399,7 +47423,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47423,7 +47447,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47447,7 +47471,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47471,7 +47495,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47495,7 +47519,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47519,7 +47543,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47543,7 +47567,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47567,7 +47591,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47591,7 +47615,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47615,7 +47639,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47639,7 +47663,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47663,7 +47687,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47687,7 +47711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47711,7 +47735,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:24:54.573Z",
+      "lastSignalAt": "2026-06-21T23:31:34.166Z",
       "lastVerifiedAt": null,
       "notes": "Indiana is a private retail market. ATC permit rows identify active package-store locations but are not bottle inventory. Retailer shop endpoints/pages such as CityHive can produce store-level bottle inventory/watch signals, with a verify-before-driving caveat."
     },
@@ -47735,7 +47759,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47759,7 +47783,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47783,7 +47807,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:15:53.727Z",
+      "lastSignalAt": "2026-06-21T23:50:25.717Z",
       "lastVerifiedAt": null,
       "notes": "Kentucky has official distillery gift-shop/product availability and release-watch pages. Treat these as a distinct distillery drop/release lane, not retailer store inventory. Alerts/cards must clearly distinguish distillery pickup/release leads from store shipment/inventory alerts."
     },
@@ -47807,7 +47831,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47831,7 +47855,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47855,7 +47879,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47879,7 +47903,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:15:53.728Z",
+      "lastSignalAt": "2026-06-21T23:50:25.718Z",
       "lastVerifiedAt": null,
       "notes": "Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory."
     },
@@ -47903,7 +47927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:13:55.003Z",
+      "lastSignalAt": "2026-06-21T23:39:56.031Z",
       "lastVerifiedAt": null,
       "notes": "Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted."
     },
@@ -47927,7 +47951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 131,
-      "lastSignalAt": "2026-06-21T23:14:36.971Z",
+      "lastSignalAt": "2026-06-21T23:40:34.584Z",
       "lastVerifiedAt": null,
       "notes": "County-run ABS stores and highly allocated liquor program."
     },
@@ -47951,7 +47975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 105,
-      "lastSignalAt": "2026-06-21T23:13:55.104Z",
+      "lastSignalAt": "2026-06-21T23:39:56.099Z",
       "lastVerifiedAt": null,
       "notes": "Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted."
     },
@@ -47975,7 +47999,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 135,
-      "lastSignalAt": "2026-06-21T23:32:21.357Z",
+      "lastSignalAt": "2026-06-21T23:34:05.231Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -47999,7 +48023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 104,
-      "lastSignalAt": "2026-06-21T23:32:23.865Z",
+      "lastSignalAt": "2026-06-21T23:34:06.991Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -48023,7 +48047,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:32:20.967Z",
+      "lastSignalAt": "2026-06-21T23:34:04.874Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -53351,7 +53375,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:32:32.829Z",
+      "lastSignalAt": "2026-06-21T23:34:15.888Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -53399,7 +53423,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 13,
-      "lastSignalAt": "2026-06-21T23:32:27.448Z",
+      "lastSignalAt": "2026-06-21T23:34:10.536Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -53567,7 +53591,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 51,
-      "lastSignalAt": "2026-06-21T23:32:27.448Z",
+      "lastSignalAt": "2026-06-21T23:34:10.536Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -53734,8 +53758,8 @@
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 6,
-      "lastSignalAt": "2026-06-21T14:52:43.000Z",
+      "signalCount": 7,
+      "lastSignalAt": "2026-06-21T23:34:35.557Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -53999,7 +54023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:32:32.829Z",
+      "lastSignalAt": "2026-06-21T23:34:15.888Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -54047,7 +54071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:33:27.610Z",
+      "lastSignalAt": "2026-06-21T23:36:36.323Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -54215,7 +54239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:32:41.211Z",
+      "lastSignalAt": "2026-06-21T23:34:24.364Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -54239,7 +54263,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:32:32.829Z",
+      "lastSignalAt": "2026-06-21T23:34:15.888Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -54383,7 +54407,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:32:41.211Z",
+      "lastSignalAt": "2026-06-21T23:34:24.364Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -54407,7 +54431,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:32:49.787Z",
+      "lastSignalAt": "2026-06-21T23:34:35.558Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -54719,7 +54743,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-06-21T23:32:41.211Z",
+      "lastSignalAt": "2026-06-21T23:34:24.364Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -54743,7 +54767,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:32:55.601Z",
+      "lastSignalAt": "2026-06-21T23:36:09.011Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -55007,7 +55031,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:32:27.448Z",
+      "lastSignalAt": "2026-06-21T23:34:10.536Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -55295,7 +55319,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 22,
-      "lastSignalAt": "2026-06-21T23:33:07.126Z",
+      "lastSignalAt": "2026-06-21T23:36:17.313Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -55463,7 +55487,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:32:32.829Z",
+      "lastSignalAt": "2026-06-21T23:34:15.888Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -56735,7 +56759,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 13,
-      "lastSignalAt": "2026-06-21T23:32:27.448Z",
+      "lastSignalAt": "2026-06-21T23:34:10.536Z",
       "lastVerifiedAt": null,
       "notes": "Wake County has a current inventory collector attached; other NC boards are preloaded for future board/store collectors."
     },
@@ -56903,7 +56927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:32:32.829Z",
+      "lastSignalAt": "2026-06-21T23:34:15.888Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -56951,7 +56975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 17,
-      "lastSignalAt": "2026-06-21T23:32:27.448Z",
+      "lastSignalAt": "2026-06-21T23:34:10.536Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -70991,7 +71015,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71015,7 +71039,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71039,7 +71063,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71063,7 +71087,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71087,7 +71111,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71111,7 +71135,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71135,7 +71159,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71159,7 +71183,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71183,7 +71207,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71207,7 +71231,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71231,7 +71255,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71255,7 +71279,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71279,7 +71303,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71303,7 +71327,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-06-21T23:33:21.339Z",
+      "lastSignalAt": "2026-06-21T23:36:31.407Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71327,7 +71351,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71351,7 +71375,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 12,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71375,7 +71399,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.862Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71399,7 +71423,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71423,7 +71447,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.862Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71447,7 +71471,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71471,7 +71495,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:17.821Z",
+      "lastSignalAt": "2026-06-21T23:36:27.893Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71495,7 +71519,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71519,7 +71543,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71543,7 +71567,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71567,7 +71591,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71591,7 +71615,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71615,7 +71639,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:33:17.821Z",
+      "lastSignalAt": "2026-06-21T23:36:27.893Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71639,7 +71663,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71663,7 +71687,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 12,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71687,7 +71711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.862Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71711,7 +71735,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71735,7 +71759,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71759,7 +71783,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71783,7 +71807,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-06-21T23:33:17.821Z",
+      "lastSignalAt": "2026-06-21T23:36:27.893Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71807,7 +71831,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-06-21T23:33:17.821Z",
+      "lastSignalAt": "2026-06-21T23:36:27.893Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71831,7 +71855,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71855,7 +71879,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71879,7 +71903,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71903,7 +71927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-06-21T23:33:20.716Z",
+      "lastSignalAt": "2026-06-21T23:36:30.724Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71927,7 +71951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:33:19.752Z",
+      "lastSignalAt": "2026-06-21T23:36:29.861Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -71951,7 +71975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-06-21T23:33:17.821Z",
+      "lastSignalAt": "2026-06-21T23:36:27.894Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -83639,7 +83663,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-06-21T23:16:19.168Z",
+      "lastSignalAt": "2026-06-21T23:46:34.340Z",
       "lastVerifiedAt": null,
       "notes": "South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats."
     },
@@ -83663,7 +83687,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 17,
-      "lastSignalAt": "2026-06-21T23:16:19.169Z",
+      "lastSignalAt": "2026-06-21T23:46:34.341Z",
       "lastVerifiedAt": null,
       "notes": "South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source."
     },
@@ -83687,7 +83711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-06-21T23:16:19.169Z",
+      "lastSignalAt": "2026-06-21T23:46:34.341Z",
       "lastVerifiedAt": null,
       "notes": "South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source."
     },
@@ -83903,7 +83927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-06-21T23:16:05.142Z",
+      "lastSignalAt": "2026-06-21T23:46:26.021Z",
       "lastVerifiedAt": null,
       "notes": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
     },
@@ -83927,7 +83951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 13,
-      "lastSignalAt": "2026-06-21T23:16:05.142Z",
+      "lastSignalAt": "2026-06-21T23:46:26.021Z",
       "lastVerifiedAt": null,
       "notes": "Tennessee is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -83951,7 +83975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-06-21T23:16:05.142Z",
+      "lastSignalAt": "2026-06-21T23:46:26.021Z",
       "lastVerifiedAt": null,
       "notes": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
     },
