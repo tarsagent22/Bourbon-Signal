@@ -149,8 +149,8 @@ if (!refreshScript.includes('Bourbon-Signal-inspect\\engine')) {
 if (!/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \{ '1' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should default to auto-deploying changed site exports so production does not lag fresh local engine data.');
 }
-if (!/BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
-  fail('Scheduled engine refresh should throttle auto-deploys with BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES.');
+if (!/BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES/.test(refreshScript) || !/else \{ '0' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should deploy every successful changed site export by default so production never lags fresh local engine data.');
 }
 if (!/BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
   fail('Scheduled engine refresh should advertise the real 30-minute cadence rather than the old 5-minute loop.');
