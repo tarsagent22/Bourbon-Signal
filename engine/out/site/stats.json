@@ -1,41 +1,31 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-19T20:14:43.012Z",
-  "engineGeneratedAt": "2026-06-19T20:14:26.009Z",
+  "generatedAt": "2026-06-21T17:05:59.256Z",
+  "engineGeneratedAt": "2026-06-21T17:05:43.227Z",
   "stateCount": 12,
-  "signalCount": 10992,
-  "historicalSignalCount": 97256,
+  "signalCount": 10317,
+  "historicalSignalCount": 91221,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 151,
   "bibleRecordCount": 151,
-  "storeCount": 2700,
-  "locationCount": 3052,
-  "officialLocationCount": 0,
-  "preloadedLocationCount": 154,
-  "dropCount": 4969,
-  "eventCount": 1545,
+  "storeCount": 2348,
+  "locationCount": 3914,
+  "officialLocationCount": 1218,
+  "preloadedLocationCount": 1372,
+  "dropCount": 5035,
+  "eventCount": 1256,
   "historicalTrendCount": 100,
   "alertCandidateCount": 0,
-  "roadblockCount": 12,
+  "roadblockCount": 57,
   "refreshHealth": {
-    "degradedStateCount": 1,
-    "staleStateCount": 1,
+    "degradedStateCount": 0,
+    "staleStateCount": 0,
     "failedStateCount": 0,
-    "degradedStates": [
-      {
-        "state": "SC",
-        "label": "South Carolina",
-        "status": "stale_useful",
-        "stale": true,
-        "staleReason": "SC timed out after 180s",
-        "previousFinishedAt": "2026-06-19T10:07:03.806Z",
-        "staleFallbackAt": "2026-06-19T12:57:40.712Z"
-      }
-    ]
+    "degradedStates": []
   },
   "statesAtTargetPrecision": 12,
-  "rareStatesVerified": 14,
+  "rareStatesVerified": 12,
   "stateCoverage": {
     "counts": {
       "store_delivery_leads": 1,
@@ -54,7 +44,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_delivery_leads",
-        "signalCount": 462,
+        "signalCount": 33,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -92,8 +82,8 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_inventory",
-        "signalCount": 2361,
-        "roadblockCount": 1,
+        "signalCount": 2360,
+        "roadblockCount": 13,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "catalog_plus_limited_availability_watch",
@@ -130,7 +120,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_availability_status",
-        "signalCount": 394,
+        "signalCount": 379,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -149,7 +139,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_inventory_and_board_leads",
-        "signalCount": 2120,
+        "signalCount": 1941,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -168,7 +158,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 1514,
+        "signalCount": 1507,
         "roadblockCount": 3,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -206,7 +196,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "county_aggregate_inventory_watch",
-        "signalCount": 508,
+        "signalCount": 506,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_aggregate",
         "bestLocationPrecision": "store_aggregate",
@@ -246,8 +236,8 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 179,
-        "roadblockCount": 2,
+        "signalCount": 166,
+        "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "license_and_policy_watch",
@@ -262,11 +252,11 @@
         "label": "South Carolina",
         "sourceLabel": "South Carolina retailer inventory mesh",
         "tier": "B",
-        "status": "stale_useful",
+        "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 90,
-        "roadblockCount": 2,
+        "signalCount": 61,
+        "roadblockCount": 33,
         "targetLocationPrecision": "statewide_policy",
         "bestLocationPrecision": "store_level",
         "strategy": "retailer_store_inventory",
@@ -279,7 +269,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-19T20:14:43.015Z",
+    "generatedAt": "2026-06-21T17:05:59.258Z",
     "focusStates": [
       "AL",
       "VA",
@@ -308,7 +298,7 @@
         "label": "Virginia",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 2361,
+        "signalCount": 2360,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -318,7 +308,7 @@
         "label": "North Carolina",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 2120,
+        "signalCount": 1941,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -338,7 +328,7 @@
         "label": "Tennessee",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 179,
+        "signalCount": 166,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -346,9 +336,9 @@
       },
       "SC": {
         "label": "South Carolina",
-        "status": "stale_useful",
+        "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 90,
+        "signalCount": 61,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -357,6 +347,22 @@
     },
     "bestCurrentSignals": {
       "vaStoreInventory": [
+        {
+          "id": "9a4b18fc6ada2302",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=119&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 119",
+          "quantity": 31,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC API reports 31 bottle(s) of 1792 Small Batch Bourbon at Store 119 in Alexandria. Normal product inventory signal."
+        },
         {
           "id": "3b9d296bac0641db",
           "state": "VA",
@@ -367,59 +373,11 @@
           "rawName": "1792 Small Batch Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Virginia ABC Store 216",
-          "quantity": 24,
+          "quantity": 23,
           "confidence": 0.78,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 24 bottle(s) of 1792 Small Batch Bourbon at Store 216 in Franklin. Normal product inventory signal."
-        },
-        {
-          "id": "9f45aeb8b3057fa0",
-          "state": "VA",
-          "type": "store_inventory_result",
-          "source": "Virginia ABC storeNearby inventory API",
-          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=116&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
-          "bottle": "1792 Small Batch",
-          "rawName": "1792 Small Batch Bourbon",
-          "locationPrecision": "store_level",
-          "locationName": "Virginia ABC Store 315",
-          "quantity": 22,
-          "confidence": 0.78,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 22 bottle(s) of 1792 Small Batch Bourbon at Store 315 in Chesterfield. Normal product inventory signal."
-        },
-        {
-          "id": "e20265902d3e8cc5",
-          "state": "VA",
-          "type": "store_inventory_result",
-          "source": "Virginia ABC storeNearby inventory API",
-          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=160&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
-          "bottle": "1792 Small Batch",
-          "rawName": "1792 Small Batch Bourbon",
-          "locationPrecision": "store_level",
-          "locationName": "Virginia ABC Store 410",
-          "quantity": 21,
-          "confidence": 0.78,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 21 bottle(s) of 1792 Small Batch Bourbon at Store 410 in Moneta. Normal product inventory signal."
-        },
-        {
-          "id": "50547da83b46214d",
-          "state": "VA",
-          "type": "store_inventory_result",
-          "source": "Virginia ABC storeNearby inventory API",
-          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=38&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
-          "bottle": "1792 Small Batch",
-          "rawName": "1792 Small Batch Bourbon",
-          "locationPrecision": "store_level",
-          "locationName": "Virginia ABC Store 314",
-          "quantity": 21,
-          "confidence": 0.78,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 21 bottle(s) of 1792 Small Batch Bourbon at Store 314 in Henrico. Normal product inventory signal."
+          "summary": "Virginia ABC API reports 23 bottle(s) of 1792 Small Batch Bourbon at Store 216 in Franklin. Normal product inventory signal."
         },
         {
           "id": "ecfa93d064ee8078",
@@ -431,11 +389,75 @@
           "rawName": "1792 Small Batch Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Virginia ABC Store 193",
-          "quantity": 20,
+          "quantity": 19,
           "confidence": 0.78,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 20 bottle(s) of 1792 Small Batch Bourbon at Store 193 in Luray. Normal product inventory signal."
+          "summary": "Virginia ABC API reports 19 bottle(s) of 1792 Small Batch Bourbon at Store 193 in Luray. Normal product inventory signal."
+        },
+        {
+          "id": "e20265902d3e8cc5",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=160&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 410",
+          "quantity": 19,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC API reports 19 bottle(s) of 1792 Small Batch Bourbon at Store 410 in Moneta. Normal product inventory signal."
+        },
+        {
+          "id": "f1b7f1ff420e6e67",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=107&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 361",
+          "quantity": 18,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC API reports 18 bottle(s) of 1792 Small Batch Bourbon at Store 361 in Portsmouth. Normal product inventory signal."
+        },
+        {
+          "id": "f622e26a818eb253",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=86&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 348",
+          "quantity": 18,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC API reports 18 bottle(s) of 1792 Small Batch Bourbon at Store 348 in Richmond. Normal product inventory signal."
+        },
+        {
+          "id": "89c46f0ce465586b",
+          "state": "VA",
+          "type": "store_inventory_result",
+          "source": "Virginia ABC storeNearby inventory API",
+          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=77&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
+          "bottle": "1792 Small Batch",
+          "rawName": "1792 Small Batch Bourbon",
+          "locationPrecision": "store_level",
+          "locationName": "Virginia ABC Store 284",
+          "quantity": 18,
+          "confidence": 0.78,
+          "canAlertAsInventory": true,
+          "canAlertAsWatch": true,
+          "summary": "Virginia ABC API reports 18 bottle(s) of 1792 Small Batch Bourbon at Store 284 in Midlothian. Normal product inventory signal."
         },
         {
           "id": "52c45f51c3d743fb",
@@ -447,43 +469,11 @@
           "rawName": "1792 Small Batch Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Virginia ABC Store 64",
-          "quantity": 20,
+          "quantity": 18,
           "confidence": 0.78,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 20 bottle(s) of 1792 Small Batch Bourbon at Store 64 in Fredericksburg. Normal product inventory signal."
-        },
-        {
-          "id": "7dbc3002e75a27be",
-          "state": "VA",
-          "type": "store_inventory_result",
-          "source": "Virginia ABC storeNearby inventory API",
-          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=186&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
-          "bottle": "1792 Small Batch",
-          "rawName": "1792 Small Batch Bourbon",
-          "locationPrecision": "store_level",
-          "locationName": "Virginia ABC Store 309",
-          "quantity": 19,
-          "confidence": 0.78,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 19 bottle(s) of 1792 Small Batch Bourbon at Store 309 in Roanoke. Normal product inventory signal."
-        },
-        {
-          "id": "431de6c11290fa95",
-          "state": "VA",
-          "type": "store_inventory_result",
-          "source": "Virginia ABC storeNearby inventory API",
-          "sourceUrl": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=160&productCode=021236&mileRadius=999&storeCount=5&buffer=0",
-          "bottle": "1792 Small Batch",
-          "rawName": "1792 Small Batch Bourbon",
-          "locationPrecision": "store_level",
-          "locationName": "Virginia ABC Store 396",
-          "quantity": 19,
-          "confidence": 0.78,
-          "canAlertAsInventory": true,
-          "canAlertAsWatch": true,
-          "summary": "Virginia ABC API reports 19 bottle(s) of 1792 Small Batch Bourbon at Store 396 in Forest. Normal product inventory signal."
+          "summary": "Virginia ABC API reports 18 bottle(s) of 1792 Small Batch Bourbon at Store 64 in Fredericksburg. Normal product inventory signal."
         }
       ],
       "ncShipmentAndWarehouse": [
@@ -497,27 +487,27 @@
           "rawName": "Buffalo Trace KY Straight Bourbon",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 3306,
+          "quantity": 3304,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 3306 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
+          "summary": "NC ABC warehouse stock page shows 3304 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
-          "id": "5d4e59fef4a7a9c8",
+          "id": "5fe622929530be5a",
           "state": "NC",
-          "type": "nc_board_shipment_snapshot",
-          "source": "NC ABC Stock Shipped Data",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
           "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/159526",
           "bottle": "Buffalo Trace Bourbon",
-          "rawName": "Buffalo Trace KY Straight Bourbon 1.00L",
-          "locationPrecision": "board_county",
-          "locationName": "Mecklenburg County ABC Board",
-          "quantity": 2220,
+          "rawName": "Buffalo Trace KY Straight Bourbon",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 2270,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC Stock Shipped Data reports 2220 unit(s) of Buffalo Trace KY Straight Bourbon 1.00L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlle"
+          "summary": "NC ABC warehouse stock page shows 2270 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
           "id": "3e198913c7aed618",
@@ -577,27 +567,11 @@
           "rawName": "1792 Full Proof",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 1348,
+          "quantity": 1344,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 1348 unit(s) available statewide for 1792 Full Proof (-2 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
-        },
-        {
-          "id": "5fe622929530be5a",
-          "state": "NC",
-          "type": "nc_statewide_warehouse_stock",
-          "source": "NC ABC Warehouse Stock Status",
-          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/159526",
-          "bottle": "Buffalo Trace Bourbon",
-          "rawName": "Buffalo Trace KY Straight Bourbon",
-          "locationPrecision": "board_warehouse",
-          "locationName": "NC ABC state warehouse",
-          "quantity": 1270,
-          "confidence": 0.9,
-          "canAlertAsInventory": false,
-          "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 1270 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
+          "summary": "NC ABC warehouse stock page shows 1344 unit(s) available statewide for 1792 Full Proof (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         },
         {
           "id": "6f024b10cacaff53",
@@ -614,6 +588,22 @@
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
           "summary": "NC ABC Stock Shipped Data reports 1110 unit(s) of Old Fitzgerald 7Y BIB 700ML shipped to New Hanover County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity."
+        },
+        {
+          "id": "3e198913c7aed618",
+          "state": "NC",
+          "type": "nc_board_shipment_snapshot",
+          "source": "NC ABC Stock Shipped Data",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/162395",
+          "bottle": "Buffalo Trace Bourbon",
+          "rawName": "Buffalo Trace KY Straight Bourbon .75L",
+          "locationPrecision": "board_county",
+          "locationName": "Wake County ABC Board",
+          "quantity": 1020,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "NC ABC Stock Shipped Data reports 1020 unit(s) of Buffalo Trace KY Straight Bourbon .75L shipped to Wake County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-produc"
         }
       ],
       "alReleaseIntel": [
@@ -710,11 +700,11 @@
           "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
           "locationPrecision": "store_level",
           "locationName": "Corkdorks Wine Spirits Beer - Midtown",
-          "quantity": 2717,
+          "quantity": 2710,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Corkdorks Wine Spirits Beer CityHive reports 2717 750mls of Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $129.99."
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 2710 750mls of Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $129.99."
         },
         {
           "id": "3b6e28cb643f807d",
@@ -726,11 +716,11 @@
           "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
           "locationPrecision": "store_level",
           "locationName": "Corkdorks Wine Spirits Beer - Midtown",
-          "quantity": 1359,
+          "quantity": 1356,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1359 750mls of Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $99.99."
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1356 750mls of Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $99.99."
         },
         {
           "id": "62a85b61a995a20f",
@@ -742,11 +732,11 @@
           "rawName": "Four Roses Single Barrel Private Selection Barrel Strength Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Corkdorks Wine Spirits Beer - Midtown",
-          "quantity": 1308,
+          "quantity": 1301,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1308 750mls of Four Roses Single Barrel Private Selection Barrel Strength Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $119.97."
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1301 750mls of Four Roses Single Barrel Private Selection Barrel Strength Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $119.97."
         },
         {
           "id": "2d5371b510c9ad07",
@@ -758,11 +748,11 @@
           "rawName": "Bulleit Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Corkdorks Wine Spirits Beer - Midtown",
-          "quantity": 1224,
+          "quantity": 1223,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1224 50mls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $4.49."
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 1223 50mls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $4.49."
         },
         {
           "id": "5153464984e8b142",
@@ -774,11 +764,11 @@
           "rawName": "Buffalo Trace Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Buster’s Liquors | University",
-          "quantity": 234,
+          "quantity": 226,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Buster's Liquors & Wines CityHive reports 234 750mls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $25.99."
+          "summary": "Buster's Liquors & Wines CityHive reports 226 750mls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $25.99."
         },
         {
           "id": "5153464984e8b142",
@@ -790,11 +780,11 @@
           "rawName": "Buffalo Trace Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Buster’s Liquors | University",
-          "quantity": 180,
+          "quantity": 163,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Buster's Liquors & Wines CityHive reports 180 1.75Ls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $51.99."
+          "summary": "Buster's Liquors & Wines CityHive reports 163 1.75Ls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $51.99."
         },
         {
           "id": "2d5371b510c9ad07",
@@ -806,11 +796,11 @@
           "rawName": "Bulleit Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Corkdorks Wine Spirits Beer - Midtown",
-          "quantity": 145,
+          "quantity": 143,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Corkdorks Wine Spirits Beer CityHive reports 145 1.75Ls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $47.99."
+          "summary": "Corkdorks Wine Spirits Beer CityHive reports 143 1.75Ls of Bulleit Bourbon at Corkdorks Wine Spirits Beer - Midtown (1610 Church St, Nashville, TN 37203, USA) for $47.99."
         },
         {
           "id": "00b218bfb062ee12",
@@ -822,11 +812,11 @@
           "rawName": "Bulleit Bourbon",
           "locationPrecision": "store_level",
           "locationName": "Frugal MacDoogal",
-          "quantity": 144,
+          "quantity": 142,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Frugal MacDoogal CityHive reports 144 750mls of Bulleit Bourbon at Frugal MacDoogal (701 Division St, Nashville, TN 37203, USA) for $24.99."
+          "summary": "Frugal MacDoogal CityHive reports 142 750mls of Bulleit Bourbon at Frugal MacDoogal (701 Division St, Nashville, TN 37203, USA) for $24.99."
         }
       ],
       "tnSourceDiscovery": [
@@ -844,7 +834,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
+          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
         },
         {
           "id": "02df9ae4c0481ced",
@@ -860,7 +850,7 @@
           "confidence": 0.48,
           "canAlertAsInventory": false,
           "canAlertAsWatch": false,
-          "summary": "Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory."
+          "summary": "Tennessee ABC publishes public information/forms and license-list PDFs including wholesalers, direct shippers, delivery services, and related regulated entities. This is useful market-source infrastructure, not bottle availability."
         },
         {
           "id": "043b9c8f4cc5473e",
@@ -885,12 +875,36 @@
   "ncBoardIntelligence": {
     "boardCount": 174,
     "boardsWithWebsites": 40,
-    "boardsWithTrackedShipments": 169,
-    "boardsWithReleasePages": 13,
+    "boardsWithTrackedShipments": 160,
+    "boardsWithReleasePages": 15,
     "boardsWithInventoryPages": 7,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
-  "locationBibleSources": [],
+  "locationBibleSources": [
+    {
+      "id": "NC_ABC_STORE_LOCATOR",
+      "state": "NC",
+      "status": "ok",
+      "count": 638,
+      "boards": 173,
+      "failures": 0,
+      "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator"
+    },
+    {
+      "id": "VA_ARCGIS",
+      "state": "VA",
+      "status": "ok",
+      "count": 403,
+      "sourceUrl": "https://vgin.vdem.virginia.gov/datasets/virginia-abc-stores/"
+    },
+    {
+      "id": "AL_STORES",
+      "state": "AL",
+      "status": "ok",
+      "count": 177,
+      "sourceUrl": "https://alabcboard.gov/store-locator"
+    }
+  ],
   "historicalTrends": [
     {
       "state": "IA",
@@ -898,9 +912,9 @@
       "source": "Iowa ABD statewide product snapshot",
       "locationPrecision": "board_warehouse",
       "inventoryObservations": 0,
-      "watchObservations": 161,
-      "positiveQuantities": 161,
-      "firstObservedAt": "2026-06-18T02:56:07.689Z",
+      "watchObservations": 133,
+      "positiveQuantities": 133,
+      "firstObservedAt": "2026-06-18T17:30:49.653Z",
       "lastObservedAt": "2026-06-19T12:45:16.862Z",
       "sampleSignalIds": [
         "9b24ddebf3e1e87f",
@@ -909,8 +923,8 @@
         "9b24ddebf3e1e87f",
         "9b24ddebf3e1e87f"
       ],
-      "observationCount": 161,
-      "current": true,
+      "observationCount": 133,
+      "current": false,
       "trendLabel": "repeated_release_watch_signal"
     },
     {
@@ -918,11 +932,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomington",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "3e7c64958ddd9174",
         "3e7c64958ddd9174",
@@ -930,7 +944,7 @@
         "3e7c64958ddd9174",
         "3e7c64958ddd9174"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -939,11 +953,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Highland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "8a737d57a80f4aff",
         "8a737d57a80f4aff",
@@ -951,7 +965,7 @@
         "8a737d57a80f4aff",
         "8a737d57a80f4aff"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -960,11 +974,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Orland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "3dbaa2eb38360026",
         "3dbaa2eb38360026",
@@ -972,28 +986,7 @@
         "3dbaa2eb38360026",
         "3dbaa2eb38360026"
       ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Glen Ellyn",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "86bd9c689f80aadd",
-        "86bd9c689f80aadd",
-        "86bd9c689f80aadd",
-        "86bd9c689f80aadd",
-        "86bd9c689f80aadd"
-      ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1002,11 +995,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Champaign",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7",
@@ -1014,7 +1007,7 @@
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1023,11 +1016,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Peoria",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "8b92cd04bccd07d7",
         "8b92cd04bccd07d7",
@@ -1035,49 +1028,7 @@
         "8b92cd04bccd07d7",
         "8b92cd04bccd07d7"
       ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Crystal Lake",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "26be2dbafd38edcb",
-        "26be2dbafd38edcb",
-        "26be2dbafd38edcb",
-        "26be2dbafd38edcb",
-        "26be2dbafd38edcb"
-      ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Downtown",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "9b1619082b879b4c",
-        "9b1619082b879b4c",
-        "9b1619082b879b4c",
-        "9b1619082b879b4c",
-        "9b1619082b879b4c"
-      ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1086,11 +1037,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Plainfield",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 96,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "1b891de9cacf3736",
         "1b891de9cacf3736",
@@ -1098,7 +1049,70 @@
         "1b891de9cacf3736",
         "1b891de9cacf3736"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Glen Ellyn",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 83,
+      "watchObservations": 83,
+      "positiveQuantities": 83,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
+      "sampleSignalIds": [
+        "86bd9c689f80aadd",
+        "86bd9c689f80aadd",
+        "86bd9c689f80aadd",
+        "86bd9c689f80aadd",
+        "86bd9c689f80aadd"
+      ],
+      "observationCount": 166,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Crystal Lake",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 83,
+      "watchObservations": 83,
+      "positiveQuantities": 83,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
+      "sampleSignalIds": [
+        "26be2dbafd38edcb",
+        "26be2dbafd38edcb",
+        "26be2dbafd38edcb",
+        "26be2dbafd38edcb",
+        "26be2dbafd38edcb"
+      ],
+      "observationCount": 166,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Downtown",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 83,
+      "watchObservations": 83,
+      "positiveQuantities": 83,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
+      "sampleSignalIds": [
+        "9b1619082b879b4c",
+        "9b1619082b879b4c",
+        "9b1619082b879b4c",
+        "9b1619082b879b4c",
+        "9b1619082b879b4c"
+      ],
+      "observationCount": 166,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1107,19 +1121,61 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Gurnee",
       "locationPrecision": "store_level",
-      "inventoryObservations": 81,
-      "watchObservations": 81,
-      "positiveQuantities": 81,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 72,
+      "watchObservations": 72,
+      "positiveQuantities": 71,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "b50a74e8814d1b0f",
         "b50a74e8814d1b0f",
-        "b50a74e8814d1b0f",
+        "814fee4c9256a3cb",
         "b50a74e8814d1b0f",
         "b50a74e8814d1b0f"
       ],
-      "observationCount": 162,
+      "observationCount": 144,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "TN",
+      "bottleName": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
+      "source": "Cool Springs Wine & Spirits",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 66,
+      "watchObservations": 66,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-18T17:34:11.886Z",
+      "lastObservedAt": "2026-06-21T17:05:24.024Z",
+      "sampleSignalIds": [
+        "393c4fa509abd6a7",
+        "393c4fa509abd6a7",
+        "393c4fa509abd6a7",
+        "393c4fa509abd6a7",
+        "393c4fa509abd6a7"
+      ],
+      "observationCount": 132,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Mokena",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
+      "sampleSignalIds": [
+        "bf7c2d280c13fb0b",
+        "bf7c2d280c13fb0b",
+        "bf7c2d280c13fb0b",
+        "bf7c2d280c13fb0b",
+        "bf7c2d280c13fb0b"
+      ],
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1128,11 +1184,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomingdale",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "c94866150695edc7",
         "c94866150695edc7",
@@ -1140,7 +1196,7 @@
         "3b9040fe62672c40",
         "c94866150695edc7"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1149,11 +1205,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Skokie",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "078466be5913d6de",
         "078466be5913d6de",
@@ -1161,7 +1217,7 @@
         "1dbd6c6a837b82ec",
         "078466be5913d6de"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1170,11 +1226,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Rockford",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "7fb6c8166a2e069e",
         "7fb6c8166a2e069e",
@@ -1182,7 +1238,7 @@
         "2e8d66662f521eb7",
         "7fb6c8166a2e069e"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1191,11 +1247,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Oak Brook",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "ab97754c766a5a02",
         "ab97754c766a5a02",
@@ -1203,7 +1259,7 @@
         "5ad2dd8c1a43c378",
         "ab97754c766a5a02"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1212,11 +1268,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Springfield",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "f00246d9d22b4e4e",
         "f00246d9d22b4e4e",
@@ -1224,7 +1280,7 @@
         "c9642b2d14817e81",
         "f00246d9d22b4e4e"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1233,11 +1289,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bolingbrook",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "9d6769d03aa2d785",
         "9d6769d03aa2d785",
@@ -1245,7 +1301,7 @@
         "e0e01a38713fae1a",
         "9d6769d03aa2d785"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1254,11 +1310,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Vernon Hills",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "5b36f09df2a283e0",
         "5b36f09df2a283e0",
@@ -1266,7 +1322,7 @@
         "b23854b519cbee08",
         "5b36f09df2a283e0"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1275,11 +1331,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Niles",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "5a5850a4622538b6",
         "5a5850a4622538b6",
@@ -1287,28 +1343,7 @@
         "2e899796fc6f4476",
         "5a5850a4622538b6"
       ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's South Loop",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "0d8da579399c2f2a",
-        "0d8da579399c2f2a",
-        "0d8da579399c2f2a",
-        "83db3d3a01b404bc",
-        "0d8da579399c2f2a"
-      ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1317,11 +1352,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Wheeling",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "bd691c9eea587de2",
         "bd691c9eea587de2",
@@ -1329,7 +1364,28 @@
         "03b6eace3e963018",
         "bd691c9eea587de2"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
+      "current": true,
+      "trendLabel": "repeated_inventory_or_shipment_signal"
+    },
+    {
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's South Loop",
+      "locationPrecision": "store_level",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
+      "sampleSignalIds": [
+        "0d8da579399c2f2a",
+        "0d8da579399c2f2a",
+        "0d8da579399c2f2a",
+        "83db3d3a01b404bc",
+        "0d8da579399c2f2a"
+      ],
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1338,11 +1394,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Lincoln Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "e121df744bd2001a",
         "e121df744bd2001a",
@@ -1350,7 +1406,7 @@
         "b2edc2fa7bee19a0",
         "e121df744bd2001a"
       ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1359,11 +1415,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Montgomery",
       "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-18T17:33:22.228Z",
+      "lastObservedAt": "2026-06-21T14:18:27.548Z",
       "sampleSignalIds": [
         "b4dfe16d254eb78b",
         "b4dfe16d254eb78b",
@@ -1371,49 +1427,7 @@
         "2f15aea6d10ff313",
         "b4dfe16d254eb78b"
       ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's North Riverside",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "35f41c3a2bdcb20e",
-        "35f41c3a2bdcb20e",
-        "35f41c3a2bdcb20e",
-        "954a7ab9bfebbf4a",
-        "35f41c3a2bdcb20e"
-      ],
-      "observationCount": 192,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Lincolnwood",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 96,
-      "watchObservations": 96,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-18T02:59:21.464Z",
-      "lastObservedAt": "2026-06-19T15:45:27.479Z",
-      "sampleSignalIds": [
-        "25c56338c991635f",
-        "25c56338c991635f",
-        "25c56338c991635f",
-        "4a20577ca9c3fb21",
-        "25c56338c991635f"
-      ],
-      "observationCount": 192,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     }

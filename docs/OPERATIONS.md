@@ -44,17 +44,17 @@ Current local Windows Task Scheduler task:
 
 - Task: `Bourbon Signal Engine Refresh`
 - Cadence: every 5 minutes
-- Command: `wscript.exe C:\Users\chand\Projects\Proof\engine\bourbon-signal-engine-refresh-hidden.vbs`
+- Command: `wscript.exe C:\Users\chand\Projects\Bourbon-Signal-inspect\engine\bourbon-signal-engine-refresh-hidden.vbs`
 - PowerShell wrapper: `engine/bourbon-signal-engine-refresh.ps1`
 - Engine command: `node src/refresh-site.mjs`
 
-The refresh loop may run frequently, but it should not silently deploy production by default. Auto-deploy is explicitly opt-in:
+The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys changed site exports at most every 30 minutes so the public API does not lag behind fresh local engine data. Disable auto-deploy explicitly when doing local/debug work:
 
 ```powershell
-$env:BOURBON_SIGNAL_AUTO_DEPLOY = '1'
+$env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'
 ```
 
-Leave that unset or `0` for normal operation.
+The wrapper also sets `BOURBON_SIGNAL_BROWSER_PREFLIGHT=0` because `refresh-site.mjs` already owns browser-assisted collector cadence; this avoids duplicate CDP preflight noise during scheduled runs. When auto-deploy is enabled, `refresh-site.mjs` also moves `bourbonsignal.com` and `www.bourbonsignal.com` aliases to the newly deployed Vercel production URL so custom domains cannot remain pinned to stale exports.
 
 ## Manual engine verification loop
 

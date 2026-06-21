@@ -118,7 +118,7 @@ const VIRGINIA_INVALID_ORIGIN_STORES = new Set(['63', '74', '123', '208', '215',
 
 const VIRGINIA_STORES_ARCGIS_URL = "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1/query?where=UPPER(LandmkName)%20LIKE%20%27%25ABC%25%27&outFields=*&returnGeometry=false&f=json";
 const VIRGINIA_CACHE_PATH = 'out/cache/VA-storeNearby-signals.json';
-const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX_AGE_MS || 7 * 24 * 60 * 60_000);
+const VIRGINIA_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_VA_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const GREENSBORO_ABC_BASE_URL = 'https://shop.greensboroabc.com';
 const GREENSBORO_ABC_COMPANY_ID = '5571440';
 const GREENSBORO_ABC_SITE_ID = '2';

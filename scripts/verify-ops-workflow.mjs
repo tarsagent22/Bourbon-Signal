@@ -143,14 +143,23 @@ if (!/sourceEventAt:\s*signal\.sourceEventAt/.test(operationalReport)) {
 }
 
 const refreshScript = read('engine/bourbon-signal-engine-refresh.ps1');
-if (/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \{ '1' \}/.test(refreshScript)) {
-  fail('Scheduled engine refresh should not default to auto-deploying production.');
+if (!refreshScript.includes('Bourbon-Signal-inspect\\engine')) {
+  fail('Scheduled engine refresh should run from the canonical Bourbon-Signal worktree, not the legacy Proof worktree.');
 }
-if (!/BOURBON_SIGNAL_AUTO_DEPLOY/.test(refreshScript)) {
-  fail('Scheduled engine refresh should keep an explicit opt-in auto-deploy gate.');
+if (!/BOURBON_SIGNAL_AUTO_DEPLOY\) \{ \$env:BOURBON_SIGNAL_AUTO_DEPLOY \} else \{ '1' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should default to auto-deploying changed site exports so production does not lag fresh local engine data.');
+}
+if (!/BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES/.test(refreshScript) || !/else \{ '30' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should throttle auto-deploys with BOURBON_SIGNAL_AUTO_DEPLOY_MINUTES.');
+}
+if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIGHT \} else \{ '0' \}/.test(refreshScript)) {
+  fail('Scheduled engine refresh should disable duplicate run.mjs browser preflight; refresh-site owns browser collector cadence.');
 }
 
 const refreshSite = read('engine/src/refresh-site.mjs');
+if (!/PRODUCTION_CUSTOM_DOMAINS/.test(refreshSite) || !/alias', 'set'/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should move production custom-domain aliases after local auto-deploy.');
+}
 const ncCollector = read('engine/src/collectors/north-carolina-intelligence.mjs');
 const ncExtractParser = ncCollector.match(/function isoFromNcExtract\(value\) \{[\s\S]*?\n\}/)?.[0] || '';
 if (/new Date\(\)\.toISOString\(\)/.test(ncExtractParser) || !/return null/.test(ncExtractParser)) {

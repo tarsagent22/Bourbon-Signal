@@ -23,7 +23,12 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   IA: Number(process.env.BOURBON_SIGNAL_IA_STATE_TIMEOUT_MS || 300_000),
   UT: Number(process.env.BOURBON_SIGNAL_UT_STATE_TIMEOUT_MS || 300_000),
   ID: Number(process.env.BOURBON_SIGNAL_ID_STATE_TIMEOUT_MS || 240_000),
-  'MD-MONTGOMERY': Number(process.env.BOURBON_SIGNAL_MD_MONTGOMERY_STATE_TIMEOUT_MS || 300_000)
+  'MD-MONTGOMERY': Number(process.env.BOURBON_SIGNAL_MD_MONTGOMERY_STATE_TIMEOUT_MS || 300_000),
+  // TN/SC retailer meshes occasionally need longer than the generic 180s
+  // parent watchdog, especially when CityHive/backing retailer endpoints are
+  // slow or retrying. Let them finish instead of publishing stale fallbacks.
+  TN: Number(process.env.BOURBON_SIGNAL_TN_STATE_TIMEOUT_MS || 420_000),
+  SC: Number(process.env.BOURBON_SIGNAL_SC_STATE_TIMEOUT_MS || 420_000)
 };
 const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0' && !process.argv.includes('--skip-browser-preflight');
