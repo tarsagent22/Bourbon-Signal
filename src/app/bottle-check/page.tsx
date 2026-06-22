@@ -107,7 +107,7 @@ function scoreTone(score: number) {
 }
 
 export default function BottleCheckPage() {
-  const { isSignedIn, signIn } = useAuth();
+  const { isSignedIn, signIn, entitlements } = useAuth();
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
   const [submittedQuery, setSubmittedQuery] = useState("Buffalo Trace");
@@ -183,6 +183,7 @@ export default function BottleCheckPage() {
   const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isCommon = bottle?.availability === "common";
+  const canSaveAlertFromBottleCheck = entitlements.trackedBottleLimit !== 0;
   const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
 
   function submitSearch(event: React.FormEvent) {
@@ -202,6 +203,10 @@ export default function BottleCheckPage() {
     if (!bottle || !canTrack) return;
     if (!isSignedIn) {
       signIn();
+      return;
+    }
+    if (!canSaveAlertFromBottleCheck) {
+      window.location.href = "/pricing";
       return;
     }
     if (prefsLoading) {
@@ -337,6 +342,7 @@ export default function BottleCheckPage() {
                   {isCommon ? (
                     <p><strong>No alert settings for common bottles.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
+                    canSaveAlertFromBottleCheck ? (
                     <>
                       <div className="bc-track-content">
                         <p><strong>Track this bottle</strong> saves it to your account-level alert preferences so future inbox/email alerts can use it.</p>
@@ -360,6 +366,15 @@ export default function BottleCheckPage() {
                       </div>
                       <button type="button" onClick={trackBottle} disabled={savingTrack || prefsLoading || isTracked}>{!isSignedIn ? "Sign in to track" : prefsLoading ? "Loading..." : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
                     </>
+                    ) : (
+                      <>
+                        <div className="bc-track-content">
+                          <p><strong>Get alerted when this drops in your area.</strong> Bottle Check can tell you whether a bottle is worth chasing; paid members can save it for inbox and email alerts.</p>
+                          <small>Standard starts with 5 alert areas and 15 tracked bottles. Barrel and Founder are built for heavier hunting.</small>
+                        </div>
+                        <button type="button" onClick={() => { window.location.href = "/pricing"; }}>View memberships</button>
+                      </>
+                    )
                   ) : (
                     <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>
                   )}

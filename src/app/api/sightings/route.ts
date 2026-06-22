@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
+import { getEntitlements } from "@/lib/entitlements";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -67,9 +68,19 @@ async function getAggregateSightings(currentUserId: string) {
   return sightings.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
+async function requireSightingsEntitlements(userId: string) {
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  return getEntitlements(user.publicMetadata?.tier);
+}
+
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canReadSightings) {
+    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+  }
   const sightings = await getAggregateSightings(userId);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
   return NextResponse.json({ sightings, states });
@@ -78,6 +89,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canSubmitSightings) {
+    return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
+  }
   const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
   const bottleName = String(payload.bottleName || "").trim().slice(0, 140);
   const storeName = String(payload.storeName || "").trim().slice(0, 180);
@@ -118,6 +133,10 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canReadSightings) {
+    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+  }
   const payload = (await req.json().catch(() => ({}))) as { sightingId?: string; vote?: SightingVoteKind };
   const sightingId = String(payload.sightingId || "").slice(0, 160);
   const vote = payload.vote === "down" ? "down" : payload.vote === "up" ? "up" : null;

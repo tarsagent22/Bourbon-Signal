@@ -7,6 +7,7 @@ import {
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
+import { getEntitlements } from "@/lib/entitlements";
 
 export interface AreaPreferences {
   states: string[];
@@ -243,14 +244,47 @@ export async function POST(req: NextRequest) {
   const user = await client.users.getUser(userId);
   const existing = buildResponseFromMetadata(user);
 
-  const areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
+  let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
   const notificationPreferences = normalizeNotificationPreferences(
     payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
   );
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
-  const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
+  let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
+  const entitlements = getEntitlements(user.publicMetadata?.tier);
+  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+
+  if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
+    return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
+  }
+
+  if (typeof entitlements.alertAreaLimit === "number") {
+    areaPreferences = {
+      ...areaPreferences,
+      states: areaPreferences.states.slice(0, entitlements.alertAreaLimit),
+    };
+  }
+
+  if (!entitlements.canUseAdvancedFilters) {
+    areaPreferences = {
+      ...areaPreferences,
+      ncBoards: [],
+      vaCities: [],
+      ohCities: [],
+      iaCities: [],
+      idCities: [],
+      paCounties: [],
+      paStores: [],
+    };
+  }
+
+  if (typeof entitlements.trackedBottleLimit === "number") {
+    bottleAlertPreferences = {
+      bottleNames: bottleAlertPreferences.bottleNames.slice(0, entitlements.trackedBottleLimit),
+      bottleKeys: bottleAlertPreferences.bottleKeys.slice(0, entitlements.trackedBottleLimit),
+    };
+  }
 
   await client.users.updateUserMetadata(userId, {
     publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences },

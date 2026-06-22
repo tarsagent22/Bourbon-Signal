@@ -15,6 +15,7 @@ const isProtectedRoute = createRouteMatcher([
   "/api/alerts(.*)",
   "/api/bottle-check(.*)",
   "/api/bottles(.*)",
+  "/api/checkout(.*)",
   "/api/events(.*)",
   "/api/feedback(.*)",
   "/api/locations(.*)",
@@ -27,6 +28,7 @@ const isProtectedRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
+  if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
   if (!isProtectedRoute(request)) return NextResponse.next();
 
   const { userId } = await auth();

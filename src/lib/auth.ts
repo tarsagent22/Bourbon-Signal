@@ -1,27 +1,21 @@
 "use client";
 
 import { useUser, useClerk } from "@clerk/nextjs";
-
-const PAID_TIERS = new Set([
-  "standard",
-  "bottled-in-bond",
-  "monthly",
-  "annual",
-  "founder",
-  "lifetime",
-]);
+import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/entitlements";
 
 export function useAuth() {
   const { isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
 
   const rawTier = typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
-  const memberTier = isSignedIn ? rawTier : null;
-  const isPaidUser = !!memberTier && PAID_TIERS.has(memberTier);
+  const memberTier = isSignedIn ? normalizeMembershipTier(rawTier) : "free";
+  const entitlements = getEntitlements(memberTier);
+  const isPaidUser = isPaidTier(memberTier);
 
   return {
     isSignedIn: !!isSignedIn,
     memberTier,
+    entitlements,
     isPaidUser,
     memberNumber: 0,
     user,
