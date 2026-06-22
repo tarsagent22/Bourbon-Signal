@@ -263,7 +263,7 @@ function ncBoardLabelFromStore(store: Store) {
 
 function ncBoardLabelFromDrop(drop: GroupedDrop) {
   if (String(drop.state || "").toUpperCase() !== "NC") return "";
-  for (const value of [drop.board_name, drop.locations[0]?.boardName, drop.locations[0]?.label, ...(drop.counties || [])]) {
+  for (const value of [drop.locationName, drop.locations[0]?.boardName, drop.board_name, drop.locations[0]?.label, ...(drop.counties || [])]) {
     const label = ncBoardLabelFromText(value);
     if (label) return label;
   }
