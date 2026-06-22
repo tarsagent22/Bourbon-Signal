@@ -35,7 +35,7 @@
     { "canonical": "Heaven Hill Heritage Collection", "aliases": ["HH Heritage", "Heaven Hill 17", "Heaven Hill 18"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Old Fitzgerald Bottled-in-Bond", "aliases": ["Old Fitzgerald BIB", "Old Fitz", "Old Fitz BIB"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Parker's Heritage Collection", "aliases": ["Parkers Heritage", "Parker Heritage"], "tier": "unicorn", "producer": "Heaven Hill" },
-    { "canonical": "Henry McKenna 10 Year", "aliases": ["Henry McKenna 10", "McKenna 10"], "tier": "allocated", "producer": "Heaven Hill" },
+    { "canonical": "Henry McKenna 10 Year", "aliases": ["Henry McKenna 10", "McKenna 10", "Henry McKenna Single Barrel", "Henry McKenna Single Barrel 10 Year", "Henry McKenna Bottled-in-Bond", "Henry McKenna BIB"], "tier": "allocated", "producer": "Heaven Hill" },
     { "canonical": "Booker's Bourbon", "aliases": ["Bookers", "Booker's Batch"], "tier": "limited", "producer": "Jim Beam" },
     { "canonical": "Baker's 13 Year", "aliases": ["Bakers 13", "Baker's 13"], "tier": "allocated", "producer": "Jim Beam" },
     { "canonical": "Little Book", "aliases": ["Little Book Chapter"], "tier": "allocated", "producer": "Jim Beam" },

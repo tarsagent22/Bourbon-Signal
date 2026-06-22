@@ -23,6 +23,11 @@ async function main() {
   const events = await readJson(path.join(OUT, 'site', 'events.json'));
   const locations = await readJson(path.join(OUT, 'site', 'locations.json'));
   const ncStateReport = await readJson(path.join(OUT, 'states', 'NC.json'));
+  const bible = await readJson(path.join(OUT, 'bourbon-bible.json'));
+
+  const henryMckenna = (bible.records || []).find((record) => record.canonical === 'Henry McKenna 10 Year');
+  assert(henryMckenna, 'Henry McKenna 10 Year bible record is missing');
+  assert((henryMckenna.aliases || []).includes('Henry McKenna Single Barrel'), 'NC Henry McKenna Single Barrel alias is missing from the allocated 10 Year record', henryMckenna);
 
   assert(nc.contractVersion === 'bourbon-signal-site-v0.1', `Unexpected NC contract version: ${nc.contractVersion}`);
   assert(/official\/public online sources only/i.test(String(nc.sourcePolicy || '')), 'NC official/public source policy is missing');
