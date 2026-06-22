@@ -137,8 +137,8 @@ function PricingPageContent() {
                 ))}
               </ul>
               <div className="pricing-actions">
-                <button type="button" onClick={() => startCheckout(tier.plan)} disabled={pendingPlan === tier.plan}>
-                  {pendingPlan === tier.plan ? "Opening checkout…" : tier.cta}
+                <button type="button" onClick={() => startCheckout(tier.plan)} disabled={tier.plan !== null && pendingPlan === tier.plan}>
+                  {tier.plan !== null && pendingPlan === tier.plan ? "Opening checkout…" : tier.cta}
                 </button>
                 {tier.annualPlan ? (
                   <button type="button" className="secondary" onClick={() => startCheckout(tier.annualPlan)} disabled={pendingPlan === tier.annualPlan}>
