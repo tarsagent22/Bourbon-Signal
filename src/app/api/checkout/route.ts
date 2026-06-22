@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, type BillingPlanId } from "@/lib/entitlements";
+import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 
 export const dynamic = "force-dynamic";
+
+const TIER_RANK: Record<MembershipTier, number> = {
+  free: 0,
+  standard: 1,
+  barrel: 2,
+  "bottled-in-bond": 3,
+};
 
 function getStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
@@ -66,6 +73,10 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const currentTier = normalizeMembershipTier(user.publicMetadata?.tier);
+  if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
+    return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
+  }
   const email = user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress;
   const origin = appUrl(req);
   const metadata = {

@@ -19,6 +19,9 @@ export interface TierEntitlements {
   canReadSightings: boolean;
   canSubmitSightings: boolean;
   canReceiveSightingsAlerts: boolean;
+  canReceiveSmsAlerts: boolean;
+  smsDailyLimit: number;
+  smsMonthlyLimit: number;
   hasBetaAccess: boolean;
   founderSpotLimit?: number;
 }
@@ -46,6 +49,9 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReadSightings: false,
     canSubmitSightings: false,
     canReceiveSightingsAlerts: false,
+    canReceiveSmsAlerts: false,
+    smsDailyLimit: 0,
+    smsMonthlyLimit: 0,
     hasBetaAccess: false,
   },
   standard: {
@@ -60,6 +66,9 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReadSightings: true,
     canSubmitSightings: true,
     canReceiveSightingsAlerts: false,
+    canReceiveSmsAlerts: true,
+    smsDailyLimit: 3,
+    smsMonthlyLimit: 30,
     hasBetaAccess: false,
   },
   barrel: {
@@ -74,6 +83,9 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReadSightings: true,
     canSubmitSightings: true,
     canReceiveSightingsAlerts: true,
+    canReceiveSmsAlerts: true,
+    smsDailyLimit: 8,
+    smsMonthlyLimit: 100,
     hasBetaAccess: true,
   },
   "bottled-in-bond": {
@@ -88,6 +100,9 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReadSightings: true,
     canSubmitSightings: true,
     canReceiveSightingsAlerts: true,
+    canReceiveSmsAlerts: true,
+    smsDailyLimit: 10,
+    smsMonthlyLimit: 150,
     hasBetaAccess: true,
     founderSpotLimit: FOUNDER_SPOT_LIMIT,
   },

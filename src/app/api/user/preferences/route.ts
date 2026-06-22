@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
   const existing = buildResponseFromMetadata(user);
 
   let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
-  const notificationPreferences = normalizeNotificationPreferences(
+  let notificationPreferences = normalizeNotificationPreferences(
     payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
   );
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
@@ -257,6 +257,13 @@ export async function POST(req: NextRequest) {
 
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
     return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
+  }
+
+  if (!entitlements.canReceiveSmsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
   }
 
   if (typeof entitlements.alertAreaLimit === "number") {

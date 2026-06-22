@@ -13,18 +13,17 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sightings", href: "/sightings" },
   { label: "Bottle Check", href: "/bottle-check" },
-  { label: "Feedback", href: "/feedback" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/feedback";
+  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/pricing";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, signIn, signUp, signOut } = useAuth();
+  const { isSignedIn, user, signIn, signUp, signOut, memberTier } = useAuth();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -45,6 +44,9 @@ export default function Navigation() {
   }, []);
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
+  const visibleNavLinks = memberTier === "bottled-in-bond"
+    ? navLinks
+    : [...navLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
 
   return (
     <>
@@ -99,7 +101,7 @@ export default function Navigation() {
             gap: "clamp(14px, 1.8vw, 26px)",
           }}
         >
-          {navLinks.map((link) => (
+          {visibleNavLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
@@ -351,7 +353,7 @@ export default function Navigation() {
             >
               <X size={28} />
             </button>
-            {navLinks.map((link) => (
+            {visibleNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
