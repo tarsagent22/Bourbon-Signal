@@ -1,0 +1,92 @@
+# Bourbon Signal Launch Membership Plan
+
+Working branch: `launch/membership-pricing-stripe`
+Target separation window: keep all pricing, Stripe checkout, entitlement gates, and launch-day page/copy changes off `main` until tester phase ends June 30 or Chandler explicitly approves promotion.
+
+## Product call: tackle entitlements first
+
+The first implementation pass should define a single membership/entitlement contract before redesigning pages or wiring more Stripe behavior. Pricing pages are easy to make look good, but they become expensive to unwind if tier names, limits, and gates are scattered through components.
+
+## Launch-day tier model
+
+### Free / anonymous
+- Public homepage and limited live feed preview.
+- Show newest 5 feed items with an upgrade CTA.
+- No full Member Sightings access.
+- Can see enough product value to understand coverage and freshness.
+
+### Free / signed-in
+- Dashboard access with strong upgrade prompts.
+- 3 Bottle Checks, then upgrade prompt.
+- Alert/preferences preview or limited setup, but no broad premium delivery promise unless built and verified.
+- Read-only/limited surfaces should be explicit, not silently broken.
+
+### Standard — `$4.99/mo` or `$39.99/yr`
+- 5 alert areas.
+- 15 tracked bottles.
+- State-only filters.
+- Full Bottle Check.
+- Read and submit Member Sightings.
+
+### Barrel — `$9.99/mo` or `$79.99/yr`
+- Effectively unlimited alert areas and tracked bottles.
+- Advanced filters.
+- Sightings alerts only if implemented and explicitly safe; otherwise phrase as early/beta access, not a promised alert channel.
+- Early/beta access.
+
+### Bottled-in-Bond Founder — `$59.99` one-time lifetime
+- Lifetime access equivalent to Barrel.
+- Founder-style positioning and optional numbered goodies.
+- No priority/fast-alert promise unless the system can actually support it.
+
+## Entitlement contract to implement
+
+Create one shared source of truth, then import it everywhere:
+
+- Canonical tier IDs: `free`, `standard`, `barrel`, `bottled-in-bond`.
+- Billing plan IDs separate from tier IDs: `standard_monthly`, `standard_annual`, `barrel_monthly`, `barrel_annual`, `bib_lifetime`.
+- Feature flags/limits:
+  - `feedPreviewLimit`
+  - `bottleCheckLimit`
+  - `alertAreaLimit`
+  - `trackedBottleLimit`
+  - `canUseStateFilters`
+  - `canUseAdvancedFilters`
+  - `canReadSightings`
+  - `canSubmitSightings`
+  - `canReceiveSightingsAlerts` (default false until built)
+  - `hasBetaAccess`
+
+## Launch branch guardrails
+
+1. Keep `src/lib/site-mode.ts` on `main` in tester mode until launch.
+2. On this branch, add a separate launch mode path rather than mutating scattered tester copy.
+3. Do not commit unrelated engine export churn into launch UI/payment commits unless the branch specifically needs a refreshed preview artifact.
+4. Stripe should use environment variables for price IDs; never hardcode price IDs in UI components.
+5. Webhook metadata should store canonical tier and plan names, not generic `monthly` / `annual` labels.
+6. Downgrades/cancellations must be accounted for before launch, even if the first implementation is conservative.
+7. All gated features should fail closed with clear upgrade copy, not expose half-working premium controls.
+8. Preview PR stays draft until the launch build is reviewed; do not merge to `main` or move production aliases during testing.
+
+## Suggested build order
+
+1. Entitlement model and helper functions.
+2. Update auth/membership reading to normalize old metadata into canonical launch tiers.
+3. Pricing page design and checkout plan selection.
+4. Stripe checkout route plan mapping for all launch plans.
+5. Stripe webhook tier/plan/customer/subscription metadata handling.
+6. Feature gates:
+   - feed preview count
+   - Bottle Check free limit
+   - alert area/watchlist limits
+   - Member Sightings read/submit
+   - advanced filters
+7. Success/account/billing route polish.
+8. Full local verification, draft PR, Vercel preview, and browser/API smoke pass.
+
+## Open decisions for Chandler
+
+- Whether Free signed-in users can create alert preferences but not receive alerts, or whether preferences are completely locked until paid.
+- Whether Barrel launch should expose sightings alerts immediately or keep them as beta/coming-soon.
+- Whether Bottled-in-Bond should be sold indefinitely as lifetime or capped as founder-limited.
+- Exact launch homepage emphasis: premium private-club positioning vs practical “never miss a drop” utility.
