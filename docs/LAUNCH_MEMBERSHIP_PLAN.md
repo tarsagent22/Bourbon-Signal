@@ -1,7 +1,7 @@
 # Bourbon Signal Launch Membership Plan
 
 Working branch: `launch/membership-pricing-stripe`
-Target separation window: keep all pricing, Stripe checkout, entitlement gates, and launch-day page/copy changes off `main` until tester phase ends June 30 or Chandler explicitly approves promotion.
+Target separation window: keep all pricing, Stripe checkout, entitlement gates, and launch-day page/copy changes off `main` until July 1 or Chandler explicitly approves promotion. The testing phase ends June 30; nothing launch/payment-related should go live before July 1.
 
 ## Product call: tackle entitlements first
 
@@ -60,13 +60,15 @@ Create one shared source of truth, then import it everywhere:
 ## Launch branch guardrails
 
 1. Keep `src/lib/site-mode.ts` on `main` in tester mode until launch.
-2. On this branch, add a separate launch mode path rather than mutating scattered tester copy.
-3. Do not commit unrelated engine export churn into launch UI/payment commits unless the branch specifically needs a refreshed preview artifact.
-4. Stripe should use environment variables for price IDs; never hardcode price IDs in UI components.
-5. Webhook metadata should store canonical tier and plan names, not generic `monthly` / `annual` labels.
-6. Downgrades/cancellations must be accounted for before launch, even if the first implementation is conservative.
-7. All gated features should fail closed with clear upgrade copy, not expose half-working premium controls.
-8. Preview PR stays draft until the launch build is reviewed; do not merge to `main` or move production aliases during testing.
+2. Preserve the existing hidden pricing page structure, formatting, and aesthetic. Do not delete the pricing surfaces; update their copy, tier data, and CTAs for the new launch offer.
+3. On this branch, add a separate launch mode path rather than mutating scattered tester copy.
+4. Do not commit unrelated engine export churn into launch UI/payment commits unless the branch specifically needs a refreshed preview artifact.
+5. Stripe should use new account environment variables for price IDs; never hardcode price IDs in UI components.
+6. Webhook metadata should store canonical tier and plan names, not generic `monthly` / `annual` labels.
+7. Downgrades/cancellations must be accounted for before launch, even if the first implementation is conservative.
+8. All gated features should fail closed with clear upgrade copy, not expose half-working premium controls.
+9. Preview PR stays draft until the launch build is reviewed; do not merge to `main` or move production aliases before July 1.
+10. Treat any old Stripe checkout/webhook routes as invalid after the new Stripe account migration; rebuild them from the new account's product/price/webhook details.
 
 ## Suggested build order
 

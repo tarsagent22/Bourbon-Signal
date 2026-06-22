@@ -15,7 +15,6 @@ const isProtectedRoute = createRouteMatcher([
   "/api/alerts(.*)",
   "/api/bottle-check(.*)",
   "/api/bottles(.*)",
-  "/api/checkout(.*)",
   "/api/events(.*)",
   "/api/feedback(.*)",
   "/api/locations(.*)",

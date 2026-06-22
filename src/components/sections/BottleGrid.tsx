@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle } from "@/data/bottles";
 import BottleCard from "@/components/BottleCard";
@@ -58,24 +57,14 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
   const router = useRouter();
-  const { isSignedIn: clerkSignedIn } = useClerkAuth();
 
-  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+  const handleCheckout = (plan: "monthly" | "annual" | "founder") => {
     if (TESTER_MODE) {
       router.push("/dashboard");
       return;
     }
-    if (!clerkSignedIn) {
-      router.push(`/sign-up?redirect_url=/dashboard`);
-      return;
-    }
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+
+    router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
   };
 
   const { selectedStates, hasSelectedStates } = useStatePreferences();
