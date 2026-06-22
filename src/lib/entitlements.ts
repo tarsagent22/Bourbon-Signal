@@ -90,7 +90,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
   },
   "bottled-in-bond": {
     tier: "bottled-in-bond",
-    label: "Bottled-in-Bond Founder",
+    label: "Bottled in Bond",
     feedPreviewLimit: null,
     bottleCheckLimit: null,
     alertAreaLimit: null,
