@@ -38,6 +38,12 @@ if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(al
   fail('/api/drops?state=all should mean all covered states, not a literal ALL state filter.');
 }
 
+const wilkesboroBoard = await getJson('/api/drops?state=NC&store=Wilkesboro%20ABC&limit=20');
+const wilkesboroHenry = (wilkesboroBoard.drops || []).find((drop) => /henry\s+mckenna/i.test(`${drop.bottleName || ''} ${drop.canonicalName || ''} ${drop.rawName || ''}`));
+if (!wilkesboroHenry) {
+  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query and include Henry McKenna when present.');
+}
+
 const defaultFeed = await getJson('/api/drops?limit=50');
 const defaultBadTiers = (defaultFeed.drops || [])
   .map((drop) => rarity(drop))

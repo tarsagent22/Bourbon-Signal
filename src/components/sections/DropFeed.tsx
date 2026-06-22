@@ -222,6 +222,12 @@ function areaFilterValue(state?: string | null, label?: string | null) {
   return stateCode && key ? `${stateCode}::${key}` : "";
 }
 
+function areaQueryFromFilter(value: string) {
+  if (!value || value === "ALL") return "";
+  const [, ...parts] = value.split("::");
+  return cleanAreaLabel(parts.join("::") || value);
+}
+
 function ncBoardLabelFromText(value?: string | null) {
   const raw = String(value || "").trim();
   if (!raw || raw === "__EMPTY" || /warehouse/i.test(raw)) return "";
@@ -1392,6 +1398,8 @@ export default function DropFeed() {
   }, []);
 
   const activeTierParam = useMemo(() => Array.from(activeTiers).sort().join(","), [activeTiers]);
+  const activeAreaParam = useMemo(() => areaQueryFromFilter(countyFilter), [countyFilter]);
+  const activeBottleParam = bottleSearch.trim();
 
   const feedStateParam = urlStateFilter || (hasSelectedStates && preferredStates.length === 1
     ? preferredStates[0]
@@ -1411,6 +1419,8 @@ export default function DropFeed() {
         const query = new URLSearchParams({ limit: "200", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
+        if (activeBottleParam) query.set("bottle", activeBottleParam);
+        if (activeAreaParam) query.set("store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
@@ -1457,7 +1467,7 @@ export default function DropFeed() {
     } catch {
       setError(true);
     }
-  }, [activeTierParam, feedStateParam, isSignedIn]);
+  }, [activeAreaParam, activeBottleParam, activeTierParam, feedStateParam, isSignedIn]);
 
   useEffect(() => {
     setVisibleDropCount(isSignedIn ? 10 : 7);
@@ -1689,6 +1699,8 @@ export default function DropFeed() {
         const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
+        if (activeBottleParam) query.set("bottle", activeBottleParam);
+        if (activeAreaParam) query.set("store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();

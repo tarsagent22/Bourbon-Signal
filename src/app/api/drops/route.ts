@@ -56,7 +56,11 @@ function includesNeedle(value: unknown, needle: string) {
 function locationMatches(value: unknown, needle: string) {
   if (typeof value !== "string") return false;
   const haystack = value.toLowerCase().trim();
-  return haystack.includes(needle) || needle.includes(haystack);
+  const rawNeedle = needle.toLowerCase().trim();
+  const normalizedHaystack = normalizedDropText(value);
+  const normalizedNeedle = normalizedDropText(needle);
+  return haystack.includes(rawNeedle) || rawNeedle.includes(haystack) ||
+    (!!normalizedHaystack && !!normalizedNeedle && (normalizedHaystack.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedHaystack)));
 }
 
 function arrayIncludesNeedle(value: unknown, needle: string) {
@@ -84,7 +88,7 @@ function isBoardLevelDrop(drop: Record<string, unknown>) {
 }
 
 function isBoardQuery(value: string) {
-  return value.toLowerCase().includes("board");
+  return /\b(board|abc)\b/i.test(value);
 }
 
 function engineRunTimestamp(exportGeneratedAt?: unknown) {
