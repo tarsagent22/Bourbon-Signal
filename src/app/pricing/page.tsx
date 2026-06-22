@@ -95,14 +95,17 @@ const paidTiers: PricingTier[] = [
 const freeFeatures = ["5 newest feed items", "3 Bottle Checks after sign-up", "Upgrade anytime for alerts"];
 
 const comparisonRows = [
-  ["Live drop feed", "5 newest", "Full", "Full", "Full"],
-  ["Bottle Check", "3 checks", "Unlimited", "Unlimited", "Unlimited"],
+  ["Live drop feed", "Preview", "✓", "✓", "✓"],
+  ["Bottle Check", "3 checks", "✓", "✓", "✓"],
+  ["Email alerts", "—", "✓", "✓", "✓"],
+  ["SMS alerts", "—", "✓", "✓", "✓"],
   ["Alert areas", "—", "5", "Unlimited", "Unlimited"],
   ["Tracked bottles", "—", "15", "Unlimited", "Unlimited"],
-  ["Email alerts", "—", "Major drops", "Higher limits", "Highest limits"],
-  ["SMS alerts", "—", "Major drops", "Higher limits", "Highest limits"],
-  ["Member Sightings", "—", "Read + submit", "Read + submit + alerts", "Read + submit + alerts"],
-  ["Area filters", "—", "State-level", "Advanced", "Advanced"],
+  ["Member Sightings", "—", "✓", "✓", "✓"],
+  ["Advanced area filters", "—", "—", "✓", "✓"],
+  ["Sightings alerts", "—", "—", "✓", "✓"],
+  ["Beta features", "—", "—", "✓", "✓"],
+  ["Lifetime access", "—", "—", "—", "✓"],
 ];
 
 function PricingPageContent() {
@@ -263,35 +266,21 @@ function PricingPageContent() {
             <p>Compare plans</p>
             <h2>What each membership includes</h2>
           </div>
-          <div className="comparison-table" role="table">
-            <div className="comparison-row comparison-head" role="row">
-              <span>Feature</span><span>Free</span><span>Standard Proof</span><span>Barrel Proof</span><span>Bottled in Bond</span>
-            </div>
-            {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
-              <div className="comparison-row" role="row" key={feature}>
-                <span>{feature}</span><span>{free}</span><span>{standard}</span><span>{barrel}</span><span>{founder}</span>
+          <div className="comparison-scroll" aria-label="Scroll plan comparison horizontally on small screens">
+            <div className="comparison-table" role="table">
+              <div className="comparison-row comparison-head" role="row">
+                <span>Feature</span><span>Free</span><span>Standard Proof</span><span>Barrel Proof</span><span>Bottled in Bond</span>
               </div>
-            ))}
-          </div>
-          <div className="comparison-mobile" aria-label="Mobile membership comparison">
-            {[
-              ["Free", 1],
-              ["Standard Proof", 2],
-              ["Barrel Proof", 3],
-              ["Bottled in Bond", 4],
-            ].map(([planName, columnIndex]) => (
-              <article className="comparison-plan" key={planName}>
-                <h3>{planName}</h3>
-                <dl>
-                  {comparisonRows.map((row) => (
-                    <div key={`${planName}-${row[0]}`}>
-                      <dt>{row[0]}</dt>
-                      <dd>{row[columnIndex as number]}</dd>
-                    </div>
+              {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
+                <div className="comparison-row" role="row" key={feature}>
+                  {[feature, free, standard, barrel, founder].map((value, index) => (
+                    <span key={`${feature}-${index}`} className={value === "✓" ? "included" : value === "—" ? "not-included" : undefined}>
+                      {value}
+                    </span>
                   ))}
-                </dl>
-              </article>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </motion.main>
@@ -348,21 +337,20 @@ const pricingCss = `
 .comparison-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:18px; }
 .comparison-heading p { margin:0; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
 .comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }
-.comparison-table { display:grid; gap:1px; overflow:hidden; border-radius:16px; border:1px solid rgba(245,237,214,.07); }
-.comparison-row { display:grid; grid-template-columns:1.25fr repeat(4, 1fr); background:rgba(255,255,255,.026); }
-.comparison-row span { min-width:0; padding:13px 12px; color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); border-right:1px solid rgba(245,237,214,.055); }
-.comparison-row span:first-child { color:var(--color-cream); }
+.comparison-scroll { position:relative; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:rgba(196,148,58,.55) rgba(255,255,255,.04); }
+.comparison-scroll::after { content:""; position:absolute; top:0; right:0; width:42px; height:100%; pointer-events:none; background:linear-gradient(90deg, transparent, rgba(16,12,9,.84)); opacity:0; }
+.comparison-table { display:grid; min-width:860px; gap:1px; overflow:hidden; border-radius:16px; border:1px solid rgba(245,237,214,.07); background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
+.comparison-row { display:grid; grid-template-columns:minmax(190px, 1.35fr) repeat(4, minmax(132px, 1fr)); background:rgba(255,255,255,.026); }
+.comparison-row span { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; padding:13px 12px; color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); text-align:center; border-right:1px solid rgba(245,237,214,.055); }
+.comparison-row span:first-child { justify-content:flex-start; text-align:left; position:sticky; left:0; z-index:1; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,.98), rgba(26,20,15,.92)); }
 .comparison-row span:last-child { border-right:0; }
+.comparison-row span.included { color:#17110B; font-size:0; }
+.comparison-row span.included::before { content:"✓"; width:24px; height:24px; display:grid; place-items:center; border-radius:999px; color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 0 22px rgba(196,148,58,.18); font:950 14px/1 var(--font-dm-sans); }
+.comparison-row span.not-included { color:rgba(245,237,214,.24); }
 .comparison-head { background:rgba(196,148,58,.09); }
-.comparison-head span { color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
-.comparison-mobile { display:none; }
-.comparison-plan { border:1px solid rgba(245,237,214,.08); border-radius:18px; background:rgba(255,255,255,.028); overflow:hidden; }
-.comparison-plan h3 { margin:0; padding:15px 16px; color:var(--color-accent-amber); background:rgba(196,148,58,.08); font:700 24px/1 var(--font-playfair); letter-spacing:-.02em; }
-.comparison-plan dl { margin:0; display:grid; }
-.comparison-plan div { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:14px; padding:13px 16px; border-top:1px solid rgba(245,237,214,.06); }
-.comparison-plan dt { color:var(--color-cream); font:800 13px/1.35 var(--font-dm-sans); }
-.comparison-plan dd { margin:0; color:var(--color-text-secondary); font:800 13px/1.35 var(--font-dm-sans); text-align:right; }
+.comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
+.comparison-head span:first-child { background:linear-gradient(90deg, rgba(49,35,19,.98), rgba(39,29,18,.94)); color:var(--color-accent-amber); }
 @media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .comparison-wrap { padding:16px; } .comparison-heading { display:grid; align-items:start; } .comparison-table { display:none; } .comparison-mobile { display:grid; gap:12px; } }
-@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-hero, .pricing-error, .comparison-wrap { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
+@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:1; } .comparison-table { min-width:760px; } .comparison-row { grid-template-columns:minmax(150px, .95fr) repeat(4, minmax(118px, 1fr)); } .comparison-row span { min-height:44px; padding:12px 10px; font-size:11px; } }
+@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
