@@ -273,6 +273,26 @@ function PricingPageContent() {
               </div>
             ))}
           </div>
+          <div className="comparison-mobile" aria-label="Mobile membership comparison">
+            {[
+              ["Free", 1],
+              ["Standard Proof", 2],
+              ["Barrel Proof", 3],
+              ["Bottled in Bond", 4],
+            ].map(([planName, columnIndex]) => (
+              <article className="comparison-plan" key={planName}>
+                <h3>{planName}</h3>
+                <dl>
+                  {comparisonRows.map((row) => (
+                    <div key={`${planName}-${row[0]}`}>
+                      <dt>{row[0]}</dt>
+                      <dd>{row[columnIndex as number]}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
         </section>
       </motion.main>
       <Footer />
@@ -335,7 +355,14 @@ const pricingCss = `
 .comparison-row span:last-child { border-right:0; }
 .comparison-head { background:rgba(196,148,58,.09); }
 .comparison-head span { color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
+.comparison-mobile { display:none; }
+.comparison-plan { border:1px solid rgba(245,237,214,.08); border-radius:18px; background:rgba(255,255,255,.028); overflow:hidden; }
+.comparison-plan h3 { margin:0; padding:15px 16px; color:var(--color-accent-amber); background:rgba(196,148,58,.08); font:700 24px/1 var(--font-playfair); letter-spacing:-.02em; }
+.comparison-plan dl { margin:0; display:grid; }
+.comparison-plan div { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:14px; padding:13px 16px; border-top:1px solid rgba(245,237,214,.06); }
+.comparison-plan dt { color:var(--color-cream); font:800 13px/1.35 var(--font-dm-sans); }
+.comparison-plan dd { margin:0; color:var(--color-text-secondary); font:800 13px/1.35 var(--font-dm-sans); text-align:right; }
 @media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .comparison-wrap { overflow-x:auto; padding:16px; } .comparison-heading { display:grid; align-items:start; } .comparison-row { min-width:760px; } }
+@media (max-width: 760px) { .comparison-wrap { padding:16px; } .comparison-heading { display:grid; align-items:start; } .comparison-table { display:none; } .comparison-mobile { display:grid; gap:12px; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-hero, .pricing-error, .comparison-wrap { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
