@@ -18,7 +18,8 @@ The first implementation pass should define a single membership/entitlement cont
 ### Free / signed-in
 - Dashboard access with strong upgrade prompts.
 - 3 Bottle Checks, then upgrade prompt.
-- Alert/preferences preview or limited setup, but no broad premium delivery promise unless built and verified.
+- No alert/preference setup access.
+- During the 3 Bottle Checks, show a conversion CTA such as `Get alerted when this drops in your area.`
 - Read-only/limited surfaces should be explicit, not silently broken.
 
 ### Standard — `$4.99/mo` or `$39.99/yr`
@@ -31,11 +32,12 @@ The first implementation pass should define a single membership/entitlement cont
 ### Barrel — `$9.99/mo` or `$79.99/yr`
 - Effectively unlimited alert areas and tracked bottles.
 - Advanced filters.
-- Sightings alerts only if implemented and explicitly safe; otherwise phrase as early/beta access, not a promised alert channel.
+- Sightings alerts included at launch, with honest copy that participation improves coverage over time.
 - Early/beta access.
 
 ### Bottled-in-Bond Founder — `$59.99` one-time lifetime
-- Lifetime access equivalent to Barrel.
+- Lifetime access to all current and future paid member features.
+- Capped at 100 total spots; after all 100 sell, no more will ever be available.
 - Founder-style positioning and optional numbered goodies.
 - No priority/fast-alert promise unless the system can actually support it.
 
@@ -54,8 +56,28 @@ Create one shared source of truth, then import it everywhere:
   - `canUseAdvancedFilters`
   - `canReadSightings`
   - `canSubmitSightings`
-  - `canReceiveSightingsAlerts` (default false until built)
+  - `canReceiveSightingsAlerts`
   - `hasBetaAccess`
+  - `founderSpotLimit`
+  - `founderSpotsRemaining`
+
+## Stripe launch account values
+
+Saved locally in ignored `.env.local` and not committed:
+
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PRICE_STANDARD_MONTHLY`
+- `STRIPE_PRICE_STANDARD_ANNUAL`
+- `STRIPE_PRICE_BARREL_MONTHLY`
+- `STRIPE_PRICE_BARREL_ANNUAL`
+- `STRIPE_PRICE_BIB_LIFETIME`
+
+Still needed before Stripe webhooks can be rebuilt:
+
+- `STRIPE_WEBHOOK_SECRET`
+
+Do not paste secrets into committed files, PR bodies, screenshots, or chat summaries. Use Vercel environment variables for preview/production when ready.
 
 ## Launch branch guardrails
 
@@ -86,9 +108,14 @@ Create one shared source of truth, then import it everywhere:
 7. Success/account/billing route polish.
 8. Full local verification, draft PR, Vercel preview, and browser/API smoke pass.
 
+## Resolved tier decisions
+
+- Free signed-in users cannot access alert setup/preferences; Bottle Check should be the alert-upsell path.
+- Sightings alerts are included at launch and should be presented honestly as improving with member participation.
+- Bottled-in-Bond Founder is a 100-spot lifetime tier for all current and future paid features.
+- Standard includes both reading and submitting Member Sightings.
+
 ## Open decisions for Chandler
 
-- Whether Free signed-in users can create alert preferences but not receive alerts, or whether preferences are completely locked until paid.
-- Whether Barrel launch should expose sightings alerts immediately or keep them as beta/coming-soon.
-- Whether Bottled-in-Bond should be sold indefinitely as lifetime or capped as founder-limited.
+- Tester deal for the 16 testing-mode users: discount amount, duration/lifetime, whether it applies to Standard/Barrel/BiB, and how private the offer should feel.
 - Exact launch homepage emphasis: premium private-club positioning vs practical “never miss a drop” utility.
