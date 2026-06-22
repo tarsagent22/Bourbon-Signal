@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useStatePreferences, AVAILABLE_STATES } from "@/lib/statePreferences";
+import { publicStateCode } from "@/lib/location-normalization";
 
 export default function StateSelector() {
   const { selectedStates, toggleState } = useStatePreferences();
@@ -90,7 +91,7 @@ export default function StateSelector() {
                 lineHeight: 1,
               }}
             >
-              {state.code}
+              {publicStateCode(state.code)}
               {isComingSoon && (
                 <span
                   style={{

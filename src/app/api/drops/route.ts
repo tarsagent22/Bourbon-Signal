@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
-
-function normalizeStateParam(value: string | null) {
-  const state = value?.trim().toUpperCase();
-  return state && state !== "ALL" ? state : null;
-}
 
 function dropRarityTier(drop: Record<string, unknown>) {
   return String(drop.rarity_tier ?? drop.tier ?? "").toLowerCase();
@@ -55,12 +51,7 @@ function includesNeedle(value: unknown, needle: string) {
 
 function locationMatches(value: unknown, needle: string) {
   if (typeof value !== "string") return false;
-  const haystack = value.toLowerCase().trim();
-  const rawNeedle = needle.toLowerCase().trim();
-  const normalizedHaystack = normalizedDropText(value);
-  const normalizedNeedle = normalizedDropText(needle);
-  return haystack.includes(rawNeedle) || rawNeedle.includes(haystack) ||
-    (!!normalizedHaystack && !!normalizedNeedle && (normalizedHaystack.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedHaystack)));
+  return locationLabelsMatch(value, needle);
 }
 
 function arrayIncludesNeedle(value: unknown, needle: string) {
@@ -102,7 +93,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const state = normalizeStateParam(url.searchParams.get("state"));
+  const state = normalizeStateCodeParam(url.searchParams.get("state"));
   const requestedLimit = Math.max(0, Number(url.searchParams.get("limit") ?? "50") || 50);
   const limit = isSignedIn ? requestedLimit : Math.min(requestedLimit, ANONYMOUS_DROP_PREVIEW_LIMIT);
   const offset = isSignedIn ? Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0) : 0;
@@ -150,7 +141,7 @@ export async function GET(request: Request) {
 
     if (store) {
       const needles = locationNeedles(store);
-      const allowBoardLevelDrops = isBoardQuery(store);
+      const allowBoardLevelDrops = state === "NC" || isBoardQuery(store);
       drops = drops.filter((drop) =>
         (allowBoardLevelDrops || !isBoardLevelDrop(drop as Record<string, unknown>)) &&
         needles.some((needle) => {

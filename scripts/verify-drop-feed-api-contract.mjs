@@ -44,6 +44,17 @@ if (!wilkesboroHenry) {
   fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query and include Henry McKenna when present.');
 }
 
+const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&bottle=Henry%20McKenna&limit=20');
+if (Number(wilkesboroCounty.total || 0) === 0) {
+  fail('/api/drops should not exclude a valuable NC board signal when the same area is expressed as county text instead of ABC board text.');
+}
+
+const marylandAlias = await getJson('/api/drops?state=MD&limit=1');
+const marylandInternal = await getJson('/api/drops?state=MD-MONTGOMERY&limit=1');
+if (Number(marylandAlias.total || 0) !== Number(marylandInternal.total || 0)) {
+  fail('/api/drops?state=MD should resolve to Maryland coverage instead of requiring MD-MONTGOMERY in public URLs.');
+}
+
 const defaultFeed = await getJson('/api/drops?limit=50');
 const defaultBadTiers = (defaultFeed.drops || [])
   .map((drop) => rarity(drop))

@@ -22,6 +22,7 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
 import { useStores, type Store } from "@/hooks/useStores";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
+import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
 
@@ -142,11 +143,6 @@ function normalizeFilterText(value?: string | null) {
 }
 
 const STATE_NAMES: Record<string, string> = Object.fromEntries(AVAILABLE_STATES.map((state) => [state.code, state.name]));
-
-function normalizeStateCodeParam(value?: string | null) {
-  const state = String(value || "").trim().toUpperCase();
-  return state && state !== "ALL" ? state : null;
-}
 
 function cleanAreaLabel(value?: string | null) {
   const raw = String(value || "").trim();
@@ -312,6 +308,12 @@ function dropAreaFilterValues(drop: GroupedDrop) {
   return areaLabelsForDrop(drop)
     .map((label) => areaFilterValue(drop.state, label))
     .filter(Boolean);
+}
+
+function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
+  const wanted = areaQueryFromFilter(filterValue);
+  if (!wanted) return true;
+  return areaLabelsForDrop(drop).some((label) => locationLabelsMatch(label, wanted));
 }
 
 function ncStoreAreaKind(store: Store): "store" | "board" | "store-group" | null {
@@ -628,16 +630,6 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
   return { label: "Area lead", detail: "Broader source signal; use as a lead, not an exact shelf count.", tone: "positive" };
 }
 
-function getConfidenceBadge(drop: GroupedDrop): { label: string; tone: "exact" | "online" | "listing" } | null {
-  if (isStoreLevelSignal(drop)) return { label: "Store-level", tone: "exact" };
-  if (drop.signalCategory === "community" || drop.confidenceTier === "member_sighting") return { label: "Member sighting", tone: "listing" };
-  if (isDistillerySignal(drop)) return { label: getDistilleryCardMeta(drop)?.eyebrow || "Distillery", tone: "listing" };
-  if (drop.state === "NC" && isBoardLevelSignal(drop)) return { label: "Board-level", tone: "online" };
-  if (drop.availabilityScope === "online" || drop.confidenceTier === "online_positive") return { label: "Online", tone: "online" };
-  if (drop.state === "KY" || drop.confidenceTier?.startsWith("official")) return { label: "Official", tone: "listing" };
-  return null;
-}
-
 function getEventDescription(drop: GroupedDrop): string {
   if (drop.signalLabel) {
     if (drop.locations.length > 1) {
@@ -667,7 +659,7 @@ function getEventDescription(drop: GroupedDrop): string {
   }
   switch (drop.event_type) {
     case "nc_board_shipment_snapshot": {
-      const loc = displayLocationLabel(drop.board_name || drop.locations[0]?.label || "", drop.state);
+      const loc = displayLocationLabel(drop.locationName || drop.locations[0]?.label || drop.board_name || "", drop.state);
       return `Board shipment${loc ? ` · ${loc}` : ""}`;
     }
     case "nc_statewide_warehouse_stock": {
@@ -792,7 +784,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
 
   // Build detail fields
   const details: { label: string; value: string }[] = [];
-  const confidenceBadge = getConfidenceBadge(drop);
   if (distilleryMeta) {
     details.push({ label: "What this means", value: distilleryMeta.explanation });
     details.push({ label: "Timing", value: distilleryMeta.statusLine });
@@ -800,46 +791,30 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
     details.push({ label: "Before you go", value: distilleryMeta.caveat });
     details.push({ label: "Last checked", value: distilleryMeta.checkedLabel.replace(/^Checked\s+/i, "") });
   } else {
-    if (drop.signalLabel) {
-      details.push({ label: "Signal", value: drop.signalLabel });
-    }
-    details.push({ label: "Trust note", value: `${signalTrust.label} · ${signalTrust.detail}` });
-    if (confidenceBadge && confidenceBadge.label !== signalTrust.label) {
-      details.push({ label: "Precision", value: confidenceBadge.label });
-    }
     const firstReportedAt = drop.firstSeenAt || drop.eventAt || drop.timestamp;
     const lastReportedAt = drop.lastConfirmedAt || drop.timestamp;
-    if (firstReportedAt) {
-      details.push({ label: "First reported", value: formatRelativeTime(firstReportedAt) });
+    const reportedLabel = lastReportedAt && lastReportedAt !== firstReportedAt
+      ? `${formatRelativeTime(firstReportedAt)} · confirmed ${formatRelativeTime(lastReportedAt)}`
+      : formatRelativeTime(firstReportedAt);
+
+    if (isBoardLevelSignal(drop)) {
+      details.push({ label: "What this means", value: `${signalTrust.label}; exact store can vary.` });
+      if (reportedLabel) details.push({ label: "Reported", value: reportedLabel });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+    } else {
+      details.push({ label: "What this means", value: signalTrust.detail });
+      if (reportedLabel) details.push({ label: "Reported", value: reportedLabel });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+      if (drop.quantity_in_stock && drop.quantity_in_stock > 0 && !drop.locations.some((location) => Boolean(location.quantity))) {
+        details.push({
+          label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "Source-reported",
+          value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}`,
+        });
+      }
     }
-    if (lastReportedAt && lastReportedAt !== firstReportedAt) {
-      details.push({ label: "Last reported", value: formatRelativeTime(lastReportedAt) });
-    }
-    if ((drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot") && drop.board_name) {
-      details.push({ label: "Board", value: drop.board_name });
-    }
-    if (drop.event_type === "nc_board_shipment_snapshot") {
-      details.push({ label: "NC board note", value: "A board received or reported stock. Treat it as an area lead, not exact shelf inventory." });
-    }
-    if (drop.retail_price && drop.retail_price > 0) {
-      details.push({ label: "Retail Price", value: `$${Math.round(drop.retail_price)}` });
-    }
-    if (drop.quantity_shipped && drop.quantity_shipped > 0 && (drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot")) {
-      details.push({ label: drop.event_type === "nc_board_shipment_snapshot" ? "Board received" : "Shipped", value: `${drop.quantity_shipped} unit${drop.quantity_shipped === 1 ? "" : "s"}` });
-    }
+
     if (isUserSighting && userQuantityEstimate) {
       details.push({ label: "Member estimate", value: userQuantityEstimate });
-    } else if (drop.quantity_in_stock && drop.quantity_in_stock > 0 && !drop.locations.some((location) => Boolean(location.quantity))) {
-      details.push({
-        label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : isBoardLevelSignal(drop) ? "Board-reported" : "Source-reported",
-        value: `${drop.quantity_in_stock} unit${drop.quantity_in_stock === 1 ? "" : "s"}`,
-      });
-    }
-    if (drop.locations.length > 0) {
-      details.push({
-        label: drop.event_type === "new_shipment" || drop.event_type === "nc_board_shipment_snapshot" ? "Destinations" : "Locations",
-        value: `${drop.locations.length} ${drop.locations.length === 1 ? "location" : "locations"}`,
-      });
     }
   }
 
@@ -1274,7 +1249,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                       {visibleLocations.map((location: DropLocation) => {
                         const destinationLabel = distilleryMeta ? "Official pickup location" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
                         const sourceLocationLabel = distilleryMeta?.primaryLine || location.label;
-                        const secondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
+                        const rawSecondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
+                        const secondaryLine = rawSecondaryLine && !locationLabelsMatch(rawSecondaryLine, sourceLocationLabel) ? rawSecondaryLine : "";
                         return (
                           <div
                             key={`${location.label}-${location.address ?? ""}`}
@@ -1508,7 +1484,7 @@ export default function DropFeed() {
     if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = normalizeFilterText(bottleSearch);
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
-    if (countyFilter !== "ALL" && !dropAreaFilterValues(drop).includes(countyFilter)) return false;
+    if (countyFilter !== "ALL" && !dropAreaMatchesFilter(drop, countyFilter)) return false;
     if (sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
   };
@@ -1668,7 +1644,7 @@ export default function DropFeed() {
   const stateMenuOptions: DropdownOption[] = [
     { value: "ALL", label: "All states" },
     ...(stateDropdownValue === "MULTI" ? [{ value: "MULTI", label: "Multiple" }] : []),
-    ...feedStateOptions.map((state) => ({ value: state.code, label: `${state.name} (${state.code})` })),
+    ...feedStateOptions.map((state) => ({ value: state.code, label: `${state.name} (${publicStateCode(state.code)})` })),
   ];
   const selectedSingleState = stateDropdownValue !== "ALL" && stateDropdownValue !== "MULTI" ? stateDropdownValue : null;
   const areaDropdownLabel = !selectedSingleState || selectedSingleState === "NC" ? "Areas/Boards" : "Areas";

@@ -14,6 +14,7 @@ import { formatRelativeTime, getDisplayName } from "@/lib/drops";
 import { canonicalBottleKey, candidateBottleKeys, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getRotatingBottleSuggestions } from "@/lib/bottleSuggestions";
 import { AVAILABLE_STATES, ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
+import { publicStateCode } from "@/lib/location-normalization";
 
 type FinderMode = "bottle" | "store";
 type FinderState = string;
@@ -186,7 +187,7 @@ function getDropLocations(drop: DropEvent) {
     const boardLead = drop.board_name;
     locations.push({
       label: boardLead,
-      detail: `Board shipment lead${drop.state ? ` · ${drop.state}` : ""}`,
+      detail: `Board shipment lead${drop.state ? ` · ${publicStateCode(drop.state)}` : ""}`,
       precision: "board",
       confidence: 2,
     });
@@ -266,7 +267,7 @@ function getBottleAmount(drop: DropEvent) {
 
 function getShortLocation(drop: DropEvent, fallback: string) {
   const city = drop.store_city || drop.store_county || drop.board_name;
-  const state = drop.state || drop.state_code;
+  const state = publicStateCode(drop.state || drop.state_code);
   return [city, state].filter(Boolean).join(", ") || fallback;
 }
 
@@ -419,7 +420,7 @@ function summarizeDropLocation(drop: DropEvent) {
   if (drop.board_name) {
     return {
       title: drop.board_name,
-      detail: `Board shipment lead${drop.state || drop.state_code ? ` · ${drop.state || drop.state_code}` : ""}`,
+      detail: `Board shipment lead${drop.state || drop.state_code ? ` · ${publicStateCode(drop.state || drop.state_code)}` : ""}`,
     };
   }
 
@@ -1203,7 +1204,7 @@ export default function MapPageClient() {
                 >
                   {stateOptions.map((state) => (
                     <option key={state.code} value={state.code}>
-                      {state.code === "ALL" ? "All covered states" : `${state.name} (${state.code})`}
+                      {state.code === "ALL" ? "All covered states" : `${state.name} (${publicStateCode(state.code)})`}
                     </option>
                   ))}
                 </select>

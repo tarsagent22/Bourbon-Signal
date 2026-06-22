@@ -4,6 +4,7 @@ import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts"
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord } from "@/lib/notification-preferences";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
+import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 
 export interface AreaPreferences {
   states: string[];
@@ -76,7 +77,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
   return {
-    states: toStrings(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
+    states: toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && supportedStates.has(state))),
     ncBoards: toStrings(source.ncBoards),
     vaCities: toStrings(source.vaCities),
     ohCities: toStrings(source.ohCities),
@@ -103,10 +104,6 @@ function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function normalizeLocationText(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
-}
-
 function stateLabel(state: string) {
   return getActiveEngineStateName(state) || state || "your area";
 }
@@ -117,23 +114,34 @@ export function readAlertCandidates() {
 }
 
 export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
-  const state = asString(candidate.state).toUpperCase();
+  const state = normalizeStateCodeParam(asString(candidate.state));
   if (!state) return false;
   if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
 
-  const location = normalizeLocationText([
+  const locationFields = [
     asString(candidate.locationName),
+    asString(candidate.displayLocation),
     asString(candidate.storeName),
     asString(candidate.storeAddress),
-  ].join(" "));
+    asString(candidate.storeCity),
+    asString(candidate.storeCounty),
+    asString(candidate.boardName),
+    asString(candidate.location_name),
+    asString(candidate.display_location),
+    asString(candidate.store_name),
+    asString(candidate.store_address),
+    asString(candidate.store_city),
+    asString(candidate.store_county),
+    asString(candidate.board_name),
+  ];
 
-  if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.some((board) => location.includes(normalizeLocationText(board)));
-  if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
-  if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
-  if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
-  if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
-  if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((county) => location.includes(normalizeLocationText(county)));
-  if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((store) => location.includes(normalizeLocationText(store)));
+  if (state === "NC" && areaPrefs.ncBoards.length) return locationMatchesAny(locationFields, areaPrefs.ncBoards);
+  if (state === "VA" && areaPrefs.vaCities.length) return locationMatchesAny(locationFields, areaPrefs.vaCities);
+  if (state === "OH" && areaPrefs.ohCities.length) return locationMatchesAny(locationFields, areaPrefs.ohCities);
+  if (state === "IA" && areaPrefs.iaCities.length) return locationMatchesAny(locationFields, areaPrefs.iaCities);
+  if (state === "ID" && areaPrefs.idCities.length) return locationMatchesAny(locationFields, areaPrefs.idCities);
+  if (state === "PA" && areaPrefs.paCounties.length) return locationMatchesAny(locationFields, areaPrefs.paCounties);
+  if (state === "PA" && areaPrefs.paStores.length) return locationMatchesAny([asString(candidate.storeId), asString(candidate.store_id), ...locationFields], areaPrefs.paStores);
   return true;
 }
 
@@ -216,16 +224,27 @@ function candidateStoreLabel(candidate: CandidateAlert) {
 }
 
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
-  const location = normalizeLocationText([
+  const values = [
     asString(candidate.locationName),
+    asString(candidate.displayLocation),
     asString(candidate.storeName),
     asString(candidate.storeAddress),
-  ].join(" "));
-  return options.find((option) => location.includes(normalizeLocationText(option)) || normalizeLocationText(option).includes(location));
+    asString(candidate.storeCity),
+    asString(candidate.storeCounty),
+    asString(candidate.boardName),
+    asString(candidate.location_name),
+    asString(candidate.display_location),
+    asString(candidate.store_name),
+    asString(candidate.store_address),
+    asString(candidate.store_city),
+    asString(candidate.store_county),
+    asString(candidate.board_name),
+  ];
+  return options.find((option) => locationMatchesAny(values, [option]));
 }
 
 function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
-  const state = asString(candidate.state).toUpperCase();
+  const state = normalizeStateCodeParam(asString(candidate.state)) || asString(candidate.state).toUpperCase();
   const locationName = asString(candidate.locationName) || asString(candidate.storeName) || asString(candidate.storeAddress);
   if (state === "NC" && areaPrefs.ncBoards.length) return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
   if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);

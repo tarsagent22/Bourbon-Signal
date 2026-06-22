@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import type { AreaPreferences } from "@/app/api/user/preferences/route";
 import type { DropEvent } from "@/lib/drops";
+import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -61,16 +62,24 @@ export function buildAlertDedupeKey(recipientUserId: string, drop: DropEvent) {
 export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences | null): { matched: boolean; matchedState?: string; matchedArea?: string } {
   if (!prefs) return { matched: false };
 
-  const state = (drop.state || drop.state_code || "").toUpperCase();
+  const state = normalizeStateCodeParam(drop.state || drop.state_code) || "";
   if (!state) return { matched: false };
   if (prefs.states.length > 0 && !prefs.states.includes(state)) {
     return { matched: false };
   }
 
   if (state === "NC") {
-    const board = (drop.board_name || drop.store_county || "").trim();
+    const board = (drop.locationName || drop.display_location || drop.board_name || drop.store_county || "").trim();
     if (prefs.ncBoards.length === 0) return { matched: true, matchedState: state, matchedArea: board || "North Carolina" };
-    const matchedBoard = prefs.ncBoards.find((candidate) => board.toLowerCase().includes(candidate.toLowerCase()));
+    const matchedBoard = prefs.ncBoards.find((candidate) => locationMatchesAny([
+      drop.locationName,
+      drop.display_location,
+      drop.store_name,
+      drop.store_address,
+      drop.store_city,
+      drop.store_county,
+      drop.board_name,
+    ], [candidate]));
     return matchedBoard
       ? { matched: true, matchedState: state, matchedArea: matchedBoard }
       : { matched: false };
@@ -79,10 +88,17 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
   if (state === "VA" || state === "OH" || state === "IA" || state === "ID") {
     const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : state === "IA" ? prefs.iaCities : prefs.idCities;
     const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : state === "IA" ? "Iowa" : "Idaho";
-    const city = (drop.store_city || drop.store_county || drop.board_name || "").trim();
+    const city = (drop.store_city || drop.store_county || drop.display_location || drop.board_name || "").trim();
     if (cityPrefs.length === 0) return { matched: true, matchedState: state, matchedArea: city || fallbackLabel };
-    const normalizedCity = city.toLowerCase();
-    const matchedCity = cityPrefs.find((candidate) => normalizedCity === candidate.toLowerCase() || normalizedCity.includes(candidate.toLowerCase()));
+    const matchedCity = cityPrefs.find((candidate) => locationMatchesAny([
+      drop.locationName,
+      drop.display_location,
+      drop.store_name,
+      drop.store_address,
+      drop.store_city,
+      drop.store_county,
+      drop.board_name,
+    ], [candidate]));
     return matchedCity
       ? { matched: true, matchedState: state, matchedArea: matchedCity }
       : { matched: false };
@@ -101,10 +117,7 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
     }
 
     if (prefs.paCounties.length === 0) return { matched: true, matchedState: state, matchedArea: city || county || "Pennsylvania" };
-    const matchedArea = prefs.paCounties.find((candidate) => {
-      const normalized = candidate.toLowerCase();
-      return normalized === county.toLowerCase() || normalized === city.toLowerCase();
-    });
+    const matchedArea = prefs.paCounties.find((candidate) => locationMatchesAny([city, county, drop.display_location, drop.locationName], [candidate]));
     return matchedArea
       ? { matched: true, matchedState: state, matchedArea }
       : { matched: false };

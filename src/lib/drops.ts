@@ -271,7 +271,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 
   const getLocation = (ev: DropEvent): DropLocation[] => {
     const locations: DropLocation[] = [];
-    const boardName = cleanCountyName(ev.display_location || ev.board_name || "");
+    const boardName = cleanCountyName(ev.locationName || ev.display_location || ev.board_name || "");
     const singleQuantity = ev.quantity_in_stock ?? ev.quantity_shipped ?? ev.quantity;
 
     if (ev.store_details?.length) {
@@ -308,7 +308,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 
     const city = ev.store_city?.trim();
     const address = ev.store_address?.trim();
-    const primaryLabel = ev.display_location || (city
+    const primaryLabel = (ev.event_type === "nc_board_shipment_snapshot" ? ev.locationName || ev.display_location : ev.display_location) || (city
       ? (ev.store_county ? `${city} (${ev.store_county} Co.)` : city)
       : boardName || address);
 
