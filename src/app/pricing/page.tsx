@@ -100,18 +100,26 @@ const paidTiers: PricingTier[] = [
 const freeFeatures = ["Limited Drop Feed access", "3 Bottle Checks", "Upgrade anytime for instant alerts"];
 
 const comparisonRows = [
-  ["Drop Feed access", "Limited", "Full · state filter only", "Full · advanced filters", "Full · advanced filters"],
+  ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Email and SMS alerts", "—", "✓", "✓", "✓"],
   ["Alert areas", "—", "Up to 5", "Unlimited", "Unlimited"],
   ["Tracked bottles", "—", "Up to 15", "Unlimited", "Unlimited"],
   ["Member Sightings", "—", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Collection / recommendations", "—", "—", "✓", "✓"],
-  ["Lifetime current and future features", "—", "—", "—", "✓"],
-  ["Founder badge and number", "—", "—", "—", "✓"],
+  ["My Collection", "—", "—", "✓", "✓"],
+  ["Recommended Bottles", "—", "—", "✓", "✓"],
+  ["Lifetime future features", "—", "—", "—", "✓"],
+  ["Founder badge + number", "—", "—", "—", "✓"],
   ["Numbered Founder’s glass", "—", "—", "—", "✓"],
   ["Founder-only benefits", "—", "—", "—", "✓"],
+];
+
+const ladderSteps = [
+  { label: "Preview", title: "Free", copy: "Look around with limited Drop Feed access and 3 Bottle Checks." },
+  { label: "Core", title: "Standard Proof", copy: "Adds email/SMS alerts, 5 areas, 15 bottles, state-only feed filtering, and Member Sightings." },
+  { label: "Unlimited", title: "Barrel Proof", copy: "Builds on Standard with unlimited alerts, advanced filters, Sightings alerts, and collection tools." },
+  { label: "Lifetime", title: "Bottled in Bond", copy: "Locks in Barrel-level access plus every current and future paid feature for one of 100 founders." },
 ];
 
 function PricingPageContent() {
@@ -212,6 +220,17 @@ function PricingPageContent() {
             </div>
             <p className="member-status">{memberStatus}</p>
           </ScrollReveal>
+        </section>
+
+        <section className="pricing-ladder" aria-label="How Bourbon Signal memberships build on each other">
+          {ladderSteps.map((step, index) => (
+            <article className="ladder-step" key={step.title}>
+              <span className="ladder-number">0{index + 1}</span>
+              <p>{step.label}</p>
+              <h2>{step.title}</h2>
+              <small>{step.copy}</small>
+            </article>
+          ))}
         </section>
 
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
@@ -315,7 +334,16 @@ const pricingCss = `
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
 .billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
 .member-status { width:min(640px, 100%); margin:18px auto 0; color:var(--color-text-tertiary); font:13px/1.55 var(--font-dm-sans); }
-.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
+.pricing-ladder { width:min(1120px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); border:1px solid rgba(245,237,214,.08); border-radius:24px; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.018)); box-shadow:0 24px 80px rgba(0,0,0,.22); }
+.ladder-step { position:relative; min-height:172px; padding:22px 22px 24px; border-right:1px solid rgba(245,237,214,.07); background:radial-gradient(circle at 0% 0%, rgba(196,148,58,.10), transparent 42%); }
+.ladder-step:last-child { border-right:0; background:radial-gradient(circle at 0% 0%, rgba(212,164,74,.20), transparent 46%), linear-gradient(180deg, rgba(196,148,58,.08), rgba(255,255,255,.018)); }
+.ladder-step::after { content:""; position:absolute; top:50%; right:-9px; width:18px; height:18px; z-index:2; transform:translateY(-50%) rotate(45deg); border-top:1px solid rgba(245,237,214,.08); border-right:1px solid rgba(245,237,214,.08); background:rgba(30,22,15,.96); }
+.ladder-step:last-child::after { display:none; }
+.ladder-number { color:rgba(196,148,58,.52); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; }
+.ladder-step p { margin:24px 0 0; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
+.ladder-step h2 { margin:8px 0 0; color:var(--color-cream); font:700 25px/1 var(--font-playfair); letter-spacing:-.026em; }
+.ladder-step small { display:block; margin-top:12px; color:var(--color-text-secondary); font:12px/1.55 var(--font-dm-sans); }
+.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
 .pricing-card.quiet { order:4; }
 .pricing-card.standard { order:2; }
@@ -350,10 +378,10 @@ const pricingCss = `
 .comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }
 .comparison-scroll { position:relative; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:rgba(196,148,58,.55) rgba(255,255,255,.04); }
 .comparison-scroll::after { content:""; position:absolute; top:0; right:0; width:42px; height:100%; pointer-events:none; background:linear-gradient(90deg, transparent, rgba(16,12,9,.84)); opacity:0; }
-.comparison-table { display:grid; min-width:860px; gap:1px; overflow:visible; border-radius:16px; border:1px solid rgba(245,237,214,.07); background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
+.comparison-table { display:grid; min-width:860px; gap:1px; overflow:visible; border-radius:16px; border:1px solid rgba(245,237,214,.07); background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); isolation:isolate; }
 .comparison-row { display:grid; grid-template-columns:minmax(190px, 1.35fr) repeat(4, minmax(132px, 1fr)); background:rgba(255,255,255,.026); }
 .comparison-row span { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; padding:13px 12px; color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); text-align:center; border-right:1px solid rgba(245,237,214,.055); }
-.comparison-row span:first-child { justify-content:flex-start; text-align:left; position:sticky; left:0; z-index:3; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,.99), rgba(26,20,15,.94)); box-shadow:18px 0 30px rgba(10,7,5,.38); }
+.comparison-row span:first-child { justify-content:flex-start; text-align:left; position:sticky; left:0; z-index:3; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,1), rgba(26,20,15,.98)); box-shadow:8px 0 14px rgba(10,7,5,.24); }
 .comparison-row span:last-child { border-right:0; }
 .comparison-row span.included { color:#17110B; font-size:0; }
 .comparison-row span.included::before { content:"✓"; width:24px; height:24px; display:grid; place-items:center; border-radius:999px; color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 0 22px rgba(196,148,58,.18); font:950 14px/1 var(--font-dm-sans); }
@@ -361,7 +389,7 @@ const pricingCss = `
 .comparison-head { background:rgba(196,148,58,.09); }
 .comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
 .comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
-@media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:1; } .comparison-table { min-width:760px; } .comparison-row { grid-template-columns:minmax(150px, .95fr) repeat(4, minmax(118px, 1fr)); } .comparison-row span { min-height:44px; padding:12px 10px; font-size:11px; } }
+@media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } .pricing-ladder { grid-template-columns:repeat(2, minmax(0, 1fr)); } .ladder-step:nth-child(2) { border-right:0; } .ladder-step:nth-child(2)::after { display:none; } .ladder-step:nth-child(-n+2) { border-bottom:1px solid rgba(245,237,214,.07); } }
+@media (max-width: 760px) { .pricing-ladder { width:calc(100% - 28px); grid-template-columns:1fr; border-radius:20px; } .ladder-step { min-height:auto; border-right:0; border-bottom:1px solid rgba(245,237,214,.07); padding:18px 18px 20px; } .ladder-step::after { top:auto; right:auto; left:24px; bottom:-7px; width:14px; height:14px; transform:rotate(135deg); } .ladder-step:last-child { border-bottom:0; } .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:1; width:24px; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { box-shadow:5px 0 8px rgba(10,7,5,.18); } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
