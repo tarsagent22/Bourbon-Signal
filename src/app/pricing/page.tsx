@@ -22,6 +22,7 @@ type PaidPlanId = BillingPlanId;
 type PricingTier = {
   tier: MembershipTier;
   name: string;
+  eyebrow: string;
   monthlyPrice?: string;
   annualPrice?: string;
   oneTimePrice?: string;
@@ -39,11 +40,12 @@ const paidTiers: PricingTier[] = [
   {
     tier: "standard",
     name: "Standard Proof",
+    eyebrow: "Core alerts",
     monthlyPrice: "$4.99",
     annualPrice: "$39.99",
     monthlyPlan: "standard_monthly",
     annualPlan: "standard_annual",
-    description: "Alerts for the bottles and markets you care about.",
+    description: "Essential drop alerts for one state, one region, or a focused bottle list.",
     features: [
       "Email and SMS alerts for major drops",
       "5 alert areas",
@@ -51,17 +53,18 @@ const paidTiers: PricingTier[] = [
       "Full Bottle Check",
       "Read and submit Member Sightings",
     ],
-    footnote: "Best for one-state or one-region tracking.",
+    footnote: "Best for focused tracking without unlimited coverage.",
     accent: "standard",
   },
   {
     tier: "barrel",
     name: "Barrel Proof",
+    eyebrow: "Serious hunters",
     monthlyPrice: "$9.99",
     annualPrice: "$79.99",
     monthlyPlan: "barrel_monthly",
     annualPlan: "barrel_annual",
-    description: "More coverage, more watchlist room, and sharper filters.",
+    description: "Full-market coverage for hunters tracking multiple boards, bottles, and regions.",
     features: [
       "Higher-limit email and SMS alerts",
       "Unlimited alert areas",
@@ -70,15 +73,16 @@ const paidTiers: PricingTier[] = [
       "Member Sightings alerts",
       "Beta features",
     ],
-    footnote: "Best for multi-market hunters.",
+    footnote: "Best recurring plan if you miss the founder pass.",
     accent: "barrel",
   },
   {
     tier: "bottled-in-bond",
     name: "Bottled in Bond",
+    eyebrow: "Limited founder offer",
     oneTimePrice: "$59.99",
     plan: "bib_lifetime",
-    description: "Lifetime paid access for the first 100 founders.",
+    description: "Lifetime access for the first 100 Bourbon Signal members.",
     features: [
       "Only 100 founder spots",
       "All Barrel Proof features",
@@ -93,7 +97,7 @@ const paidTiers: PricingTier[] = [
   },
 ];
 
-const freeFeatures = ["5 newest feed items", "3 Bottle Checks after sign-up", "Upgrade anytime for alerts"];
+const freeFeatures = ["5 newest feed items", "3 Bottle Checks after sign-up", "No custom alerts", "Upgrade anytime"];
 
 const comparisonRows = [
   ["Live drop feed", "Preview", "✓", "✓", "✓"],
@@ -120,11 +124,11 @@ function PricingPageContent() {
   const highestTier = memberTier === "bottled-in-bond";
 
   const memberStatus = useMemo(() => {
-    if (!isSignedIn) return "Claim one of 100 Bottled in Bond founder spots, or choose a regular membership.";
-    if (highestTier) return "You have the highest Bourbon Signal membership.";
-    if (memberTier === "barrel") return "You can still lock in Bottled in Bond lifetime access while spots remain.";
-    if (memberTier === "standard") return "You can upgrade to Barrel Proof or claim Bottled in Bond before founder spots are gone.";
-    return "You are on Free. Bottled in Bond is the limited founder upgrade.";
+    if (!isSignedIn) return "Bottled in Bond is the limited founder pass. Standard and Barrel are regular memberships.";
+    if (highestTier) return "You have the Bottled in Bond founder pass.";
+    if (memberTier === "barrel") return "Barrel Proof is included if you claim Bottled in Bond while spots remain.";
+    if (memberTier === "standard") return "Upgrade to Barrel Proof, or claim Bottled in Bond for lifetime access before founder spots are gone.";
+    return "Free previews the signal. Alerts start with Standard Proof; lifetime access starts with Bottled in Bond.";
   }, [highestTier, isSignedIn, memberTier]);
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
@@ -193,9 +197,9 @@ function PricingPageContent() {
         <section className="pricing-hero">
           <ScrollReveal>
             <p className="pricing-kicker">Bourbon Signal Membership</p>
-            <h1>Founder spots close when the first 100 are gone.</h1>
+            <h1>The first 100 members get Bourbon Signal for life.</h1>
             <p className="pricing-deck">
-              Bottled in Bond is the launch-window lifetime membership. Standard and Barrel Proof stay available, but founder pricing does not.
+              Bottled in Bond is the founder pass: one payment, Barrel Proof included, and every current and future paid feature. Prefer a regular membership? Standard and Barrel stay available below.
             </p>
             <div className="billing-toggle" aria-label="Billing cycle">
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
@@ -212,13 +216,13 @@ function PricingPageContent() {
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
           <article className={`pricing-card quiet ${memberTier === "free" ? "current" : ""}`}>
             {memberTier === "free" ? <div className="current-badge">Current</div> : null}
-            <p className="pricing-eyebrow">Free</p>
+            <p className="pricing-eyebrow">Preview</p>
             <h2>Free</h2>
             <div className="pricing-price-row">
               <strong>$0</strong>
-              <span>limited access</span>
+              <span>preview access</span>
             </div>
-            <p className="pricing-description">Try the feed before setting up alerts.</p>
+            <p className="pricing-description">See what Bourbon Signal tracks before turning on alerts.</p>
             <ul>{freeFeatures.map((feature) => <li key={feature}><span>✓</span>{feature}</li>)}</ul>
             <div className="pricing-actions">
               <button type="button" disabled={memberTier === "free"} onClick={() => router.push("/sign-up?redirect_url=/dashboard")}>
@@ -239,9 +243,9 @@ function PricingPageContent() {
                 className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
-                {tier.featured ? <div className="pricing-ribbon">{tier.tier === "bottled-in-bond" ? "100 founder spots" : "Most flexible"}</div> : null}
+                {tier.featured ? <div className="pricing-ribbon">Founder pass · 100 spots</div> : null}
                 {current ? <div className="current-badge">Current</div> : null}
-                <p className="pricing-eyebrow">{tier.tier === "bottled-in-bond" ? "Founder · limited" : billingCycle}</p>
+                <p className="pricing-eyebrow">{tier.eyebrow}</p>
                 <h2>{tier.name}</h2>
                 <div className="pricing-price-row">
                   <strong>{price.price}</strong>
@@ -264,13 +268,13 @@ function PricingPageContent() {
 
         <section className="comparison-wrap" aria-label="Membership feature comparison">
           <div className="comparison-heading">
-            <p>Compare plans</p>
-            <h2>What each membership includes</h2>
+            <p>Compare access</p>
+            <h2>Founder pass vs. regular memberships</h2>
           </div>
           <div className="comparison-scroll" aria-label="Scroll plan comparison horizontally on small screens">
             <div className="comparison-table" role="table">
               <div className="comparison-row comparison-head" role="row">
-                <span>Feature</span><span>Free</span><span>Standard Proof</span><span>Barrel Proof</span><span>Bottled in Bond</span>
+                <span>Feature</span><span>Free preview</span><span>Standard</span><span>Barrel</span><span>Founder Pass<br />Includes Barrel</span>
               </div>
               {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
                 <div className="comparison-row" role="row" key={feature}>
@@ -315,7 +319,7 @@ const pricingCss = `
 .pricing-card.quiet { order:4; }
 .pricing-card.standard { order:2; }
 .pricing-card.barrel { order:3; }
-.pricing-card.founder { order:1; }
+.pricing-card.founder { order:1; grid-column:span 2; }
 .pricing-card.featured { border-color:rgba(196,148,58,.55); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,.058), rgba(255,255,255,.026)); box-shadow:0 0 70px rgba(196,148,58,.11), 0 28px 100px rgba(0,0,0,.34); }
 .pricing-card.founder { border-color:rgba(212,164,74,.55); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.24), transparent 42%), radial-gradient(circle at 86% 12%, rgba(196,148,58,.15), transparent 36%), linear-gradient(180deg, rgba(255,255,255,.066), rgba(255,255,255,.028)); box-shadow:0 0 90px rgba(196,148,58,.16), 0 30px 110px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06); }
 .pricing-card.founder::after { content:""; position:absolute; inset:1px; pointer-events:none; border-radius:23px; background:linear-gradient(135deg, rgba(212,164,74,.18), transparent 30%, transparent 70%, rgba(212,164,74,.10)); }
@@ -358,5 +362,5 @@ const pricingCss = `
 .comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
 @media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:1; } .comparison-table { min-width:760px; } .comparison-row { grid-template-columns:minmax(150px, .95fr) repeat(4, minmax(118px, 1fr)); } .comparison-row span { min-height:44px; padding:12px 10px; font-size:11px; } }
-@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
+@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
