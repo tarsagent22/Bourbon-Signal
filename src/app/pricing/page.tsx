@@ -72,23 +72,24 @@ const paidTiers: PricingTier[] = [
     ],
     footnote: "Best for multi-market hunters.",
     accent: "barrel",
-    featured: true,
   },
   {
     tier: "bottled-in-bond",
     name: "Bottled in Bond",
     oneTimePrice: "$59.99",
     plan: "bib_lifetime",
-    description: "Lifetime paid access. Limited to 100 founder spots.",
+    description: "Lifetime paid access for the first 100 founders.",
     features: [
+      "Only 100 founder spots",
       "All Barrel Proof features",
-      "Highest SMS alert limits",
       "All current and future paid features",
+      "Highest SMS alert limits",
       "Founder status",
       "One-time payment",
     ],
-    footnote: "The best value if you want Bourbon Signal long term.",
+    footnote: "Pay once before the founder allocation is gone.",
     accent: "founder",
+    featured: true,
   },
 ];
 
@@ -119,11 +120,11 @@ function PricingPageContent() {
   const highestTier = memberTier === "bottled-in-bond";
 
   const memberStatus = useMemo(() => {
-    if (!isSignedIn) return "Create an account to choose a membership.";
+    if (!isSignedIn) return "Claim one of 100 Bottled in Bond founder spots, or choose a regular membership.";
     if (highestTier) return "You have the highest Bourbon Signal membership.";
-    if (memberTier === "barrel") return "You can still claim Bottled in Bond while spots remain.";
-    if (memberTier === "standard") return "You can upgrade to Barrel Proof or Bottled in Bond.";
-    return "You are on Free. Alerts start with Standard Proof.";
+    if (memberTier === "barrel") return "You can still lock in Bottled in Bond lifetime access while spots remain.";
+    if (memberTier === "standard") return "You can upgrade to Barrel Proof or claim Bottled in Bond before founder spots are gone.";
+    return "You are on Free. Bottled in Bond is the limited founder upgrade.";
   }, [highestTier, isSignedIn, memberTier]);
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
@@ -174,7 +175,7 @@ function PricingPageContent() {
     if (tierRank[tier.tier] < currentTierRank) return "Included";
     if (tier.tier === memberTier) return "Current plan";
     if (plan !== null && pendingPlan === plan) return "Opening checkout…";
-    if (tier.tier === "bottled-in-bond") return "Claim Bottled in Bond";
+    if (tier.tier === "bottled-in-bond") return "Claim founder spot";
     return `Choose ${tier.name}`;
   }
 
@@ -192,9 +193,9 @@ function PricingPageContent() {
         <section className="pricing-hero">
           <ScrollReveal>
             <p className="pricing-kicker">Bourbon Signal Membership</p>
-            <h1>Drop alerts without refreshing every board.</h1>
+            <h1>Founder spots close when the first 100 are gone.</h1>
             <p className="pricing-deck">
-              Choose the amount of coverage you want. Every paid tier includes email and SMS alerts.
+              Bottled in Bond is the launch-window lifetime membership. Standard and Barrel Proof stay available, but founder pricing does not.
             </p>
             <div className="billing-toggle" aria-label="Billing cycle">
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
@@ -238,9 +239,9 @@ function PricingPageContent() {
                 className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
-                {tier.featured ? <div className="pricing-ribbon">Most flexible</div> : null}
+                {tier.featured ? <div className="pricing-ribbon">{tier.tier === "bottled-in-bond" ? "100 founder spots" : "Most flexible"}</div> : null}
                 {current ? <div className="current-badge">Current</div> : null}
-                <p className="pricing-eyebrow">{tier.tier === "bottled-in-bond" ? "Founder" : billingCycle}</p>
+                <p className="pricing-eyebrow">{tier.tier === "bottled-in-bond" ? "Founder · limited" : billingCycle}</p>
                 <h2>{tier.name}</h2>
                 <div className="pricing-price-row">
                   <strong>{price.price}</strong>
@@ -311,8 +312,13 @@ const pricingCss = `
 .member-status { width:min(640px, 100%); margin:18px auto 0; color:var(--color-text-tertiary); font:13px/1.55 var(--font-dm-sans); }
 .pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
+.pricing-card.quiet { order:4; }
+.pricing-card.standard { order:2; }
+.pricing-card.barrel { order:3; }
+.pricing-card.founder { order:1; }
 .pricing-card.featured { border-color:rgba(196,148,58,.55); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,.058), rgba(255,255,255,.026)); box-shadow:0 0 70px rgba(196,148,58,.11), 0 28px 100px rgba(0,0,0,.34); }
-.pricing-card.founder { border-color:rgba(212,164,74,.32); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.16), transparent 42%), linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.024)); }
+.pricing-card.founder { border-color:rgba(212,164,74,.55); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.24), transparent 42%), radial-gradient(circle at 86% 12%, rgba(196,148,58,.15), transparent 36%), linear-gradient(180deg, rgba(255,255,255,.066), rgba(255,255,255,.028)); box-shadow:0 0 90px rgba(196,148,58,.16), 0 30px 110px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06); }
+.pricing-card.founder::after { content:""; position:absolute; inset:1px; pointer-events:none; border-radius:23px; background:linear-gradient(135deg, rgba(212,164,74,.18), transparent 30%, transparent 70%, rgba(212,164,74,.10)); }
 .pricing-card.current { border-color:rgba(136,211,148,.38); }
 .pricing-ribbon { margin:-24px -24px 20px; padding:9px 12px; text-align:center; color:#130F0A; background:linear-gradient(135deg, #C4943A, #D4A44A); font:900 11px/1 var(--font-dm-sans); letter-spacing:.12em; text-transform:uppercase; }
 .current-badge { position:absolute; top:14px; right:14px; border:1px solid rgba(136,211,148,.28); border-radius:999px; padding:6px 8px; color:#c9f5d0; background:rgba(136,211,148,.08); font:900 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
