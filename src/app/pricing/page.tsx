@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { LiquidToggle } from "@/components/LiquidToggle";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useAuth } from "@/lib/auth";
 import type { BillingPlanId, MembershipTier } from "@/lib/entitlements";
@@ -192,12 +191,25 @@ function PricingPageContent() {
           <ScrollReveal>
             <p className="pricing-kicker">Membership Pricing</p>
             <h1>Pick your proof.</h1>
-            <div className="billing-toggle" aria-label="Billing cycle">
-              <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
+            <div className="billing-toggle" data-cycle={billingCycle} aria-label="Billing cycle">
+              <div className="billing-toggle-liquid" aria-hidden="true">
+                <span className="billing-toggle-pool billing-toggle-pool-main" />
+                <span className="billing-toggle-pool billing-toggle-pool-trail" />
+              </div>
+              <button
+                type="button"
+                data-active={billingCycle === "monthly"}
+                aria-pressed={billingCycle === "monthly"}
+                onClick={() => setBillingCycle("monthly")}
+              >
                 Monthly
               </button>
-              <LiquidToggle checked={billingCycle === "annual"} onCheckedChange={(checked) => setBillingCycle(checked ? "annual" : "monthly")} />
-              <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
+              <button
+                type="button"
+                data-active={billingCycle === "annual"}
+                aria-pressed={billingCycle === "annual"}
+                onClick={() => setBillingCycle("annual")}
+              >
                 Annual <span>Save 33%</span>
               </button>
             </div>
@@ -298,11 +310,21 @@ const pricingCss = `
 .pricing-hero { width:min(980px, calc(100% - 40px)); margin:0 auto; text-align:center; }
 .pricing-kicker { margin:0; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
 .pricing-hero h1 { max-width:860px; margin:16px auto 0; color:var(--color-cream); font:700 clamp(44px, 7vw, 80px)/.93 var(--font-playfair); letter-spacing:-.052em; }
-.billing-toggle { width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:8px 10px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
-.billing-toggle button { border:0; border-radius:999px; padding:10px 8px; color:var(--color-text-tertiary); background:transparent; font:900 12px/1 var(--font-dm-sans); cursor:pointer; transition:color .22s ease, transform .18s ease; }
-.billing-toggle button[data-active="true"] { color:var(--color-cream); }
+.billing-toggle { position:relative; width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:center; gap:0; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:8px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 18px 46px rgba(0,0,0,.18); overflow:hidden; isolation:isolate; }
+.billing-toggle::before { content:""; position:absolute; inset:1px; border-radius:inherit; background:linear-gradient(180deg, rgba(255,255,255,.052), transparent 58%); pointer-events:none; z-index:0; }
+.billing-toggle-liquid { position:absolute; top:8px; bottom:8px; left:8px; width:calc((100% - 16px) / 2); z-index:1; filter:url(#bourbon-goo); transform:translate3d(0,0,0); transition:transform .58s cubic-bezier(.22,1,.36,1); pointer-events:none; }
+.billing-toggle[data-cycle="annual"] .billing-toggle-liquid { transform:translate3d(100%,0,0); }
+.billing-toggle-pool { position:absolute; inset:0; border-radius:999px; background:linear-gradient(135deg, rgba(196,148,58,.98), rgba(239,192,80,.92)); box-shadow:0 0 28px rgba(212,146,11,.25), inset 0 1px 0 rgba(255,255,255,.22); }
+.billing-toggle-pool-trail { width:44%; opacity:.92; transform:translateX(0) scaleX(.82); transform-origin:center; transition:transform .58s cubic-bezier(.22,1,.36,1), opacity .36s ease; }
+.billing-toggle[data-cycle="annual"] .billing-toggle-pool-trail { transform:translateX(-28%) scaleX(.72); }
+.billing-toggle[data-cycle="monthly"] .billing-toggle-pool-trail { transform:translateX(156%) scaleX(.72); }
+.billing-toggle button { position:relative; z-index:2; min-width:0; border:0; border-radius:999px; padding:11px 10px; color:var(--color-text-tertiary); background:transparent; font:900 13px/1 var(--font-dm-sans); cursor:pointer; transition:color .22s ease, transform .18s ease, text-shadow .22s ease; }
+.billing-toggle button[data-active="true"] { color:#17110B; text-shadow:0 1px 0 rgba(255,255,255,.20); }
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); color:var(--color-cream); }
-.billing-toggle span { margin-left:5px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
+.billing-toggle button[data-active="true"]:hover, .billing-toggle button[data-active="true"]:focus-visible { color:#17110B; }
+.billing-toggle button:focus-visible { box-shadow:0 0 0 2px rgba(245,237,214,.48); }
+.billing-toggle button span { margin-left:5px; color:rgba(23,17,11,.72); font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
+.billing-toggle button:not([data-active="true"]) span { color:var(--color-accent-amber); }
 .pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
 .pricing-card.quiet { order:4; }
@@ -353,3 +375,5 @@ const pricingCss = `
 @media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
+
+
