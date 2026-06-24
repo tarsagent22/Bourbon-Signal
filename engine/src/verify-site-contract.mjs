@@ -100,6 +100,23 @@ if ((drops.drops || []).length !== stats.dropCount) {
 for (const expected of ['AL', 'IL', 'NC', 'PA', 'TN', 'VA']) {
   if (!dropStates.has(expected)) fail(`drops.json should still include customer-facing state ${expected}.`);
 }
+const falseFreshInventoryDrops = (drops.drops || []).filter((drop) => {
+  const type = String(drop.type || drop.event_type || '').toLowerCase();
+  const firstSeenAt = drop.firstSeenAt || drop.first_seen_at;
+  const lastConfirmedAt = drop.lastConfirmedAt || drop.last_confirmed_at;
+  const displayAt = drop.displayAt || drop.timestamp;
+  const timestampBasis = drop.timestampBasis || drop.timestamp_basis;
+  if (!type.includes('inventory')) return false;
+  if (!firstSeenAt || !lastConfirmedAt || firstSeenAt === lastConfirmedAt) return false;
+  return timestampBasis === 'last_confirmed_at' || displayAt === lastConfirmedAt;
+});
+if (falseFreshInventoryDrops.length) {
+  const sample = falseFreshInventoryDrops
+    .slice(0, 5)
+    .map((drop) => `${drop.state || '??'} ${drop.bottleName || drop.rawName || drop.id}: first ${drop.firstSeenAt || drop.first_seen_at}, displayed ${drop.displayAt || drop.timestamp}`)
+    .join('; ');
+  fail(`repeated inventory drops must stay anchored to firstSeenAt/source event time, not re-report as lastConfirmedAt; saw ${falseFreshInventoryDrops.length}. Sample: ${sample}`);
+}
 
 if (failures.length) {
   console.error('Site contract verification failed:');
