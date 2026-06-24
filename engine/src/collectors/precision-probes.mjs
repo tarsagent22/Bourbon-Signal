@@ -151,14 +151,16 @@ const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CIT
 const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 48);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
-const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany/i;
+const IN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PAGE_DELAY_MS || 1_250);
+const IN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_DELAY_MS || 2_500);
+const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany|jasper/i;
 const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
   'avon', 'plainfield', 'noblesville', 'speedway', 'westfield', 'greenfield',
   'south bend', 'mishawaka', 'elkhart', 'granger', 'goshen', 'roseland', 'huntington',
   'lafayette', 'west lafayette', 'evansville', 'muncie', 'anderson', 'kokomo', 'columbus', 'jeffersonville', 'new albany',
   'indianapolis', 'carmel', 'fishers', 'greenwood', 'brownsburg', 'mccordsville',
   'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute',
-  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar'
+  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar', 'jasper'
 ];
 const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
 const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
@@ -267,6 +269,24 @@ const IN_CITYHIVE_SOURCES = [
     baseUrl: 'https://shop.corkliquor.com',
     urls: [
       'https://shop.corkliquor.com/spirits/bourbon'
+    ]
+  },
+  {
+    id: '21st-amendment',
+    chainName: '21st Amendment Wine & Spirits',
+    sourceLabel: '21st Amendment Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://21stamendment.com',
+    urls: [
+      'https://21stamendment.com/shop/?subtype=Bourbon'
+    ]
+  },
+  {
+    id: 'holiday-liquors-jasper',
+    chainName: 'Holiday Liquors Jasper',
+    sourceLabel: 'Holiday Liquors Jasper CityHive store inventory',
+    baseUrl: 'https://holidayl7c37e10a.sites.cityhive.app',
+    urls: [
+      'https://holidayl7c37e10a.sites.cityhive.app/shop/?subtype=Bourbon'
     ]
   }
 ];
@@ -1725,11 +1745,14 @@ async function readIndianaCityHiveCache() {
 }
 
 async function writeIndianaCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = indianaCityHivePositiveInventoryChains(signals);
   const previous = await readIndianaCityHiveCache();
+  const previousPositiveCount = (previous?.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
   const previousChains = indianaCityHivePositiveInventoryChains(previous?.signals || []);
-  if (previousChains.size >= 3 && nextChains.size < previousChains.size) {
+  const nextCoverageFloor = Math.max(50, Math.floor(previousPositiveCount * 0.85));
+  if (previousChains.size >= 3 && (nextChains.size < previousChains.size || nextPositiveCount < nextCoverageFloor)) {
     return;
   }
   const payload = {
@@ -1739,7 +1762,7 @@ async function writeIndianaCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks
@@ -1993,9 +2016,10 @@ async function collectIndianaCityHive(config, bible, observedAt) {
             }
           }
         }
-        await sleep(450);
+        await sleep(IN_CITYHIVE_PAGE_DELAY_MS);
       }
     }
+    await sleep(IN_CITYHIVE_SOURCE_DELAY_MS);
   }
 
   if (signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
