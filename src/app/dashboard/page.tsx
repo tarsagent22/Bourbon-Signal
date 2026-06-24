@@ -859,7 +859,7 @@ export default function DashboardPage() {
         const scoreDelta = b.score - a.score;
         if (Math.abs(scoreDelta) > 0.75) return scoreDelta;
         if (b.recentSightings.length !== a.recentSightings.length) return b.recentSightings.length - a.recentSightings.length;
-        const seedScore = (key: string) => Array.from(key).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 3), recommendationRefreshNonce * 997);
+        const seedScore = (key: string) => Array.from(key).reduce((total, char, index) => total + ((char.charCodeAt(0) + recommendationRefreshNonce * 31) * (index + 3 + recommendationRefreshNonce)) % 997, 0);
         return seedScore(b.option.canonicalKey) - seedScore(a.option.canonicalKey) || a.option.label.localeCompare(b.option.label);
       })
       .slice(0, 12)
@@ -1069,29 +1069,26 @@ export default function DashboardPage() {
       setCollectionError("Loading your saved preferences. Try again in a second.");
       return false;
     }
-    setSavingCollection(true);
-    setSavedCollection(false);
+    setSavingCollection(false);
+    setSavedCollection(true);
     setCollectionError(null);
-    try {
-      await savePreferences({
-        areaPreferences: localPrefs,
-        notificationPreferences: notificationPrefs,
-        alertMode,
-        bottleAlertPreferences: {
-          bottleNames: watchedBottleOptions.map((option) => option.label),
-          bottleKeys: Array.from(selectedCanonicalKeys),
-        },
-        collectionPreferences: { bottles: entries },
-      });
-      setSavedCollection(true);
-      setTimeout(() => setSavedCollection(false), 2200);
-      return true;
-    } catch (error) {
-      setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
-      return false;
-    } finally {
-      setSavingCollection(false);
-    }
+    const nextPrefs = {
+      areaPreferences: localPrefs,
+      notificationPreferences: notificationPrefs,
+      alertMode,
+      bottleAlertPreferences: {
+        bottleNames: watchedBottleOptions.map((option) => option.label),
+        bottleKeys: Array.from(selectedCanonicalKeys),
+      },
+      collectionPreferences: { bottles: entries },
+    };
+    void savePreferences(nextPrefs)
+      .catch((error) => {
+        setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
+      })
+      .finally(() => setSavingCollection(false));
+    setTimeout(() => setSavedCollection(false), 1600);
+    return true;
   };
 
   const stageCollectionBottle = (option: BottleOption) => {
@@ -1168,20 +1165,18 @@ export default function DashboardPage() {
     addBottleOption(option);
     setAlertMode("specific_bottles");
     setCollectionError(null);
-    try {
-      await savePreferences({
-        areaPreferences: localPrefs,
-        notificationPreferences: notificationPrefs,
-        alertMode: "specific_bottles",
-        bottleAlertPreferences: {
-          bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
-          bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
-        },
-        collectionPreferences: prefs.collectionPreferences,
-      });
-    } catch (error) {
+    void savePreferences({
+      areaPreferences: localPrefs,
+      notificationPreferences: notificationPrefs,
+      alertMode: "specific_bottles",
+      bottleAlertPreferences: {
+        bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
+        bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+      },
+      collectionPreferences: prefs.collectionPreferences,
+    }).catch((error) => {
       setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
-    }
+    });
   };
 
   const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own" | "saved") => {
@@ -1190,27 +1185,29 @@ export default function DashboardPage() {
       return;
     }
     const stateKey = `${insight.option.canonicalKey}:${signal}`;
-    setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saving" }));
+    setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saved" }));
     setCollectionError(null);
-    try {
-      const response = await fetch("/api/bourbon-dna/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bottleId: insight.option.bottle.canonical_id || insight.option.bottle.id,
-          bottleName: insight.option.label,
-          signal,
-          matchedTags: insight.matchedFlavors,
-          score: insight.score,
-        }),
+    void fetch("/api/bourbon-dna/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bottleId: insight.option.bottle.canonical_id || insight.option.bottle.id,
+        bottleName: insight.option.label,
+        signal,
+        matchedTags: insight.matchedFlavors,
+        score: insight.score,
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(typeof payload.error === "string" ? payload.error : "Could not save DNA feedback.");
+        }
+      })
+      .catch((error) => {
+        setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "error" }));
+        setCollectionError(error instanceof Error ? error.message : "Could not save DNA feedback.");
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Could not save DNA feedback.");
-      setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saved" }));
-    } catch (error) {
-      setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "error" }));
-      setCollectionError(error instanceof Error ? error.message : "Could not save DNA feedback.");
-    }
   };
 
   const toggleState = (state: string) => {
@@ -1345,26 +1342,29 @@ export default function DashboardPage() {
       signIn();
       return;
     }
-    setSavingLocations(true);
-    try {
-      const nextPrefs: UserAlertPreferences = {
-        areaPreferences: localPrefs,
-        notificationPreferences: notificationPrefs,
-        alertMode,
-        bottleAlertPreferences: {
-          bottleNames: watchedBottleOptions.map((option) => option.label),
-          bottleKeys: Array.from(selectedCanonicalKeys),
-        },
-        collectionPreferences: prefs.collectionPreferences,
-      };
-      await savePreferences(nextPrefs);
-      setSavedLocations(true);
-      setSavedNotifications(true);
-      setTimeout(() => setSavedLocations(false), 2200);
-      setTimeout(() => setSavedNotifications(false), 2200);
-    } finally {
-      setSavingLocations(false);
-    }
+    setSavingLocations(false);
+    setSavedLocations(true);
+    setSavedNotifications(true);
+    setCollectionError(null);
+    const nextPrefs: UserAlertPreferences = {
+      areaPreferences: localPrefs,
+      notificationPreferences: notificationPrefs,
+      alertMode,
+      bottleAlertPreferences: {
+        bottleNames: watchedBottleOptions.map((option) => option.label),
+        bottleKeys: Array.from(selectedCanonicalKeys),
+      },
+      collectionPreferences: prefs.collectionPreferences,
+    };
+    void savePreferences(nextPrefs)
+      .catch((error) => {
+        setCollectionError(error instanceof Error ? error.message : "Could not save alert setup yet.");
+        setSavedLocations(false);
+        setSavedNotifications(false);
+      })
+      .finally(() => setSavingLocations(false));
+    setTimeout(() => setSavedLocations(false), 1600);
+    setTimeout(() => setSavedNotifications(false), 1600);
   };
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
@@ -1375,16 +1375,11 @@ export default function DashboardPage() {
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
-    const schedule = typeof window !== "undefined" && "requestIdleCallback" in window
-      ? (callback: () => void) => window.requestIdleCallback(callback, { timeout: 450 })
-      : (callback: () => void) => window.setTimeout(callback, 0);
-    schedule(() => {
-      setPreparedDashboardSections((current) => {
-        if (current.has(section)) return current;
-        const next = new Set(current);
-        next.add(section);
-        return next;
-      });
+    setPreparedDashboardSections((current) => {
+      if (current.has(section)) return current;
+      const next = new Set(current);
+      next.add(section);
+      return next;
     });
   };
 
