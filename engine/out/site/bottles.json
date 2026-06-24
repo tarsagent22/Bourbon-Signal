@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-24T23:03:24.635Z",
+  "generatedAt": "2026-06-24T23:22:14.731Z",
   "count": 150,
   "bottles": [
     {
@@ -88,7 +88,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T22:58:07.358Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_2b5d9987117596c4",
@@ -143,7 +143,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:00:04.598Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -170,7 +170,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:02:11.469Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_25051cdc130afc7e",
@@ -227,7 +227,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:02:32.342Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -253,7 +253,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:00:04.598Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -1135,7 +1135,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-24T23:02:32.342Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1218,10 +1218,10 @@
       ],
       "tier": "allocated",
       "producer": "Barton",
-      "signalCount": 35,
-      "stateCount": 5,
-      "inventorySignalCount": 10,
-      "watchSignalCount": 35,
+      "signalCount": 38,
+      "stateCount": 6,
+      "inventorySignalCount": 13,
+      "watchSignalCount": 38,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1229,9 +1229,10 @@
         "IA",
         "IN",
         "NC",
+        "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:00:04.598Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1258,6 +1259,34 @@
         "NC"
       ],
       "latestObservedAt": "2026-06-24T23:01:19.536Z"
+    },
+    {
+      "id": "bb_257576efcd142ce7",
+      "canonical_id": "bb_257576efcd142ce7",
+      "canonical_name": "1792 Sweet Wheat",
+      "canonical_key": "1792 sweet wheat",
+      "name": "1792 Sweet Wheat",
+      "aliases": [
+        "1792 SW",
+        "1792 Sweet Wheat",
+        "Sweet Wheat"
+      ],
+      "tier": "allocated",
+      "producer": "Barton",
+      "signalCount": 10,
+      "stateCount": 5,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 10,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "AL",
+        "IA",
+        "NC",
+        "SC",
+        "TN"
+      ],
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_152c90f782b801f5",
@@ -1291,7 +1320,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-24T23:00:04.598Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_7991fa37cd881dba",
@@ -1321,7 +1350,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:02:01.467Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1347,33 +1376,6 @@
         "AL",
         "NC",
         "PA",
-        "TN"
-      ],
-      "latestObservedAt": "2026-06-24T23:00:04.598Z"
-    },
-    {
-      "id": "bb_257576efcd142ce7",
-      "canonical_id": "bb_257576efcd142ce7",
-      "canonical_name": "1792 Sweet Wheat",
-      "canonical_key": "1792 sweet wheat",
-      "name": "1792 Sweet Wheat",
-      "aliases": [
-        "1792 SW",
-        "1792 Sweet Wheat",
-        "Sweet Wheat"
-      ],
-      "tier": "allocated",
-      "producer": "Barton",
-      "signalCount": 7,
-      "stateCount": 4,
-      "inventorySignalCount": 1,
-      "watchSignalCount": 7,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "AL",
-        "IA",
-        "NC",
         "TN"
       ],
       "latestObservedAt": "2026-06-24T23:00:04.598Z"
@@ -1717,7 +1719,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:02:32.342Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1917,10 +1919,10 @@
       ],
       "tier": "limited",
       "producer": "Diageo",
-      "signalCount": 18,
+      "signalCount": 22,
       "stateCount": 5,
-      "inventorySignalCount": 15,
-      "watchSignalCount": 16,
+      "inventorySignalCount": 19,
+      "watchSignalCount": 20,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1930,7 +1932,36 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:01:45.713Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
+    },
+    {
+      "id": "bb_a3b1732edd18ac89",
+      "canonical_id": "bb_a3b1732edd18ac89",
+      "canonical_name": "Basil Hayden 10 Year",
+      "canonical_key": "basil hayden 10 year",
+      "name": "Basil Hayden 10 Year",
+      "aliases": [
+        "BASIL HAYDEN 10YR",
+        "Basil Hayden 10",
+        "Basil Hayden 10 Year",
+        "Basil Hayden's 10 Year"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "signalCount": 17,
+      "stateCount": 5,
+      "inventorySignalCount": 13,
+      "watchSignalCount": 14,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "MD-MONTGOMERY",
+        "SC",
+        "TN"
+      ],
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_24c7e1719e8ded79",
@@ -1955,35 +1986,6 @@
       "states": [
         "IN",
         "MD-MONTGOMERY",
-        "TN"
-      ],
-      "latestObservedAt": "2026-06-24T23:01:45.713Z"
-    },
-    {
-      "id": "bb_a3b1732edd18ac89",
-      "canonical_id": "bb_a3b1732edd18ac89",
-      "canonical_name": "Basil Hayden 10 Year",
-      "canonical_key": "basil hayden 10 year",
-      "name": "Basil Hayden 10 Year",
-      "aliases": [
-        "BASIL HAYDEN 10YR",
-        "Basil Hayden 10",
-        "Basil Hayden 10 Year",
-        "Basil Hayden's 10 Year"
-      ],
-      "tier": "limited",
-      "producer": "Jim Beam",
-      "signalCount": 13,
-      "stateCount": 5,
-      "inventorySignalCount": 9,
-      "watchSignalCount": 10,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "IN",
-        "MD-MONTGOMERY",
-        "SC",
         "TN"
       ],
       "latestObservedAt": "2026-06-24T23:01:45.713Z"
@@ -2097,7 +2099,7 @@
         "MD-MONTGOMERY",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:01:45.713Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_ea538792278ccca7",
@@ -2113,18 +2115,19 @@
       ],
       "tier": "limited",
       "producer": "Bardstown Bourbon Company",
-      "signalCount": 6,
-      "stateCount": 3,
-      "inventorySignalCount": 5,
-      "watchSignalCount": 6,
+      "signalCount": 7,
+      "stateCount": 4,
+      "inventorySignalCount": 6,
+      "watchSignalCount": 7,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
         "IN",
         "NC",
+        "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:00:02.879Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_b029b9fb7d0f5783",
@@ -2151,7 +2154,32 @@
         "MD-MONTGOMERY",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:01:45.713Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
+    },
+    {
+      "id": "bb_21f337f08eaf6bdd",
+      "canonical_id": "bb_21f337f08eaf6bdd",
+      "canonical_name": "Barrell Bourbon New Year",
+      "canonical_key": "barrell new year",
+      "name": "Barrell Bourbon New Year",
+      "aliases": [
+        "BARRELL BOURBON NEW YEAR",
+        "Barrell Bourbon New Year",
+        "Barrell New Year Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Barrell Craft Spirits",
+      "signalCount": 4,
+      "stateCount": 2,
+      "inventorySignalCount": 4,
+      "watchSignalCount": 4,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.86,
+      "states": [
+        "IN",
+        "SC"
+      ],
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_80e1a23c773972ad",
@@ -2235,31 +2263,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:00:02.879Z"
-    },
-    {
-      "id": "bb_21f337f08eaf6bdd",
-      "canonical_id": "bb_21f337f08eaf6bdd",
-      "canonical_name": "Barrell Bourbon New Year",
-      "canonical_key": "barrell new year",
-      "name": "Barrell Bourbon New Year",
-      "aliases": [
-        "BARRELL BOURBON NEW YEAR",
-        "Barrell Bourbon New Year",
-        "Barrell New Year Bourbon"
-      ],
-      "tier": "limited",
-      "producer": "Barrell Craft Spirits",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 1,
-      "watchSignalCount": 1,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.86,
-      "states": [
-        "IN"
-      ],
-      "latestObservedAt": "2026-06-24T22:56:57.921Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_0276bacbf4621773",
@@ -2284,7 +2288,7 @@
       "states": [
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T22:33:38.951Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_fb74d233e2b1fa3b",
@@ -2308,7 +2312,7 @@
       "states": [
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T22:33:38.951Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_fee8a1d8ff9ca239",
@@ -3018,10 +3022,10 @@
       ],
       "tier": "core",
       "producer": "Barton",
-      "signalCount": 536,
-      "stateCount": 7,
-      "inventorySignalCount": 493,
-      "watchSignalCount": 533,
+      "signalCount": 545,
+      "stateCount": 8,
+      "inventorySignalCount": 502,
+      "watchSignalCount": 542,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -3030,10 +3034,11 @@
         "IN",
         "MD-MONTGOMERY",
         "NC",
+        "SC",
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-24T23:02:32.342Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -3048,19 +3053,20 @@
       ],
       "tier": "standard",
       "producer": "Diageo",
-      "signalCount": 232,
-      "stateCount": 4,
-      "inventorySignalCount": 222,
-      "watchSignalCount": 229,
+      "signalCount": 259,
+      "stateCount": 5,
+      "inventorySignalCount": 249,
+      "watchSignalCount": 256,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
         "IA",
         "IN",
         "MD-MONTGOMERY",
+        "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T23:01:45.713Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -3110,7 +3116,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T23:01:19.536Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_8b27dd3856554ada",
@@ -3139,6 +3145,32 @@
       "latestObservedAt": "2026-06-24T22:56:57.921Z"
     },
     {
+      "id": "bb_107ecc731f4ce2da",
+      "canonical_id": "bb_107ecc731f4ce2da",
+      "canonical_name": "Barrell Bourbon Foundation",
+      "canonical_key": "barrell foundation",
+      "name": "Barrell Bourbon Foundation",
+      "aliases": [
+        "Barrell Bourbon Foundation",
+        "Barrell Bourbon Foundation ILG Pick"
+      ],
+      "tier": "standard",
+      "producer": "Barrell Craft Spirits",
+      "signalCount": 13,
+      "stateCount": 4,
+      "inventorySignalCount": 11,
+      "watchSignalCount": 13,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "IA",
+        "IN",
+        "SC",
+        "TN"
+      ],
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
+    },
+    {
       "id": "bb_c782a4dd71e5ef89",
       "canonical_id": "bb_c782a4dd71e5ef89",
       "canonical_name": "Woodford Reserve Batch Proof",
@@ -3159,31 +3191,6 @@
         "NC"
       ],
       "latestObservedAt": "2026-06-24T23:01:19.536Z"
-    },
-    {
-      "id": "bb_107ecc731f4ce2da",
-      "canonical_id": "bb_107ecc731f4ce2da",
-      "canonical_name": "Barrell Bourbon Foundation",
-      "canonical_key": "barrell foundation",
-      "name": "Barrell Bourbon Foundation",
-      "aliases": [
-        "Barrell Bourbon Foundation",
-        "Barrell Bourbon Foundation ILG Pick"
-      ],
-      "tier": "standard",
-      "producer": "Barrell Craft Spirits",
-      "signalCount": 10,
-      "stateCount": 3,
-      "inventorySignalCount": 8,
-      "watchSignalCount": 10,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "IA",
-        "IN",
-        "TN"
-      ],
-      "latestObservedAt": "2026-06-24T23:02:32.342Z"
     },
     {
       "id": "bb_0ac8fe664f553b86",
@@ -3282,17 +3289,17 @@
       ],
       "tier": "standard",
       "producer": "B.R. Distilling",
-      "signalCount": 4,
+      "signalCount": 5,
       "stateCount": 2,
-      "inventorySignalCount": 4,
-      "watchSignalCount": 4,
+      "inventorySignalCount": 5,
+      "watchSignalCount": 5,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.86,
       "states": [
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-24T22:33:38.951Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_fdc2966c6b0d74ea",
@@ -3366,7 +3373,7 @@
         "IA",
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T22:58:03.799Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_03a02fbf93f04058",
@@ -3390,7 +3397,7 @@
       "states": [
         "SC"
       ],
-      "latestObservedAt": "2026-06-24T22:33:38.951Z"
+      "latestObservedAt": "2026-06-24T23:02:40.237Z"
     },
     {
       "id": "bb_6d2085e9bbe873b7",
