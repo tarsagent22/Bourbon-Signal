@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
@@ -115,13 +115,6 @@ const comparisonRows = [
   ["Founder-only benefits", "—", "—", "—", "✓"],
 ];
 
-const ladderSteps = [
-  { label: "Preview", title: "Free", copy: "Look around with limited Drop Feed access and 3 Bottle Checks." },
-  { label: "Core", title: "Standard Proof", copy: "Adds email/SMS alerts, 5 areas, 15 bottles, state-only feed filtering, and Member Sightings." },
-  { label: "Unlimited", title: "Barrel Proof", copy: "Builds on Standard with unlimited alerts, advanced filters, Sightings alerts, and collection tools." },
-  { label: "Lifetime", title: "Bottled in Bond", copy: "Locks in Barrel-level access plus every current and future paid feature for one of 100 founders." },
-];
-
 function PricingPageContent() {
   const router = useRouter();
   const { isSignedIn, memberTier } = useAuth();
@@ -130,15 +123,6 @@ function PricingPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   const currentTierRank = tierRank[memberTier];
-  const highestTier = memberTier === "bottled-in-bond";
-
-  const memberStatus = useMemo(() => {
-    if (!isSignedIn) return "Bottled in Bond is the limited founder pass. Standard and Barrel are regular memberships.";
-    if (highestTier) return "You have the Bottled in Bond founder pass.";
-    if (memberTier === "barrel") return "Barrel Proof is included if you claim Bottled in Bond while spots remain.";
-    if (memberTier === "standard") return "Upgrade to Barrel Proof, or claim Bottled in Bond for lifetime access before founder spots are gone.";
-    return "Free previews the signal. Alerts start with Standard Proof; lifetime access starts with Bottled in Bond.";
-  }, [highestTier, isSignedIn, memberTier]);
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
@@ -207,9 +191,6 @@ function PricingPageContent() {
           <ScrollReveal>
             <p className="pricing-kicker">Bourbon Signal Membership</p>
             <h1>The first 100 members get Bourbon Signal for life.</h1>
-            <p className="pricing-deck">
-              Bottled in Bond is the founder pass: one payment, Barrel Proof included, and every current and future paid feature. Prefer a regular membership? Standard and Barrel stay available below.
-            </p>
             <div className="billing-toggle" aria-label="Billing cycle">
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
                 Monthly
@@ -218,19 +199,7 @@ function PricingPageContent() {
                 Annual <span>Save 33%</span>
               </button>
             </div>
-            <p className="member-status">{memberStatus}</p>
           </ScrollReveal>
-        </section>
-
-        <section className="pricing-ladder" aria-label="How Bourbon Signal memberships build on each other">
-          {ladderSteps.map((step, index) => (
-            <article className="ladder-step" key={step.title}>
-              <span className="ladder-number">0{index + 1}</span>
-              <p>{step.label}</p>
-              <h2>{step.title}</h2>
-              <small>{step.copy}</small>
-            </article>
-          ))}
         </section>
 
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
@@ -255,7 +224,7 @@ function PricingPageContent() {
             const plan = selectedPlan(tier);
             const included = tierRank[tier.tier] < currentTierRank;
             const current = tier.tier === memberTier;
-            const blocked = included || current || highestTier;
+            const blocked = included || current || memberTier === "bottled-in-bond";
             const price = priceFor(tier);
             return (
               <motion.article
@@ -327,23 +296,12 @@ const pricingCss = `
 .pricing-hero { width:min(980px, calc(100% - 40px)); margin:0 auto; text-align:center; }
 .pricing-kicker { margin:0; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
 .pricing-hero h1 { max-width:860px; margin:16px auto 0; color:var(--color-cream); font:700 clamp(44px, 7vw, 80px)/.93 var(--font-playfair); letter-spacing:-.052em; }
-.pricing-deck { max-width:660px; margin:20px auto 0; color:var(--color-text-secondary); font:16px/1.75 var(--font-dm-sans); }
 .billing-toggle { width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:1fr 1fr; gap:6px; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:6px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
 .billing-toggle button { border:0; border-radius:999px; padding:11px 12px; color:var(--color-text-secondary); background:transparent; font:900 12px/1 var(--font-dm-sans); cursor:pointer; transition:background .18s ease, color .18s ease, transform .18s ease; }
 .billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
 .billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
-.member-status { width:min(640px, 100%); margin:18px auto 0; color:var(--color-text-tertiary); font:13px/1.55 var(--font-dm-sans); }
-.pricing-ladder { width:min(1120px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); border:1px solid rgba(245,237,214,.08); border-radius:24px; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.018)); box-shadow:0 24px 80px rgba(0,0,0,.22); }
-.ladder-step { position:relative; min-height:172px; padding:22px 22px 24px; border-right:1px solid rgba(245,237,214,.07); background:radial-gradient(circle at 0% 0%, rgba(196,148,58,.10), transparent 42%); }
-.ladder-step:last-child { border-right:0; background:radial-gradient(circle at 0% 0%, rgba(212,164,74,.20), transparent 46%), linear-gradient(180deg, rgba(196,148,58,.08), rgba(255,255,255,.018)); }
-.ladder-step::after { content:""; position:absolute; top:50%; right:-9px; width:18px; height:18px; z-index:2; transform:translateY(-50%) rotate(45deg); border-top:1px solid rgba(245,237,214,.08); border-right:1px solid rgba(245,237,214,.08); background:rgba(30,22,15,.96); }
-.ladder-step:last-child::after { display:none; }
-.ladder-number { color:rgba(196,148,58,.52); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; }
-.ladder-step p { margin:24px 0 0; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
-.ladder-step h2 { margin:8px 0 0; color:var(--color-cream); font:700 25px/1 var(--font-playfair); letter-spacing:-.026em; }
-.ladder-step small { display:block; margin-top:12px; color:var(--color-text-secondary); font:12px/1.55 var(--font-dm-sans); }
-.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
+.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
 .pricing-card.quiet { order:4; }
 .pricing-card.standard { order:2; }
@@ -389,7 +347,7 @@ const pricingCss = `
 .comparison-head { background:rgba(196,148,58,.09); }
 .comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
 .comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
-@media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } .pricing-ladder { grid-template-columns:repeat(2, minmax(0, 1fr)); } .ladder-step:nth-child(2) { border-right:0; } .ladder-step:nth-child(2)::after { display:none; } .ladder-step:nth-child(-n+2) { border-bottom:1px solid rgba(245,237,214,.07); } }
-@media (max-width: 760px) { .pricing-ladder { width:calc(100% - 28px); grid-template-columns:1fr; border-radius:20px; } .ladder-step { min-height:auto; border-right:0; border-bottom:1px solid rgba(245,237,214,.07); padding:18px 18px 20px; } .ladder-step::after { top:auto; right:auto; left:24px; bottom:-7px; width:14px; height:14px; transform:rotate(135deg); } .ladder-step:last-child { border-bottom:0; } .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:1; width:24px; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { box-shadow:5px 0 8px rgba(10,7,5,.18); } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
+@media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
