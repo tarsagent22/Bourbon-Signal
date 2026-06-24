@@ -75,7 +75,17 @@ const inventoryDepthScore = 24 * clamp((alertableInventoryRows.length / 75) * 0.
 const diversityScore = 14 * clamp((sourceLabels.length / 4) * 0.32 + (storeKeys.length / 11) * 0.38 + (cityKeys.length / 6) * 0.30);
 const exportedDropCities = unique(exportedDrops.map((row) => norm(row.city))).filter(Boolean);
 const exportedDropSources = unique(exportedDrops.map((row) => row.source || row.sourceLabel)).filter(Boolean);
-const exportScore = 12 * clamp((exportedDrops.length / 60) * 0.50 + (exportedDropCities.length / 6) * 0.30 + (exportedDropSources.length / 4) * 0.20);
+// Score public usefulness from both the shelf-free customer drop export and the normalized
+// state artifact. The drop feed intentionally excludes many safe core/standard retailer rows,
+// but those rows still make SC useful for alerts, store coverage, and pitch readiness.
+const exportScore = 12 * clamp(
+  (alertableInventoryRows.length / 75) * 0.35
+  + (cityKeys.length / 6) * 0.25
+  + (sourceLabels.length / 4) * 0.20
+  + (exportedDrops.length / 50) * 0.10
+  + (exportedDropCities.length / 5) * 0.05
+  + (exportedDropSources.length / 4) * 0.05
+);
 const unsafeMatches = alertableInventoryRows.filter((row) => {
   const raw = String(row.rawName || row.bottleName || '').toLowerCase();
   const canonical = String(row.canonicalName || row.bottleName || '').toLowerCase();

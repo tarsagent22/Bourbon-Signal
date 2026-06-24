@@ -502,7 +502,7 @@ const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|c
 
 const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
 const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 3);
-const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 90 * 60_000);
+const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_CITYHIVE_SOURCES = [
   {
@@ -1854,7 +1854,7 @@ async function writeTennesseeCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks
@@ -2562,11 +2562,14 @@ function southCarolinaCityHivePositiveInventoryChains(signals = []) {
 }
 
 async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = southCarolinaCityHivePositiveInventoryChains(signals);
   const previous = await readSouthCarolinaCityHiveCache();
+  const previousPositiveCount = (previous?.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
   const previousChains = southCarolinaCityHivePositiveInventoryChains(previous?.signals || []);
-  if (previousChains.size >= 2 && nextChains.size < previousChains.size) return;
+  const nextCoverageFloor = Math.max(25, Math.floor(previousPositiveCount * 0.85));
+  if (previousChains.size >= 2 && (nextChains.size < previousChains.size || nextPositiveCount < nextCoverageFloor)) return;
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'South Carolina CityHive retailer inventory cache',
@@ -2574,7 +2577,7 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks
