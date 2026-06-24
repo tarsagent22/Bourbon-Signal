@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-22T00:22:40.237Z",
-  "count": 2701,
+  "generatedAt": "2026-06-24T21:50:39.333Z",
+  "count": 2683,
   "stores": [
     {
       "id": "alabc:001",
@@ -2580,20 +2580,6 @@
       "signalCount": 1
     },
     {
-      "id": "712c39aba93030c3",
-      "sourceStoreId": "712c39aba93030c3",
-      "state": "IA",
-      "name": "All Stop / West Union",
-      "address": "213 North Vine Street, West Union, IA, 52175",
-      "city": "West Union",
-      "county": null,
-      "zip": "52175",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
       "id": "e729c34d138094ff",
       "sourceStoreId": "e729c34d138094ff",
       "state": "IA",
@@ -2633,7 +2619,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "af1ecf363d11e731",
@@ -4173,7 +4159,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "f835fe8f3dbc65bf",
@@ -4344,20 +4330,6 @@
       "signalCount": 1
     },
     {
-      "id": "af42bee8657174fb",
-      "sourceStoreId": "af42bee8657174fb",
-      "state": "IA",
-      "name": "Fareway Stores #014 / Sergeant Bluff",
-      "address": "700  1st St, Sergeant Bluff, IA, 51054",
-      "city": "Sergeant Bluff",
-      "county": null,
-      "zip": "51054",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
       "id": "dce2a0e9dee6379c",
       "sourceStoreId": "dce2a0e9dee6379c",
       "state": "IA",
@@ -4411,7 +4383,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "fccccb9707ddf454",
@@ -4495,7 +4467,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "2e4aa375f32160cc",
@@ -4635,7 +4607,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "d85c170f8b4f5bf0",
@@ -4789,7 +4761,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "456b621f07f9fa48",
@@ -4999,7 +4971,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "c81a13f78c8b26ef",
@@ -5293,7 +5265,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "6b9841b2da519c9d",
@@ -5573,7 +5545,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "1d28df7d47c18114",
@@ -5587,7 +5559,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "cf8bce89c300d08e",
@@ -5727,20 +5699,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "129bd08f90ed74b8",
-      "sourceStoreId": "129bd08f90ed74b8",
-      "state": "IA",
-      "name": "Forbes Meat / Spirit Lake",
-      "address": "2508 Enterprise Avenue, Spirit Lake, IA, 51360",
-      "city": "Spirit Lake",
-      "county": null,
-      "zip": "51360",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
       "signalCount": 1
     },
     {
@@ -6094,20 +6052,6 @@
       "signalCount": 1
     },
     {
-      "id": "5110e489725f3531",
-      "sourceStoreId": "5110e489725f3531",
-      "state": "IA",
-      "name": "Hawkeye Downs BP / Cedar Rapids",
-      "address": "4713 6th St SW, Cedar Rapids, IA, 52404",
-      "city": "Cedar Rapids",
-      "county": null,
-      "zip": "52404",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
       "id": "6869fbea22a2c396",
       "sourceStoreId": "6869fbea22a2c396",
       "state": "IA",
@@ -6455,7 +6399,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "ce0c9aa9f90b128b",
@@ -6637,20 +6581,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "e4ae5d0be67880fc",
-      "sourceStoreId": "e4ae5d0be67880fc",
-      "state": "IA",
-      "name": "Hy-Vee Dollar Fresh - Emmetsburg",
-      "address": "3402 Main Street, Emmetsburg, IA, 50536",
-      "city": "Emmetsburg",
-      "county": null,
-      "zip": "50536",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
       "signalCount": 1
     },
     {
@@ -6906,20 +6836,6 @@
       "signalCount": 1
     },
     {
-      "id": "059866be6a46e7f7",
-      "sourceStoreId": "059866be6a46e7f7",
-      "state": "IA",
-      "name": "Hy-Vee Food and Drug / Clinton",
-      "address": "901 South 4th St, Clinton, IA, 52732",
-      "city": "Clinton",
-      "county": null,
-      "zip": "52732",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
       "id": "d3e44e73acd003f6",
       "sourceStoreId": "d3e44e73acd003f6",
       "state": "IA",
@@ -7043,7 +6959,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "2b31d6f87b146bec",
@@ -7407,7 +7323,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "aa747f65c9029f20",
@@ -7620,160 +7536,6 @@
       "signalCount": 1
     },
     {
-      "id": "07061af94f14117d",
-      "sourceStoreId": "07061af94f14117d",
-      "state": "IA",
-      "name": "John's Grocery",
-      "address": "401 East Market St, Iowa City, IA, 52240",
-      "city": "Iowa City",
-      "county": null,
-      "zip": "52240",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "bb63884593a5e946",
-      "sourceStoreId": "bb63884593a5e946",
-      "state": "IA",
-      "name": "Lake Ohana Market / Mineola",
-      "address": "23226 Centre Dr, Glenwood, IA, 51534",
-      "city": "Glenwood",
-      "county": null,
-      "zip": "51534",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "d4bb441447274e46",
-      "sourceStoreId": "d4bb441447274e46",
-      "state": "IA",
-      "name": "Liquor Lovers  / Ankeny",
-      "address": "1510 South Ankeny Boulevard Prairie Trail Suite 107-108, Ankeny, IA, 50023",
-      "city": "Ankeny",
-      "county": null,
-      "zip": "50023",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "e3ffef9e1c87d663",
-      "sourceStoreId": "e3ffef9e1c87d663",
-      "state": "IA",
-      "name": "Neighborhood Liquor House / Ankeny",
-      "address": "833 East 1st Street, Suite 102, Ankeny, IA, 50021",
-      "city": "Ankeny",
-      "county": null,
-      "zip": "50021",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "473340c698a2994b",
-      "sourceStoreId": "473340c698a2994b",
-      "state": "IA",
-      "name": "Quick Shop Liquor and Vape / Clear Lake",
-      "address": "904 North 8th Street, ClearLake, IA, 50428",
-      "city": "ClearLake",
-      "county": null,
-      "zip": "50428",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "4ad665b3b61c1ba7",
-      "sourceStoreId": "4ad665b3b61c1ba7",
-      "state": "IA",
-      "name": "Sioux Food Center of Sioux Rapids",
-      "address": "621 Hwy 71, Sioux Rapids, IA, 50585",
-      "city": "Sioux Rapids",
-      "county": null,
-      "zip": "50585",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "eeb8df2fcd182676",
-      "sourceStoreId": "eeb8df2fcd182676",
-      "state": "IA",
-      "name": "Sycamore Convenience",
-      "address": "617 Sycamore, Waterloo, IA, 50703",
-      "city": "Waterloo",
-      "county": null,
-      "zip": "50703",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "92652e68ece0d108",
-      "sourceStoreId": "92652e68ece0d108",
-      "state": "IA",
-      "name": "The Depot Atkins",
-      "address": "188, Parkridge Rd, Atkins, IA, 52206",
-      "city": "Atkins",
-      "county": null,
-      "zip": "52206",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "a741cd4df66bdc12",
-      "sourceStoreId": "a741cd4df66bdc12",
-      "state": "IA",
-      "name": "The Depot Coralville",
-      "address": "100 E  OAKDALE BLVD, Coralville, IA, 52241",
-      "city": "Coralville",
-      "county": null,
-      "zip": "52241",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "da69bc50977c2292",
-      "sourceStoreId": "da69bc50977c2292",
-      "state": "IA",
-      "name": "Top Shelf Liquor / Iowa City",
-      "address": "412 Highway 1, Iowa City, IA, 52246",
-      "city": "Iowa City",
-      "county": null,
-      "zip": "52246",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "d929f6a195e91e4c",
-      "sourceStoreId": "d929f6a195e91e4c",
-      "state": "IA",
-      "name": "Yana Mart / Davenport",
-      "address": "3815 W Kimberly Rd, Davenport, IA, 52806",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52806",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
       "id": "idaho-liquor-store-216",
       "sourceStoreId": "idaho-liquor-store-216",
       "state": "ID",
@@ -7813,7 +7575,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-102",
@@ -7841,7 +7603,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-104",
@@ -7869,7 +7631,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-108",
@@ -7939,7 +7701,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-114",
@@ -7967,7 +7729,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-125",
@@ -7981,7 +7743,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-329",
@@ -8037,7 +7799,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-136",
@@ -8177,7 +7939,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-210",
@@ -8471,7 +8233,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-309",
@@ -8513,7 +8275,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-115",
@@ -8555,7 +8317,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-123",
@@ -8597,7 +8359,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-320",
@@ -8639,7 +8401,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-331",
@@ -8681,7 +8443,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-327",
@@ -8709,7 +8471,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-322",
@@ -8793,7 +8555,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-214",
@@ -10196,6 +9958,20 @@
       "signalCount": 1
     },
     {
+      "id": "DL1431482",
+      "sourceStoreId": "DL1431482",
+      "state": "IN",
+      "name": "All Star Liquors Inc",
+      "address": "Washington, IN, 47501",
+      "city": "Washington",
+      "county": null,
+      "zip": "47501",
+      "lat": null,
+      "lng": null,
+      "source": "Indiana ATC public facility permit search",
+      "signalCount": 2
+    },
+    {
       "id": "DL1431489",
       "sourceStoreId": "DL1431489",
       "state": "IN",
@@ -10207,7 +9983,7 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "DL4231304",
@@ -10236,20 +10012,6 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 2
-    },
-    {
-      "id": "DL1431482",
-      "sourceStoreId": "DL1431482",
-      "state": "IN",
-      "name": "All Star Liquors Incorporated",
-      "address": "Washington, IN, 47501",
-      "city": "Washington",
-      "county": null,
-      "zip": "47501",
-      "lat": null,
-      "lng": null,
-      "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
     },
     {
       "id": "DL1430910",
@@ -10706,12 +10468,12 @@
       "name": "Belmont Beverage of Cleveland Road",
       "address": "223 Cleveland Rd, Granger, IN 46530, USA",
       "city": "Granger",
-      "county": null,
+      "county": "St. Joseph County",
       "zip": "46530",
       "lat": 41.72358120000001,
       "lng": -86.175613,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 7
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
@@ -10748,12 +10510,12 @@
       "name": "Belmont Beverage of Downtown",
       "address": "929 S, 929 Lafayette St, Fort Wayne, IN 46802, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46802",
       "lat": 41.0783865,
       "lng": -85.1338772,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d339b77cb36d0a2d2e8b",
@@ -10762,12 +10524,12 @@
       "name": "Belmont Beverage of Dupont East",
       "address": "3718 E Dupont Rd, Fort Wayne, IN 46825, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46825",
       "lat": 41.1779536,
       "lng": -85.0973602,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -10790,12 +10552,12 @@
       "name": "Belmont Beverage of East State",
       "address": "3929 E State Blvd, Fort Wayne, IN 46805, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46805",
       "lat": 41.0984937,
       "lng": -85.089103,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
@@ -10804,12 +10566,12 @@
       "name": "Belmont Beverage of Illinois Rd",
       "address": "10311 Illinois Rd, Fort Wayne, IN 46814, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46814",
       "lat": 41.0728349,
       "lng": -85.2762487,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9a",
@@ -10818,12 +10580,12 @@
       "name": "Belmont Beverage of Lima Rd.",
       "address": "8225 Lima Rd, Fort Wayne, IN 46818, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46818",
       "lat": 41.1554813,
       "lng": -85.166285,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9f",
@@ -10846,12 +10608,12 @@
       "name": "Belmont Beverage of Maplecrest",
       "address": "2799 Maplecrest Rd, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46815",
       "lat": 41.102371,
       "lng": -85.0609037,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
@@ -10860,12 +10622,12 @@
       "name": "Belmont Beverage of North Anthony",
       "address": "3311 N Anthony Blvd, Fort Wayne, IN 46805, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46805",
       "lat": 41.1069418,
       "lng": -85.1166123,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb8",
@@ -10874,12 +10636,12 @@
       "name": "Belmont Beverage of Oxford",
       "address": "1111 Oxford St, Fort Wayne, IN 46806, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46806",
       "lat": 41.0535318,
       "lng": -85.1221551,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33fb77cb36d0a2d2ebd",
@@ -10888,12 +10650,12 @@
       "name": "Belmont Beverage of Pontiac At Anthony",
       "address": "2631 S Anthony Blvd, Fort Wayne, IN 46803, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46803",
       "lat": 41.0611182,
       "lng": -85.1136938,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5c92aaeed82c8d4a376d917f",
@@ -10902,12 +10664,12 @@
       "name": "Belmont Beverage of Roanoke",
       "address": "8930 N U.S. 24 E, Huntington, IN 46783, USA",
       "city": "Huntington",
-      "county": null,
+      "county": "Huntington County",
       "zip": "46783",
       "lat": 40.938599,
       "lng": -85.3802383,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ed1",
@@ -10916,12 +10678,12 @@
       "name": "Belmont Beverage of Roseland",
       "address": "254 N Dixie Way, Roseland, IN 46637, USA",
       "city": "Roseland",
-      "county": null,
+      "county": "St. Joseph County",
       "zip": "46637",
       "lat": 41.7186439,
       "lng": -86.24994459999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d342b77cb36d0a2d2ed6",
@@ -10972,12 +10734,12 @@
       "name": "Belmont Beverage of Southgate",
       "address": "134 E Pettit Ave, Fort Wayne, IN 46806, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46806",
       "lat": 41.0364248,
       "lng": -85.135498,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d344b77cb36d0a2d2eea",
@@ -11000,12 +10762,12 @@
       "name": "Belmont Beverage of Stellhorn Crossing",
       "address": "9173 Stellhorn Crossing Pkwy, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46815",
       "lat": 41.1200388,
       "lng": -85.02365789999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d345b77cb36d0a2d2eef",
@@ -11014,12 +10776,12 @@
       "name": "Belmont Beverage of Tillman Rd",
       "address": "1414 E Tillman Rd, Fort Wayne, IN 46816, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46816",
       "lat": 41.0169696,
       "lng": -85.1177435,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d345b77cb36d0a2d2ef4",
@@ -11028,12 +10790,12 @@
       "name": "Belmont Beverage of Time Corners",
       "address": "5992 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46804",
       "lat": 41.061175,
       "lng": -85.21872309999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 2
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2ef9",
@@ -11042,12 +10804,12 @@
       "name": "Belmont Beverage of West State",
       "address": "1103 W State Blvd, Fort Wayne, IN 46808, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46808",
       "lat": 41.0955093,
       "lng": -85.1573343,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -11061,7 +10823,7 @@
       "lat": 41.6714689,
       "lng": -86.31053639999999,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "DL3022640",
@@ -11602,12 +11364,12 @@
       "name": "Big Red #209 - Indianapolis",
       "address": "9908 E 79th St, Indianapolis, IN 46256, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46256",
       "lat": 39.8993173,
       "lng": -85.99296,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -11621,7 +11383,7 @@
       "lat": 39.6608323,
       "lng": -86.3102971,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 8
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -11635,7 +11397,7 @@
       "lat": 39.6518669,
       "lng": -86.0833471,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:5e92549678e8f13c2cb1e1d0",
@@ -11789,7 +11551,7 @@
       "lat": 39.95698369999999,
       "lng": -86.11678979999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "big-red:5e9254b278e8f13c2cb1e1f8",
@@ -11957,7 +11719,7 @@
       "lat": 39.6136857,
       "lng": -86.1569734,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -11994,12 +11756,12 @@
       "name": "Big Red #238 - Southport",
       "address": "8142 E Southport Rd, Indianapolis, IN 46259, USA",
       "city": "Indianapolis",
-      "county": "Marion County",
+      "county": null,
       "zip": "46259",
       "lat": 39.6686819,
       "lng": -86.0200495,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "big-red:6286c4850d510526fe6145dc",
@@ -12013,7 +11775,7 @@
       "lat": 39.7999793,
       "lng": -85.77004869999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:6785622f5034132924e34f14",
@@ -12064,12 +11826,12 @@
       "name": "Big Red #601 - Avon",
       "address": "8125 E US Hwy 36, Avon, IN 46123, USA",
       "city": "Avon",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46123",
       "lat": 39.7624257,
       "lng": -86.3793675,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d534e9a81cb43a6b0948f",
@@ -12111,7 +11873,7 @@
       "lat": 39.7696497,
       "lng": -86.1546635,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:5e8d56d79ea1421aba12c049",
@@ -12708,12 +12470,12 @@
       "name": "Cap n’ Cork Broadway #403",
       "address": "1031 Broadway, Fort Wayne, IN 46802, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46802",
       "lat": 41.0752243,
       "lng": -85.1473693,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 5
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:6286c8b8bd6e7826f84d215d",
@@ -12722,12 +12484,12 @@
       "name": "Cap n' Cork Canterbury #415",
       "address": "3128 St Joe Center Rd, Fort Wayne, IN 46835, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46835",
       "lat": 41.1332513,
       "lng": -85.1028202,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 5
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
@@ -12741,7 +12503,7 @@
       "lat": 41.1293034,
       "lng": -85.1350928,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 20
+      "signalCount": 13
     },
     {
       "id": "cap-n-cork:5e8f2a1fb851035361e0f22c",
@@ -12750,12 +12512,12 @@
       "name": "Cap n’ Cork Covington Plaza #412",
       "address": "6410 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46804",
       "lat": 41.05697139999999,
       "lng": -85.2262477,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 3
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:5e8f34fb9ea142251855ff61",
@@ -12764,12 +12526,12 @@
       "name": "Cap n’ Cork Dupont #414",
       "address": "10020 Lima Rd, Fort Wayne, IN 46818, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46818",
       "lat": 41.1745087,
       "lng": -85.1646998,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 4
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:67588ec370555c28febc51ca",
@@ -12778,12 +12540,12 @@
       "name": "Cap n' Cork Dupont #417",
       "address": "2868 E Dupont Rd, Fort Wayne, IN 46825, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46825",
       "lat": 41.177567,
       "lng": -85.10801839999999,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 3
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:6286c8a7a84e7c25c81dbf4a",
@@ -12792,12 +12554,12 @@
       "name": "Cap n' Cork Foster Park #413",
       "address": "3603 Brooklyn Ave, Fort Wayne, IN 46809, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46809",
       "lat": 41.0523728,
       "lng": -85.1625186,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 4
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:6286c7f218bd991ce7713945",
@@ -12806,12 +12568,12 @@
       "name": "Cap n' Cork Georgetown #402",
       "address": "6712 E State Blvd, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46815",
       "lat": 41.1023851,
       "lng": -85.0556965,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 3
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:6286c835065fab26d65cf5c0",
@@ -12820,12 +12582,12 @@
       "name": "Cap n' Cork Lima Road #407",
       "address": "4520 Lima Rd, Fort Wayne, IN 46808, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46808",
       "lat": 41.1197149,
       "lng": -85.1501037,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 4
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:5ec530cf23277b281b030bed",
@@ -12834,12 +12596,12 @@
       "name": "Cap n’ Cork Maysville Pointe #410",
       "address": "10158 Maysville Rd, Fort Wayne, IN 46835, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46835",
       "lat": 41.1286331,
       "lng": -85.01163,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 4
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:5ec5272fb8c4f025ffa9a194",
@@ -12848,12 +12610,12 @@
       "name": "Cap n’ Cork New Haven #404",
       "address": "110 Lincoln Hwy E, New Haven, IN 46774, USA",
       "city": "New Haven",
-      "county": null,
+      "county": "Allen County",
       "zip": "46774",
       "lat": 41.0697063,
       "lng": -85.0297202,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 4
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "cap-n-cork:6286c80fe0a85826d18a6636",
@@ -12862,12 +12624,12 @@
       "name": "Cap n' Cork Waynedale #405",
       "address": "7002 Bluffton Rd, Fort Wayne, IN 46809, USA",
       "city": "Fort Wayne",
-      "county": null,
+      "county": "Allen County",
       "zip": "46809",
       "lat": 41.01869019999999,
       "lng": -85.1699124,
-      "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 6
+      "source": "Cap n' Cork CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "DL4232467",
@@ -13086,12 +12848,12 @@
       "name": "Chalet Party Shoppes of Caragana Court",
       "address": "2703 Caragana Ct #1, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": null,
+      "county": "Elkhart County",
       "zip": "46526",
       "lat": 41.5558816,
       "lng": -85.7907292,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
@@ -13114,12 +12876,12 @@
       "name": "Chalet Party Shoppes of Chicago Ave",
       "address": "245 Chicago Ave, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": null,
+      "county": "Elkhart County",
       "zip": "46526",
       "lat": 41.5887503,
       "lng": -85.8438448,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
@@ -13147,7 +12909,7 @@
       "lat": 41.6606584,
       "lng": -86.003945,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33fb77cb36d0a2d2ec2",
@@ -13156,12 +12918,12 @@
       "name": "Chalet Party Shoppes of Reith BLVD",
       "address": "1830 Rieth Blvd #2, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": null,
+      "county": "Elkhart County",
       "zip": "46526",
       "lat": 41.615844,
       "lng": -85.8933109,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",
@@ -13450,12 +13212,12 @@
       "name": "Cork Liquors VI",
       "address": "3995 25th St, Columbus, IN 47203, USA",
       "city": "Columbus",
-      "county": "Bartholomew County",
+      "county": null,
       "zip": "47203",
       "lat": 39.2230848,
       "lng": -85.8765676,
-      "source": "Cork Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Cork Liquors CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "DL1732705",
@@ -16580,20 +16342,6 @@
       "signalCount": 1
     },
     {
-      "id": "DL4500748",
-      "sourceStoreId": "DL4500748",
-      "state": "IN",
-      "name": "Irene Nadolski",
-      "address": "East Chicago, IN, 46312",
-      "city": "East Chicago",
-      "county": null,
-      "zip": "46312",
-      "lat": null,
-      "lng": null,
-      "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
-    },
-    {
       "id": "DL4000879",
       "sourceStoreId": "DL4000879",
       "state": "IN",
@@ -17208,20 +16956,6 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
-    },
-    {
-      "id": "kahns:69",
-      "sourceStoreId": "kahns:69",
-      "state": "IN",
-      "name": "Kahn's Fine Wines & Spirits",
-      "address": "5341 N Keystone Ave, Indianapolis, IN 46220",
-      "city": "Indianapolis",
-      "county": null,
-      "zip": "46220",
-      "lat": 39.8498,
-      "lng": -86.1226,
-      "source": "Kahn's Fine Wines & Spirits in-stock bourbon API",
-      "signalCount": 25
     },
     {
       "id": "DL4931513",
@@ -19881,7 +19615,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "DL4913533",
@@ -25061,7 +24795,7 @@
       "lat": 41.5952817,
       "lng": -87.04614839999999,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "wise-guys:60803cb5ad4b017e711ec6fa",
@@ -25201,7 +24935,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 28
+      "signalCount": 29
     },
     {
       "id": "high-point-english-rd",
@@ -25215,7 +24949,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 22
+      "signalCount": 23
     },
     {
       "id": "high-point-fairfield-rd",
@@ -25229,7 +24963,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 29
     },
     {
       "id": "high-point-gate-city-blvd",
@@ -25243,7 +24977,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 29
     },
     {
       "id": "high-point-parris-ave",
@@ -25257,7 +24991,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 31
+      "signalCount": 30
     },
     {
       "id": "high-point-skeet-club-rd",
@@ -25271,7 +25005,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 32
+      "signalCount": 33
     },
     {
       "id": "high-point-wendover-ave",
@@ -25285,7 +25019,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 34
+      "signalCount": 32
     },
     {
       "id": "greensboro-25",
@@ -25369,7 +25103,7 @@
       "lat": 36.086901,
       "lng": 0,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "greensboro-33",
@@ -25866,7 +25600,7 @@
       "sourceStoreId": "0215",
       "state": "PA",
       "name": "Fine Wine & Good Spirits #0215",
-      "address": "LSC_0215 Dummy Site, Pittsburgh, PA, 15222",
+      "address": "1601 Liberty Ave, Pittsburgh, PA, 15222",
       "city": "Pittsburgh",
       "county": "Allegheny",
       "zip": null,
@@ -26226,6 +25960,20 @@
       "signalCount": 3
     },
     {
+      "id": "226",
+      "sourceStoreId": "226",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0226",
+      "address": "132 Ben Avon Heights Road, Pittsburgh, PA, 15237",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.522824,
+      "lng": -80.070208,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "227",
       "sourceStoreId": "227",
       "state": "PA",
@@ -26562,6 +26310,20 @@
       "signalCount": 5
     },
     {
+      "id": "285",
+      "sourceStoreId": "285",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0285",
+      "address": "4706 William Flynn Highway, Allison Park, PA, 15101",
+      "city": "Allison Park",
+      "county": null,
+      "zip": null,
+      "lat": 40.593571,
+      "lng": -79.947803,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "286",
       "sourceStoreId": "286",
       "state": "PA",
@@ -26853,7 +26615,7 @@
       "lat": 40.315765,
       "lng": -76.000548,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "611",
@@ -26937,7 +26699,7 @@
       "lat": 40.430931,
       "lng": -78.418983,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "704",
@@ -26993,7 +26755,7 @@
       "lat": 41.982276,
       "lng": -76.544684,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "802",
@@ -27105,7 +26867,7 @@
       "lat": 40.319784,
       "lng": -75.305773,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "912",
@@ -27189,7 +26951,7 @@
       "lat": 40.443736,
       "lng": -75.357123,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "927",
@@ -27273,7 +27035,7 @@
       "lat": 40.230742,
       "lng": -75.136906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "933",
@@ -27875,7 +27637,7 @@
       "lat": 40.073377,
       "lng": -75.429877,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "1515",
@@ -28029,7 +27791,7 @@
       "lat": 40.041821,
       "lng": -75.48004,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "1529",
@@ -28057,7 +27819,7 @@
       "lat": 39.962383,
       "lng": -75.62328,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "1531",
@@ -28085,7 +27847,7 @@
       "lat": 40.133083,
       "lng": -75.535559,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "1601",
@@ -28533,7 +28295,7 @@
       "lat": 40.331418,
       "lng": -76.86134,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 5
     },
     {
       "id": "2223",
@@ -28589,7 +28351,7 @@
       "lat": 39.917462,
       "lng": -75.393539,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "2320",
@@ -28687,7 +28449,7 @@
       "lat": 39.961391,
       "lng": -75.35627,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "2333",
@@ -28743,7 +28505,7 @@
       "lat": 39.987523,
       "lng": -75.404709,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "2342",
@@ -28757,7 +28519,7 @@
       "lat": 39.915456,
       "lng": -75.430974,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "2343",
@@ -29499,7 +29261,7 @@
       "lat": 40.037643,
       "lng": -76.270059,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "3618",
@@ -29695,7 +29457,7 @@
       "lat": 40.313763,
       "lng": -76.425028,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3803",
@@ -29947,7 +29709,7 @@
       "lat": 40.642408,
       "lng": -75.493457,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "3926",
@@ -30073,7 +29835,7 @@
       "lat": 40.996253,
       "lng": -76.0697,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4027",
@@ -30409,7 +30171,7 @@
       "lat": 41.181083,
       "lng": -75.267978,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "4506",
@@ -30451,7 +30213,7 @@
       "lat": 41.039653,
       "lng": -75.30745,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "4510",
@@ -30815,7 +30577,7 @@
       "lat": 40.285502,
       "lng": -75.394126,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "4648",
@@ -30871,7 +30633,7 @@
       "lat": 40.16186,
       "lng": -75.292414,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "4654",
@@ -30899,7 +30661,7 @@
       "lat": 40.392965,
       "lng": -75.500076,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "4657",
@@ -31109,7 +30871,7 @@
       "lat": 40.7169185,
       "lng": -75.284308,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "4815",
@@ -31123,7 +30885,7 @@
       "lat": 40.712839,
       "lng": -75.220463,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "4816",
@@ -31207,7 +30969,7 @@
       "lat": 39.92175,
       "lng": -75.142647,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "5108",
@@ -31361,7 +31123,7 @@
       "lat": 40.084803,
       "lng": -74.964571,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "5134",
@@ -31630,6 +31392,20 @@
       "signalCount": 7
     },
     {
+      "id": "5190",
+      "sourceStoreId": "5190",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 5190",
+      "address": "7161 Ogontz Avenue, Philadelphia, PA, 19138",
+      "city": "Philadelphia",
+      "county": null,
+      "zip": null,
+      "lat": 40.063875,
+      "lng": -75.152857,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
       "id": "5191",
       "sourceStoreId": "5191",
       "state": "PA",
@@ -31795,7 +31571,7 @@
       "lat": 40.841654,
       "lng": -76.834184,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "5602",
@@ -31907,7 +31683,7 @@
       "lat": 40.962201,
       "lng": -76.894226,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "6101",
@@ -32201,7 +31977,7 @@
       "lat": 40.587968,
       "lng": -79.745631,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "6523",
@@ -32425,7 +32201,7 @@
       "lat": 40.147133,
       "lng": -76.813433,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "6716",
@@ -32733,7 +32509,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -32761,7 +32537,7 @@
       "lat": 34.7131362,
       "lng": -82.254555,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "busters-liquors:662124505fbcb5293d346405",
@@ -32789,7 +32565,7 @@
       "lat": 35.1267725,
       "lng": -89.9459231,
       "source": "Buster's Liquors & Wines CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "cool-springs:1000-1057",
@@ -32803,7 +32579,7 @@
       "lat": 35.955476,
       "lng": -86.817278,
       "source": "Cool Springs Wine & Spirits public catalog API",
-      "signalCount": 13
+      "signalCount": 14
     },
     {
       "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",
@@ -32831,7 +32607,7 @@
       "lat": 36.1570489,
       "lng": -86.7943734,
       "source": "Corkdorks CityHive store inventory",
-      "signalCount": 19
+      "signalCount": 20
     },
     {
       "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
@@ -32859,7 +32635,7 @@
       "lat": 35.0298185,
       "lng": -85.18369369999999,
       "source": "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store inventory",
-      "signalCount": 13
+      "signalCount": 14
     },
     {
       "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
@@ -32929,7 +32705,7 @@
       "lat": 36.0240857,
       "lng": -83.9248823,
       "source": "Liquor Vault Knoxville CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "m-and-j-liquor:6978c02491ff50558a0168d5",
@@ -32957,7 +32733,7 @@
       "lat": 35.973703,
       "lng": -86.8318783,
       "source": "Moon Wine & Spirits CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
@@ -33013,7 +32789,7 @@
       "lat": 35.9293792,
       "lng": -86.9195292,
       "source": "Westside Wine & Spirits CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "102",
@@ -34528,20 +34304,6 @@
       "signalCount": 6
     },
     {
-      "id": "226",
-      "sourceStoreId": "226",
-      "state": "VA",
-      "name": "Virginia ABC Store 226",
-      "address": "7862 Tidewater Drive Unit 105 Norfolk VA 23505",
-      "city": "Norfolk",
-      "county": null,
-      "zip": null,
-      "lat": 36.915228,
-      "lng": -76.253762,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
       "id": "228",
       "sourceStoreId": "228",
       "state": "VA",
@@ -35000,20 +34762,6 @@
       "zip": null,
       "lat": 36.790103,
       "lng": -79.396106,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "285",
-      "sourceStoreId": "285",
-      "state": "VA",
-      "name": "Virginia ABC Store 285",
-      "address": "199 Ambriar Shopping Center Amherst VA 24521",
-      "city": "Amherst",
-      "county": null,
-      "zip": null,
-      "lat": 37.565218,
-      "lng": -79.063572,
       "source": "Virginia ABC storeNearby inventory API",
       "signalCount": 6
     },
@@ -36919,7 +36667,7 @@
       "lat": 38.00735,
       "lng": -77.51701,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "440",
