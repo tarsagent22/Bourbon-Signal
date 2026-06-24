@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { LiquidToggle } from "@/components/LiquidToggle";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useAuth } from "@/lib/auth";
 import type { BillingPlanId, MembershipTier } from "@/lib/entitlements";
@@ -195,6 +196,7 @@ function PricingPageContent() {
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
                 Monthly
               </button>
+              <LiquidToggle checked={billingCycle === "annual"} onCheckedChange={(checked) => setBillingCycle(checked ? "annual" : "monthly")} />
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
                 Annual <span>Save 33%</span>
               </button>
@@ -296,11 +298,11 @@ const pricingCss = `
 .pricing-hero { width:min(980px, calc(100% - 40px)); margin:0 auto; text-align:center; }
 .pricing-kicker { margin:0; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
 .pricing-hero h1 { max-width:860px; margin:16px auto 0; color:var(--color-cream); font:700 clamp(44px, 7vw, 80px)/.93 var(--font-playfair); letter-spacing:-.052em; }
-.billing-toggle { width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:1fr 1fr; gap:6px; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:6px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
-.billing-toggle button { border:0; border-radius:999px; padding:11px 12px; color:var(--color-text-secondary); background:transparent; font:900 12px/1 var(--font-dm-sans); cursor:pointer; transition:background .18s ease, color .18s ease, transform .18s ease; }
-.billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
-.billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
-.billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
+.billing-toggle { width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:8px 10px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+.billing-toggle button { border:0; border-radius:999px; padding:10px 8px; color:var(--color-text-tertiary); background:transparent; font:900 12px/1 var(--font-dm-sans); cursor:pointer; transition:color .22s ease, transform .18s ease; }
+.billing-toggle button[data-active="true"] { color:var(--color-cream); }
+.billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); color:var(--color-cream); }
+.billing-toggle span { margin-left:5px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
 .pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
 .pricing-card.quiet { order:4; }
