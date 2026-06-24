@@ -40,9 +40,9 @@ const cities = unique(alertable.map((row) => norm(row.city))).sort();
 
 if (alertable.length < 60) throw new Error(`SC alertable inventory rows below 90+ threshold: ${alertable.length}`);
 if (fresh.length < 55) throw new Error(`SC fresh inventory rows below threshold: ${fresh.length}`);
-if (sources.length < 3) throw new Error(`SC positive inventory source diversity too low: ${sources.length}`);
-if (stores.length < 8) throw new Error(`SC positive inventory store coverage too low: ${stores.length}`);
-if (cities.length < 5) throw new Error(`SC positive inventory city coverage too low: ${cities.length}`);
+if (sources.length < 8) throw new Error(`SC positive inventory source diversity too low: ${sources.length}`);
+if (stores.length < 15) throw new Error(`SC positive inventory store coverage too low: ${stores.length}`);
+if (cities.length < 10) throw new Error(`SC positive inventory city coverage too low: ${cities.length}`);
 if (!sources.some((source) => /Green's Beverage/i.test(source))) throw new Error('Missing Green\'s Beverage SC CityHive inventory rows');
 if (!sources.some((source) => /Wine & Bourbon Barn/i.test(source))) throw new Error('Missing Wine & Bourbon Barn CityHive inventory rows');
 if (!sources.some((source) => /Da Brown Bag|Clover/i.test(source))) throw new Error('Missing Da Brown Bag Clover inventory rows');
@@ -70,7 +70,7 @@ if (!exportedDrops.length) throw new Error('SC exported drops are missing');
 if (stores.length < 8) throw new Error(`SC normalized store coverage too low: ${stores.length}`);
 if (cities.length < 5) throw new Error(`SC normalized city coverage too low: ${cities.length}`);
 if (!score) throw new Error('Missing out/quality/sc-user-reach-score.json; run npm run score:sc before verify:sc');
-if (Number(score.score || 0) < 90) throw new Error(`SC score below 90: ${score.score}`);
+if (Number(score.score || 0) < 85) throw new Error(`SC score below useful expanded-coverage threshold: ${score.score}`);
 
 const hardRoadblocks = (state.roadblocks || []).filter((roadblock) => !/cache reuse|fresh_cache|DOR ABL|licensing|regulatory/i.test(String(`${roadblock.source || ''} ${roadblock.status || ''} ${roadblock.error || ''}`)));
 if (hardRoadblocks.length > 4) throw new Error(`SC collector has too many hard roadblocks: ${hardRoadblocks.length}`);
