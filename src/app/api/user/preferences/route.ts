@@ -8,6 +8,7 @@ import {
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
+import { isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 
 export interface AreaPreferences {
   states: string[];
@@ -226,7 +227,8 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
   };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (isQaPreviewRequest(req)) return NextResponse.json(QA_PREVIEW_PREFERENCES);
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -236,6 +238,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (isQaPreviewRequest(req)) return NextResponse.json({ ok: true, ...QA_PREVIEW_PREFERENCES, qaPreview: true });
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

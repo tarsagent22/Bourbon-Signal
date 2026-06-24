@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
+import { isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -74,7 +75,8 @@ async function requireSightingsEntitlements(userId: string) {
   return getEntitlements(user.publicMetadata?.tier);
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (isQaPreviewRequest(req)) return NextResponse.json({ sightings: [], states: [] });
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);
@@ -87,6 +89,29 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (isQaPreviewRequest(req)) {
+    const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
+    const sighting: MemberSighting = {
+      id: payload.id || makeSightingId(),
+      bottleName: String(payload.bottleName || "QA Preview Sighting"),
+      bottleId: typeof payload.bottleId === "string" ? payload.bottleId : normalizeBottleKey(String(payload.bottleName || "QA Preview Sighting")),
+      rarityTier: normalizeRarityTier(payload.rarityTier),
+      storeId: String(payload.storeId || "qa-preview-store"),
+      storeName: String(payload.storeName || "QA Preview Store"),
+      storeAddress: String(payload.storeAddress || "Preview-only address"),
+      storeCity: typeof payload.storeCity === "string" ? payload.storeCity : "Preview",
+      storeState: typeof payload.storeState === "string" ? payload.storeState : "NC",
+      storeZip: typeof payload.storeZip === "string" ? payload.storeZip : undefined,
+      quantityEstimate: typeof payload.quantityEstimate === "string" ? payload.quantityEstimate : undefined,
+      price: typeof payload.price === "number" ? payload.price : null,
+      notes: typeof payload.notes === "string" ? payload.notes : "Preview-only QA sighting; not persisted.",
+      source: "custom",
+      sightingType: normalizeSightingType(payload.sightingType),
+      reporterUserId: "qa-preview-user",
+      createdAt: payload.createdAt || new Date().toISOString(),
+    };
+    return NextResponse.json({ ok: true, sighting, sightings: [sighting], qaPreview: true });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);
@@ -131,6 +156,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (isQaPreviewRequest(req)) return NextResponse.json({ ok: true, sightings: [], qaPreview: true });
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);

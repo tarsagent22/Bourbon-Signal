@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { isQaPreviewRequest } from "@/lib/preview-qa";
 
 const isProtectedRoute = createRouteMatcher([
   "/alerts(.*)",
@@ -28,6 +29,7 @@ export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
+  if (isQaPreviewRequest(request)) return NextResponse.next();
   if (!isProtectedRoute(request)) return NextResponse.next();
 
   const { userId } = await auth();
