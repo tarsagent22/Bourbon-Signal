@@ -304,15 +304,15 @@ export function scoreProofMatch(userProfile: UserTasteProfile, bottleProof?: num
   }
   const delta = Math.abs(bottleProof - userProfile.preferredProof);
   if (delta <= 5) {
-    return { score: 4, label: "Strong proof match", explanation: `${bottleProof} proof is very close to your ${proofBand(userProfile.preferredProof)} comfort zone.` };
+    return { score: 4, label: "Proof match", explanation: `${bottleProof} proof is inside your preferred range.` };
   }
   if (delta <= 10) {
-    return { score: 2.4, label: "Similar proof", explanation: `${bottleProof} proof is near bottles you rate highly.` };
+    return { score: 2.4, label: "Proof fit", explanation: `${bottleProof} proof is near bottles you rate highly.` };
   }
   if (delta <= 18) {
-    return { score: 0.8, label: "Adjacent proof", explanation: `${bottleProof} proof is a little outside your usual range, but still close enough to consider.` };
+    return { score: 0.8, label: "Near proof", explanation: `${bottleProof} proof is close to your usual range.` };
   }
-  return { score: -1.2, label: "Different proof range", explanation: `${bottleProof} proof is outside your current preferred range.` };
+  return { score: -1.2, label: "Proof mismatch", explanation: `${bottleProof} proof is outside your current range.` };
 }
 
 export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfile: BourbonDnaProfile, bottleProof?: number) {
@@ -343,6 +343,7 @@ export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfil
   }
 
   const uniqueMatches = Array.from(new Set(matchedTags));
+  const topMatches = uniqueMatches.slice(0, 2).join(" + ");
 
   return {
     score: Math.round(score * 10) / 10,
@@ -351,11 +352,11 @@ export function scoreBourbonDnaMatch(userProfile: UserTasteProfile, bottleProfil
     proofMatch,
     mashBillMatch,
     explanation: uniqueMatches.length
-      ? `Fits your ${uniqueMatches.slice(0, 3).join(", ").toLowerCase()} profile${mashBillMatch ? ` and your ${mashBillMatch} pattern` : ""}.`
+      ? `Matches ${topMatches}.`
       : mashBillMatch
-        ? `Matches your ${mashBillMatch} pattern.`
+        ? "Similar mash-bill pattern."
         : proofMatch.score > 0
-          ? "Close to your preferred proof range."
-          : "Rate more bottles to sharpen this match.",
+          ? "Close proof fit."
+          : "Rate more bottles to improve matches.",
   };
 }

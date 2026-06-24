@@ -860,7 +860,7 @@ export default function DashboardPage() {
         proofMatchExplanation: item.proofMatchExplanation,
         mashBillMatch: item.mashBillMatch,
         reason: item.recentSightings.length
-          ? `${item.dnaReason} Recent market signal found.`
+          ? `${item.dnaReason} Recent signal nearby.`
           : item.dnaReason,
       }));
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys, shouldPrepareRecommendations]);
@@ -2443,12 +2443,12 @@ export default function DashboardPage() {
                   </div>
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>
                     {bourbonDnaSummary.favoriteTags.length
-                      ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(", ")} profile${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}${bourbonDnaSummary.favoriteMashBills[0] ? ` · ${bourbonDnaSummary.favoriteMashBills[0]}` : ""}${recommendationMarketSummary.sightedCount ? ` · ${recommendationMarketSummary.sightedCount} with recent signals` : ""}`
-                      : "Rate a few bottles; Bourbon DNA will infer flavor, proof, and mash-bill patterns without making you take a quiz."}
+                      ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(" · ")}${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}`
+                      : "Rate a few bottles to start."}
                   </p>
-                  {bourbonDnaSummary.nextLearningPrompt ? (
-                    <p style={{ margin: 0, borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "10px 11px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.55 }}>
-                      {bourbonDnaSummary.nextLearningPrompt}
+                  {bourbonDnaSummary.favoriteTags.length ? (
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
+                      Learning from your rated bottles.
                     </p>
                   ) : null}
                 </div>
@@ -2468,29 +2468,22 @@ export default function DashboardPage() {
                           {insight.proofMatchLabel !== "Proof unavailable" ? (
                             <span title={insight.proofMatchExplanation} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.proofMatchLabel}</span>
                           ) : null}
-                          {insight.mashBillMatch ? (
-                            <span title="Learned from your rated bottles and the mash-bill library" style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{insight.mashBillMatch}</span>
-                          ) : null}
                           {insight.matchedFlavors.slice(0, 3).map((flavor) => (
                             <span key={flavor} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "4px 7px", fontFamily: "var(--font-dm-sans)", fontSize: "11px" }}>{flavor}</span>
                           ))}
                         </div>
                         {insight.recentSightings.length > 0 ? (
-                          <div style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "9px", display: "grid", gap: "5px" }}>
-                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Recent signals</span>
-                            {insight.recentSightings.slice(0, 2).map((sighting) => (
-                              <Link key={`${sighting.location}-${sighting.timestamp}`} href={sighting.href} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45, textDecoration: "none" }}>
-                                {sighting.state ? `${sighting.state} · ` : ""}{sighting.location} {sighting.timestamp ? `· ${formatShortDate(sighting.timestamp)}` : ""}
-                              </Link>
-                            ))}
-                          </div>
+                          <Link href={insight.recentSightings[0].href} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45, textDecoration: "none" }}>
+                            {insight.recentSightings.length > 1 ? `${insight.recentSightings.length} recent signals` : "Recent signal"} · {insight.recentSightings[0].state ? `${insight.recentSightings[0].state} · ` : ""}{insight.recentSightings[0].location}{insight.recentSightings[0].timestamp ? ` · ${formatShortDate(insight.recentSightings[0].timestamp)}` : ""}
+                          </Link>
                         ) : null}
                         <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "11px" }}>Useful?</span>
                           {([
-                            ["useful", "Useful"],
-                            ["not_for_me", "Not for me"],
-                            ["already_own", "Already have/tried"],
+                            ["useful", "👍"],
+                            ["not_for_me", "👎"],
+                            ["already_own", "Have/tried"],
                           ] as const).map(([signal, label]) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
                             return (
