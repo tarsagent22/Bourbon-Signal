@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
-export type BourbonDnaFeedbackSignal = "useful" | "not_for_me" | "already_own";
+export type BourbonDnaFeedbackSignal = "useful" | "not_for_me" | "already_own" | "saved";
 
 export interface BourbonDnaFeedbackEntry {
   bottleId: string;
@@ -13,7 +13,7 @@ export interface BourbonDnaFeedbackEntry {
 }
 
 function normalizeSignal(value: unknown): BourbonDnaFeedbackSignal | null {
-  if (value === "useful" || value === "not_for_me" || value === "already_own") return value;
+  if (value === "useful" || value === "not_for_me" || value === "already_own" || value === "saved") return value;
   return null;
 }
 

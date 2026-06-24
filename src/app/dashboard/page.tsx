@@ -528,6 +528,8 @@ export default function DashboardPage() {
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
+  const [recommendationVisibleCount, setRecommendationVisibleCount] = useState(4);
+  const [recommendationRefreshNonce, setRecommendationRefreshNonce] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -620,6 +622,10 @@ export default function DashboardPage() {
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
   const shouldPrepareCollection = preparedDashboardSections.has("collection") || preparedDashboardSections.has("recommendations");
   const shouldPrepareRecommendations = preparedDashboardSections.has("recommendations");
+
+  useEffect(() => {
+    if (activeDashboardSection === "recommendations") setRecommendationVisibleCount(4);
+  }, [activeDashboardSection]);
 
   useEffect(() => {
     if (!shouldPrepareCollection || broadBottleCatalog.length > 0) return;
@@ -849,8 +855,14 @@ export default function DashboardPage() {
         score: item.dnaScore + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
       }))
       .filter((item) => item.score > 0 && (item.matchedFlavors.length > 0 || item.proofMatchLabel !== "Proof unavailable"))
-      .sort((a, b) => b.score - a.score || b.recentSightings.length - a.recentSightings.length || a.option.label.localeCompare(b.option.label))
-      .slice(0, 4)
+      .sort((a, b) => {
+        const scoreDelta = b.score - a.score;
+        if (Math.abs(scoreDelta) > 0.75) return scoreDelta;
+        if (b.recentSightings.length !== a.recentSightings.length) return b.recentSightings.length - a.recentSightings.length;
+        const seedScore = (key: string) => Array.from(key).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 3), recommendationRefreshNonce * 997);
+        return seedScore(b.option.canonicalKey) - seedScore(a.option.canonicalKey) || a.option.label.localeCompare(b.option.label);
+      })
+      .slice(0, 12)
       .map((item) => ({
         option: item.option,
         score: item.score,
@@ -863,7 +875,7 @@ export default function DashboardPage() {
           ? `${item.dnaReason} Recent signal nearby.`
           : item.dnaReason,
       }));
-  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys, shouldPrepareRecommendations]);
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, recommendationRefreshNonce, selectedCanonicalKeys, shouldPrepareRecommendations]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
@@ -1172,7 +1184,7 @@ export default function DashboardPage() {
     }
   };
 
-  const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own") => {
+  const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own" | "saved") => {
     if (!isSignedIn) {
       signIn();
       return;
@@ -2359,6 +2371,9 @@ export default function DashboardPage() {
                 >
                   {savingCollection ? "Saving bottle…" : selectedCollectionBottle ? "Save bottle to collection" : "Select a suggested bottle to save"}
                 </button>
+                <p style={{ margin: "-4px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
+                  Every rating sharpens your recommendations.
+                </p>
               </div>
 
               {collectionEntries.length > 0 ? (
@@ -2436,7 +2451,7 @@ export default function DashboardPage() {
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
                 <div style={{ display: "grid", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "start", flexWrap: "wrap" }}>
-                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA gets smarter with every bottle you rate.</h3>
                     <span style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "5px 8px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       {bourbonDnaSummary.confidence === "strong" ? "Strong read" : bourbonDnaSummary.confidence === "learning" ? "Learning" : "Early read"}
                     </span>
@@ -2444,18 +2459,21 @@ export default function DashboardPage() {
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>
                     {bourbonDnaSummary.favoriteTags.length
                       ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(" · ")}${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}`
-                      : "Rate a few bottles to start."}
+                      : "Add 3–5 bottles you’ve tried to unlock better matches."}
                   </p>
                   {bourbonDnaSummary.favoriteTags.length ? (
                     <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
-                      Learning from your rated bottles.
+                      {bourbonDnaSummary.confidence === "strong"
+                        ? "Based on your rated bottles, preferred proof, and flavor patterns."
+                        : "Learning your proof, flavor, and mash-bill patterns."}
                     </p>
                   ) : null}
                 </div>
 
                 {collectionRecommendationInsights.length > 0 ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
-                    {collectionRecommendationInsights.map((insight) => (
+                  <>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
+                      {collectionRecommendationInsights.slice(0, recommendationVisibleCount).map((insight) => (
                       <div key={insight.option.canonicalKey} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "13px", display: "grid", gap: "10px" }}>
                         <div>
                           <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{insight.option.label}</strong>
@@ -2477,7 +2495,10 @@ export default function DashboardPage() {
                             {insight.recentSightings.length > 1 ? `${insight.recentSightings.length} recent signals` : "Recent signal"} · {insight.recentSightings[0].state ? `${insight.recentSightings[0].state} · ` : ""}{insight.recentSightings[0].location}{insight.recentSightings[0].timestamp ? ` · ${formatShortDate(insight.recentSightings[0].timestamp)}` : ""}
                           </Link>
                         ) : null}
-                        <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ flex: "1 1 130px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
+                          <button type="button" onClick={() => submitDnaFeedback(insight, "saved")} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "rgba(82,180,126,0.12)" : "rgba(255,255,255,0.025)", color: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "#9AD4B1" : "var(--color-text-secondary)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saving" ? "progress" : "pointer" }}>{dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "Saved ✓" : "Save"}</button>
+                        </div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
                           <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "11px" }}>Useful?</span>
                           {([
@@ -2496,9 +2517,24 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
+                  <div style={{ display: "grid", gap: "10px" }}>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {collectionRecommendationInsights.length > recommendationVisibleCount ? (
+                        <button type="button" onClick={() => setRecommendationVisibleCount((count) => Math.min(collectionRecommendationInsights.length, count + 4))} style={{ border: "1px solid rgba(196,148,58,0.26)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Show more recommendations</button>
+                      ) : recommendationVisibleCount > 4 ? (
+                        <button type="button" onClick={() => setRecommendationVisibleCount(4)} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Show fewer</button>
+                      ) : null}
+                      <button type="button" onClick={() => { setRecommendationRefreshNonce((nonce) => nonce + 1); setRecommendationVisibleCount(4); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Refresh recommendations</button>
+                      <button type="button" onClick={() => { prepareDashboardSection("collection"); setActiveDashboardSection("collection"); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Add more bottles</button>
+                    </div>
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.55 }}>
+                      Want better matches? Add or rate more bottles in My Collection.
+                    </p>
+                  </div>
+                  </>
                 ) : (
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.7 }}>
-                    Add and rate a few bottles 80+ to unlock lightweight flavor-overlap suggestions. This is the first pass before deeper Bourbon DNA logic.
+                    Add 3–5 bottles you’ve tried to unlock better recommendations.
                   </p>
                 )}
               </div>
