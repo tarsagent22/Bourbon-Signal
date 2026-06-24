@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-24T23:22:14.731Z",
-  "count": 2687,
+  "generatedAt": "2026-06-24T23:42:37.338Z",
+  "count": 2693,
   "stores": [
     {
       "id": "alabc:001",
@@ -32456,6 +32456,20 @@
       "signalCount": 4
     },
     {
+      "id": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "sourceStoreId": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "state": "SC",
+      "name": "Beach Discount Beverage",
+      "address": "2204 N Kings Hwy, Myrtle Beach, SC 29577, USA",
+      "city": "Myrtle Beach",
+      "county": null,
+      "zip": "29577",
+      "lat": 33.7031403,
+      "lng": -78.870421,
+      "source": "Beach Discount Beverages South Carolina CityHive store inventory",
+      "signalCount": 9
+    },
+    {
       "id": "da-brown-bag:da-brown-bag-north-charleston",
       "sourceStoreId": "da-brown-bag:da-brown-bag-north-charleston",
       "state": "SC",
@@ -32470,6 +32484,20 @@
       "signalCount": 17
     },
     {
+      "id": "dev-liquors:620164924a3ea84d57c21d6f",
+      "sourceStoreId": "dev-liquors:620164924a3ea84d57c21d6f",
+      "state": "SC",
+      "name": "DEV Liquors - Summerville",
+      "address": "9730 Dorchester Rd 202 a, Summerville, SC 29485, USA",
+      "city": "Summerville",
+      "county": null,
+      "zip": "29485",
+      "lat": 32.9484743,
+      "lng": -80.15372669999999,
+      "source": "DEV Liquors South Carolina CityHive store inventory",
+      "signalCount": 10
+    },
+    {
       "id": "greens-beverage:61b7517362f55f727e469da5",
       "sourceStoreId": "greens-beverage:61b7517362f55f727e469da5",
       "state": "SC",
@@ -32481,7 +32509,7 @@
       "lat": 33.9903416,
       "lng": -81.0300477,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 7
     },
     {
       "id": "greens-beverage:61dc583152bc522be69a8b9e",
@@ -32495,7 +32523,7 @@
       "lat": 33.9781297,
       "lng": -80.9567029,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 6
     },
     {
       "id": "greens-beverage:61dc62fca1d5721d92e837cf",
@@ -32509,7 +32537,7 @@
       "lat": 34.8507292,
       "lng": -82.3292927,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 6
     },
     {
       "id": "greens-beverage:61e1d04c823936166693c7f3",
@@ -32523,7 +32551,7 @@
       "lat": 33.7085751,
       "lng": -78.863787,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "greens-beverage:61dc4ab6a1d5721307e9c20e",
@@ -32538,6 +32566,62 @@
       "lng": -81.1415335,
       "source": "Green's Beverage CityHive store locator",
       "signalCount": 1
+    },
+    {
+      "id": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "sourceStoreId": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "state": "SC",
+      "name": "Moss Creek Village Spirits & Wine",
+      "address": "1541 Fording Island Rd, Hilton Head Island, SC 29926, USA",
+      "city": "Hilton Head Island",
+      "county": null,
+      "zip": "29926",
+      "lat": 32.2369232,
+      "lng": -80.8072285,
+      "source": "Moss Creek Village Spirits & Wine South Carolina CityHive store inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "sourceStoreId": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "state": "SC",
+      "name": "O'Darby's Galleria",
+      "address": "2350 Dave Lyle Blvd, Rock Hill, SC 29730, USA",
+      "city": "Rock Hill",
+      "county": null,
+      "zip": "29730",
+      "lat": 34.9408142,
+      "lng": -80.9621524,
+      "source": "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "sourceStoreId": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "state": "SC",
+      "name": "Palmetto Liquor & Wine",
+      "address": "869 Houston Northcutt Blvd, Mt Pleasant, SC 29464, USA",
+      "city": "Mt Pleasant",
+      "county": null,
+      "zip": "29464",
+      "lat": 32.8035814,
+      "lng": -79.8883807,
+      "source": "Palmetto Liquor South Carolina CityHive store inventory",
+      "signalCount": 7
+    },
+    {
+      "id": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "sourceStoreId": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "state": "SC",
+      "name": "Rollers Wine & Spirits",
+      "address": "9 Palmetto Bay Rd, Hilton Head Island, SC 29928, USA",
+      "city": "Hilton Head Island",
+      "county": null,
+      "zip": "29928",
+      "lat": 32.156802,
+      "lng": -80.7642517,
+      "source": "Rollers Wine & Spirits South Carolina CityHive store inventory",
+      "signalCount": 8
     },
     {
       "id": "southern-spirits:southern-spirits-indian-land",
@@ -32565,7 +32649,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 8
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -32579,7 +32663,7 @@
       "lat": 34.7848814,
       "lng": -82.31420059999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 9
     },
     {
       "id": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
@@ -32593,7 +32677,7 @@
       "lat": 34.7131362,
       "lng": -82.254555,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 8
     },
     {
       "id": "busters-liquors:662124505fbcb5293d346405",

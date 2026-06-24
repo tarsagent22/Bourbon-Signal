@@ -536,6 +536,72 @@ const SC_CITYHIVE_SOURCES = [
       '699754a7b0035e3df3e7f3a4',
       '69977a118f10a026bd985189'
     ]
+  },
+  {
+    id: 'odarbys-liquor-barn',
+    chainName: "O'Darby's Liquor Barn",
+    sourceLabel: "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+    baseUrl: 'https://odarbysliquorbarn.com',
+    urls: [
+      'https://odarbysliquorbarn.com/shop/?subtype=bourbon',
+      'https://odarbysliquorbarn.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['607f9d38b73eb4091ef97ff7']
+  },
+  {
+    id: 'beach-discount-beverages',
+    chainName: 'Beach Discount Beverages',
+    sourceLabel: 'Beach Discount Beverages South Carolina CityHive store inventory',
+    baseUrl: 'https://beachdiscountbeverages.com',
+    urls: [
+      'https://beachdiscountbeverages.com/shop/?subtype=bourbon',
+      'https://beachdiscountbeverages.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['6144e1c2085a5f20a622a15f']
+  },
+  {
+    id: 'palmetto-liquor',
+    chainName: 'Palmetto Liquor',
+    sourceLabel: 'Palmetto Liquor South Carolina CityHive store inventory',
+    baseUrl: 'https://palmettoliquor.com',
+    urls: [
+      'https://palmettoliquor.com/shop/?subtype=bourbon',
+      'https://palmettoliquor.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['66c9e5c12556e329502b0e5e']
+  },
+  {
+    id: 'dev-liquors',
+    chainName: 'DEV Liquors',
+    sourceLabel: 'DEV Liquors South Carolina CityHive store inventory',
+    baseUrl: 'https://devliquors.com',
+    urls: [
+      'https://devliquors.com/shop/?subtype=bourbon',
+      'https://devliquors.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['620164924a3ea84d57c21d6f']
+  },
+  {
+    id: 'moss-creek-village-spirits',
+    chainName: 'Moss Creek Village Spirits & Wine',
+    sourceLabel: 'Moss Creek Village Spirits & Wine South Carolina CityHive store inventory',
+    baseUrl: 'https://www.mosscreekvillagespiritsandwine.com',
+    urls: [
+      'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon',
+      'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['67cf72208b17425acbba9e10']
+  },
+  {
+    id: 'rollers-wine-and-spirits',
+    chainName: 'Rollers Wine & Spirits',
+    sourceLabel: 'Rollers Wine & Spirits South Carolina CityHive store inventory',
+    baseUrl: 'https://rollerswineandspirits.com',
+    urls: [
+      'https://rollerswineandspirits.com/shop/?subtype=bourbon',
+      'https://rollerswineandspirits.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['5ea832d3b62f75270c45a976']
   }
 ];
 const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
