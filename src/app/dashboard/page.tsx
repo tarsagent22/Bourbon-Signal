@@ -1338,7 +1338,7 @@ export default function DashboardPage() {
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} owned` },
+    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready" },
   ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
 
@@ -1450,7 +1450,7 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Set your alerts, score the bottles you already own in your collection, and get recommendations based on what you like.
+                Set your alerts, score bottles you own or have tasted, and get recommendations based on what you like.
               </p>
             </ScrollReveal>
           </div>
@@ -2245,7 +2245,7 @@ export default function DashboardPage() {
           <StepShell
             step="Collection"
             title="My Collection"
-            subtitle="Add bottles you own, rate them 1.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
+            subtitle="Add bottles you own or have tasted, rate them 1.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
             hideHeader
             attached
           >
@@ -2258,7 +2258,7 @@ export default function DashboardPage() {
                       setCollectionBottleQuery(event.target.value);
                       if (selectedCollectionBottle && event.target.value !== selectedCollectionBottle.label) setSelectedCollectionBottle(null);
                     }}
-                    placeholder="Search a bottle you own..."
+                    placeholder="Search a bottle you own or have tasted..."
                     style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "13px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", outline: "none" }}
                   />
                   {filteredCollectionBottleOptions.length > 0 && collectionBottleQuery.trim() && !selectedCollectionBottle ? (
@@ -2380,7 +2380,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  Your collection is empty. Add a few bottles you own and rate highly; Barrel Proof recommendations will start from those signals.
+                  Your collection is empty. Add a few bottles you own or have tasted and rate highly; Barrel Proof recommendations will start from those signals.
                 </div>
               )}
 
@@ -2457,7 +2457,7 @@ export default function DashboardPage() {
                           {([
                             ["useful", "Useful"],
                             ["not_for_me", "Not for me"],
-                            ["already_own", "Already own"],
+                            ["already_own", "Already have/tried"],
                           ] as const).map(([signal, label]) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
                             return (
