@@ -91,6 +91,7 @@ interface RecommendedBottleInsight {
   reason: string;
   proofMatchLabel: string;
   proofMatchExplanation: string;
+  mashBillMatch?: string;
 }
 
 interface BourbonDnaSummary {
@@ -99,6 +100,9 @@ interface BourbonDnaSummary {
   preferredProofRange?: { min: number; max: number };
   basedOnCount: number;
   proofBottleCount: number;
+  confidence: "early" | "learning" | "strong";
+  favoriteMashBills: string[];
+  nextLearningPrompt?: string;
   summary: string;
 }
 
@@ -754,14 +758,24 @@ export default function DashboardPage() {
     const bottleLookup = new Map<string, BottleOption>();
     for (const option of broadCatalogBottleOptions) bottleLookup.set(option.canonicalKey, option);
     for (const option of bottleOptions) bottleLookup.set(option.canonicalKey, option);
-    return buildUserTasteProfile(collectionEntries.map((entry) => ({
-      canonicalKey: entry.canonicalKey,
-      bottleName: entry.bottleName,
-      rating: entry.rating,
-      tasteTags: entry.tasteTags,
-      proof: bottleLookup.get(entry.canonicalKey)?.bottle.proof,
-      wouldBuyAgain: entry.wouldBuyAgain,
-    })));
+    return buildUserTasteProfile(collectionEntries.map((entry) => {
+      const option = bottleLookup.get(entry.canonicalKey);
+      return {
+        canonicalKey: entry.canonicalKey,
+        bottleName: entry.bottleName,
+        rating: entry.rating,
+        tasteTags: entry.tasteTags,
+        proof: option?.bottle.proof,
+        wouldBuyAgain: entry.wouldBuyAgain,
+        inferredProfile: option ? createBourbonDnaProfile({
+          name: option.bottle.canonical_name || option.bottle.name,
+          brand: option.bottle.distillery,
+          proof: option.bottle.proof,
+          aliases: [...(option.bottle.aliases || []), ...(option.bottle.search_aliases || [])],
+          userTags: option.bottle.flavor,
+        }) : undefined,
+      };
+    }));
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, shouldPrepareCollection]);
 
   const bourbonDnaSummary = useMemo<BourbonDnaSummary>(() => {
@@ -777,9 +791,12 @@ export default function DashboardPage() {
       preferredProofRange: collectionTasteProfile.preferredProofRange,
       basedOnCount: collectionEntries.filter((entry) => entry.rating >= 80).length,
       proofBottleCount: collectionTasteProfile.proofBottleCount,
+      confidence: collectionTasteProfile.confidence,
+      favoriteMashBills: collectionTasteProfile.favoriteMashBills,
+      nextLearningPrompt: collectionTasteProfile.nextLearningPrompt,
       summary: collectionTasteProfile.favoriteTags.length
-        ? `Your Bourbon DNA currently leans toward ${tagText}. Your strongest proof signal is ${proofText}.`
-        : "Rate a few bottles 80+ and choose taste cues to build your Bourbon DNA profile.",
+        ? `Your Bourbon DNA currently leans toward ${tagText}. Your strongest proof signal is ${proofText}${collectionTasteProfile.favoriteMashBills[0] ? `, with ${collectionTasteProfile.favoriteMashBills[0]} emerging as a mash-bill pattern` : ""}.`
+        : "Rate a few bottles 80+ and Bourbon DNA will infer flavor, proof, and mash-bill patterns quietly in the background.",
     };
   }, [collectionEntries, collectionTasteProfile]);
 
@@ -810,6 +827,7 @@ export default function DashboardPage() {
           dnaReason: dnaMatch.explanation,
           proofMatchLabel: dnaMatch.proofMatch.label,
           proofMatchExplanation: dnaMatch.proofMatch.explanation,
+          mashBillMatch: dnaMatch.mashBillMatch,
           recentSightings: recentDrops
           .filter((drop) => isRealDropEvent(drop))
           .filter((drop) => dropMatchesBottle(drop, option.bottle))
@@ -840,8 +858,9 @@ export default function DashboardPage() {
         recentSightings: item.recentSightings,
         proofMatchLabel: item.proofMatchLabel,
         proofMatchExplanation: item.proofMatchExplanation,
+        mashBillMatch: item.mashBillMatch,
         reason: item.recentSightings.length
-          ? `${item.dnaReason} Recent market signal found.`
+          ? `${item.dnaReason} Recent signal nearby.`
           : item.dnaReason,
       }));
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, selectedCanonicalKeys, shouldPrepareRecommendations]);
@@ -2416,13 +2435,24 @@ export default function DashboardPage() {
             <div style={{ display: "grid", gap: "18px" }}>
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
                 <div style={{ display: "grid", gap: "10px" }}>
-                  <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "start", flexWrap: "wrap" }}>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
+                    <span style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "5px 8px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {bourbonDnaSummary.confidence === "strong" ? "Strong read" : bourbonDnaSummary.confidence === "learning" ? "Learning" : "Early read"}
+                    </span>
+                  </div>
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>
                     {bourbonDnaSummary.favoriteTags.length
-                      ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(", ")} profile${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}${recommendationMarketSummary.sightedCount ? ` · ${recommendationMarketSummary.sightedCount} with recent signals` : ""}`
-                      : "Rate a few bottles and add taste cues to build your recommendation profile."}
+                      ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(" · ")}${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}`
+                      : "Rate a few bottles to start."}
                   </p>
+                  {bourbonDnaSummary.favoriteTags.length ? (
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
+                      Learning from your rated bottles.
+                    </p>
+                  ) : null}
                 </div>
+
                 {collectionRecommendationInsights.length > 0 ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))", gap: "10px" }}>
                     {collectionRecommendationInsights.map((insight) => (
@@ -2443,21 +2473,17 @@ export default function DashboardPage() {
                           ))}
                         </div>
                         {insight.recentSightings.length > 0 ? (
-                          <div style={{ borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.025)", padding: "9px", display: "grid", gap: "5px" }}>
-                            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Recent signals</span>
-                            {insight.recentSightings.slice(0, 2).map((sighting) => (
-                              <Link key={`${sighting.location}-${sighting.timestamp}`} href={sighting.href} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45, textDecoration: "none" }}>
-                                {sighting.state ? `${sighting.state} · ` : ""}{sighting.location} {sighting.timestamp ? `· ${formatShortDate(sighting.timestamp)}` : ""}
-                              </Link>
-                            ))}
-                          </div>
+                          <Link href={insight.recentSightings[0].href} style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.45, textDecoration: "none" }}>
+                            {insight.recentSightings.length > 1 ? `${insight.recentSightings.length} recent signals` : "Recent signal"} · {insight.recentSightings[0].state ? `${insight.recentSightings[0].state} · ` : ""}{insight.recentSightings[0].location}{insight.recentSightings[0].timestamp ? ` · ${formatShortDate(insight.recentSightings[0].timestamp)}` : ""}
+                          </Link>
                         ) : null}
                         <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "11px" }}>Useful?</span>
                           {([
-                            ["useful", "Useful"],
-                            ["not_for_me", "Not for me"],
-                            ["already_own", "Already have/tried"],
+                            ["useful", "👍"],
+                            ["not_for_me", "👎"],
+                            ["already_own", "Have/tried"],
                           ] as const).map(([signal, label]) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
                             return (
