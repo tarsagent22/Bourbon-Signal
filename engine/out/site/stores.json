@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-24T21:50:39.333Z",
-  "count": 2683,
+  "generatedAt": "2026-06-24T23:03:24.635Z",
+  "count": 2679,
   "stores": [
     {
       "id": "alabc:001",
@@ -9286,6 +9286,48 @@
       "signalCount": 1
     },
     {
+      "id": "21st-amendment:5e76971f42192376169104da",
+      "sourceStoreId": "21st-amendment:5e76971f42192376169104da",
+      "state": "IN",
+      "name": "21st Amendment - E 146th Street",
+      "address": "3404 E 146th St, Carmel, IN 46033, USA",
+      "city": "Carmel",
+      "county": null,
+      "zip": "46033",
+      "lat": 40.0010766,
+      "lng": -86.10670420000001,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 2
+    },
+    {
+      "id": "21st-amendment:5eaf1ee6ac6b1d273935d1e6",
+      "sourceStoreId": "21st-amendment:5eaf1ee6ac6b1d273935d1e6",
+      "state": "IN",
+      "name": "21st Amendment - Noblesville",
+      "address": "14235 Mundy Dr, Noblesville, IN 46060, USA",
+      "city": "Noblesville",
+      "county": null,
+      "zip": "46060",
+      "lat": 39.9955202,
+      "lng": -86.0031765,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "21st-amendment:5e4ebcb5cf37f24b832f0145",
+      "sourceStoreId": "21st-amendment:5e4ebcb5cf37f24b832f0145",
+      "state": "IN",
+      "name": "21st Amendment - W 86th St",
+      "address": "1154 W 86th St, Indianapolis, IN 46260, USA",
+      "city": "Indianapolis",
+      "county": null,
+      "zip": "46260",
+      "lat": 39.9129497,
+      "lng": -86.180109,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 5
+    },
+    {
       "id": "DL1234042",
       "sourceStoreId": "DL1234042",
       "state": "IN",
@@ -10459,7 +10501,7 @@
       "lat": 41.0304121,
       "lng": -85.1668317,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 17
+      "signalCount": 10
     },
     {
       "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e77",
@@ -10468,12 +10510,12 @@
       "name": "Belmont Beverage of Cleveland Road",
       "address": "223 Cleveland Rd, Granger, IN 46530, USA",
       "city": "Granger",
-      "county": "St. Joseph County",
+      "county": null,
       "zip": "46530",
       "lat": 41.72358120000001,
       "lng": -86.175613,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 7
     },
     {
       "id": "belmont-beverage:5ba7d337b77cb36d0a2d2e7c",
@@ -10510,12 +10552,12 @@
       "name": "Belmont Beverage of Downtown",
       "address": "929 S, 929 Lafayette St, Fort Wayne, IN 46802, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46802",
       "lat": 41.0783865,
       "lng": -85.1338772,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d339b77cb36d0a2d2e8b",
@@ -10524,12 +10566,12 @@
       "name": "Belmont Beverage of Dupont East",
       "address": "3718 E Dupont Rd, Fort Wayne, IN 46825, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46825",
       "lat": 41.1779536,
       "lng": -85.0973602,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -10552,12 +10594,12 @@
       "name": "Belmont Beverage of East State",
       "address": "3929 E State Blvd, Fort Wayne, IN 46805, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46805",
       "lat": 41.0984937,
       "lng": -85.089103,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
@@ -10566,12 +10608,12 @@
       "name": "Belmont Beverage of Illinois Rd",
       "address": "10311 Illinois Rd, Fort Wayne, IN 46814, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46814",
       "lat": 41.0728349,
       "lng": -85.2762487,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9a",
@@ -10580,12 +10622,12 @@
       "name": "Belmont Beverage of Lima Rd.",
       "address": "8225 Lima Rd, Fort Wayne, IN 46818, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46818",
       "lat": 41.1554813,
       "lng": -85.166285,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33bb77cb36d0a2d2e9f",
@@ -10608,12 +10650,12 @@
       "name": "Belmont Beverage of Maplecrest",
       "address": "2799 Maplecrest Rd, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46815",
       "lat": 41.102371,
       "lng": -85.0609037,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
@@ -10622,12 +10664,12 @@
       "name": "Belmont Beverage of North Anthony",
       "address": "3311 N Anthony Blvd, Fort Wayne, IN 46805, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46805",
       "lat": 41.1069418,
       "lng": -85.1166123,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb8",
@@ -10636,12 +10678,12 @@
       "name": "Belmont Beverage of Oxford",
       "address": "1111 Oxford St, Fort Wayne, IN 46806, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46806",
       "lat": 41.0535318,
       "lng": -85.1221551,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "belmont-beverage:5ba7d33fb77cb36d0a2d2ebd",
@@ -10650,12 +10692,12 @@
       "name": "Belmont Beverage of Pontiac At Anthony",
       "address": "2631 S Anthony Blvd, Fort Wayne, IN 46803, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46803",
       "lat": 41.0611182,
       "lng": -85.1136938,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "belmont-beverage:5c92aaeed82c8d4a376d917f",
@@ -10664,12 +10706,12 @@
       "name": "Belmont Beverage of Roanoke",
       "address": "8930 N U.S. 24 E, Huntington, IN 46783, USA",
       "city": "Huntington",
-      "county": "Huntington County",
+      "county": null,
       "zip": "46783",
       "lat": 40.938599,
       "lng": -85.3802383,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ed1",
@@ -10678,12 +10720,12 @@
       "name": "Belmont Beverage of Roseland",
       "address": "254 N Dixie Way, Roseland, IN 46637, USA",
       "city": "Roseland",
-      "county": "St. Joseph County",
+      "county": null,
       "zip": "46637",
       "lat": 41.7186439,
       "lng": -86.24994459999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d342b77cb36d0a2d2ed6",
@@ -10734,12 +10776,12 @@
       "name": "Belmont Beverage of Southgate",
       "address": "134 E Pettit Ave, Fort Wayne, IN 46806, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46806",
       "lat": 41.0364248,
       "lng": -85.135498,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d344b77cb36d0a2d2eea",
@@ -10762,12 +10804,12 @@
       "name": "Belmont Beverage of Stellhorn Crossing",
       "address": "9173 Stellhorn Crossing Pkwy, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46815",
       "lat": 41.1200388,
       "lng": -85.02365789999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d345b77cb36d0a2d2eef",
@@ -10776,12 +10818,12 @@
       "name": "Belmont Beverage of Tillman Rd",
       "address": "1414 E Tillman Rd, Fort Wayne, IN 46816, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46816",
       "lat": 41.0169696,
       "lng": -85.1177435,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d345b77cb36d0a2d2ef4",
@@ -10790,12 +10832,12 @@
       "name": "Belmont Beverage of Time Corners",
       "address": "5992 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46804",
       "lat": 41.061175,
       "lng": -85.21872309999999,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2ef9",
@@ -10804,12 +10846,12 @@
       "name": "Belmont Beverage of West State",
       "address": "1103 W State Blvd, Fort Wayne, IN 46808, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46808",
       "lat": 41.0955093,
       "lng": -85.1573343,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -10958,12 +11000,12 @@
       "name": "Big Red #101 - 15th and College - Bloomington",
       "address": "1110 N College Ave, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47404",
       "lat": 39.1771238,
       "lng": -86.5345641,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "big-red:5e92506478e8f13c2cb1e150",
@@ -10972,12 +11014,12 @@
       "name": "Big Red #102 - The Big Store - Bloomington",
       "address": "418 N College Ave, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47404",
       "lat": 39.1697065,
       "lng": -86.5344652,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "big-red:5e92506878e8f13c2cb1e154",
@@ -10986,12 +11028,12 @@
       "name": "Big Red #103 - Bloomington",
       "address": "1870 S Walnut St, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47401",
       "lat": 39.1462386,
       "lng": -86.5329265,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 8
     },
     {
       "id": "big-red:5e92525778e8f13c2cb1e158",
@@ -11000,12 +11042,12 @@
       "name": "Big Red #104 - Bloomington",
       "address": "3207 E 3rd St, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47401",
       "lat": 39.1645919,
       "lng": -86.492271,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "big-red:5e92525978e8f13c2cb1e15c",
@@ -11014,12 +11056,12 @@
       "name": "Big Red #105 - Bloomington",
       "address": "1255 S College Mall Rd, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47401",
       "lat": 39.1528466,
       "lng": -86.49720669999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "big-red:5e9253cd78e8f13c2cb1e160",
@@ -11126,12 +11168,12 @@
       "name": "Big Red #114 - Bloomington",
       "address": "2501 S Leonard Springs Rd, Bloomington, IN 47403, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47403",
       "lat": 39.1417647,
       "lng": -86.5822999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 2
     },
     {
       "id": "big-red:5e92545778e8f13c2cb1e180",
@@ -11266,12 +11308,12 @@
       "name": "Big Red #125 - Bloomington",
       "address": "2205 N Walnut St, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47404",
       "lat": 39.18711880000001,
       "lng": -86.53458359999999,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "big-red:5e92547478e8f13c2cb1e1a8",
@@ -11280,12 +11322,12 @@
       "name": "Big Red #126 - Bloomington",
       "address": "713 W 17th St, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": "Monroe County",
+      "county": null,
       "zip": "47404",
       "lat": 39.17866739999999,
       "lng": -86.5411041,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "big-red:5e92547778e8f13c2cb1e1ac",
@@ -12470,12 +12512,12 @@
       "name": "Cap n’ Cork Broadway #403",
       "address": "1031 Broadway, Fort Wayne, IN 46802, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46802",
       "lat": 41.0752243,
       "lng": -85.1473693,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "cap-n-cork:6286c8b8bd6e7826f84d215d",
@@ -12484,12 +12526,12 @@
       "name": "Cap n' Cork Canterbury #415",
       "address": "3128 St Joe Center Rd, Fort Wayne, IN 46835, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46835",
       "lat": 41.1332513,
       "lng": -85.1028202,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
@@ -12512,12 +12554,12 @@
       "name": "Cap n’ Cork Covington Plaza #412",
       "address": "6410 W Jefferson Blvd, Fort Wayne, IN 46804, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46804",
       "lat": 41.05697139999999,
       "lng": -85.2262477,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "cap-n-cork:5e8f34fb9ea142251855ff61",
@@ -12526,12 +12568,12 @@
       "name": "Cap n’ Cork Dupont #414",
       "address": "10020 Lima Rd, Fort Wayne, IN 46818, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46818",
       "lat": 41.1745087,
       "lng": -85.1646998,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:67588ec370555c28febc51ca",
@@ -12540,12 +12582,12 @@
       "name": "Cap n' Cork Dupont #417",
       "address": "2868 E Dupont Rd, Fort Wayne, IN 46825, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46825",
       "lat": 41.177567,
       "lng": -85.10801839999999,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "cap-n-cork:6286c8a7a84e7c25c81dbf4a",
@@ -12554,12 +12596,12 @@
       "name": "Cap n' Cork Foster Park #413",
       "address": "3603 Brooklyn Ave, Fort Wayne, IN 46809, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46809",
       "lat": 41.0523728,
       "lng": -85.1625186,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:6286c7f218bd991ce7713945",
@@ -12568,12 +12610,12 @@
       "name": "Cap n' Cork Georgetown #402",
       "address": "6712 E State Blvd, Fort Wayne, IN 46815, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46815",
       "lat": 41.1023851,
       "lng": -85.0556965,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "cap-n-cork:6286c835065fab26d65cf5c0",
@@ -12582,12 +12624,12 @@
       "name": "Cap n' Cork Lima Road #407",
       "address": "4520 Lima Rd, Fort Wayne, IN 46808, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46808",
       "lat": 41.1197149,
       "lng": -85.1501037,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:5ec530cf23277b281b030bed",
@@ -12596,12 +12638,12 @@
       "name": "Cap n’ Cork Maysville Pointe #410",
       "address": "10158 Maysville Rd, Fort Wayne, IN 46835, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46835",
       "lat": 41.1286331,
       "lng": -85.01163,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:5ec5272fb8c4f025ffa9a194",
@@ -12610,12 +12652,12 @@
       "name": "Cap n’ Cork New Haven #404",
       "address": "110 Lincoln Hwy E, New Haven, IN 46774, USA",
       "city": "New Haven",
-      "county": "Allen County",
+      "county": null,
       "zip": "46774",
       "lat": 41.0697063,
       "lng": -85.0297202,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:6286c80fe0a85826d18a6636",
@@ -12624,12 +12666,12 @@
       "name": "Cap n' Cork Waynedale #405",
       "address": "7002 Bluffton Rd, Fort Wayne, IN 46809, USA",
       "city": "Fort Wayne",
-      "county": "Allen County",
+      "county": null,
       "zip": "46809",
       "lat": 41.01869019999999,
       "lng": -85.1699124,
-      "source": "Cap n' Cork CityHive store locator",
-      "signalCount": 1
+      "source": "Cap n' Cork CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "DL4232467",
@@ -12848,12 +12890,12 @@
       "name": "Chalet Party Shoppes of Caragana Court",
       "address": "2703 Caragana Ct #1, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.5558816,
       "lng": -85.7907292,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
@@ -12876,12 +12918,12 @@
       "name": "Chalet Party Shoppes of Chicago Ave",
       "address": "245 Chicago Ave, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.5887503,
       "lng": -85.8438448,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
@@ -12918,12 +12960,12 @@
       "name": "Chalet Party Shoppes of Reith BLVD",
       "address": "1830 Rieth Blvd #2, Goshen, IN 46526, USA",
       "city": "Goshen",
-      "county": "Elkhart County",
+      "county": null,
       "zip": "46526",
       "lat": 41.615844,
       "lng": -85.8933109,
-      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store locator",
-      "signalCount": 1
+      "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",
@@ -14996,6 +15038,20 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
+    },
+    {
+      "id": "holiday-liquors-jasper:5cdf0bcc2bffa126c90fa7cc",
+      "sourceStoreId": "holiday-liquors-jasper:5cdf0bcc2bffa126c90fa7cc",
+      "state": "IN",
+      "name": "Holiday Liquors North",
+      "address": "2905 N Newton St, Jasper, IN 47546, USA",
+      "city": "Jasper",
+      "county": null,
+      "zip": "47546",
+      "lat": 38.4145599,
+      "lng": -86.9385507,
+      "source": "Holiday Liquors Jasper CityHive store inventory",
+      "signalCount": 8
     },
     {
       "id": "DL4931179",
@@ -24809,7 +24865,7 @@
       "lat": 41.4716231,
       "lng": -87.3167897,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 3
     },
     {
       "id": "wise-guys:5eb1dc10054c392621980908",
@@ -24823,7 +24879,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 17
+      "signalCount": 13
     },
     {
       "id": "DL4901139",
@@ -32414,76 +32470,6 @@
       "signalCount": 17
     },
     {
-      "id": "greens-beverage:61b7517362f55f727e469da5",
-      "sourceStoreId": "greens-beverage:61b7517362f55f727e469da5",
-      "state": "SC",
-      "name": "Green's Beverage - Assembly Street SC",
-      "address": "400 Assembly St, Columbia, SC 29201, USA",
-      "city": "Columbia",
-      "county": null,
-      "zip": "29201",
-      "lat": 33.9903416,
-      "lng": -81.0300477,
-      "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 10
-    },
-    {
-      "id": "greens-beverage:61dc583152bc522be69a8b9e",
-      "sourceStoreId": "greens-beverage:61dc583152bc522be69a8b9e",
-      "state": "SC",
-      "name": "Green's Beverage - Garners Ferry SC",
-      "address": "6800 Garners Ferry Rd, Columbia, SC 29209, USA",
-      "city": "Columbia",
-      "county": null,
-      "zip": "29209",
-      "lat": 33.9781297,
-      "lng": -80.9567029,
-      "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "greens-beverage:61dc62fca1d5721d92e837cf",
-      "sourceStoreId": "greens-beverage:61dc62fca1d5721d92e837cf",
-      "state": "SC",
-      "name": "Green's Beverage - Greenville SC",
-      "address": "445 Congaree Rd, Greenville, SC 29607, USA",
-      "city": "Greenville",
-      "county": null,
-      "zip": "29607",
-      "lat": 34.8507292,
-      "lng": -82.3292927,
-      "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 8
-    },
-    {
-      "id": "greens-beverage:61e1d04c823936166693c7f3",
-      "sourceStoreId": "greens-beverage:61e1d04c823936166693c7f3",
-      "state": "SC",
-      "name": "Green's Beverage - Myrtle Beach SC",
-      "address": "2850 N Kings Hwy, Myrtle Beach, SC 29577, USA",
-      "city": "Myrtle Beach",
-      "county": null,
-      "zip": "29577",
-      "lat": 33.7085751,
-      "lng": -78.863787,
-      "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 7
-    },
-    {
-      "id": "greens-beverage:61dc4ab6a1d5721307e9c20e",
-      "sourceStoreId": "greens-beverage:61dc4ab6a1d5721307e9c20e",
-      "state": "SC",
-      "name": "Green's Beverage - Piney Grove SC",
-      "address": "4012 Fernandina Rd, Columbia, SC 29212, USA",
-      "city": "Columbia",
-      "county": "Lexington County",
-      "zip": "29212",
-      "lat": 34.0687159,
-      "lng": -81.1415335,
-      "source": "Green's Beverage CityHive store locator",
-      "signalCount": 1
-    },
-    {
       "id": "southern-spirits:southern-spirits-indian-land",
       "sourceStoreId": "southern-spirits:southern-spirits-indian-land",
       "state": "SC",
@@ -32496,48 +32482,6 @@
       "lng": null,
       "source": "Southern Spirits Shopify products feed",
       "signalCount": 7
-    },
-    {
-      "id": "wine-bourbon-barn:69977a118f10a026bd985189",
-      "sourceStoreId": "wine-bourbon-barn:69977a118f10a026bd985189",
-      "state": "SC",
-      "name": "Wine & Bourbon Barn - GVL",
-      "address": "1050 N Pleasantburg Dr, Greenville, SC 29607, USA",
-      "city": "Greenville",
-      "county": null,
-      "zip": "29607",
-      "lat": 34.8683482,
-      "lng": -82.35776539999999,
-      "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 11
-    },
-    {
-      "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
-      "sourceStoreId": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
-      "state": "SC",
-      "name": "Wine & Bourbon Barn - MLD",
-      "address": "437 N Main St, Mauldin, SC 29662, USA",
-      "city": "Mauldin",
-      "county": null,
-      "zip": "29662",
-      "lat": 34.7848814,
-      "lng": -82.31420059999999,
-      "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 11
-    },
-    {
-      "id": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
-      "sourceStoreId": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
-      "state": "SC",
-      "name": "Wine & Bourbon Barn - SVL",
-      "address": "30 Ray E Talley Ct, Simpsonville, SC 29680, USA",
-      "city": "Simpsonville",
-      "county": null,
-      "zip": "29680",
-      "lat": 34.7131362,
-      "lng": -82.254555,
-      "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
     },
     {
       "id": "busters-liquors:662124505fbcb5293d346405",

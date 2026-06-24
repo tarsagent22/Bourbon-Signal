@@ -31,11 +31,14 @@ function unique(values) { return [...new Set(values.filter(Boolean))]; }
 const stateSignals = state.signals || [];
 const exportedDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'IN');
 const exportedEvents = (eventsExport.events || []).filter((event) => event.state === 'IN');
-const sourceRows = exportedDrops.length ? exportedDrops : stateSignals;
+// Score pitchability from the normalized state artifact, not only the customer drop feed.
+// The site feed intentionally filters many safe core/standard inventory rows out of drops.json;
+// those rows still matter for whether Indiana is useful enough to pitch.
 const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result', 'store_inventory_result']);
-const inventoryRows = sourceRows.filter((row) => inventoryTypes.has(row.type || row.eventType));
+const inventoryRows = stateSignals.filter((row) => row.state === 'IN' && inventoryTypes.has(row.type || row.eventType));
 const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && Number(row.quantity || 0) > 0 && row.storeId && row.storeAddress);
 function rowKey(row) { return [row.type || row.eventType, row.source || row.sourceLabel, row.rawName || row.bottleName || row.canonicalName, norm(row.city), norm(row.storeName || row.locationName), row.eventDate || row.releaseDate || ''].join('|').toLowerCase(); }
+
 const watchMap = new Map();
 for (const row of [...stateSignals, ...exportedEvents, ...exportedDrops]) {
   if (row.state && row.state !== 'IN') continue;
