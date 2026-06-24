@@ -189,8 +189,8 @@ function PricingPageContent() {
 
         <section className="pricing-hero">
           <ScrollReveal>
-            <p className="pricing-kicker">Bourbon Signal Membership</p>
-            <h1>The first 100 members get Bourbon Signal for life.</h1>
+            <p className="pricing-kicker">Membership Pricing</p>
+            <h1>Pick your proof.</h1>
             <div className="billing-toggle" aria-label="Billing cycle">
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
                 Monthly
