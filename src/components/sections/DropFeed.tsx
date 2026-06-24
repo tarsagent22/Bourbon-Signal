@@ -751,7 +751,10 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
   const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
   const canQuickReport = !distilleryMeta && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
+  const canUseHeroAccent = Boolean(distilleryMeta) || drop.rarity_tier === "unicorn" || drop.rarity_tier === "allocated";
+  const hasTopCardAccent = index === 0 && canUseHeroAccent;
   const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
+
   const memberVoteControls = isUserSighting && onVoteSighting ? (
     <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
       <button
@@ -833,12 +836,12 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       style={{
         filter: "none",
         pointerEvents: isBlurred ? "none" : "auto",
-        ...(glowing && index === 0
+        ...(glowing && hasTopCardAccent
           ? { animation: "newDropGlow 2s ease infinite" }
           : {}),
       }}
     >
-      {/* Mobile card */}
+
       <div
         className="md:hidden"
         onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
@@ -847,14 +850,14 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           marginBottom: "12px",
           padding: "15px 15px 14px",
           borderRadius: "22px",
-          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : glowing && index === 0 ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
+          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : hasTopCardAccent && glowing ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
           background:
             distilleryMeta
               ? "linear-gradient(145deg, rgba(196,148,58,0.11) 0%, rgba(31,22,12,0.94) 42%, rgba(11,9,7,0.96) 100%)"
-              : index === 0
+              : hasTopCardAccent
               ? "linear-gradient(145deg, rgba(196,148,58,0.14) 0%, rgba(31,22,12,0.94) 42%, rgba(12,10,7,0.96) 100%)"
               : "linear-gradient(145deg, rgba(245,237,214,0.055) 0%, rgba(24,18,12,0.92) 44%, rgba(11,9,7,0.94) 100%)",
-          boxShadow: index === 0 ? "0 18px 42px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.045)" : "0 14px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.035)",
+          boxShadow: hasTopCardAccent ? "0 18px 42px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.045)" : "0 14px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.035)",
           overflow: "hidden",
           cursor: hasDetails ? "pointer" : "default",
         }}
@@ -868,7 +871,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
             bottom: 0,
             width: "3px",
             background: tier.borderColor,
-            opacity: index === 0 ? 1 : 0.72,
+            opacity: canUseHeroAccent ? (hasTopCardAccent ? 0.9 : 0.55) : 0,
           }}
         />
 
