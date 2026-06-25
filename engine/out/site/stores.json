@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-25T20:44:31.338Z",
+  "generatedAt": "2026-06-25T21:30:03.470Z",
   "count": 2685,
   "stores": [
     {
@@ -28449,7 +28449,7 @@
       "lat": 39.961391,
       "lng": -75.35627,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "2333",

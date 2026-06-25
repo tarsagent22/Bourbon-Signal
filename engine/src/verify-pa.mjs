@@ -4,8 +4,9 @@ import path from 'node:path';
 const OUT = path.resolve('out');
 const MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 
-async function readJson(file) {
-  return JSON.parse(await readFile(file, 'utf8'));
+async function readJson(file, fallback) {
+  try { return JSON.parse(await readFile(file, 'utf8')); }
+  catch (error) { if (arguments.length > 1) return fallback; throw error; }
 }
 
 function assert(condition, message, details) {
@@ -26,6 +27,7 @@ async function main() {
   const storesPayload = await readJson(path.join(OUT, 'site', 'stores.json'));
   const locationsPayload = await readJson(path.join(OUT, 'site', 'locations.json'));
   const fwgs = await readJson(path.join(OUT, 'browser', 'fwgs-store-inventory.json'));
+  const browserRefreshStatus = await readJson(path.join(OUT, 'browser-refresh-status.json'), null);
 
   const signals = (snapshot.signals || []).filter((signal) => signal.state === 'PA');
   const storeSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && signal.locationPrecision === 'store_level');
@@ -42,6 +44,8 @@ async function main() {
 
   assert(fwgs.summary?.positiveInventoryRowCount >= 1000, 'FWGS browser artifact has too few positive PA inventory rows.', fwgs.summary);
   assert(ageHours(fwgs.generatedAt) <= MAX_AGE_HOURS, 'FWGS browser artifact is stale.', { generatedAt: fwgs.generatedAt, maxAgeHours: MAX_AGE_HOURS });
+  const paRefresh = (browserRefreshStatus?.results || []).find((result) => result.id === 'pa-fwgs');
+  assert(!paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact), 'PA browser refresh status indicates a failed/preserved FWGS artifact.', paRefresh);
   assert(storeSignals.length >= 1000, 'PA store-level signal count is below threshold.', storeSignals.length);
   assert(inventorySignals.length >= 1000, 'PA inventory-alertable signal count is below threshold.', inventorySignals.length);
   assert(exactDrops.length >= 1000, 'PA site exact-store drop count is below threshold.', exactDrops.length);

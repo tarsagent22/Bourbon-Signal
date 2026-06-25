@@ -30,5 +30,8 @@ jobs:
       - name: Verify checked-in engine site contract
         run: npm --prefix engine run verify:site
 
+      - name: Verify PA engine automation guardrails
+        run: npm --prefix engine run verify:pa:automation
+
       - name: Build site
         run: npm run build

@@ -27,7 +27,7 @@
     "verify:ky": "node src/verify-ky-hardening.mjs",
     "verify:oh": "node src/verify-ohio-hardening.mjs",
     "score:in": "node src/score-in-user-reach.mjs",
-    "refresh:pa": "npm run fwgs:full && npm run run && npm run operational && npm run export:site && npm run verify:pa",
+    "refresh:pa": "FWGS_INVENTORY_CONCURRENCY=16 FWGS_BATCH_SIZE=100 FWGS_FULL_CHUNK_LIMIT=300 FWGS_FULL_OFFSETS=0,300 BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT=1 npm run fwgs:full && BOURBON_SIGNAL_BROWSER_PREFLIGHT=0 npm run run && npm run operational && npm run export:site && npm run verify:pa && npm run verify:pa:automation",
     "refresh:oh": "node src/ohlq-browser-collector.mjs --discover && node src/run.mjs --skip-browser-preflight && node src/operational-report.mjs && node --max-old-space-size=16384 src/export-site-contract.mjs && node src/verify-ohio-hardening.mjs",
     "ohlq": "node src/ohlq-browser-collector.mjs",
     "ohlq:discover": "node src/ohlq-browser-collector.mjs --discover",
@@ -45,7 +45,8 @@
     "score:tn": "node src/score-tn-user-reach.mjs",
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
-    "verify:site": "node src/verify-site-contract.mjs"
+    "verify:site": "node src/verify-site-contract.mjs",
+    "verify:pa:automation": "node src/verify-pa-automation.mjs"
   },
   "dependencies": {
     "pdf-parse": "^2.4.5"

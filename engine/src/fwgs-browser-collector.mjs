@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { ensureBrowserCdp } from './core/browser-session.mjs';
 
 const DEFAULT_CDP = process.env.FWGS_CDP_URL || process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
 const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.json';
@@ -293,6 +294,8 @@ async function collectFwgs(page) {
   };
 }
 async function main() {
+  const browser = await ensureBrowserCdp(DEFAULT_CDP);
+  if (browser.started) console.log(`Started browser CDP for FWGS on ${DEFAULT_CDP} (pid ${browser.pid || 'unknown'}).`);
   const target = await getOrCreateTarget(DEFAULT_CDP);
   const page = new CdpPage(target.webSocketDebuggerUrl);
   await page.connect();

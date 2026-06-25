@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-25T20:44:31.338Z",
+  "generatedAt": "2026-06-25T21:30:03.470Z",
   "historyDays": 30,
   "count": 100,
   "trends": [
@@ -9,10 +9,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomington",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "3e7c64958ddd9174",
@@ -21,7 +21,7 @@
         "3e7c64958ddd9174",
         "3e7c64958ddd9174"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -30,10 +30,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Highland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "8a737d57a80f4aff",
@@ -42,7 +42,7 @@
         "8a737d57a80f4aff",
         "8a737d57a80f4aff"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -51,10 +51,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Orland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "3dbaa2eb38360026",
@@ -63,7 +63,7 @@
         "3dbaa2eb38360026",
         "3dbaa2eb38360026"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -72,10 +72,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Champaign",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "d544783f1d2a4dc7",
@@ -84,7 +84,7 @@
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -93,10 +93,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Mokena",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "bf7c2d280c13fb0b",
@@ -105,7 +105,7 @@
         "bf7c2d280c13fb0b",
         "bf7c2d280c13fb0b"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -114,10 +114,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Plainfield",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 132,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "1b891de9cacf3736",
@@ -126,7 +126,7 @@
         "1b891de9cacf3736",
         "1b891de9cacf3736"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -135,10 +135,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Peoria",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 146,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 130,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "8b92cd04bccd07d7",
@@ -147,7 +147,7 @@
         "ad2e6d4f66021203",
         "8b92cd04bccd07d7"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -156,10 +156,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomingdale",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "c94866150695edc7",
@@ -168,7 +168,7 @@
         "3b9040fe62672c40",
         "c94866150695edc7"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -177,10 +177,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Skokie",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "078466be5913d6de",
@@ -189,7 +189,7 @@
         "1dbd6c6a837b82ec",
         "078466be5913d6de"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -198,10 +198,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Rockford",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "7fb6c8166a2e069e",
@@ -210,7 +210,7 @@
         "2e8d66662f521eb7",
         "7fb6c8166a2e069e"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -219,10 +219,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Springfield",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "f00246d9d22b4e4e",
@@ -231,7 +231,7 @@
         "c9642b2d14817e81",
         "f00246d9d22b4e4e"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -240,10 +240,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Niles",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "5a5850a4622538b6",
@@ -252,7 +252,7 @@
         "2e899796fc6f4476",
         "5a5850a4622538b6"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -261,10 +261,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Vernon Hills",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "5b36f09df2a283e0",
@@ -273,7 +273,7 @@
         "b23854b519cbee08",
         "5b36f09df2a283e0"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -282,10 +282,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's South Loop",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "0d8da579399c2f2a",
@@ -294,7 +294,7 @@
         "83db3d3a01b404bc",
         "0d8da579399c2f2a"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -303,10 +303,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Lincoln Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "e121df744bd2001a",
@@ -315,7 +315,7 @@
         "b2edc2fa7bee19a0",
         "e121df744bd2001a"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -324,10 +324,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Wheeling",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "bd691c9eea587de2",
@@ -336,7 +336,7 @@
         "03b6eace3e963018",
         "bd691c9eea587de2"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -345,10 +345,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Montgomery",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "b4dfe16d254eb78b",
@@ -357,7 +357,7 @@
         "2f15aea6d10ff313",
         "b4dfe16d254eb78b"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -366,10 +366,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's North Riverside",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "35f41c3a2bdcb20e",
@@ -378,7 +378,7 @@
         "954a7ab9bfebbf4a",
         "35f41c3a2bdcb20e"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -387,10 +387,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Lincolnwood",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 132,
+      "watchObservations": 132,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "25c56338c991635f",
@@ -399,7 +399,7 @@
         "4a20577ca9c3fb21",
         "25c56338c991635f"
       ],
-      "observationCount": 296,
+      "observationCount": 264,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -408,10 +408,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Geneva",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "3dd9aed2349f195c",
@@ -420,7 +420,7 @@
         "3dd9aed2349f195c",
         "3dd9aed2349f195c"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -429,10 +429,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Naperville",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "3f75b8d95e743e6d",
@@ -441,7 +441,7 @@
         "3f75b8d95e743e6d",
         "3f75b8d95e743e6d"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -450,10 +450,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Downers Grove",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "94382d3e778ad206",
@@ -462,7 +462,7 @@
         "94382d3e778ad206",
         "94382d3e778ad206"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -471,10 +471,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Crystal Lake",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "26be2dbafd38edcb",
@@ -483,7 +483,7 @@
         "26be2dbafd38edcb",
         "26be2dbafd38edcb"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -492,10 +492,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Downtown",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "9b1619082b879b4c",
@@ -504,7 +504,7 @@
         "9b1619082b879b4c",
         "9b1619082b879b4c"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -513,10 +513,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bucktown",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "eb257d92d7bba4b3",
@@ -525,7 +525,7 @@
         "eb257d92d7bba4b3",
         "eb257d92d7bba4b3"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -534,10 +534,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Schaumburg",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 111,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 99,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "272cf8ec70ee8d56",
@@ -546,7 +546,7 @@
         "272cf8ec70ee8d56",
         "272cf8ec70ee8d56"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -555,10 +555,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bolingbrook",
       "locationPrecision": "store_level",
-      "inventoryObservations": 147,
-      "watchObservations": 147,
-      "positiveQuantities": 110,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 131,
+      "watchObservations": 131,
+      "positiveQuantities": 98,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "9d6769d03aa2d785",
@@ -567,7 +567,7 @@
         "e0e01a38713fae1a",
         "9d6769d03aa2d785"
       ],
-      "observationCount": 294,
+      "observationCount": 262,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -576,10 +576,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Oak Brook",
       "locationPrecision": "store_level",
-      "inventoryObservations": 146,
-      "watchObservations": 146,
-      "positiveQuantities": 109,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 130,
+      "watchObservations": 130,
+      "positiveQuantities": 97,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "ab97754c766a5a02",
@@ -588,7 +588,7 @@
         "ab97754c766a5a02",
         "ab97754c766a5a02"
       ],
-      "observationCount": 292,
+      "observationCount": 260,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -597,10 +597,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Glen Ellyn",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 109,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 97,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "86bd9c689f80aadd",
@@ -609,7 +609,7 @@
         "86bd9c689f80aadd",
         "86bd9c689f80aadd"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -618,10 +618,10 @@
       "bottleName": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
       "source": "Cool Springs Wine & Spirits",
       "locationPrecision": "store_level",
-      "inventoryObservations": 108,
-      "watchObservations": 108,
-      "positiveQuantities": 108,
-      "firstObservedAt": "2026-06-21T07:06:01.977Z",
+      "inventoryObservations": 96,
+      "watchObservations": 96,
+      "positiveQuantities": 96,
+      "firstObservedAt": "2026-06-21T08:07:41.856Z",
       "lastObservedAt": "2026-06-25T20:36:07.277Z",
       "sampleSignalIds": [
         "393c4fa509abd6a7",
@@ -630,7 +630,7 @@
         "393c4fa509abd6a7",
         "393c4fa509abd6a7"
       ],
-      "observationCount": 216,
+      "observationCount": 192,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -639,10 +639,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "NC ABC state warehouse",
       "locationPrecision": "board_warehouse",
-      "inventoryObservations": 105,
-      "watchObservations": 175,
-      "positiveQuantities": 105,
-      "firstObservedAt": "2026-06-21T07:00:08.680Z",
+      "inventoryObservations": 93,
+      "watchObservations": 155,
+      "positiveQuantities": 93,
+      "firstObservedAt": "2026-06-21T08:00:10.096Z",
       "lastObservedAt": "2026-06-25T20:27:10.143Z",
       "sampleSignalIds": [
         "5fe622929530be5a",
@@ -651,7 +651,7 @@
         "2613b905fddd58be",
         "2613b905fddd58be"
       ],
-      "observationCount": 280,
+      "observationCount": 248,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -660,10 +660,10 @@
       "bottleName": "E.H. Taylor Small Batch",
       "source": "NC ABC state warehouse",
       "locationPrecision": "board_warehouse",
-      "inventoryObservations": 105,
-      "watchObservations": 105,
-      "positiveQuantities": 105,
-      "firstObservedAt": "2026-06-21T07:00:08.680Z",
+      "inventoryObservations": 93,
+      "watchObservations": 93,
+      "positiveQuantities": 93,
+      "firstObservedAt": "2026-06-21T08:00:10.096Z",
       "lastObservedAt": "2026-06-25T20:27:10.143Z",
       "sampleSignalIds": [
         "42112660bd6fdf81",
@@ -672,7 +672,7 @@
         "42112660bd6fdf81",
         "42112660bd6fdf81"
       ],
-      "observationCount": 210,
+      "observationCount": 186,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -681,10 +681,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "Da Brown Bag ABC Store",
       "locationPrecision": "store_level",
-      "inventoryObservations": 93,
-      "watchObservations": 93,
-      "positiveQuantities": 93,
-      "firstObservedAt": "2026-06-21T07:06:09.741Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-21T07:55:20.643Z",
       "lastObservedAt": "2026-06-21T15:40:02.161Z",
       "sampleSignalIds": [
         "f3e606a0985a6c08",
@@ -693,7 +693,7 @@
         "f3e606a0985a6c08",
         "f3e606a0985a6c08"
       ],
-      "observationCount": 186,
+      "observationCount": 168,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -702,10 +702,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Kahn's Fine Wines & Spirits",
       "locationPrecision": "store_level",
-      "inventoryObservations": 93,
-      "watchObservations": 93,
-      "positiveQuantities": 93,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 84,
+      "watchObservations": 84,
+      "positiveQuantities": 84,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-21T15:35:00.232Z",
       "sampleSignalIds": [
         "5e70780d26a82c6d",
@@ -714,7 +714,7 @@
         "5e70780d26a82c6d",
         "5e70780d26a82c6d"
       ],
-      "observationCount": 186,
+      "observationCount": 168,
       "current": false,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -723,10 +723,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Gurnee",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "b50a74e8814d1b0f",
@@ -735,7 +735,7 @@
         "b50a74e8814d1b0f",
         "b50a74e8814d1b0f"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -744,10 +744,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's McHenry",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "76a67cb7f43ff824",
@@ -756,7 +756,7 @@
         "76a67cb7f43ff824",
         "76a67cb7f43ff824"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -765,10 +765,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Lake Zurich",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "ecc21e4494e64623",
@@ -777,7 +777,7 @@
         "ecc21e4494e64623",
         "ecc21e4494e64623"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -786,10 +786,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Elmwood Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "b83e6536edfaa016",
@@ -798,7 +798,7 @@
         "b83e6536edfaa016",
         "b83e6536edfaa016"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -807,10 +807,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's River Grove",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "cf2b3771d50e3567",
@@ -819,7 +819,7 @@
         "cf2b3771d50e3567",
         "cf2b3771d50e3567"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -828,10 +828,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Logan Square",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "1788de8ba98aebe6",
@@ -840,7 +840,7 @@
         "1788de8ba98aebe6",
         "1788de8ba98aebe6"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -849,10 +849,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Portage Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "a7c660585c57c09f",
@@ -861,7 +861,7 @@
         "a7c660585c57c09f",
         "a7c660585c57c09f"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -870,10 +870,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Hyde Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "7bd18d4b194ca4f0",
@@ -882,7 +882,7 @@
         "7bd18d4b194ca4f0",
         "7bd18d4b194ca4f0"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -891,10 +891,10 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Evanston",
       "locationPrecision": "store_level",
-      "inventoryObservations": 111,
-      "watchObservations": 111,
-      "positiveQuantities": 74,
-      "firstObservedAt": "2026-06-21T07:05:04.548Z",
+      "inventoryObservations": 99,
+      "watchObservations": 99,
+      "positiveQuantities": 66,
+      "firstObservedAt": "2026-06-21T08:06:43.954Z",
       "lastObservedAt": "2026-06-25T20:35:10.759Z",
       "sampleSignalIds": [
         "5066a54dbf780c52",
@@ -903,7 +903,7 @@
         "5066a54dbf780c52",
         "5066a54dbf780c52"
       ],
-      "observationCount": 222,
+      "observationCount": 198,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -912,10 +912,10 @@
       "bottleName": "Green River Wheated Bourbon",
       "source": "Cool Springs Wine & Spirits",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:06:01.977Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:07:41.856Z",
       "lastObservedAt": "2026-06-25T20:36:07.277Z",
       "sampleSignalIds": [
         "b71faf6e8da5b4f1",
@@ -924,7 +924,7 @@
         "b71faf6e8da5b4f1",
         "b71faf6e8da5b4f1"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -933,10 +933,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "Gateway Wine & Spirits",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:06:01.977Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:07:41.856Z",
       "lastObservedAt": "2026-06-25T20:36:07.277Z",
       "sampleSignalIds": [
         "fa560494391fcf3a",
@@ -945,7 +945,7 @@
         "fa560494391fcf3a",
         "fa560494391fcf3a"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -954,10 +954,10 @@
       "bottleName": "1792 Small Batch",
       "source": "Gateway Wine & Spirits",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:06:01.977Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:07:41.856Z",
       "lastObservedAt": "2026-06-25T20:36:07.277Z",
       "sampleSignalIds": [
         "24163ffa5709b042",
@@ -966,7 +966,7 @@
         "24163ffa5709b042",
         "24163ffa5709b042"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -975,10 +975,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Belmont Beverage of Cleveland Road",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "bc5df8b41fb838df",
@@ -987,7 +987,7 @@
         "bc5df8b41fb838df",
         "bc5df8b41fb838df"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -996,10 +996,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Belmont Beverage of Maplecrest",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "c38e24889aa5a5ad",
@@ -1008,7 +1008,7 @@
         "c38e24889aa5a5ad",
         "c38e24889aa5a5ad"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1017,10 +1017,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Chalet Party Shoppes of Caragana Court",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "c774d30ced79b621",
@@ -1029,7 +1029,7 @@
         "c774d30ced79b621",
         "c774d30ced79b621"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1038,10 +1038,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Chalet Party Shoppes of Cassopolis St",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "0e433a6aa9e81762",
@@ -1050,7 +1050,7 @@
         "0e433a6aa9e81762",
         "0e433a6aa9e81762"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1059,10 +1059,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Cap n’ Cork Coldwater #411",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "8433e16d2d13b4e1",
@@ -1071,7 +1071,7 @@
         "8433e16d2d13b4e1",
         "8433e16d2d13b4e1"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1080,10 +1080,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Chalet Party Shoppes of Chicago Ave",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "32e76c6da2436489",
@@ -1092,7 +1092,7 @@
         "32e76c6da2436489",
         "32e76c6da2436489"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1101,10 +1101,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Belmont Beverage of Bluffton Road",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "41bc7f37ddd55a34",
@@ -1113,7 +1113,7 @@
         "41bc7f37ddd55a34",
         "41bc7f37ddd55a34"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1122,10 +1122,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Belmont Beverage of Southland Plaza",
       "locationPrecision": "store_level",
-      "inventoryObservations": 72,
-      "watchObservations": 72,
-      "positiveQuantities": 72,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 64,
+      "watchObservations": 64,
+      "positiveQuantities": 64,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "47b73e5513f8619a",
@@ -1134,7 +1134,7 @@
         "47b73e5513f8619a",
         "47b73e5513f8619a"
       ],
-      "observationCount": 144,
+      "observationCount": 128,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1143,10 +1143,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Wise Guys Discount Liquors - Valparaiso",
       "locationPrecision": "store_level",
-      "inventoryObservations": 71,
-      "watchObservations": 71,
-      "positiveQuantities": 71,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 63,
+      "watchObservations": 63,
+      "positiveQuantities": 63,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "c2841bad8bd04ed7",
@@ -1155,7 +1155,7 @@
         "c2841bad8bd04ed7",
         "c2841bad8bd04ed7"
       ],
-      "observationCount": 142,
+      "observationCount": 126,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1164,10 +1164,10 @@
       "bottleName": "Willett Family Estate",
       "source": "NC ABC state warehouse",
       "locationPrecision": "board_warehouse",
-      "inventoryObservations": 70,
-      "watchObservations": 280,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:08.680Z",
+      "inventoryObservations": 62,
+      "watchObservations": 248,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:10.096Z",
       "lastObservedAt": "2026-06-25T20:27:10.143Z",
       "sampleSignalIds": [
         "d8ee991aa3b5bd09",
@@ -1176,7 +1176,7 @@
         "cebdb56d0888ef82",
         "cebdb56d0888ef82"
       ],
-      "observationCount": 350,
+      "observationCount": 310,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1185,10 +1185,10 @@
       "bottleName": "Elijah Craig Barrel Proof",
       "source": "NC ABC state warehouse",
       "locationPrecision": "board_warehouse",
-      "inventoryObservations": 70,
-      "watchObservations": 105,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:08.680Z",
+      "inventoryObservations": 62,
+      "watchObservations": 93,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:10.096Z",
       "lastObservedAt": "2026-06-25T20:27:10.143Z",
       "sampleSignalIds": [
         "fbd10d696295b5ef",
@@ -1197,7 +1197,7 @@
         "fbd10d696295b5ef",
         "fbd10d696295b5ef"
       ],
-      "observationCount": 175,
+      "observationCount": 155,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1206,10 +1206,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 4501 Vineyrd Pine Ln., Rolesville, NC 27571",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "69e8c8d6a691bf2f",
@@ -1218,7 +1218,7 @@
         "69e8c8d6a691bf2f",
         "69e8c8d6a691bf2f"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1227,10 +1227,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 1505 Banyon Pl., Wendell, NC 27571",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "418e82740c20edb6",
@@ -1239,7 +1239,7 @@
         "418e82740c20edb6",
         "418e82740c20edb6"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1248,10 +1248,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 3615 SW Cary Parkway, Cary, NC 27513",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.729Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "c9f0695f77e79a49",
@@ -1260,7 +1260,7 @@
         "c9f0695f77e79a49",
         "c9f0695f77e79a49"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1269,10 +1269,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 4215 The Circle at North Hills Rd, Raleigh, NC 27609",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "6a54df87a3a08c64",
@@ -1281,7 +1281,7 @@
         "6a54df87a3a08c64",
         "6a54df87a3a08c64"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1290,10 +1290,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 7911 ACC Blvd., Raleigh, NC 27617",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "de1ea387011d132b",
@@ -1302,7 +1302,7 @@
         "de1ea387011d132b",
         "de1ea387011d132b"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1311,10 +1311,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 4009 Davis Dr., Morrisville, NC 27560",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "88e65093060bf315",
@@ -1323,7 +1323,7 @@
         "88e65093060bf315",
         "88e65093060bf315"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1332,10 +1332,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 6809 Davis Circle, Raleigh, NC 27612",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.729Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "2072768ef4068f7c",
@@ -1344,7 +1344,7 @@
         "2072768ef4068f7c",
         "2072768ef4068f7c"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1353,10 +1353,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 100 Village Walk Dr, Holly Springs, NC 27540",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "9352d1a5f7db4087",
@@ -1365,7 +1365,7 @@
         "9352d1a5f7db4087",
         "9352d1a5f7db4087"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1374,10 +1374,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 209 S Salisbury St, Raleigh, NC 27601",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "58178901335abf9a",
@@ -1386,7 +1386,7 @@
         "58178901335abf9a",
         "58178901335abf9a"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1395,10 +1395,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 420 Woodburn Rd., Raleigh, NC 27605",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.729Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "f8ee18d7c343c02d",
@@ -1407,7 +1407,7 @@
         "f8ee18d7c343c02d",
         "f8ee18d7c343c02d"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1416,10 +1416,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 2109-106 Avent Ferry Rd., Raleigh, NC 27606",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "2243a47d3e4afa60",
@@ -1428,7 +1428,7 @@
         "2243a47d3e4afa60",
         "2243a47d3e4afa60"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1437,10 +1437,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 1420 N Ardendell Dr., Zebulon, NC 27597",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.916Z",
       "sampleSignalIds": [
         "b7ba861083efb66b",
@@ -1449,7 +1449,7 @@
         "b7ba861083efb66b",
         "b7ba861083efb66b"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1458,10 +1458,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 1940 Cinema Dr., Fuquay Varina, NC 27526",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "80aab8763b4760d4",
@@ -1470,7 +1470,7 @@
         "80aab8763b4760d4",
         "80aab8763b4760d4"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1479,10 +1479,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 7336 Creedmoor Rd., Raleigh, NC 27613",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "ecdae17cac2a7088",
@@ -1491,7 +1491,7 @@
         "ecdae17cac2a7088",
         "ecdae17cac2a7088"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1500,10 +1500,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 7200 Sandy Fork Rd., Raleigh, NC 27609",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "60aa050e32a47110",
@@ -1512,7 +1512,7 @@
         "60aa050e32a47110",
         "60aa050e32a47110"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1521,10 +1521,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 665 Cary Towne Blvd., Cary, NC 27511",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "b896e94f4a0249b7",
@@ -1533,7 +1533,7 @@
         "b896e94f4a0249b7",
         "b896e94f4a0249b7"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1542,10 +1542,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 3320 Olympia Dr., Raleigh, NC 27603",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "f10161fab0776f87",
@@ -1554,7 +1554,7 @@
         "f10161fab0776f87",
         "f10161fab0776f87"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1563,10 +1563,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 1793 West Williams St., Apex, NC 27502",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "00ba765d826a1861",
@@ -1575,7 +1575,7 @@
         "00ba765d826a1861",
         "00ba765d826a1861"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1584,10 +1584,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 11360 Capital Blvd., Wake Forest, NC 27587",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "7248368ef59e80b9",
@@ -1596,7 +1596,7 @@
         "7248368ef59e80b9",
         "7248368ef59e80b9"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1605,10 +1605,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 6494 Tryon Rd., Cary, NC 27511",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "5931fa9921d12977",
@@ -1617,7 +1617,7 @@
         "5931fa9921d12977",
         "5931fa9921d12977"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1626,10 +1626,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 200 New Rand Road, Garner, NC 27529",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "bace5fc6d91e14b4",
@@ -1638,7 +1638,7 @@
         "bace5fc6d91e14b4",
         "bace5fc6d91e14b4"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1647,10 +1647,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 6301 Town Center Dr., Raleigh, NC 27614",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "66e428d884de35fc",
@@ -1659,7 +1659,7 @@
         "66e428d884de35fc",
         "66e428d884de35fc"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1668,10 +1668,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 1415 E. Williams St., Apex, NC 27617",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "1d98f4317a92574e",
@@ -1680,7 +1680,7 @@
         "1d98f4317a92574e",
         "1d98f4317a92574e"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1689,10 +1689,10 @@
       "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
       "source": "Wake County ABC - 704 Money Ct., Knightdale, NC 27545",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:01:00.251Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:01:02.728Z",
       "lastObservedAt": "2026-06-25T20:27:57.915Z",
       "sampleSignalIds": [
         "7e205a9469f932e1",
@@ -1701,7 +1701,7 @@
         "7e205a9469f932e1",
         "7e205a9469f932e1"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1710,10 +1710,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "Wake County ABC - 4009 Davis Dr., Morrisville, NC 27560",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:56.670Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:59.377Z",
       "lastObservedAt": "2026-06-25T20:27:54.347Z",
       "sampleSignalIds": [
         "a63733196dcd4fd8",
@@ -1722,7 +1722,7 @@
         "a63733196dcd4fd8",
         "a63733196dcd4fd8"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1731,10 +1731,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "Wake County ABC - 100 Village Walk Dr, Holly Springs, NC 27540",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:56.670Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:59.377Z",
       "lastObservedAt": "2026-06-25T20:27:54.347Z",
       "sampleSignalIds": [
         "32af1c375081be3e",
@@ -1743,7 +1743,7 @@
         "32af1c375081be3e",
         "32af1c375081be3e"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1752,10 +1752,10 @@
       "bottleName": "Buffalo Trace Bourbon",
       "source": "Wake County ABC - 7911 ACC Blvd., Raleigh, NC 27617",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:56.670Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:59.377Z",
       "lastObservedAt": "2026-06-25T20:27:54.347Z",
       "sampleSignalIds": [
         "bad95f4b81361a3b",
@@ -1764,7 +1764,7 @@
         "bad95f4b81361a3b",
         "bad95f4b81361a3b"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1773,10 +1773,10 @@
       "bottleName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
       "source": "Wake County ABC - 209 S Salisbury St, Raleigh, NC 27601",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:55.552Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:58.175Z",
       "lastObservedAt": "2026-06-25T20:27:53.289Z",
       "sampleSignalIds": [
         "4c33d79a5bfa95d0",
@@ -1785,7 +1785,7 @@
         "4c33d79a5bfa95d0",
         "4c33d79a5bfa95d0"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1794,10 +1794,10 @@
       "bottleName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
       "source": "Wake County ABC - 4215 The Circle at North Hills Rd, Raleigh, NC 27609",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:55.552Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:58.175Z",
       "lastObservedAt": "2026-06-25T20:27:53.289Z",
       "sampleSignalIds": [
         "f09034a5d856688d",
@@ -1806,7 +1806,7 @@
         "f09034a5d856688d",
         "f09034a5d856688d"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1815,10 +1815,10 @@
       "bottleName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
       "source": "Wake County ABC - 11360 Capital Blvd., Wake Forest, NC 27587",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:55.552Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:58.175Z",
       "lastObservedAt": "2026-06-25T20:27:53.289Z",
       "sampleSignalIds": [
         "62facf8227ea309d",
@@ -1827,7 +1827,7 @@
         "62facf8227ea309d",
         "62facf8227ea309d"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1836,10 +1836,10 @@
       "bottleName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
       "source": "Wake County ABC - 7200 Sandy Fork Rd., Raleigh, NC 27609",
       "locationPrecision": "store_level",
-      "inventoryObservations": 70,
-      "watchObservations": 70,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:00:55.552Z",
+      "inventoryObservations": 62,
+      "watchObservations": 62,
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:00:58.175Z",
       "lastObservedAt": "2026-06-25T20:27:53.289Z",
       "sampleSignalIds": [
         "0482d1ce79f40667",
@@ -1848,7 +1848,7 @@
         "0482d1ce79f40667",
         "0482d1ce79f40667"
       ],
-      "observationCount": 140,
+      "observationCount": 124,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1859,8 +1859,8 @@
       "locationPrecision": "store_aggregate",
       "inventoryObservations": 0,
       "watchObservations": 0,
-      "positiveQuantities": 70,
-      "firstObservedAt": "2026-06-21T07:05:14.630Z",
+      "positiveQuantities": 62,
+      "firstObservedAt": "2026-06-21T08:06:53.830Z",
       "lastObservedAt": "2026-06-25T20:35:21.226Z",
       "sampleSignalIds": [
         "968e025a90a632f7",
@@ -1878,10 +1878,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #621 - Carmel",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "b2e55dc0b318be61",
@@ -1890,7 +1890,7 @@
         "b2e55dc0b318be61",
         "b2e55dc0b318be61"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1899,10 +1899,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #218 - Brownsburg",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "5404f86aa4d7bd76",
@@ -1911,7 +1911,7 @@
         "5404f86aa4d7bd76",
         "5404f86aa4d7bd76"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1920,10 +1920,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #615 - Fishers",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "8cef2ff67b139f7a",
@@ -1932,7 +1932,7 @@
         "8cef2ff67b139f7a",
         "8cef2ff67b139f7a"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1941,10 +1941,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #108 - Bloomington",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "fd19c1614df6ebc8",
@@ -1953,7 +1953,7 @@
         "fd19c1614df6ebc8",
         "fd19c1614df6ebc8"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1962,10 +1962,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #210 - Indianapolis",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "e60c428aeddf3808",
@@ -1974,7 +1974,7 @@
         "e60c428aeddf3808",
         "e60c428aeddf3808"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1983,10 +1983,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #213 - Indianapolis",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "403d968607884f23",
@@ -1995,7 +1995,7 @@
         "403d968607884f23",
         "403d968607884f23"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -2004,10 +2004,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #233 - Greenwood",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "5d642b47e7e669ec",
@@ -2016,7 +2016,7 @@
         "5d642b47e7e669ec",
         "5d642b47e7e669ec"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -2025,10 +2025,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #209 - Indianapolis",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "0bfbe712fed72a92",
@@ -2037,7 +2037,7 @@
         "0bfbe712fed72a92",
         "0bfbe712fed72a92"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -2046,10 +2046,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #226 - Indianapolis",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "c4a1259374bc5cb6",
@@ -2058,7 +2058,7 @@
         "c4a1259374bc5cb6",
         "c4a1259374bc5cb6"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -2067,10 +2067,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #234 - Greenwood",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "572d532cd5c727ea",
@@ -2079,7 +2079,7 @@
         "572d532cd5c727ea",
         "572d532cd5c727ea"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -2088,10 +2088,10 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #231 - Westfield",
       "locationPrecision": "store_level",
-      "inventoryObservations": 64,
-      "watchObservations": 64,
-      "positiveQuantities": 64,
-      "firstObservedAt": "2026-06-21T07:01:15.124Z",
+      "inventoryObservations": 56,
+      "watchObservations": 56,
+      "positiveQuantities": 56,
+      "firstObservedAt": "2026-06-21T08:01:13.965Z",
       "lastObservedAt": "2026-06-25T18:39:49.382Z",
       "sampleSignalIds": [
         "9e915a7156feeb65",
@@ -2100,7 +2100,7 @@
         "9e915a7156feeb65",
         "9e915a7156feeb65"
       ],
-      "observationCount": 128,
+      "observationCount": 112,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     }

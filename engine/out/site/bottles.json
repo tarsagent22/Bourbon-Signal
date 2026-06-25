@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-25T20:44:31.338Z",
+  "generatedAt": "2026-06-25T21:30:03.470Z",
   "count": 151,
   "bottles": [
     {
@@ -21,10 +21,10 @@
       ],
       "tier": "unicorn",
       "producer": "Heaven Hill",
-      "signalCount": 422,
+      "signalCount": 421,
       "stateCount": 3,
-      "inventorySignalCount": 28,
-      "watchSignalCount": 422,
+      "inventorySignalCount": 27,
+      "watchSignalCount": 421,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -32,7 +32,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-06-25T20:24:13.541Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_3bccb93448bf8456",
@@ -227,7 +227,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-25T20:36:07.277Z"
+      "latestObservedAt": "2026-06-25T21:29:52.054Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -1098,7 +1098,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-06-25T20:36:07.277Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1134,7 +1134,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-06-25T20:36:07.277Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1431,7 +1431,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:27:08.234Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_b7ca7cc4ab428ba8",
@@ -1712,7 +1712,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-06-25T20:36:07.277Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1738,7 +1738,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:35:21.226Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_2435a31e97c20ce7",
@@ -1763,7 +1763,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:28:06.970Z"
+      "latestObservedAt": "2026-06-25T21:29:52.746Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1787,7 +1787,7 @@
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:18:37.181Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_ef203a18f5f98f23",
@@ -3081,7 +3081,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:18:29.710Z"
+      "latestObservedAt": "2026-06-25T21:29:40.229Z"
     },
     {
       "id": "bb_71f028a40975fd30",
@@ -3459,7 +3459,7 @@
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-06-25T20:25:23.184Z"
+      "latestObservedAt": "2026-06-25T21:29:49.429Z"
     },
     {
       "id": "bb_dab3d03d7632a821",

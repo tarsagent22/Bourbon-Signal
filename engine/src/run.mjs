@@ -4,6 +4,8 @@ import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
+import { ensureBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
+import { confidenceForSignal } from './confidence-policy.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -50,7 +52,8 @@ const BROWSER_PREFLIGHT_JOBS = [
     id: 'pa-fwgs',
     label: 'Pennsylvania FWGS browser/store inventory bootstrap',
     artifact: path.join(OUT, 'browser', 'fwgs-store-inventory.json'),
-    command: ['src/fwgs-browser-collector.mjs'],
+    command: ['src/fwgs-browser-full.mjs'],
+    timeoutMs: Number(process.env.BOURBON_SIGNAL_FWGS_FULL_PREFLIGHT_TIMEOUT_MS || 900_000),
     outEnv: 'FWGS_OUT_FILE',
     validateArtifact: validateFwgsArtifact
   },
@@ -137,17 +140,20 @@ function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BR
 }
 
 async function runGuardedBrowserPreflightJob(job) {
-  const artifactLabel = path.relative(process.cwd(), job.artifact).replace(/\\/g, '/');
+  const artifactLabel = path.relative(process.cwd(), job.artifact).replace(/\/g, '/');
+  const needsBrowser = /browser|ohlq|fwgs/i.test(`${job.id} ${job.label}`);
+  let browser = null;
+  if (needsBrowser) browser = await ensureBrowserCdp(DEFAULT_CDP_URL);
   if (!job.outEnv || !job.validateArtifact) {
-    const result = await runNodeScript(job.command);
-    return { id: job.id, label: job.label, artifact: artifactLabel, status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result };
+    const result = await runNodeScript(job.command, job.timeoutMs);
+    return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result };
   }
 
   const tempArtifact = `${job.artifact}.candidate-${Date.now()}.json`;
-  const result = await runNodeScript(job.command, undefined, { [job.outEnv]: tempArtifact });
+  const result = await runNodeScript(job.command, job.timeoutMs, { [job.outEnv]: tempArtifact });
   if (!result.ok) {
     await rm(tempArtifact, { force: true }).catch(() => {});
-    return { id: job.id, label: job.label, artifact: artifactLabel, status: 'failed_non_blocking', preservedPreviousArtifact: true, ...result };
+    return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: 'failed_non_blocking', preservedPreviousArtifact: true, ...result };
   }
 
   const candidate = await readJson(tempArtifact, null);
@@ -158,6 +164,7 @@ async function runGuardedBrowserPreflightJob(job) {
       id: job.id,
       label: job.label,
       artifact: artifactLabel,
+      browser,
       ...result,
       status: 'rejected_candidate_preserved_previous',
       ok: false,
@@ -172,6 +179,7 @@ async function runGuardedBrowserPreflightJob(job) {
     id: job.id,
     label: job.label,
     artifact: artifactLabel,
+    browser,
     status: 'refreshed',
     validation: validation.reason,
     ...result
@@ -355,7 +363,7 @@ function buildSourceHealth(summary, reports, browserPreflight) {
     const reachable = (report.sources || []).filter((s) => s.ok).length;
     const signalProducing = (report.sources || []).filter((s) => s.ok && ((s.matchedBottleCount || 0) > 0 || (s.pdfLinkCount || 0) > 0 || (s.documentLinkCount || 0) > 0 || /inventory|release|catalog|health|location/i.test(String(s.signalType || '')))).length;
     const storeLevelSignals = (report.signals || []).filter((s) => s.locationPrecision === 'store_level').length;
-    const actionableInventorySignals = (report.signals || []).filter((s) => s.canAlertAsInventory && s.locationPrecision === 'store_level').length;
+    const actionableInventorySignals = (report.signals || []).filter((s) => s.locationPrecision === 'store_level' && (s.canAlertAsInventory || confidenceForSignal(s).canAlertAsInventory)).length;
     return {
       state: report.state,
       label: report.label,
