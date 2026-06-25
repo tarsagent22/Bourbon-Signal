@@ -5,6 +5,13 @@ import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-nor
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const MAX_ENGINE_AGE_MS = 6 * HOUR_MS;
+const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
+const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
+const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
+const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 
 function dropRarityTier(drop: Record<string, unknown>) {
   return String(drop.rarity_tier ?? drop.tier ?? "").toLowerCase();
@@ -86,7 +93,59 @@ function engineRunTimestamp(exportGeneratedAt?: unknown) {
   const statsPayload = readSiteExport("stats");
   const candidates = [statsPayload?.engineGeneratedAt, statsPayload?.generatedAt, exportGeneratedAt];
   const timestamp = candidates.find((value) => typeof value === "string" && value.trim());
-  return typeof timestamp === "string" ? timestamp : new Date().toISOString();
+  return typeof timestamp === "string" ? timestamp : "";
+}
+
+function asTime(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return Number.NaN;
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? time : Number.NaN;
+}
+
+function dropTimestamp(drop: Record<string, unknown>) {
+  return asTime(drop.last_confirmed_at ?? drop.lastConfirmedAt ?? drop.timestamp ?? drop.displayAt ?? drop.observed_at ?? drop.observedAt);
+}
+
+function maxAgeForDrop(drop: Record<string, unknown>) {
+  const type = String(drop.event_type ?? drop.type ?? "").toLowerCase();
+  const category = String(drop.signal_category ?? drop.signalCategory ?? "").toLowerCase();
+  const scope = String(drop.availability_scope ?? drop.availabilityScope ?? "").toLowerCase();
+  const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
+  const canAlert = drop.can_alert_as_inventory === true || drop.canAlertAsInventory === true;
+
+  if (canAlert || category === "inventory" || scope === "store_reported" || precision === "store_level" || type.includes("in_stock") || type.includes("inventory_result")) {
+    return MAX_INVENTORY_DROP_AGE_MS;
+  }
+  if (category === "delivery" || type.includes("shipment") || type.includes("delivery") || type.includes("allocation_snapshot")) {
+    return MAX_DELIVERY_DROP_AGE_MS;
+  }
+  return MAX_CONTEXT_DROP_AGE_MS;
+}
+
+function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.now()) {
+  const timestamp = dropTimestamp(drop);
+  if (!Number.isFinite(timestamp)) return false;
+  if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
+  return now - timestamp <= maxAgeForDrop(drop);
+}
+
+function degradedEngineStates(statsPayload: Record<string, unknown> | null | undefined) {
+  const refreshHealth = statsPayload?.refreshHealth;
+  if (!refreshHealth || typeof refreshHealth !== "object") return new Set<string>();
+  const states = Array.isArray((refreshHealth as Record<string, unknown>).degradedStates)
+    ? (refreshHealth as Record<string, unknown>).degradedStates as Array<Record<string, unknown>>
+    : [];
+  return new Set(
+    states
+      .map((state) => String(state.state ?? "").toUpperCase())
+      .filter(Boolean)
+  );
+}
+
+function isEngineFresh(statsPayload: Record<string, unknown> | null | undefined, exportGeneratedAt?: unknown) {
+  const timestamp = asTime(statsPayload?.engineGeneratedAt ?? statsPayload?.generatedAt ?? exportGeneratedAt);
+  if (!Number.isFinite(timestamp)) return false;
+  return Date.now() - timestamp <= MAX_ENGINE_AGE_MS;
 }
 
 function dropDiversityKey(drop: Record<string, unknown>) {
@@ -146,18 +205,23 @@ export async function GET(request: Request) {
 
   try {
     const exportPayload = readSiteExport("drops");
+    const statsPayload = readSiteExport("stats") as Record<string, unknown> | null | undefined;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
     let drops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+    const degradedStates = degradedEngineStates(statsPayload);
+    const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
 
     if (include !== "all") {
+      if (!engineFresh) drops = [];
       drops = drops.filter((drop) => isUserFacingDropSignal(drop));
       drops = drops.filter((drop) => {
         const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
         const eventType = String(drop.event_type ?? "");
         const scope = String(drop.availability_scope ?? "");
-        return !(dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse"));
+        return !degradedStates.has(dropState) && !(dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse"));
       });
       drops = drops.filter((drop) => isDropFeedRarity(drop));
+      drops = drops.filter((drop) => isFreshEnoughForPublicFeed(drop as Record<string, unknown>));
     }
 
     if (state) {
@@ -228,6 +292,8 @@ export async function GET(request: Request) {
         previewLocked: !isSignedIn && total > pagedDrops.length,
         requiresAccountForFullFeed: !isSignedIn,
         lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
+        engineFresh,
+        degradedStatesFiltered: Array.from(degradedStates),
       },
       {
         headers: {
@@ -246,7 +312,9 @@ export async function GET(request: Request) {
         limit,
         offset,
         hasMore: false,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: "",
+        engineFresh: false,
+        degradedStatesFiltered: [],
         error: "Engine export temporarily unavailable",
       },
       {

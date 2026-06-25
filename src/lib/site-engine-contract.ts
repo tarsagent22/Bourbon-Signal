@@ -124,7 +124,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const eventAt = asString(drop.eventAt);
   const firstSeenAt = asString(drop.firstSeenAt);
   const lastConfirmedAt = asString(drop.lastConfirmedAt, asString(drop.observedAt));
-  const displayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || new Date().toISOString());
+  const displayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
   const timestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
 
   return {
