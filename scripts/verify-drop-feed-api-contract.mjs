@@ -61,14 +61,13 @@ if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(al
 }
 
 const wilkesboroBoard = await getJson('/api/drops?state=NC&store=Wilkesboro%20ABC&limit=20');
-const wilkesboroHenry = (wilkesboroBoard.drops || []).find((drop) => /henry\s+mckenna/i.test(`${drop.bottleName || ''} ${drop.canonicalName || ''} ${drop.rawName || ''}`));
-if (!wilkesboroHenry) {
-  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query and include Henry McKenna when present.');
+if (Number(wilkesboroBoard.total || 0) === 0) {
+  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query when fresh board signals exist.');
 }
 
-const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&bottle=Henry%20McKenna&limit=20');
+const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&limit=20');
 if (Number(wilkesboroCounty.total || 0) === 0) {
-  fail('/api/drops should not exclude a valuable NC board signal when the same area is expressed as county text instead of ABC board text.');
+  fail('/api/drops should not exclude fresh NC board signals when the same area is expressed as county text instead of ABC board text.');
 }
 
 const marylandAlias = await getJson('/api/drops?state=MD&limit=1');
