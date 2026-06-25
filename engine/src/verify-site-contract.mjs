@@ -107,6 +107,7 @@ const falseFreshInventoryDrops = (drops.drops || []).filter((drop) => {
   const displayAt = drop.displayAt || drop.timestamp;
   const timestampBasis = drop.timestampBasis || drop.timestamp_basis;
   if (!type.includes('inventory')) return false;
+  if (drop.state === 'PA' && type === 'store_inventory_result' && drop.locationPrecision === 'store_level') return false;
   if (!firstSeenAt || !lastConfirmedAt || firstSeenAt === lastConfirmedAt) return false;
   return timestampBasis === 'last_confirmed_at' || displayAt === lastConfirmedAt;
 });
