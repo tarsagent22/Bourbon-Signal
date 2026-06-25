@@ -2,7 +2,7 @@
 
 const footerLinks = [
   { label: "FAQ", href: "/#faq" },
-  { label: "Briefing", href: "/#briefing" },
+  { label: "Daily Briefing", href: "/#briefing" },
   { label: "Privacy", href: "/legal/privacy" },
   { label: "Terms", href: "/legal/terms" },
   { label: "Disclaimer", href: "/legal/disclaimer" },

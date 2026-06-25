@@ -2407,20 +2407,6 @@ export default function DropFeed() {
             </div>
           )}
 
-          {/* Engine freshness */}
-          {engineRefreshedText && (
-            <div className="text-center" style={{ marginTop: "16px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: "11px",
-                  color: "rgba(245,237,214,0.25)",
-                }}
-              >
-                {engineRefreshedText} from latest engine run
-              </span>
-            </div>
-          )}
 
         </div>
       </div>
