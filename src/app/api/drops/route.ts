@@ -89,6 +89,48 @@ function engineRunTimestamp(exportGeneratedAt?: unknown) {
   return typeof timestamp === "string" ? timestamp : new Date().toISOString();
 }
 
+function dropDiversityKey(drop: Record<string, unknown>) {
+  return normalizedDropText(
+    drop.canonical_id ??
+    drop.bottle_id ??
+    drop.canonical_name ??
+    drop.brand_name ??
+    drop.raw_name
+  ) || String(drop.id ?? drop.timestamp ?? "unknown-drop");
+}
+
+function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
+  const groups = new Map<string, T[]>();
+  for (const drop of drops) {
+    const key = dropDiversityKey(drop);
+    const group = groups.get(key);
+    if (group) group.push(drop);
+    else groups.set(key, [drop]);
+  }
+
+  const orderedGroups = Array.from(groups.values())
+    .sort((a, b) => {
+      const aTimestamp = +new Date(String(a[0]?.timestamp ?? ""));
+      const bTimestamp = +new Date(String(b[0]?.timestamp ?? ""));
+      return (Number.isFinite(bTimestamp) ? bTimestamp : 0) - (Number.isFinite(aTimestamp) ? aTimestamp : 0);
+    });
+
+  const diversified: T[] = [];
+  let index = 0;
+  while (diversified.length < drops.length) {
+    let added = false;
+    for (const group of orderedGroups) {
+      if (group[index]) {
+        diversified.push(group[index]);
+        added = true;
+      }
+    }
+    if (!added) break;
+    index += 1;
+  }
+  return diversified;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
@@ -171,7 +213,9 @@ export async function GET(request: Request) {
     });
 
     const total = drops.length;
-    const pagedDrops = drops.slice(offset, offset + limit);
+    const shouldDiversify = !bottle && !store;
+    const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
+    const pagedDrops = displayDrops.slice(offset, offset + limit);
 
     return NextResponse.json(
       {

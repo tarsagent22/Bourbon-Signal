@@ -66,6 +66,13 @@ const defaultFalseRare = (defaultFeed.drops || []).filter(looksLikeFalseFourRose
 if (defaultFalseRare.length > 0) {
   fail('/api/drops default feed should not show standard Four Roses rows as rare drops.');
 }
+const defaultBottleKeys = (defaultFeed.drops || [])
+  .map((drop) => String(drop.canonicalId || drop.canonical_id || drop.bottleName || drop.rawName || '').toLowerCase())
+  .filter(Boolean);
+const uniqueDefaultBottleKeys = new Set(defaultBottleKeys);
+if (defaultBottleKeys.length >= 7 && uniqueDefaultBottleKeys.size < 5) {
+  fail(`/api/drops default preview should be diversified across bottles; saw only ${uniqueDefaultBottleKeys.size} unique bottles in ${defaultBottleKeys.length} cards.`);
+}
 
 const unicornFeed = await getJson('/api/drops?tier=unicorn&limit=7');
 if (!Array.isArray(unicornFeed.drops) || unicornFeed.drops.length === 0 || Number(unicornFeed.total || 0) === 0) {
