@@ -6,7 +6,8 @@ interface BriefingItem {
   tag: string;
   title: string;
   summary: string;
-  impact: string;
+  noteLabel: string;
+  note: string;
   href: string;
   source: string;
 }
@@ -14,25 +15,28 @@ interface BriefingItem {
 const briefingItems: BriefingItem[] = [
   {
     tag: "NC · Board policy",
-    title: "Durham ABC is changing allocated-drop flow",
-    summary: "Weekly 100-bottle drops are being replaced with a new summer release process.",
-    impact: "Board-policy monitoring matters as much as shelf inventory.",
+    title: "Durham rewrites its drop cadence",
+    summary: "Durham ABC is replacing weekly 100-bottle drops with a summer release process.",
+    noteLabel: "Market read",
+    note: "Board policy can move faster than shelf inventory. This is a state worth watching at the source, not just at the store level.",
     href: "https://www.durhamabc.com/drops",
     source: "Durham ABC",
   },
   {
     tag: "Release watch",
-    title: "Late-June bourbon releases worth tracking",
-    summary: "Breaking Bourbon's release calendar continues to surface near-term limited whiskey launches.",
-    impact: "Good candidates for watchlist defaults and release-watch copy.",
-    href: "https://www.breakingbourbon.com/release-calendar",
-    source: "Breaking Bourbon",
+    title: "Heaven Hill Heritage enters the watch window",
+    summary: "The 2026 Heritage Collection release is now official: a 22-year Kentucky straight bourbon at barrel proof.",
+    noteLabel: "Release read",
+    note: "Collector-grade bottle. Good candidate for release-watch coverage and preference-alert language.",
+    href: "https://heavenhilldistillery.com/heavenhill-heritage-collection.php",
+    source: "Heaven Hill Distillery",
   },
   {
     tag: "VA · Limited availability",
-    title: "Virginia keeps high-demand bottles in structured release lanes",
-    summary: "VA ABC's limited-availability program remains a clean source for lottery and online-order signals.",
-    impact: "Keep VA positioned as a high-confidence structured-data state.",
+    title: "Virginia's limited-release system remains predictable",
+    summary: "VA ABC continues to route high-demand bottles through structured limited-availability lanes.",
+    noteLabel: "State read",
+    note: "High confidence, clean source, useful alerts.",
     href: "https://www.abc.virginia.gov/products/limited-availability",
     source: "Virginia ABC",
   },
@@ -55,12 +59,22 @@ export default function BriefingSection() {
           margin: 0 auto;
         }
         .daily-briefing-header {
+          position: relative;
           display: grid;
           grid-template-columns: minmax(0, 0.9fr) minmax(260px, 0.62fr);
           gap: clamp(18px, 4vw, 54px);
           align-items: end;
-          padding-bottom: clamp(22px, 3vw, 34px);
-          border-bottom: 1px solid rgba(245,237,214,0.1);
+          padding-bottom: clamp(28px, 3.4vw, 42px);
+        }
+        .daily-briefing-header::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: min(220px, 52vw);
+          height: 1px;
+          background: linear-gradient(90deg, rgba(232,201,122,0.9), rgba(196,148,58,0.18), transparent);
+          box-shadow: 0 0 16px rgba(196,148,58,0.2);
         }
         .daily-briefing-title {
           font-family: var(--font-playfair);
@@ -85,27 +99,13 @@ export default function BriefingSection() {
           position: relative;
           color: inherit;
           text-decoration: none;
-          min-height: 236px;
-          padding-top: 18px;
-          border-top: 1px solid rgba(196,148,58,0.24);
-          transition: border-color 180ms ease, transform 180ms ease;
-        }
-        .daily-briefing-story::before {
-          content: "";
-          position: absolute;
-          top: -1px;
-          left: 0;
-          width: 42px;
-          height: 1px;
-          background: rgba(232,201,122,0.9);
-          box-shadow: 0 0 18px rgba(196,148,58,0.26);
-          transition: width 180ms ease;
+          min-height: 224px;
+          padding: 2px 2px 0;
+          transition: transform 180ms ease;
         }
         .daily-briefing-story:hover {
-          border-color: rgba(232,201,122,0.46);
           transform: translateY(-2px);
         }
-        .daily-briefing-story:hover::before { width: 72px; }
         .daily-briefing-story:focus-visible {
           outline: 2px solid rgba(232,201,122,0.75);
           outline-offset: 8px;
@@ -141,8 +141,14 @@ export default function BriefingSection() {
           line-height: 1.45;
         }
         .daily-briefing-impact strong {
-          color: rgba(232,201,122,0.92);
+          display: block;
+          margin-bottom: 5px;
+          color: rgba(232,201,122,0.78);
+          font-family: var(--font-jetbrains);
+          font-size: 9px;
           font-weight: 800;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
         }
         .daily-briefing-source {
           display: inline-flex;
@@ -180,7 +186,8 @@ export default function BriefingSection() {
               <h3 className="daily-briefing-story-title">{item.title}</h3>
               <p className="daily-briefing-summary">{item.summary}</p>
               <p className="daily-briefing-impact">
-                <strong>Signal impact:</strong> {item.impact}
+                <strong>{item.noteLabel}</strong>
+                {item.note}
               </p>
               <span className="daily-briefing-source">
                 {item.source}
