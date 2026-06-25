@@ -117,25 +117,32 @@ function runCommand(command, args, options = {}) {
     const startedAt = nowIso();
     const child = spawn(command, args, {
       cwd: options.cwd || PROJECT_ROOT,
-      shell: process.platform === 'win32',
+      shell: false,
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe']
     });
+
     let stdout = '';
     let stderr = '';
+    let settled = false;
+    const finish = (payload) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(payload);
+    };
     const timeout = setTimeout(() => {
       try { child.kill(); } catch {}
-      resolve({ ok: false, code: 'timeout', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\nTimed out`.slice(-2000) });
+      finish({ ok: false, code: 'timeout', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\nTimed out`.slice(-2000) });
     }, options.timeoutMs || 20_000);
+
     child.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
     child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
     child.on('error', (error) => {
-      clearTimeout(timeout);
-      resolve({ ok: false, code: 'error', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\n${error.message}`.slice(-2000) });
+      finish({ ok: false, code: 'error', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\n${error.message}`.slice(-2000) });
     });
     child.on('close', (code) => {
-      clearTimeout(timeout);
-      resolve({ ok: code === 0, code, startedAt, finishedAt: nowIso(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) });
+      finish({ ok: code === 0, code, startedAt, finishedAt: nowIso(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) });
     });
   });
 }
