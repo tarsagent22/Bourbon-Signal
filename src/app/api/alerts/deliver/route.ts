@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deliverPreferenceAlerts } from "@/lib/alert-delivery";
+import { deliverPreferenceAlerts, sendOperationalTestAlertEmail } from "@/lib/alert-delivery";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,7 +16,10 @@ async function runDelivery(req: NextRequest) {
   try {
     const dryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
     const baselineEmailOnly = req.nextUrl.searchParams.get("baselineEmail") === "1" || req.nextUrl.searchParams.get("baseline_email") === "1";
-    const result = await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly });
+    const testEmail = req.nextUrl.searchParams.get("testEmail") === "1" || req.nextUrl.searchParams.get("test_email") === "1";
+    const result = testEmail
+      ? await sendOperationalTestAlertEmail(req)
+      : await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly });
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
