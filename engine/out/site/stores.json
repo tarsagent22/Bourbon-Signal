@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-25T21:30:03.470Z",
-  "count": 2685,
+  "generatedAt": "2026-06-26T03:43:09.863Z",
+  "count": 2688,
   "stores": [
     {
       "id": "alabc:001",
@@ -9286,6 +9286,48 @@
       "signalCount": 1
     },
     {
+      "id": "21st-amendment:5e76971f42192376169104da",
+      "sourceStoreId": "21st-amendment:5e76971f42192376169104da",
+      "state": "IN",
+      "name": "21st Amendment - E 146th Street",
+      "address": "3404 E 146th St, Carmel, IN 46033, USA",
+      "city": "Carmel",
+      "county": null,
+      "zip": "46033",
+      "lat": 40.0010766,
+      "lng": -86.10670420000001,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 2
+    },
+    {
+      "id": "21st-amendment:5eaf1ee6ac6b1d273935d1e6",
+      "sourceStoreId": "21st-amendment:5eaf1ee6ac6b1d273935d1e6",
+      "state": "IN",
+      "name": "21st Amendment - Noblesville",
+      "address": "14235 Mundy Dr, Noblesville, IN 46060, USA",
+      "city": "Noblesville",
+      "county": null,
+      "zip": "46060",
+      "lat": 39.9955202,
+      "lng": -86.0031765,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "21st-amendment:5e4ebcb5cf37f24b832f0145",
+      "sourceStoreId": "21st-amendment:5e4ebcb5cf37f24b832f0145",
+      "state": "IN",
+      "name": "21st Amendment - W 86th St",
+      "address": "1154 W 86th St, Indianapolis, IN 46260, USA",
+      "city": "Indianapolis",
+      "county": null,
+      "zip": "46260",
+      "lat": 39.9129497,
+      "lng": -86.180109,
+      "source": "21st Amendment Wine & Spirits CityHive store inventory",
+      "signalCount": 6
+    },
+    {
       "id": "DL1234042",
       "sourceStoreId": "DL1234042",
       "state": "IN",
@@ -12853,7 +12895,7 @@
       "lat": 41.5558816,
       "lng": -85.7907292,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d335b77cb36d0a2d2e6d",
@@ -14996,6 +15038,20 @@
       "lng": null,
       "source": "Indiana ATC public facility permit search",
       "signalCount": 1
+    },
+    {
+      "id": "holiday-liquors-jasper:5cdf0bcc2bffa126c90fa7cc",
+      "sourceStoreId": "holiday-liquors-jasper:5cdf0bcc2bffa126c90fa7cc",
+      "state": "IN",
+      "name": "Holiday Liquors North",
+      "address": "2905 N Newton St, Jasper, IN 47546, USA",
+      "city": "Jasper",
+      "county": null,
+      "zip": "47546",
+      "lat": 38.4145599,
+      "lng": -86.9385507,
+      "source": "Holiday Liquors Jasper CityHive store inventory",
+      "signalCount": 12
     },
     {
       "id": "DL4931179",
@@ -18974,20 +19030,6 @@
       "signalCount": 1
     },
     {
-      "id": "01d8017942c6652a",
-      "sourceStoreId": null,
-      "state": "IN",
-      "name": "NWS Marion — 1555 S Western Ave",
-      "address": "NWS Marion — 1555 S Western Ave, Marion, IN",
-      "city": "Marion",
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "source": "Indiana Liquor Group bourbon/whiskey tasting events",
-      "signalCount": 6
-    },
-    {
       "id": "DL2633339",
       "sourceStoreId": "DL2633339",
       "state": "IN",
@@ -19615,7 +19657,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "DL4913533",
@@ -24823,7 +24865,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 17
+      "signalCount": 18
     },
     {
       "id": "DL4901139",

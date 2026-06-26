@@ -1128,16 +1128,18 @@ async function main() {
   const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
+  const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
   const stateCoverage = buildStateCoverage(summary, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness(summary, signals);
   const activeSummaryStates = (summary.states || []).filter((state) => activeStateIds.has(state.state));
+  const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const stats = {
     contractVersion: CONTRACT_VERSION,
     generatedAt,
     engineGeneratedAt: summary.generatedAt || snapshot.generatedAt || null,
     stateCount: activeSummaryStates.length,
     signalCount: signals.length,
-    historicalSignalCount: historicalSignals.length,
+    historicalSignalCount,
     historyDays: HISTORY_DAYS,
     snapshotCount: snapshots.length,
     bottleCount: bottles.length,

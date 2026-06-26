@@ -1,38 +1,28 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-25T21:30:03.470Z",
-  "engineGeneratedAt": "2026-06-25T21:29:54.079Z",
+  "generatedAt": "2026-06-26T03:43:09.863Z",
+  "engineGeneratedAt": "2026-06-26T03:40:20.790Z",
   "stateCount": 12,
-  "signalCount": 10267,
-  "historicalSignalCount": 141836,
+  "signalCount": 10286,
+  "historicalSignalCount": 157844,
   "historyDays": 30,
   "snapshotCount": 40,
-  "bottleCount": 151,
-  "bibleRecordCount": 151,
-  "storeCount": 2685,
-  "locationCount": 4225,
+  "bottleCount": 150,
+  "bibleRecordCount": 150,
+  "storeCount": 2688,
+  "locationCount": 4228,
   "officialLocationCount": 1218,
   "preloadedLocationCount": 1377,
-  "dropCount": 4276,
-  "eventCount": 1247,
+  "dropCount": 4262,
+  "eventCount": 1160,
   "historicalTrendCount": 100,
-  "alertCandidateCount": 0,
-  "roadblockCount": 24,
+  "alertCandidateCount": 27,
+  "roadblockCount": 13,
   "refreshHealth": {
-    "degradedStateCount": 1,
-    "staleStateCount": 1,
+    "degradedStateCount": 0,
+    "staleStateCount": 0,
     "failedStateCount": 0,
-    "degradedStates": [
-      {
-        "state": "IN",
-        "label": "Indiana",
-        "status": "stale_useful",
-        "stale": true,
-        "staleReason": "IN timed out after 420s",
-        "previousFinishedAt": "2026-06-25T18:45:56.782Z",
-        "staleFallbackAt": "2026-06-25T20:35:09.885Z"
-      }
-    ]
+    "degradedStates": []
   },
   "statesAtTargetPrecision": 12,
   "rareStatesVerified": 12,
@@ -93,7 +83,7 @@
         "publicStatus": "active",
         "lifecycle": "store_inventory",
         "signalCount": 2362,
-        "roadblockCount": 12,
+        "roadblockCount": 1,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
         "strategy": "catalog_plus_limited_availability_watch",
@@ -149,7 +139,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_inventory_and_board_leads",
-        "signalCount": 1536,
+        "signalCount": 1537,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -165,10 +155,10 @@
         "label": "Indiana",
         "sourceLabel": "Indiana ATC + retailer inventory watch",
         "tier": "B",
-        "status": "stale_useful",
+        "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 1481,
+        "signalCount": 1499,
         "roadblockCount": 4,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -279,7 +269,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-06-25T21:30:03.471Z",
+    "generatedAt": "2026-06-26T03:43:09.865Z",
     "focusStates": [
       "AL",
       "VA",
@@ -318,7 +308,7 @@
         "label": "North Carolina",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1536,
+        "signalCount": 1537,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -501,7 +491,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 3277 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-27 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product m"
+          "summary": "NC ABC warehouse stock page shows 3277 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
           "id": "5fe622929530be5a",
@@ -517,7 +507,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 2238 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (-32 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product m"
+          "summary": "NC ABC warehouse stock page shows 2238 unit(s) available statewide for Buffalo Trace KY Straight Bourbon (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product mo"
         },
         {
           "id": "c763602fe8fbd5d8",
@@ -533,7 +523,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 1326 unit(s) available statewide for 1792 Full Proof (-18 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "summary": "NC ABC warehouse stock page shows 1326 unit(s) available statewide for 1792 Full Proof (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         },
         {
           "id": "42112660bd6fdf81",
@@ -549,7 +539,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 707 unit(s) available statewide for E.H. Taylor Jr. Small Batch (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "summary": "NC ABC warehouse stock page shows 707 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         },
         {
           "id": "a40ddfbfdd3784a5",
@@ -561,11 +551,11 @@
           "rawName": "Booker's",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
-          "quantity": 571,
+          "quantity": 570,
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 571 unit(s) available statewide for Booker's (-103 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 570 unit(s) available statewide for Booker's (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
           "id": "ad31da7c1027d879",
@@ -597,15 +587,15 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 502 unit(s) available statewide for Willett Family Estate Small Batch Bourbon 4Y (-14 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+          "summary": "NC ABC warehouse stock page shows 502 unit(s) available statewide for Willett Family Estate Small Batch Bourbon 4Y (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
-          "id": "8c28372380a4b40c",
+          "id": "5e762105a8158062",
           "state": "NC",
           "type": "nc_statewide_warehouse_stock",
           "source": "NC ABC Warehouse Stock Status",
           "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/164182",
-          "bottle": "Henry Mckenna Single Barrel",
+          "bottle": "Henry McKenna 10 Year",
           "rawName": "Henry McKenna Single Barrel",
           "locationPrecision": "board_warehouse",
           "locationName": "NC ABC state warehouse",
@@ -613,7 +603,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 430 unit(s) available statewide for Henry McKenna Single Barrel. This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "summary": "NC ABC warehouse stock page shows 430 unit(s) available statewide for Henry McKenna Single Barrel (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         }
       ],
       "alReleaseIntel": [
@@ -886,7 +876,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 134,
-    "boardsWithReleasePages": 15,
+    "boardsWithReleasePages": 16,
     "boardsWithInventoryPages": 7,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
@@ -917,6 +907,27 @@
   ],
   "historicalTrends": [
     {
+      "state": "IA",
+      "bottleName": "Bulleit Bourbon",
+      "source": "Iowa ABD statewide product snapshot",
+      "locationPrecision": "board_warehouse",
+      "inventoryObservations": 0,
+      "watchObservations": 217,
+      "positiveQuantities": 217,
+      "firstObservedAt": "2026-06-25T12:58:04.046Z",
+      "lastObservedAt": "2026-06-26T03:28:48.844Z",
+      "sampleSignalIds": [
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f",
+        "9b24ddebf3e1e87f"
+      ],
+      "observationCount": 217,
+      "current": true,
+      "trendLabel": "repeated_release_watch_signal"
+    },
+    {
       "state": "IL",
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Bloomington",
@@ -924,8 +935,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "3e7c64958ddd9174",
         "3e7c64958ddd9174",
@@ -945,8 +956,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "8a737d57a80f4aff",
         "8a737d57a80f4aff",
@@ -966,8 +977,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "3dbaa2eb38360026",
         "3dbaa2eb38360026",
@@ -987,8 +998,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7",
@@ -1008,8 +1019,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "bf7c2d280c13fb0b",
         "bf7c2d280c13fb0b",
@@ -1029,8 +1040,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 132,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "1b891de9cacf3736",
         "1b891de9cacf3736",
@@ -1049,9 +1060,9 @@
       "locationPrecision": "store_level",
       "inventoryObservations": 132,
       "watchObservations": 132,
-      "positiveQuantities": 130,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "positiveQuantities": 100,
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "8b92cd04bccd07d7",
         "8b92cd04bccd07d7",
@@ -1071,8 +1082,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "c94866150695edc7",
         "c94866150695edc7",
@@ -1092,8 +1103,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "078466be5913d6de",
         "078466be5913d6de",
@@ -1113,8 +1124,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "7fb6c8166a2e069e",
         "7fb6c8166a2e069e",
@@ -1134,8 +1145,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "f00246d9d22b4e4e",
         "f00246d9d22b4e4e",
@@ -1155,8 +1166,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "5a5850a4622538b6",
         "5a5850a4622538b6",
@@ -1176,8 +1187,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "5b36f09df2a283e0",
         "5b36f09df2a283e0",
@@ -1197,8 +1208,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "0d8da579399c2f2a",
         "0d8da579399c2f2a",
@@ -1218,8 +1229,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "e121df744bd2001a",
         "e121df744bd2001a",
@@ -1239,8 +1250,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "bd691c9eea587de2",
         "bd691c9eea587de2",
@@ -1260,8 +1271,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "b4dfe16d254eb78b",
         "b4dfe16d254eb78b",
@@ -1281,8 +1292,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "35f41c3a2bdcb20e",
         "35f41c3a2bdcb20e",
@@ -1302,8 +1313,8 @@
       "inventoryObservations": 132,
       "watchObservations": 132,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "25c56338c991635f",
         "25c56338c991635f",
@@ -1323,8 +1334,8 @@
       "inventoryObservations": 99,
       "watchObservations": 99,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "3dd9aed2349f195c",
         "3dd9aed2349f195c",
@@ -1344,8 +1355,8 @@
       "inventoryObservations": 99,
       "watchObservations": 99,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "3f75b8d95e743e6d",
         "3f75b8d95e743e6d",
@@ -1365,8 +1376,8 @@
       "inventoryObservations": 99,
       "watchObservations": 99,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "94382d3e778ad206",
         "94382d3e778ad206",
@@ -1386,8 +1397,8 @@
       "inventoryObservations": 99,
       "watchObservations": 99,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "26be2dbafd38edcb",
         "26be2dbafd38edcb",
@@ -1407,35 +1418,14 @@
       "inventoryObservations": 99,
       "watchObservations": 99,
       "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
+      "firstObservedAt": "2026-06-21T16:47:51.938Z",
+      "lastObservedAt": "2026-06-26T03:38:57.046Z",
       "sampleSignalIds": [
         "9b1619082b879b4c",
         "9b1619082b879b4c",
         "9b1619082b879b4c",
         "9b1619082b879b4c",
         "9b1619082b879b4c"
-      ],
-      "observationCount": 198,
-      "current": true,
-      "trendLabel": "repeated_inventory_or_shipment_signal"
-    },
-    {
-      "state": "IL",
-      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
-      "source": "Binny's Bucktown",
-      "locationPrecision": "store_level",
-      "inventoryObservations": 99,
-      "watchObservations": 99,
-      "positiveQuantities": 99,
-      "firstObservedAt": "2026-06-21T08:06:43.954Z",
-      "lastObservedAt": "2026-06-25T20:35:10.759Z",
-      "sampleSignalIds": [
-        "eb257d92d7bba4b3",
-        "eb257d92d7bba4b3",
-        "eb257d92d7bba4b3",
-        "eb257d92d7bba4b3",
-        "eb257d92d7bba4b3"
       ],
       "observationCount": 198,
       "current": true,

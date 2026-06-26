@@ -140,7 +140,7 @@ function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BR
 }
 
 async function runGuardedBrowserPreflightJob(job) {
-  const artifactLabel = path.relative(process.cwd(), job.artifact).replace(/\/g, '/');
+  const artifactLabel = path.relative(process.cwd(), job.artifact).replaceAll('\\', '/');
   const needsBrowser = /browser|ohlq|fwgs/i.test(`${job.id} ${job.label}`);
   let browser = null;
   if (needsBrowser) browser = await ensureBrowserCdp(DEFAULT_CDP_URL);
