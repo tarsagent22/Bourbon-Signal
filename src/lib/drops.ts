@@ -232,7 +232,10 @@ export function formatDropTime(drop: Pick<DropEvent | GroupedDrop, "timestamp" |
   const firstSeenAt = drop.first_seen_at || drop.firstSeenAt;
   const lastConfirmedAt = drop.last_confirmed_at || drop.lastConfirmedAt;
 
-  const latestSignalAt = lastConfirmedAt || (basis === "source_event_at" ? eventAt : undefined) || firstSeenAt || drop.timestamp;
+  const latestSignalAt =
+    basis === "source_event_at" ? (eventAt || firstSeenAt || lastConfirmedAt || drop.timestamp) :
+    basis === "first_seen_at" ? (firstSeenAt || eventAt || lastConfirmedAt || drop.timestamp) :
+    lastConfirmedAt || firstSeenAt || eventAt || drop.timestamp;
   return `Reported ${formatRelativeTime(latestSignalAt)}`;
 }
 

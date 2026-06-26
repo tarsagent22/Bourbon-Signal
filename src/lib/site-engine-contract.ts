@@ -67,6 +67,11 @@ function isDistilleryDrop(type: string, locationPrecision: string) {
   return locationPrecision === "distillery" && type.toLowerCase() === "distillery_gift_shop_availability";
 }
 
+function shouldAnchorInventoryToFirstSeen(type: string) {
+  const normalized = type.toLowerCase();
+  return normalized.includes("inventory") || normalized.includes("in_stock") || normalized.includes("limited_supply");
+}
+
 export function normalizeBottleForSite(bottle: JsonRecord) {
   const states = Array.isArray(bottle.states) ? bottle.states.map(String) : [];
   const aliases = Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [];
@@ -129,8 +134,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const eventAt = asString(drop.eventAt);
   const firstSeenAt = asString(drop.firstSeenAt);
   const lastConfirmedAt = asString(drop.lastConfirmedAt, asString(drop.observedAt));
-  const displayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
-  const timestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
+  const exportedDisplayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
+  const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
+  const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
+  const displayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
+  const timestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
 
   return {
     ...drop,
