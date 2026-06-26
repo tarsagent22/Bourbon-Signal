@@ -251,6 +251,21 @@ export function formatStateLabel(state?: string): string {
   return getActiveEngineStateName(state);
 }
 
+function hasExactStoreDetails(event: DropEvent): boolean {
+  const storeName = event.store_name?.trim();
+  const storeAddress = event.store_address?.trim();
+  return Boolean(storeName || storeAddress || event.store_id?.trim());
+}
+
+function customerFacingStoreLabel(event: DropEvent): string {
+  return event.store_name?.trim() || event.store_address?.trim() || "";
+}
+
+function customerFacingAvailabilityScope(event: DropEvent): string | undefined {
+  if (event.availability_scope === "store_reported" && !hasExactStoreDetails(event)) return "page";
+  return event.availability_scope;
+}
+
 function getPublicSignalLabel(event: DropEvent): string | undefined {
   if (event.signal_label) return event.signal_label;
   const eventType = (event.event_type || "").toLowerCase();
@@ -308,7 +323,8 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 
     const city = ev.store_city?.trim();
     const address = ev.store_address?.trim();
-    const primaryLabel = (ev.event_type === "nc_board_shipment_snapshot" ? ev.locationName || ev.display_location : ev.display_location) || (city
+    const exactStoreLabel = ev.location_precision === "store_level" ? customerFacingStoreLabel(ev) : "";
+    const primaryLabel = exactStoreLabel || (ev.event_type === "nc_board_shipment_snapshot" ? ev.locationName || ev.display_location : ev.display_location) || (city
       ? (ev.store_county ? `${city} (${ev.store_county} Co.)` : city)
       : boardName || address);
 
@@ -374,13 +390,14 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.signalLabel) {
         existing.signalLabel = getPublicSignalLabel(event);
       }
-      if (!existing.availabilityScope && event.availability_scope) {
-        existing.availabilityScope = event.availability_scope;
+      const safeAvailabilityScope = customerFacingAvailabilityScope(event);
+      if (!existing.availabilityScope && safeAvailabilityScope) {
+        existing.availabilityScope = safeAvailabilityScope;
       }
-      if (!existing.exactStore && event.exact_store) {
+      if (!existing.exactStore && event.exact_store && hasExactStoreDetails(event)) {
         existing.exactStore = event.exact_store;
       }
-      if (!existing.canAlertAsInventory && event.can_alert_as_inventory) {
+      if (!existing.canAlertAsInventory && event.can_alert_as_inventory && hasExactStoreDetails(event)) {
         existing.canAlertAsInventory = event.can_alert_as_inventory;
       }
       if (!existing.producer && event.producer) existing.producer = event.producer;
@@ -419,11 +436,11 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         id: groupKey,
         signalLabel: getPublicSignalLabel(event),
         confidenceTier: event.confidence_tier,
-        availabilityScope: event.availability_scope,
-        exactStore: event.exact_store,
+        availabilityScope: customerFacingAvailabilityScope(event),
+        exactStore: event.exact_store && hasExactStoreDetails(event),
         onlineInStockQuantity: event.online_in_stock_quantity ?? null,
         locationPrecision: event.location_precision,
-        canAlertAsInventory: event.can_alert_as_inventory,
+        canAlertAsInventory: event.can_alert_as_inventory && hasExactStoreDetails(event),
         signalCategory: event.signal_category,
         displayState: event.display_state || formatStateLabel(event.state || event.state_code),
         producer: event.producer,

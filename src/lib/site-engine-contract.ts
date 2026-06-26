@@ -59,6 +59,10 @@ function isStoreLevelInventory(type: string, locationPrecision: string, canAlert
   return locationPrecision === "store_level" && (canAlertAsInventory || normalized.includes("store_inventory") || normalized.includes("limited_supply") || normalized.includes("in_stock"));
 }
 
+function hasExactStoreDetails(drop: JsonRecord) {
+  return Boolean(asString(drop.storeName) || asString(drop.storeAddress) || asString(drop.storeId));
+}
+
 function isDistilleryDrop(type: string, locationPrecision: string) {
   return locationPrecision === "distillery" && type.toLowerCase() === "distillery_gift_shop_availability";
 }
@@ -116,10 +120,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const state = asString(drop.state);
   const quantity = asNumber(drop.quantity);
   const locationPrecision = asString(drop.locationPrecision);
-  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory);
+  const exactStoreDetails = hasExactStoreDetails(drop);
+  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails;
   const type = asString(drop.type, "signal");
   const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
-  const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory);
+  const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
   const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
   const eventAt = asString(drop.eventAt);
   const firstSeenAt = asString(drop.firstSeenAt);
@@ -158,7 +163,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state,
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
-    exact_store: locationPrecision === "store_level",
+    exact_store: locationPrecision === "store_level" && exactStoreDetails,
     availability_scope: isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
     confidence_tier: isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,

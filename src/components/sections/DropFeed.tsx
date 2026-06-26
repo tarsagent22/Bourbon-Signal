@@ -565,7 +565,15 @@ function SkeletonRow() {
 }
 
 function isStoreLevelSignal(drop: GroupedDrop) {
-  return Boolean(drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
+  const rawDrop = drop as GroupedDrop & { store_name?: string };
+  const firstCity = drop.locations[0]?.city || "";
+  const hasStoreDetails = Boolean(
+    drop.storeName ||
+    rawDrop.store_name ||
+    drop.store_address ||
+    drop.locations.some((location) => Boolean(location.address) || (firstCity ? !locationLabelsMatch(location.label, firstCity) : false))
+  );
+  return hasStoreDetails && Boolean(drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
 }
 
 function isBoardLevelSignal(drop: GroupedDrop) {
