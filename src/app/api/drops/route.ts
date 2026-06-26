@@ -102,8 +102,8 @@ function asTime(value: unknown) {
   return Number.isFinite(time) ? time : Number.NaN;
 }
 
-function dropTimestamp(drop: Record<string, unknown>) {
-  return asTime(drop.last_confirmed_at ?? drop.lastConfirmedAt ?? drop.timestamp ?? drop.displayAt ?? drop.observed_at ?? drop.observedAt);
+function publicDropTimestamp(drop: Record<string, unknown>) {
+  return asTime(drop.timestamp ?? drop.displayAt ?? drop.event_at ?? drop.eventAt ?? drop.first_seen_at ?? drop.firstSeenAt ?? drop.last_confirmed_at ?? drop.lastConfirmedAt);
 }
 
 function maxAgeForDrop(drop: Record<string, unknown>) {
@@ -123,7 +123,7 @@ function maxAgeForDrop(drop: Record<string, unknown>) {
 }
 
 function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.now()) {
-  const timestamp = dropTimestamp(drop);
+  const timestamp = publicDropTimestamp(drop);
   if (!Number.isFinite(timestamp)) return false;
   if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
   return now - timestamp <= maxAgeForDrop(drop);

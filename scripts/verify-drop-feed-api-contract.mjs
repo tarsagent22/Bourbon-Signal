@@ -37,8 +37,13 @@ const maxInventoryAgeMs = 72 * hourMs;
 const maxDeliveryAgeMs = 14 * dayMs;
 
 function dropTime(drop) {
-  const value = drop.last_confirmed_at || drop.lastConfirmedAt || drop.timestamp || drop.displayAt || drop.observed_at || drop.observedAt;
+  const value = drop.timestamp || drop.displayAt || drop.event_at || drop.eventAt || drop.first_seen_at || drop.firstSeenAt || drop.last_confirmed_at || drop.lastConfirmedAt;
   const time = Date.parse(value || '');
+  return Number.isFinite(time) ? time : NaN;
+}
+
+function observedTime(drop) {
+  const time = Date.parse(drop.observed_at || drop.observedAt || '');
   return Number.isFinite(time) ? time : NaN;
 }
 
@@ -92,6 +97,18 @@ const staleDrops = (defaultFeed.drops || []).filter((drop) => {
 });
 if (staleDrops.length > 0) {
   fail(`/api/drops default feed should not portray stale/undated signals as fresh; saw ${staleDrops.length} stale rows.`);
+}
+const reReportedInventoryDrops = (defaultFeed.drops || []).filter((drop) => {
+  const publicTime = dropTime(drop);
+  const observed = observedTime(drop);
+  const ageLimit = maxPublicAgeMs(drop);
+  return Number.isFinite(publicTime)
+    && Number.isFinite(observed)
+    && observed - publicTime > ageLimit
+    && Date.now() - observed <= 6 * hourMs;
+});
+if (reReportedInventoryDrops.length > 0) {
+  fail(`/api/drops default feed should not make old inventory look newly re-reported from scrape time; saw ${reReportedInventoryDrops.length} rows.`);
 }
 const defaultBadTiers = (defaultFeed.drops || [])
   .map((drop) => rarity(drop))
