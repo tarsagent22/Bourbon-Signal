@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-26T03:43:09.863Z",
-  "count": 2688,
+  "generatedAt": "2026-06-26T12:36:17.649Z",
+  "count": 2692,
   "stores": [
     {
       "id": "alabc:001",
@@ -7547,7 +7547,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-222",
@@ -7659,7 +7659,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-110",
@@ -7827,7 +7827,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-302",
@@ -7841,7 +7841,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-305",
@@ -7855,7 +7855,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-308",
@@ -7897,7 +7897,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-119",
@@ -7967,7 +7967,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "idaho-liquor-store-203",
@@ -7981,7 +7981,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-206",
@@ -8009,7 +8009,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-287",
@@ -8205,7 +8205,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-259",
@@ -8233,7 +8233,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-309",
@@ -8289,7 +8289,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-118",
@@ -8373,7 +8373,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-304",
@@ -8387,7 +8387,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-306",
@@ -8485,7 +8485,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-120",
@@ -8499,7 +8499,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-307",
@@ -11453,7 +11453,7 @@
       "lat": 39.697918,
       "lng": -86.36907649999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "big-red:5e92549978e8f13c2cb1e1d4",
@@ -11719,7 +11719,7 @@
       "lat": 40.0440694,
       "lng": -86.14080609999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 5
     },
     {
       "id": "big-red:5e9254ca78e8f13c2cb1e21c",
@@ -11971,7 +11971,7 @@
       "lat": 39.9416872,
       "lng": -86.2344957,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 5
     },
     {
       "id": "big-red:5e8d5aad9a81cb4b8dd365f7",
@@ -15309,7 +15309,7 @@
       "id": "DL0930994",
       "sourceStoreId": "DL0930994",
       "state": "IN",
-      "name": "Indian Boundary, Llc",
+      "name": "Indian Boundry, Llc",
       "address": "Royal Center, IN, 46978",
       "city": "Royal Center",
       "county": null,
@@ -19657,7 +19657,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "DL4913533",
@@ -29275,7 +29275,7 @@
       "lat": 40.13805,
       "lng": -76.584693,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "3612",
@@ -29667,7 +29667,7 @@
       "lat": 40.557603,
       "lng": -75.410906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "3919",
@@ -30073,7 +30073,7 @@
       "lat": 41.960886,
       "lng": -78.645263,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "4202",
@@ -32442,6 +32442,20 @@
       "signalCount": 4
     },
     {
+      "id": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "sourceStoreId": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "state": "SC",
+      "name": "Beach Discount Beverage",
+      "address": "2204 N Kings Hwy, Myrtle Beach, SC 29577, USA",
+      "city": "Myrtle Beach",
+      "county": null,
+      "zip": "29577",
+      "lat": 33.7031403,
+      "lng": -78.870421,
+      "source": "Beach Discount Beverages South Carolina CityHive store inventory",
+      "signalCount": 14
+    },
+    {
       "id": "da-brown-bag:da-brown-bag-north-charleston",
       "sourceStoreId": "da-brown-bag:da-brown-bag-north-charleston",
       "state": "SC",
@@ -32454,6 +32468,20 @@
       "lng": null,
       "source": "Da Brown Bag Clover public inventory API",
       "signalCount": 17
+    },
+    {
+      "id": "dev-liquors:620164924a3ea84d57c21d6f",
+      "sourceStoreId": "dev-liquors:620164924a3ea84d57c21d6f",
+      "state": "SC",
+      "name": "DEV Liquors - Summerville",
+      "address": "9730 Dorchester Rd 202 a, Summerville, SC 29485, USA",
+      "city": "Summerville",
+      "county": null,
+      "zip": "29485",
+      "lat": 32.9484743,
+      "lng": -80.15372669999999,
+      "source": "DEV Liquors South Carolina CityHive store inventory",
+      "signalCount": 13
     },
     {
       "id": "greens-beverage:61b7517362f55f727e469da5",
@@ -32526,6 +32554,62 @@
       "signalCount": 1
     },
     {
+      "id": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "sourceStoreId": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "state": "SC",
+      "name": "Moss Creek Village Spirits & Wine",
+      "address": "1541 Fording Island Rd, Hilton Head Island, SC 29926, USA",
+      "city": "Hilton Head Island",
+      "county": null,
+      "zip": "29926",
+      "lat": 32.2369232,
+      "lng": -80.8072285,
+      "source": "Moss Creek Village Spirits & Wine South Carolina CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "sourceStoreId": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "state": "SC",
+      "name": "O'Darby's Galleria",
+      "address": "2350 Dave Lyle Blvd, Rock Hill, SC 29730, USA",
+      "city": "Rock Hill",
+      "county": null,
+      "zip": "29730",
+      "lat": 34.9408142,
+      "lng": -80.9621524,
+      "source": "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "sourceStoreId": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "state": "SC",
+      "name": "Palmetto Liquor & Wine",
+      "address": "869 Houston Northcutt Blvd, Mt Pleasant, SC 29464, USA",
+      "city": "Mt Pleasant",
+      "county": null,
+      "zip": "29464",
+      "lat": 32.8035814,
+      "lng": -79.8883807,
+      "source": "Palmetto Liquor South Carolina CityHive store inventory",
+      "signalCount": 11
+    },
+    {
+      "id": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "sourceStoreId": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "state": "SC",
+      "name": "Rollers Wine & Spirits",
+      "address": "9 Palmetto Bay Rd, Hilton Head Island, SC 29928, USA",
+      "city": "Hilton Head Island",
+      "county": null,
+      "zip": "29928",
+      "lat": 32.156802,
+      "lng": -80.7642517,
+      "source": "Rollers Wine & Spirits South Carolina CityHive store inventory",
+      "signalCount": 9
+    },
+    {
       "id": "southern-spirits:southern-spirits-indian-land",
       "sourceStoreId": "southern-spirits:southern-spirits-indian-land",
       "state": "SC",
@@ -32551,7 +32635,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -32579,7 +32663,7 @@
       "lat": 34.7131362,
       "lng": -82.254555,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "busters-liquors:662124505fbcb5293d346405",
@@ -32719,7 +32803,7 @@
       "lat": 35.1360118,
       "lng": -90.0121156,
       "source": "Kimbrough Fine Wine & Spirits CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
@@ -32761,7 +32845,7 @@
       "lat": 35.1217967,
       "lng": -85.2939899,
       "source": "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory",
-      "signalCount": 16
+      "signalCount": 15
     },
     {
       "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
@@ -32775,7 +32859,7 @@
       "lat": 35.973703,
       "lng": -86.8318783,
       "source": "Moon Wine & Spirits CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
@@ -32803,35 +32887,7 @@
       "lat": 35.8630651,
       "lng": -84.06586,
       "source": "Northshore Wine & Spirits CityHive store inventory",
-      "signalCount": 9
-    },
-    {
-      "id": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
-      "sourceStoreId": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
-      "state": "TN",
-      "name": "One Stop Wines & Spirits - Franklin Rd",
-      "address": "1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA",
-      "city": "Johnson City",
-      "county": "Washington County",
-      "zip": "37604",
-      "lat": 36.3008869,
-      "lng": -82.37741079999999,
-      "source": "One Stop Wines & Spirits Johnson City TN CityHive store locator",
-      "signalCount": 1
-    },
-    {
-      "id": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
-      "sourceStoreId": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
-      "state": "TN",
-      "name": "One Stop Wines & Spirits - Roan St",
-      "address": "2710 N Roan St, Johnson City, TN 37601, USA",
-      "city": "Johnson City",
-      "county": null,
-      "zip": "37601",
-      "lat": 36.3560166,
-      "lng": -82.38251729999999,
-      "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 8
     },
     {
       "id": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
@@ -32859,7 +32915,7 @@
       "lat": 35.9293792,
       "lng": -86.9195292,
       "source": "Westside Wine & Spirits CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "102",
@@ -37283,7 +37339,7 @@
       "lat": 38.326222,
       "lng": -77.730557,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "73",
