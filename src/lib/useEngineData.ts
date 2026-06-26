@@ -51,6 +51,10 @@ interface StatsResponse {
   by_state: Record<string, unknown>;
   stateCount?: number;
   signalCount?: number;
+  historicalSignalCount?: number;
+  engineGeneratedAt?: string;
+  generatedAt?: string;
+  lastUpdated?: string;
   dropCount?: number;
   locationCount?: number;
   refreshHealth?: {
@@ -111,7 +115,7 @@ function useFetch<T>(url: string, fallback: T) {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(url, { cache: "force-cache" });
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);

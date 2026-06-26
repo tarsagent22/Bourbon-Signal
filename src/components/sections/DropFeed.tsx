@@ -21,8 +21,10 @@ import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
 import { useStores, type Store } from "@/hooks/useStores";
+import { useStats } from "@/lib/useEngineData";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
+
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
 
@@ -38,6 +40,49 @@ interface DropsResponse {
 }
 
 const KENTUCKY_RELEASE_WATCH_SOURCE_COUNT = 8;
+
+const tickerNumberFormatter = new Intl.NumberFormat("en-US");
+
+function formatTickerNumber(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "—";
+  return tickerNumberFormatter.format(value);
+}
+
+function SignalTicker({
+  totalSignals,
+  liveSignals,
+  storesMonitored,
+  lastRefreshed,
+  reduceMotion,
+}: {
+  totalSignals?: number;
+  liveSignals?: number;
+  storesMonitored?: number;
+  lastRefreshed?: string;
+  reduceMotion: boolean;
+}) {
+  const refreshedText = lastRefreshed ? formatRelativeTime(lastRefreshed) : "pending";
+  const items = [
+    { label: "Total signals detected", value: formatTickerNumber(totalSignals) },
+    { label: "Live signals", value: formatTickerNumber(liveSignals) },
+    { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
+    { label: "Last refreshed", value: refreshedText },
+  ];
+  const tapeItems = [...items, ...items];
+
+  return (
+    <div className="signal-ticker" role="status" aria-label="Bourbon Signal market tape">
+      <div className={`signal-ticker-track ${reduceMotion ? "reduced" : ""}`}>
+        {tapeItems.map((item, index) => (
+          <span className="signal-ticker-item" key={`${item.label}-${index}`} aria-hidden={index >= items.length}>
+            <span className="signal-ticker-label">{item.label}</span>
+            <span className="signal-ticker-value">{item.value}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const MOCK_DROPS: DropEvent[] = [
   {
@@ -1342,6 +1387,7 @@ export default function DropFeed() {
   const { prefs } = useAreaPreferences();
   const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn);
   const { stores } = useStores();
+  const { stats: engineStats } = useStats();
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = !isSignedIn;
   const [data, setData] = useState<DropsResponse | null>(null);
@@ -1629,7 +1675,7 @@ export default function DropFeed() {
     return +new Date(b.timestamp) - +new Date(a.timestamp);
   });
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
-  const engineRefreshedText = data?.lastUpdated ? `Refreshed ${formatRelativeTime(data.lastUpdated)}` : "";
+  const tickerLastRefreshed = engineStats.engineGeneratedAt || engineStats.lastUpdated || engineStats.generatedAt || data?.lastUpdated;
   const isKentuckyFeed = feedStateParam === "KY";
 
   const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
@@ -1809,6 +1855,78 @@ export default function DropFeed() {
         @keyframes newDropGlow {
           0%, 100% { box-shadow: inset 3px 0 0 rgba(196,148,58,0.4), 0 0 0 rgba(196,148,58,0); }
           50% { box-shadow: inset 3px 0 0 rgba(196,148,58,1), 0 0 20px rgba(196,148,58,0.15); }
+        }
+        @keyframes signalTape {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .signal-ticker {
+          position: relative;
+          width: 100%;
+          margin: 12px 0 0;
+          overflow: hidden;
+          border-radius: 999px;
+          border: 1px solid rgba(196,148,58,0.24);
+          background:
+            linear-gradient(90deg, rgba(10,7,5,0.96), rgba(27,18,12,0.9) 48%, rgba(10,7,5,0.96)),
+            radial-gradient(circle at 15% 0%, rgba(232,201,122,0.14), transparent 34%);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.055), 0 12px 34px rgba(0,0,0,0.24);
+        }
+        .signal-ticker::before,
+        .signal-ticker::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          z-index: 2;
+          width: 42px;
+          pointer-events: none;
+        }
+        .signal-ticker::before {
+          left: 0;
+          background: linear-gradient(90deg, rgba(10,7,5,1), transparent);
+        }
+        .signal-ticker::after {
+          right: 0;
+          background: linear-gradient(270deg, rgba(10,7,5,1), transparent);
+        }
+        .signal-ticker-track {
+          display: inline-flex;
+          width: max-content;
+          align-items: center;
+          gap: 0;
+          padding: 8px 0;
+          animation: signalTape 28s linear infinite;
+          will-change: transform;
+        }
+        .signal-ticker:hover .signal-ticker-track { animation-play-state: paused; }
+        .signal-ticker-track.reduced { animation: none; transform: none; }
+        .signal-ticker-item {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 8px;
+          padding: 0 18px;
+          white-space: nowrap;
+          border-right: 1px solid rgba(196,148,58,0.2);
+        }
+        .signal-ticker-label {
+          font-family: var(--font-jetbrains);
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
+          color: rgba(245,237,214,0.46);
+        }
+        .signal-ticker-value {
+          font-family: var(--font-jetbrains);
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.03em;
+          color: rgba(232,201,122,0.98);
+          text-shadow: 0 0 18px rgba(196,148,58,0.2);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .signal-ticker-track { animation: none; transform: none; }
         }
         @media (max-width: 767px) {
           #drops { padding-top: 18px !important; }
@@ -2124,6 +2242,14 @@ export default function DropFeed() {
             </div>
           </motion.div>
 
+          <SignalTicker
+            totalSignals={engineStats.historicalSignalCount ?? engineStats.signalCount}
+            liveSignals={engineStats.signalCount}
+            storesMonitored={engineStats.total_stores}
+            lastRefreshed={tickerLastRefreshed}
+            reduceMotion={Boolean(shouldReduceMotion)}
+          />
+
           {/* Divider */}
           <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
 
@@ -2246,8 +2372,8 @@ export default function DropFeed() {
               <div className="dropfeed-result-line">
                 <span>
                   {isKentuckyFeed
-                    ? `${finalFeed.length} current gift-shop pickup ${finalFeed.length === 1 ? "lead" : "leads"} · ${KENTUCKY_RELEASE_WATCH_SOURCE_COUNT} official release-watch sources${engineRefreshedText ? ` · ${engineRefreshedText}` : ""}`
-                    : `${displayedGrouped.length} of ${finalFeed.length} drops${engineRefreshedText ? ` · ${engineRefreshedText}` : ""}`}
+                    ? `${finalFeed.length} current gift-shop pickup ${finalFeed.length === 1 ? "lead" : "leads"} · ${KENTUCKY_RELEASE_WATCH_SOURCE_COUNT} official release-watch sources`
+                    : `${displayedGrouped.length} of ${finalFeed.length} drops`}
                 </span>
                 {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
               </div>
