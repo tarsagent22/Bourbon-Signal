@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 
 interface BriefingItem {
@@ -74,9 +73,6 @@ const archivedBriefingItems: BriefingItem[] = [
 ];
 
 export default function BriefingSection() {
-  const [showArchivedStories, setShowArchivedStories] = useState(false);
-  const visibleItems = showArchivedStories ? [...briefingItems, ...archivedBriefingItems] : briefingItems;
-
   return (
     <section
       id="briefing"
@@ -197,11 +193,17 @@ export default function BriefingSection() {
           text-transform: uppercase;
         }
         .daily-briefing-more {
-          display: flex;
-          justify-content: center;
           padding-top: clamp(24px, 3vw, 34px);
         }
+        .daily-briefing-more[open] .daily-briefing-more-button::after {
+          content: "Show less";
+        }
+        .daily-briefing-more[open] .daily-briefing-more-button span {
+          display: none;
+        }
         .daily-briefing-more-button {
+          width: max-content;
+          margin: 0 auto;
           border: 1px solid rgba(232,201,122,0.36);
           border-radius: 999px;
           background: linear-gradient(180deg, rgba(83,54,28,0.52), rgba(34,24,16,0.72));
@@ -211,9 +213,14 @@ export default function BriefingSection() {
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 0.13em;
+          list-style: none;
           padding: 12px 18px;
+          text-align: center;
           text-transform: uppercase;
           transition: border-color 180ms ease, color 180ms ease, transform 180ms ease, background 180ms ease;
+        }
+        .daily-briefing-more-button::-webkit-details-marker {
+          display: none;
         }
         .daily-briefing-more-button:hover {
           border-color: rgba(232,201,122,0.7);
@@ -245,7 +252,7 @@ export default function BriefingSection() {
         </div>
 
         <div className="daily-briefing-list">
-          {visibleItems.map((item) => (
+          {briefingItems.map((item) => (
             <a key={item.title} className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
               <div className="daily-briefing-tag">{item.tag}</div>
               <h3 className="daily-briefing-story-title">{item.title}</h3>
@@ -262,16 +269,28 @@ export default function BriefingSection() {
           ))}
         </div>
 
-        <div className="daily-briefing-more">
-          <button
-            className="daily-briefing-more-button"
-            type="button"
-            onClick={() => setShowArchivedStories((current) => !current)}
-            aria-expanded={showArchivedStories}
-          >
-            {showArchivedStories ? "Show less" : "See more stories"}
-          </button>
-        </div>
+        <details className="daily-briefing-more">
+          <summary className="daily-briefing-more-button">
+            <span>See more stories</span>
+          </summary>
+          <div className="daily-briefing-list" aria-label="Additional daily briefing stories">
+            {archivedBriefingItems.map((item) => (
+              <a key={item.title} className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
+                <div className="daily-briefing-tag">{item.tag}</div>
+                <h3 className="daily-briefing-story-title">{item.title}</h3>
+                <p className="daily-briefing-summary">{item.summary}</p>
+                <p className="daily-briefing-impact">
+                  <strong>{item.noteLabel}</strong>
+                  {item.note}
+                </p>
+                <span className="daily-briefing-source">
+                  {item.source}
+                  <ArrowUpRight size={12} />
+                </span>
+              </a>
+            ))}
+          </div>
+        </details>
       </div>
     </section>
   );
