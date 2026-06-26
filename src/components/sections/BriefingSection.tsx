@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 
 interface BriefingItem {
@@ -13,6 +14,36 @@ interface BriefingItem {
 }
 
 const briefingItems: BriefingItem[] = [
+  {
+    tag: "Release watch",
+    title: "Old Fitzgerald joins July's allocation radar",
+    summary: "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",
+    noteLabel: "Release read",
+    note: "High-intent collector bottle. Keep the copy sober: national release timing matters more than pretending store availability is confirmed.",
+    href: "https://heavenhilldistillery.com/old-fitzgerald.php",
+    source: "Heaven Hill Distillery",
+  },
+  {
+    tag: "Four Roses · Limited edition",
+    title: "Four Roses pushes older, rarer storytelling",
+    summary: "Four Roses' limited-edition lane remains one of the clearest signals for barrel-strength collector demand.",
+    noteLabel: "Market read",
+    note: "Useful for watchlist language and rarity scoring. Treat official release pages as source truth, not secondary rumor calendars.",
+    href: "https://www.fourrosesbourbon.com/bourbon/limited-edition",
+    source: "Four Roses",
+  },
+  {
+    tag: "AL · ABC release",
+    title: "Alabama's annual limited release is already dated",
+    summary: "Alabama ABC lists its 2026 Annual Limited Release Program for December 12 across selected ABC stores.",
+    noteLabel: "State read",
+    note: "Clean control-state event signal: dates, stores, and sweepstakes mechanics are more useful here than scrape-only shelf checks.",
+    href: "https://alabcboard.gov/stores/events/limited-release-programs/annual",
+    source: "Alabama ABC",
+  },
+];
+
+const archivedBriefingItems: BriefingItem[] = [
   {
     tag: "NC · Board policy",
     title: "Durham rewrites its drop cadence",
@@ -43,6 +74,9 @@ const briefingItems: BriefingItem[] = [
 ];
 
 export default function BriefingSection() {
+  const [showArchivedStories, setShowArchivedStories] = useState(false);
+  const visibleItems = showArchivedStories ? [...briefingItems, ...archivedBriefingItems] : briefingItems;
+
   return (
     <section
       id="briefing"
@@ -162,6 +196,37 @@ export default function BriefingSection() {
           letter-spacing: 0.08em;
           text-transform: uppercase;
         }
+        .daily-briefing-more {
+          display: flex;
+          justify-content: center;
+          padding-top: clamp(24px, 3vw, 34px);
+        }
+        .daily-briefing-more-button {
+          border: 1px solid rgba(232,201,122,0.36);
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgba(83,54,28,0.52), rgba(34,24,16,0.72));
+          color: rgba(245,237,214,0.86);
+          cursor: pointer;
+          font-family: var(--font-jetbrains);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.13em;
+          padding: 12px 18px;
+          text-transform: uppercase;
+          transition: border-color 180ms ease, color 180ms ease, transform 180ms ease, background 180ms ease;
+        }
+        .daily-briefing-more-button:hover {
+          border-color: rgba(232,201,122,0.7);
+          color: var(--color-text-primary);
+          transform: translateY(-1px);
+        }
+        .daily-briefing-more-button:focus-visible {
+          outline: 2px solid rgba(232,201,122,0.75);
+          outline-offset: 4px;
+        }
+        .daily-briefing-more-button:active {
+          transform: translateY(0);
+        }
         @media (max-width: 900px) {
           .daily-briefing-header { grid-template-columns: 1fr; }
           .daily-briefing-list { grid-template-columns: 1fr; gap: 26px; }
@@ -180,7 +245,7 @@ export default function BriefingSection() {
         </div>
 
         <div className="daily-briefing-list">
-          {briefingItems.map((item) => (
+          {visibleItems.map((item) => (
             <a key={item.title} className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
               <div className="daily-briefing-tag">{item.tag}</div>
               <h3 className="daily-briefing-story-title">{item.title}</h3>
@@ -195,6 +260,17 @@ export default function BriefingSection() {
               </span>
             </a>
           ))}
+        </div>
+
+        <div className="daily-briefing-more">
+          <button
+            className="daily-briefing-more-button"
+            type="button"
+            onClick={() => setShowArchivedStories((current) => !current)}
+            aria-expanded={showArchivedStories}
+          >
+            {showArchivedStories ? "Show less" : "See more stories"}
+          </button>
         </div>
       </div>
     </section>
