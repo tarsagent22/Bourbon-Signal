@@ -5,6 +5,7 @@ import { dark } from "@clerk/themes";
 import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 import ToastContainer from "@/components/Toast";
+import PreviewTierSwitcher from "@/components/PreviewTierSwitcher";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
 
 export const metadata: Metadata = {
@@ -132,6 +133,7 @@ export default function RootLayout({
         <body style={{ fontFamily: "var(--font-dm-sans)" }}>
           <LiquidToggleFilter />
           {children}
+          <PreviewTierSwitcher />
           <ToastContainer />
           <Analytics />
         </body>

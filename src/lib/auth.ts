@@ -2,22 +2,23 @@
 
 import { useUser, useClerk } from "@clerk/nextjs";
 import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/entitlements";
-import { isQaPreviewMode, QA_PREVIEW_TIER } from "@/lib/preview-qa";
+import { getQaPreviewTierFromBrowser, isQaPreviewMode } from "@/lib/preview-qa";
 
 export function useAuth() {
   const { isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
   const qaPreview = isQaPreviewMode();
 
-  const rawTier = qaPreview ? QA_PREVIEW_TIER : typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
+  const previewTier = qaPreview ? getQaPreviewTierFromBrowser() : null;
+  const rawTier = qaPreview ? previewTier : typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
   const memberTier = qaPreview || isSignedIn ? normalizeMembershipTier(rawTier) : "free";
   const entitlements = getEntitlements(memberTier);
   const isPaidUser = isPaidTier(memberTier);
   const qaUser = qaPreview
     ? ({
         firstName: "QA Preview",
-        publicMetadata: { tier: QA_PREVIEW_TIER },
-        emailAddresses: [{ emailAddress: "qa-preview@bourbonsignal.local" }],
+        publicMetadata: { tier: memberTier },
+        emailAddresses: [{ emailAddress: `${memberTier}@bourbonsignal.local` }],
       } as unknown as typeof user)
     : user;
 

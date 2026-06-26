@@ -8,7 +8,7 @@ import {
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
-import { isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
+import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 
 export interface AreaPreferences {
   states: string[];
@@ -227,8 +227,77 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
   };
 }
 
+function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPreferences> = {}) {
+  const tier = getQaPreviewTierFromRequest(req);
+  const entitlements = getEntitlements(tier);
+  let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? QA_PREVIEW_PREFERENCES.areaPreferences);
+  let notificationPreferences = normalizeNotificationPreferences(payload.notificationPreferences ?? QA_PREVIEW_PREFERENCES.notificationPreferences);
+  const alertMode = payload.alertMode === undefined ? QA_PREVIEW_PREFERENCES.alertMode : normalizeAlertMode(payload.alertMode);
+  let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? QA_PREVIEW_PREFERENCES.bottleAlertPreferences);
+  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? QA_PREVIEW_PREFERENCES.collectionPreferences);
+  const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? QA_PREVIEW_PREFERENCES.sightingsPreferences);
+
+  if (entitlements.alertAreaLimit === 0) {
+    areaPreferences = { ...areaPreferences, states: [] };
+    notificationPreferences = {
+      ...notificationPreferences,
+      onSite: { ...notificationPreferences.onSite, enabled: false },
+      email: { ...notificationPreferences.email, enabled: false },
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
+    bottleAlertPreferences = { bottleNames: [], bottleKeys: [] };
+  }
+
+  if (!entitlements.canReceiveSmsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
+  }
+
+  if (typeof entitlements.alertAreaLimit === "number") {
+    areaPreferences = {
+      ...areaPreferences,
+      states: areaPreferences.states.slice(0, entitlements.alertAreaLimit),
+    };
+  }
+
+  if (!entitlements.canUseAdvancedFilters) {
+    areaPreferences = {
+      ...areaPreferences,
+      ncBoards: [],
+      vaCities: [],
+      ohCities: [],
+      iaCities: [],
+      idCities: [],
+      paCounties: [],
+      paStores: [],
+    };
+  }
+
+  if (typeof entitlements.trackedBottleLimit === "number") {
+    bottleAlertPreferences = {
+      bottleNames: bottleAlertPreferences.bottleNames.slice(0, entitlements.trackedBottleLimit),
+      bottleKeys: bottleAlertPreferences.bottleKeys.slice(0, entitlements.trackedBottleLimit),
+    };
+  }
+
+  return {
+    ok: true,
+    qaPreview: true,
+    qaTier: tier,
+    entitlements,
+    areaPreferences,
+    notificationPreferences,
+    alertMode,
+    bottleAlertPreferences,
+    collectionPreferences,
+    sightingsPreferences,
+  };
+}
+
 export async function GET(req: NextRequest) {
-  if (isQaPreviewRequest(req)) return NextResponse.json(QA_PREVIEW_PREFERENCES);
+  if (isQaPreviewRequest(req)) return NextResponse.json(buildQaPreviewResponse(req));
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -238,7 +307,15 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (isQaPreviewRequest(req)) return NextResponse.json({ ok: true, ...QA_PREVIEW_PREFERENCES, qaPreview: true });
+  if (isQaPreviewRequest(req)) {
+    const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
+    const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
+      return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    }
+    return NextResponse.json(buildQaPreviewResponse(req, payload));
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
