@@ -149,12 +149,16 @@ function isEngineFresh(statsPayload: Record<string, unknown> | null | undefined,
 }
 
 function dropDiversityKey(drop: Record<string, unknown>) {
+  // Bottle IDs can diverge across retailer/source-specific records for the same
+  // customer-visible bottle. The broad feed should diversify by what the member
+  // sees first: bottle name, then IDs only as a fallback.
   return normalizedDropText(
-    drop.canonical_id ??
-    drop.bottle_id ??
-    drop.canonical_name ??
     drop.brand_name ??
-    drop.raw_name
+    drop.tracked_brand_name ??
+    drop.canonical_name ??
+    drop.raw_name ??
+    drop.canonical_id ??
+    drop.bottle_id
   ) || String(drop.id ?? drop.timestamp ?? "unknown-drop");
 }
 
