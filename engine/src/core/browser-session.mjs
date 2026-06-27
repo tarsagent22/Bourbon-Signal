@@ -47,7 +47,9 @@ function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
   const executable = candidateChromePaths()[0];
   if (!executable) throw new Error('No Chrome/Chromium executable candidate configured. Set BROWSER_EXECUTABLE.');
   const profileDir = path.resolve(options.profileDir || DEFAULT_BROWSER_PROFILE_DIR);
+  const headlessArgs = process.env.BROWSER_HEADLESS === '0' ? [] : ['--headless=new', '--disable-gpu'];
   const args = [
+    ...headlessArgs,
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${profileDir}`,
     '--no-first-run',
