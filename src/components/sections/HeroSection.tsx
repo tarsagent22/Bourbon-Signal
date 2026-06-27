@@ -126,9 +126,11 @@ export default function HeroSection() {
             {[
               "Multi-state coverage",
               "Live Drop Feed",
-              "Email Alerts",
+              "Instant Drop Alerts",
               "Member Sightings",
               "Bottle Check",
+              "My Collection",
+              "Personalized Bottle Recommendations",
             ].map((item, index, arr) => (
               <div
                 key={item}

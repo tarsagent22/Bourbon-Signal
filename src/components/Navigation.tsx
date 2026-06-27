@@ -45,7 +45,7 @@ export default function Navigation() {
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
   const isFounderMember = memberTier === "bottled-in-bond";
-  const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "Founder";
+  const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
   const availableNavLinks = navLinks.filter((link) => {
     if (link.href === "/dashboard") return entitlements.canAccessDashboard;
     return true;
@@ -248,11 +248,10 @@ export default function Navigation() {
                       </div>
 
                       {isFounderMember ? (
-                        <div style={{ margin: "0 12px 12px", borderRadius: "14px", border: "1px solid rgba(232,201,122,0.24)", background: "linear-gradient(135deg, rgba(196,148,58,0.16), rgba(245,237,214,0.045))", padding: "11px 12px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}>
-                          <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(232,201,122,0.86)", marginBottom: "5px" }}>Bottled in Bond Founder</div>
+                        <div style={{ margin: "0 12px 12px", borderRadius: "14px", border: "1px solid rgba(232,201,122,0.24)", background: "linear-gradient(135deg, rgba(196,148,58,0.16), rgba(245,237,214,0.045))", padding: "12px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
-                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "18px", color: "var(--color-cream)", lineHeight: 1 }}>Founder badge</span>
-                            <span style={{ borderRadius: "999px", border: "1px solid rgba(232,201,122,0.35)", background: "rgba(232,201,122,0.12)", padding: "4px 8px", color: "#E8C97A", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 900 }}>{founderProfileNumber}</span>
+                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "18px", color: "var(--color-cream)", lineHeight: 1 }}>Founder {founderProfileNumber}</span>
+                            <span style={{ width: "24px", height: "24px", borderRadius: "999px", display: "grid", placeItems: "center", background: "linear-gradient(135deg, #E8C97A, #A66A18)", color: "#0D0B07", fontFamily: "var(--font-jetbrains)", fontSize: "12px", fontWeight: 950, boxShadow: "0 0 18px rgba(232,201,122,0.22)" }}>B</span>
                           </div>
                         </div>
                       ) : null}

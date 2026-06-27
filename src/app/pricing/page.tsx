@@ -98,6 +98,38 @@ const paidTiers: PricingTier[] = [
   },
 ];
 
+
+const faqItems = [
+  {
+    question: "What do free accounts get?",
+    answer: "Free accounts can preview the product: a limited Drop Feed view, demo access to paid tools, and 3 Bottle Checks. Saving alerts, sightings, collection data, and recommendations requires a paid membership.",
+  },
+  {
+    question: "What counts as an alert area?",
+    answer: "An alert area is a specific market you want watched — a state, ABC board, city, county, or supported store-level area depending on the state data available. Standard includes up to 5; Barrel and Bottled in Bond remove that limit.",
+  },
+  {
+    question: "Are Drop Feed signals guaranteed inventory?",
+    answer: "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
+  },
+  {
+    question: "What is Bottle Check?",
+    answer: "Bottle Check helps you quickly evaluate a bottle — rarity, MSRP context, whether it is worth chasing, and how it fits your bourbon preferences. Free accounts get 3 checks; paid members get unlimited checks.",
+  },
+  {
+    question: "What are My Collection and Personalized Bottle Recommendations?",
+    answer: "My Collection is where you save bottles you own or have tasted. Personalized Bottle Recommendations use those ratings and tasting cues to suggest bottles that fit your Bourbon DNA.",
+  },
+  {
+    question: "What is different about Bottled in Bond?",
+    answer: "Bottled in Bond is the limited founder pass: lifetime access to all current and future paid Bourbon Signal features, plus founder-only perks like a profile badge, founder number, and numbered glass.",
+  },
+  {
+    question: "Can I upgrade or change plans later?",
+    answer: "Yes. Standard and Barrel are recurring memberships, and eligible members can upgrade from inside the site. Bottled in Bond is a one-time founder pass while the 100 spots are available.",
+  },
+];
+
 const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Daily Briefing", "Limited", "Full", "Full", "Full"],
@@ -238,13 +270,12 @@ function PricingPageContent() {
 
         <section className="comparison-wrap" aria-label="Membership feature comparison">
           <div className="comparison-heading">
-            <p>Compare access</p>
-            <h2>Founder pass vs. regular memberships</h2>
+            <h2>Compare Memberships</h2>
           </div>
           <div className="comparison-scroll" aria-label="Scroll plan comparison horizontally on small screens">
             <div className="comparison-table" role="table">
               <div className="comparison-row comparison-head" role="row">
-                <span>Feature</span><span>Free preview</span><span>Standard</span><span>Barrel</span><span>Founder Pass<br />Includes Barrel</span>
+                <span>Feature</span><span>Free preview</span><span>Standard</span><span>Barrel</span><span>Bottled in Bond</span>
               </div>
               {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
                 <div className="comparison-row" role="row" key={feature}>
@@ -256,6 +287,21 @@ function PricingPageContent() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="faq-wrap" aria-label="Membership frequently asked questions">
+          <div className="faq-heading">
+            <h2>FAQ</h2>
+            <p>Useful answers before you pick a membership.</p>
+          </div>
+          <div className="faq-grid">
+            {faqItems.map((item) => (
+              <article className="faq-item" key={item.question}>
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </article>
+            ))}
           </div>
         </section>
       </motion.main>
@@ -327,8 +373,16 @@ const pricingCss = `
 .comparison-head { background:rgba(196,148,58,.09); }
 .comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
 .comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
+.faq-wrap { width:min(1040px, calc(100% - 40px)); margin:44px auto 0; }
+.faq-heading { display:grid; gap:8px; margin-bottom:18px; }
+.faq-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(28px, 3vw, 40px)/1 var(--font-playfair); letter-spacing:-.03em; }
+.faq-heading p { margin:0; color:var(--color-text-secondary); font:14px/1.6 var(--font-dm-sans); }
+.faq-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+.faq-item { border:1px solid rgba(245,237,214,.08); border-radius:20px; padding:18px; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018)); box-shadow:0 18px 60px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.035); }
+.faq-item h3 { margin:0; color:var(--color-cream); font:800 16px/1.25 var(--font-dm-sans); letter-spacing:-.01em; }
+.faq-item p { margin:10px 0 0; color:var(--color-text-secondary); font:13px/1.65 var(--font-dm-sans); }
 @media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
+@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .faq-wrap { width:calc(100% - 28px); } .faq-grid { grid-template-columns:1fr; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;
 
