@@ -14,7 +14,16 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
-    tag: "Release watch",
+    tag: "Today · National blend",
+    title: "Lost Lantern turns all 50 states into one bourbon story",
+    summary: "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
+    noteLabel: "Market read",
+    note: "Best story of the day: it is not a shelf drop, but it is a clean national-interest release signal with strong collector and geography hooks.",
+    href: "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
+    source: "Lost Lantern Whiskey",
+  },
+  {
+    tag: "Yesterday · Release watch",
     title: "Old Fitzgerald joins July's allocation radar",
     summary: "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",
     noteLabel: "Release read",
@@ -23,16 +32,16 @@ const briefingItems: BriefingItem[] = [
     source: "Heaven Hill Distillery",
   },
   {
-    tag: "Four Roses · Limited edition",
-    title: "Four Roses pushes older, rarer storytelling",
-    summary: "Four Roses' limited-edition lane remains one of the clearest signals for barrel-strength collector demand.",
-    noteLabel: "Market read",
-    note: "Useful for watchlist language and rarity scoring. Treat official release pages as source truth, not secondary rumor calendars.",
-    href: "https://www.fourrosesbourbon.com/bourbon/limited-edition",
-    source: "Four Roses",
+    tag: "Yesterday · Experimental",
+    title: "Four Roses opens a Mizunara-finished lane",
+    summary: "Four Roses' new Experimental Series starts with No. 001, a limited Kentucky straight bourbon finished in Japanese Mizunara oak.",
+    noteLabel: "Release read",
+    note: "Useful for watchlist language and rarity scoring. Treat the launch as release-watch intelligence until store-level sightings appear.",
+    href: "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
+    source: "Four Roses Distillery",
   },
   {
-    tag: "AL · ABC release",
+    tag: "Yesterday · AL ABC release",
     title: "Alabama's annual limited release is already dated",
     summary: "Alabama ABC lists its 2026 Annual Limited Release Program for December 12 across selected ABC stores.",
     noteLabel: "State read",
