@@ -55,6 +55,8 @@ const availabilityLabels: Record<string, string> = {
 
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
+const BOTTLE_CHECK_USAGE_STORAGE_KEY = "bourbonSignalFreeBottleChecksUsed";
+
 function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -108,9 +110,11 @@ function scoreTone(score: number) {
 
 export default function BottleCheckPage() {
   const { isSignedIn, signIn, entitlements } = useAuth();
+  const bottleCheckLimit = entitlements.bottleCheckLimit;
+  const isFreeBottleCheck = bottleCheckLimit !== null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
-  const [submittedQuery, setSubmittedQuery] = useState("Buffalo Trace");
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [state, setState] = useState("NC");
   const [result, setResult] = useState<BottleResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -118,7 +122,17 @@ export default function BottleCheckPage() {
   const [savingTrack, setSavingTrack] = useState(false);
   const [trackError, setTrackError] = useState<string | null>(null);
   const [trackSaved, setTrackSaved] = useState(false);
+  const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
+
+  const remainingFreeChecks = bottleCheckLimit === null ? null : Math.max(0, bottleCheckLimit - freeChecksUsed);
+  const hasFreeChecksRemaining = remainingFreeChecks === null || remainingFreeChecks > 0;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = Number(window.localStorage.getItem(BOTTLE_CHECK_USAGE_STORAGE_KEY) || "0");
+    setFreeChecksUsed(Number.isFinite(stored) ? Math.max(0, stored) : 0);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -188,7 +202,20 @@ export default function BottleCheckPage() {
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
-    setSubmittedQuery(query);
+    const nextQuery = query.trim();
+    if (!nextQuery) return;
+    if (!hasFreeChecksRemaining) {
+      setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
+      return;
+    }
+    if (isFreeBottleCheck) {
+      setFreeChecksUsed((current) => {
+        const next = Math.min(bottleCheckLimit ?? current + 1, current + 1);
+        if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(next));
+        return next;
+      });
+    }
+    setSubmittedQuery(nextQuery);
   }
 
   function toggleTrackingState(nextState: string) {
@@ -251,6 +278,11 @@ export default function BottleCheckPage() {
         </section>
 
         <section className="bc-shell">
+          {isFreeBottleCheck ? (
+            <div className="bc-panel muted" style={{ marginBottom: 14 }}>
+              Free preview: {remainingFreeChecks} of {bottleCheckLimit} Bottle Checks remaining. Upgrade for unlimited access.
+            </div>
+          ) : null}
           <form className="bc-search-card" onSubmit={submitSearch}>
             <div className="bc-field grow">
               <label htmlFor="bottle-search">Bottle name</label>
@@ -302,7 +334,7 @@ export default function BottleCheckPage() {
                 ))}
               </select>
             </div>
-            <button type="submit">Check bottle</button>
+            <button type="submit" disabled={!hasFreeChecksRemaining}>{hasFreeChecksRemaining ? "Check bottle" : "Upgrade for unlimited"}</button>
           </form>
 
           {loading ? (

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
-import { isQaPreviewRequest } from "@/lib/preview-qa";
+import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -76,7 +76,11 @@ async function requireSightingsEntitlements(userId: string) {
 }
 
 export async function GET(req: NextRequest) {
-  if (isQaPreviewRequest(req)) return NextResponse.json({ sightings: [], states: [] });
+  if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    return NextResponse.json({ sightings: [], states: [], qaPreview: true, qaTier: entitlements.tier });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);
@@ -90,6 +94,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canSubmitSightings) return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
     const sighting: MemberSighting = {
       id: payload.id || makeSightingId(),
@@ -156,7 +162,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  if (isQaPreviewRequest(req)) return NextResponse.json({ ok: true, sightings: [], qaPreview: true });
+  if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    return NextResponse.json({ ok: true, sightings: [], qaPreview: true, qaTier: entitlements.tier });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);

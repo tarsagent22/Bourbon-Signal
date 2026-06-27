@@ -132,10 +132,11 @@ function SightingDropdown({
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
-  const { isSignedIn, signIn } = useAuth();
+  const { isSignedIn, signIn, entitlements } = useAuth();
   const { bottles } = useBottles();
   const { stores, loading: storesLoading } = useStores();
-  const { sightings, states, addSighting, voteSighting, saving, loading } = useSightings(isSignedIn);
+  const canReadSightings = entitlements.canReadSightings;
+  const { sightings, states, addSighting, voteSighting, saving, loading } = useSightings(isSignedIn && canReadSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
@@ -261,6 +262,19 @@ export default function SightingsClient() {
           <h1 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 68px)", margin: "18px 0 10px" }}>Member Sightings</h1>
           <p style={{ color: "rgba(245,237,214,0.68)", fontSize: 16, lineHeight: 1.7 }}>Sightings are members only. Sign in to submit reports and view the member sightings feed.</p>
           <button type="button" onClick={signIn} className="sighting-submit" style={{ marginTop: 18 }}>Sign in to access sightings</button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!canReadSightings) {
+    return (
+      <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", border: "1px solid rgba(196,148,58,0.22)", borderRadius: 28, padding: 28, background: "rgba(245,237,214,0.045)", boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
+          <Lock size={28} color="var(--color-accent-amber)" />
+          <h1 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 68px)", margin: "18px 0 10px" }}>Member Sightings</h1>
+          <p style={{ color: "rgba(245,237,214,0.68)", fontSize: 16, lineHeight: 1.7 }}>Member Sightings are included with Standard Proof and above. Free members can preview the Drop Feed and use 3 Bottle Checks.</p>
+          <a href="/pricing" className="sighting-submit" style={{ marginTop: 18, textDecoration: "none" }}>View memberships</a>
         </div>
       </main>
     );

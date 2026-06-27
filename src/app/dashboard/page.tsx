@@ -487,7 +487,12 @@ export default function DashboardPage() {
   const { drops: recentDrops } = useDrops({ limit: 120 });
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
-  const { isSignedIn, signIn } = useAuth();
+  const { isSignedIn, signIn, entitlements } = useAuth();
+  const canAccessDashboard = entitlements.canAccessDashboard;
+  const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
+  const canUseCollection = entitlements.canUseCollection;
+  const canUseRecommendations = entitlements.canUseRecommendations;
+  const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
 
@@ -1338,9 +1343,9 @@ export default function DashboardPage() {
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} owned` },
-    { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bottle matches", summary: "See bottle ideas shaped by your collection and local signal context.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready" },
-  ]), [collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+    ...(canUseCollection ? [{ key: "collection" as DashboardSection, label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` }] : []),
+    ...(canUseRecommendations ? [{ key: "recommendations" as DashboardSection, label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready" }] : []),
+  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -1389,6 +1394,23 @@ export default function DashboardPage() {
       </button>
     );
   };
+
+  if (!canAccessDashboard) {
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
+        <Navigation />
+        <main style={{ minHeight: "78vh", padding: "132px 18px 80px", display: "grid", placeItems: "center" }}>
+          <section style={{ maxWidth: 720, border: "1px solid rgba(196,148,58,0.22)", borderRadius: 28, padding: "32px", background: "linear-gradient(180deg, rgba(24,18,12,0.92), rgba(11,8,6,0.96))", textAlign: "center", boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: 12 }}>Upgrade required</div>
+            <h1 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "clamp(38px, 7vw, 58px)", color: "var(--color-cream)", lineHeight: 1 }}>Dashboard starts with Standard Proof.</h1>
+            <p style={{ margin: "18px auto 0", maxWidth: 540, fontFamily: "var(--font-dm-sans)", fontSize: 15, lineHeight: 1.7, color: "var(--color-text-secondary)" }}>Free gets a limited Drop Feed preview and 3 Bottle Checks. Upgrade for alert setup, member sightings, and dashboard tools.</p>
+            <a href="/pricing" style={{ display: "inline-flex", marginTop: 22, borderRadius: 999, padding: "12px 18px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 800, textDecoration: "none" }}>View memberships</a>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
@@ -1746,6 +1768,7 @@ export default function DashboardPage() {
                   </div>
 
                   {selectedStates.length > 0 ? (
+                    canUseAdvancedFilters ? (
                     <div style={{ display: "grid", gap: "14px" }}>
                       <div style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(255,255,255,0.03)", padding: "16px", display: "grid", gap: "12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
@@ -1883,6 +1906,11 @@ export default function DashboardPage() {
                         ) : null}
                       </div>
                     </div>
+                    ) : (
+                    <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+                      Standard Proof uses state-level alert areas only. Upgrade to Barrel Proof or Bottled in Bond for board, city, store, and other advanced refinements.
+                    </div>
+                    )
                   ) : (
                     <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
                       Select at least one state to unlock board, city, and store choices.
@@ -2076,6 +2104,7 @@ export default function DashboardPage() {
                 {(() => {
                   const onSiteActive = notificationPrefs.onSite.enabled;
                   const emailActive = notificationPrefs.email.enabled;
+                  const sightingsActive = notificationPrefs.sightings?.enabled === true;
 
                   return (
                     <>
@@ -2195,6 +2224,56 @@ export default function DashboardPage() {
                         </div>
                       </button>
 
+                      {canReceiveSightingsAlerts ? (
+                      <button
+                        onClick={() =>
+                          setNotificationPrefs((prev) => ({
+                            ...prev,
+                            sightings: { enabled: !(prev.sightings?.enabled === true) },
+                          }))
+                        }
+                        style={{
+                          width: "100%",
+                          borderRadius: "18px",
+                          border: sightingsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
+                          background: sightingsActive
+                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
+                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
+                          boxShadow: sightingsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                          padding: "18px",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "14px",
+                          alignItems: "center",
+                          minHeight: "120px",
+                          position: "relative",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
+                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
+                            Member Sighting alerts
+                          </span>
+                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
+                            Get notified when member-submitted sightings match your watchlist and markets. Included with Barrel Proof and Bottled in Bond.
+                          </span>
+                        </div>
+                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+                          <LiquidToggle
+                            checked={sightingsActive}
+                            onCheckedChange={(checked) =>
+                              setNotificationPrefs((prev) => ({
+                                ...prev,
+                                sightings: { enabled: checked },
+                              }))
+                            }
+                          />
+                        </div>
+                      </button>
+                      ) : null}
+
 
                     </>
                   );
@@ -2226,9 +2305,9 @@ export default function DashboardPage() {
           </StepShell>
           ) : null}
 
-          {renderSectionButton("collection")}
+          {canUseCollection ? renderSectionButton("collection") : null}
 
-          {activeDashboardSection === "collection" && !preparedDashboardSections.has("collection") ? (
+          {activeDashboardSection === "collection" && canUseCollection && !preparedDashboardSections.has("collection") ? (
           <StepShell
             step="Collection"
             title="My Collection"
@@ -2241,7 +2320,7 @@ export default function DashboardPage() {
               <span>We’re pulling your saved bottles and taste profile without blocking the dashboard.</span>
             </div>
           </StepShell>
-          ) : activeDashboardSection === "collection" ? (
+          ) : activeDashboardSection === "collection" && canUseCollection ? (
           <StepShell
             step="Collection"
             title="My Collection"
@@ -2390,9 +2469,9 @@ export default function DashboardPage() {
           </StepShell>
           ) : null}
 
-          {renderSectionButton("recommendations")}
+          {canUseRecommendations ? renderSectionButton("recommendations") : null}
 
-          {activeDashboardSection === "recommendations" && !preparedDashboardSections.has("recommendations") ? (
+          {activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (
           <StepShell
             step="Recommendations"
             title="Recommended bottles"
@@ -2405,7 +2484,7 @@ export default function DashboardPage() {
               <span>We’re matching your collection against the bottle catalog and recent local signal.</span>
             </div>
           </StepShell>
-          ) : activeDashboardSection === "recommendations" ? (
+          ) : activeDashboardSection === "recommendations" && canUseRecommendations ? (
           <StepShell
             step="Recommendations"
             title="Recommended bottles"

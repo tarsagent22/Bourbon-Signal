@@ -23,7 +23,7 @@ export default function Navigation() {
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, signIn, signUp, signOut, memberTier } = useAuth();
+  const { isSignedIn, user, signIn, signUp, signOut, memberTier, entitlements } = useAuth();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -44,9 +44,14 @@ export default function Navigation() {
   }, []);
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
+  const availableNavLinks = navLinks.filter((link) => {
+    if (link.href === "/dashboard") return entitlements.canAccessDashboard;
+    if (link.href === "/sightings") return entitlements.canReadSightings;
+    return true;
+  });
   const visibleNavLinks = memberTier === "bottled-in-bond"
-    ? navLinks
-    : [...navLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
+    ? availableNavLinks
+    : [...availableNavLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
 
   return (
     <>

@@ -255,6 +255,13 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     };
   }
 
+  if (!entitlements.canReceiveSightingsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sightings: { enabled: false },
+    };
+  }
+
   if (typeof entitlements.alertAreaLimit === "number") {
     areaPreferences = {
       ...areaPreferences,
@@ -343,6 +350,13 @@ export async function POST(req: NextRequest) {
     notificationPreferences = {
       ...notificationPreferences,
       sms: { ...notificationPreferences.sms, enabled: false },
+    };
+  }
+
+  if (!entitlements.canReceiveSightingsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sightings: { enabled: false },
     };
   }
 

@@ -1335,12 +1335,16 @@ export default function DropFeed() {
     hasSelectedStates,
     setSelectedStates,
   } = useStatePreferences();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, entitlements } = useAuth();
   const { prefs } = useAreaPreferences();
-  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn);
+  const canUseStateFilter = entitlements.canUseStateFilter;
+  const canUseDropFeedFilters = entitlements.canUseDropFeedFilters;
+  const canUseBottleSearch = entitlements.canUseBottleSearch;
+  const canReadSightings = entitlements.canReadSightings;
+  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn && canReadSightings);
   const { stores } = useStores();
   const areaPrefs = prefs.areaPreferences;
-  const isFreeUser = !isSignedIn;
+  const isFreeUser = entitlements.tier === "free";
   const [data, setData] = useState<DropsResponse | null>(null);
   const [error, setError] = useState(false);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
@@ -1373,9 +1377,9 @@ export default function DropFeed() {
     if (stateParam) setUrlStateFilter(stateParam);
   }, []);
 
-  const activeTierParam = useMemo(() => Array.from(activeTiers).sort().join(","), [activeTiers]);
-  const activeAreaParam = useMemo(() => areaQueryFromFilter(countyFilter), [countyFilter]);
-  const activeBottleParam = bottleSearch.trim();
+  const activeTierParam = useMemo(() => canUseDropFeedFilters ? Array.from(activeTiers).sort().join(",") : "", [activeTiers, canUseDropFeedFilters]);
+  const activeAreaParam = useMemo(() => canUseDropFeedFilters ? areaQueryFromFilter(countyFilter) : "", [canUseDropFeedFilters, countyFilter]);
+  const activeBottleParam = canUseBottleSearch ? bottleSearch.trim() : "";
 
   const feedStateParam = urlStateFilter || (hasSelectedStates && preferredStates.length === 1
     ? preferredStates[0]
@@ -1481,11 +1485,11 @@ export default function DropFeed() {
   const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
-    if (activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
-    const bottleNeedle = normalizeFilterText(bottleSearch);
+    if (canUseDropFeedFilters && activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
+    const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
-    if (countyFilter !== "ALL" && !dropAreaMatchesFilter(drop, countyFilter)) return false;
-    if (sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
+    if (canUseDropFeedFilters && countyFilter !== "ALL" && !dropAreaMatchesFilter(drop, countyFilter)) return false;
+    if (canUseDropFeedFilters && sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
   };
 
@@ -1611,7 +1615,7 @@ export default function DropFeed() {
     return lookup;
   }, [stores]);
 
-  const memberSightingRows = isSignedIn
+  const memberSightingRows = isSignedIn && canReadSightings
     ? sightings
       .map((sighting) => memberSightingToGrouped(
         sighting,
@@ -1726,11 +1730,11 @@ export default function DropFeed() {
   };
 
   const hasActiveFeedFilters = Boolean(
-    bottleSearch.trim() ||
-    countyFilter !== "ALL" ||
-    stateDropdownValue !== "ALL" ||
-    activeTiers.size > 0 ||
-    sortMode !== "newest"
+    (canUseBottleSearch && bottleSearch.trim()) ||
+    (canUseDropFeedFilters && countyFilter !== "ALL") ||
+    (canUseStateFilter && stateDropdownValue !== "ALL") ||
+    (canUseDropFeedFilters && activeTiers.size > 0) ||
+    (canUseDropFeedFilters && sortMode !== "newest")
   );
 
   const clearFeedFilters = () => {
@@ -2124,6 +2128,7 @@ export default function DropFeed() {
           {/* Divider */}
           <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
 
+          {(canUseStateFilter || canUseBottleSearch || canUseDropFeedFilters) ? (
           <motion.div
             className="dropfeed-refine-grid"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
@@ -2131,6 +2136,7 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-70px" }}
             transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
+            {canUseBottleSearch ? (
             <label className="dropfeed-refine-field dropfeed-refine-search">
               <input
                 value={bottleSearch}
@@ -2139,6 +2145,8 @@ export default function DropFeed() {
                 aria-label="Search bottle"
               />
             </label>
+            ) : null}
+            {canUseStateFilter ? (
             <BourbonDropdown
               label="State"
               value={stateDropdownValue}
@@ -2154,6 +2162,9 @@ export default function DropFeed() {
                 setSelectedStates([value]);
               }}
             />
+            ) : null}
+            {canUseDropFeedFilters ? (
+            <>
             <BourbonDropdown
               label={areaDropdownLabel}
               value={countyFilter}
@@ -2173,10 +2184,14 @@ export default function DropFeed() {
                 Use my location
               </button>
             </div>
+            </>
+            ) : null}
           </motion.div>
+          ) : null}
           {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
           {/* Filters row: Tier filter pills */}
+          {canUseDropFeedFilters ? (
           <motion.div
             className="dropfeed-filter-row flex items-center flex-wrap gap-2"
             style={{ paddingBottom: "16px" }}
@@ -2237,6 +2252,7 @@ export default function DropFeed() {
               );
             })}
           </motion.div>
+          ) : null}
 
           {data && (
             <>

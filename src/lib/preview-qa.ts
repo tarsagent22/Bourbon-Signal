@@ -21,6 +21,7 @@ export const QA_PREVIEW_PREFERENCES = {
     onSite: { enabled: true },
     email: { enabled: true, mode: "major_only" as const },
     sms: { enabled: false, available: true, mode: "major_only" as const, verified: false },
+    sightings: { enabled: false },
   },
   alertMode: "anything_notable" as const,
   bottleAlertPreferences: {

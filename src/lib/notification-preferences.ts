@@ -16,6 +16,9 @@ export interface NotificationPreferences {
     phone?: string;
     verified: boolean;
   };
+  sightings: {
+    enabled: boolean;
+  };
 }
 
 export interface MemberAlertRecord {
@@ -42,6 +45,7 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   onSite: { enabled: true },
   email: { enabled: false, mode: "major_only" },
   sms: { enabled: false, available: true, mode: "major_only", verified: false },
+  sightings: { enabled: false },
 };
 
 export function getDefaultNotificationPreferences(): NotificationPreferences {
@@ -53,6 +57,7 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const onSite = (source.onSite && typeof source.onSite === "object" ? source.onSite : {}) as Record<string, unknown>;
   const email = (source.email && typeof source.email === "object" ? source.email : {}) as Record<string, unknown>;
   const sms = (source.sms && typeof source.sms === "object" ? source.sms : {}) as Record<string, unknown>;
+  const sightings = (source.sightings && typeof source.sightings === "object" ? source.sightings : {}) as Record<string, unknown>;
 
   const mode = email.mode === "all" || email.mode === "major_only" || email.mode === "daily_roundup"
     ? email.mode
@@ -72,6 +77,9 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
       mode: sms.mode === "specific_bottles" ? "specific_bottles" : DEFAULT_NOTIFICATION_PREFERENCES.sms.mode,
       phone: typeof sms.phone === "string" ? sms.phone.trim().slice(0, 32) : undefined,
       verified: sms.verified === true,
+    },
+    sightings: {
+      enabled: typeof sightings.enabled === "boolean" ? sightings.enabled : DEFAULT_NOTIFICATION_PREFERENCES.sightings.enabled,
     },
   };
 }
