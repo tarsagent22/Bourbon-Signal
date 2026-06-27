@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-26T12:36:17.649Z",
-  "count": 2692,
+  "generatedAt": "2026-06-27T12:16:07.317Z",
+  "count": 2693,
   "stores": [
     {
       "id": "alabc:001",
@@ -7631,7 +7631,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-108",
@@ -7687,7 +7687,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-113",
@@ -7799,7 +7799,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-136",
@@ -7953,7 +7953,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "idaho-liquor-store-324",
@@ -8065,7 +8065,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-129",
@@ -8079,7 +8079,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-301",
@@ -8401,7 +8401,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-331",
@@ -8443,7 +8443,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-327",
@@ -8457,7 +8457,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-223",
@@ -8471,7 +8471,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-322",
@@ -10599,7 +10599,7 @@
       "lat": 41.0984937,
       "lng": -85.089103,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
@@ -11761,7 +11761,7 @@
       "lat": 39.6136857,
       "lng": -86.1569734,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -11952,12 +11952,12 @@
       "name": "Big Red #620 - Fishers",
       "address": "8808 E 116th St, Fishers, IN 46038, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46038",
       "lat": 39.9571948,
       "lng": -86.01364559999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d597a9a81cb4383b0d828",
@@ -11985,7 +11985,7 @@
       "lat": 39.8173268,
       "lng": -85.7707095,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "signalCount": 4
     },
     {
       "id": "DL6430337",
@@ -19657,7 +19657,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "DL4913533",
@@ -25817,7 +25817,7 @@
       "lat": -80.1794105,
       "lng": 40.2595606,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "101",
@@ -27052,20 +27052,6 @@
       "signalCount": 2
     },
     {
-      "id": "931",
-      "sourceStoreId": "931",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0931",
-      "address": "341 Dublin Pike, Perkasie, PA, 18944",
-      "city": "Perkasie",
-      "county": null,
-      "zip": null,
-      "lat": 40.401133,
-      "lng": -75.249801,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "932",
       "sourceStoreId": "932",
       "state": "PA",
@@ -27133,7 +27119,7 @@
       "lat": 40.198665,
       "lng": -74.864873,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "938",
@@ -28547,7 +28533,7 @@
       "lat": 39.987523,
       "lng": -75.404709,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "2342",
@@ -29667,7 +29653,7 @@
       "lat": 40.557603,
       "lng": -75.410906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "3919",
@@ -30199,7 +30185,7 @@
       "lat": 41.124811,
       "lng": -75.356178,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "4503",
@@ -30535,7 +30521,7 @@
       "lat": 40.099839,
       "lng": -75.154111,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "4639",
@@ -30605,7 +30591,7 @@
       "lat": 40.008592,
       "lng": -75.297401,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 8
+      "signalCount": 6
     },
     {
       "id": "4647",
@@ -30633,7 +30619,7 @@
       "lat": 40.16565,
       "lng": -75.479423,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "4651",
@@ -30969,7 +30955,7 @@
       "lat": 40.790419,
       "lng": -76.506494,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "5003",
@@ -31137,7 +31123,7 @@
       "lat": 40.07731,
       "lng": -75.208682,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "5126",
@@ -32229,7 +32215,7 @@
       "lat": 39.770316,
       "lng": -76.669063,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "6715",
@@ -32243,7 +32229,7 @@
       "lat": 40.147133,
       "lng": -76.813433,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "6716",
@@ -32453,7 +32439,7 @@
       "lat": 33.7031403,
       "lng": -78.870421,
       "source": "Beach Discount Beverages South Carolina CityHive store inventory",
-      "signalCount": 14
+      "signalCount": 15
     },
     {
       "id": "da-brown-bag:da-brown-bag-north-charleston",
@@ -32579,7 +32565,7 @@
       "lat": 34.9408142,
       "lng": -80.9621524,
       "source": "O'Darby's Liquor Barn South Carolina CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 4
     },
     {
       "id": "palmetto-liquor:66c9e5c12556e329502b0e5e",
@@ -32635,7 +32621,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -32775,7 +32761,7 @@
       "lat": 36.149323,
       "lng": -86.77812259999999,
       "source": "Frugal MacDoogal CityHive store inventory",
-      "signalCount": 12
+      "signalCount": 13
     },
     {
       "id": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
@@ -32803,7 +32789,7 @@
       "lat": 35.1360118,
       "lng": -90.0121156,
       "source": "Kimbrough Fine Wine & Spirits CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
@@ -32859,7 +32845,7 @@
       "lat": 35.973703,
       "lng": -86.8318783,
       "source": "Moon Wine & Spirits CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
@@ -32887,7 +32873,35 @@
       "lat": 35.8630651,
       "lng": -84.06586,
       "source": "Northshore Wine & Spirits CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
+    },
+    {
+      "id": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
+      "sourceStoreId": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
+      "state": "TN",
+      "name": "One Stop Wines & Spirits - Franklin Rd",
+      "address": "1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA",
+      "city": "Johnson City",
+      "county": "Washington County",
+      "zip": "37604",
+      "lat": 36.3008869,
+      "lng": -82.37741079999999,
+      "source": "One Stop Wines & Spirits Johnson City TN CityHive store locator",
+      "signalCount": 1
+    },
+    {
+      "id": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
+      "sourceStoreId": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
+      "state": "TN",
+      "name": "One Stop Wines & Spirits - Roan St",
+      "address": "2710 N Roan St, Johnson City, TN 37601, USA",
+      "city": "Johnson City",
+      "county": null,
+      "zip": "37601",
+      "lat": 36.3560166,
+      "lng": -82.38251729999999,
+      "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
@@ -32915,7 +32929,7 @@
       "lat": 35.9293792,
       "lng": -86.9195292,
       "source": "Westside Wine & Spirits CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "102",
