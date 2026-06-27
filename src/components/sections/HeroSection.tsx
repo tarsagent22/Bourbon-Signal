@@ -115,23 +115,55 @@ export default function HeroSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={125}>
-          <div className="hero-feature-strip flex flex-wrap items-center justify-center">
+          <div
+            className="flex flex-wrap items-center justify-center"
+            style={{
+              marginBottom: "18px",
+              gap: "10px",
+              maxWidth: "760px",
+            }}
+          >
             {[
-              { label: "Multi-state coverage", mobile: "Multi-state" },
-              { label: "Live Drop Feed", mobile: "Live Feed", primary: true },
-              { label: "Instant Drop Alerts", mobile: "Instant Alerts", primary: true },
-              { label: "Member Sightings", mobile: "Sightings" },
-              { label: "Bottle Check", mobile: "Bottle Check" },
-              { label: "My Collection", mobile: "Collection" },
-              { label: "Personalized Bottle Recommendations", mobile: "Personalized Recs", wide: true },
+              "Multi-state coverage",
+              "Live Drop Feed",
+              "Instant Drop Alerts",
+              "Member Sightings",
+              "Bottle Check",
+              "My Collection",
+              "Personalized Bottle Recommendations",
             ].map((item, index, arr) => (
               <div
-                key={item.label}
-                className={`hero-feature-item flex items-center ${item.primary ? "primary" : ""} ${item.wide ? "wide" : ""}`}
+                key={item}
+                className="flex items-center"
+                style={{
+                  gap: "10px",
+                }}
               >
-                <span className="hero-feature-label hero-feature-label-desktop">{item.label}</span>
-                <span className="hero-feature-label hero-feature-label-mobile">{item.mobile}</span>
-                {index < arr.length - 1 && <span aria-hidden="true" className="hero-feature-dot">•</span>}
+                <span
+                  style={{
+                    color: "rgba(245, 237, 214, 0.72)",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item}
+                </span>
+                {index < arr.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      color: "rgba(212,146,11,0.72)",
+                      fontSize: 10,
+                      lineHeight: 1,
+                    }}
+                  >
+                    •
+                  </span>
+                )}
               </div>
             ))}
           </div>
