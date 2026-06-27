@@ -29,13 +29,13 @@ The first implementation pass should define a single membership/entitlement cont
 - Full Bottle Check.
 - Read and submit Member Sightings.
 
-### Barrel — `$9.99/mo` or `$79.99/yr`
+### Barrel — `$4.99/mo` or `$49.99/yr`
 - Effectively unlimited alert areas and tracked bottles.
 - Advanced filters.
 - Sightings alerts included at launch, with honest copy that participation improves coverage over time.
 - Early/beta access.
 
-### Bottled-in-Bond Founder — `$59.99` one-time lifetime
+### Bottled-in-Bond Founder — `$49.99` one-time lifetime
 - Lifetime access to all current and future paid member features.
 - Capped at 100 total spots; after all 100 sell, no more will ever be available.
 - Founder-style positioning and optional numbered goodies.

@@ -63,8 +63,8 @@ const paidTiers: PricingTier[] = [
     tier: "barrel",
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
-    monthlyPrice: "$9.99",
-    annualPrice: "$79.99",
+    monthlyPrice: "$4.99",
+    annualPrice: "$49.99",
     monthlyPlan: "barrel_monthly",
     annualPlan: "barrel_annual",
     description: "Everything in Standard Proof, plus unlimited alerts and advanced discovery tools.",
@@ -188,14 +188,13 @@ function PricingPageContent() {
 
         <section className="pricing-hero">
           <ScrollReveal>
-            <p className="pricing-kicker">Membership Pricing</p>
             <h1>Pick your proof.</h1>
             <div className="billing-toggle" aria-label="Billing cycle">
               <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
                 Monthly
               </button>
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>Save 30%</span>
+                Annual <span>Save 17%</span>
               </button>
             </div>
           </ScrollReveal>
