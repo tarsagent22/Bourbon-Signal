@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-27T12:16:07.317Z",
-  "count": 2693,
+  "generatedAt": "2026-06-27T19:40:25.795Z",
+  "count": 2692,
   "stores": [
     {
       "id": "alabc:001",
@@ -11411,7 +11411,7 @@
       "lat": 39.8993173,
       "lng": -85.99296,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -11453,7 +11453,7 @@
       "lat": 39.697918,
       "lng": -86.36907649999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "big-red:5e92549978e8f13c2cb1e1d4",
@@ -14267,20 +14267,6 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
-    },
-    {
-      "id": "doordash:26286224",
-      "sourceStoreId": "doordash:26286224",
-      "state": "IN",
-      "name": "Frontier Liquors - Oak Hill Road",
-      "address": "1701 Oak Hill Road, Evansville, IN 47711",
-      "city": "Evansville",
-      "county": null,
-      "zip": "47711",
-      "lat": 37.992805,
-      "lng": -87.52567,
-      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
       "signalCount": 1
     },
     {
@@ -19657,7 +19643,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "DL4913533",
@@ -28785,7 +28771,7 @@
       "lat": 39.906033,
       "lng": -79.753825,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "2701",
@@ -30647,7 +30633,7 @@
       "lat": 40.265715,
       "lng": -75.654332,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "4653",
@@ -32775,7 +32761,7 @@
       "lat": 35.8660287,
       "lng": -86.45380279999999,
       "source": "Gateway Wine & Spirits Grabbl public store API",
-      "signalCount": 11
+      "signalCount": 12
     },
     {
       "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
