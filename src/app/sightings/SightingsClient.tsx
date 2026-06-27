@@ -132,10 +132,12 @@ function SightingDropdown({
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
-  const { isSignedIn, signIn } = useAuth();
+  const { isSignedIn, signIn, entitlements } = useAuth();
   const { bottles } = useBottles();
   const { stores, loading: storesLoading } = useStores();
-  const { sightings, states, addSighting, voteSighting, saving, loading } = useSightings(isSignedIn);
+  const canReadSightings = entitlements.canReadSightings;
+  const isFreePreview = isSignedIn && !canReadSightings;
+  const { sightings, states, addSighting, voteSighting, saving, loading } = useSightings(isSignedIn && canReadSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
@@ -224,6 +226,7 @@ export default function SightingsClient() {
   const submit = async () => {
     setSubmitError(null);
     if (!isSignedIn) return signIn();
+    if (!canReadSightings) return setSubmitError("Paid members only. Upgrade to submit sightings.");
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
     if (!selectedStore) return setSubmitError("Select an exact store from the suggestions.");
@@ -265,6 +268,7 @@ export default function SightingsClient() {
       </main>
     );
   }
+
 
   return (
     <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
@@ -345,11 +349,12 @@ export default function SightingsClient() {
 
         {activeTab === "submit" ? (
           <section style={{ border: "1px solid rgba(245,237,214,0.1)", borderRadius: "0 28px 28px 28px", background: "rgba(245,237,214,0.045)", padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
+            {isFreePreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Preview the sighting form</strong><span>Upgrade to submit member sightings.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to use</a></div> : null}
             <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 18 }}>
               <div>
-                <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" /></div>{bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}</label>
-                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="City, ZIP, street, or store name" /></div></label>
-                <button type="button" onClick={requestLocation} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
+                <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}</label>
+                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="City, ZIP, street, or store name" disabled={isFreePreview} /></div></label>
+                <button type="button" onClick={requestLocation} disabled={isFreePreview} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
                 {selectedStore ? (
                   <div className="selected-store-card" aria-live="polite">
                     <strong>{storeDisplay(selectedStore)}</strong>
@@ -357,17 +362,25 @@ export default function SightingsClient() {
                     <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
                   </div>
                 ) : (
-                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location.</div> : null}{storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
                 )}
               </div>
               <div>
                 <span className="sighting-label">Sighting type</span>
-                <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online/Social Media" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
-                <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" /></label></div>
-                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: purchase limit, shelf location, Facebook group context, etc." rows={4} /></label>
+                <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online/Social Media" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
+                <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" disabled={isFreePreview} /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" disabled={isFreePreview} /></label></div>
+                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: purchase limit, shelf location, Facebook group context, etc." rows={4} disabled={isFreePreview} /></label>
                 {submitError ? <div style={{ color: "#ffb4a3", marginTop: 12, fontSize: 13 }}>{submitError}</div> : null}{saved ? <div style={{ color: "var(--color-accent-amber)", marginTop: 12, fontSize: 13 }}>Sighting saved. It now appears in the member feed.</div> : null}
-                <button type="button" onClick={submit} disabled={saving} className="sighting-submit"><Send size={16} /> {saving ? "Saving…" : "Submit sighting"}</button>
+                <button type="button" onClick={submit} disabled={saving || isFreePreview} className="sighting-submit"><Send size={16} /> {isFreePreview ? "Upgrade to use" : saving ? "Saving…" : "Submit sighting"}</button>
               </div>
+            </div>
+          </section>
+        ) : isFreePreview ? (
+          <section className="sighting-feed-shell">
+            <div className="sighting-empty-panel" style={{ margin: 14, textAlign: "center" }}>
+              <strong>Paid members only</strong>
+              <span>The sightings feed is available with Standard Proof and above.</span>
+              <a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to use</a>
             </div>
           </section>
         ) : (

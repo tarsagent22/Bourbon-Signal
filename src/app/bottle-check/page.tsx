@@ -55,6 +55,8 @@ const availabilityLabels: Record<string, string> = {
 
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
+const BOTTLE_CHECK_USAGE_STORAGE_KEY = "bourbonSignalFreeBottleChecksUsed";
+
 function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -107,10 +109,12 @@ function scoreTone(score: number) {
 }
 
 export default function BottleCheckPage() {
-  const { isSignedIn, signIn } = useAuth();
+  const { isSignedIn, signIn, entitlements } = useAuth();
+  const bottleCheckLimit = entitlements.bottleCheckLimit;
+  const isFreeBottleCheck = bottleCheckLimit !== null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
-  const [submittedQuery, setSubmittedQuery] = useState("Buffalo Trace");
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [state, setState] = useState("NC");
   const [result, setResult] = useState<BottleResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -118,7 +122,17 @@ export default function BottleCheckPage() {
   const [savingTrack, setSavingTrack] = useState(false);
   const [trackError, setTrackError] = useState<string | null>(null);
   const [trackSaved, setTrackSaved] = useState(false);
+  const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
+
+  const remainingFreeChecks = bottleCheckLimit === null ? null : Math.max(0, bottleCheckLimit - freeChecksUsed);
+  const hasFreeChecksRemaining = remainingFreeChecks === null || remainingFreeChecks > 0;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = Number(window.localStorage.getItem(BOTTLE_CHECK_USAGE_STORAGE_KEY) || "0");
+    setFreeChecksUsed(Number.isFinite(stored) ? Math.max(0, stored) : 0);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -183,11 +197,25 @@ export default function BottleCheckPage() {
   const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isCommon = bottle?.availability === "common";
+  const canSaveAlertFromBottleCheck = entitlements.trackedBottleLimit !== 0;
   const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
-    setSubmittedQuery(query);
+    const nextQuery = query.trim();
+    if (!nextQuery) return;
+    if (!hasFreeChecksRemaining) {
+      setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
+      return;
+    }
+    if (isFreeBottleCheck) {
+      setFreeChecksUsed((current) => {
+        const next = Math.min(bottleCheckLimit ?? current + 1, current + 1);
+        if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(next));
+        return next;
+      });
+    }
+    setSubmittedQuery(nextQuery);
   }
 
   function toggleTrackingState(nextState: string) {
@@ -202,6 +230,10 @@ export default function BottleCheckPage() {
     if (!bottle || !canTrack) return;
     if (!isSignedIn) {
       signIn();
+      return;
+    }
+    if (!canSaveAlertFromBottleCheck) {
+      window.location.href = "/pricing";
       return;
     }
     if (prefsLoading) {
@@ -246,6 +278,11 @@ export default function BottleCheckPage() {
         </section>
 
         <section className="bc-shell">
+          {isFreeBottleCheck ? (
+            <div className="bc-panel muted" style={{ marginBottom: 14 }}>
+              Free preview: {remainingFreeChecks} of {bottleCheckLimit} Bottle Checks remaining. Upgrade for unlimited access.
+            </div>
+          ) : null}
           <form className="bc-search-card" onSubmit={submitSearch}>
             <div className="bc-field grow">
               <label htmlFor="bottle-search">Bottle name</label>
@@ -297,7 +334,7 @@ export default function BottleCheckPage() {
                 ))}
               </select>
             </div>
-            <button type="submit">Check bottle</button>
+            <button type="submit" disabled={!hasFreeChecksRemaining}>{hasFreeChecksRemaining ? "Check bottle" : "Upgrade for unlimited"}</button>
           </form>
 
           {loading ? (
@@ -337,6 +374,7 @@ export default function BottleCheckPage() {
                   {isCommon ? (
                     <p><strong>No alert settings for common bottles.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
+                    canSaveAlertFromBottleCheck ? (
                     <>
                       <div className="bc-track-content">
                         <p><strong>Track this bottle</strong> saves it to your account-level alert preferences so future inbox/email alerts can use it.</p>
@@ -360,6 +398,15 @@ export default function BottleCheckPage() {
                       </div>
                       <button type="button" onClick={trackBottle} disabled={savingTrack || prefsLoading || isTracked}>{!isSignedIn ? "Sign in to track" : prefsLoading ? "Loading..." : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
                     </>
+                    ) : (
+                      <>
+                        <div className="bc-track-content">
+                          <p><strong>Get alerted when this drops in your area.</strong> Bottle Check can tell you whether a bottle is worth chasing; paid members can save it for inbox and email alerts.</p>
+                          <small>Standard starts with 5 alert areas and 15 tracked bottles. Barrel and Founder are built for heavier hunting.</small>
+                        </div>
+                        <button type="button" onClick={() => { window.location.href = "/pricing"; }}>View memberships</button>
+                      </>
+                    )
                   ) : (
                     <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>
                   )}

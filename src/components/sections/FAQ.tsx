@@ -12,19 +12,39 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How fast are the drop alerts?",
+    question: "What do free accounts get?",
     answer:
-      "Most alerts fire within minutes of data hitting the state system. Shipment alerts go out the same day the warehouse logs the transfer, when that level of source data is available.",
+      "Free accounts can preview the product: a limited Drop Feed view, demo access to paid tools, and 3 Bottle Checks. Saving alerts, sightings, collection data, and recommendations requires a paid membership.",
   },
   {
-    question: "What states do you cover?",
+    question: "What counts as an alert area?",
     answer:
-      "We currently track live bourbon drops, store inventory hits, and board shipment leads across North Carolina, Virginia, Pennsylvania, Ohio, Indiana, Tennessee, Illinois, and Alabama. Depth varies by state, and we only surface what we can support honestly.",
+      "An alert area is a specific market you want watched — a state, ABC board, city, county, or supported store-level area depending on the state data available. Standard includes up to 5. Barrel and Bottled in Bond remove that limit.",
   },
   {
-    question: "What is a unicorn / allocated / limited bottle?",
+    question: "Are Drop Feed signals guaranteed inventory?",
     answer:
-      "Unicorn bottles are the rarest — think Pappy, BTAC, or Old Fitzgerald. Allocated bottles are limited distribution controlled by the state. Limited releases are short-run productions that sell out fast but aren't state-controlled.",
+      "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
+  },
+  {
+    question: "What is Bottle Check?",
+    answer:
+      "Bottle Check helps you quickly evaluate a bottle — rarity, MSRP context, whether it is worth chasing, and how it fits your bourbon preferences. Free accounts get 3 checks; paid members get unlimited checks.",
+  },
+  {
+    question: "What are My Collection and Personalized Bottle Recommendations?",
+    answer:
+      "My Collection is where you save bottles you own or have tasted. Personalized Bottle Recommendations use those ratings and tasting cues to suggest bottles that fit your Bourbon DNA.",
+  },
+  {
+    question: "What is different about Bottled in Bond?",
+    answer:
+      "Bottled in Bond is the limited founder pass: lifetime access to all current and future paid Bourbon Signal features, plus founder-only perks like a profile badge, founder number, and numbered glass.",
+  },
+  {
+    question: "Can I upgrade or change plans later?",
+    answer:
+      "Yes. Standard and Barrel are recurring memberships, and eligible members can upgrade from inside the site. Bottled in Bond is a one-time founder pass while the 100 spots are available.",
   },
 ];
 

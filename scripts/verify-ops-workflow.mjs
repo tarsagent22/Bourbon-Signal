@@ -130,8 +130,35 @@ const notificationPreferences = read('src/lib/notification-preferences.ts');
 if (!/email:\s*\{\s*enabled:\s*false,\s*mode:\s*"major_only"\s*\}/.test(notificationPreferences)) {
   fail('Email alert preferences must default to opt-out until a user explicitly enables email alerts.');
 }
+if (!/sightings:\s*\{\s*enabled:\s*false\s*\}/.test(notificationPreferences) || !/source\.sightings/.test(notificationPreferences)) {
+  fail('Notification preferences should include explicit Member Sightings alert settings for Barrel/BiB gating.');
+}
 if (/subject:\s*`\$\{bottleName\} just hit/.test(alertDelivery)) {
   fail('Alert email subject must avoid overpromising with "just hit" wording.');
+}
+const entitlements = read('src/lib/entitlements.ts');
+for (const phrase of ['canAccessDashboard', 'canUseBottleSearch', 'canUseCollection', 'canUseRecommendations']) {
+  if (!entitlements.includes(phrase)) fail(`Entitlement model should include ${phrase} so access matches pricing copy.`);
+}
+const dropFeed = read('src/components/sections/DropFeed.tsx');
+for (const phrase of ['canUseDropFeedFilters', 'canUseStateFilter', 'canUseBottleSearch', 'canReadSightings']) {
+  if (!dropFeed.includes(phrase)) fail(`Drop Feed should gate filter/search/sighting affordances with ${phrase}.`);
+}
+const dashboardPage = read('src/app/dashboard/page.tsx');
+for (const phrase of ['canAccessDashboard', 'canUseCollection', 'canUseRecommendations', 'canReceiveSightingsAlerts', 'canUseAdvancedFilters']) {
+  if (!dashboardPage.includes(phrase)) fail(`Dashboard should gate tier-specific access with ${phrase}.`);
+}
+const bottleCheckPage = read('src/app/bottle-check/page.tsx');
+for (const phrase of ['bottleCheckLimit', 'BOTTLE_CHECK_USAGE_STORAGE_KEY', 'remainingFreeChecks']) {
+  if (!bottleCheckPage.includes(phrase)) fail(`Bottle Check should enforce/communicate the Free 3-check preview limit (${phrase}).`);
+}
+const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
+if (!/canReadSightings/.test(sightingsClient) || !/Paid members only/.test(sightingsClient) || !/disabled=\{isFreePreview\}/.test(sightingsClient)) {
+  fail('Member Sightings page should show a non-interactive Free preview form and gate the feed to paid members.');
+}
+const userPreferencesRoute = read('src/app/api/user/preferences/route.ts');
+if (!/canReceiveSightingsAlerts/.test(userPreferencesRoute) || !/sightings:\s*\{\s*enabled:\s*false\s*\}/.test(userPreferencesRoute)) {
+  fail('Preferences API should strip Member Sightings alerts for tiers below Barrel/BiB.');
 }
 const middleware = read('src/middleware.ts');
 if (!/\/api\/alerts\/deliver/.test(middleware) || !/NextResponse\.next\(\)/.test(middleware)) {

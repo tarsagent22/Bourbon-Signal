@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-27T11:59:59.960Z",
+  "generatedAt": "2026-06-27T19:30:47.181Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-06-27T12:00:00.070Z"
+    "observedAt": "2026-06-27T19:30:47.295Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
     "rowCount": 3294,
     "bourbonOrWhiskeyRowCount": 666,
-    "observedAt": "2026-06-27T12:00:00.396Z",
+    "observedAt": "2026-06-27T19:30:47.498Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -1945,18 +1945,18 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-06-27T12:00:00.448Z",
+    "observedAt": "2026-06-27T19:30:47.559Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
     "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
-    "observedAt": "2026-06-26T14:52:43.000Z",
+    "observedAt": "2026-06-27T14:52:38.000Z",
     "boardCount": 174,
-    "productCount": 2633,
-    "recordCount": 56163,
-    "trackedSignalCount": 577,
-    "controlledDistributionSignalCount": 395,
-    "priceEnrichedSignalCount": 577,
+    "productCount": 2596,
+    "recordCount": 50467,
+    "trackedSignalCount": 515,
+    "controlledDistributionSignalCount": 345,
+    "priceEnrichedSignalCount": 515,
     "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching."
   },
   "warehouse": {
@@ -1964,7 +1964,7 @@
     "rowCount": 3234,
     "trackedRowCount": 106,
     "positiveTrackedRowCount": 35,
-    "observedAt": "2026-06-27T12:00:01.801Z",
+    "observedAt": "2026-06-27T19:30:49.550Z",
     "increaseCount": 0,
     "controlledDistributionSignalCount": 61,
     "priceEnrichedSignalCount": 106,
@@ -2078,319 +2078,6 @@
         {
           "href": "https://form.123formbuilder.com/5987161/special-order-request",
           "label": "Special Order Request"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "url": "https://wakeabc.com/search-our-inventory/",
-      "finalUrl": "https://wakeabc.com/search-our-inventory/",
-      "ok": true,
-      "status": 200,
-      "bytes": 65828,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "inventory_or_product_search_page",
-        "allocation_policy_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#ajax-content-wrap",
-          "label": "Skip to main content"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#search-box",
-          "label": "search"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#mobile-menu",
-          "label": "Menu"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "Employment"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "Contact"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#search-box",
-          "label": "search"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "url": "https://wakeabc.com/search-results/",
-      "finalUrl": "https://wakeabc.com/search-results/",
-      "ok": true,
-      "status": 200,
-      "bytes": 64175,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "inventory_or_product_search_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Back to Search"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Our Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "url": "http://www.wakeabc.com/",
-      "finalUrl": "https://wakeabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 86290,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "inventory_or_product_search_page",
-        "allocation_policy_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/category/news-updates/",
-          "label": "News & Updates"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Wake County ABC Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/#",
-          "label": "SPECIALS"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Our Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "url": "http://www.wakeabc.com/search-our-inventory",
-      "finalUrl": "https://wakeabc.com/search-our-inventory/",
-      "ok": true,
-      "status": 200,
-      "bytes": 65828,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "inventory_or_product_search_page",
-        "allocation_policy_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#ajax-content-wrap",
-          "label": "Skip to main content"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#search-box",
-          "label": "search"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#mobile-menu",
-          "label": "Menu"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "Employment"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "Contact"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#search-box",
-          "label": "search"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "url": "http://www.wakeabc.com/search-results",
-      "finalUrl": "https://wakeabc.com/search-results/",
-      "ok": true,
-      "status": 200,
-      "bytes": 64301,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "inventory_or_product_search_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Back to Search"
-        },
-        {
-          "href": "https://wakeabc.com/monthly-specials/",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://wakeabc.com/search-our-inventory/",
-          "label": "Search Our Inventory"
-        },
-        {
-          "href": "https://wakeabc.com/special-orders/",
-          "label": "Special Orders"
         }
       ],
       "error": null
@@ -2693,6 +2380,319 @@
         {
           "href": "https://www.durhamabc.com/monthly-specials",
           "label": "MONTHLY SPECIALS"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wake County ABC Board",
+      "url": "https://wakeabc.com/search-our-inventory/",
+      "finalUrl": "https://wakeabc.com/search-our-inventory/",
+      "ok": true,
+      "status": 200,
+      "bytes": 65954,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "inventory_or_product_search_page",
+        "allocation_policy_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#ajax-content-wrap",
+          "label": "Skip to main content"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#search-box",
+          "label": "search"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#mobile-menu",
+          "label": "Menu"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "About"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "Employment"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "Contact"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#search-box",
+          "label": "search"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "About"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wake County ABC Board",
+      "url": "https://wakeabc.com/search-results/",
+      "finalUrl": "https://wakeabc.com/search-results/",
+      "ok": true,
+      "status": 200,
+      "bytes": 64300,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "inventory_or_product_search_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Back to Search"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Our Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wake County ABC Board",
+      "url": "http://www.wakeabc.com/",
+      "finalUrl": "https://wakeabc.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 86340,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "inventory_or_product_search_page",
+        "allocation_policy_page",
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/category/news-updates/",
+          "label": "News & Updates"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Wake County ABC Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/#",
+          "label": "SPECIALS"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Our Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wake County ABC Board",
+      "url": "http://www.wakeabc.com/search-our-inventory",
+      "finalUrl": "https://wakeabc.com/search-our-inventory/",
+      "ok": true,
+      "status": 200,
+      "bytes": 65954,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "inventory_or_product_search_page",
+        "allocation_policy_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#ajax-content-wrap",
+          "label": "Skip to main content"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#search-box",
+          "label": "search"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#mobile-menu",
+          "label": "Menu"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "About"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "Employment"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "Contact"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#search-box",
+          "label": "search"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/#",
+          "label": "About"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wake County ABC Board",
+      "url": "http://www.wakeabc.com/search-results",
+      "finalUrl": "https://wakeabc.com/search-results/",
+      "ok": true,
+      "status": 200,
+      "bytes": 64300,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "inventory_or_product_search_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Back to Search"
+        },
+        {
+          "href": "https://wakeabc.com/monthly-specials/",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://wakeabc.com/search-our-inventory/",
+          "label": "Search Our Inventory"
+        },
+        {
+          "href": "https://wakeabc.com/special-orders/",
+          "label": "Special Orders"
         }
       ],
       "error": null
@@ -3208,102 +3208,6 @@
       "error": null
     },
     {
-      "boardName": "Concord ABC Board",
-      "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
-      "finalUrl": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
-      "ok": true,
-      "status": 200,
-      "bytes": 279559,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "lottery_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://concordabcboard.com/preparing-for-bourbon-lottery/#",
-          "label": "About Us"
-        },
-        {
-          "href": "https://concordabcboard.com/preparing-for-bourbon-lottery/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://concordabcboard.com/order-special-items/",
-          "label": "How to Order Special Items"
-        },
-        {
-          "href": "https://concordabcboard.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://ekpfsc6w3so.exactdn.com/wp-content/uploads/2024/06/Preparing-for-bourbon-lottery.jpg?strip=all&w=2560",
-          "label": ""
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://concordabcboard.com/order-special-items/",
-          "label": "How to Order Special Items"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Concord ABC Board",
-      "url": "http://concordabcboard.com/",
-      "finalUrl": "https://concordabcboard.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 244663,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "lottery_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://concordabcboard.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://concordabcboard.com/order-special-items/",
-          "label": "How to Order Special Items"
-        },
-        {
-          "href": "https://concordabcboard.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://concordabcboard.com/announcements/",
-          "label": "CLICK FOR DETAILS"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://concordabcboard.com/order-special-items/",
-          "label": "How to Order Special Items"
-        }
-      ],
-      "error": null
-    },
-    {
       "boardName": "High Point ABC Board",
       "url": "https://www.highpointabc.com/products",
       "finalUrl": "https://highpointabc.com/products",
@@ -3477,12 +3381,108 @@
       "error": null
     },
     {
+      "boardName": "Concord ABC Board",
+      "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
+      "finalUrl": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
+      "ok": true,
+      "status": 200,
+      "bytes": 279559,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "lottery_page",
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://concordabcboard.com/preparing-for-bourbon-lottery/#",
+          "label": "About Us"
+        },
+        {
+          "href": "https://concordabcboard.com/preparing-for-bourbon-lottery/#",
+          "label": "Products"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://concordabcboard.com/order-special-items/",
+          "label": "How to Order Special Items"
+        },
+        {
+          "href": "https://concordabcboard.com/announcements/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://ekpfsc6w3so.exactdn.com/wp-content/uploads/2024/06/Preparing-for-bourbon-lottery.jpg?strip=all&w=2560",
+          "label": ""
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://concordabcboard.com/order-special-items/",
+          "label": "How to Order Special Items"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Concord ABC Board",
+      "url": "http://concordabcboard.com/",
+      "finalUrl": "https://concordabcboard.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 244663,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "lottery_page",
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://concordabcboard.com/#",
+          "label": "Products"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://concordabcboard.com/order-special-items/",
+          "label": "How to Order Special Items"
+        },
+        {
+          "href": "https://concordabcboard.com/announcements/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://concordabcboard.com/announcements/",
+          "label": "CLICK FOR DETAILS"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://concordabcboard.com/order-special-items/",
+          "label": "How to Order Special Items"
+        }
+      ],
+      "error": null
+    },
+    {
       "boardName": "Orange County ABC Board",
       "url": "https://orangeabc.com/specialty-lottery/",
       "finalUrl": "https://orangeabc.com/specialty-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 90313,
+      "bytes": 90362,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -3535,7 +3535,7 @@
       "finalUrl": "https://orangeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 109041,
+      "bytes": 109090,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -3568,7 +3568,7 @@
       "finalUrl": "https://wayneabc.com/allocation-policy/",
       "ok": true,
       "status": 200,
-      "bytes": 84030,
+      "bytes": 84003,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3606,7 +3606,7 @@
       "finalUrl": "https://wayneabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 101444,
+      "bytes": 194214,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3640,7 +3640,7 @@
       "finalUrl": "https://wayneabc.com/allocation-policy/",
       "ok": true,
       "status": 200,
-      "bytes": 84030,
+      "bytes": 84003,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -4267,6 +4267,71 @@
       "error": null
     },
     {
+      "boardName": "Franklin ABC Board",
+      "url": "http://www.franklinncabc.com/",
+      "finalUrl": "https://www.franklinncabc.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 188212,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://www.franklinncabc.com/#",
+          "label": "Products"
+        },
+        {
+          "href": "https://www.franklinncabc.com/monthly-specials",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://www.franklinncabc.com/product-information/",
+          "label": "Product Information"
+        },
+        {
+          "href": "https://www.franklinncabc.com/announcements/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://www.franklinncabc.com/#",
+          "label": "Products"
+        },
+        {
+          "href": "https://www.franklinncabc.com/monthly-specials",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://www.franklinncabc.com/product-information/",
+          "label": "Product Information"
+        },
+        {
+          "href": "https://www.franklinncabc.com/announcements/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://www.franklinncabc.com/monthly-specials/",
+          "label": "Shop Now"
+        },
+        {
+          "href": "https://www.franklinncabc.com/#",
+          "label": "Products"
+        },
+        {
+          "href": "https://www.franklinncabc.com/monthly-specials",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://www.franklinncabc.com/product-information/",
+          "label": "Product Information"
+        }
+      ],
+      "error": null
+    },
+    {
       "boardName": "Mount Holly ABC Board",
       "url": "http://mtholly.ncabcboards.com/",
       "finalUrl": "https://mtholly.ncabcboards.com/",
@@ -4390,6 +4455,59 @@
       "error": null
     },
     {
+      "boardName": "Moore County ABC Board",
+      "url": "http://www.moore-abc.com/",
+      "finalUrl": "https://www.moore-abc.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 714499,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [],
+      "releaseLanguage": false,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [],
+      "error": null
+    },
+    {
+      "boardName": "Carteret County ABC Board",
+      "url": "http://carteretcountyabc.org/",
+      "finalUrl": "https://carteretcountyabc.org/",
+      "ok": true,
+      "status": 200,
+      "bytes": 29684,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [],
+      "releaseLanguage": false,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [],
+      "error": null
+    },
+    {
+      "boardName": "Asheville ABC Board",
+      "url": "http://www.ashevilleabcboard.com/",
+      "finalUrl": "https://ashevilleabc.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 58935,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": false,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [
+        {
+          "href": "https://ashevilleabc.com/stores/product-information/",
+          "label": "Product Information"
+        },
+        {
+          "href": "https://ashevilleabc.com/news/",
+          "label": "News"
+        }
+      ],
+      "error": null
+    },
+    {
       "boardName": "Onslow County ABC Board",
       "url": "http://onslow.ncabcboards.com/",
       "finalUrl": "https://onslow.ncabcboards.com/",
@@ -4420,59 +4538,6 @@
           "label": "Special Orders Price List"
         }
       ],
-      "error": null
-    },
-    {
-      "boardName": "Asheville ABC Board",
-      "url": "http://www.ashevilleabcboard.com/",
-      "finalUrl": "https://ashevilleabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 58935,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": false,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [
-        {
-          "href": "https://ashevilleabc.com/stores/product-information/",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://ashevilleabc.com/news/",
-          "label": "News"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Moore County ABC Board",
-      "url": "http://www.moore-abc.com/",
-      "finalUrl": "https://www.moore-abc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 714499,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [],
-      "releaseLanguage": false,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [],
-      "error": null
-    },
-    {
-      "boardName": "Carteret County ABC Board",
-      "url": "http://carteretcountyabc.org/",
-      "finalUrl": "https://carteretcountyabc.org/",
-      "ok": true,
-      "status": 200,
-      "bytes": 29684,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [],
-      "releaseLanguage": false,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [],
       "error": null
     },
     {
@@ -4605,6 +4670,20 @@
       "error": null
     },
     {
+      "boardName": "Blue Ridge ABC Board",
+      "url": "http://www.blueridgeabc.org/",
+      "finalUrl": "https://www.blueridgeabc.org/",
+      "ok": true,
+      "status": 200,
+      "bytes": 37436,
+      "contentType": "text/html;charset=utf-8",
+      "capabilities": [],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [],
+      "error": null
+    },
+    {
       "boardName": "Craven County ABC Board",
       "url": "http://craven.ncabcboards.com/",
       "finalUrl": "https://craven.ncabcboards.com/",
@@ -4620,53 +4699,6 @@
       "interestingLinks": [
         {
           "href": "https://craven.ncabcboards.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Pricing List"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Orders Price List"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Blue Ridge ABC Board",
-      "url": "http://www.blueridgeabc.org/",
-      "finalUrl": "https://www.blueridgeabc.org/",
-      "ok": true,
-      "status": 200,
-      "bytes": 37436,
-      "contentType": "text/html;charset=utf-8",
-      "capabilities": [],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [],
-      "error": null
-    },
-    {
-      "boardName": "Lenoir County ABC Board",
-      "url": "http://lenoir.ncabcboards.com/",
-      "finalUrl": "https://lenoir.ncabcboards.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 188833,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [
-        {
-          "href": "https://lenoir.ncabcboards.com/blog/",
           "label": "Announcements"
         },
         {
@@ -4737,11 +4769,25 @@
       "finalUrl": "https://catawbaabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 126177,
+      "bytes": 126171,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
       ],
+      "releaseLanguage": false,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [],
+      "error": null
+    },
+    {
+      "boardName": "Triad Municipal ABC Board",
+      "url": "http://www.triadabc.org/",
+      "finalUrl": "https://triadabc.org/",
+      "ok": true,
+      "status": 200,
+      "bytes": 62903,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [],
       "releaseLanguage": false,
       "strongReleaseLanguage": false,
       "interestingLinks": [],
@@ -4841,7 +4887,7 @@
       "finalUrl": "https://www.franklintonabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 283691,
+      "bytes": 219843,
       "contentType": "text/html;charset=utf-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4868,6 +4914,39 @@
       "interestingLinks": [
         {
           "href": "https://high.ncabcboards.com/blog/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
+          "label": "Monthly Specials"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/SpecialItems",
+          "label": "Special Pricing List"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/SpecialItems",
+          "label": "Special Orders Price List"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Lenoir County ABC Board",
+      "url": "http://lenoir.ncabcboards.com/",
+      "finalUrl": "https://lenoir.ncabcboards.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 188833,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [
+        {
+          "href": "https://lenoir.ncabcboards.com/blog/",
           "label": "Announcements"
         },
         {
@@ -4924,20 +5003,6 @@
       "contentType": "text/html;charset=utf-8",
       "capabilities": [],
       "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [],
-      "error": null
-    },
-    {
-      "boardName": "Triad Municipal ABC Board",
-      "url": "http://www.triadabc.org/",
-      "finalUrl": "https://triadabc.org/",
-      "ok": true,
-      "status": 200,
-      "bytes": 62903,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [],
-      "releaseLanguage": false,
       "strongReleaseLanguage": false,
       "interestingLinks": [],
       "error": null
@@ -5309,7 +5374,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-06-27T12:00:42.317Z",
+    "observedAt": "2026-06-27T19:31:29.178Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5407,7 +5472,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-06-27T12:00:42.543Z",
+    "observedAt": "2026-06-27T19:31:29.458Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
@@ -5642,7 +5707,7 @@
         "Skeet Club Rd",
         "Brookridge Lane"
       ],
-      "observedAt": "2026-06-27T11:36:40.81Z"
+      "observedAt": "2026-06-27T19:01:21.432Z"
     },
     {
       "source": "High Point ABC Shopify product suggestion API",
@@ -5788,9 +5853,9 @@
     {
       "boardName": "Mooresville ABC Board",
       "website": null,
-      "shipmentRows": 878,
+      "shipmentRows": 731,
       "trackedShipmentRows": 11,
-      "trackedUnits": 702,
+      "trackedUnits": 690,
       "capabilities": [
         "official_board_directory",
         "official_board_shipment_rows",
@@ -5862,85 +5927,6 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
-    },
-    {
-      "boardName": "Wake County ABC Board",
-      "website": "http://www.wakeabc.com",
-      "shipmentRows": 1857,
-      "trackedShipmentRows": 9,
-      "trackedUnits": 330,
-      "capabilities": [
-        "allocation_policy_page",
-        "inventory_or_product_search_page",
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "official_release_language_found",
-        "store_inventory_search_attached",
-        "store_level_probe_attached",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "store_inventory_search",
-      "sourceUrls": [
-        "http://www.wakeabc.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "https://wakeabc.com/search-our-inventory/",
-          "status": 200,
-          "capabilities": [
-            "inventory_or_product_search_page",
-            "allocation_policy_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://wakeabc.com/search-results/",
-          "status": 200,
-          "capabilities": [
-            "inventory_or_product_search_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        },
-        {
-          "url": "http://www.wakeabc.com/",
-          "status": 200,
-          "capabilities": [
-            "inventory_or_product_search_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "http://www.wakeabc.com/search-our-inventory",
-          "status": 200,
-          "capabilities": [
-            "inventory_or_product_search_page",
-            "allocation_policy_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "http://www.wakeabc.com/search-results",
-          "status": 200,
-          "capabilities": [
-            "inventory_or_product_search_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
     },
     {
       "boardName": "Jackson County ABC Board",
@@ -6112,24 +6098,9 @@
     {
       "boardName": "Granville County ABC Board",
       "website": null,
-      "shipmentRows": 467,
+      "shipmentRows": 464,
       "trackedShipmentRows": 5,
       "trackedUnits": 282,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Person County ABC Board",
-      "website": null,
-      "shipmentRows": 485,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 276,
       "capabilities": [
         "official_board_directory",
         "official_board_shipment_rows",
@@ -6230,7 +6201,7 @@
     {
       "boardName": "Durham County ABC Board",
       "website": "http://www.durhamabc.com",
-      "shipmentRows": 692,
+      "shipmentRows": 539,
       "trackedShipmentRows": 3,
       "trackedUnits": 264,
       "capabilities": [
@@ -6350,11 +6321,105 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Wake County ABC Board",
+      "website": "http://www.wakeabc.com",
+      "shipmentRows": 1733,
+      "trackedShipmentRows": 8,
+      "trackedUnits": 222,
+      "capabilities": [
+        "allocation_policy_page",
+        "inventory_or_product_search_page",
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "official_release_language_found",
+        "store_inventory_search_attached",
+        "store_level_probe_attached",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "store_inventory_search",
+      "sourceUrls": [
+        "http://www.wakeabc.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "https://wakeabc.com/search-our-inventory/",
+          "status": 200,
+          "capabilities": [
+            "inventory_or_product_search_page",
+            "allocation_policy_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        },
+        {
+          "url": "https://wakeabc.com/search-results/",
+          "status": 200,
+          "capabilities": [
+            "inventory_or_product_search_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        },
+        {
+          "url": "http://www.wakeabc.com/",
+          "status": 200,
+          "capabilities": [
+            "inventory_or_product_search_page",
+            "allocation_policy_page",
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        },
+        {
+          "url": "http://www.wakeabc.com/search-our-inventory",
+          "status": 200,
+          "capabilities": [
+            "inventory_or_product_search_page",
+            "allocation_policy_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        },
+        {
+          "url": "http://www.wakeabc.com/search-results",
+          "status": 200,
+          "capabilities": [
+            "inventory_or_product_search_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
+      "boardName": "Waynesville ABC Board",
+      "website": null,
+      "shipmentRows": 402,
+      "trackedShipmentRows": 8,
+      "trackedUnits": 204,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Mecklenburg County ABC Board",
       "website": "http://www.meckabc.com",
-      "shipmentRows": 1607,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 252,
+      "shipmentRows": 1504,
+      "trackedShipmentRows": 4,
+      "trackedUnits": 204,
       "capabilities": [
         "allocation_policy_page",
         "inventory_or_product_search_page",
@@ -6423,41 +6488,11 @@
       ]
     },
     {
-      "boardName": "Waynesville ABC Board",
-      "website": null,
-      "shipmentRows": 402,
-      "trackedShipmentRows": 8,
-      "trackedUnits": 204,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Forest City ABC Board",
-      "website": null,
-      "shipmentRows": 440,
-      "trackedShipmentRows": 7,
-      "trackedUnits": 186,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Youngsville ABC Board",
       "website": "http://www.youngsvilleabc.com",
       "shipmentRows": 316,
       "trackedShipmentRows": 3,
-      "trackedUnits": 180,
+      "trackedUnits": 198,
       "capabilities": [
         "news_or_announcement_page",
         "official_board_directory",
@@ -6483,6 +6518,21 @@
       ]
     },
     {
+      "boardName": "Forest City ABC Board",
+      "website": null,
+      "shipmentRows": 440,
+      "trackedShipmentRows": 7,
+      "trackedUnits": 186,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Lincolnton ABC Board",
       "website": null,
       "shipmentRows": 518,
@@ -6504,16 +6554,29 @@
       "trackedShipmentRows": 6,
       "trackedUnits": 174,
       "capabilities": [
+        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
         "official_board_website",
+        "official_release_language_found",
         "tracked_board_shipments"
       ],
       "precisionLevel": "board_shipment",
       "sourceUrls": [
         "http://www.franklinncabc.com"
       ],
-      "officialPageReports": []
+      "officialPageReports": [
+        {
+          "url": "http://www.franklinncabc.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Rockingham ABC Board",
@@ -6798,7 +6861,7 @@
     {
       "boardName": "Wingate ABC Board",
       "website": null,
-      "shipmentRows": 312,
+      "shipmentRows": 311,
       "trackedShipmentRows": 7,
       "trackedUnits": 150,
       "capabilities": [
@@ -6843,38 +6906,8 @@
     {
       "boardName": "Caswell County ABC Board",
       "website": null,
-      "shipmentRows": 315,
+      "shipmentRows": 314,
       "trackedShipmentRows": 8,
-      "trackedUnits": 144,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Northampton County ABC Board",
-      "website": null,
-      "shipmentRows": 173,
-      "trackedShipmentRows": 8,
-      "trackedUnits": 144,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Clinton ABC Board",
-      "website": null,
-      "shipmentRows": 374,
-      "trackedShipmentRows": 7,
       "trackedUnits": 144,
       "capabilities": [
         "official_board_directory",
@@ -6918,7 +6951,7 @@
     {
       "boardName": "Johnston County ABC Board",
       "website": "http://johnstonabc.com",
-      "shipmentRows": 1327,
+      "shipmentRows": 1252,
       "trackedShipmentRows": 8,
       "trackedUnits": 138,
       "capabilities": [
@@ -7082,70 +7115,10 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Greene County ABC Board",
-      "website": null,
-      "shipmentRows": 196,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 126,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Pamlico County ABC Board",
-      "website": null,
-      "shipmentRows": 264,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 126,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Hertford County ABC Board",
-      "website": null,
-      "shipmentRows": 294,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 126,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Pender County ABC Board",
       "website": null,
       "shipmentRows": 564,
       "trackedShipmentRows": 6,
-      "trackedUnits": 120,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Alexander County ABC Board",
-      "website": null,
-      "shipmentRows": 111,
-      "trackedShipmentRows": 5,
       "trackedUnits": 120,
       "capabilities": [
         "official_board_directory",
@@ -7205,36 +7178,6 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Onslow County ABC Board",
-      "website": "http://onslow.ncabcboards.com",
-      "shipmentRows": 1058,
-      "trackedShipmentRows": 4,
-      "trackedUnits": 120,
-      "capabilities": [
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://onslow.ncabcboards.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "http://onslow.ncabcboards.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
-    },
-    {
       "boardName": "Lincoln County ABC Board",
       "website": null,
       "shipmentRows": 791,
@@ -7263,36 +7206,6 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
-    },
-    {
-      "boardName": "Asheville ABC Board",
-      "website": "http://www.ashevilleabcboard.com",
-      "shipmentRows": 1316,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 102,
-      "capabilities": [
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://www.ashevilleabcboard.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "http://www.ashevilleabcboard.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": false,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
     },
     {
       "boardName": "Moore County ABC Board",
@@ -7337,50 +7250,6 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Concord ABC Board",
-      "website": "http://concordabcboard.com",
-      "shipmentRows": 1113,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 96,
-      "capabilities": [
-        "lottery_page",
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "official_release_language_found",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://concordabcboard.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "http://concordabcboard.com/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        }
-      ]
-    },
-    {
       "boardName": "Carteret County ABC Board",
       "website": "http://carteretcountyabc.org",
       "shipmentRows": 684,
@@ -7413,21 +7282,6 @@
       "shipmentRows": 556,
       "trackedShipmentRows": 5,
       "trackedUnits": 96,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Roseboro ABC Board",
-      "website": null,
-      "shipmentRows": 126,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 90,
       "capabilities": [
         "official_board_directory",
         "official_board_shipment_rows",
@@ -7549,11 +7403,160 @@
       ]
     },
     {
+      "boardName": "Kenansville ABC Board",
+      "website": null,
+      "shipmentRows": 114,
+      "trackedShipmentRows": 5,
+      "trackedUnits": 72,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Concord ABC Board",
+      "website": "http://concordabcboard.com",
+      "shipmentRows": 915,
+      "trackedShipmentRows": 5,
+      "trackedUnits": 66,
+      "capabilities": [
+        "lottery_page",
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "official_release_language_found",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://concordabcboard.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "https://concordabcboard.com/preparing-for-bourbon-lottery/",
+          "status": 200,
+          "capabilities": [
+            "lottery_page",
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        },
+        {
+          "url": "http://concordabcboard.com/",
+          "status": 200,
+          "capabilities": [
+            "lottery_page",
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
+      "boardName": "Asheville ABC Board",
+      "website": "http://www.ashevilleabcboard.com",
+      "shipmentRows": 973,
+      "trackedShipmentRows": 5,
+      "trackedUnits": 60,
+      "capabilities": [
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://www.ashevilleabcboard.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://www.ashevilleabcboard.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": false,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
+      "boardName": "Pilot Mountain ABC Board",
+      "website": null,
+      "shipmentRows": 154,
+      "trackedShipmentRows": 4,
+      "trackedUnits": 60,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Onslow County ABC Board",
+      "website": "http://onslow.ncabcboards.com",
+      "shipmentRows": 1013,
+      "trackedShipmentRows": 3,
+      "trackedUnits": 60,
+      "capabilities": [
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://onslow.ncabcboards.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://onslow.ncabcboards.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
+      "boardName": "Currituck County ABC Board",
+      "website": null,
+      "shipmentRows": 640,
+      "trackedShipmentRows": 3,
+      "trackedUnits": 54,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Chatham County ABC Board",
       "website": "http://chatham.ncabcboards.com",
-      "shipmentRows": 563,
-      "trackedShipmentRows": 6,
-      "trackedUnits": 78,
+      "shipmentRows": 336,
+      "trackedShipmentRows": 5,
+      "trackedUnits": 48,
       "capabilities": [
         "news_or_announcement_page",
         "official_board_directory",
@@ -7578,51 +7581,6 @@
           "matchedBottles": []
         }
       ]
-    },
-    {
-      "boardName": "Kenansville ABC Board",
-      "website": null,
-      "shipmentRows": 114,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 72,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Pilot Mountain ABC Board",
-      "website": null,
-      "shipmentRows": 154,
-      "trackedShipmentRows": 4,
-      "trackedUnits": 60,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Currituck County ABC Board",
-      "website": null,
-      "shipmentRows": 643,
-      "trackedShipmentRows": 3,
-      "trackedUnits": 54,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
     },
     {
       "boardName": "Gibsonville ABC Board",
@@ -7678,21 +7636,6 @@
       ]
     },
     {
-      "boardName": "Lexington ABC Board",
-      "website": null,
-      "shipmentRows": 590,
-      "trackedShipmentRows": 2,
-      "trackedUnits": 42,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Beaufort County ABC Board",
       "website": null,
       "shipmentRows": 289,
@@ -7708,41 +7651,56 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Craven County ABC Board",
-      "website": "http://craven.ncabcboards.com",
-      "shipmentRows": 931,
+      "boardName": "Stokes Municipal ABC Board",
+      "website": null,
+      "shipmentRows": 243,
       "trackedShipmentRows": 2,
       "trackedUnits": 36,
       "capabilities": [
-        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
-        "official_board_website",
         "tracked_board_shipments"
       ],
       "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://craven.ncabcboards.com"
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Brunswick County ABC Board",
+      "website": null,
+      "shipmentRows": 688,
+      "trackedShipmentRows": 4,
+      "trackedUnits": 30,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
       ],
-      "officialPageReports": [
-        {
-          "url": "http://craven.ncabcboards.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Nash County ABC Board",
+      "website": null,
+      "shipmentRows": 518,
+      "trackedShipmentRows": 3,
+      "trackedUnits": 30,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
     },
     {
       "boardName": "Orange County ABC Board",
       "website": "http://orangeabc.com",
-      "shipmentRows": 612,
-      "trackedShipmentRows": 2,
-      "trackedUnits": 36,
+      "shipmentRows": 336,
+      "trackedShipmentRows": 1,
+      "trackedUnits": 30,
       "capabilities": [
         "lottery_page",
         "official_board_directory",
@@ -7779,51 +7737,6 @@
       ]
     },
     {
-      "boardName": "Stokes Municipal ABC Board",
-      "website": null,
-      "shipmentRows": 243,
-      "trackedShipmentRows": 2,
-      "trackedUnits": 36,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Brunswick County ABC Board",
-      "website": null,
-      "shipmentRows": 688,
-      "trackedShipmentRows": 4,
-      "trackedUnits": 30,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Nash County ABC Board",
-      "website": null,
-      "shipmentRows": 522,
-      "trackedShipmentRows": 3,
-      "trackedUnits": 30,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Rowan/Kannapolis ABC Board",
       "website": "http://www.rowankannpolisabc.com",
       "shipmentRows": 787,
@@ -7844,7 +7757,7 @@
     {
       "boardName": "Fletcher ABC Board",
       "website": null,
-      "shipmentRows": 270,
+      "shipmentRows": 268,
       "trackedShipmentRows": 3,
       "trackedUnits": 24,
       "capabilities": [
@@ -7857,39 +7770,9 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Lenoir County ABC Board",
-      "website": "http://lenoir.ncabcboards.com",
-      "shipmentRows": 542,
-      "trackedShipmentRows": 3,
-      "trackedUnits": 24,
-      "capabilities": [
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://lenoir.ncabcboards.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "http://lenoir.ncabcboards.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
-    },
-    {
       "boardName": "Alamance Municipal ABC Board",
       "website": null,
-      "shipmentRows": 626,
+      "shipmentRows": 485,
       "trackedShipmentRows": 2,
       "trackedUnits": 24,
       "capabilities": [
@@ -7946,7 +7829,7 @@
     {
       "boardName": "Asheboro ABC Board",
       "website": null,
-      "shipmentRows": 573,
+      "shipmentRows": 572,
       "trackedShipmentRows": 2,
       "trackedUnits": 18,
       "capabilities": [
@@ -7957,36 +7840,6 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
-    },
-    {
-      "boardName": "Pitt County ABC Board",
-      "website": "http://pitt.ncabcboards.com",
-      "shipmentRows": 1026,
-      "trackedShipmentRows": 2,
-      "trackedUnits": 18,
-      "capabilities": [
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://pitt.ncabcboards.com"
-      ],
-      "officialPageReports": [
-        {
-          "url": "http://pitt.ncabcboards.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
     },
     {
       "boardName": "Wayne County ABC Board",
@@ -8076,7 +7929,7 @@
     {
       "boardName": "Weaverville ABC Board",
       "website": null,
-      "shipmentRows": 286,
+      "shipmentRows": 283,
       "trackedShipmentRows": 2,
       "trackedUnits": 12,
       "capabilities": [
@@ -8182,6 +8035,36 @@
       ]
     },
     {
+      "boardName": "Craven County ABC Board",
+      "website": "http://craven.ncabcboards.com",
+      "shipmentRows": 621,
+      "trackedShipmentRows": 1,
+      "trackedUnits": 12,
+      "capabilities": [
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://craven.ncabcboards.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://craven.ncabcboards.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
       "boardName": "Davidson County ABC Board",
       "website": null,
       "shipmentRows": 306,
@@ -8197,19 +8080,34 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Murphy ABC Board",
-      "website": null,
-      "shipmentRows": 7,
+      "boardName": "Pitt County ABC Board",
+      "website": "http://pitt.ncabcboards.com",
+      "shipmentRows": 641,
       "trackedShipmentRows": 1,
       "trackedUnits": 12,
       "capabilities": [
+        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
+        "official_board_website",
         "tracked_board_shipments"
       ],
       "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
+      "sourceUrls": [
+        "http://pitt.ncabcboards.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://pitt.ncabcboards.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Pittsboro ABC Board",
@@ -8329,21 +8227,6 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Jones County ABC Board",
-      "website": null,
-      "shipmentRows": 139,
-      "trackedShipmentRows": 1,
-      "trackedUnits": 6,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Mount Airy ABC Board",
       "website": null,
       "shipmentRows": 324,
@@ -8387,6 +8270,33 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
+    },
+    {
+      "boardName": "Triad Municipal ABC Board",
+      "website": "http://www.triadabc.org",
+      "shipmentRows": 1105,
+      "trackedShipmentRows": 1,
+      "trackedUnits": 6,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://www.triadabc.org"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://www.triadabc.org/",
+          "status": 200,
+          "capabilities": [],
+          "releaseLanguage": false,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Valdese ABC Board",
@@ -8434,31 +8344,30 @@
       ]
     },
     {
-      "boardName": "Triad Municipal ABC Board",
-      "website": "http://www.triadabc.org",
-      "shipmentRows": 1106,
-      "trackedShipmentRows": 2,
+      "boardName": "Albemarle ABC Board",
+      "website": null,
+      "shipmentRows": 0,
+      "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
+        "official_board_directory"
       ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://www.triadabc.org"
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Alexander County ABC Board",
+      "website": null,
+      "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
       ],
-      "officialPageReports": [
-        {
-          "url": "http://www.triadabc.org/",
-          "status": 200,
-          "capabilities": [],
-          "releaseLanguage": false,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
     },
     {
       "boardName": "Andrews ABC Board",
@@ -8517,7 +8426,7 @@
     {
       "boardName": "Boone ABC Board",
       "website": null,
-      "shipmentRows": 2,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8569,7 +8478,7 @@
     {
       "boardName": "Camden County ABC Board",
       "website": null,
-      "shipmentRows": 5,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8620,7 +8529,7 @@
     {
       "boardName": "Chowan County ABC Board",
       "website": null,
-      "shipmentRows": 2,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8634,6 +8543,19 @@
       "boardName": "Clay County ABC Board",
       "website": null,
       "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Clinton ABC Board",
+      "website": null,
+      "shipmentRows": 5,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8724,6 +8646,19 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Greene County ABC Board",
+      "website": null,
+      "shipmentRows": 1,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Hamlet ABC Board",
       "website": null,
       "shipmentRows": 0,
@@ -8740,6 +8675,19 @@
       "boardName": "Hertford ABC Board",
       "website": null,
       "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Hertford County ABC Board",
+      "website": null,
+      "shipmentRows": 2,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8820,6 +8768,19 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Jones County ABC Board",
+      "website": null,
+      "shipmentRows": 1,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Lenoir City ABC Board",
       "website": null,
       "shipmentRows": 0,
@@ -8831,6 +8792,34 @@
       "precisionLevel": "board_listed",
       "sourceUrls": [],
       "officialPageReports": []
+    },
+    {
+      "boardName": "Lenoir County ABC Board",
+      "website": "http://lenoir.ncabcboards.com",
+      "shipmentRows": 303,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_website"
+      ],
+      "precisionLevel": "board_website_watch",
+      "sourceUrls": [
+        "http://lenoir.ncabcboards.com"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://lenoir.ncabcboards.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Liberty ABC Board",
@@ -8928,7 +8917,7 @@
     {
       "boardName": "Mocksville Cooleemee ABC Board",
       "website": null,
-      "shipmentRows": 225,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8940,6 +8929,19 @@
     },
     {
       "boardName": "Mount Pleasant ABC Board",
+      "website": null,
+      "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Murphy ABC Board",
       "website": null,
       "shipmentRows": 0,
       "trackedShipmentRows": 0,
@@ -8965,6 +8967,19 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Northampton County ABC Board",
+      "website": null,
+      "shipmentRows": 2,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Norwood ABC Board",
       "website": null,
       "shipmentRows": 107,
@@ -8978,9 +8993,22 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Pamlico County ABC Board",
+      "website": null,
+      "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Pasquotank County ABC Board",
       "website": null,
-      "shipmentRows": 4,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -8994,6 +9022,19 @@
       "boardName": "Pembroke ABC Board",
       "website": null,
       "shipmentRows": 0,
+      "trackedShipmentRows": 0,
+      "trackedUnits": 0,
+      "capabilities": [
+        "official_board_directory"
+      ],
+      "precisionLevel": "board_listed",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Person County ABC Board",
+      "website": null,
+      "shipmentRows": 8,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -9097,7 +9138,7 @@
     {
       "boardName": "Statesville ABC Board",
       "website": "http://statesvilleabc.com",
-      "shipmentRows": 400,
+      "shipmentRows": 179,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -9200,7 +9241,7 @@
     {
       "boardName": "Warren County ABC Board",
       "website": null,
-      "shipmentRows": 4,
+      "shipmentRows": 0,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -9276,21 +9317,6 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Albemarle ABC Board",
-      "website": null,
-      "shipmentRows": 16,
-      "trackedShipmentRows": 1,
-      "trackedUnits": -12,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Bryson City ABC Board",
       "website": null,
       "shipmentRows": 6,
@@ -9304,13 +9330,43 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
+    },
+    {
+      "boardName": "Roseboro ABC Board",
+      "website": null,
+      "shipmentRows": 12,
+      "trackedShipmentRows": 2,
+      "trackedUnits": -30,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Lexington ABC Board",
+      "website": null,
+      "shipmentRows": 296,
+      "trackedShipmentRows": 2,
+      "trackedUnits": -48,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
     }
   ],
   "coverage": {
     "boardCount": 174,
     "withWebsite": 40,
-    "withTrackedShipments": 118,
-    "withReleasePages": 15,
+    "withTrackedShipments": 107,
+    "withReleasePages": 16,
     "withInventoryPages": 7,
     "noWebsiteYet": [
       "Mooresville ABC Board",
@@ -9321,7 +9377,6 @@
       "Waxhaw ABC Board",
       "Morganton ABC Board",
       "Granville County ABC Board",
-      "Person County ABC Board",
       "Shelby ABC Board",
       "Ocean Isle Beach ABC Board",
       "Belville ABC Board",
@@ -9342,8 +9397,6 @@
       "Rutherfordton ABC Board",
       "Wingate ABC Board",
       "Caswell County ABC Board",
-      "Northampton County ABC Board",
-      "Clinton ABC Board",
       "Sunset Beach ABC Board",
       "Reidsville ABC Board",
       "Lake Waccamaw ABC Board",
@@ -9353,27 +9406,30 @@
       "Montgomery ABC Board",
       "Bertie County ABC Board",
       "Boiling Spring Lakes ABC Board",
-      "Greene County ABC Board",
-      "Pamlico County ABC Board",
-      "Hertford County ABC Board",
       "Pender County ABC Board",
-      "Alexander County ABC Board",
       "Gates County ABC Board",
       "Newton Grove ABC Board",
       "Lincoln County ABC Board",
       "Maggie Valley ABC Board",
-      "Siler City ABC Board"
+      "Siler City ABC Board",
+      "Southport ABC Board",
+      "Brunswick ABC Board",
+      "Dare County ABC Board",
+      "Black Mountain ABC Board",
+      "Kenansville ABC Board",
+      "Pilot Mountain ABC Board",
+      "Currituck County ABC Board"
     ]
   },
   "signalCounts": {
     "nc_controlled_distribution_product_reference": 147,
-    "nc_board_shipment_snapshot": 577,
+    "nc_board_shipment_snapshot": 515,
     "nc_statewide_warehouse_out_of_stock": 71,
     "nc_statewide_warehouse_stock": 35,
     "nc_board_lottery_surface": 25,
-    "nc_board_inventory_surface": 12,
     "nc_board_barrel_pick_surface": 4,
-    "nc_board_release_surface": 9,
+    "nc_board_inventory_surface": 12,
+    "nc_board_release_surface": 10,
     "nc_board_structured_allocated_product_release": 45,
     "nc_board_barrel_pick_item": 11,
     "store_inventory_result": 442,

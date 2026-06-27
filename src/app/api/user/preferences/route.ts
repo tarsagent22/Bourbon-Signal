@@ -7,6 +7,8 @@ import {
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
+import { getEntitlements } from "@/lib/entitlements";
+import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 
 export interface AreaPreferences {
   states: string[];
@@ -95,6 +97,39 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     paCounties: toStringArray(source.paCounties),
     paStores: toStringArray(source.paStores),
   };
+}
+
+
+function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
+  if (limit === null) return areaPreferences;
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], paCounties: [], paStores: [] };
+
+  let remaining = limit;
+  const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
+  for (const state of areaPreferences.states) {
+    if (remaining <= 0) break;
+    next.states.push(state);
+    const takeDetails = (values: string[]) => {
+      const count = Math.max(1, values.length);
+      const take = values.length ? values.slice(0, remaining) : [];
+      remaining -= values.length ? take.length : count;
+      return take;
+    };
+    if (state === "NC") next.ncBoards = takeDetails(areaPreferences.ncBoards);
+    else if (state === "VA") next.vaCities = takeDetails(areaPreferences.vaCities);
+    else if (state === "OH") next.ohCities = takeDetails(areaPreferences.ohCities);
+    else if (state === "IA") next.iaCities = takeDetails(areaPreferences.iaCities);
+    else if (state === "ID") next.idCities = takeDetails(areaPreferences.idCities);
+    else if (state === "PA") {
+      const paDetails = [...areaPreferences.paCounties, ...areaPreferences.paStores].slice(0, remaining);
+      next.paCounties = areaPreferences.paCounties.filter((value) => paDetails.includes(value));
+      next.paStores = areaPreferences.paStores.filter((value) => paDetails.includes(value));
+      remaining -= paDetails.length || 1;
+    } else {
+      remaining -= 1;
+    }
+  }
+  return next;
 }
 
 function normalizeBottleKey(value: string) {
@@ -225,7 +260,66 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
   };
 }
 
-export async function GET() {
+function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPreferences> = {}) {
+  const tier = getQaPreviewTierFromRequest(req);
+  const entitlements = getEntitlements(tier);
+  let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? QA_PREVIEW_PREFERENCES.areaPreferences);
+  let notificationPreferences = normalizeNotificationPreferences(payload.notificationPreferences ?? QA_PREVIEW_PREFERENCES.notificationPreferences);
+  const alertMode = payload.alertMode === undefined ? QA_PREVIEW_PREFERENCES.alertMode : normalizeAlertMode(payload.alertMode);
+  let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? QA_PREVIEW_PREFERENCES.bottleAlertPreferences);
+  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? QA_PREVIEW_PREFERENCES.collectionPreferences);
+  const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? QA_PREVIEW_PREFERENCES.sightingsPreferences);
+
+  if (entitlements.alertAreaLimit === 0) {
+    areaPreferences = { ...areaPreferences, states: [] };
+    notificationPreferences = {
+      ...notificationPreferences,
+      onSite: { ...notificationPreferences.onSite, enabled: false },
+      email: { ...notificationPreferences.email, enabled: false },
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
+    bottleAlertPreferences = { bottleNames: [], bottleKeys: [] };
+  }
+
+  if (!entitlements.canReceiveSmsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
+  }
+
+  if (!entitlements.canReceiveSightingsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sightings: { enabled: false },
+    };
+  }
+
+  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
+
+  if (typeof entitlements.trackedBottleLimit === "number") {
+    bottleAlertPreferences = {
+      bottleNames: bottleAlertPreferences.bottleNames.slice(0, entitlements.trackedBottleLimit),
+      bottleKeys: bottleAlertPreferences.bottleKeys.slice(0, entitlements.trackedBottleLimit),
+    };
+  }
+
+  return {
+    ok: true,
+    qaPreview: true,
+    qaTier: tier,
+    entitlements,
+    areaPreferences,
+    notificationPreferences,
+    alertMode,
+    bottleAlertPreferences,
+    collectionPreferences,
+    sightingsPreferences,
+  };
+}
+
+export async function GET(req: NextRequest) {
+  if (isQaPreviewRequest(req)) return NextResponse.json(buildQaPreviewResponse(req));
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -235,6 +329,15 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (isQaPreviewRequest(req)) {
+    const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
+    const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
+      return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    }
+    return NextResponse.json(buildQaPreviewResponse(req, payload));
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -243,14 +346,43 @@ export async function POST(req: NextRequest) {
   const user = await client.users.getUser(userId);
   const existing = buildResponseFromMetadata(user);
 
-  const areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
-  const notificationPreferences = normalizeNotificationPreferences(
+  let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
+  let notificationPreferences = normalizeNotificationPreferences(
     payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
   );
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
-  const bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
+  let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
+  const entitlements = getEntitlements(user.publicMetadata?.tier);
+  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+
+  if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
+    return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
+  }
+
+  if (!entitlements.canReceiveSmsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sms: { ...notificationPreferences.sms, enabled: false },
+    };
+  }
+
+  if (!entitlements.canReceiveSightingsAlerts) {
+    notificationPreferences = {
+      ...notificationPreferences,
+      sightings: { enabled: false },
+    };
+  }
+
+  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
+
+  if (typeof entitlements.trackedBottleLimit === "number") {
+    bottleAlertPreferences = {
+      bottleNames: bottleAlertPreferences.bottleNames.slice(0, entitlements.trackedBottleLimit),
+      bottleKeys: bottleAlertPreferences.bottleKeys.slice(0, entitlements.trackedBottleLimit),
+    };
+  }
 
   await client.users.updateUserMetadata(userId, {
     publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences },

@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { isQaPreviewRequest } from "@/lib/preview-qa";
 
 const isProtectedRoute = createRouteMatcher([
   "/alerts(.*)",
   "/bottle-check(.*)",
   "/dashboard(.*)",
   "/events(.*)",
-  "/feedback(.*)",
+
   "/finder(.*)",
   "/map(.*)",
-  "/pricing(.*)",
   "/settings(.*)",
   "/success(.*)",
   "/api/alerts(.*)",
@@ -17,7 +17,7 @@ const isProtectedRoute = createRouteMatcher([
   "/api/bottles(.*)",
   "/api/checkout(.*)",
   "/api/events(.*)",
-  "/api/feedback(.*)",
+
   "/api/locations(.*)",
   "/api/nc-intelligence(.*)",
   "/api/search-events(.*)",
@@ -28,6 +28,8 @@ const isProtectedRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
+  if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
+  if (isQaPreviewRequest(request)) return NextResponse.next();
   if (!isProtectedRoute(request)) return NextResponse.next();
 
   const { userId } = await auth();

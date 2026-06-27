@@ -11,7 +11,6 @@ import DropFeed from "@/components/sections/DropFeed";
 import BriefingSection from "@/components/sections/BriefingSection";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
-import EmailCapture from "@/components/sections/EmailCapture";
 
 function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
@@ -82,8 +81,6 @@ export default function Home() {
         <HowWeHunt />
         <div style={{ height: 24, background: "var(--color-bg-primary)" }} />
         <FAQ />
-        <div style={{ height: 20, background: "var(--color-bg-primary)", borderTop: "none" }} />
-        <EmailCapture />
       </motion.main>
       <Footer />
       <ScrollToTopButton />

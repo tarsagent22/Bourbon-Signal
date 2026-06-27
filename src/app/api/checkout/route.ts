@@ -1,71 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { auth } from "@clerk/nextjs/server";
+import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 
+export const dynamic = "force-dynamic";
+
+const TIER_RANK: Record<MembershipTier, number> = {
+  free: 0,
+  standard: 1,
+  barrel: 2,
+  "bottled-in-bond": 3,
+};
+
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  return secretKey ? createStripeClient(secretKey) : null;
+}
+
+function appUrl(req: NextRequest) {
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin || "https://bourbonsignal.com";
+}
+
+async function founderSpotsSold() {
+  const client = await clerkClient();
+  const result = await client.users.getUserList({ limit: 500 });
+  const users = Array.isArray(result) ? result : result.data;
+  return users.filter((user) => {
+    const tier = user.publicMetadata?.tier;
+    const plan = user.publicMetadata?.plan;
+    return tier === "bottled-in-bond" || plan === "bib_lifetime";
+  }).length;
+}
+
 export async function POST(req: NextRequest) {
-  if (!CHECKOUT_ENABLED) {
+  if (!CHECKOUT_ENABLED && process.env.NEXT_PUBLIC_ENABLE_LAUNCH_CHECKOUT !== "1") {
     return NextResponse.json(
-      { error: "Checkout is not enabled while Bourbon Signal is in founding tester mode." },
+      { error: "Checkout is disabled until Bourbon Signal launch." },
       { status: 403 }
     );
   }
 
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Account required before checkout." }, { status: 401 });
+  }
+
   const stripe = getStripeClient();
   if (!stripe) {
-    return NextResponse.json(
-      { error: "Stripe checkout is not configured." },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Stripe checkout is not configured." }, { status: 503 });
   }
 
-  const { userId } = await auth();
-  const { priceId, plan } = await req.json();
+  const body = (await req.json().catch(() => ({}))) as { plan?: string };
+  const planId = normalizeBillingPlan(body.plan);
+  if (!planId) {
+    return NextResponse.json({ error: "Choose a valid Bourbon Signal membership plan." }, { status: 400 });
+  }
 
-  // Map plan to price ID
-  const priceMap: Record<string, string | undefined> = {
-    monthly: process.env.STRIPE_PRICE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_ANNUAL,
-    founder: process.env.STRIPE_PRICE_FOUNDER,
+  const plan = LAUNCH_BILLING_PLANS[planId];
+  const priceId = getStripePriceId(planId);
+  if (!priceId) {
+    return NextResponse.json({ error: `${plan.label} is not configured yet.` }, { status: 503 });
+  }
+
+  if (planId === "bib_lifetime") {
+    const sold = await founderSpotsSold();
+    if (sold >= FOUNDER_SPOT_LIMIT) {
+      return NextResponse.json({ error: "Bottled-in-Bond Founder memberships are sold out." }, { status: 409 });
+    }
+  }
+
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const currentTier = normalizeMembershipTier(user.publicMetadata?.tier);
+  if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
+    return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
+  }
+  const email = user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress;
+  const origin = appUrl(req);
+  const metadata = {
+    userId,
+    tier: plan.tier,
+    plan: plan.id,
+    source: "bourbon_signal_launch",
   };
-
-  const resolvedPriceId = priceId || priceMap[plan];
-  if (!resolvedPriceId) {
-    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-  }
-
-  const isFounder =
-    plan === "founder" ||
-    resolvedPriceId === process.env.STRIPE_PRICE_FOUNDER;
 
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-    mode: isFounder ? "payment" : "subscription",
-    payment_method_types: ["card"],
-    line_items: [{ price: resolvedPriceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com"}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com"}/pricing`,
-    metadata: {
-      userId: userId || "anonymous",
-      plan: plan || "unknown",
-    },
+    mode: plan.stripeMode,
+    customer_email: email,
+    client_reference_id: userId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    allow_promotion_codes: true,
+    success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/pricing?checkout=${plan.id}`,
+    metadata,
   };
 
-  // Add 7-day trial for monthly plan
-  if (plan === "monthly") {
-    sessionConfig.subscription_data = { trial_period_days: 7 };
-  }
-
-  // Associate with Clerk user if signed in
-  if (userId) {
-    sessionConfig.client_reference_id = userId;
+  if (plan.stripeMode === "subscription") {
+    sessionConfig.subscription_data = { metadata };
+  } else {
+    sessionConfig.payment_intent_data = { metadata };
   }
 
   const session = await stripe.checkout.sessions.create(sessionConfig);
   return NextResponse.json({ url: session.url });
 }
 
-function getStripeClient() {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) return null;
+function createStripeClient(secretKey: string) {
   return new Stripe(secretKey);
 }

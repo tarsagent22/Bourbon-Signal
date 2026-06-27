@@ -13,18 +13,17 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sightings", href: "/sightings" },
   { label: "Bottle Check", href: "/bottle-check" },
-  { label: "Feedback", href: "/feedback" },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/feedback";
+  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/pricing";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, signIn, signUp, signOut } = useAuth();
+  const { isSignedIn, user, signIn, signUp, signOut, memberTier, entitlements, memberNumber } = useAuth();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -45,6 +44,15 @@ export default function Navigation() {
   }, []);
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
+  const isFounderMember = memberTier === "bottled-in-bond";
+  const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
+  const availableNavLinks = navLinks.filter((link) => {
+    if (link.href === "/dashboard") return entitlements.canAccessDashboard;
+    return true;
+  });
+  const visibleNavLinks = memberTier === "bottled-in-bond"
+    ? availableNavLinks
+    : [...availableNavLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
 
   return (
     <>
@@ -99,7 +107,7 @@ export default function Navigation() {
             gap: "clamp(14px, 1.8vw, 26px)",
           }}
         >
-          {navLinks.map((link) => (
+          {visibleNavLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
@@ -179,6 +187,30 @@ export default function Navigation() {
                   aria-label="Profile menu"
                 >
                   {userDisplayName.charAt(0).toUpperCase()}
+                  {isFounderMember ? (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        right: "-4px",
+                        bottom: "-4px",
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        display: "grid",
+                        placeItems: "center",
+                        background: "linear-gradient(135deg, #E8C97A, #A66A18)",
+                        border: "1px solid rgba(13,11,7,0.9)",
+                        boxShadow: "0 0 14px rgba(232,201,122,0.34)",
+                        color: "#0D0B07",
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        lineHeight: 1,
+                      }}
+                    >
+                      B
+                    </span>
+                  ) : null}
                 </button>
 
                 {/* Dropdown panel */}
@@ -214,6 +246,15 @@ export default function Navigation() {
                           {user?.emailAddresses?.[0]?.emailAddress || ""}
                         </p>
                       </div>
+
+                      {isFounderMember ? (
+                        <div style={{ margin: "0 12px 12px", borderRadius: "14px", border: "1px solid rgba(232,201,122,0.24)", background: "linear-gradient(135deg, rgba(196,148,58,0.16), rgba(245,237,214,0.045))", padding: "12px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "18px", color: "var(--color-cream)", lineHeight: 1 }}>Founder {founderProfileNumber}</span>
+                            <span style={{ width: "24px", height: "24px", borderRadius: "999px", display: "grid", placeItems: "center", background: "linear-gradient(135deg, #E8C97A, #A66A18)", color: "#0D0B07", fontFamily: "var(--font-jetbrains)", fontSize: "12px", fontWeight: 950, boxShadow: "0 0 18px rgba(232,201,122,0.22)" }}>B</span>
+                          </div>
+                        </div>
+                      ) : null}
 
                       {/* Divider */}
                       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
@@ -351,7 +392,7 @@ export default function Navigation() {
             >
               <X size={28} />
             </button>
-            {navLinks.map((link) => (
+            {visibleNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -374,6 +415,11 @@ export default function Navigation() {
                 <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)", marginBottom: "8px" }}>
                   {userDisplayName}
                 </p>
+                {isFounderMember ? (
+                  <div style={{ borderRadius: 999, border: "1px solid rgba(232,201,122,0.28)", background: "rgba(232,201,122,0.10)", color: "#E8C97A", padding: "6px 10px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>
+                    BiB {founderProfileNumber}
+                  </div>
+                ) : null}
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
                   style={{

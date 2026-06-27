@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
+import { getEntitlements } from "@/lib/entitlements";
+import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -67,17 +69,61 @@ async function getAggregateSightings(currentUserId: string) {
   return sightings.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
-export async function GET() {
+async function requireSightingsEntitlements(userId: string) {
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  return getEntitlements(user.publicMetadata?.tier);
+}
+
+export async function GET(req: NextRequest) {
+  if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    return NextResponse.json({ sightings: [], states: [], qaPreview: true, qaTier: entitlements.tier });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canReadSightings) {
+    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+  }
   const sightings = await getAggregateSightings(userId);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
   return NextResponse.json({ sightings, states });
 }
 
 export async function POST(req: NextRequest) {
+  if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canSubmitSightings) return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
+    const sighting: MemberSighting = {
+      id: payload.id || makeSightingId(),
+      bottleName: String(payload.bottleName || "QA Preview Sighting"),
+      bottleId: typeof payload.bottleId === "string" ? payload.bottleId : normalizeBottleKey(String(payload.bottleName || "QA Preview Sighting")),
+      rarityTier: normalizeRarityTier(payload.rarityTier),
+      storeId: String(payload.storeId || "qa-preview-store"),
+      storeName: String(payload.storeName || "QA Preview Store"),
+      storeAddress: String(payload.storeAddress || "Preview-only address"),
+      storeCity: typeof payload.storeCity === "string" ? payload.storeCity : "Preview",
+      storeState: typeof payload.storeState === "string" ? payload.storeState : "NC",
+      storeZip: typeof payload.storeZip === "string" ? payload.storeZip : undefined,
+      quantityEstimate: typeof payload.quantityEstimate === "string" ? payload.quantityEstimate : undefined,
+      price: typeof payload.price === "number" ? payload.price : null,
+      notes: typeof payload.notes === "string" ? payload.notes : "Preview-only QA sighting; not persisted.",
+      source: "custom",
+      sightingType: normalizeSightingType(payload.sightingType),
+      reporterUserId: "qa-preview-user",
+      createdAt: payload.createdAt || new Date().toISOString(),
+    };
+    return NextResponse.json({ ok: true, sighting, sightings: [sighting], qaPreview: true });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canSubmitSightings) {
+    return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
+  }
   const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
   const bottleName = String(payload.bottleName || "").trim().slice(0, 140);
   const storeName = String(payload.storeName || "").trim().slice(0, 180);
@@ -116,8 +162,17 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (isQaPreviewRequest(req)) {
+    const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    return NextResponse.json({ ok: true, sightings: [], qaPreview: true, qaTier: entitlements.tier });
+  }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const entitlements = await requireSightingsEntitlements(userId);
+  if (!entitlements.canReadSightings) {
+    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+  }
   const payload = (await req.json().catch(() => ({}))) as { sightingId?: string; vote?: SightingVoteKind };
   const sightingId = String(payload.sightingId || "").slice(0, 160);
   const vote = payload.vote === "down" ? "down" : payload.vote === "up" ? "up" : null;

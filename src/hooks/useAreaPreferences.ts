@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import type { UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { getDefaultNotificationPreferences } from "@/lib/notification-preferences";
+import { isQaPreviewMode, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 
 const EMPTY_PREFS: UserAlertPreferences = {
   areaPreferences: {
@@ -31,10 +32,16 @@ let cachedPrefs: UserAlertPreferences | null = null;
 
 export function useAreaPreferences() {
   const { isSignedIn } = useUser();
-  const [prefs, setPrefs] = useState<UserAlertPreferences>(cachedPrefs ?? EMPTY_PREFS);
+  const qaPreview = isQaPreviewMode();
+  const [prefs, setPrefs] = useState<UserAlertPreferences>(cachedPrefs ?? (qaPreview ? QA_PREVIEW_PREFERENCES : EMPTY_PREFS));
   const [loading, setLoading] = useState(false);
 
   const fetchPrefs = useCallback(async () => {
+    if (qaPreview) {
+      cachedPrefs = QA_PREVIEW_PREFERENCES;
+      setPrefs(QA_PREVIEW_PREFERENCES);
+      return;
+    }
     if (!isSignedIn) {
       setPrefs(EMPTY_PREFS);
       return;
@@ -52,9 +59,14 @@ export function useAreaPreferences() {
     } finally {
       setLoading(false);
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, qaPreview]);
 
   useEffect(() => {
+    if (qaPreview) {
+      cachedPrefs = QA_PREVIEW_PREFERENCES;
+      setPrefs(QA_PREVIEW_PREFERENCES);
+      return;
+    }
     if (!isSignedIn) {
       cachedPrefs = null;
       setPrefs(EMPTY_PREFS);
@@ -65,11 +77,12 @@ export function useAreaPreferences() {
       return;
     }
     fetchPrefs();
-  }, [fetchPrefs, isSignedIn]);
+  }, [fetchPrefs, isSignedIn, qaPreview]);
 
   const savePreferences = useCallback(async (newPrefs: UserAlertPreferences) => {
     setPrefs(newPrefs);
     cachedPrefs = newPrefs;
+    if (isQaPreviewMode()) return;
     const res = await fetch("/api/user/preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

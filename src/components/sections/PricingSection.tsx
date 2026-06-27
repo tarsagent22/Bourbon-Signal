@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import {
   STANDARD_ANNUAL_PRICE,
   STANDARD_ANNUAL_SAVINGS,
@@ -26,24 +25,13 @@ const TESTER_MODE = true;
 
 export default function PricingSection() {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-
-  const handleCheckout = async (plan: "monthly" | "annual" | "founder") => {
+  const handleCheckout = (plan: "monthly" | "annual" | "founder") => {
     if (TESTER_MODE) {
       router.push("/dashboard");
       return;
     }
-    if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
-      return;
-    }
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+
+    router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
   };
 
   return (

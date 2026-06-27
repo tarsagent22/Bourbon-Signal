@@ -1,36 +1,47 @@
 "use client";
 
 import { useUser, useClerk } from "@clerk/nextjs";
-
-const PAID_TIERS = new Set([
-  "standard",
-  "bottled-in-bond",
-  "monthly",
-  "annual",
-  "founder",
-  "lifetime",
-]);
+import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/entitlements";
+import { getQaPreviewTierFromBrowser, isQaPreviewMode } from "@/lib/preview-qa";
 
 export function useAuth() {
   const { isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
+  const qaPreview = isQaPreviewMode();
 
-  const rawTier = typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
-  const memberTier = isSignedIn ? rawTier : null;
-  const isPaidUser = !!memberTier && PAID_TIERS.has(memberTier);
+  const previewTier = qaPreview ? getQaPreviewTierFromBrowser() : null;
+  const rawTier = qaPreview ? previewTier : typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
+  const memberTier = qaPreview || isSignedIn ? normalizeMembershipTier(rawTier) : "free";
+  const entitlements = getEntitlements(memberTier);
+  const isPaidUser = isPaidTier(memberTier);
+  const rawMemberNumber = qaPreview ? 1 : Number(user?.publicMetadata?.memberNumber || user?.publicMetadata?.founderNumber || 0);
+  const memberNumber = Number.isFinite(rawMemberNumber) && rawMemberNumber > 0 ? rawMemberNumber : 0;
+  const qaUser = qaPreview
+    ? ({
+        firstName: "QA Preview",
+        publicMetadata: { tier: memberTier },
+        emailAddresses: [{ emailAddress: `${memberTier}@bourbonsignal.local` }],
+      } as unknown as typeof user)
+    : user;
 
   return {
-    isSignedIn: !!isSignedIn,
+    isSignedIn: qaPreview || !!isSignedIn,
     memberTier,
+    entitlements,
     isPaidUser,
-    memberNumber: 0,
-    user,
-    signIn: () => openSignIn(),
+    memberNumber,
+    user: qaUser,
+    signIn: () => {
+      if (!qaPreview) openSignIn();
+    },
     signUp: () => {
+      if (qaPreview) return;
       if (typeof window !== "undefined") {
         window.location.href = "/sign-up";
       }
     },
-    signOut: () => signOut(),
+    signOut: () => {
+      if (!qaPreview) signOut();
+    },
   };
 }
