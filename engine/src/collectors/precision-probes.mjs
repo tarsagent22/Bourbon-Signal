@@ -1908,7 +1908,8 @@ function tennesseeCityHivePositiveInventoryChains(signals = []) {
 }
 
 async function writeTennesseeCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = tennesseeCityHivePositiveInventoryChains(signals);
   const previous = await readTennesseeCityHiveCache();
   const previousChains = tennesseeCityHivePositiveInventoryChains(previous?.signals || []);
