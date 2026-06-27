@@ -137,8 +137,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const exportedDisplayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
   const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
   const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
-  const displayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
-  const timestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
+  const publicDisplayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
+  const publicTimestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
 
   return {
     ...drop,
@@ -148,12 +148,12 @@ export function normalizeDropForSite(drop: JsonRecord) {
     canonical_key: asString(drop.canonicalKey),
     raw_name: asString(drop.rawName),
     aliases: Array.isArray(drop.aliases) ? drop.aliases.map(String) : [],
-    timestamp: displayAt,
+    timestamp: publicDisplayAt,
     observed_at: asString(drop.observedAt),
     event_at: eventAt || undefined,
     first_seen_at: firstSeenAt || undefined,
     last_confirmed_at: lastConfirmedAt || undefined,
-    timestamp_basis: timestampBasis,
+    timestamp_basis: publicTimestampBasis,
     event_type: type,
     brand_name: asString(drop.bottleName, "Unknown Bottle"),
     tracked_brand_name: asString(drop.bottleName, "Unknown Bottle"),
