@@ -99,6 +99,39 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   };
 }
 
+
+function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
+  if (limit === null) return areaPreferences;
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], paCounties: [], paStores: [] };
+
+  let remaining = limit;
+  const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
+  for (const state of areaPreferences.states) {
+    if (remaining <= 0) break;
+    next.states.push(state);
+    const takeDetails = (values: string[]) => {
+      const count = Math.max(1, values.length);
+      const take = values.length ? values.slice(0, remaining) : [];
+      remaining -= values.length ? take.length : count;
+      return take;
+    };
+    if (state === "NC") next.ncBoards = takeDetails(areaPreferences.ncBoards);
+    else if (state === "VA") next.vaCities = takeDetails(areaPreferences.vaCities);
+    else if (state === "OH") next.ohCities = takeDetails(areaPreferences.ohCities);
+    else if (state === "IA") next.iaCities = takeDetails(areaPreferences.iaCities);
+    else if (state === "ID") next.idCities = takeDetails(areaPreferences.idCities);
+    else if (state === "PA") {
+      const paDetails = [...areaPreferences.paCounties, ...areaPreferences.paStores].slice(0, remaining);
+      next.paCounties = areaPreferences.paCounties.filter((value) => paDetails.includes(value));
+      next.paStores = areaPreferences.paStores.filter((value) => paDetails.includes(value));
+      remaining -= paDetails.length || 1;
+    } else {
+      remaining -= 1;
+    }
+  }
+  return next;
+}
+
 function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -262,25 +295,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     };
   }
 
-  if (typeof entitlements.alertAreaLimit === "number") {
-    areaPreferences = {
-      ...areaPreferences,
-      states: areaPreferences.states.slice(0, entitlements.alertAreaLimit),
-    };
-  }
-
-  if (!entitlements.canUseAdvancedFilters) {
-    areaPreferences = {
-      ...areaPreferences,
-      ncBoards: [],
-      vaCities: [],
-      ohCities: [],
-      iaCities: [],
-      idCities: [],
-      paCounties: [],
-      paStores: [],
-    };
-  }
+  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
 
   if (typeof entitlements.trackedBottleLimit === "number") {
     bottleAlertPreferences = {
@@ -360,25 +375,7 @@ export async function POST(req: NextRequest) {
     };
   }
 
-  if (typeof entitlements.alertAreaLimit === "number") {
-    areaPreferences = {
-      ...areaPreferences,
-      states: areaPreferences.states.slice(0, entitlements.alertAreaLimit),
-    };
-  }
-
-  if (!entitlements.canUseAdvancedFilters) {
-    areaPreferences = {
-      ...areaPreferences,
-      ncBoards: [],
-      vaCities: [],
-      ohCities: [],
-      iaCities: [],
-      idCities: [],
-      paCounties: [],
-      paStores: [],
-    };
-  }
+  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
 
   if (typeof entitlements.trackedBottleLimit === "number") {
     bottleAlertPreferences = {

@@ -876,9 +876,10 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
 
   const hasDetails = details.length > 0 || drop.locations.length > 0;
 
-  // Blur wall logic — free users: 5 clear, #6 half blur, #7 full blur
+  // Blur wall logic — free/signed-out users: first 5 clear, then faded + blurred teaser rows.
   const isBlurred = isFreeUser && index >= 5;
-  const blurOpacity = index === 5 ? 0.72 : 0.45;
+  const blurOpacity = index === 5 ? 0.62 : 0.34;
+  const blurAmount = index === 5 ? 2.5 : 5;
 
   return (
     <motion.div
@@ -887,8 +888,9 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       animate={{ opacity: isBlurred ? blurOpacity : 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
-        filter: "none",
+        filter: isBlurred ? `blur(${blurAmount}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
+        userSelect: isBlurred ? "none" : "auto",
         ...(glowing && hasTopCardAccent
           ? { animation: "newDropGlow 2s ease infinite" }
           : {}),
@@ -1470,7 +1472,7 @@ export default function DropFeed() {
           .slice(0, 50);
 
         nextOffset = (json.offset ?? nextOffset) + (json.limit ?? pageDrops.length);
-        if (newGrouped.length >= (isSignedIn ? 10 : 7) || !json.hasMore || nextOffset >= json.total || pageDrops.length === 0) break;
+        if (newGrouped.length >= (isFreeUser ? 7 : 10) || !json.hasMore || nextOffset >= json.total || pageDrops.length === 0) break;
       }
 
       if (!latestJson) throw new Error("fetch failed");
@@ -1500,15 +1502,15 @@ export default function DropFeed() {
       setData(json);
       setGrouped(newGrouped);
       setNextDropOffset(nextOffset);
-      setVisibleDropCount(isSignedIn ? 10 : 7);
+      setVisibleDropCount(isFreeUser ? 7 : 10);
     } catch {
       setError(true);
     }
-  }, [activeAreaParam, activeBottleParam, activeTierParam, feedStateParam, isSignedIn]);
+  }, [activeAreaParam, activeBottleParam, activeTierParam, feedStateParam, isFreeUser]);
 
   useEffect(() => {
-    setVisibleDropCount(isSignedIn ? 10 : 7);
-  }, [isSignedIn, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter, sortMode]);
+    setVisibleDropCount(isFreeUser ? 7 : 10);
+  }, [isFreeUser, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter, sortMode]);
 
 
   useEffect(() => {
@@ -1690,8 +1692,10 @@ export default function DropFeed() {
   const tickerLastRefreshed = engineStats.engineGeneratedAt || engineStats.lastUpdated || engineStats.generatedAt || data?.lastUpdated;
   const isKentuckyFeed = feedStateParam === "KY";
 
-  const baseVisibleCount = isSignedIn ? visibleDropCount : 7;
-  const canShowMore = isSignedIn && (finalFeed.length > baseVisibleCount || !!data?.hasMore);
+  const baseVisibleCount = isFreeUser ? 7 : visibleDropCount;
+  const hasLoadedHiddenRows = finalFeed.length > baseVisibleCount;
+  const hasUnloadedRows = Boolean(data && nextDropOffset < data.total);
+  const canShowMore = !isFreeUser && (hasLoadedHiddenRows || hasUnloadedRows || !!data?.hasMore);
   const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0

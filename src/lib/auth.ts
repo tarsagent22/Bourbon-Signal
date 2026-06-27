@@ -14,6 +14,8 @@ export function useAuth() {
   const memberTier = qaPreview || isSignedIn ? normalizeMembershipTier(rawTier) : "free";
   const entitlements = getEntitlements(memberTier);
   const isPaidUser = isPaidTier(memberTier);
+  const rawMemberNumber = qaPreview ? 1 : Number(user?.publicMetadata?.memberNumber || user?.publicMetadata?.founderNumber || 0);
+  const memberNumber = Number.isFinite(rawMemberNumber) && rawMemberNumber > 0 ? rawMemberNumber : 0;
   const qaUser = qaPreview
     ? ({
         firstName: "QA Preview",
@@ -27,7 +29,7 @@ export function useAuth() {
     memberTier,
     entitlements,
     isPaidUser,
-    memberNumber: qaPreview ? 1 : 0,
+    memberNumber,
     user: qaUser,
     signIn: () => {
       if (!qaPreview) openSignIn();

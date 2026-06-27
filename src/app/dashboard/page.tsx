@@ -494,6 +494,8 @@ export default function DashboardPage() {
   const { isSignedIn, signIn, entitlements } = useAuth();
   const canAccessDashboard = entitlements.canAccessDashboard;
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
+  const alertAreaLimit = entitlements.alertAreaLimit;
+  const canRefineAlertAreas = alertAreaLimit !== 0;
   const canUseCollection = entitlements.canUseCollection;
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
@@ -1064,6 +1066,29 @@ export default function DashboardPage() {
   const removeBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => removeBottle(id));
   };
+  const alertAreaCount = (areaPrefs: AreaPreferences) => {
+    return areaPrefs.states.reduce((count, state) => {
+      const detailCount = state === "NC"
+        ? areaPrefs.ncBoards.length
+        : state === "VA"
+          ? areaPrefs.vaCities.length
+          : state === "OH"
+            ? areaPrefs.ohCities.length
+            : state === "IA"
+              ? areaPrefs.iaCities.length
+              : state === "ID"
+                ? areaPrefs.idCities.length
+                : state === "PA"
+                  ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                  : 0;
+      return count + Math.max(1, detailCount);
+    }, 0);
+  };
+
+  const canAddAlertArea = (areaPrefs: AreaPreferences) => {
+    return typeof alertAreaLimit !== "number" || alertAreaCount(areaPrefs) < alertAreaLimit;
+  };
+
 
   const saveCollectionEntries = async (entries: UserAlertPreferences["collectionPreferences"]["bottles"]) => {
     if (!isSignedIn) {
@@ -1218,6 +1243,7 @@ export default function DashboardPage() {
   const toggleState = (state: string) => {
     setLocalPrefs((prev) => {
       const removing = prev.states.includes(state);
+      if (!removing && !canAddAlertArea(prev)) return prev;
       return {
         ...prev,
         states: removing ? prev.states.filter((item) => item !== state) : [...prev.states, state],
@@ -1236,6 +1262,7 @@ export default function DashboardPage() {
     setLocalPrefs((prev) => {
       if (state === "NC") {
         const has = prev.ncBoards.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           ncBoards: has ? prev.ncBoards.filter((item) => item !== value) : [...prev.ncBoards, value],
@@ -1243,6 +1270,7 @@ export default function DashboardPage() {
       }
       if (state === "VA") {
         const has = prev.vaCities.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           vaCities: has ? prev.vaCities.filter((item) => item !== value) : [...prev.vaCities, value],
@@ -1250,6 +1278,7 @@ export default function DashboardPage() {
       }
       if (state === "OH") {
         const has = prev.ohCities.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           ohCities: has ? prev.ohCities.filter((item) => item !== value) : [...prev.ohCities, value],
@@ -1257,6 +1286,7 @@ export default function DashboardPage() {
       }
       if (state === "IA") {
         const has = prev.iaCities.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           iaCities: has ? prev.iaCities.filter((item) => item !== value) : [...prev.iaCities, value],
@@ -1264,6 +1294,7 @@ export default function DashboardPage() {
       }
       if (state === "ID") {
         const has = prev.idCities.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           idCities: has ? prev.idCities.filter((item) => item !== value) : [...prev.idCities, value],
@@ -1271,6 +1302,7 @@ export default function DashboardPage() {
       }
       if (state === "PA") {
         const has = prev.paCounties.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
         return {
           ...prev,
           paCounties: has ? prev.paCounties.filter((item) => item !== value) : [...prev.paCounties, value],
@@ -1305,6 +1337,8 @@ export default function DashboardPage() {
 
   const toggleStore = (state: string, city: string, storeId: string) => {
     const selectionKey = getStoreSelectionKey(state, city);
+    const currentStoreSelection = storeSelections[selectionKey] ?? { mode: "custom" as const, storeIds: [] };
+    if (!currentStoreSelection.storeIds.includes(storeId) && !canAddAlertArea(localPrefs)) return;
     setStoreSelections((prev) => {
       const current = prev[selectionKey] ?? { mode: "custom" as const, storeIds: [] };
       const has = current.storeIds.includes(storeId);
@@ -1312,12 +1346,15 @@ export default function DashboardPage() {
         ? current.storeIds.filter((id) => id !== storeId)
         : [...current.storeIds, storeId];
       if (state === "PA") {
-        setLocalPrefs((prefs) => ({
-          ...prefs,
-          paStores: has
-            ? prefs.paStores.filter((id) => id !== storeId)
-            : Array.from(new Set([...prefs.paStores, storeId])),
-        }));
+        setLocalPrefs((prefs) => {
+          if (!has && !canAddAlertArea(prefs)) return prefs;
+          return {
+            ...prefs,
+            paStores: has
+              ? prefs.paStores.filter((id) => id !== storeId)
+              : Array.from(new Set([...prefs.paStores, storeId])),
+          };
+        });
       }
       return {
         ...prev,
@@ -1343,6 +1380,10 @@ export default function DashboardPage() {
   }, [territoryDropdown]);
 
   const handleSaveAlertSetup = async () => {
+    if (typeof alertAreaLimit === "number" && alertAreaCount(localPrefs) > alertAreaLimit) {
+      setCollectionError(`Standard Proof includes up to ${alertAreaLimit} alert areas. Remove one area before saving.`);
+      return;
+    }
     if (!isSignedIn) {
       signIn();
       return;
@@ -1798,7 +1839,7 @@ export default function DashboardPage() {
                   </div>
 
                   {selectedStates.length > 0 ? (
-                    canUseAdvancedFilters ? (
+                    canRefineAlertAreas ? (
                     <div style={{ display: "grid", gap: "14px" }}>
                       <div style={{ borderRadius: "20px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(255,255,255,0.03)", padding: "16px", display: "grid", gap: "12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
@@ -1824,7 +1865,7 @@ export default function DashboardPage() {
                             </p>
                           </div>
                           <div style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.10)", padding: "8px 12px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                            {selectedDetails.length} selected {detailLabel}
+                            {canUseAdvancedFilters || typeof alertAreaLimit !== "number" ? selectedDetails.length : `${alertAreaCount(localPrefs)}/${alertAreaLimit}`} selected {detailLabel}
                           </div>
                         </div>
 
@@ -1938,7 +1979,7 @@ export default function DashboardPage() {
                     </div>
                     ) : (
                     <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                      Standard Proof uses state-level alert areas only. Upgrade to Barrel Proof or Bottled in Bond for board, city, store, and other advanced refinements.
+                      Upgrade to use alert setup. Standard Proof includes up to 5 specific alert areas; Barrel Proof removes the limit.
                     </div>
                     )
                   ) : (

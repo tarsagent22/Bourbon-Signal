@@ -88,7 +88,7 @@ const paidTiers: PricingTier[] = [
     features: [
       "Lifetime access to all current and future features",
       "Only 100 spots",
-      "Founder badge and number",
+      "Founder badge & number on profile",
       "Numbered Founder’s glass",
       "Founder-only exclusive benefits",
     ],
