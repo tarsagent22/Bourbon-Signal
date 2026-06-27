@@ -1502,7 +1502,7 @@ export default function DashboardPage() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Set your alerts, score bottles you own or have tasted, and get recommendations based on what you like.
+                Set your alerts, rate bottles you own or have tasted, and get recommendations based on what you like.
               </p>
             </ScrollReveal>
           </div>
@@ -2348,7 +2348,7 @@ export default function DashboardPage() {
             <div className="dashboard-loading-panel">
               <strong>Upgrade to use My Collection</strong>
               <span>Free accounts can view this demo, but saving bottles and ratings starts with Barrel Proof or Bottled in Bond.</span>
-              <a href="/pricing" style={{ justifySelf: "start", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
+              <a href="/pricing" style={{ justifySelf: "center", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
             </div>
           </StepShell>
           ) : activeDashboardSection === "collection" && canUseCollection && !preparedDashboardSections.has("collection") ? (
@@ -2529,7 +2529,7 @@ export default function DashboardPage() {
             <div className="dashboard-loading-panel">
               <strong>Upgrade to use recommendations</strong>
               <span>Free accounts can view this demo, but personalized recommendations start with Barrel Proof or Bottled in Bond.</span>
-              <a href="/pricing" style={{ justifySelf: "start", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
+              <a href="/pricing" style={{ justifySelf: "center", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
             </div>
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (

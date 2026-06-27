@@ -153,8 +153,8 @@ for (const phrase of ['bottleCheckLimit', 'BOTTLE_CHECK_USAGE_STORAGE_KEY', 'rem
   if (!bottleCheckPage.includes(phrase)) fail(`Bottle Check should enforce/communicate the Free 3-check preview limit (${phrase}).`);
 }
 const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
-if (!/canReadSightings/.test(sightingsClient) || !/View memberships/.test(sightingsClient)) {
-  fail('Member Sightings page should block Free users and route them to membership pricing.');
+if (!/canReadSightings/.test(sightingsClient) || !/Paid members only/.test(sightingsClient) || !/disabled=\{isFreePreview\}/.test(sightingsClient)) {
+  fail('Member Sightings page should show a non-interactive Free preview form and gate the feed to paid members.');
 }
 const userPreferencesRoute = read('src/app/api/user/preferences/route.ts');
 if (!/canReceiveSightingsAlerts/.test(userPreferencesRoute) || !/sightings:\s*\{\s*enabled:\s*false\s*\}/.test(userPreferencesRoute)) {
