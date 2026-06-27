@@ -1,7 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 export const DEFAULT_CDP_URL = process.env.BROWSER_CDP_URL || process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
+const DEFAULT_BROWSER_PROFILE_DIR = process.env.BROWSER_PROFILE_DIR || process.env.FWGS_BROWSER_PROFILE_DIR || 'out/browser-profile/chrome-cdp';
 
 export function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
@@ -9,6 +12,86 @@ export async function cdpFetch(cdpUrl, route, options = {}) {
   const res = await fetch(`${cdpUrl.replace(/\/$/, '')}${route}`, options);
   if (!res.ok) throw new Error(`CDP ${route} returned ${res.status}: ${await res.text().catch(() => '')}`);
   return res.json();
+}
+
+function cdpPort(cdpUrl = DEFAULT_CDP_URL) {
+  return Number(new URL(cdpUrl).port || 80);
+}
+
+async function cdpReady(cdpUrl = DEFAULT_CDP_URL) {
+  try {
+    await cdpFetch(cdpUrl, '/json/version');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function candidateChromePaths() {
+  return [
+    process.env.BROWSER_EXECUTABLE,
+    process.env.CHROME_EXECUTABLE,
+    process.env.GOOGLE_CHROME_BIN,
+    'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser'
+  ].filter(Boolean).filter((candidate) => !path.isAbsolute(candidate) || existsSync(candidate));
+}
+
+function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
+  const port = cdpPort(cdpUrl);
+  const executable = candidateChromePaths()[0];
+  if (!executable) throw new Error('No Chrome/Chromium executable candidate configured. Set BROWSER_EXECUTABLE.');
+  const profileDir = path.resolve(options.profileDir || DEFAULT_BROWSER_PROFILE_DIR);
+  const headlessArgs = process.env.BROWSER_HEADLESS === '0' ? [] : ['--headless=new', '--disable-gpu'];
+  const args = [
+    ...headlessArgs,
+    `--remote-debugging-port=${port}`,
+    `--user-data-dir=${profileDir}`,
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-background-networking',
+    'about:blank'
+  ];
+  const child = spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true });
+  child.unref();
+  return { executable, profileDir, port, pid: child.pid };
+}
+
+export async function ensureBrowserCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
+  if (await cdpReady(cdpUrl)) return { ok: true, cdpUrl, started: false };
+  const autoStart = options.autoStart ?? process.env.FWGS_AUTO_START_BROWSER !== '0';
+  if (!autoStart) throw new Error(`CDP is not reachable at ${cdpUrl}; FWGS_AUTO_START_BROWSER=0 disables browser startup.`);
+  const started = spawnBrowserForCdp(cdpUrl, options);
+  const startedAt = Date.now();
+  const timeoutMs = Number(options.timeoutMs || process.env.BROWSER_CDP_START_TIMEOUT_MS || 30000);
+  while (Date.now() - startedAt < timeoutMs) {
+    if (await cdpReady(cdpUrl)) return { ok: true, cdpUrl, started: true, ...started };
+    await sleep(500);
+  }
+  throw new Error(`Started browser pid ${started.pid || 'unknown'} but CDP did not become reachable at ${cdpUrl} within ${Math.round(timeoutMs / 1000)}s.`);
+}
+
+export async function killBrowserCdp(browser) {
+  if (!browser?.started || !browser.pid) return false;
+  if (process.platform === 'win32') {
+    await new Promise((resolve) => {
+      const killer = spawn('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+      killer.on('close', () => resolve());
+      killer.on('error', () => resolve());
+    });
+    return true;
+  }
+  try {
+    process.kill(-browser.pid, 'SIGTERM');
+  } catch {
+    try { process.kill(browser.pid, 'SIGTERM'); } catch {}
+  }
+  return true;
 }
 
 export async function getOrCreateTarget(cdpUrl = DEFAULT_CDP_URL, preferUrl = null) {

@@ -59,8 +59,17 @@ function isStoreLevelInventory(type: string, locationPrecision: string, canAlert
   return locationPrecision === "store_level" && (canAlertAsInventory || normalized.includes("store_inventory") || normalized.includes("limited_supply") || normalized.includes("in_stock"));
 }
 
+function hasExactStoreDetails(drop: JsonRecord) {
+  return Boolean(asString(drop.storeName) || asString(drop.storeAddress) || asString(drop.storeId));
+}
+
 function isDistilleryDrop(type: string, locationPrecision: string) {
   return locationPrecision === "distillery" && type.toLowerCase() === "distillery_gift_shop_availability";
+}
+
+function shouldAnchorInventoryToFirstSeen(type: string) {
+  const normalized = type.toLowerCase();
+  return normalized.includes("inventory") || normalized.includes("in_stock") || normalized.includes("limited_supply");
 }
 
 export function normalizeBottleForSite(bottle: JsonRecord) {
@@ -116,16 +125,20 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const state = asString(drop.state);
   const quantity = asNumber(drop.quantity);
   const locationPrecision = asString(drop.locationPrecision);
-  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory);
+  const exactStoreDetails = hasExactStoreDetails(drop);
+  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails;
   const type = asString(drop.type, "signal");
   const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
-  const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory);
+  const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
   const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
   const eventAt = asString(drop.eventAt);
   const firstSeenAt = asString(drop.firstSeenAt);
   const lastConfirmedAt = asString(drop.lastConfirmedAt, asString(drop.observedAt));
-  const displayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || new Date().toISOString());
-  const timestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
+  const exportedDisplayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
+  const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
+  const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
+  const publicDisplayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
+  const publicTimestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
 
   return {
     ...drop,
@@ -135,12 +148,12 @@ export function normalizeDropForSite(drop: JsonRecord) {
     canonical_key: asString(drop.canonicalKey),
     raw_name: asString(drop.rawName),
     aliases: Array.isArray(drop.aliases) ? drop.aliases.map(String) : [],
-    timestamp: displayAt,
+    timestamp: publicDisplayAt,
     observed_at: asString(drop.observedAt),
     event_at: eventAt || undefined,
     first_seen_at: firstSeenAt || undefined,
     last_confirmed_at: lastConfirmedAt || undefined,
-    timestamp_basis: timestampBasis,
+    timestamp_basis: publicTimestampBasis,
     event_type: type,
     brand_name: asString(drop.bottleName, "Unknown Bottle"),
     tracked_brand_name: asString(drop.bottleName, "Unknown Bottle"),
@@ -158,7 +171,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state,
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
-    exact_store: locationPrecision === "store_level",
+    exact_store: locationPrecision === "store_level" && exactStoreDetails,
     availability_scope: isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
     confidence_tier: isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,

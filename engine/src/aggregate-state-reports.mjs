@@ -3,6 +3,7 @@ import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
+import { confidenceForSignal } from './confidence-policy.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -31,6 +32,7 @@ function stateSummary(report) {
   const sources = report.sources || [];
   const signals = report.signals || [];
   const roadblocks = report.roadblocks || [];
+  const actionableInventorySignalCount = signals.filter((s) => s.locationPrecision === 'store_level' && (s.canAlertAsInventory || confidenceForSignal(s).canAlertAsInventory)).length;
   return {
     state: report.state,
     label: customerStateLabel(report.state, report.label),
@@ -46,7 +48,9 @@ function stateSummary(report) {
     signalProducingSourceCount: sources.filter(sourceSignalProducing).length,
     signalCount: signals.length,
     storeLevelSignalCount: signals.filter((s) => s.locationPrecision === 'store_level').length,
-    actionableInventorySignalCount: signals.filter((s) => s.canAlertAsInventory && s.locationPrecision === 'store_level').length,
+    actionableInventorySignalCount,
+    siteActionableInventorySignalCount: actionableInventorySignalCount,
+    siteExactStoreDropCount: null,
     roadblockCount: roadblocks.length,
     targetLocationPrecision: LOCATION_PROFILES[report.state]?.target || null,
     bestLocationPrecision: bestPrecision(signals),
@@ -94,6 +98,12 @@ async function main() {
   const allSignals = reports.flatMap((report) => report.signals || []);
   const allRoadblocks = reports.flatMap((report) => report.roadblocks || []);
   const stateSummaries = reports.map(stateSummary);
+  const siteDrops = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
+  for (const state of stateSummaries) {
+    const exactStoreDrops = (siteDrops.drops || []).filter((drop) => drop.state === state.state && drop.type === 'store_inventory_result' && drop.locationPrecision === 'store_level' && drop.canAlertAsInventory);
+    state.siteExactStoreDropCount = exactStoreDrops.length;
+    if (exactStoreDrops.length) state.siteActionableInventorySignalCount = exactStoreDrops.length;
+  }
   const summary = {
     generatedAt,
     stateCount: reports.length,
@@ -130,6 +140,8 @@ async function main() {
       signalCount: state.signalCount,
       storeLevelSignalCount: state.storeLevelSignalCount,
       actionableInventorySignalCount: state.actionableInventorySignalCount,
+      siteActionableInventorySignalCount: state.siteActionableInventorySignalCount,
+      siteExactStoreDropCount: state.siteExactStoreDropCount,
       roadblockCount: state.roadblockCount,
       targetLocationPrecision: state.targetLocationPrecision,
       bestLocationPrecision: state.bestLocationPrecision

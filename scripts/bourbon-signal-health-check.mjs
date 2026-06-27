@@ -1,103 +1,212 @@
-#!/usr/bin/env node
-import fs from "node:fs/promises";
-import path from "node:path";
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
 
-const targets = [
-  { name: "live", baseUrl: process.env.BOURBON_SIGNAL_LIVE_URL || "https://www.bourbonsignal.com" },
-  { name: "launch-preview", baseUrl: process.env.BOURBON_SIGNAL_PREVIEW_URL || "https://bourbonsignal-git-launch-membershi-5dff05-tarsagent22s-projects.vercel.app" },
-];
+const PROJECT_ROOT = process.cwd();
+const OUT_DIR = path.join(PROJECT_ROOT, '.hermes', 'bourbon-signal', 'health');
+const OUT_FILE = path.join(OUT_DIR, 'latest-health.json');
+const MAX_FRESHNESS_HOURS = Number(process.env.BOURBON_SIGNAL_HEALTH_MAX_FRESHNESS_HOURS || 8);
+const LIVE_BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
+const PREVIEW_BASE_URL = process.env.BOURBON_SIGNAL_PREVIEW_BASE_URL || 'https://bourbonsignal-git-launch-membership-pricing-stripe-tarsagent22s-projects.vercel.app';
 
-const outputDir = process.env.BOURBON_SIGNAL_HEALTH_DIR || path.join(process.cwd(), ".hermes", "bourbon-signal", "health");
-const maxFreshnessHours = Number(process.env.BOURBON_SIGNAL_MAX_ENGINE_AGE_HOURS || 8);
-const previewQaPages = ["/", "/pricing", "/dashboard", "/alerts", "/bottle-check", "/sightings"];
-const livePages = ["/"];
-const requiredApiPaths = ["/api/stats", "/api/drops?limit=1", "/api/user/preferences", "/api/sightings"];
-
-function ageHours(value) {
-  const ms = Date.parse(String(value || ""));
-  if (!Number.isFinite(ms)) return null;
-  return Math.round(((Date.now() - ms) / 36_000) ) / 100;
+function nowIso() {
+  return new Date().toISOString();
 }
 
-async function fetchText(url) {
+function hoursSince(value) {
+  if (!value) return null;
+  const parsed = new Date(value).getTime();
+  if (!Number.isFinite(parsed)) return null;
+  return Math.round(((Date.now() - parsed) / 36_000) ) / 100;
+}
+
+function isVercelProtection(status, text, headers) {
+  const location = headers?.get?.('location') || null;
+  const server = headers?.get?.('server') || '';
+  return status === 401 || status === 403 || /vercel authentication|deployment protection|vercel sso|authentication required/i.test(text || '') || /vercel/i.test(server) && /login|_vercel|sso/i.test(location || '');
+}
+
+async function fetchText(baseUrl, route, timeoutMs = 12_000, maxTextChars = 1000) {
+  const url = new URL(route, baseUrl).toString();
   const started = Date.now();
   try {
-    const res = await fetch(url, { redirect: "manual", headers: { "user-agent": "BourbonSignalHealthCheck/1.0" } });
-    const text = await res.text().catch(() => "");
-    return { ok: res.ok, status: res.status, location: res.headers.get("location"), ms: Date.now() - started, text: text.slice(0, 1000) };
-  } catch (error) {
-    return { ok: false, status: 0, ms: Date.now() - started, error: error instanceof Error ? error.message : String(error), text: "" };
-  }
-}
-
-async function fetchJson(url) {
-  const result = await fetchText(url);
-  if (!result.ok) return { ...result, json: null };
-  try {
-    return { ...result, json: JSON.parse(result.text) };
-  } catch {
-    // refetch full json if first text slice truncated an API response
-    try {
-      const res = await fetch(url, { headers: { "user-agent": "BourbonSignalHealthCheck/1.0" } });
-      return { ...result, json: await res.json() };
-    } catch (error) {
-      return { ...result, json: null, parseError: error instanceof Error ? error.message : String(error) };
-    }
-  }
-}
-
-async function inspectTarget(target) {
-  const pages = {};
-  const pagesToCheck = target.name.includes("preview") ? previewQaPages : livePages;
-  for (const page of pagesToCheck) {
-    const result = await fetchText(`${target.baseUrl}${page}`);
-    pages[page] = {
-      ok: result.ok,
-      status: result.status,
-      location: result.location,
-      ms: result.ms,
-      protectedByVercel: result.status === 401 || result.status === 403 || /vercel.*login|sso-api|\/login|Redirecting/i.test(`${result.location || ""} ${result.text || ""}`),
-      hasExpectedShell: /Bourbon Signal|Pick your proof|Dashboard|Member Sightings|Bottle Check/i.test(result.text || ""),
+    const res = await fetch(url, {
+      redirect: 'manual',
+      headers: { 'user-agent': 'BourbonSignalHealth/1.0' },
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    const text = await res.text().catch(() => '');
+    return {
+      ok: res.ok,
+      status: res.status,
+      location: res.headers.get('location'),
+      ms: Date.now() - started,
+      protectedByVercel: isVercelProtection(res.status, text, res.headers),
+      text: maxTextChars === null ? text : text.slice(0, maxTextChars)
     };
+  } catch (error) {
+    return { ok: false, status: null, location: null, ms: Date.now() - started, protectedByVercel: false, error: error.message, text: '' };
   }
-
-  const apis = {};
-  for (const apiPath of requiredApiPaths) {
-    const result = await fetchJson(`${target.baseUrl}${apiPath}`);
-    apis[apiPath] = { ok: result.ok, status: result.status, location: result.location, ms: result.ms, protectedByVercel: result.status === 401 || result.status === 403 || /vercel.*login|sso-api|\/login|Redirecting/i.test(`${result.location || ""} ${result.text || ""}`), json: result.json };
-  }
-
-  const stats = apis["/api/stats"]?.json || {};
-  const drops = apis["/api/drops?limit=1"]?.json || {};
-  const engineGeneratedAt = stats.engineGeneratedAt || stats.generatedAt || drops.lastUpdated || drops.generatedAt || null;
-  const freshnessHours = ageHours(engineGeneratedAt);
-  const activeStates = Array.isArray(stats.activeStates) ? stats.activeStates : [];
-  const dropTotal = typeof drops.total === "number" ? drops.total : Array.isArray(drops.drops) ? drops.drops.length : null;
-
-  const problems = [];
-  if (target.name.includes("preview") && !pages["/pricing"]?.ok && !pages["/pricing"]?.protectedByVercel) problems.push("pricing_page_not_ok");
-  if (target.name.includes("preview") && pages["/dashboard"]?.status >= 300 && !pages["/dashboard"]?.protectedByVercel) problems.push("preview_dashboard_not_accessible");
-  if (freshnessHours === null) problems.push("engine_freshness_unknown");
-  else if (freshnessHours > maxFreshnessHours) problems.push(`engine_stale_${freshnessHours}h`);
-  if (dropTotal === 0) problems.push("drops_zero");
-
-  return { ...target, checkedAt: new Date().toISOString(), pages, apis, summary: { engineGeneratedAt, freshnessHours, activeStates, dropTotal, problems } };
 }
 
-const results = [];
-for (const target of targets) results.push(await inspectTarget(target));
-const report = { checkedAt: new Date().toISOString(), maxFreshnessHours, results };
-
-await fs.mkdir(outputDir, { recursive: true });
-const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-await fs.writeFile(path.join(outputDir, "latest-health.json"), JSON.stringify(report, null, 2));
-await fs.writeFile(path.join(outputDir, `${stamp}-health.json`), JSON.stringify(report, null, 2));
-
-const allProblems = results.flatMap((target) => target.summary.problems.map((problem) => `${target.name}:${problem}`));
-if (allProblems.length) {
-  console.log(`Bourbon Signal health issues: ${allProblems.join(", ")}`);
-  console.log(JSON.stringify(report.results.map((result) => ({ name: result.name, summary: result.summary })), null, 2));
-  process.exitCode = 1;
-} else {
-  console.log(`Bourbon Signal health OK: ${results.map((result) => `${result.name} drops=${result.summary.dropTotal ?? "?"} freshness=${result.summary.freshnessHours ?? "?"}h`).join(" | ")}`);
+async function fetchJson(baseUrl, route, timeoutMs = 15_000) {
+  const result = await fetchText(baseUrl, route, timeoutMs, null);
+  let json = null;
+  if (result.text) {
+    try { json = JSON.parse(result.text); } catch {}
+  }
+  return { ...result, json, text: undefined };
 }
+
+async function checkDeployment(name, baseUrl) {
+  const pages = {
+    '/': await fetchText(baseUrl, '/'),
+    '/pricing': await fetchText(baseUrl, '/pricing')
+  };
+  const apis = {
+    '/api/stats': await fetchJson(baseUrl, '/api/stats'),
+    '/api/drops?limit=1': await fetchJson(baseUrl, '/api/drops?limit=1')
+  };
+
+  for (const page of Object.values(pages)) {
+    page.hasExpectedShell = /Bourbon Signal|Never miss a drop|Live Drop Feed/i.test(page.text || '');
+    delete page.text;
+  }
+
+  const stats = apis['/api/stats'].json || {};
+  const drops = apis['/api/drops?limit=1'].json || {};
+  const engineGeneratedAt = stats.engineGeneratedAt || stats.generatedAt || null;
+  const dropsLastUpdated = drops.lastUpdated || drops.generatedAt || null;
+  const engineFreshnessHours = hoursSince(engineGeneratedAt);
+  const dropsFreshnessHours = hoursSince(dropsLastUpdated);
+  const refreshHealth = stats.refreshHealth || null;
+  const staleStates = refreshHealth?.degradedStates || [];
+
+  return {
+    name,
+    baseUrl,
+    checkedAt: nowIso(),
+    ok: Boolean(apis['/api/stats'].ok && pages['/'].ok),
+    pages,
+    apis,
+    freshness: {
+      engineGeneratedAt,
+      dropsLastUpdated,
+      engineFreshnessHours,
+      dropsFreshnessHours,
+      maxFreshnessHours: MAX_FRESHNESS_HOURS,
+      fresh: engineFreshnessHours !== null && engineFreshnessHours <= MAX_FRESHNESS_HOURS
+    },
+    counts: {
+      stateCount: stats.stateCount ?? null,
+      signalCount: stats.signalCount ?? null,
+      dropCount: stats.dropCount ?? null,
+      alertCandidateCount: stats.alertCandidateCount ?? null
+    },
+    refreshHealth,
+    protectedByVercel: Object.values(pages).some((page) => page.protectedByVercel) || Object.values(apis).some((api) => api.protectedByVercel),
+    warnings: [
+      ...(engineFreshnessHours !== null && engineFreshnessHours > MAX_FRESHNESS_HOURS ? [`engine_stale_${engineFreshnessHours}h`] : []),
+      ...(staleStates.length ? [`degraded_states_${staleStates.map((s) => s.state || s).join(',')}`] : [])
+    ]
+  };
+}
+
+function runCommand(command, args, options = {}) {
+  return new Promise((resolve) => {
+    const startedAt = nowIso();
+    const child = spawn(command, args, {
+      cwd: options.cwd || PROJECT_ROOT,
+      shell: false,
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const finish = (payload) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(payload);
+    };
+    const timeout = setTimeout(() => {
+      try { child.kill(); } catch {}
+      finish({ ok: false, code: 'timeout', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\nTimed out`.slice(-2000) });
+    }, options.timeoutMs || 20_000);
+
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+    child.on('error', (error) => {
+      finish({ ok: false, code: 'error', startedAt, finishedAt: nowIso(), stdout: stdout.slice(-2000), stderr: `${stderr}\n${error.message}`.slice(-2000) });
+    });
+    child.on('close', (code) => {
+      finish({ ok: code === 0, code, startedAt, finishedAt: nowIso(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) });
+    });
+  });
+}
+
+async function readLocalJson(file) {
+  try { return JSON.parse(await readFile(path.join(PROJECT_ROOT, file), 'utf8')); } catch { return null; }
+}
+
+async function main() {
+  await mkdir(OUT_DIR, { recursive: true });
+  const [live, preview, gitStatus, localRefreshStatus, localStats] = await Promise.all([
+    checkDeployment('live', LIVE_BASE_URL),
+    checkDeployment('launch-preview', PREVIEW_BASE_URL),
+    runCommand('git', ['status', '--short', '--branch'], { timeoutMs: 10_000 }),
+    readLocalJson('engine/out/site-refresh-status.json'),
+    readLocalJson('engine/out/site/stats.json')
+  ]);
+
+  const localStatsGeneratedMs = localStats?.engineGeneratedAt ? new Date(localStats.engineGeneratedAt).getTime() : NaN;
+  const localRefreshFinishedMs = localRefreshStatus?.finishedAt ? new Date(localRefreshStatus.finishedAt).getTime() : NaN;
+  const localRefreshFailureSuperseded = Number.isFinite(localStatsGeneratedMs)
+    && Number.isFinite(localRefreshFinishedMs)
+    && localStatsGeneratedMs > localRefreshFinishedMs;
+  const warnings = [
+    ...live.warnings.map((warning) => `live:${warning}`),
+    ...(preview.protectedByVercel ? ['preview:protected_by_vercel'] : []),
+    ...(localRefreshStatus?.ok === false && !localRefreshFailureSuperseded ? [`local-refresh:${localRefreshStatus.error || 'failed'}`] : [])
+  ];
+
+  const payload = {
+    checkedAt: nowIso(),
+    maxFreshnessHours: MAX_FRESHNESS_HOURS,
+    results: [live, preview],
+    local: {
+      gitStatus: gitStatus.stdout.trim(),
+      refreshStatus: localRefreshStatus ? {
+        ok: localRefreshStatus.ok,
+        startedAt: localRefreshStatus.startedAt || null,
+        finishedAt: localRefreshStatus.finishedAt || null,
+        error: localRefreshStatus.error || null,
+        warnings: localRefreshStatus.warnings || []
+      } : null,
+      stats: localStats ? {
+        generatedAt: localStats.generatedAt || null,
+        engineGeneratedAt: localStats.engineGeneratedAt || null,
+        stateCount: localStats.stateCount || null,
+        signalCount: localStats.signalCount || null,
+        dropCount: localStats.dropCount || null,
+        alertCandidateCount: localStats.alertCandidateCount || null,
+        refreshHealth: localStats.refreshHealth || null
+      } : null
+    },
+    warnings,
+    ok: live.ok && live.freshness.fresh && !warnings.some((warning) => warning.startsWith('live:'))
+  };
+
+  await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
+  console.log(JSON.stringify({ ok: payload.ok, checkedAt: payload.checkedAt, live: live.counts, freshness: live.freshness, warnings }, null, 2));
+}
+
+main().catch(async (error) => {
+  await mkdir(OUT_DIR, { recursive: true });
+  const payload = { checkedAt: nowIso(), ok: false, error: error.message, stack: error.stack };
+  await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
+  console.error(error);
+  process.exit(1);
+});

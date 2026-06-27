@@ -46,7 +46,6 @@ export default function Navigation() {
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
   const availableNavLinks = navLinks.filter((link) => {
     if (link.href === "/dashboard") return entitlements.canAccessDashboard;
-    if (link.href === "/sightings") return entitlements.canReadSightings;
     return true;
   });
   const visibleNavLinks = memberTier === "bottled-in-bond"

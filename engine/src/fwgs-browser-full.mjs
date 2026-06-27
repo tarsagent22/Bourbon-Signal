@@ -42,7 +42,7 @@ function runChunk(offset) {
         FWGS_LOCATION_OFFSET: String(offset),
         FWGS_LOCATION_LIMIT: String(CHUNK_LIMIT),
         FWGS_OUT_FILE: chunkFile,
-        FWGS_REUSE_TAB: '0'
+        FWGS_REUSE_TAB: '1'
       }
     });
     child.stdout.on('data', (chunk) => process.stdout.write(chunk));

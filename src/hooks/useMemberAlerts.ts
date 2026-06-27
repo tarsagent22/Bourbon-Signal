@@ -57,8 +57,8 @@ export function useMemberAlerts(polling = false) {
   const seenAlertIds = useRef<Set<string>>(new Set());
   const addToast = useToastStore((state) => state.addToast);
 
-  const isEligible = isSignedIn;
-  const isPaidOrTester = isSignedIn || !!memberTier;
+  const isEligible = isSignedIn && memberTier !== "free";
+  const isPaidOrTester = isEligible;
 
   const fetchAlerts = useCallback(async () => {
     if (!isPaidOrTester) {

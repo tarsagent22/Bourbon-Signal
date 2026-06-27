@@ -31,6 +31,33 @@ function looksLikeFalseFourRosesRare(drop) {
     && !/\b(limited edition|limited release|le|barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(name);
 }
 
+const hourMs = 60 * 60 * 1000;
+const dayMs = 24 * hourMs;
+const maxInventoryAgeMs = 72 * hourMs;
+const maxDeliveryAgeMs = 14 * dayMs;
+
+function dropTime(drop) {
+  const value = drop.timestamp || drop.displayAt || drop.event_at || drop.eventAt || drop.first_seen_at || drop.firstSeenAt || drop.last_confirmed_at || drop.lastConfirmedAt;
+  const time = Date.parse(value || '');
+  return Number.isFinite(time) ? time : NaN;
+}
+
+function observedTime(drop) {
+  const time = Date.parse(drop.observed_at || drop.observedAt || '');
+  return Number.isFinite(time) ? time : NaN;
+}
+
+function maxPublicAgeMs(drop) {
+  const type = String(drop.event_type || drop.type || '').toLowerCase();
+  const category = String(drop.signal_category || drop.signalCategory || '').toLowerCase();
+  const scope = String(drop.availability_scope || drop.availabilityScope || '').toLowerCase();
+  const precision = String(drop.location_precision || drop.locationPrecision || '').toLowerCase();
+  const canAlert = drop.can_alert_as_inventory === true || drop.canAlertAsInventory === true;
+  if (canAlert || category === 'inventory' || scope === 'store_reported' || precision === 'store_level' || type.includes('in_stock') || type.includes('inventory_result')) return maxInventoryAgeMs;
+  if (category === 'delivery' || type.includes('shipment') || type.includes('delivery') || type.includes('allocation_snapshot')) return maxDeliveryAgeMs;
+  return 30 * dayMs;
+}
+
 const dropWorthyTiers = new Set(['unicorn', 'allocated', 'limited']);
 
 const allStates = await getJson('/api/drops?state=all&limit=20');
@@ -39,14 +66,13 @@ if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(al
 }
 
 const wilkesboroBoard = await getJson('/api/drops?state=NC&store=Wilkesboro%20ABC&limit=20');
-const wilkesboroHenry = (wilkesboroBoard.drops || []).find((drop) => /henry\s+mckenna/i.test(`${drop.bottleName || ''} ${drop.canonicalName || ''} ${drop.rawName || ''}`));
-if (!wilkesboroHenry) {
-  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query and include Henry McKenna when present.');
+if (Number(wilkesboroBoard.total || 0) === 0) {
+  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query when fresh board signals exist.');
 }
 
-const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&bottle=Henry%20McKenna&limit=20');
+const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&limit=20');
 if (Number(wilkesboroCounty.total || 0) === 0) {
-  fail('/api/drops should not exclude a valuable NC board signal when the same area is expressed as county text instead of ABC board text.');
+  fail('/api/drops should not exclude fresh NC board signals when the same area is expressed as county text instead of ABC board text.');
 }
 
 const marylandAlias = await getJson('/api/drops?state=MD&limit=1');
@@ -56,6 +82,34 @@ if (Number(marylandAlias.total || 0) !== Number(marylandInternal.total || 0)) {
 }
 
 const defaultFeed = await getJson('/api/drops?limit=50');
+if (defaultFeed.engineFresh === false) {
+  fail('/api/drops default feed should not surface normal cards when the checked-in engine export is stale.');
+}
+if (!defaultFeed.lastUpdated || !Number.isFinite(Date.parse(defaultFeed.lastUpdated))) {
+  fail('/api/drops should report a real engine/export timestamp instead of inventing current freshness.');
+}
+if (Array.isArray(defaultFeed.degradedStatesFiltered) && defaultFeed.degradedStatesFiltered.length > 0) {
+  fail(`/api/drops should be backed by a healthy engine export; degraded states filtered: ${defaultFeed.degradedStatesFiltered.join(', ')}`);
+}
+const staleDrops = (defaultFeed.drops || []).filter((drop) => {
+  const time = dropTime(drop);
+  return !Number.isFinite(time) || Date.now() - time > maxPublicAgeMs(drop) || time > Date.now() + 15 * 60 * 1000;
+});
+if (staleDrops.length > 0) {
+  fail(`/api/drops default feed should not portray stale/undated signals as fresh; saw ${staleDrops.length} stale rows.`);
+}
+const reReportedInventoryDrops = (defaultFeed.drops || []).filter((drop) => {
+  const publicTime = dropTime(drop);
+  const observed = observedTime(drop);
+  const ageLimit = maxPublicAgeMs(drop);
+  return Number.isFinite(publicTime)
+    && Number.isFinite(observed)
+    && observed - publicTime > ageLimit
+    && Date.now() - observed <= 6 * hourMs;
+});
+if (reReportedInventoryDrops.length > 0) {
+  fail(`/api/drops default feed should not make old inventory look newly re-reported from scrape time; saw ${reReportedInventoryDrops.length} rows.`);
+}
 const defaultBadTiers = (defaultFeed.drops || [])
   .map((drop) => rarity(drop))
   .filter((tier) => !dropWorthyTiers.has(tier));
@@ -65,6 +119,13 @@ if (defaultBadTiers.length > 0) {
 const defaultFalseRare = (defaultFeed.drops || []).filter(looksLikeFalseFourRosesRare);
 if (defaultFalseRare.length > 0) {
   fail('/api/drops default feed should not show standard Four Roses rows as rare drops.');
+}
+const defaultBottleKeys = (defaultFeed.drops || [])
+  .map((drop) => String(drop.canonicalId || drop.canonical_id || drop.bottleName || drop.rawName || '').toLowerCase())
+  .filter(Boolean);
+const uniqueDefaultBottleKeys = new Set(defaultBottleKeys);
+if (defaultBottleKeys.length >= 7 && uniqueDefaultBottleKeys.size < 5) {
+  fail(`/api/drops default preview should be diversified across bottles; saw only ${uniqueDefaultBottleKeys.size} unique bottles in ${defaultBottleKeys.length} cards.`);
 }
 
 const unicornFeed = await getJson('/api/drops?tier=unicorn&limit=7');

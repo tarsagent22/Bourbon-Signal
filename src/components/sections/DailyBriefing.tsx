@@ -4,28 +4,36 @@ import { ExternalLink } from "lucide-react";
 
 const visibleStories = [
   {
-    source: "Heaven Hill",
-    title: "Heaven Hill keeps Heritage Collection on the 2026 watchlist",
+    source: "Lost Lantern Whiskey",
+    title: "Lost Lantern turns all 50 states into one bourbon story",
     summary:
-      "Heaven Hill’s official Heritage Collection page remains the clean source to watch for limited annual release details, especially older age-stated bourbon drops that can distort local demand fast.",
-    href: "https://heavenhilldistillery.com/heavenhill-heritage-collection.php",
-    tag: "Distillery release watch",
+      "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
+    href: "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
+    tag: "Today · National blend",
   },
   {
-    source: "Four Roses",
-    title: "Four Roses Limited Edition page stays active for release tracking",
+    source: "Heaven Hill Distillery",
+    title: "Old Fitzgerald joins July's allocation radar",
     summary:
-      "Four Roses’ 2025 Limited Edition Small Batch page is still the best official reference for the annual LE cycle. Treat it as release intelligence, not proof of local shelf availability.",
-    href: "https://www.fourrosesbourbon.com/bourbon/2025-limited-edition-small-batch",
-    tag: "Official release page",
+      "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",
+    href: "https://heavenhilldistillery.com/old-fitzgerald.php",
+    tag: "Yesterday · Release watch",
+  },
+  {
+    source: "Four Roses Distillery",
+    title: "Four Roses opens a Mizunara-finished lane",
+    summary:
+      "Four Roses' new Experimental Series starts with No. 001, a limited Kentucky straight bourbon finished in Japanese Mizunara oak.",
+    href: "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
+    tag: "Yesterday · Experimental",
   },
   {
     source: "Alabama ABC",
-    title: "Alabama ABC monthly release page is worth watching again",
+    title: "Alabama's annual limited release is already dated",
     summary:
-      "Alabama’s monthly limited-release page is back in the briefing rotation because it publishes official hold/additional-distribution lists and timing context for allocated state-board drops.",
-    href: "https://alabcboard.gov/stores/events/limited-release-programs/monthly",
-    tag: "Control-state signal",
+      "Alabama ABC lists its 2026 Annual Limited Release Program for December 12 across selected ABC stores.",
+    href: "https://alabcboard.gov/stores/events/limited-release-programs/annual",
+    tag: "Yesterday · AL ABC release",
   },
 ];
 

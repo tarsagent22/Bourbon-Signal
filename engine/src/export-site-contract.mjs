@@ -222,9 +222,8 @@ function publicSignal(signal, bible, freshness = null) {
   const eventAt = freshness?.eventAt || null;
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
-  const useLastConfirmedForDisplay = canAlertAsInventory && signal.locationPrecision === 'store_level';
-  const displayAt = eventAt || (useLastConfirmedForDisplay ? (lastConfirmedAt || firstSeenAt) : (firstSeenAt || lastConfirmedAt));
-  const timestampBasis = eventAt ? 'source_event_at' : useLastConfirmedForDisplay ? 'last_confirmed_at' : (firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt ? 'first_seen_at' : 'last_confirmed_at');
+  const displayAt = eventAt || firstSeenAt || lastConfirmedAt;
+  const timestampBasis = eventAt ? 'source_event_at' : firstSeenAt ? 'first_seen_at' : 'last_confirmed_at';
   return {
     id: signal.key || signal.sourceSignalId || signal.id,
     state: signal.state,
@@ -594,6 +593,11 @@ function isSafePublicSignal(signal) {
   return true;
 }
 
+function publicDisplaySortTimestamp(signal, freshnessIndex) {
+  const freshness = freshnessIndex.get(signalFreshnessKey(signal));
+  return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
+}
+
 function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
@@ -621,7 +625,7 @@ function buildDrops(signals, bible, currentSignals = []) {
     })
     .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
-    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(b.observedAt || '').localeCompare(String(a.observedAt || '')) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
+    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
       if (!sourceId) return true;
@@ -1123,16 +1127,18 @@ async function main() {
   const alertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
+  const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
   const stateCoverage = buildStateCoverage(summary, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness(summary, signals);
   const activeSummaryStates = (summary.states || []).filter((state) => activeStateIds.has(state.state));
+  const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const stats = {
     contractVersion: CONTRACT_VERSION,
     generatedAt,
     engineGeneratedAt: summary.generatedAt || snapshot.generatedAt || null,
     stateCount: activeSummaryStates.length,
     signalCount: signals.length,
-    historicalSignalCount: historicalSignals.length,
+    historicalSignalCount,
     historyDays: HISTORY_DAYS,
     snapshotCount: snapshots.length,
     bottleCount: bottles.length,

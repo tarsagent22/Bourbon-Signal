@@ -392,6 +392,64 @@ function candidateSourceUrl(candidate: CandidateAlert) {
   return /^https?:\/\//.test(url) ? url : null;
 }
 
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+  if (!name || !domain) return "configured recipient";
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
+function operationalTestRecipient() {
+  const explicit = asString(process.env.ALERT_EMAIL_TEST_RECIPIENT).trim().toLowerCase();
+  if (explicit) return explicit;
+  const allowlisted = ALERT_EMAIL_ALLOWED_RECIPIENTS[0];
+  return allowlisted ? allowlisted.trim().toLowerCase() : "";
+}
+
+export async function sendOperationalTestAlertEmail(req: Request) {
+  assertAlertDeliveryAuthorized(req);
+
+  const recipient = operationalTestRecipient();
+  if (!recipient || !recipient.includes("@")) {
+    throw new Error("Set ALERT_EMAIL_TEST_RECIPIENT or ALERT_EMAIL_ALLOWED_RECIPIENTS before sending an operational test email.");
+  }
+
+  const resend = getResendClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
+  const sentAt = new Date().toISOString();
+  const result = await resend.emails.send({
+    from: ALERT_FROM,
+    to: [recipient],
+    replyTo: ALERT_REPLY_TO,
+    subject: "[Test] Bourbon Signal alert delivery check",
+    react: PaidDropAlertEmail({
+      firstName: "Bourbon Signal tester",
+      bottleName: "Bourbon Signal alert pipeline test",
+      storeLabel: "Operational readiness check",
+      matchedArea: "Production delivery route",
+      state: "TEST",
+      timestampLabel: "test generated now",
+      quantityLabel: "No bottle availability implied",
+      evidenceLabel: "Operational test only. This verifies the production delivery route, Resend provider, sender domain, and email template rendering; it is not a real bourbon availability alert.",
+      sourceLabel: "Bourbon Signal ops test",
+      dashboardUrl: `${appUrl}/dashboard`,
+    }),
+    headers: {
+      "X-Entity-Ref-ID": `ops-email-test-${Date.now()}`,
+    },
+  });
+
+  if (result.error) throw new Error(result.error.message);
+
+  return {
+    ok: true,
+    testEmail: true,
+    provider: "resend",
+    messageId: result.data?.id || null,
+    recipient: maskEmail(recipient),
+    sentAt,
+  };
+}
+
 export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean; baselineEmailOnly?: boolean } = {}) {
   assertAlertDeliveryAuthorized(req);
 

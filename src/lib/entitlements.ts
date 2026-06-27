@@ -56,7 +56,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReadSightings: false,
     canSubmitSightings: false,
     canReceiveSightingsAlerts: false,
-    canAccessDashboard: false,
+    canAccessDashboard: true,
     canUseCollection: false,
     canUseRecommendations: false,
     canReceiveSmsAlerts: false,

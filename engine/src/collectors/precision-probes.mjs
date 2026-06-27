@@ -151,14 +151,16 @@ const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CIT
 const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 48);
 const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
-const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany/i;
+const IN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PAGE_DELAY_MS || 1_250);
+const IN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_DELAY_MS || 2_500);
+const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany|jasper/i;
 const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
   'avon', 'plainfield', 'noblesville', 'speedway', 'westfield', 'greenfield',
   'south bend', 'mishawaka', 'elkhart', 'granger', 'goshen', 'roseland', 'huntington',
   'lafayette', 'west lafayette', 'evansville', 'muncie', 'anderson', 'kokomo', 'columbus', 'jeffersonville', 'new albany',
   'indianapolis', 'carmel', 'fishers', 'greenwood', 'brownsburg', 'mccordsville',
   'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute',
-  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar'
+  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar', 'jasper'
 ];
 const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
 const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
@@ -267,6 +269,24 @@ const IN_CITYHIVE_SOURCES = [
     baseUrl: 'https://shop.corkliquor.com',
     urls: [
       'https://shop.corkliquor.com/spirits/bourbon'
+    ]
+  },
+  {
+    id: '21st-amendment',
+    chainName: '21st Amendment Wine & Spirits',
+    sourceLabel: '21st Amendment Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://21stamendment.com',
+    urls: [
+      'https://21stamendment.com/shop/?subtype=Bourbon'
+    ]
+  },
+  {
+    id: 'holiday-liquors-jasper',
+    chainName: 'Holiday Liquors Jasper',
+    sourceLabel: 'Holiday Liquors Jasper CityHive store inventory',
+    baseUrl: 'https://holidayl7c37e10a.sites.cityhive.app',
+    urls: [
+      'https://holidayl7c37e10a.sites.cityhive.app/shop/?subtype=Bourbon'
     ]
   }
 ];
@@ -482,7 +502,7 @@ const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|c
 
 const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
 const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 3);
-const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 90 * 60_000);
+const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_CITYHIVE_SOURCES = [
   {
@@ -516,6 +536,72 @@ const SC_CITYHIVE_SOURCES = [
       '699754a7b0035e3df3e7f3a4',
       '69977a118f10a026bd985189'
     ]
+  },
+  {
+    id: 'odarbys-liquor-barn',
+    chainName: "O'Darby's Liquor Barn",
+    sourceLabel: "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+    baseUrl: 'https://odarbysliquorbarn.com',
+    urls: [
+      'https://odarbysliquorbarn.com/shop/?subtype=bourbon',
+      'https://odarbysliquorbarn.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['607f9d38b73eb4091ef97ff7']
+  },
+  {
+    id: 'beach-discount-beverages',
+    chainName: 'Beach Discount Beverages',
+    sourceLabel: 'Beach Discount Beverages South Carolina CityHive store inventory',
+    baseUrl: 'https://beachdiscountbeverages.com',
+    urls: [
+      'https://beachdiscountbeverages.com/shop/?subtype=bourbon',
+      'https://beachdiscountbeverages.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['6144e1c2085a5f20a622a15f']
+  },
+  {
+    id: 'palmetto-liquor',
+    chainName: 'Palmetto Liquor',
+    sourceLabel: 'Palmetto Liquor South Carolina CityHive store inventory',
+    baseUrl: 'https://palmettoliquor.com',
+    urls: [
+      'https://palmettoliquor.com/shop/?subtype=bourbon',
+      'https://palmettoliquor.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['66c9e5c12556e329502b0e5e']
+  },
+  {
+    id: 'dev-liquors',
+    chainName: 'DEV Liquors',
+    sourceLabel: 'DEV Liquors South Carolina CityHive store inventory',
+    baseUrl: 'https://devliquors.com',
+    urls: [
+      'https://devliquors.com/shop/?subtype=bourbon',
+      'https://devliquors.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['620164924a3ea84d57c21d6f']
+  },
+  {
+    id: 'moss-creek-village-spirits',
+    chainName: 'Moss Creek Village Spirits & Wine',
+    sourceLabel: 'Moss Creek Village Spirits & Wine South Carolina CityHive store inventory',
+    baseUrl: 'https://www.mosscreekvillagespiritsandwine.com',
+    urls: [
+      'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon',
+      'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['67cf72208b17425acbba9e10']
+  },
+  {
+    id: 'rollers-wine-and-spirits',
+    chainName: 'Rollers Wine & Spirits',
+    sourceLabel: 'Rollers Wine & Spirits South Carolina CityHive store inventory',
+    baseUrl: 'https://rollerswineandspirits.com',
+    urls: [
+      'https://rollerswineandspirits.com/shop/?subtype=bourbon',
+      'https://rollerswineandspirits.com/shop/?subtype=whiskey'
+    ],
+    merchantIds: ['5ea832d3b62f75270c45a976']
   }
 ];
 const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
@@ -1725,11 +1811,14 @@ async function readIndianaCityHiveCache() {
 }
 
 async function writeIndianaCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = indianaCityHivePositiveInventoryChains(signals);
   const previous = await readIndianaCityHiveCache();
+  const previousPositiveCount = (previous?.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
   const previousChains = indianaCityHivePositiveInventoryChains(previous?.signals || []);
-  if (previousChains.size >= 3 && nextChains.size < previousChains.size) {
+  const nextCoverageFloor = Math.max(50, Math.floor(previousPositiveCount * 0.85));
+  if (previousChains.size >= 3 && (nextChains.size < previousChains.size || nextPositiveCount < nextCoverageFloor)) {
     return;
   }
   const payload = {
@@ -1739,7 +1828,7 @@ async function writeIndianaCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks
@@ -1819,7 +1908,8 @@ function tennesseeCityHivePositiveInventoryChains(signals = []) {
 }
 
 async function writeTennesseeCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = tennesseeCityHivePositiveInventoryChains(signals);
   const previous = await readTennesseeCityHiveCache();
   const previousChains = tennesseeCityHivePositiveInventoryChains(previous?.signals || []);
@@ -1831,7 +1921,7 @@ async function writeTennesseeCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks
@@ -1993,9 +2083,10 @@ async function collectIndianaCityHive(config, bible, observedAt) {
             }
           }
         }
-        await sleep(450);
+        await sleep(IN_CITYHIVE_PAGE_DELAY_MS);
       }
     }
+    await sleep(IN_CITYHIVE_SOURCE_DELAY_MS);
   }
 
   if (signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
@@ -2538,11 +2629,14 @@ function southCarolinaCityHivePositiveInventoryChains(signals = []) {
 }
 
 async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return;
+  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  if (!nextPositiveCount) return;
   const nextChains = southCarolinaCityHivePositiveInventoryChains(signals);
   const previous = await readSouthCarolinaCityHiveCache();
+  const previousPositiveCount = (previous?.signals || []).filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
   const previousChains = southCarolinaCityHivePositiveInventoryChains(previous?.signals || []);
-  if (previousChains.size >= 2 && nextChains.size < previousChains.size) return;
+  const nextCoverageFloor = Math.max(25, Math.floor(previousPositiveCount * 0.85));
+  if (previousChains.size >= 2 && (nextChains.size < previousChains.size || nextPositiveCount < nextCoverageFloor)) return;
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'South Carolina CityHive retailer inventory cache',
@@ -2550,7 +2644,7 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
-    positiveInventorySignalCount: signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length,
+    positiveInventorySignalCount: nextPositiveCount,
     storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
     signals,
     roadblocks

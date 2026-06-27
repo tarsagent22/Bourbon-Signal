@@ -288,13 +288,19 @@ export const ALL_STATE_SOURCES = [
   },
   {
     id: 'SC', label: 'South Carolina retailer inventory mesh', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
-    value: 'South Carolina is a private retail market. Customer-facing value now comes from whitelisted public retailer sources that expose store-level rows: Green\'s Beverage and Wine & Bourbon Barn CityHive merchant-id pages with quantities, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only.',
+    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only.',
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl', label: 'South Carolina alcohol beverage licensing' },
       { kind: 'html', url: 'https://www.greensbeverages.com/shop/?subtype=bourbon', label: "Green's Beverage SC CityHive merchant-id bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://winebarnsc.com/shop/?subtype=bourbon', label: 'Wine & Bourbon Barn CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://odarbysliquorbarn.com/shop/?subtype=bourbon', label: "O'Darby's Liquor Barn CityHive bourbon inventory", precisionOnly: true },
+      { kind: 'html', url: 'https://beachdiscountbeverages.com/shop/?subtype=bourbon', label: 'Beach Discount Beverages CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://palmettoliquor.com/shop/?subtype=bourbon', label: 'Palmetto Liquor CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://devliquors.com/shop/?subtype=bourbon', label: 'DEV Liquors CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon', label: 'Moss Creek Village Spirits & Wine CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://rollerswineandspirits.com/shop/?subtype=bourbon', label: 'Rollers Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://dabrownbag.com/wp-json/moo-clover/v1/search/bourbon', label: 'Da Brown Bag Clover bourbon stockCount API', precisionOnly: true },
       { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true }
     ],

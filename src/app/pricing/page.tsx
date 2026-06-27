@@ -40,9 +40,9 @@ const paidTiers: PricingTier[] = [
   {
     tier: "standard",
     name: "Standard Proof",
-    eyebrow: "Core alerts",
-    monthlyPrice: "$4.99",
-    annualPrice: "$39.99",
+    eyebrow: "Core Membership",
+    monthlyPrice: "$2.99",
+    annualPrice: "$24.99",
     monthlyPlan: "standard_monthly",
     annualPlan: "standard_annual",
     description: "Essential email and SMS alerts with focused Drop Feed access.",
@@ -52,6 +52,7 @@ const paidTiers: PricingTier[] = [
       "Up to 15 tracked bottles",
       "Full Drop Feed access with filter-by-state only",
       "Unlimited Bottle Check access",
+      "Full Daily Briefing access",
       "Member Sightings",
       "No advanced feed filters or Sightings alerts",
     ],
@@ -69,7 +70,7 @@ const paidTiers: PricingTier[] = [
     description: "Everything in Standard Proof, plus unlimited alerts and advanced discovery tools.",
     features: [
       "Everything in Standard Proof",
-      "Unlimited alerts",
+      "No Alert Preference Limits",
       "Advanced Drop Feed filters",
       "Member Sightings alerts",
       "My Collection and Recommended Bottles",
@@ -81,7 +82,7 @@ const paidTiers: PricingTier[] = [
     tier: "bottled-in-bond",
     name: "Bottled in Bond Founder",
     eyebrow: "Limited founder offer",
-    oneTimePrice: "$59.99",
+    oneTimePrice: "$49.99",
     plan: "bib_lifetime",
     description: "Lifetime access to all current and future Bourbon Signal features.",
     features: [
@@ -97,18 +98,16 @@ const paidTiers: PricingTier[] = [
   },
 ];
 
-const freeFeatures = ["Limited Drop Feed access", "3 Bottle Checks", "Upgrade anytime for instant alerts"];
-
 const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
+  ["Daily Briefing", "Limited", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Email and SMS alerts", "—", "✓", "✓", "✓"],
-  ["Alert areas", "—", "Up to 5", "Unlimited", "Unlimited"],
-  ["Tracked bottles", "—", "Up to 15", "Unlimited", "Unlimited"],
-  ["Member Sightings", "—", "✓", "✓", "✓"],
+  ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
+  ["Member Sightings", "Demo only", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Collection", "—", "—", "✓", "✓"],
-  ["Recommended Bottles", "—", "—", "✓", "✓"],
+  ["My Collection", "Demo only", "—", "✓", "✓"],
+  ["Recommended Bottles", "Demo only", "—", "✓", "✓"],
   ["Lifetime future features", "—", "—", "—", "✓"],
   ["Founder badge + number", "—", "—", "—", "✓"],
   ["Numbered Founder’s glass", "—", "—", "—", "✓"],
@@ -196,30 +195,13 @@ function PricingPageContent() {
                 Monthly
               </button>
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>Save 33%</span>
+                Annual <span>Save 30%</span>
               </button>
             </div>
           </ScrollReveal>
         </section>
 
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
-          <article className={`pricing-card quiet ${memberTier === "free" ? "current" : ""}`}>
-            {memberTier === "free" ? <div className="current-badge">Current</div> : null}
-            <p className="pricing-eyebrow">Preview</p>
-            <h2>Free</h2>
-            <div className="pricing-price-row">
-              <strong>$0</strong>
-              <span>preview access</span>
-            </div>
-            <p className="pricing-description">See what Bourbon Signal tracks before turning on alerts.</p>
-            <ul>{freeFeatures.map((feature) => <li key={feature}><span>✓</span>{feature}</li>)}</ul>
-            <div className="pricing-actions">
-              <button type="button" disabled={memberTier === "free"} onClick={() => router.push("/sign-up?redirect_url=/dashboard")}>
-                {memberTier === "free" ? "Current plan" : "Included"}
-              </button>
-            </div>
-          </article>
-
           {paidTiers.map((tier) => {
             const plan = selectedPlan(tier);
             const included = tierRank[tier.tier] < currentTierRank;
@@ -301,12 +283,11 @@ const pricingCss = `
 .billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
 .billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
-.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
+.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
-.pricing-card.quiet { order:4; }
 .pricing-card.standard { order:2; }
 .pricing-card.barrel { order:3; }
-.pricing-card.founder { order:1; grid-column:span 2; }
+.pricing-card.founder { order:1; }
 .pricing-card.featured { border-color:rgba(196,148,58,.55); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,.058), rgba(255,255,255,.026)); box-shadow:0 0 70px rgba(196,148,58,.11), 0 28px 100px rgba(0,0,0,.34); }
 .pricing-card.founder { border-color:rgba(212,164,74,.55); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.24), transparent 42%), radial-gradient(circle at 86% 12%, rgba(196,148,58,.15), transparent 36%), linear-gradient(180deg, rgba(255,255,255,.066), rgba(255,255,255,.028)); box-shadow:0 0 90px rgba(196,148,58,.16), 0 30px 110px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06); }
 .pricing-card.founder::after { content:""; position:absolute; inset:1px; pointer-events:none; border-radius:23px; background:linear-gradient(135deg, rgba(212,164,74,.18), transparent 30%, transparent 70%, rgba(212,164,74,.10)); }
