@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { ensureBrowserCdp } from './core/browser-session.mjs';
+import { ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
 
 const DEFAULT_CDP = process.env.FWGS_CDP_URL || process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
 const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.json';
@@ -309,6 +309,7 @@ async function main() {
     console.log(`Wrote ${OUT_FILE}: ${payload.summary.productCount} products, ${payload.summary.locationCount} stores, ${payload.summary.positiveInventoryRowCount} positive store rows, ${payload.summary.failureCount} failures.`);
   } finally {
     page.close();
+    await killBrowserCdp(browser);
   }
 }
 

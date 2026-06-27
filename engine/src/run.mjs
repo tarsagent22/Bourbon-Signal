@@ -144,46 +144,50 @@ async function runGuardedBrowserPreflightJob(job) {
   const needsBrowser = /browser|ohlq|fwgs/i.test(`${job.id} ${job.label}`);
   let browser = null;
   if (needsBrowser) browser = await ensureBrowserCdp(DEFAULT_CDP_URL);
-  if (!job.outEnv || !job.validateArtifact) {
-    const result = await runNodeScript(job.command, job.timeoutMs);
-    return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result };
-  }
+  try {
+    if (!job.outEnv || !job.validateArtifact) {
+      const result = await runNodeScript(job.command, job.timeoutMs);
+      return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: result.ok ? 'refreshed' : 'failed_non_blocking', ...result };
+    }
 
-  const tempArtifact = `${job.artifact}.candidate-${Date.now()}.json`;
-  const result = await runNodeScript(job.command, job.timeoutMs, { [job.outEnv]: tempArtifact });
-  if (!result.ok) {
-    await rm(tempArtifact, { force: true }).catch(() => {});
-    return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: 'failed_non_blocking', preservedPreviousArtifact: true, ...result };
-  }
+    const tempArtifact = `${job.artifact}.candidate-${Date.now()}.json`;
+    const result = await runNodeScript(job.command, job.timeoutMs, { [job.outEnv]: tempArtifact });
+    if (!result.ok) {
+      await rm(tempArtifact, { force: true }).catch(() => {});
+      return { id: job.id, label: job.label, artifact: artifactLabel, browser, status: 'failed_non_blocking', preservedPreviousArtifact: true, ...result };
+    }
 
-  const candidate = await readJson(tempArtifact, null);
-  const validation = job.validateArtifact(candidate);
-  if (!validation.ok) {
+    const candidate = await readJson(tempArtifact, null);
+    const validation = job.validateArtifact(candidate);
+    if (!validation.ok) {
+      await rm(tempArtifact, { force: true }).catch(() => {});
+      return {
+        id: job.id,
+        label: job.label,
+        artifact: artifactLabel,
+        browser,
+        ...result,
+        status: 'rejected_candidate_preserved_previous',
+        ok: false,
+        preservedPreviousArtifact: true,
+        validation: validation.reason
+      };
+    }
+
+    await writeFile(job.artifact, JSON.stringify(candidate, null, 2));
     await rm(tempArtifact, { force: true }).catch(() => {});
     return {
       id: job.id,
       label: job.label,
       artifact: artifactLabel,
       browser,
-      ...result,
-      status: 'rejected_candidate_preserved_previous',
-      ok: false,
-      preservedPreviousArtifact: true,
-      validation: validation.reason
+      status: 'refreshed',
+      validation: validation.reason,
+      ...result
     };
+  } finally {
+    await killBrowserCdp(browser);
   }
-
-  await writeFile(job.artifact, JSON.stringify(candidate, null, 2));
-  await rm(tempArtifact, { force: true }).catch(() => {});
-  return {
-    id: job.id,
-    label: job.label,
-    artifact: artifactLabel,
-    browser,
-    status: 'refreshed',
-    validation: validation.reason,
-    ...result
-  };
 }
 
 async function runBrowserPreflight() {

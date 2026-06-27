@@ -76,6 +76,24 @@ export async function ensureBrowserCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
   throw new Error(`Started browser pid ${started.pid || 'unknown'} but CDP did not become reachable at ${cdpUrl} within ${Math.round(timeoutMs / 1000)}s.`);
 }
 
+export async function killBrowserCdp(browser) {
+  if (!browser?.started || !browser.pid) return false;
+  if (process.platform === 'win32') {
+    await new Promise((resolve) => {
+      const killer = spawn('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+      killer.on('close', () => resolve());
+      killer.on('error', () => resolve());
+    });
+    return true;
+  }
+  try {
+    process.kill(-browser.pid, 'SIGTERM');
+  } catch {
+    try { process.kill(browser.pid, 'SIGTERM'); } catch {}
+  }
+  return true;
+}
+
 export async function getOrCreateTarget(cdpUrl = DEFAULT_CDP_URL, preferUrl = null) {
   const tabs = await cdpFetch(cdpUrl, '/json/list');
   const preferred = preferUrl ? tabs.find((t) => t.type === 'page' && String(t.url || '').includes(preferUrl)) : null;
