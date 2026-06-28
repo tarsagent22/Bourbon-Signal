@@ -12,14 +12,14 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "What do free accounts get?",
+    question: "What can I see before paying?",
     answer:
-      "Free accounts can preview the product: a limited Drop Feed view, demo access to paid tools, and 3 Bottle Checks. Saving alerts, sightings, collection data, and recommendations requires a paid membership.",
+      "Free accounts get a real preview: limited Drop Feed rows, demo access to member tools, and 3 Bottle Checks. Saving alerts, Member Sightings, collection data, and personalized recommendations requires a paid membership.",
   },
   {
-    question: "What counts as an alert area?",
+    question: "How do alert areas work?",
     answer:
-      "An alert area is a specific market you want watched — a state, ABC board, city, county, or supported store-level area depending on the state data available. Standard includes up to 5. Barrel and Bottled in Bond remove that limit.",
+      "An alert area is a market you want watched — a state, ABC board, city, county, or supported store-level area depending on the data available in that state. Standard includes 5 specific areas. Barrel and Bottled in Bond remove the area limit.",
   },
   {
     question: "Are Drop Feed signals guaranteed inventory?",
@@ -27,24 +27,24 @@ const faqs: FAQItem[] = [
       "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
   },
   {
+    question: "What makes paid alerts different from browsing the feed?",
+    answer:
+      "The feed is for browsing fresh signals. Alerts watch your chosen areas and bottles for you, then surface matches when something relevant appears. Paid members can save preferences instead of manually checking the site all day.",
+  },
+  {
     question: "What is Bottle Check?",
     answer:
       "Bottle Check helps you quickly evaluate a bottle — rarity, MSRP context, whether it is worth chasing, and how it fits your bourbon preferences. Free accounts get 3 checks; paid members get unlimited checks.",
   },
   {
-    question: "What are My Collection and Personalized Bottle Recommendations?",
+    question: "How do My Collection and recommendations work?",
     answer:
-      "My Collection is where you save bottles you own or have tasted. Personalized Bottle Recommendations use those ratings and tasting cues to suggest bottles that fit your Bourbon DNA.",
+      "My Collection is where you save bottles you own or have tasted. As you rate bottles, Bourbon Signal builds a simple Bourbon DNA profile and recommends bottles that better match your taste, proof range, and hunting priorities.",
   },
   {
     question: "What is different about Bottled in Bond?",
     answer:
-      "Bottled in Bond is the limited founder pass: lifetime access to all current and future paid Bourbon Signal features, plus founder-only perks like a profile badge, founder number, and numbered glass.",
-  },
-  {
-    question: "Can I upgrade or change plans later?",
-    answer:
-      "Yes. Standard and Barrel are recurring memberships, and eligible members can upgrade from inside the site. Bottled in Bond is a one-time founder pass while the 100 spots are available.",
+      "Bottled in Bond is the limited founder pass: one-time lifetime access to current and future paid Bourbon Signal features, plus founder-only perks like a profile badge, founder number, and numbered glass while the 100 founder spots are available.",
   },
 ];
 

@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Elijah Craig 21 Year returns as a true trophy bottle",
+    summary: "Heaven Hill is bringing back Elijah Craig 21-Year-Old Single Barrel as a limited 2026 release, with an initial distillery debut and select-market bottles later in the year.",
+    note: "Best of the morning: scarce, official, high-intent, and exactly the kind of bottle hunters will want watched before retail sightings appear.",
+    href: "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
+    source: "Heaven Hill",
+  },
+  {
     title: "Lost Lantern turns all 50 states into one bourbon story",
     summary: "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
     note: "A clean national-interest release signal with strong collector and geography hooks.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://heavenhilldistillery.com/old-fitzgerald.php",
     source: "Heaven Hill Distillery",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Four Roses opens a Mizunara-finished lane",
     summary: "Four Roses' new Experimental Series starts with No. 001, a limited Kentucky straight bourbon finished in Japanese Mizunara oak.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
     source: "Four Roses Distillery",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Durham rewrites its drop cadence",
     summary: "Durham ABC is replacing weekly 100-bottle drops with a summer release process.",
