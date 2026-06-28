@@ -124,9 +124,8 @@ export default function HeroSection() {
             }}
           >
             {[
-              "Multi-state coverage",
               "Live Drop Feed",
-              "Instant Drop Alerts",
+              "Drop Alerts",
               "Member Sightings",
               "Bottle Check",
               "My Collection",

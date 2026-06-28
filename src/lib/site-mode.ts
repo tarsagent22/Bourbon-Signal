@@ -1,13 +1,13 @@
-export const SITE_PHASE = "founding_test" as const;
+export const SITE_PHASE = "launch" as const;
 
-export const SHOW_PUBLIC_PRICING = false;
-export const CHECKOUT_ENABLED = false;
+export const SHOW_PUBLIC_PRICING = true;
+export const CHECKOUT_ENABLED = true;
 
 export const MEMBERSHIP_COPY = {
-  testerLabel: "Founding tester mode",
-  testerHeadline: "Help validate Bourbon Signal before paid memberships open.",
+  testerLabel: "Launch access",
+  testerHeadline: "Choose the Bourbon Signal membership that fits how you hunt.",
   testerBody:
-    "Tester access is open while we tune alert quality, improve the member dashboard, and make sure Bourbon Signal is worth trusting before anyone pays.",
+    "Memberships are open for launch. Pick your tier, set your alert preferences, and let Bourbon Signal watch the shelves for you.",
   standardName: "Member dashboard",
   standardStatus: "Tester access",
   standardBody:

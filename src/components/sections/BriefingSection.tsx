@@ -1,12 +1,11 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 interface BriefingItem {
-  tag: string;
   title: string;
   summary: string;
-  noteLabel: string;
   note: string;
   href: string;
   source: string;
@@ -14,74 +13,70 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
-    tag: "Today · National blend",
     title: "Lost Lantern turns all 50 states into one bourbon story",
     summary: "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
-    noteLabel: "Market read",
-    note: "Best story of the day: it is not a shelf drop, but it is a clean national-interest release signal with strong collector and geography hooks.",
+    note: "A clean national-interest release signal with strong collector and geography hooks.",
     href: "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
     source: "Lost Lantern Whiskey",
   },
   {
-    tag: "Yesterday · Release watch",
     title: "Old Fitzgerald joins July's allocation radar",
     summary: "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",
-    noteLabel: "Release read",
-    note: "High-intent collector bottle. Keep the copy sober: national release timing matters more than pretending store availability is confirmed.",
+    note: "High-intent collector bottle. National release timing matters more than pretending store availability is confirmed.",
     href: "https://heavenhilldistillery.com/old-fitzgerald.php",
     source: "Heaven Hill Distillery",
   },
   {
-    tag: "Yesterday · Experimental",
     title: "Four Roses opens a Mizunara-finished lane",
     summary: "Four Roses' new Experimental Series starts with No. 001, a limited Kentucky straight bourbon finished in Japanese Mizunara oak.",
-    noteLabel: "Release read",
-    note: "Useful for watchlist language and rarity scoring. Treat the launch as release-watch intelligence until store-level sightings appear.",
+    note: "Useful for watchlist language and rarity scoring until store-level sightings appear.",
     href: "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
     source: "Four Roses Distillery",
   },
-  {
-    tag: "Yesterday · AL ABC release",
-    title: "Alabama's annual limited release is already dated",
-    summary: "Alabama ABC lists its 2026 Annual Limited Release Program for December 12 across selected ABC stores.",
-    noteLabel: "State read",
-    note: "Clean control-state event signal: dates, stores, and sweepstakes mechanics are more useful here than scrape-only shelf checks.",
-    href: "https://alabcboard.gov/stores/events/limited-release-programs/annual",
-    source: "Alabama ABC",
-  },
 ];
 
-const archivedBriefingItems: BriefingItem[] = [
+const additionalBriefingItems: BriefingItem[] = [
   {
-    tag: "NC · Board policy",
     title: "Durham rewrites its drop cadence",
     summary: "Durham ABC is replacing weekly 100-bottle drops with a summer release process.",
-    noteLabel: "Market read",
     note: "Board policy can move faster than shelf inventory. This is a state worth watching at the source, not just at the store level.",
     href: "https://www.durhamabc.com/drops",
     source: "Durham ABC",
   },
   {
-    tag: "Release watch",
     title: "Heaven Hill Heritage enters the watch window",
     summary: "The 2026 Heritage Collection release is now official: a 22-year Kentucky straight bourbon at barrel proof.",
-    noteLabel: "Release read",
-    note: "Collector-grade bottle. Good candidate for release-watch coverage and preference-alert language.",
+    note: "Collector-grade bottle and a strong candidate for release-watch coverage.",
     href: "https://heavenhilldistillery.com/heavenhill-heritage-collection.php",
     source: "Heaven Hill Distillery",
   },
   {
-    tag: "VA · Limited availability",
     title: "Virginia's limited-release system remains predictable",
     summary: "VA ABC continues to route high-demand bottles through structured limited-availability lanes.",
-    noteLabel: "State read",
-    note: "High confidence, clean source, useful alerts.",
+    note: "High-confidence state-source mechanics are useful when members are planning what to watch next.",
     href: "https://www.abc.virginia.gov/products/limited-availability",
     source: "Virginia ABC",
   },
 ];
 
+function BriefingStory({ item, index }: { item: BriefingItem; index: number }) {
+  return (
+    <a className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
+      <span className="daily-briefing-number">0{index + 1}</span>
+      <h3 className="daily-briefing-story-title">{item.title}</h3>
+      <p className="daily-briefing-summary">{item.summary}</p>
+      <p className="daily-briefing-impact">{item.note}</p>
+      <span className="daily-briefing-source">
+        {item.source}
+        <ArrowUpRight size={12} />
+      </span>
+    </a>
+  );
+}
+
 export default function BriefingSection() {
+  const { isPaidUser } = useAuth();
+
   return (
     <section
       id="briefing"
@@ -96,6 +91,18 @@ export default function BriefingSection() {
         .daily-briefing {
           width: min(1120px, 100%);
           margin: 0 auto;
+          position: relative;
+        }
+        .daily-briefing::before {
+          content: "";
+          position: absolute;
+          inset: -18px -24px auto auto;
+          width: 180px;
+          height: 180px;
+          pointer-events: none;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(212,146,11,0.12), transparent 68%);
+          filter: blur(6px);
         }
         .daily-briefing-header {
           position: relative;
@@ -131,63 +138,84 @@ export default function BriefingSection() {
         .daily-briefing-list {
           display: grid;
           grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr) minmax(0, 0.96fr);
-          gap: clamp(22px, 3vw, 42px);
+          gap: clamp(18px, 2.5vw, 30px);
           padding-top: clamp(24px, 3.5vw, 42px);
         }
         .daily-briefing-story {
           position: relative;
+          isolation: isolate;
           color: inherit;
           text-decoration: none;
-          min-height: 224px;
-          padding: 2px 2px 0;
-          transition: transform 180ms ease;
+          min-height: 244px;
+          padding: clamp(20px, 2.4vw, 26px);
+          border: 1px solid rgba(245,237,214,0.075);
+          border-radius: 24px;
+          background:
+            linear-gradient(135deg, rgba(245,237,214,0.052), rgba(245,237,214,0.018) 48%, rgba(212,146,11,0.045)),
+            radial-gradient(circle at 18% 0%, rgba(212,146,11,0.11), transparent 38%);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 18px 60px rgba(0,0,0,0.16);
+          overflow: hidden;
+          transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+        }
+        .daily-briefing-story::before {
+          content: "";
+          position: absolute;
+          top: 18px;
+          left: 0;
+          width: 3px;
+          height: 58px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgba(232,201,122,0.95), rgba(196,148,58,0.24));
+          box-shadow: 0 0 18px rgba(196,148,58,0.25);
+        }
+        .daily-briefing-story:nth-child(2) {
+          background:
+            linear-gradient(135deg, rgba(245,237,214,0.044), rgba(245,237,214,0.016) 50%, rgba(184,115,51,0.05)),
+            radial-gradient(circle at 86% 8%, rgba(184,115,51,0.11), transparent 40%);
+        }
+        .daily-briefing-story:nth-child(3) {
+          background:
+            linear-gradient(135deg, rgba(245,237,214,0.04), rgba(245,237,214,0.015) 54%, rgba(239,192,80,0.04)),
+            radial-gradient(circle at 34% 100%, rgba(239,192,80,0.08), transparent 42%);
         }
         .daily-briefing-story:hover {
+          border-color: rgba(232,201,122,0.25);
           transform: translateY(-2px);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 70px rgba(0,0,0,0.22);
         }
         .daily-briefing-story:focus-visible {
           outline: 2px solid rgba(232,201,122,0.75);
           outline-offset: 8px;
         }
-        .daily-briefing-tag {
-          color: rgba(232,201,122,0.82);
+        .daily-briefing-number {
+          display: inline-flex;
+          color: rgba(245,237,214,0.34);
           font-family: var(--font-jetbrains);
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 800;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+          letter-spacing: 0.16em;
         }
         .daily-briefing-story-title {
           margin-top: 14px;
-          color: var(--color-text-primary);
+          color: rgba(232,201,122,0.92);
           font-family: var(--font-playfair);
-          font-size: clamp(23px, 2.5vw, 31px);
+          font-size: clamp(24px, 2.45vw, 32px);
           line-height: 1.03;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.035em;
         }
         .daily-briefing-summary {
           margin-top: 13px;
-          color: rgba(245,237,214,0.62);
+          color: rgba(245,237,214,0.64);
           font-family: var(--font-dm-sans);
           font-size: 13px;
-          line-height: 1.55;
+          line-height: 1.58;
         }
         .daily-briefing-impact {
           margin-top: 18px;
           color: rgba(245,237,214,0.8);
           font-family: var(--font-dm-sans);
           font-size: 12px;
-          line-height: 1.45;
-        }
-        .daily-briefing-impact strong {
-          display: block;
-          margin-bottom: 5px;
-          color: rgba(232,201,122,0.78);
-          font-family: var(--font-jetbrains);
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 0.11em;
-          text-transform: uppercase;
+          line-height: 1.48;
         }
         .daily-briefing-source {
           display: inline-flex;
@@ -205,7 +233,7 @@ export default function BriefingSection() {
           padding-top: clamp(24px, 3vw, 34px);
         }
         .daily-briefing-more[open] .daily-briefing-more-button::after {
-          content: "Show less";
+          content: "Show fewer stories";
         }
         .daily-briefing-more[open] .daily-briefing-more-button span {
           display: none;
@@ -245,7 +273,7 @@ export default function BriefingSection() {
         }
         @media (max-width: 900px) {
           .daily-briefing-header { grid-template-columns: 1fr; }
-          .daily-briefing-list { grid-template-columns: 1fr; gap: 26px; }
+          .daily-briefing-list { grid-template-columns: 1fr; gap: 18px; }
           .daily-briefing-story { min-height: 0; }
         }
       `}</style>
@@ -261,45 +289,23 @@ export default function BriefingSection() {
         </div>
 
         <div className="daily-briefing-list">
-          {briefingItems.map((item) => (
-            <a key={item.title} className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
-              <div className="daily-briefing-tag">{item.tag}</div>
-              <h3 className="daily-briefing-story-title">{item.title}</h3>
-              <p className="daily-briefing-summary">{item.summary}</p>
-              <p className="daily-briefing-impact">
-                <strong>{item.noteLabel}</strong>
-                {item.note}
-              </p>
-              <span className="daily-briefing-source">
-                {item.source}
-                <ArrowUpRight size={12} />
-              </span>
-            </a>
+          {briefingItems.map((item, index) => (
+            <BriefingStory key={item.title} item={item} index={index} />
           ))}
         </div>
 
-        <details className="daily-briefing-more">
-          <summary className="daily-briefing-more-button">
-            <span>See more stories</span>
-          </summary>
-          <div className="daily-briefing-list" aria-label="Additional daily briefing stories">
-            {archivedBriefingItems.map((item) => (
-              <a key={item.title} className="daily-briefing-story" href={item.href} target="_blank" rel="noreferrer">
-                <div className="daily-briefing-tag">{item.tag}</div>
-                <h3 className="daily-briefing-story-title">{item.title}</h3>
-                <p className="daily-briefing-summary">{item.summary}</p>
-                <p className="daily-briefing-impact">
-                  <strong>{item.noteLabel}</strong>
-                  {item.note}
-                </p>
-                <span className="daily-briefing-source">
-                  {item.source}
-                  <ArrowUpRight size={12} />
-                </span>
-              </a>
-            ))}
-          </div>
-        </details>
+        {isPaidUser ? (
+          <details className="daily-briefing-more">
+            <summary className="daily-briefing-more-button">
+              <span>Show 3 more stories</span>
+            </summary>
+            <div className="daily-briefing-list" aria-label="Additional daily briefing stories">
+              {additionalBriefingItems.map((item, index) => (
+                <BriefingStory key={item.title} item={item} index={index + briefingItems.length} />
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
     </section>
   );

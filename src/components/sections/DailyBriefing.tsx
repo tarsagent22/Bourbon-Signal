@@ -27,14 +27,6 @@ const visibleStories = [
     href: "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
     tag: "Yesterday · Experimental",
   },
-  {
-    source: "Alabama ABC",
-    title: "Alabama's annual limited release is already dated",
-    summary:
-      "Alabama ABC lists its 2026 Annual Limited Release Program for December 12 across selected ABC stores.",
-    href: "https://alabcboard.gov/stores/events/limited-release-programs/annual",
-    tag: "Yesterday · AL ABC release",
-  },
 ];
 
 const archivedStories = [
