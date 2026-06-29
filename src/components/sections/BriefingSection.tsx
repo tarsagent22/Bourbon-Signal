@@ -117,17 +117,7 @@ export default function BriefingSection() {
           grid-template-columns: minmax(0, 0.9fr) minmax(260px, 0.62fr);
           gap: clamp(18px, 4vw, 54px);
           align-items: end;
-          padding-bottom: clamp(28px, 3.4vw, 42px);
-        }
-        .daily-briefing-header::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          width: min(220px, 52vw);
-          height: 1px;
-          background: linear-gradient(90deg, rgba(232,201,122,0.9), rgba(196,148,58,0.18), transparent);
-          box-shadow: 0 0 16px rgba(196,148,58,0.2);
+          padding-bottom: clamp(24px, 3vw, 36px);
         }
         .daily-briefing-title {
           font-family: var(--font-playfair);
@@ -163,17 +153,6 @@ export default function BriefingSection() {
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 18px 60px rgba(0,0,0,0.16);
           overflow: hidden;
           transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-        }
-        .daily-briefing-story::before {
-          content: "";
-          position: absolute;
-          top: 18px;
-          left: 0;
-          width: 3px;
-          height: 58px;
-          border-radius: 999px;
-          background: linear-gradient(180deg, rgba(232,201,122,0.95), rgba(196,148,58,0.24));
-          box-shadow: 0 0 18px rgba(196,148,58,0.25);
         }
         .daily-briefing-story:nth-child(2) {
           background:
