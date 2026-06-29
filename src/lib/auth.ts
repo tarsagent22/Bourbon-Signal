@@ -37,7 +37,7 @@ export function useAuth() {
     signUp: () => {
       if (qaPreview) return;
       if (typeof window !== "undefined") {
-        window.location.href = "/sign-up";
+        window.location.href = "/sign-up?redirect_url=/pricing";
       }
     },
     signOut: () => {

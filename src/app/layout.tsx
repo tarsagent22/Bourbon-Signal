@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://bourbonsignal.com"),
   alternates: { canonical: "https://bourbonsignal.com" },
   category: "technology",
+  appleWebApp: {
+    capable: true,
+    title: "Bourbon Signal",
+    statusBarStyle: "black-translucent",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -56,6 +61,13 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: ["/og-bourbon-signal.png"],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0F0D09",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

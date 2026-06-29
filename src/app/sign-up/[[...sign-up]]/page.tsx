@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 
 function safeRedirectUrl(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/alerts?welcome=1";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/pricing";
   return value;
 }
 

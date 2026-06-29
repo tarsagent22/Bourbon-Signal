@@ -219,18 +219,20 @@ function PricingPageContent() {
           </ScrollReveal>
         </section>
 
-        <section className="free-preview-strip" aria-label="Free preview account">
-          <div>
-            <p>Free preview</p>
-            <h2>Create an account first. Browse the signal before you pay.</h2>
-          </div>
-          <ul>
-            <li>Limited Drop Feed preview</li>
-            <li>3 Bottle Checks</li>
-            <li>Demo access to member tools</li>
-          </ul>
-          <button type="button" onClick={() => router.push("/sign-up?redirect_url=/dashboard")}>Start free preview</button>
-        </section>
+        {!isSignedIn ? (
+          <section className="free-preview-strip" aria-label="Free preview account">
+            <div>
+              <p>Free preview</p>
+              <h2>Create an account first. Browse the signal before you pay.</h2>
+            </div>
+            <ul>
+              <li>Limited Drop Feed preview</li>
+              <li>3 Bottle Checks</li>
+              <li>Demo access to member tools</li>
+            </ul>
+            <button type="button" onClick={() => router.push("/sign-up?redirect_url=/pricing")}>Start free preview</button>
+          </section>
+        ) : null}
 
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
           {paidTiers.map((tier) => {
