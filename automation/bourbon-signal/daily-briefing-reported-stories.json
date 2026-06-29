@@ -1,0 +1,55 @@
+{
+  "updatedAt": "2026-06-29T09:08:42-04:00",
+  "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
+  "reportedStories": [
+    {
+      "title": "Elijah Craig 21 Year returns as a true trophy bottle",
+      "source": "Heaven Hill",
+      "url": "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
+      "firstReportedAt": "2026-06-29",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "Lost Lantern turns all 50 states into one bourbon story",
+      "source": "Lost Lantern Whiskey",
+      "url": "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
+      "firstReportedAt": "2026-06-26",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "Old Fitzgerald joins July's allocation radar",
+      "source": "Heaven Hill Distillery",
+      "url": "https://heavenhilldistillery.com/old-fitzgerald.php",
+      "firstReportedAt": "2026-06-26",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "Four Roses opens a Mizunara-finished lane",
+      "source": "Four Roses Distillery",
+      "url": "https://www.prnewswire.com/news-releases/four-roses-distillery-enters-a-new-era-of-bourbon-innovation-with-launch-of-experimental-series-302807822.html",
+      "firstReportedAt": "2026-06-26",
+      "status": "member-hidden"
+    },
+    {
+      "title": "Durham rewrites its drop cadence",
+      "source": "Durham ABC",
+      "url": "https://www.durhamabc.com/drops",
+      "firstReportedAt": "2026-06-26",
+      "status": "reported"
+    },
+    {
+      "title": "Heaven Hill Heritage enters the watch window",
+      "source": "Heaven Hill Distillery",
+      "url": "https://heavenhilldistillery.com/heavenhill-heritage-collection.php",
+      "firstReportedAt": "2026-06-26",
+      "status": "reported"
+    },
+    {
+      "title": "Virginia's limited-release system remains predictable",
+      "source": "Virginia ABC",
+      "url": "https://www.abc.virginia.gov/products/limited-availability",
+      "firstReportedAt": "2026-06-26",
+      "status": "reported"
+    }
+  ]
+}
