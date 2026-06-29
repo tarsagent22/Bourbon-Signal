@@ -219,6 +219,19 @@ function PricingPageContent() {
           </ScrollReveal>
         </section>
 
+        <section className="free-preview-strip" aria-label="Free preview account">
+          <div>
+            <p>Free preview</p>
+            <h2>Create an account first. Browse the signal before you pay.</h2>
+          </div>
+          <ul>
+            <li>Limited Drop Feed preview</li>
+            <li>3 Bottle Checks</li>
+            <li>Demo access to member tools</li>
+          </ul>
+          <button type="button" onClick={() => router.push("/sign-up?redirect_url=/dashboard")}>Start free preview</button>
+        </section>
+
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
           {paidTiers.map((tier) => {
             const plan = selectedPlan(tier);
@@ -302,7 +315,14 @@ const pricingCss = `
 .billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
 .billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
-.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:46px auto 0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; align-items:stretch; }
+.free-preview-strip { width:min(940px, calc(100% - 40px)); margin:30px auto 0; display:grid; grid-template-columns:1.2fr 1fr auto; gap:18px; align-items:center; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:18px 20px; background:linear-gradient(135deg, rgba(255,255,255,.044), rgba(196,148,58,.035)); box-shadow:0 18px 70px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.04); }
+.free-preview-strip p { margin:0 0 7px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.15em; text-transform:uppercase; }
+.free-preview-strip h2 { margin:0; color:var(--color-cream); font:700 clamp(21px, 2.2vw, 30px)/1.06 var(--font-playfair); letter-spacing:-.03em; }
+.free-preview-strip ul { margin:0; padding:0; list-style:none; display:grid; gap:7px; color:var(--color-text-secondary); font:800 12px/1.25 var(--font-dm-sans); }
+.free-preview-strip li::before { content:"•"; color:var(--color-accent-amber); margin-right:7px; }
+.free-preview-strip button { border:1px solid rgba(196,148,58,.38); border-radius:13px; padding:12px 15px; color:var(--color-cream); background:rgba(196,148,58,.10); font:900 12px/1 var(--font-dm-sans); cursor:pointer; white-space:nowrap; transition:background .18s ease, transform .18s ease; }
+.free-preview-strip button:hover, .free-preview-strip button:focus-visible { outline:none; background:rgba(196,148,58,.17); transform:translateY(-1px); }
+.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
 .pricing-card.standard { order:2; }
 .pricing-card.barrel { order:3; }
@@ -348,6 +368,7 @@ const pricingCss = `
 .comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
 .comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
 @media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
 @media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;

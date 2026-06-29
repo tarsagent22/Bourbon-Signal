@@ -27,9 +27,9 @@ const faqs: FAQItem[] = [
       "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
   },
   {
-    question: "What makes paid alerts different from browsing the feed?",
+    question: "Which states are covered right now?",
     answer:
-      "The feed is for browsing fresh signals. Alerts watch your chosen areas and bottles for you, then surface matches when something relevant appears. Paid members can save preferences instead of manually checking the site all day.",
+      "Bourbon Signal currently tracks North Carolina, Virginia, Pennsylvania, Iowa, Idaho, Alabama, Illinois, Indiana, Tennessee, South Carolina, Kentucky, and Maryland starting with Montgomery County. Coverage quality varies by state: some markets have store-level inventory, some have official delivery or board-level leads, and some are broader release/watch signals. We add states only when the public data is strong enough to label honestly.",
   },
   {
     question: "What is Bottle Check?",

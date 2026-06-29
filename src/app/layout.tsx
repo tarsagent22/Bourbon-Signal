@@ -8,30 +8,53 @@ import ToastContainer from "@/components/Toast";
 import PreviewTierSwitcher from "@/components/PreviewTierSwitcher";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
 
+const siteTitle = "Bourbon Signal — Premium Bourbon Drop Alerts";
+const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Daily Briefing, Bottle Check, and member tools for covered control and retailer markets.";
+
 export const metadata: Metadata = {
-  title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
-  description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
+  title: {
+    default: siteTitle,
+    template: "%s · Bourbon Signal",
+  },
+  description: siteDescription,
+  applicationName: "Bourbon Signal",
+  authors: [{ name: "Bourbon Signal" }],
+  creator: "Bourbon Signal",
+  publisher: "Bourbon Signal",
+  keywords: ["bourbon alerts", "allocated bourbon", "bourbon drops", "ABC store inventory", "bourbon hunting", "Bottle Check", "Daily Briefing"],
   metadataBase: new URL("https://bourbonsignal.com"),
+  alternates: { canonical: "https://bourbonsignal.com" },
+  category: "technology",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
-    title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
-    description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
+    title: siteTitle,
+    description: siteDescription,
     url: "https://bourbonsignal.com",
     siteName: "Bourbon Signal",
     type: "website",
+    locale: "en_US",
     images: [
       {
-        url: "https://bourbonsignal.com/hero-bg.jpg",
+        url: "/og-bourbon-signal.png",
         width: 1200,
         height: 630,
-        alt: "Bourbon Signal — Bourbon drops and shipment alerts",
+        alt: "Bourbon Signal premium bourbon drop alerts",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bourbon Signal — Real-Time Bourbon Drops and Shipment Alerts",
-    description: "Track allocated bourbon drops, store-level inventory hits, and board shipment leads across NC, VA, PA, and IN.",
-    images: ["https://bourbonsignal.com/hero-bg.jpg"],
+    title: siteTitle,
+    description: siteDescription,
+    images: ["/og-bourbon-signal.png"],
   },
 };
 
@@ -42,6 +65,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
+      proxyUrl={process.env.NEXT_PUBLIC_CLERK_PROXY_URL}
       appearance={{
         baseTheme: dark,
         variables: {
