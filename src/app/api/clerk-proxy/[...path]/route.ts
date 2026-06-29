@@ -7,7 +7,15 @@ function normalizeProxyOrigin(request: Request) {
   const headers = new Headers(request.headers);
   headers.set("x-forwarded-proto", "https");
   headers.set("x-forwarded-host", APEX_HOST);
-  return new Request(request, { headers });
+
+  const init: RequestInit & { duplex?: "half" } = {
+    method: request.method,
+    headers,
+    body: ["POST", "PUT", "PATCH"].includes(request.method) ? request.body : undefined,
+    duplex: ["POST", "PUT", "PATCH"].includes(request.method) ? "half" : undefined,
+  };
+
+  return new Request(request.url, init);
 }
 
 async function proxy(request: Request) {
