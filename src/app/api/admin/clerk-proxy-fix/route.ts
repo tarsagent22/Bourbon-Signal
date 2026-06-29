@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const secretKey = process.env.CLERK_SECRET_KEY?.trim();
   if (!secretKey) return NextResponse.json({ error: "Missing Clerk secret" }, { status: 503 });
 
-  const proxyUrl = "https://www.bourbonsignal.com/__clerk";
+  const proxyUrl = "https://bourbonsignal.com/__clerk";
   const headers = { Authorization: `Bearer ${secretKey}`, "Content-Type": "application/json" };
 
   const listRes = await fetch("https://api.clerk.com/v1/domains", { headers, cache: "no-store" });
