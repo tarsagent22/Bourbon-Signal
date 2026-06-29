@@ -84,65 +84,6 @@ function SignalTicker({
   );
 }
 
-const MOCK_DROPS: DropEvent[] = [
-  {
-    timestamp: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
-    brand_name: "Blanton's Single Barrel",
-    event_type: "in_store",
-    state: "VA",
-    state_code: "VA",
-    store_city: "Richmond",
-    store_address: "West Broad St",
-    board_name: "Richmond",
-    rarity_tier: "allocated",
-    quantity_in_stock: 6,
-    quantity_shipped: 0,
-    retail_price: 74.99,
-  },
-  {
-    timestamp: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
-    brand_name: "Weller Antique 107",
-    event_type: "in_store",
-    state: "NC",
-    state_code: "NC",
-    store_city: "Raleigh",
-    store_address: "Wake County",
-    board_name: "Wake",
-    rarity_tier: "allocated",
-    quantity_in_stock: 3,
-    quantity_shipped: 0,
-    retail_price: 59.99,
-  },
-  {
-    timestamp: new Date(Date.now() - 23 * 60 * 1000).toISOString(),
-    brand_name: "Stagg",
-    event_type: "in_store",
-    state: "PA",
-    state_code: "PA",
-    store_city: "Pittsburgh",
-    store_address: "Allegheny County",
-    board_name: "Pittsburgh",
-    rarity_tier: "unicorn",
-    quantity_in_stock: 2,
-    quantity_shipped: 0,
-    retail_price: 64.99,
-  },
-  {
-    timestamp: new Date(Date.now() - 31 * 60 * 1000).toISOString(),
-    brand_name: "Eagle Rare 10",
-    event_type: "in_store",
-    state: "VA",
-    state_code: "VA",
-    store_city: "Virginia Beach",
-    store_address: "Lynnhaven Pkwy",
-    board_name: "Virginia Beach",
-    rarity_tier: "limited",
-    quantity_in_stock: 8,
-    quantity_shipped: 0,
-    retail_price: 42.99,
-  },
-];
-
 function memberSightingToGrouped(sighting: MemberSighting, store?: Store): GroupedDrop {
   const storeCounty = cleanAreaLabel(store?.county);
   const storeCity = cleanAreaLabel(sighting.storeCity || store?.city);
@@ -1465,7 +1406,7 @@ export default function DropFeed() {
         const json: DropsResponse = await res.json();
         latestJson = json;
 
-        const pageDrops = json.drops.length > 0 ? json.drops : attempts === 0 ? MOCK_DROPS : [];
+        const pageDrops = json.drops;
         sourceDrops = [...sourceDrops, ...pageDrops];
         newGrouped = [...newGrouped, ...latestSignalRows(pageDrops, 50, seenIds)]
           .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
@@ -2440,22 +2381,8 @@ export default function DropFeed() {
                   color: "rgba(245,237,214,0.65)",
                 }}
               >
-                Live feed is temporarily unavailable, so this preview is showing sample activity instead of live drops.
+                Live feed is temporarily unavailable. No sample drops are shown in production; please try again after the next refresh.
               </div>
-              <AnimatePresence mode="popLayout">
-                {groupDrops(MOCK_DROPS).map((drop, index) => (
-                  <FeedRow
-                    key={drop.id}
-                    drop={drop}
-                    isNew={false}
-                    index={index}
-                    isFreeUser={isFreeUser}
-                    reportKind={reportsBySignalId.get(drop.id)?.kind}
-                    onReport={handleSignalReport}
-                    onVoteSighting={(sightingId, vote) => voteSighting(sightingId, vote).catch(() => undefined)}
-                  />
-                ))}
-              </AnimatePresence>
             </div>
           ) : !data ? (
             <>

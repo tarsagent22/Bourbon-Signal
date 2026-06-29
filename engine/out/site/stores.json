@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-27T19:40:25.795Z",
+  "generatedAt": "2026-06-29T02:03:10.911Z",
   "count": 2692,
   "stores": [
     {
@@ -7687,7 +7687,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-113",
@@ -7953,7 +7953,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-324",
@@ -8233,7 +8233,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-309",
@@ -8345,7 +8345,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-204",
@@ -8373,7 +8373,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-304",
@@ -8401,7 +8401,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-331",
@@ -8443,7 +8443,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-327",
@@ -8457,7 +8457,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-223",
@@ -8471,7 +8471,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-322",
@@ -8513,7 +8513,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-174",
@@ -8569,7 +8569,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-196",
@@ -10571,7 +10571,7 @@
       "lat": 41.1779536,
       "lng": -85.0973602,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -10599,7 +10599,7 @@
       "lat": 41.0984937,
       "lng": -85.089103,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
@@ -11761,7 +11761,7 @@
       "lat": 39.6136857,
       "lng": -86.1569734,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -14267,6 +14267,20 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
+      "signalCount": 1
+    },
+    {
+      "id": "doordash:26286224",
+      "sourceStoreId": "doordash:26286224",
+      "state": "IN",
+      "name": "Frontier Liquors - Oak Hill Road",
+      "address": "1701 Oak Hill Road, Evansville, IN 47711",
+      "city": "Evansville",
+      "county": null,
+      "zip": "47711",
+      "lat": 37.992805,
+      "lng": -87.52567,
+      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
       "signalCount": 1
     },
     {
@@ -19643,7 +19657,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "DL4913533",
@@ -24823,7 +24837,7 @@
       "lat": 41.5952817,
       "lng": -87.04614839999999,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "wise-guys:60803cb5ad4b017e711ec6fa",
@@ -25649,7 +25663,7 @@
       "lat": -80.0955029598129,
       "lng": 40.3764158781498,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "0940",
@@ -25676,20 +25690,6 @@
       "zip": null,
       "lat": -75.58496837331654,
       "lng": 39.94303004573259,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "2221",
-      "sourceStoreId": "2221",
-      "state": "PA",
-      "name": "Fine Wine & Good Spirits #2221",
-      "address": "990 Briarsdale Rd., Unit D, Harrisburg, PA, 17109",
-      "city": "Harrisburg",
-      "county": "Dauphin",
-      "zip": null,
-      "lat": -76.82134774447164,
-      "lng": 40.274255407013335,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 4
     },
@@ -25890,76 +25890,6 @@
       "signalCount": 4
     },
     {
-      "id": "212",
-      "sourceStoreId": "212",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0212",
-      "address": "959 Liberty Avenue, Pittsburgh, PA, 15222",
-      "city": "Pittsburgh",
-      "county": null,
-      "zip": null,
-      "lat": 40.443487,
-      "lng": -79.996095,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "214",
-      "sourceStoreId": "214",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0214",
-      "address": "The Waterworks, 991 Freeport Road, Pittsburgh, PA, 15238",
-      "city": "Pittsburgh",
-      "county": null,
-      "zip": null,
-      "lat": 40.486683,
-      "lng": -79.888112,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "216",
-      "sourceStoreId": "216",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0216",
-      "address": "102 East Main Street, Carnegie, PA, 15106",
-      "city": "Carnegie",
-      "county": null,
-      "zip": null,
-      "lat": 40.40742,
-      "lng": -80.086657,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "217",
-      "sourceStoreId": "217",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0217",
-      "address": "1110 Fourth Avenue, Coraopolis, PA, 15108",
-      "city": "Coraopolis",
-      "county": null,
-      "zip": null,
-      "lat": 40.517669,
-      "lng": -80.161965,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "218",
-      "sourceStoreId": "218",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0218",
-      "address": "Dormont Village, 2947 West Liberty Avenue, Pittsburgh, PA, 15216",
-      "city": "Pittsburgh",
-      "county": null,
-      "zip": null,
-      "lat": 40.394157,
-      "lng": -80.035442,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
       "id": "220",
       "sourceStoreId": "220",
       "state": "PA",
@@ -26111,7 +26041,7 @@
       "lat": 40.411682,
       "lng": -79.910157,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "247",
@@ -26629,7 +26559,7 @@
       "lat": 40.562118,
       "lng": -76.009394,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "608",
@@ -26685,7 +26615,7 @@
       "lat": 40.375628,
       "lng": -76.188986,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "624",
@@ -27175,7 +27105,7 @@
       "lat": 40.225863,
       "lng": -74.937305,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "944",
@@ -27861,7 +27791,7 @@
       "lat": 40.133083,
       "lng": -75.535559,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "1601",
@@ -27945,7 +27875,7 @@
       "lat": 40.905351,
       "lng": -78.234796,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "1804",
@@ -28001,7 +27931,7 @@
       "lat": 41.639419,
       "lng": -80.154866,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "2002",
@@ -28519,7 +28449,7 @@
       "lat": 39.987523,
       "lng": -75.404709,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "2342",
@@ -28897,7 +28827,7 @@
       "lat": 40.479399,
       "lng": -78.013494,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "3202",
@@ -29331,7 +29261,7 @@
       "lat": 40.089839,
       "lng": -76.280243,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3622",
@@ -29471,7 +29401,7 @@
       "lat": 40.313763,
       "lng": -76.425028,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3803",
@@ -29527,7 +29457,7 @@
       "lat": 40.677537,
       "lng": -75.613827,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "3903",
@@ -30143,7 +30073,7 @@
       "lat": 40.595469,
       "lng": -77.572142,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "4501",
@@ -30647,7 +30577,7 @@
       "lat": 40.16186,
       "lng": -75.292414,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "4654",
@@ -31585,7 +31515,7 @@
       "lat": 40.841654,
       "lng": -76.834184,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "5602",
@@ -32369,7 +32299,7 @@
       "lat": 40.3475,
       "lng": -80.049354,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "9212",
@@ -32817,7 +32747,7 @@
       "lat": 35.1217967,
       "lng": -85.2939899,
       "source": "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory",
-      "signalCount": 15
+      "signalCount": 16
     },
     {
       "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
@@ -32845,7 +32775,7 @@
       "lat": 35.089561,
       "lng": -85.31184019999999,
       "source": "My Discount Liquor Tobacco RedBank TN CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "northshore-wine-spirits:5980fcddd05b4360e32f7f02",
@@ -34346,6 +34276,20 @@
       "signalCount": 6
     },
     {
+      "id": "212",
+      "sourceStoreId": "212",
+      "state": "VA",
+      "name": "Virginia ABC Store 212",
+      "address": "167 Hillwood Avenue Falls Church VA 22046-2913",
+      "city": "Falls Church",
+      "county": null,
+      "zip": null,
+      "lat": 38.879458,
+      "lng": -77.171168,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 6
+    },
+    {
       "id": "213",
       "sourceStoreId": "213",
       "state": "VA",
@@ -34356,6 +34300,62 @@
       "zip": null,
       "lat": 37.23181,
       "lng": -79.81059,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 6
+    },
+    {
+      "id": "214",
+      "sourceStoreId": "214",
+      "state": "VA",
+      "name": "Virginia ABC Store 214",
+      "address": "608 Virginia Avenue Clarksville VA 23927",
+      "city": "Clarksville",
+      "county": null,
+      "zip": null,
+      "lat": 36.623428,
+      "lng": -78.558907,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 6
+    },
+    {
+      "id": "216",
+      "sourceStoreId": "216",
+      "state": "VA",
+      "name": "Virginia ABC Store 216",
+      "address": "1100-102 Armory Drive Franklin VA 23851-2418",
+      "city": "Franklin",
+      "county": null,
+      "zip": null,
+      "lat": 36.673058,
+      "lng": -76.940331,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 6
+    },
+    {
+      "id": "217",
+      "sourceStoreId": "217",
+      "state": "VA",
+      "name": "Virginia ABC Store 217",
+      "address": "619 Pilot House Drive Newport News VA 23606",
+      "city": "Newport News",
+      "county": null,
+      "zip": null,
+      "lat": 37.081692,
+      "lng": -76.477704,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 6
+    },
+    {
+      "id": "218",
+      "sourceStoreId": "218",
+      "state": "VA",
+      "name": "Virginia ABC Store 218",
+      "address": "3982 US Highway 23 North Gate City VA 24251-0248",
+      "city": "Gate City",
+      "county": null,
+      "zip": null,
+      "lat": 36.634239,
+      "lng": -82.587921,
       "source": "Virginia ABC storeNearby inventory API",
       "signalCount": 6
     },

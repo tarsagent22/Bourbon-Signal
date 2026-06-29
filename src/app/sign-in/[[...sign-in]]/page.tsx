@@ -1,8 +1,16 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
+
+function safeRedirectUrl(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
+  return value;
+}
 
 export default function SignInPage() {
+  const searchParams = useSearchParams();
+  const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
   return (
     <div
       style={{
@@ -44,7 +52,7 @@ export default function SignInPage() {
         </a>
       </div>
 
-      <SignIn />
+      <SignIn forceRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl} />
     </div>
   );
 }

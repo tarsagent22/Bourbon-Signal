@@ -65,13 +65,13 @@ if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(al
   fail('/api/drops?state=all should mean all covered states, not a literal ALL state filter.');
 }
 
-const wilkesboroBoard = await getJson('/api/drops?state=NC&store=Wilkesboro%20ABC&limit=20');
-if (Number(wilkesboroBoard.total || 0) === 0) {
-  fail('/api/drops?state=NC&store=Wilkesboro%20ABC should treat the NC area label as a board query when fresh board signals exist.');
+const ncWakeBoard = await getJson('/api/drops?state=NC&store=Wake%20County%20ABC&limit=20');
+if (Number(ncWakeBoard.total || 0) === 0) {
+  fail('/api/drops?state=NC&store=Wake%20County%20ABC should treat NC ABC labels as board/area queries when fresh Wake County signals exist.');
 }
 
-const wilkesboroCounty = await getJson('/api/drops?state=NC&store=Wilkesboro%20County&limit=20');
-if (Number(wilkesboroCounty.total || 0) === 0) {
+const ncWakeCounty = await getJson('/api/drops?state=NC&store=Wake%20County&limit=20');
+if (Number(ncWakeCounty.total || 0) === 0) {
   fail('/api/drops should not exclude fresh NC board signals when the same area is expressed as county text instead of ABC board text.');
 }
 

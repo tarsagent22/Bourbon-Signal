@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -19,6 +19,14 @@ const tierRank: Record<MembershipTier, number> = {
 
 type BillingCycle = "monthly" | "annual";
 type PaidPlanId = BillingPlanId;
+
+const checkoutPlanTiers: Record<PaidPlanId, MembershipTier> = {
+  standard_monthly: "standard",
+  standard_annual: "standard",
+  barrel_monthly: "barrel",
+  barrel_annual: "barrel",
+  bib_lifetime: "bottled-in-bond",
+};
 
 type PricingTier = {
   tier: MembershipTier;
@@ -46,9 +54,9 @@ const paidTiers: PricingTier[] = [
     annualPrice: "$24.99",
     monthlyPlan: "standard_monthly",
     annualPlan: "standard_annual",
-    description: "Essential email and SMS alerts with focused Drop Feed access.",
+    description: "Essential email alerts and on-site inbox alerts with focused Drop Feed access.",
     features: [
-      "Email and SMS alerts",
+      "Email alerts + on-site inbox",
       "Up to 5 alert areas",
       "Up to 15 tracked bottles",
       "Full Drop Feed access with filter-by-state only",
@@ -104,7 +112,7 @@ const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Daily Briefing", "Limited", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
-  ["Email and SMS alerts", "—", "✓", "✓", "✓"],
+  ["Email alerts + on-site inbox", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
   ["Member Sightings", "Demo only", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
@@ -118,12 +126,14 @@ const comparisonRows = [
 
 function PricingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isSignedIn, memberTier } = useAuth();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("annual");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const currentTierRank = tierRank[memberTier];
+  const checkoutParam = searchParams.get("checkout") as PaidPlanId | null;
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
@@ -168,6 +178,13 @@ function PricingPageContent() {
       setPendingPlan(null);
     }
   }
+
+  useEffect(() => {
+    if (!isSignedIn || pendingPlan || !checkoutParam) return;
+    const targetTier = checkoutPlanTiers[checkoutParam];
+    if (!targetTier) return;
+    void startCheckout(checkoutParam, targetTier);
+  }, [checkoutParam, isSignedIn, pendingPlan]);
 
   function actionLabel(tier: PricingTier, plan: PaidPlanId | null) {
     if (tierRank[tier.tier] < currentTierRank) return "Included";

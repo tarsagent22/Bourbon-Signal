@@ -6,24 +6,10 @@ import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
-function getTrialEndDate(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 7);
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 
-  // We can't know the plan from session_id alone without a server call,
-  // so we show generic success messaging that covers both cases well.
-  // The session_id is available if needed for future server-side lookup.
-  const trialEndDate = getTrialEndDate();
 
   return (
     <div
@@ -102,7 +88,6 @@ function SuccessContent() {
             marginBottom: "32px",
           }}
         >
-          {/* Standard trial info (shown by default — founder users see a similar feel) */}
           <p
             style={{
               fontFamily: "var(--font-dm-sans)",
@@ -112,16 +97,7 @@ function SuccessContent() {
               margin: 0,
             }}
           >
-            Your 7-day trial starts now. You won&apos;t be charged until{" "}
-            <span
-              style={{
-                color: "var(--color-accent-amber)",
-                fontWeight: 600,
-              }}
-            >
-              {trialEndDate}
-            </span>
-            .
+            Your membership is being activated. If you chose a recurring plan, billing follows the cadence shown at checkout. If you claimed a Founder spot, your lifetime access is tied to this account.
           </p>
           <p
             style={{
@@ -132,7 +108,7 @@ function SuccessContent() {
               marginBottom: 0,
             }}
           >
-            If you claimed a Founder spot, you&apos;re set for life — no future charges, ever.
+            Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about.
           </p>
         </div>
 
@@ -146,7 +122,7 @@ function SuccessContent() {
             lineHeight: 1.6,
           }}
         >
-          Drop alerts are live. Start building your watchlist and we&apos;ll notify you when source-backed signals match your bottles.
+          Drop alerts are live for paid members. Start building your watchlist and we&apos;ll notify you when source-backed signals match your bottles.
         </p>
 
         {/* CTA */}

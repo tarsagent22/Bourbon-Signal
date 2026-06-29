@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 
+function safeRedirectUrl(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/alerts?welcome=1";
+  return value;
+}
+
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -48,7 +56,7 @@ export default function SignUpPage() {
       </div>
 
       {confirmedAge ? (
-        <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" />
+        <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} />
       ) : (
         <section
           aria-labelledby="age-confirmation-title"
