@@ -71,6 +71,7 @@ export const ALL_STATE_SOURCES = [
     sources: [
       { kind: 'html', url: 'https://www.abc.virginia.gov/products/bourbon', label: 'Virginia bourbon catalog', precisionOnly: true },
       { kind: 'html', url: 'https://www.abc.virginia.gov/products/all-products', label: 'All products', precisionOnly: true },
+      { kind: 'csv', url: 'https://www.abc.virginia.gov/products/products-faqs/product-downloads', label: 'Official product price/downloads with VA ABC item codes', precisionOnly: true },
       { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability', label: 'Limited availability list', precisionOnly: true },
       { kind: 'html', url: 'https://www.abc.virginia.gov/products/limited-availability/limited-availability-faqs', label: 'Limited availability FAQ', precisionOnly: true }
     ],

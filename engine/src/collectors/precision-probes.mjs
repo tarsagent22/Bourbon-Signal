@@ -103,18 +103,69 @@ const AL_CODE_MATCH_HINTS = new Map(Object.entries({
 }));
 
 const VIRGINIA_PRODUCTS = [
-  // Product codes are taken from Virginia ABC public product/limited-availability listings.
-  { code: '016850', name: "Blanton's Single Barrel Bourbon", slug: 'blantons-single-barrel-bourbon', limitedCaveat: true },
-  { code: '017766', name: 'Eagle Rare 10 Year Bourbon', slug: 'eagle-rare-10-year-bourbon', limitedCaveat: true },
-  { code: '018006', name: 'Buffalo Trace Bourbon', slug: 'buffalo-trace-bourbon', limitedCaveat: true },
-  { code: '021602', name: 'E H Taylor Jr. Small Batch Whiskey', slug: 'e-h-taylor-jr-small-batch-whiskey', limitedCaveat: true },
-  { code: '016483', name: 'Old Fitzgerald 7 Year Bottled In Bond', slug: 'old-fitzgerald-7-year-bottled-in-bond', limitedCaveat: true },
-  { code: '021236', name: '1792 Small Batch Bourbon', slug: '1792-small-batch-bourbon', limitedCaveat: false }
-];
+  // Product codes are taken from Virginia ABC public product pages and official quarterly product-price downloads.
+  // Limited-availability rows are collected as official watch/store-status intelligence, but confidence-policy keeps them out of inventory alerts.
+  { code: '016850', name: "Blanton's Single Barrel Bourbon", limitedCaveat: true },
+  { code: '016809', name: "Blanton's Straight From The Barrel Bourbon", limitedCaveat: true },
+  { code: '016841', name: 'Blantons Gold Edition Bourbon', limitedCaveat: true },
+  { code: '017766', name: 'Eagle Rare 10 Year Bourbon', limitedCaveat: true },
+  { code: '017756', name: 'Eagle Rare 17 Year Kentucky Straight Bourbon', limitedCaveat: true },
+  { code: '018006', name: 'Buffalo Trace Bourbon', limitedCaveat: true },
+  { code: '021602', name: 'E H Taylor Jr. Small Batch Whiskey', limitedCaveat: true },
+  { code: '021600', name: 'E H Taylor Jr Barrel Proof Bourbon', limitedCaveat: true },
+  { code: '021589', name: 'E H Taylor Jr Single Barrel Bourbon', limitedCaveat: true },
+  { code: '021605', name: 'E H Taylor Jr. Four Grain Bourbon', limitedCaveat: true },
+  { code: '022036', name: 'Old Weller Antique 107 Bourbon', limitedCaveat: true },
+  { code: '021986', name: 'W L Weller Special Reserve Bourbon', limitedCaveat: true },
+  { code: '022026', name: 'Weller 12 Year Wheated Bourbon', limitedCaveat: true },
+  { code: '022044', name: 'Weller Full Proof', limitedCaveat: true },
+  { code: '022042', name: 'Weller C.y.p.b. Bourbon', limitedCaveat: true },
+  { code: '022046', name: 'Weller Single Barrel', limitedCaveat: true },
+  { code: '022086', name: 'William Larue Weller Bourbon', limitedCaveat: true },
+  { code: '018416', name: 'George T. Stagg Bourbon', limitedCaveat: true },
+  { code: '021538', name: 'Stagg Bourbon', limitedCaveat: true },
+  { code: '016483', name: 'Old Fitzgerald 7 Yr Bottled In Bond', limitedCaveat: true },
+  { code: '016381', name: 'Old Fitzgerald 8 Yr Bottled In Bond Bourbon', limitedCaveat: true },
+  { code: '028383', name: 'Old Fitzgerald Bottled In Bond Decanter', limitedCaveat: true },
+  { code: '021236', name: '1792 Small Batch Bourbon', limitedCaveat: false },
+  { code: '021443', name: '1792 Aged 12 Year Bourbon', limitedCaveat: true },
+  { code: '021228', name: '1792 Full Proof Bourbon', limitedCaveat: true },
+  { code: '021244', name: '1792 Single Barrel Bourbon', limitedCaveat: true },
+  { code: '021242', name: '1792 Sweet Wheat Bourbon', limitedCaveat: true },
+  { code: '017917', name: 'Elijah Craig Barrel Proof Bourbon', limitedCaveat: true },
+  { code: '017920', name: 'Elijah Craig 18 Year Single Barrel Bourbon', limitedCaveat: true },
+  { code: '017913', name: 'Elijah Craig Toasted Barrel', limitedCaveat: false },
+  { code: '019880', name: "Michter's Us1 Small Batch Bourbon", limitedCaveat: false },
+  { code: '019876', name: 'Michters 10 Yr Old Bourbon', limitedCaveat: true },
+  { code: '019878', name: 'Michters Limited Release 20 Year Bourbon', limitedCaveat: true },
+  { code: '022092', name: 'Willett Pot Still Reserve Straight Bourbon', limitedCaveat: false },
+  { code: '016906', name: "Booker's Bourbon", limitedCaveat: true },
+  { code: '016580', name: "Baker's Bourbon", limitedCaveat: false },
+  { code: '020384', name: 'Old Forester 1924 Craft Bourbon', limitedCaveat: true },
+  { code: '020376', name: 'Old Forester 1920 Craft Bourbon', limitedCaveat: false },
+  { code: '020380', name: 'Old Forester Single Barrel Barrel Proof', limitedCaveat: true },
+  { code: '016017', name: 'Heaven Hill Bottled In Bond Bourbon', limitedCaveat: false },
+  { code: '022288', name: 'Woodford Reserve Batch Proof Bourbon', limitedCaveat: true },
+  { code: '022175', name: "Russell's Reserve 10 Year Bourbon", limitedCaveat: false },
+  { code: '022178', name: "Russell's Reserve Single Barrel Bourbon", limitedCaveat: false },
+  { code: '022179', name: 'Russells Reserve 13-year Bourbon', limitedCaveat: true },
+  { code: '018860', name: 'Larceny Barrel Proof', limitedCaveat: true },
+  { code: '019239', name: 'Knob Creek 12 Year Bourbon', limitedCaveat: false }
+].map((product) => ({ ...product, slug: product.slug || slugifyVirginiaProduct(product.name) }));
+
+function slugifyVirginiaProduct(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+const VIRGINIA_MIN_CACHE_SIGNALS = 2_000;
 
 // ArcGIS occasionally retains historic/closed ABC landmarks that the live VA ABC inventory API rejects.
 // Keep these out of origin probes so they do not create noisy per-product roadblocks.
-const VIRGINIA_INVALID_ORIGIN_STORES = new Set(['63', '74', '123', '208', '215', '298', '319', '342']);
+const VIRGINIA_INVALID_ORIGIN_STORES = new Set(['63', '74', '123', '208', '215', '298', '319', '342', '415']);
 
 const VIRGINIA_STORES_ARCGIS_URL = "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1/query?where=UPPER(LandmkName)%20LIKE%20%27%25ABC%25%27&outFields=*&returnGeometry=false&f=json";
 const VIRGINIA_CACHE_PATH = 'out/cache/VA-storeNearby-signals.json';
@@ -5713,7 +5764,7 @@ async function collectVirginia(config, bible) {
   const cached = await readCachedVirginiaSignals();
   const cachedSignals = cached.signals || [];
   const cacheAgeMs = cached.generatedAt ? Date.now() - new Date(cached.generatedAt).getTime() : Infinity;
-  if (process.env.BOURBON_SIGNAL_VA_FORCE_LIVE !== '1' && cachedSignals.length >= 700 && cacheAgeMs >= 0 && cacheAgeMs <= VIRGINIA_CACHE_MAX_AGE_MS) {
+  if (process.env.BOURBON_SIGNAL_VA_FORCE_LIVE !== '1' && cachedSignals.length >= VIRGINIA_MIN_CACHE_SIGNALS && cacheAgeMs >= 0 && cacheAgeMs <= VIRGINIA_CACHE_MAX_AGE_MS) {
     roadblocks.push({
       state: config.id,
       source: 'Virginia ABC storeNearby inventory API cache reuse',
@@ -5737,9 +5788,10 @@ async function collectVirginia(config, bible) {
   for (const product of VIRGINIA_PRODUCTS) {
     let productRows = 0;
     let errors = 0;
-    const batchSize = 2;
+    const batchSize = Number(process.env.BOURBON_SIGNAL_VA_BATCH_SIZE || 8);
+    const batchDelayMs = Number(process.env.BOURBON_SIGNAL_VA_BATCH_DELAY_MS || 80);
     for (let i = 0; i < stores.length; i += batchSize) {
-      if (i > 0) await sleep(180);
+      if (i > 0 && batchDelayMs > 0) await sleep(batchDelayMs);
       const batch = stores.slice(i, i + batchSize);
       const results = await Promise.allSettled(batch.map(async (origin) => {
         const url = `https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=${encodeURIComponent(origin.storeNumber)}&productCode=${encodeURIComponent(product.code)}&mileRadius=999&storeCount=5&buffer=0`;
@@ -5757,7 +5809,7 @@ async function collectVirginia(config, bible) {
           errors += 1;
           if (Number(result.value.status) === 429) rateLimitErrors += 1;
           if (errors <= 5) roadblocks.push({ state: config.id, source: 'Virginia ABC storeNearby inventory API', url: result.value.url, status: result.value.status, error: result.value.error, nextRoute: 'Use browser session/network capture for VA ABC inventory calls.' });
-          if (rateLimitErrors >= 10 && cachedSignals.length >= 700) {
+          if (rateLimitErrors >= 10 && cachedSignals.length >= VIRGINIA_MIN_CACHE_SIGNALS) {
             roadblocks.push({ state: config.id, source: 'Virginia ABC storeNearby inventory API cache fallback', url: VIRGINIA_CACHE_PATH, status: 429, error: `VA ABC API returned repeated 429 responses; using ${cachedSignals.length} cached store-level rows from last healthy probe instead of publishing a partial run.`, nextRoute: 'Let VA rate limit cool down, then rerun with the throttled collector.' });
             return { signals: cachedSignals, roadblocks };
           }

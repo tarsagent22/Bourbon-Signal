@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-06-29T02:03:10.911Z",
-  "count": 2692,
+  "generatedAt": "2026-06-29T16:30:10.498Z",
+  "count": 2693,
   "stores": [
     {
       "id": "alabc:001",
@@ -3028,20 +3028,6 @@
       "signalCount": 1
     },
     {
-      "id": "e5054cda49024f82",
-      "sourceStoreId": "e5054cda49024f82",
-      "state": "IA",
-      "name": "Brew #4 / Sioux City",
-      "address": "2501 Floyd Blvd, Sioux City, IA, 51104",
-      "city": "Sioux City",
-      "county": null,
-      "zip": "51104",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "32869123238f974b",
       "sourceStoreId": "32869123238f974b",
       "state": "IA",
@@ -3826,20 +3812,6 @@
       "signalCount": 1
     },
     {
-      "id": "03b1b58e4c041c86",
-      "sourceStoreId": "03b1b58e4c041c86",
-      "state": "IA",
-      "name": "Cresco Mart",
-      "address": "202 2nd Ave SW, Cresco, IA, 52136",
-      "city": "Cresco",
-      "county": null,
-      "zip": "52136",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "c2bfd7ce5b3dc651",
       "sourceStoreId": "c2bfd7ce5b3dc651",
       "state": "IA",
@@ -4408,20 +4380,6 @@
       "city": "Iowa City",
       "county": null,
       "zip": "52240",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "8124666f45c69d6c",
-      "sourceStoreId": "8124666f45c69d6c",
-      "state": "IA",
-      "name": "Fareway Stores #044 / Bettendorf",
-      "address": "3800 Belmont Rd, Bettendorf, IA, 52722",
-      "city": "Bettendorf",
-      "county": null,
-      "zip": "52722",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -5066,34 +5024,6 @@
       "city": "Spencer",
       "county": null,
       "zip": "51301",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "8014180db9370b29",
-      "sourceStoreId": "8014180db9370b29",
-      "state": "IA",
-      "name": "Fareway Stores #790 / Harlan",
-      "address": "1910 23rd Street, Harlan, IA, 51537",
-      "city": "Harlan",
-      "county": null,
-      "zip": "51537",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "f45ab6d7f75be7de",
-      "sourceStoreId": "f45ab6d7f75be7de",
-      "state": "IA",
-      "name": "Fareway Stores #792 / Toledo",
-      "address": "1005 S County Line Rd, Toledo, IA, 52342",
-      "city": "Toledo",
-      "county": null,
-      "zip": "52342",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -6584,20 +6514,6 @@
       "signalCount": 1
     },
     {
-      "id": "dbe11fd47943deab",
-      "sourceStoreId": "dbe11fd47943deab",
-      "state": "IA",
-      "name": "Hy-Vee Dollar Fresh - Toledo",
-      "address": "1006 S. Country Road, Toledo, IA, 52342",
-      "city": "Toledo",
-      "county": null,
-      "zip": "52342",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "75a24b4b59e4ab96",
       "sourceStoreId": "75a24b4b59e4ab96",
       "state": "IA",
@@ -6942,20 +6858,6 @@
       "city": "Marion",
       "county": null,
       "zip": "52302",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "a9fa44cc28ad13cc",
-      "sourceStoreId": "a9fa44cc28ad13cc",
-      "state": "IA",
-      "name": "Hy-Vee Food Store (1403) / Marshalltown",
-      "address": "802 South Center, Marshalltown, IA, 50158",
-      "city": "Marshalltown",
-      "county": null,
-      "zip": "50158",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -7438,20 +7340,6 @@
       "signalCount": 1
     },
     {
-      "id": "c1a6e5bc49703cd6",
-      "sourceStoreId": "c1a6e5bc49703cd6",
-      "state": "IA",
-      "name": "Hy-Vee Gas #2 / Coralville",
-      "address": "3290 Crosspark Road, Coralville, IA, 52241",
-      "city": "Coralville",
-      "county": null,
-      "zip": "52241",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "47f99cebbe723922",
       "sourceStoreId": "47f99cebbe723922",
       "state": "IA",
@@ -7530,6 +7418,118 @@
       "city": "Algona",
       "county": null,
       "zip": "50511",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "d6a1e2dd985b381e",
+      "sourceStoreId": "d6a1e2dd985b381e",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits (1022) / Ankeny",
+      "address": "410 North Ankeny Blvd, Ankeny, IA, 50021",
+      "city": "Ankeny",
+      "county": null,
+      "zip": "50021",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "04a71426ed373a69",
+      "sourceStoreId": "04a71426ed373a69",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits (1038) / Boone",
+      "address": "1111  8TH ST, Boone, IA, 50036",
+      "city": "Boone",
+      "county": null,
+      "zip": "50036",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "387ad374796ebd03",
+      "sourceStoreId": "387ad374796ebd03",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits (1544) / Red Oak",
+      "address": "1607 North Broadway, Red Oak, IA, 51566",
+      "city": "Red Oak",
+      "county": null,
+      "zip": "51566",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "8bc6814a4373af0f",
+      "sourceStoreId": "8bc6814a4373af0f",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits (1628) / Spirit Lake",
+      "address": "1902 Peoria Avenue, Spirit Lake, IA, 51360",
+      "city": "Spirit Lake",
+      "county": null,
+      "zip": "51360",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "af38deb7e2fa480d",
+      "sourceStoreId": "af38deb7e2fa480d",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits / Bettendorf",
+      "address": "2890 Devils Glen Road, Bettendorf, IA, 52722",
+      "city": "Bettendorf",
+      "county": null,
+      "zip": "52722",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "3d88f3ff10c0c9a0",
+      "sourceStoreId": "3d88f3ff10c0c9a0",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits / Denison",
+      "address": "1620  4th Ave, South, Denison, IA, 51442",
+      "city": "Denison",
+      "county": null,
+      "zip": "51442",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "479911241a9ccbe8",
+      "sourceStoreId": "479911241a9ccbe8",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits / Hubbell",
+      "address": "2310 Hubbell Ave, Des Moines, IA, 50317",
+      "city": "Des Moines",
+      "county": null,
+      "zip": "50317",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "a80803d5481321dc",
+      "sourceStoreId": "a80803d5481321dc",
+      "state": "IA",
+      "name": "Hy-Vee Wine and Spirits / Humboldt",
+      "address": "1011  13th St North, Humboldt, IA, 50548",
+      "city": "Humboldt",
+      "county": null,
+      "zip": "50548",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -7617,7 +7617,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-107",
@@ -7883,7 +7883,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-117",
@@ -8317,7 +8317,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-123",
@@ -10851,7 +10851,7 @@
       "lat": 41.0955093,
       "lng": -85.1573343,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -11070,12 +11070,12 @@
       "name": "Big Red #106 - Bloomington",
       "address": "1115 W 2nd St, Bloomington, IN 47403, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47403",
       "lat": 39.1610207,
       "lng": -86.5468128,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9253cf78e8f13c2cb1e164",
@@ -11084,12 +11084,12 @@
       "name": "Big Red #107 - Bloomington",
       "address": "4021 W 3rd St, Bloomington, IN 47404, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47404",
       "lat": 39.1640166,
       "lng": -86.5838371,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92544778e8f13c2cb1e168",
@@ -11098,12 +11098,12 @@
       "name": "Big Red #108 - Bloomington",
       "address": "2475 S Walnut Street Pike, Bloomington, IN 47401, USA",
       "city": "Bloomington",
-      "county": null,
+      "county": "Monroe County",
       "zip": "47401",
       "lat": 39.1367519,
       "lng": -86.5289068,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92544978e8f13c2cb1e16c",
@@ -11238,12 +11238,12 @@
       "name": "Big Red #119 - Terre Haute",
       "address": "2259 Lafayette Ave, Terre Haute, IN 47805, USA",
       "city": "Terre Haute",
-      "county": null,
+      "county": "Vigo County",
       "zip": "47805",
       "lat": 39.5132669,
       "lng": -87.3814216,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92546678e8f13c2cb1e194",
@@ -11336,12 +11336,12 @@
       "name": "Big Red #202 - Indianapolis",
       "address": "5510 Emerson Way, Indianapolis, IN 46226, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46226",
       "lat": 39.8539828,
       "lng": -86.0874017,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92547d78e8f13c2cb1e1b4",
@@ -11350,12 +11350,12 @@
       "name": "Big Red #204 - Indianapolis",
       "address": "5602 Georgetown Rd, Indianapolis, IN 46254, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46254",
       "lat": 39.8535565,
       "lng": -86.24063919999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548178e8f13c2cb1e1b8",
@@ -11364,12 +11364,12 @@
       "name": "Big Red #205 - Speedway",
       "address": "5959 Crawfordsville Rd, Speedway, IN 46224, USA",
       "city": "Speedway",
-      "county": null,
+      "county": "Marion County",
       "zip": "46224",
       "lat": 39.7977664,
       "lng": -86.264302,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548478e8f13c2cb1e1bc",
@@ -11378,12 +11378,12 @@
       "name": "Big Red #207 - Indianapolis",
       "address": "9546 Allisonville Rd, Indianapolis, IN 46250, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46250",
       "lat": 39.9257539,
       "lng": -86.0692487,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548878e8f13c2cb1e1c0",
@@ -11392,12 +11392,12 @@
       "name": "Big Red #208 - Lawrence",
       "address": "8029 Pendleton Pike, Indianapolis, IN 46226, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46226",
       "lat": 39.837042,
       "lng": -86.02463279999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548b78e8f13c2cb1e1c4",
@@ -11406,12 +11406,12 @@
       "name": "Big Red #209 - Indianapolis",
       "address": "9908 E 79th St, Indianapolis, IN 46256, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46256",
       "lat": 39.8993173,
       "lng": -85.99296,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -11419,13 +11419,13 @@
       "state": "IN",
       "name": "Big Red #210 - Indianapolis",
       "address": "7015 Kentucky Ave #101, Camby, IN 46113, USA",
-      "city": "Camby",
-      "county": null,
+      "city": "Indianapolis",
+      "county": "Marion County",
       "zip": "46113",
       "lat": 39.6608323,
       "lng": -86.3102971,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 8
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -11434,12 +11434,12 @@
       "name": "Big Red #211 - Indianapolis",
       "address": "7930 S Emerson Ave, Indianapolis, IN 46237, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46237",
       "lat": 39.6518669,
       "lng": -86.0833471,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549678e8f13c2cb1e1d0",
@@ -11448,12 +11448,12 @@
       "name": "Big Red #212 - Plainfield",
       "address": "2230 Stafford Rd, Plainfield, IN 46168, USA",
       "city": "Plainfield",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46168",
       "lat": 39.697918,
       "lng": -86.36907649999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549978e8f13c2cb1e1d4",
@@ -11462,12 +11462,12 @@
       "name": "Big Red #213 - Indianapolis",
       "address": "8607 N Michigan Rd, Indianapolis, IN 46268, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46268",
       "lat": 39.9120889,
       "lng": -86.2221318,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e92549d78e8f13c2cb1e1d8",
@@ -11476,12 +11476,12 @@
       "name": "Big Red #214 - Indianapolis",
       "address": "4201 S East St, Indianapolis, IN 46227, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46227",
       "lat": 39.7042641,
       "lng": -86.1484309,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a078e8f13c2cb1e1dc",
@@ -11490,12 +11490,12 @@
       "name": "Big Red #215 - Indianapolis",
       "address": "1067 Broad Ripple Ave, Indianapolis, IN 46220, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46220",
       "lat": 39.8688159,
       "lng": -86.1401396,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a278e8f13c2cb1e1e0",
@@ -11504,12 +11504,12 @@
       "name": "Big Red #216 - Indianapolis",
       "address": "5301 W 10th St, Indianapolis, IN 46224, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46224",
       "lat": 39.7792998,
       "lng": -86.25101579999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a578e8f13c2cb1e1e4",
@@ -11518,12 +11518,12 @@
       "name": "Big Red #217 - Indianapolis",
       "address": "8975 E Washington St #105, Indianapolis, IN 46219, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46219",
       "lat": 39.7733888,
       "lng": -86.0098652,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254a778e8f13c2cb1e1e8",
@@ -11532,12 +11532,12 @@
       "name": "Big Red #218 - Brownsburg",
       "address": "40 Northfield Dr, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8579945,
       "lng": -86.3913441,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254aa78e8f13c2cb1e1ec",
@@ -11546,12 +11546,12 @@
       "name": "Big Red #219 - Brownsburg",
       "address": "1477 E US Hwy 136, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8325132,
       "lng": -86.3698682,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:60088c642806824a8bcf5a05",
@@ -11560,12 +11560,12 @@
       "name": "Big Red #220 - Brownsburg",
       "address": "8049 Ortho Ln, Brownsburg, IN 46112, USA",
       "city": "Brownsburg",
-      "county": null,
+      "county": "Hendricks County",
       "zip": "46112",
       "lat": 39.8014984,
       "lng": -86.3808135,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 8
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254ae78e8f13c2cb1e1f0",
@@ -11574,12 +11574,12 @@
       "name": "Big Red #221 - Indianapolis",
       "address": "3437 E 86th St, Indianapolis, IN 46240, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46240",
       "lat": 39.9106183,
       "lng": -86.1078581,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b078e8f13c2cb1e1f4",
@@ -11588,12 +11588,12 @@
       "name": "Big Red #222 - Carmel",
       "address": "2290 E 116th St, Carmel, IN 46032, USA",
       "city": "Carmel",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46032",
       "lat": 39.95698369999999,
       "lng": -86.11678979999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b278e8f13c2cb1e1f8",
@@ -11601,13 +11601,13 @@
       "state": "IN",
       "name": "Big Red #223 - Fishers",
       "address": "9641-9685 Olio Rd, McCordsville, IN 46055, USA",
-      "city": "McCordsville",
-      "county": null,
+      "city": "Mc Cordsville",
+      "county": "Hamilton County",
       "zip": "46055",
       "lat": 39.9290858,
       "lng": -85.9180638,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b578e8f13c2cb1e1fc",
@@ -11616,12 +11616,12 @@
       "name": "Big Red #224 - Fishers",
       "address": "12734 Parkside Dr, Fishers, IN 46038, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46038",
       "lat": 39.9735046,
       "lng": -86.0029704,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254b778e8f13c2cb1e200",
@@ -11630,12 +11630,12 @@
       "name": "Big Red #225 - Fishers",
       "address": "9777 E 116th St, Fishers, IN 46037, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46037",
       "lat": 39.9550251,
       "lng": -85.99682349999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254ba78e8f13c2cb1e204",
@@ -11644,12 +11644,12 @@
       "name": "Big Red #226 - Indianapolis",
       "address": "8924 S Meridian St, Indianapolis, IN 46217, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46217",
       "lat": 39.6360649,
       "lng": -86.1595916,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254bc78e8f13c2cb1e208",
@@ -11658,12 +11658,12 @@
       "name": "Big Red #227 - Indianapolis",
       "address": "5439 S East St, Indianapolis, IN 46227, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46227",
       "lat": 39.6874809,
       "lng": -86.1482276,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254be78e8f13c2cb1e20c",
@@ -11714,12 +11714,12 @@
       "name": "Big Red #231 - Westfield",
       "address": "966 E Tournament Trl, Westfield, IN 46074, USA",
       "city": "Westfield",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46074",
       "lat": 40.0440694,
       "lng": -86.14080609999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254ca78e8f13c2cb1e21c",
@@ -11728,12 +11728,12 @@
       "name": "Big Red #233 - Greenwood",
       "address": "707 S Madison Ave p g, Greenwood, IN 46143, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46143",
       "lat": 39.6053,
       "lng": -86.10568409999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 10
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254cd78e8f13c2cb1e220",
@@ -11742,12 +11742,12 @@
       "name": "Big Red #234 - Greenwood",
       "address": "816 US-31, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46142",
       "lat": 39.6286916,
       "lng": -86.1235722,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e9254d178e8f13c2cb1e224",
@@ -11756,12 +11756,12 @@
       "name": "Big Red #235 - Greenwood",
       "address": "172 Melody Ave b, Greenwood, IN 46142, USA",
       "city": "Greenwood",
-      "county": null,
+      "county": "Johnson County",
       "zip": "46142",
       "lat": 39.6136857,
       "lng": -86.1569734,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -11798,12 +11798,12 @@
       "name": "Big Red #238 - Southport",
       "address": "8142 E Southport Rd, Indianapolis, IN 46259, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46259",
       "lat": 39.6686819,
       "lng": -86.0200495,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:6286c4850d510526fe6145dc",
@@ -11812,12 +11812,12 @@
       "name": "Big Red #239 - Greenfield",
       "address": "1208 N State St, Greenfield, IN 46140, USA",
       "city": "Greenfield",
-      "county": null,
+      "county": "Hancock County",
       "zip": "46140",
       "lat": 39.7999793,
       "lng": -85.77004869999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:6785622f5034132924e34f14",
@@ -11826,12 +11826,12 @@
       "name": "Big Red #241 - Carmel",
       "address": "10598 N College Ave, Indianapolis, IN 46280, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46280",
       "lat": 39.9411009,
       "lng": -86.1463788,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:54592a8361386600020a0000",
@@ -11840,26 +11840,26 @@
       "name": "Big Red #302 - Bev Shop - Broad Ripple",
       "address": "5897 N College Ave, Indianapolis, IN 46220, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46220",
       "lat": 39.8618412,
       "lng": -86.14558370000002,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:646cb0ac0fdba52b23e23c65",
       "sourceStoreId": "big-red:646cb0ac0fdba52b23e23c65",
       "state": "IN",
-      "name": "Big Red #304 - Bev Shop Speedway",
+      "name": "Big Red #304 - Bev Shop - Speedway",
       "address": "1310 N Main St, Speedway, IN 46224, USA",
       "city": "Speedway",
-      "county": null,
+      "county": "Marion County",
       "zip": "46224",
       "lat": 39.7844947,
       "lng": -86.2412647,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d529395c26868324a7bda",
@@ -11882,12 +11882,12 @@
       "name": "Big Red #602 - Southport",
       "address": "4015 E Southport Rd, Indianapolis, IN 46237, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46237",
       "lat": 39.6649957,
       "lng": -86.09783039999999,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d55c9b85103730903a59b",
@@ -11896,12 +11896,12 @@
       "name": "Big Red #613 - Noblesville",
       "address": "734 Westfield Rd, Noblesville, IN 46062, USA",
       "city": "Noblesville",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46062",
       "lat": 40.0475166,
       "lng": -86.0293044,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d566eb8510372ea03d3de",
@@ -11910,12 +11910,12 @@
       "name": "Big Red #614 - Indianapolis",
       "address": "150 N Delaware St, Indianapolis, IN 46204, USA",
       "city": "Indianapolis",
-      "county": null,
+      "county": "Marion County",
       "zip": "46204",
       "lat": 39.7696497,
       "lng": -86.1546635,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d56d79ea1421aba12c049",
@@ -11924,25 +11924,11 @@
       "name": "Big Red #615 - Fishers",
       "address": "13844 Olivia Way #102, Fishers, IN 46037, USA",
       "city": "Fishers",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46037",
       "lat": 39.9893943,
       "lng": -85.9213908,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
-    },
-    {
-      "id": "big-red:5e8d58959ea14225c1e39360",
-      "sourceStoreId": "big-red:5e8d58959ea14225c1e39360",
-      "state": "IN",
-      "name": "Big Red #619 - Carmel",
-      "address": "1420 W Main St c, Carmel, IN 46032, USA",
-      "city": "Carmel",
-      "county": null,
-      "zip": "46032",
-      "lat": 39.9789992,
-      "lng": -86.15431009999999,
-      "source": "Big Red Liquors CityHive store inventory",
+      "source": "Big Red Liquors CityHive store locator",
       "signalCount": 1
     },
     {
@@ -11966,12 +11952,12 @@
       "name": "Big Red #621 - Carmel",
       "address": "4000 W 106th St #105, Carmel, IN 46032, USA",
       "city": "Carmel",
-      "county": null,
+      "county": "Hamilton County",
       "zip": "46032",
       "lat": 39.9416872,
       "lng": -86.2344957,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d5aad9a81cb4b8dd365f7",
@@ -11980,12 +11966,26 @@
       "name": "Big Red #626 - Greenfield",
       "address": "2222 N State St, Greenfield, IN 46140, USA",
       "city": "Greenfield",
-      "county": null,
+      "county": "Hancock County",
       "zip": "46140",
       "lat": 39.8173268,
       "lng": -85.7707095,
-      "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
+    },
+    {
+      "id": "big-red:5e8d58959ea14225c1e39360",
+      "sourceStoreId": "big-red:5e8d58959ea14225c1e39360",
+      "state": "IN",
+      "name": "Big Red Liquors #619",
+      "address": "1420 W Main St c, Carmel, IN 46032, USA",
+      "city": "Carmel",
+      "county": "Hamilton County",
+      "zip": "46032",
+      "lat": 39.9789992,
+      "lng": -86.15431009999999,
+      "source": "Big Red Liquors CityHive store locator",
+      "signalCount": 1
     },
     {
       "id": "DL6430337",
@@ -19657,7 +19657,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "DL4913533",
@@ -24977,7 +24977,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 29
+      "signalCount": 26
     },
     {
       "id": "high-point-english-rd",
@@ -24991,7 +24991,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 23
+      "signalCount": 24
     },
     {
       "id": "high-point-fairfield-rd",
@@ -25033,7 +25033,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 32
     },
     {
       "id": "high-point-skeet-club-rd",
@@ -25047,7 +25047,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 33
+      "signalCount": 32
     },
     {
       "id": "high-point-wendover-ave",
@@ -25061,7 +25061,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 32
+      "signalCount": 34
     },
     {
       "id": "greensboro-25",
@@ -25691,6 +25691,20 @@
       "lat": -75.58496837331654,
       "lng": 39.94303004573259,
       "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 3
+    },
+    {
+      "id": "2221",
+      "sourceStoreId": "2221",
+      "state": "PA",
+      "name": "Fine Wine & Good Spirits #2221",
+      "address": "990 Briarsdale Rd., Unit D, Harrisburg, PA, 17109",
+      "city": "Harrisburg",
+      "county": "Dauphin",
+      "zip": null,
+      "lat": -76.82134774447164,
+      "lng": 40.274255407013335,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 4
     },
     {
@@ -25888,6 +25902,76 @@
       "lng": -79.939548,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 4
+    },
+    {
+      "id": "212",
+      "sourceStoreId": "212",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0212",
+      "address": "959 Liberty Avenue, Pittsburgh, PA, 15222",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.443487,
+      "lng": -79.996095,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "214",
+      "sourceStoreId": "214",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0214",
+      "address": "The Waterworks, 991 Freeport Road, Pittsburgh, PA, 15238",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.486683,
+      "lng": -79.888112,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 5
+    },
+    {
+      "id": "216",
+      "sourceStoreId": "216",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0216",
+      "address": "102 East Main Street, Carnegie, PA, 15106",
+      "city": "Carnegie",
+      "county": null,
+      "zip": null,
+      "lat": 40.40742,
+      "lng": -80.086657,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
+      "id": "217",
+      "sourceStoreId": "217",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0217",
+      "address": "1110 Fourth Avenue, Coraopolis, PA, 15108",
+      "city": "Coraopolis",
+      "county": null,
+      "zip": null,
+      "lat": 40.517669,
+      "lng": -80.161965,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "218",
+      "sourceStoreId": "218",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0218",
+      "address": "Dormont Village, 2947 West Liberty Avenue, Pittsburgh, PA, 15216",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.394157,
+      "lng": -80.035442,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
     },
     {
       "id": "220",
@@ -26520,6 +26604,20 @@
       "signalCount": 2
     },
     {
+      "id": "603",
+      "sourceStoreId": "603",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0603",
+      "address": "4880 Penn Avenue, Sinking Spring, PA, 19608",
+      "city": "Sinking Spring",
+      "county": null,
+      "zip": null,
+      "lat": 40.326711,
+      "lng": -76.053286,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "604",
       "sourceStoreId": "604",
       "state": "PA",
@@ -26770,20 +26868,6 @@
       "lng": -75.162433,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 1
-    },
-    {
-      "id": "904",
-      "sourceStoreId": "904",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0904",
-      "address": "Perkasie Square, 511 Constitution Avenue, Perkasie, PA, 18944",
-      "city": "Perkasie",
-      "county": null,
-      "zip": null,
-      "lat": 40.363956,
-      "lng": -75.298576,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
     },
     {
       "id": "906",
@@ -32747,7 +32831,7 @@
       "lat": 35.1217967,
       "lng": -85.2939899,
       "source": "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory",
-      "signalCount": 16
+      "signalCount": 15
     },
     {
       "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
@@ -34276,20 +34360,6 @@
       "signalCount": 6
     },
     {
-      "id": "212",
-      "sourceStoreId": "212",
-      "state": "VA",
-      "name": "Virginia ABC Store 212",
-      "address": "167 Hillwood Avenue Falls Church VA 22046-2913",
-      "city": "Falls Church",
-      "county": null,
-      "zip": null,
-      "lat": 38.879458,
-      "lng": -77.171168,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
       "id": "213",
       "sourceStoreId": "213",
       "state": "VA",
@@ -34300,62 +34370,6 @@
       "zip": null,
       "lat": 37.23181,
       "lng": -79.81059,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "214",
-      "sourceStoreId": "214",
-      "state": "VA",
-      "name": "Virginia ABC Store 214",
-      "address": "608 Virginia Avenue Clarksville VA 23927",
-      "city": "Clarksville",
-      "county": null,
-      "zip": null,
-      "lat": 36.623428,
-      "lng": -78.558907,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "216",
-      "sourceStoreId": "216",
-      "state": "VA",
-      "name": "Virginia ABC Store 216",
-      "address": "1100-102 Armory Drive Franklin VA 23851-2418",
-      "city": "Franklin",
-      "county": null,
-      "zip": null,
-      "lat": 36.673058,
-      "lng": -76.940331,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "217",
-      "sourceStoreId": "217",
-      "state": "VA",
-      "name": "Virginia ABC Store 217",
-      "address": "619 Pilot House Drive Newport News VA 23606",
-      "city": "Newport News",
-      "county": null,
-      "zip": null,
-      "lat": 37.081692,
-      "lng": -76.477704,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "218",
-      "sourceStoreId": "218",
-      "state": "VA",
-      "name": "Virginia ABC Store 218",
-      "address": "3982 US Highway 23 North Gate City VA 24251-0248",
-      "city": "Gate City",
-      "county": null,
-      "zip": null,
-      "lat": 36.634239,
-      "lng": -82.587921,
       "source": "Virginia ABC storeNearby inventory API",
       "signalCount": 6
     },

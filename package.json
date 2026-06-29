@@ -13,7 +13,8 @@
     "test:ops": "node scripts/verify-ops-workflow.mjs",
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
-    "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs"
+    "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
+    "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",

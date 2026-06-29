@@ -127,13 +127,14 @@ export function confidenceForSignal(signal) {
   const qty = Number(signal.quantity ?? signal.storeQty ?? signal.raw?.storeQty ?? 0) || 0;
   if (qty > 0) confidence += 0.08;
   if (signal.fallback || signal.mode === 'official-source-seed') confidence -= 0.12;
+  const positiveAvailabilityStatus = /in_stock|limited_supply/i.test(String(signal.availabilityStatus || signal.raw?.availability?.status || ''));
+  const hasPositiveInventory = (qty > 0 || positiveAvailabilityStatus) && !/out_of_stock|sold_out|not_available/i.test(eventType);
   const isSampleOnly = Boolean(signal.raw?.sampleOnly);
   if (isSampleOnly) confidence = Math.min(confidence, 0.49);
   const isVirginiaLimitedCaveat = signal.state === 'VA' && signal.raw?.product?.limitedCaveat;
-  if ((/limited/i.test(eventType) && signal.state === 'VA') || isVirginiaLimitedCaveat) confidence = Math.min(confidence, 0.68);
+  const isVirginiaOfficialStoreInventory = isVirginiaLimitedCaveat && hasPositiveInventory && rank >= 6 && /store_inventory/i.test(eventType);
+  if (((/limited/i.test(eventType) && signal.state === 'VA') || isVirginiaLimitedCaveat) && !isVirginiaOfficialStoreInventory) confidence = Math.min(confidence, 0.68);
   confidence = Math.min(confidence, MODE_CAPS[policy.maxAlertMode] ?? 0.7);
-  const positiveAvailabilityStatus = /in_stock|limited_supply/i.test(String(signal.availabilityStatus || signal.raw?.availability?.status || ''));
-  const hasPositiveInventory = (qty > 0 || positiveAvailabilityStatus) && !/out_of_stock|sold_out|not_available/i.test(eventType);
   const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
   const isDistilleryLane = signal.state === 'KY' && /^distillery_/i.test(eventType);
   const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
@@ -142,7 +143,7 @@ export function confidenceForSignal(signal) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !isDistilleryLane && hasPositiveInventory && !isVirginiaLimitedCaveat && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsInventory: !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
     canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

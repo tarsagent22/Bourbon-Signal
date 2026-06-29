@@ -16,10 +16,11 @@ async function runDelivery(req: NextRequest) {
   try {
     const dryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
     const baselineEmailOnly = req.nextUrl.searchParams.get("baselineEmail") === "1" || req.nextUrl.searchParams.get("baseline_email") === "1";
+    const baselineSmsOnly = req.nextUrl.searchParams.get("baselineSms") === "1" || req.nextUrl.searchParams.get("baseline_sms") === "1";
     const testEmail = req.nextUrl.searchParams.get("testEmail") === "1" || req.nextUrl.searchParams.get("test_email") === "1";
     const result = testEmail
       ? await sendOperationalTestAlertEmail(req)
-      : await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly });
+      : await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly, baselineSmsOnly });
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
