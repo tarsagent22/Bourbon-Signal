@@ -492,10 +492,11 @@ export default function DashboardPage() {
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn, signIn, entitlements } = useAuth();
+  const isFreeTier = entitlements.tier === "free";
   const canAccessDashboard = entitlements.canAccessDashboard;
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
   const alertAreaLimit = entitlements.alertAreaLimit;
-  const canRefineAlertAreas = alertAreaLimit !== 0;
+  const canRefineAlertAreas = alertAreaLimit !== 0 || isFreeTier;
   const canUseCollection = entitlements.canUseCollection;
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
@@ -1086,6 +1087,7 @@ export default function DashboardPage() {
   };
 
   const canAddAlertArea = (areaPrefs: AreaPreferences) => {
+    if (isFreeTier) return true;
     return typeof alertAreaLimit !== "number" || alertAreaCount(areaPrefs) < alertAreaLimit;
   };
 
@@ -1244,6 +1246,19 @@ export default function DashboardPage() {
     setLocalPrefs((prev) => {
       const removing = prev.states.includes(state);
       if (!removing && !canAddAlertArea(prev)) return prev;
+      if (isFreeTier && !removing) {
+        return {
+          ...prev,
+          states: [state],
+          ncBoards: state === "NC" ? prev.ncBoards : [],
+          vaCities: state === "VA" ? prev.vaCities : [],
+          ohCities: state === "OH" ? prev.ohCities : [],
+          iaCities: state === "IA" ? prev.iaCities : [],
+          idCities: state === "ID" ? prev.idCities : [],
+          paCounties: state === "PA" ? prev.paCounties : [],
+          paStores: state === "PA" ? prev.paStores : [],
+        };
+      }
       return {
         ...prev,
         states: removing ? prev.states.filter((item) => item !== state) : [...prev.states, state],
@@ -1389,7 +1404,7 @@ export default function DashboardPage() {
       return;
     }
     if (entitlements.tier === "free") {
-      setCollectionError("Upgrade to activate alerts. Free accounts can preview setup and use 3 Bottle Checks.");
+      window.location.href = "/pricing";
       return;
     }
     setSavingLocations(false);
@@ -1865,7 +1880,7 @@ export default function DashboardPage() {
                             </p>
                           </div>
                           <div style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.10)", padding: "8px 12px", fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-cream)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                            {canUseAdvancedFilters || typeof alertAreaLimit !== "number" ? selectedDetails.length : `${alertAreaCount(localPrefs)}/${alertAreaLimit}`} selected {detailLabel}
+                            {isFreeTier ? "Preview" : canUseAdvancedFilters || typeof alertAreaLimit !== "number" ? selectedDetails.length : `${alertAreaCount(localPrefs)}/${alertAreaLimit}`} selected {detailLabel}
                           </div>
                         </div>
 
@@ -1984,7 +1999,7 @@ export default function DashboardPage() {
                     )
                   ) : (
                     <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                      Select at least one state to unlock board, city, and store choices.
+                      Select one state to preview board, city, and store choices.
                     </div>
                   )}
                 </div>
@@ -2175,6 +2190,7 @@ export default function DashboardPage() {
                 {(() => {
                   const onSiteActive = notificationPrefs.onSite.enabled;
                   const emailActive = notificationPrefs.email.enabled;
+                  const smsActive = notificationPrefs.sms.enabled;
                   const sightingsActive = notificationPrefs.sightings?.enabled === true;
 
                   return (
@@ -2295,6 +2311,39 @@ export default function DashboardPage() {
                         </div>
                       </button>
 
+                      <div style={{ width: "100%", borderRadius: "18px", border: smsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)", background: smsActive ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)" : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)", boxShadow: smsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)", padding: "18px", display: "grid", gap: "12px", position: "relative", overflow: "hidden" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "center" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1 }}>
+                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>SMS alerts</span>
+                            <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "38ch" }}>
+                              Text alerts for high-priority bottle matches. {entitlements.canReceiveSmsAlerts ? `${entitlements.smsDailyLimit}/day cap during rollout.` : "Upgrade to activate SMS delivery."}
+                            </span>
+                          </div>
+                          <LiquidToggle
+                            checked={smsActive}
+                            onCheckedChange={(checked) => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, enabled: checked && entitlements.canReceiveSmsAlerts } }))}
+                          />
+                        </div>
+                        <div style={{ display: "grid", gap: "8px" }}>
+                          <label htmlFor="sms-phone" style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Phone number</label>
+                          <input
+                            id="sms-phone"
+                            value={notificationPrefs.sms.phone || ""}
+                            onChange={(event) => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, phone: event.target.value, verified: false } }))}
+                            placeholder="(555) 123-4567"
+                            inputMode="tel"
+                            disabled={!entitlements.canReceiveSmsAlerts}
+                            style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", outline: "none", opacity: entitlements.canReceiveSmsAlerts ? 1 : 0.55 }}
+                          />
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                            {[{ value: "major_only", label: "Major only" }, { value: "specific_bottles", label: "Watchlist only" }].map((option) => (
+                              <button key={option.value} type="button" onClick={() => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, mode: option.value as typeof prev.sms.mode } }))} disabled={!entitlements.canReceiveSmsAlerts} style={{ padding: "7px 10px", borderRadius: "999px", border: notificationPrefs.sms.mode === option.value ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)", background: notificationPrefs.sms.mode === option.value ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.03)", color: notificationPrefs.sms.mode === option.value ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: entitlements.canReceiveSmsAlerts ? "pointer" : "not-allowed", fontSize: "12px" }}>{option.label}</button>
+                            ))}
+                            <span style={{ color: notificationPrefs.sms.verified ? "#9AD4B1" : "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "12px" }}>{notificationPrefs.sms.verified ? "Verified" : entitlements.canReceiveSmsAlerts ? "Verification will be required before live SMS sends." : "SMS unlocks with Standard Proof."}</span>
+                          </div>
+                        </div>
+                      </div>
+
                       {canReceiveSightingsAlerts ? (
                       <button
                         onClick={() =>
@@ -2369,7 +2418,7 @@ export default function DashboardPage() {
                     opacity: savingLocations ? 0.7 : 1,
                   }}
                 >
-                  {!isSignedIn ? "Sign in to save your alert setup" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : "Save alert setup"}
+                  {!isSignedIn ? "Sign in to save your alert setup" : isFreeTier ? "Upgrade to save alerts" : savingLocations ? "Saving…" : savedNotifications ? "Saved ✓" : "Save alert setup"}
                 </button>
               </div>
             </div>

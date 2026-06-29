@@ -5,7 +5,7 @@ import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/enti
 import { getQaPreviewTierFromBrowser, isQaPreviewMode } from "@/lib/preview-qa";
 
 export function useAuth() {
-  const { isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
   const qaPreview = isQaPreviewMode();
 
@@ -25,6 +25,7 @@ export function useAuth() {
     : user;
 
   return {
+    isLoaded: qaPreview || isLoaded,
     isSignedIn: qaPreview || !!isSignedIn,
     memberTier,
     entitlements,

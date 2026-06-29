@@ -41,6 +41,7 @@ interface BottleResult {
   suggestions?: BottleResult["bottle"][];
   showSuggestions?: boolean;
   message?: string;
+  usage?: { used: number; limit: number; remaining: number } | null;
 }
 
 const availabilityLabels: Record<string, string> = {
@@ -141,8 +142,12 @@ export default function BottleCheckPage() {
       if (!q) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}`, { signal: controller.signal });
+        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=check`, { signal: controller.signal });
         const data = (await res.json()) as BottleResult;
+        if (data.usage && typeof data.usage.used === "number") {
+          setFreeChecksUsed(data.usage.used);
+          if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(data.usage.used));
+        }
         setResult(data);
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
@@ -170,7 +175,7 @@ export default function BottleCheckPage() {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}`, { signal: controller.signal });
+        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest`, { signal: controller.signal });
         if (!res.ok) return setLiveSuggestions([]);
         const data = (await res.json()) as BottleResult;
         const suggestions = dedupeSuggestions([data.bottle, ...(data.suggestions || [])]
@@ -208,7 +213,7 @@ export default function BottleCheckPage() {
       setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
       return;
     }
-    if (isFreeBottleCheck) {
+    if (isFreeBottleCheck && !isSignedIn) {
       setFreeChecksUsed((current) => {
         const next = Math.min(bottleCheckLimit ?? current + 1, current + 1);
         if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(next));

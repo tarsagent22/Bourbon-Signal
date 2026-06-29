@@ -132,7 +132,7 @@ function SightingDropdown({
 export default function SightingsClient() {
   const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
-  const { isSignedIn, signIn, entitlements } = useAuth();
+  const { isLoaded: authLoaded, isSignedIn, signIn, entitlements } = useAuth();
   const { bottles } = useBottles();
   const { stores, loading: storesLoading } = useStores();
   const canReadSightings = entitlements.canReadSightings;
@@ -255,6 +255,18 @@ export default function SightingsClient() {
     setNotes("");
     setActiveTab("feed");
   };
+
+  if (!authLoaded) {
+    return (
+      <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", border: "1px solid rgba(196,148,58,0.16)", borderRadius: 28, padding: 28, background: "rgba(245,237,214,0.035)", boxShadow: "0 24px 70px rgba(0,0,0,0.28)" }}>
+          <Lock size={28} color="var(--color-accent-amber)" />
+          <h1 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 68px)", margin: "18px 0 10px" }}>Member Sightings</h1>
+          <p style={{ color: "rgba(245,237,214,0.58)", fontSize: 16, lineHeight: 1.7 }}>Loading member access…</p>
+        </div>
+      </main>
+    );
+  }
 
   if (!isSignedIn) {
     return (

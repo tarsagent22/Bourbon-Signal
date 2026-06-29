@@ -1,7 +1,38 @@
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getBottleById, normalizeBottleKey, searchBourbonBible, type AvailabilityTier, type BibleBottle } from "@/lib/bourbonBible";
 import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { getEntitlements } from "@/lib/entitlements";
+
+
+const FREE_BOTTLE_CHECK_LIMIT = 3;
+
+type BottleCheckUsage = { used?: number; updatedAt?: string };
+
+function normalizeUsage(value: unknown): BottleCheckUsage {
+  const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const used = typeof source.used === "number" && Number.isFinite(source.used) ? Math.max(0, Math.floor(source.used)) : 0;
+  return { used, updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : undefined };
+}
+
+async function consumeFreeBottleCheckIfNeeded(intent: string) {
+  if (intent !== "check") return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
+  const { userId } = await auth();
+  if (!userId) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const entitlements = getEntitlements(user.publicMetadata?.tier);
+  if (entitlements.bottleCheckLimit === null) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
+  const limit = entitlements.bottleCheckLimit ?? FREE_BOTTLE_CHECK_LIMIT;
+  const current = normalizeUsage(user.publicMetadata?.bottleCheckUsage);
+  if ((current.used || 0) >= limit) {
+    return { limited: true as const, usage: { used: current.used || 0, limit, remaining: 0 } };
+  }
+  const next = { used: (current.used || 0) + 1, updatedAt: new Date().toISOString() };
+  await client.users.updateUserMetadata(userId, { publicMetadata: { bottleCheckUsage: next } });
+  return { limited: false as const, usage: { used: next.used, limit, remaining: Math.max(0, limit - next.used) } };
+}
 
 interface LocalSignal {
   state: string;
@@ -264,6 +295,11 @@ export async function GET(request: Request) {
   const query = url.searchParams.get("q") || "";
   const id = url.searchParams.get("id") || "";
   const state = (url.searchParams.get("state") || "NC").toUpperCase();
+  const intent = url.searchParams.get("intent") || "suggest";
+  const usageGate = await consumeFreeBottleCheckIfNeeded(intent);
+  if (usageGate.limited) {
+    return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
+  }
 
   const bottle = id ? getBottleById(id) : searchBourbonBible(query, 1)[0] || null;
   const suggestions = query ? dedupeBottleSuggestions(searchBourbonBible(query, 16)).slice(0, 8) : [];
@@ -286,6 +322,7 @@ export async function GET(request: Request) {
         bottle: null,
         suggestions,
         message: "We do not have this bottle in the Bottle Check index yet. Try a different spelling or check back as the list expands.",
+        usage: usageGate.usage,
       },
       { headers: siteExportHeaders("local-export") }
     );
@@ -316,6 +353,7 @@ export async function GET(request: Request) {
       localSignal,
       suggestions: suggestions.map(userFacingBottle),
       showSuggestions: matchScore < 95,
+      usage: usageGate.usage,
     },
     { headers: siteExportHeaders("local-export") }
   );
