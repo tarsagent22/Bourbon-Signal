@@ -42,10 +42,6 @@ export default clerkMiddleware(async (auth, request) => {
   const signUpUrl = new URL("/sign-up", request.url);
   signUpUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
   return NextResponse.redirect(signUpUrl);
-}, {
-  frontendApiProxy: {
-    enabled: true,
-  },
 });
 
 export const config = {
