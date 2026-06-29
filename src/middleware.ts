@@ -42,10 +42,6 @@ export default clerkMiddleware(async (auth, request) => {
   const signUpUrl = new URL("/sign-up", request.url);
   signUpUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
   return NextResponse.redirect(signUpUrl);
-}, {
-  frontendApiProxy: {
-    enabled: true,
-  },
 });
 
 export const config = {
@@ -53,6 +49,5 @@ export const config = {
     // Skip Next internals and static assets, but run on app/API routes.
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/api/(.*)",
-    "/__clerk/(.*)",
   ],
 };
