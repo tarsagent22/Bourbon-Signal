@@ -116,6 +116,7 @@ export default function BottleCheckPage() {
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const [query, setQuery] = useState("Buffalo Trace");
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const [submittedState, setSubmittedState] = useState("NC");
   const [state, setState] = useState("NC");
   const [result, setResult] = useState<BottleResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -142,7 +143,7 @@ export default function BottleCheckPage() {
       if (!q) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=check`, { signal: controller.signal });
+        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(submittedState)}&intent=check`, { signal: controller.signal });
         const data = (await res.json()) as BottleResult;
         if (data.usage && typeof data.usage.used === "number") {
           setFreeChecksUsed(data.usage.used);
@@ -159,7 +160,7 @@ export default function BottleCheckPage() {
     }
     load();
     return () => controller.abort();
-  }, [submittedQuery, state]);
+  }, [submittedQuery, submittedState]);
 
   useEffect(() => {
     setTrackingStates((prev) => Array.from(new Set([...(prev.length ? prev : []), state])));
@@ -220,6 +221,7 @@ export default function BottleCheckPage() {
         return next;
       });
     }
+    setSubmittedState(state);
     setSubmittedQuery(nextQuery);
   }
 
