@@ -1,6 +1,7 @@
 import { clerkFrontendApiProxy } from "@clerk/nextjs/server";
 
 const APEX_HOST = "bourbonsignal.com";
+const PROXY_PATH = "/api/__clerk";
 
 function normalizeProxyOrigin(request: Request) {
   const headers = new Headers(request.headers);
@@ -10,7 +11,7 @@ function normalizeProxyOrigin(request: Request) {
 }
 
 async function proxy(request: Request) {
-  return clerkFrontendApiProxy(normalizeProxyOrigin(request));
+  return clerkFrontendApiProxy(normalizeProxyOrigin(request), { proxyPath: PROXY_PATH });
 }
 
 export const GET = proxy;
