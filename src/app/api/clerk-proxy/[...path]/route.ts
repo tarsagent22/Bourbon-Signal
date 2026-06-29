@@ -11,7 +11,16 @@ function normalizeProxyOrigin(request: Request) {
 }
 
 async function proxy(request: Request) {
-  return clerkFrontendApiProxy(normalizeProxyOrigin(request), { proxyPath: PROXY_PATH });
+  try {
+    return await clerkFrontendApiProxy(normalizeProxyOrigin(request), {
+      proxyPath: PROXY_PATH,
+      publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Clerk proxy error";
+    return Response.json({ error: "Clerk proxy failed", message }, { status: 500 });
+  }
 }
 
 export const GET = proxy;
