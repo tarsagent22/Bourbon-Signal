@@ -11,7 +11,6 @@ const isProtectedRoute = createRouteMatcher([
   "/finder(.*)",
   "/map(.*)",
   "/settings(.*)",
-  "/success(.*)",
   "/api/alerts(.*)",
   "/api/bottle-check(.*)",
   "/api/bottles(.*)",
@@ -29,6 +28,7 @@ export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
+  if (url.pathname === "/api/checkout/sync") return NextResponse.next();
   if (isQaPreviewRequest(request)) return NextResponse.next();
   if (!isProtectedRoute(request)) return NextResponse.next();
 

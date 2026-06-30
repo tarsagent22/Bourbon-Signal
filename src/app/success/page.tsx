@@ -14,7 +14,7 @@ function SuccessContent() {
   const [activationStatus, setActivationStatus] = useState<"idle" | "syncing" | "active" | "error">("idle");
 
   useEffect(() => {
-    if (!sessionId || !isLoaded || !user || activationStatus !== "idle") return;
+    if (!sessionId || !isLoaded || activationStatus !== "idle") return;
     let cancelled = false;
     setActivationStatus("syncing");
     fetch("/api/checkout/sync", {
@@ -24,7 +24,7 @@ function SuccessContent() {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Could not activate membership");
-        await user.reload();
+        if (user) await user.reload();
         if (!cancelled) setActivationStatus("active");
       })
       .catch(() => {

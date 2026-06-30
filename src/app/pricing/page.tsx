@@ -93,7 +93,7 @@ const paidTiers: PricingTier[] = [
     eyebrow: "Lifetime Founding Members",
     oneTimePrice: "$49.99",
     plan: "bib_lifetime",
-    description: "Limited offer for members that want to experience the most that Bourbon Signal has to offer with no recurring fee",
+    description: "Limited offer for members that want to experience the most that Bourbon Signal has to offer with no recurring fee.",
     features: [
       "Lifetime access to all current and future features",
       "Only 100 spots",
@@ -114,11 +114,11 @@ const comparisonRows = [
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
-  ["Signal Strength meter", "Low · free access", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
-  ["Member Sightings", "Demo only", "✓", "✓", "✓"],
+  ["Signal Strength meter", "—", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
+  ["Member Sightings", "—", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Collection", "Demo only", "—", "✓", "✓"],
-  ["Recommended Bottles", "Demo only", "—", "✓", "✓"],
+  ["My Collection", "—", "—", "✓", "✓"],
+  ["Recommended Bottles", "—", "—", "✓", "✓"],
   ["Lifetime future features", "—", "—", "—", "✓"],
   ["Founder badge + number", "—", "—", "—", "✓"],
   ["Numbered Founder’s glass", "—", "—", "—", "✓"],
@@ -221,17 +221,17 @@ function PricingPageContent() {
         </section>
 
         {!isSignedIn ? (
-          <section className="free-preview-strip" aria-label="Free preview account">
+          <section className="free-preview-strip" aria-label="Free access account">
             <div>
-              <p>Free preview</p>
+              <p>Free access</p>
               <h2>Create an account first. Browse the signal before you pay.</h2>
             </div>
             <ul>
-              <li>Limited Drop Feed preview</li>
+              <li>Limited Drop Feed access</li>
               <li>3 Bottle Checks</li>
               <li>Demo access to member tools</li>
             </ul>
-            <button type="button" onClick={() => router.push("/sign-up?redirect_url=/pricing")}>Start free preview</button>
+            <button type="button" onClick={() => router.push("/sign-up?redirect_url=/pricing")}>Start free access</button>
           </section>
         ) : null}
 
@@ -278,7 +278,7 @@ function PricingPageContent() {
           <div className="comparison-scroll" aria-label="Scroll plan comparison horizontally on small screens">
             <div className="comparison-table" role="table">
               <div className="comparison-row comparison-head" role="row">
-                <span>Feature</span><span>Free preview</span><span>Standard</span><span>Barrel</span><span>Bottled in Bond</span>
+                <span>Feature</span><span>Free access</span><span>Standard</span><span>Barrel</span><span>Bottled in Bond</span>
               </div>
               {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
                 <div className="comparison-row" role="row" key={feature}>
