@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/entitlements";
 import { getQaPreviewTierFromBrowser, isQaPreviewMode } from "@/lib/preview-qa";
@@ -29,6 +30,23 @@ export function useAuth() {
         emailAddresses: [{ emailAddress: `${memberTier}@bourbonsignal.local` }],
       } as unknown as typeof user)
     : user;
+
+  useEffect(() => {
+    if (qaPreview || !isLoaded || !isSignedIn || !user || memberTier !== "free") return;
+    const key = `bourbon_signal_checkout_recover_${user.id}`;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1") return;
+    if (typeof window !== "undefined") window.sessionStorage.setItem(key, "1");
+
+    fetch("/api/checkout/recover", { method: "POST" })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await res.json()) as { activated?: boolean };
+      })
+      .then(async (data) => {
+        if (data?.activated) await user.reload();
+      })
+      .catch(() => {});
+  }, [isLoaded, isSignedIn, memberTier, qaPreview, user]);
 
   return {
     isLoaded: qaPreview || isLoaded,
