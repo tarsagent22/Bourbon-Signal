@@ -7,13 +7,21 @@ import { SignUp } from "@clerk/nextjs";
 const DEFAULT_ONBOARDING_REDIRECT = "/alerts?welcome=1";
 
 function safeRedirectUrl(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return DEFAULT_ONBOARDING_REDIRECT;
-  return value;
+  if (!value) return DEFAULT_ONBOARDING_REDIRECT;
+  try {
+    if (value.startsWith("/")) return value.startsWith("//") ? DEFAULT_ONBOARDING_REDIRECT : value;
+    const url = new URL(value);
+    if (typeof window !== "undefined" && url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return DEFAULT_ONBOARDING_REDIRECT;
+  }
+  return DEFAULT_ONBOARDING_REDIRECT;
 }
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
   const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
+  const encodedRedirect = encodeURIComponent(redirectUrl);
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -71,9 +79,9 @@ export default function SignUpPage() {
 
       {confirmedAge ? (
         redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-          <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" />
+          <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" signInUrl="/sign-in?redirect_url=%2Falerts%3Fwelcome%3D1" />
         ) : (
-          <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} />
+          <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} signInUrl={`/sign-in?redirect_url=${encodedRedirect}`} />
         )
       ) : (
         <section

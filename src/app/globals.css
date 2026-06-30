@@ -1880,3 +1880,27 @@ body::after {
     line-height: 1.42 !important;
   }
 }
+
+/* Clerk account forms: keep light input fields readable against the dark Bourbon Signal card. */
+.cl-formFieldInput,
+.cl-input,
+.cl-otpCodeFieldInput {
+  background: #F7F0E0 !important;
+  color: #14100C !important;
+  -webkit-text-fill-color: #14100C !important;
+  caret-color: #14100C !important;
+}
+.cl-formFieldInput::placeholder,
+.cl-input::placeholder {
+  color: #4B3A29 !important;
+  opacity: 1 !important;
+}
+.cl-formFieldInput:-webkit-autofill,
+.cl-input:-webkit-autofill {
+  -webkit-text-fill-color: #14100C !important;
+  box-shadow: 0 0 0 1000px #F7F0E0 inset !important;
+}
+.cl-formFieldInputShowPasswordButton,
+.cl-formFieldInputShowPasswordIcon {
+  color: #3A2D1E !important;
+}

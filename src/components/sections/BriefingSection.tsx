@@ -13,9 +13,16 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Bulleit pushes rye into a 20-year collector lane",
+    summary: "Bulleit is releasing an ultra-limited 20-year straight rye, positioning the brand's high-rye identity in a much older, more collectible tier.",
+    note: "Best of the morning: scarce, brand-backed, and useful for hunters who track older rye alongside allocated bourbon.",
+    href: "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
+    source: "Bulleit",
+  },
+  {
     title: "Elijah Craig 21 Year returns as a true trophy bottle",
     summary: "Heaven Hill is bringing back Elijah Craig 21-Year-Old Single Barrel as a limited 2026 release, with an initial distillery debut and select-market bottles later in the year.",
-    note: "Best of the morning: scarce, official, high-intent, and exactly the kind of bottle hunters will want watched before retail sightings appear.",
+    note: "Scarce, official, high-intent, and exactly the kind of bottle hunters will want watched before retail sightings appear.",
     href: "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
     source: "Heaven Hill",
   },
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
     source: "Lost Lantern Whiskey",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Old Fitzgerald joins July's allocation radar",
     summary: "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://heavenhilldistillery.com/old-fitzgerald.php",
     source: "Heaven Hill Distillery",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Four Roses opens a Mizunara-finished lane",
     summary: "Four Roses' new Experimental Series starts with No. 001, a limited Kentucky straight bourbon finished in Japanese Mizunara oak.",
@@ -131,6 +138,20 @@ export default function BriefingSection() {
           font-family: var(--font-dm-sans);
           font-size: clamp(14px, 1.35vw, 16px);
           line-height: 1.55;
+        }
+        .daily-briefing-updated {
+          display: inline-flex;
+          margin-bottom: 12px;
+          border: 1px solid rgba(232,201,122,0.20);
+          border-radius: 999px;
+          padding: 7px 10px;
+          color: rgba(232,201,122,0.82);
+          background: rgba(196,148,58,0.055);
+          font-family: var(--font-jetbrains);
+          font-size: 10px;
+          font-weight: 850;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
         }
         .daily-briefing-list {
           display: grid;
@@ -269,9 +290,12 @@ export default function BriefingSection() {
           <h2 id="briefing-title" className="daily-briefing-title">
             Daily Briefing
           </h2>
-          <p className="daily-briefing-subcopy">
-            Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
-          </p>
+          <div>
+            <span className="daily-briefing-updated">Updated June 30, 2026</span>
+            <p className="daily-briefing-subcopy">
+              Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
+            </p>
+          </div>
         </div>
 
         <div className="daily-briefing-list">

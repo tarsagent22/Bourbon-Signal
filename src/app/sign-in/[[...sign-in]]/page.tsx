@@ -4,13 +4,21 @@ import { SignIn } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
 function safeRedirectUrl(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
-  return value;
+  if (!value) return "/dashboard";
+  try {
+    if (value.startsWith("/")) return value.startsWith("//") ? "/dashboard" : value;
+    const url = new URL(value);
+    if (typeof window !== "undefined" && url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/dashboard";
+  }
+  return "/dashboard";
 }
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
+  const encodedRedirect = encodeURIComponent(redirectUrl);
   return (
     <div
       style={{
@@ -52,7 +60,7 @@ export default function SignInPage() {
         </a>
       </div>
 
-      <SignIn forceRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl} />
+      <SignIn forceRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl} signUpUrl={`/sign-up?redirect_url=${encodedRedirect}`} />
     </div>
   );
 }

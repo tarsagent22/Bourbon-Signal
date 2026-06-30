@@ -132,9 +132,21 @@ function PricingPageContent() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("annual");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);
 
   const currentTierRank = tierRank[memberTier];
   const checkoutParam = searchParams.get("checkout") as PaidPlanId | null;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/founder-spots")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: { limit?: number; remaining?: number | null } | null) => {
+        if (!cancelled && data?.limit) setFounderSpots({ limit: data.limit, remaining: typeof data.remaining === "number" ? data.remaining : null });
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
@@ -249,6 +261,13 @@ function PricingPageContent() {
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
                 {tier.featured ? <div className="pricing-ribbon">Lifetime offer · 100 spots</div> : null}
+                {tier.tier === "bottled-in-bond" ? (
+                  <div className="founder-spots-meter" aria-label="Bottled in Bond founder spots remaining">
+                    <span className="founder-spots-label">Founder allocation</span>
+                    <strong>{founderSpots?.remaining == null ? "Limited" : `${founderSpots.remaining} left`}</strong>
+                    <span className="founder-spots-line"><i style={{ width: `${Math.max(0, Math.min(100, ((founderSpots?.remaining ?? 100) / (founderSpots?.limit || 100)) * 100))}%` }} /></span>
+                  </div>
+                ) : null}
                 {current ? <div className="current-badge">Current</div> : null}
                 <p className="pricing-eyebrow">{tier.eyebrow}</p>
                 <h2>{tier.name}</h2>
@@ -336,6 +355,11 @@ const pricingCss = `
 .pricing-card.current { border-color:rgba(136,211,148,.38); }
 .pricing-ribbon { margin:-24px -24px 20px; padding:9px 12px; text-align:center; color:#130F0A; background:linear-gradient(135deg, #C4943A, #D4A44A); font:900 11px/1 var(--font-dm-sans); letter-spacing:.12em; text-transform:uppercase; }
 .current-badge { position:absolute; top:14px; right:14px; border:1px solid rgba(136,211,148,.28); border-radius:999px; padding:6px 8px; color:#c9f5d0; background:rgba(136,211,148,.08); font:900 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
+.founder-spots-meter { position:relative; z-index:1; margin: -6px 0 16px; border:1px solid rgba(232,201,122,.22); border-radius:16px; padding:12px 13px; background:linear-gradient(135deg, rgba(10,8,5,.56), rgba(196,148,58,.07)); box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
+.founder-spots-label { display:block; color:rgba(245,237,214,.48); font:900 9px/1 var(--font-jetbrains); letter-spacing:.14em; text-transform:uppercase; }
+.founder-spots-meter strong { display:block; margin-top:5px; color:var(--color-cream); font:700 28px/.95 var(--font-playfair); letter-spacing:-.025em; }
+.founder-spots-line { display:block; height:4px; margin-top:10px; border-radius:999px; overflow:hidden; background:rgba(245,237,214,.08); }
+.founder-spots-line i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, #E8C97A, #C4943A); box-shadow:0 0 18px rgba(232,201,122,.28); }
 .pricing-eyebrow { margin:0; color:rgba(245,237,214,.42); font:900 11px/1 var(--font-dm-sans); letter-spacing:.14em; text-transform:uppercase; }
 .pricing-card.barrel .pricing-eyebrow, .pricing-card.founder .pricing-eyebrow { color:var(--color-accent-amber); }
 .pricing-card h2 { margin:10px 0 0; color:var(--color-cream); font:700 31px/1.02 var(--font-playfair); letter-spacing:-.032em; }

@@ -10,6 +10,7 @@ const isProtectedRoute = createRouteMatcher([
   "/finder(.*)",
   "/map(.*)",
   "/settings(.*)",
+  "/sightings(.*)",
   "/api/alerts(.*)",
   "/api/bottle-check(.*)",
   "/api/bottles(.*)",
@@ -37,7 +38,8 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   const signUpUrl = new URL("/sign-up", request.url);
-  signUpUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
+  const redirectAfterAccount = url.pathname.startsWith("/sightings") ? "/pricing" : `${url.pathname}${url.search}`;
+  signUpUrl.searchParams.set("redirect_url", redirectAfterAccount);
   return NextResponse.redirect(signUpUrl);
 });
 

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-29T09:08:42-04:00",
+  "updatedAt": "2026-06-30T09:30:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
     {
@@ -21,7 +21,7 @@
       "source": "Heaven Hill Distillery",
       "url": "https://heavenhilldistillery.com/old-fitzgerald.php",
       "firstReportedAt": "2026-06-26",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Four Roses opens a Mizunara-finished lane",
@@ -49,6 +49,34 @@
       "source": "Virginia ABC",
       "url": "https://www.abc.virginia.gov/products/limited-availability",
       "firstReportedAt": "2026-06-26",
+      "status": "reported"
+    },
+    {
+      "title": "Sagamore takes high-rye bourbon national on July 1",
+      "source": "Sagamore Whiskey / PRNewswire",
+      "url": "https://www.prnewswire.com/news-releases/sagamore-whiskey-announces-national-release-of-high-rye-straight-bourbon-whiskey-302809661.html",
+      "firstReportedAt": "2026-06-30",
+      "status": "reported"
+    },
+    {
+      "title": "Bulleit goes ultra-limited with a 20-year straight rye",
+      "source": "Bulleit / PRNewswire",
+      "url": "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
+      "firstReportedAt": "2026-06-30",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "Knob Creek packages its 9-year bourbon for America\u2019s 250th",
+      "source": "The Bourbon Flight",
+      "url": "https://www.thebourbonflight.com/knob-creek-celebrates-americas-250th-with-limited-edition-independence-release/",
+      "firstReportedAt": "2026-06-30",
+      "status": "reported"
+    },
+    {
+      "title": "Buzzard\u2019s Roost adds Red, White & Roost Double Oak Bourbon",
+      "source": "Buzzard\u2019s Roost / Wine Industry Advisor",
+      "url": "https://wineindustryadvisor.com/2026/06/24/buzzards-roost-distillery-introduces-new-red-white-roost-double-oak-bourbon/",
+      "firstReportedAt": "2026-06-30",
       "status": "reported"
     }
   ]
