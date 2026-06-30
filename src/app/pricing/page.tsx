@@ -54,9 +54,9 @@ const paidTiers: PricingTier[] = [
     annualPrice: "$24.99",
     monthlyPlan: "standard_monthly",
     annualPlan: "standard_annual",
-    description: "Essential email alerts and on-site inbox alerts with focused Drop Feed access.",
+    description: "Essential alerts and full access to most features with few limitations.",
     features: [
-      "Email alerts + on-site inbox",
+      "SMS, Email, and on-site alerts",
       "Up to 5 alert areas",
       "Up to 15 tracked bottles",
       "Full Drop Feed access with filter-by-state only",
@@ -89,11 +89,11 @@ const paidTiers: PricingTier[] = [
   },
   {
     tier: "bottled-in-bond",
-    name: "Bottled in Bond Founder",
-    eyebrow: "Limited founder offer",
+    name: "Bottled in Bond",
+    eyebrow: "Lifetime Founding Members",
     oneTimePrice: "$49.99",
     plan: "bib_lifetime",
-    description: "Lifetime access to all current and future Bourbon Signal features.",
+    description: "Limited offer for members that want to experience the most that Bourbon Signal has to offer with no recurring fee",
     features: [
       "Lifetime access to all current and future features",
       "Only 100 spots",
@@ -112,8 +112,9 @@ const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Daily Briefing", "Limited", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
-  ["Email alerts + on-site inbox", "—", "✓", "✓", "✓"],
+  ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
+  ["Signal Strength meter", "Low · free access", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
   ["Member Sightings", "Demo only", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
   ["My Collection", "Demo only", "—", "✓", "✓"],
@@ -190,7 +191,7 @@ function PricingPageContent() {
     if (tierRank[tier.tier] < currentTierRank) return "Included";
     if (tier.tier === memberTier) return "Current plan";
     if (plan !== null && pendingPlan === plan) return "Opening checkout…";
-    if (tier.tier === "bottled-in-bond") return "Claim founder spot";
+    if (tier.tier === "bottled-in-bond") return "Claim lifetime spot";
     return `Choose ${tier.name}`;
   }
 
@@ -247,7 +248,7 @@ function PricingPageContent() {
                 className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
-                {tier.featured ? <div className="pricing-ribbon">Founder pass · 100 spots</div> : null}
+                {tier.featured ? <div className="pricing-ribbon">Lifetime offer · 100 spots</div> : null}
                 {current ? <div className="current-badge">Current</div> : null}
                 <p className="pricing-eyebrow">{tier.eyebrow}</p>
                 <h2>{tier.name}</h2>

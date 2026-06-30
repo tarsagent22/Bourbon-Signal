@@ -51,7 +51,7 @@ export const LAUNCH_BILLING_PLANS: Record<BillingPlanId, LaunchBillingPlan> = {
   bib_lifetime: {
     id: "bib_lifetime",
     tier: BILLING_PLAN_TO_TIER.bib_lifetime,
-    label: "Bottled-in-Bond Founder",
+    label: "Bottled in Bond Lifetime",
     priceLabel: "$49.99",
     cadenceLabel: "one-time lifetime",
     envKey: "STRIPE_PRICE_BIB_LIFETIME",

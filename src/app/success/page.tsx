@@ -1,15 +1,39 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const { user, isLoaded } = useUser();
+  const [activationStatus, setActivationStatus] = useState<"idle" | "syncing" | "active" | "error">("idle");
 
+  useEffect(() => {
+    if (!sessionId || !isLoaded || !user || activationStatus !== "idle") return;
+    let cancelled = false;
+    setActivationStatus("syncing");
+    fetch("/api/checkout/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Could not activate membership");
+        await user.reload();
+        if (!cancelled) setActivationStatus("active");
+      })
+      .catch(() => {
+        if (!cancelled) setActivationStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activationStatus, isLoaded, sessionId, user]);
 
   return (
     <div
@@ -97,7 +121,7 @@ function SuccessContent() {
               margin: 0,
             }}
           >
-            Your membership is being activated. If you chose a recurring plan, billing follows the cadence shown at checkout. If you claimed a Founder spot, your lifetime access is tied to this account.
+            {activationStatus === "syncing" ? "Activating your membership now…" : activationStatus === "active" ? "Your membership is active. If you chose a recurring plan, billing follows the cadence shown at checkout. If you claimed lifetime access, it is tied to this account." : "Your membership is being activated. If you chose a recurring plan, billing follows the cadence shown at checkout. If you claimed lifetime access, it is tied to this account."}
           </p>
           <p
             style={{
@@ -108,7 +132,7 @@ function SuccessContent() {
               marginBottom: 0,
             }}
           >
-            Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about.
+            {activationStatus === "error" ? "If access does not update in a moment, refresh this page or contact support with the checkout session shown below." : "Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about."}
           </p>
         </div>
 

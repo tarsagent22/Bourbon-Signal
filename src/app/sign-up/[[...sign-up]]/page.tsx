@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 
@@ -15,6 +15,18 @@ export default function SignUpPage() {
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
+
+  useEffect(() => {
+    if (window.localStorage.getItem("bourbon_signal_age_confirmed") === "1") {
+      setAgeChecked(true);
+      setConfirmedAge(true);
+    }
+  }, []);
+
+  const confirmAge = () => {
+    window.localStorage.setItem("bourbon_signal_age_confirmed", "1");
+    setConfirmedAge(true);
+  };
 
   return (
     <div
@@ -156,7 +168,7 @@ export default function SignUpPage() {
                 setAttempted(true);
                 return;
               }
-              setConfirmedAge(true);
+              confirmAge();
             }}
             style={{
               width: "100%",
