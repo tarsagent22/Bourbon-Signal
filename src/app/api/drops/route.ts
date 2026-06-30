@@ -1,5 +1,6 @@
+import { getEntitlements } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
 
@@ -198,14 +199,18 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const state = normalizeStateCodeParam(url.searchParams.get("state"));
+  const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
+  const entitlements = getEntitlements(user?.publicMetadata || null);
+  const isFreeAccess = !isSignedIn || entitlements.tier === "free";
   const requestedLimit = Math.max(0, Number(url.searchParams.get("limit") ?? "50") || 50);
-  const limit = isSignedIn ? requestedLimit : Math.min(requestedLimit, ANONYMOUS_DROP_PREVIEW_LIMIT);
-  const offset = isSignedIn ? Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0) : 0;
-  const bottle = url.searchParams.get("bottle")?.toLowerCase().trim();
-  const store = url.searchParams.get("store")?.toLowerCase().trim();
-  const include = url.searchParams.get("include")?.toLowerCase().trim();
-  const tierFilter = parseTierFilter(url);
+  const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
+  const limit = isFreeAccess ? Math.min(requestedLimit, previewLimit) : requestedLimit;
+  const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
+  const state = isFreeAccess || !entitlements.canUseStateFilter ? null : normalizeStateCodeParam(url.searchParams.get("state"));
+  const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
+  const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
+  const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
+  const tierFilter = entitlements.canUseDropFeedFilters ? parseTierFilter(url) : new Set<string>();
 
   try {
     const exportPayload = readSiteExport("drops");
@@ -292,9 +297,9 @@ export async function GET(request: Request) {
         total,
         limit,
         offset,
-        hasMore: isSignedIn && offset + limit < total,
-        previewLocked: !isSignedIn && total > pagedDrops.length,
-        requiresAccountForFullFeed: !isSignedIn,
+        hasMore: !isFreeAccess && offset + limit < total,
+        previewLocked: isFreeAccess && total > pagedDrops.length,
+        requiresAccountForFullFeed: isFreeAccess,
         lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
         engineFresh,
         degradedStatesFiltered: Array.from(degradedStates),
@@ -320,9 +325,10 @@ export async function GET(request: Request) {
         engineFresh: false,
         degradedStatesFiltered: [],
         error: "Engine export temporarily unavailable",
+        fallback: true,
       },
       {
-        status: 200,
+        status: 503,
         headers: {
           ...siteExportHeaders("empty-fallback"),
           "X-Drops-Source": "empty-fallback",

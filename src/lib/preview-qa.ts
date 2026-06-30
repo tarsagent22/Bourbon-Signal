@@ -53,9 +53,8 @@ function hostLooksLikeSafeQaPreview(hostname: string) {
   );
 }
 
-export function isQaPreviewRequest(request: NextRequest) {
-  const host = request.headers.get("host") || "";
-  return process.env.BOURBON_SIGNAL_QA_PREVIEW === "1" || hostLooksLikeSafeQaPreview(host);
+export function isQaPreviewRequest(_request: NextRequest) {
+  return false;
 }
 
 export function getQaPreviewTierFromRequest(request: NextRequest): MembershipTier {
@@ -69,9 +68,7 @@ export function getQaPreviewTierFromRequest(request: NextRequest): MembershipTie
 }
 
 export function isQaPreviewMode() {
-  if (process.env.NEXT_PUBLIC_BOURBON_SIGNAL_QA_PREVIEW === "1") return true;
-  if (typeof window === "undefined") return false;
-  return hostLooksLikeSafeQaPreview(window.location.hostname);
+  return false;
 }
 
 function queryTierFromBrowser() {

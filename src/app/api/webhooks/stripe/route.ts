@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
+import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
 import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
-import { activateMembership, downgradeMembershipForSubscription, findUserByStripeCustomerId } from "@/lib/membership-server";
+import { activateMembership, downgradeMembershipForSubscription, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     const plan = await planFromCheckoutSession(stripe, session);
-    if (userId && plan) {
+    if (userId && plan && (plan.id === "bib_lifetime" || !session.subscription)) {
       await activateMembership(userId, {
         tier: plan.tier,
         plan: plan.id,
@@ -76,16 +76,21 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
     const subscription = event.data.object as Stripe.Subscription;
-    const userId = stringValue(subscription.metadata?.userId);
+    const customerId = stringValue(subscription.customer);
+    const metadataUserId = stringValue(subscription.metadata?.userId);
+    const existingUser = !metadataUserId && customerId ? await findUserByStripeCustomerId(customerId) : null;
+    const userId = metadataUserId || existingUser?.id || null;
     const plan = await planFromSubscription(subscription);
-    if (userId && plan) {
+    if (userId && plan && isMembershipAccessActive(plan.tier, subscription.status, plan.id)) {
       await activateMembership(userId, {
         tier: plan.tier,
         plan: plan.id,
-        stripeCustomerId: stringValue(subscription.customer),
+        stripeCustomerId: customerId,
         stripeSubscriptionId: subscription.id,
         status: subscription.status,
       });
+    } else if (customerId && !isMembershipAccessActive(plan?.tier, subscription.status, plan?.id)) {
+      await suspendMembershipForSubscription(customerId, subscription.id, subscription.status);
     }
   }
 
@@ -100,18 +105,8 @@ export async function POST(req: NextRequest) {
     const customerId = stringValue(invoice.customer);
     const user = customerId ? await findUserByStripeCustomerId(customerId) : null;
     if (user) {
-      const client = await clerkClient();
-      await client.users.updateUserMetadata(user.id, {
-        publicMetadata: {
-          ...user.publicMetadata,
-          membershipStatus: "past_due",
-          membershipUpdatedAt: new Date().toISOString(),
-        },
-        privateMetadata: {
-          ...user.privateMetadata,
-          stripeMembershipStatus: "past_due",
-        },
-      });
+      const subscriptionId = stringValue((invoice as unknown as { subscription?: unknown }).subscription) || stringValue(user.privateMetadata?.stripeSubscriptionId) || "";
+      if (customerId && subscriptionId) await suspendMembershipForSubscription(customerId, subscriptionId, "past_due");
     }
   }
 

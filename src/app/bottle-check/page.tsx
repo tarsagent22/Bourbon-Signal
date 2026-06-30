@@ -119,6 +119,7 @@ export default function BottleCheckPage() {
   const [submittedState, setSubmittedState] = useState("NC");
   const [state, setState] = useState("NC");
   const [result, setResult] = useState<BottleResult | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trackingStates, setTrackingStates] = useState<string[]>(["NC"]);
   const [savingTrack, setSavingTrack] = useState(false);
@@ -150,9 +151,11 @@ export default function BottleCheckPage() {
           if (typeof window !== "undefined") window.localStorage.setItem(BOTTLE_CHECK_USAGE_STORAGE_KEY, String(data.usage.used));
         }
         setResult(data);
+        setHasSearched(true);
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setResult({ bottle: null, message: "Bottle Check is temporarily unavailable. Try again in a minute." });
+          setHasSearched(true);
         }
       } finally {
         setLoading(false);
@@ -309,6 +312,7 @@ export default function BottleCheckPage() {
                     onClick={() => {
                       setQuery("");
                       setResult(null);
+                      setHasSearched(false);
                     }}
                   >
                     ×
@@ -324,6 +328,8 @@ export default function BottleCheckPage() {
                       onClick={() => {
                         setQuery(suggestion.canonicalName);
                         setSubmittedQuery(suggestion.canonicalName);
+                        setSubmittedState(state);
+                        setHasSearched(true);
                       }}
                     >
                       <span>{suggestion.canonicalName}</span>
@@ -346,6 +352,11 @@ export default function BottleCheckPage() {
 
           {loading ? (
             <div className="bc-panel muted">Checking Bottle Signal…</div>
+          ) : !hasSearched ? (
+            <div className="bc-panel empty">
+              <strong>Search any bottle to read the signal.</strong>
+              <p>Check rarity, local market history, and whether a bottle is worth chasing before you burn a trip.</p>
+            </div>
           ) : !bottle ? (
             <div className="bc-panel empty">
               <strong>We do not have that bottle yet.</strong>

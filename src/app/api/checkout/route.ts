@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, resolveEffectiveMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 
@@ -20,7 +20,11 @@ function getStripeClient() {
 }
 
 function appUrl(req: NextRequest) {
-  return process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin || "https://bourbonsignal.com";
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const origin = configured || req.nextUrl.origin || "https://bourbonsignal.com";
+  const allowed = new Set(["https://bourbonsignal.com", "https://www.bourbonsignal.com"]);
+  if (process.env.NODE_ENV === "production" && !allowed.has(origin)) return "https://www.bourbonsignal.com";
+  return origin;
 }
 
 async function founderSpotsSold() {
@@ -73,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const currentTier = normalizeMembershipTier(user.publicMetadata?.tier);
+  const currentTier = resolveEffectiveMembershipTier(user.publicMetadata);
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
   }

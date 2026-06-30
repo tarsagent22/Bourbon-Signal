@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 
+const DEFAULT_ONBOARDING_REDIRECT = "/alerts?welcome=1";
+
 function safeRedirectUrl(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/pricing";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return DEFAULT_ONBOARDING_REDIRECT;
   return value;
 }
 
@@ -68,7 +70,11 @@ export default function SignUpPage() {
       </div>
 
       {confirmedAge ? (
-        <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} />
+        redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
+          <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" />
+        ) : (
+          <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} />
+        )
       ) : (
         <section
           aria-labelledby="age-confirmation-title"

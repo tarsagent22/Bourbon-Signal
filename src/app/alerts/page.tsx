@@ -42,7 +42,10 @@ export default function AlertsPage() {
             <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: "10px" }}>Recommended first step</div>
             <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "30px" }}>Set your alert preferences first.</h2>
             <p style={{ margin: "12px 0 18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.65 }}>Setting your alert preferences before doing anything else is highly recommended for the best experience.</p>
-            <button type="button" onClick={() => setShowWelcomePrompt(false)} style={{ width: "100%", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.28)", background: "rgba(196,148,58,0.12)", color: "var(--color-cream)", padding: "12px 16px", fontFamily: "var(--font-dm-sans)", fontWeight: 800, cursor: "pointer" }}>OK</button>
+            <div style={{ display: "grid", gap: "10px" }}>
+              <a href="/dashboard?section=alerts" onClick={() => setShowWelcomePrompt(false)} style={{ textAlign: "center", textDecoration: "none", width: "100%", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.36)", background: "linear-gradient(135deg, rgba(196,148,58,0.24), rgba(196,148,58,0.1))", color: "var(--color-cream)", padding: "12px 16px", fontFamily: "var(--font-dm-sans)", fontWeight: 800, cursor: "pointer" }}>Set alert preferences</a>
+              <button type="button" onClick={() => setShowWelcomePrompt(false)} style={{ width: "100%", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", padding: "11px 16px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>I’ll do this later</button>
+            </div>
           </div>
         </div>
       ) : null}

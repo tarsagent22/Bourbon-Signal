@@ -2,37 +2,20 @@
 
 import { useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { getEntitlements, isPaidTier, normalizeMembershipTier } from "@/lib/entitlements";
-import { getQaPreviewTierFromBrowser, isQaPreviewMode } from "@/lib/preview-qa";
+import { getEntitlements, isPaidTier, resolveEffectiveMembershipTier } from "@/lib/entitlements";
 
 export function useAuth() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut, openSignIn } = useClerk();
-  const qaPreview = isQaPreviewMode();
 
-  const previewTier = qaPreview ? getQaPreviewTierFromBrowser() : null;
-  const rawTier = qaPreview
-    ? previewTier
-    : typeof user?.publicMetadata?.tier === "string"
-      ? user.publicMetadata.tier
-      : typeof user?.publicMetadata?.membershipTier === "string"
-        ? user.publicMetadata.membershipTier
-        : null;
-  const memberTier = qaPreview || isSignedIn ? normalizeMembershipTier(rawTier) : "free";
-  const entitlements = getEntitlements(memberTier);
-  const isPaidUser = isPaidTier(memberTier);
-  const rawMemberNumber = qaPreview ? 1 : Number(user?.publicMetadata?.memberNumber || user?.publicMetadata?.founderNumber || 0);
+  const memberTier = isSignedIn ? resolveEffectiveMembershipTier(user?.publicMetadata || null) : "free";
+  const entitlements = getEntitlements(user?.publicMetadata || memberTier);
+  const isPaidUser = isPaidTier(user?.publicMetadata || memberTier);
+  const rawMemberNumber = Number(user?.publicMetadata?.memberNumber || user?.publicMetadata?.founderNumber || 0);
   const memberNumber = Number.isFinite(rawMemberNumber) && rawMemberNumber > 0 ? rawMemberNumber : 0;
-  const qaUser = qaPreview
-    ? ({
-        firstName: "QA Preview",
-        publicMetadata: { tier: memberTier },
-        emailAddresses: [{ emailAddress: `${memberTier}@bourbonsignal.local` }],
-      } as unknown as typeof user)
-    : user;
 
   useEffect(() => {
-    if (qaPreview || !isLoaded || !isSignedIn || !user || memberTier !== "free") return;
+    if (!isLoaded || !isSignedIn || !user || memberTier !== "free") return;
     const key = `bourbon_signal_checkout_recover_${user.id}`;
     if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1") return;
     if (typeof window !== "undefined") window.sessionStorage.setItem(key, "1");
@@ -46,27 +29,22 @@ export function useAuth() {
         if (data?.activated) await user.reload();
       })
       .catch(() => {});
-  }, [isLoaded, isSignedIn, memberTier, qaPreview, user]);
+  }, [isLoaded, isSignedIn, memberTier, user]);
 
   return {
-    isLoaded: qaPreview || isLoaded,
-    isSignedIn: qaPreview || !!isSignedIn,
+    isLoaded,
+    isSignedIn: !!isSignedIn,
     memberTier,
     entitlements,
     isPaidUser,
     memberNumber,
-    user: qaUser,
-    signIn: () => {
-      if (!qaPreview) openSignIn();
-    },
+    user,
+    signIn: () => openSignIn(),
     signUp: () => {
-      if (qaPreview) return;
       if (typeof window !== "undefined") {
         window.location.href = "/sign-up?redirect_url=/pricing";
       }
     },
-    signOut: () => {
-      if (!qaPreview) signOut();
-    },
+    signOut: () => signOut(),
   };
 }

@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
-import { normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
@@ -23,16 +23,18 @@ export async function activateMembership(userId: string, input: {
   const user = await client.users.getUser(userId);
   const now = new Date().toISOString();
   const status = input.status || "active";
+  const accessTier = isMembershipAccessActive(input.tier, status, input.plan) ? input.tier : "free";
+  const accessPlan = accessTier === "free" ? "free" : input.plan;
 
-  // Entitlement access depends only on public metadata. Keep this write tiny and first so
+  // Entitlement access depends on both tier and billing status. Keep this write tiny and first so Keep this write tiny and first so
   // large private metadata surfaces (alert inboxes, delivery records, etc.) cannot block a
   // paid checkout from activating the user's tier.
   await client.users.updateUserMetadata(userId, {
     publicMetadata: {
-      tier: input.tier,
-      plan: input.plan,
-      membershipTier: input.tier,
-      billingPlan: input.plan,
+      tier: accessTier,
+      plan: accessPlan,
+      membershipTier: accessTier,
+      billingPlan: accessPlan,
       membershipStatus: status,
       subscribedAt: stringValue(user.publicMetadata?.subscribedAt) || now,
       membershipUpdatedAt: now,
@@ -59,6 +61,30 @@ export async function activateMembership(userId: string, input: {
       message: error instanceof Error ? error.message : String(error),
     });
   }
+}
+
+
+export async function suspendMembershipForSubscription(customerId: string, subscriptionId: string, status = "past_due") {
+  const user = await findUserByStripeCustomerId(customerId);
+  if (!user) return;
+  const existingPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
+  const existingTier = normalizeMembershipTier(user.publicMetadata?.tier || user.publicMetadata?.membershipTier);
+  if (existingPlan === "bib_lifetime" || existingTier === "bottled-in-bond") return;
+  const storedSubscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
+  if (storedSubscriptionId && storedSubscriptionId !== subscriptionId) return;
+
+  const client = await clerkClient();
+  await client.users.updateUserMetadata(user.id, {
+    publicMetadata: {
+      ...user.publicMetadata,
+      membershipStatus: status,
+      membershipUpdatedAt: new Date().toISOString(),
+    },
+    privateMetadata: {
+      ...user.privateMetadata,
+      stripeMembershipStatus: status,
+    },
+  });
 }
 
 export async function downgradeMembershipForSubscription(customerId: string, subscriptionId: string) {

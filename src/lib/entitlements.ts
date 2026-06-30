@@ -7,6 +7,8 @@ export type BillingPlanId =
   | "barrel_annual"
   | "bib_lifetime";
 
+export type MembershipStatus = "free" | "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "incomplete_expired" | "unpaid" | "paused" | "lifetime";
+
 export interface TierEntitlements {
   tier: MembershipTier;
   label: string;
@@ -157,10 +159,41 @@ export function normalizeBillingPlan(value: unknown): BillingPlanId | null {
   return null;
 }
 
-export function getEntitlements(tier: unknown): TierEntitlements {
-  return TIER_ENTITLEMENTS[normalizeMembershipTier(tier)];
+export function normalizeMembershipStatus(value: unknown): MembershipStatus {
+  if (value === "active" || value === "trialing" || value === "past_due" || value === "canceled" || value === "incomplete" || value === "incomplete_expired" || value === "unpaid" || value === "paused" || value === "lifetime") return value;
+  return "free";
 }
 
-export function isPaidTier(tier: unknown) {
-  return normalizeMembershipTier(tier) !== "free";
+function metadataValue(input: unknown, key: string) {
+  if (!input || typeof input !== "object") return undefined;
+  const record = input as Record<string, unknown>;
+  const publicMetadata = record.publicMetadata && typeof record.publicMetadata === "object" ? record.publicMetadata as Record<string, unknown> : null;
+  return record[key] ?? publicMetadata?.[key];
+}
+
+export function isMembershipAccessActive(tier: unknown, status: unknown, plan?: unknown) {
+  const normalizedTier = normalizeMembershipTier(tier);
+  if (normalizedTier === "free") return false;
+  const normalizedStatus = normalizeMembershipStatus(status);
+  if (normalizedStatus === "active" || normalizedStatus === "trialing" || normalizedStatus === "lifetime") return true;
+  return normalizedTier === "bottled-in-bond" && (plan === "bib_lifetime" || plan === "founder") && normalizedStatus !== "canceled" && normalizedStatus !== "unpaid" && normalizedStatus !== "past_due" && normalizedStatus !== "incomplete_expired";
+}
+
+export function resolveEffectiveMembershipTier(input: unknown): MembershipTier {
+  if (input && typeof input === "object") {
+    const rawTier = metadataValue(input, "tier") ?? metadataValue(input, "membershipTier");
+    const rawPlan = metadataValue(input, "plan") ?? metadataValue(input, "billingPlan");
+    const status = metadataValue(input, "membershipStatus");
+    const tier = normalizeMembershipTier(rawTier);
+    return isMembershipAccessActive(tier, status, rawPlan) ? tier : "free";
+  }
+  return normalizeMembershipTier(input);
+}
+
+export function getEntitlements(tierOrMetadata: unknown): TierEntitlements {
+  return TIER_ENTITLEMENTS[resolveEffectiveMembershipTier(tierOrMetadata)];
+}
+
+export function isPaidTier(tierOrMetadata: unknown) {
+  return resolveEffectiveMembershipTier(tierOrMetadata) !== "free";
 }

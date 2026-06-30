@@ -234,9 +234,14 @@ function reliabilityForCandidate(change, sig, score) {
   if (!isNewOrPositive) cautions.push('not_new_or_positive_change');
 
   const majorTier = sig.tier === 'unicorn' || sig.tier === 'allocated';
+  const hasFreshPositiveInventory = isInventory
+    && quantity > 0
+    && ageHours != null
+    && ageHours <= 72
+    && confidence >= 0.62;
   const eligible = blockers.length === 0
-    && isNewOrPositive
-    && (isInventory ? (confidence >= 0.62 && ageHours != null && ageHours <= 72) : (isActionableWatch && confidence >= 0.55 && ageHours != null && ageHours <= 168))
+    && (isNewOrPositive || hasFreshPositiveInventory)
+    && (isInventory ? hasFreshPositiveInventory : (isActionableWatch && confidence >= 0.55 && ageHours != null && ageHours <= 168))
     && score >= (majorTier ? 85 : isInventory ? 92 : 78);
 
   const priorityClass = eligible && (score >= 115 || majorTier || precisionScore >= precisionRank('store_level')) ? 'major'

@@ -11,7 +11,8 @@ export async function GET() {
     const bottles = Array.isArray(bottlesPayload?.bottles) ? (bottlesPayload.bottles as Record<string, unknown>[]) : [];
     const stores = Array.isArray(storesPayload?.stores) ? (storesPayload.stores as Record<string, unknown>[]) : [];
     const drops = Array.isArray(dropsPayload?.drops) ? (dropsPayload.drops as Record<string, unknown>[]) : [];
-    const data = normalizeStatsForSite(statsPayload ?? {}, bottles, stores, drops);
+    if (!statsPayload) throw new Error("Missing stats export");
+    const data = normalizeStatsForSite(statsPayload, bottles, stores, drops);
 
     return NextResponse.json(data, {
       headers: siteExportHeaders("local-export"),
@@ -30,9 +31,11 @@ export async function GET() {
         allocated_count: 0,
         by_state: {},
         error: "Engine export temporarily unavailable",
+        fallback: true,
+        engineFresh: false,
       },
       {
-        status: 200,
+        status: 503,
         headers: siteExportHeaders("empty-fallback"),
       }
     );

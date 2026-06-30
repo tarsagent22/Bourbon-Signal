@@ -717,7 +717,10 @@ export default function DashboardPage() {
   const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
   const [territorySearch, setTerritorySearch] = useState("");
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
-  const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(null);
+  const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("section") === "alerts" ? "alerts" : null;
+  });
   const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const hydratedBottlePrefsKeyRef = useRef("");
@@ -1589,9 +1592,7 @@ export default function DashboardPage() {
       window.location.href = "/pricing";
       return;
     }
-    setSavingLocations(false);
-    setSavedLocations(true);
-    setSavedNotifications(true);
+    setSavingLocations(true);
     setCollectionError(null);
     const nextPrefs: UserAlertPreferences = {
       areaPreferences: localPrefs,
@@ -1604,14 +1605,18 @@ export default function DashboardPage() {
       collectionPreferences: prefs.collectionPreferences,
     };
     void savePreferences(nextPrefs)
+      .then(() => {
+        setSavedLocations(true);
+        setSavedNotifications(true);
+        setTimeout(() => setSavedLocations(false), 1600);
+        setTimeout(() => setSavedNotifications(false), 1600);
+      })
       .catch((error) => {
         setCollectionError(error instanceof Error ? error.message : "Could not save alert setup yet.");
         setSavedLocations(false);
         setSavedNotifications(false);
       })
       .finally(() => setSavingLocations(false));
-    setTimeout(() => setSavedLocations(false), 1600);
-    setTimeout(() => setSavedNotifications(false), 1600);
   };
 
   const signalStrengthModel = useMemo(() => buildSignalStrengthModel({
@@ -2240,6 +2245,14 @@ export default function DashboardPage() {
           <div className="dashboard-workspace">
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
+          <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
+            {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
+              <div key={item.label} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", background: "rgba(10,8,5,0.42)", padding: "12px" }}>
+                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(245,237,214,0.48)" }}>{item.label}</div>
+                <strong style={{ display: "block", marginTop: "5px", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "22px" }}>{item.value}</strong>
+              </div>
+            ))}
+          </div>
 
           {renderSectionButton("alerts")}
 

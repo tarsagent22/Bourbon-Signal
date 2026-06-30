@@ -350,11 +350,19 @@ export async function POST(req: NextRequest) {
   let notificationPreferences = normalizeNotificationPreferences(
     payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
   );
+  if (payload.notificationPreferences !== undefined) {
+    const existingSms = existing.notificationPreferences?.sms;
+    const samePhone = existingSms?.phone && existingSms.phone === notificationPreferences.sms.phone;
+    notificationPreferences = {
+      ...notificationPreferences,
+      sms: { ...notificationPreferences.sms, verified: Boolean(samePhone && existingSms?.verified) },
+    };
+  }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
-  const entitlements = getEntitlements(user.publicMetadata?.tier);
+  const entitlements = getEntitlements(user.publicMetadata);
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {

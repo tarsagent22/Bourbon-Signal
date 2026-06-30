@@ -14,7 +14,7 @@ function SuccessContent() {
   const [activationStatus, setActivationStatus] = useState<"idle" | "syncing" | "active" | "error">("idle");
 
   useEffect(() => {
-    if (!sessionId || !isLoaded || activationStatus !== "idle") return;
+    if (!sessionId || !isLoaded || !user || activationStatus !== "idle") return;
     let cancelled = false;
     setActivationStatus("syncing");
     fetch("/api/checkout/sync", {
@@ -132,7 +132,7 @@ function SuccessContent() {
               marginBottom: 0,
             }}
           >
-            {activationStatus === "error" ? "If access does not update in a moment, refresh this page or contact support with the checkout session shown below." : "Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about."}
+            {activationStatus === "error" ? "If access does not update in a moment, refresh this page or contact support from the account email used at checkout." : "Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about."}
           </p>
         </div>
 
@@ -180,20 +180,6 @@ function SuccessContent() {
         >
           Start Hunting →
         </Link>
-
-        {/* Session ID (hidden but available for debugging) */}
-        {sessionId && (
-          <p
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: "11px",
-              color: "rgba(245,237,214,0.15)",
-              marginTop: "32px",
-            }}
-          >
-            {sessionId}
-          </p>
-        )}
       </div>
     </div>
   );
