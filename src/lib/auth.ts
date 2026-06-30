@@ -10,7 +10,13 @@ export function useAuth() {
   const qaPreview = isQaPreviewMode();
 
   const previewTier = qaPreview ? getQaPreviewTierFromBrowser() : null;
-  const rawTier = qaPreview ? previewTier : typeof user?.publicMetadata?.tier === "string" ? user.publicMetadata.tier : null;
+  const rawTier = qaPreview
+    ? previewTier
+    : typeof user?.publicMetadata?.tier === "string"
+      ? user.publicMetadata.tier
+      : typeof user?.publicMetadata?.membershipTier === "string"
+        ? user.publicMetadata.membershipTier
+        : null;
   const memberTier = qaPreview || isSignedIn ? normalizeMembershipTier(rawTier) : "free";
   const entitlements = getEntitlements(memberTier);
   const isPaidUser = isPaidTier(memberTier);
