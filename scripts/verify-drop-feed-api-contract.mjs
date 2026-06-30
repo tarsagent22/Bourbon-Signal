@@ -65,6 +65,14 @@ if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(al
   fail('/api/drops?state=all should mean all covered states, not a literal ALL state filter.');
 }
 
+const ncPreview = await getJson('/api/drops?state=NC&limit=7');
+if (!Array.isArray(ncPreview.drops) || ncPreview.drops.length === 0 || Number(ncPreview.total || 0) === 0) {
+  fail('/api/drops?state=NC should return a capped North Carolina preview for signed-out/free users instead of making the client filter a non-NC global preview to zero.');
+} else {
+  const nonNcPreviewRows = ncPreview.drops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() !== 'NC');
+  if (nonNcPreviewRows.length > 0) fail('/api/drops?state=NC returned non-NC rows in the state-specific preview.');
+}
+
 const ncWakeBoard = await getJson('/api/drops?state=NC&store=Wake%20County%20ABC&limit=20');
 if (Number(ncWakeBoard.total || 0) === 0) {
   fail('/api/drops?state=NC&store=Wake%20County%20ABC should treat NC ABC labels as board/area queries when fresh Wake County signals exist.');

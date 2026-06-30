@@ -206,11 +206,15 @@ export async function GET(request: Request) {
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
   const limit = isFreeAccess ? Math.min(requestedLimit, previewLimit) : requestedLimit;
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
-  const state = isFreeAccess || !entitlements.canUseStateFilter ? null : normalizeStateCodeParam(url.searchParams.get("state"));
+  // State selection is a browsing/acquisition control, not a paid-only advanced filter.
+  // Free and signed-out users still receive the capped preview, but the preview must
+  // come from the requested market; otherwise a saved/selected NC lens can look
+  // completely blank even when the engine has current or historical NC signals.
+  const state = normalizeStateCodeParam(url.searchParams.get("state"));
   const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
-  const tierFilter = entitlements.canUseDropFeedFilters ? parseTierFilter(url) : new Set<string>();
+  const tierFilter = parseTierFilter(url);
 
   try {
     const exportPayload = readSiteExport("drops");
