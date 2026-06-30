@@ -12,7 +12,12 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "What can I see before paying?",
+    question: "Which states are covered right now?",
+    answer:
+      "Bourbon Signal currently tracks North Carolina, Virginia, Pennsylvania, Iowa, Idaho, Alabama, Illinois, Indiana, Tennessee, South Carolina, Kentucky, and Maryland starting with Montgomery County. Coverage quality varies by state: some markets have store-level inventory, some have official delivery or board-level leads, and some are broader release/watch signals. We add states only when the public data is strong enough to label honestly.",
+  },
+  {
+    question: "What can I do as a free member?",
     answer:
       "Free accounts get a real preview: limited Drop Feed rows, demo access to member tools, and 3 Bottle Checks. Saving alerts, Member Sightings, collection data, and personalized recommendations requires a paid membership.",
   },
@@ -25,11 +30,6 @@ const faqs: FAQItem[] = [
     question: "Are Drop Feed signals guaranteed inventory?",
     answer:
       "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
-  },
-  {
-    question: "Which states are covered right now?",
-    answer:
-      "Bourbon Signal currently tracks North Carolina, Virginia, Pennsylvania, Iowa, Idaho, Alabama, Illinois, Indiana, Tennessee, South Carolina, Kentucky, and Maryland starting with Montgomery County. Coverage quality varies by state: some markets have store-level inventory, some have official delivery or board-level leads, and some are broader release/watch signals. We add states only when the public data is strong enough to label honestly.",
   },
   {
     question: "What is Bottle Check?",
