@@ -72,7 +72,7 @@ async function getAggregateSightings(currentUserId: string) {
 async function requireSightingsEntitlements(userId: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  return getEntitlements(user.publicMetadata?.tier);
+  return getEntitlements(user.publicMetadata);
 }
 
 export async function GET(req: NextRequest) {

@@ -22,7 +22,7 @@ async function consumeFreeBottleCheckIfNeeded(intent: string) {
   if (!userId) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const entitlements = getEntitlements(user.publicMetadata?.tier);
+  const entitlements = getEntitlements(user.publicMetadata);
   if (entitlements.bottleCheckLimit === null) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
   const limit = entitlements.bottleCheckLimit ?? FREE_BOTTLE_CHECK_LIMIT;
   const current = normalizeUsage(user.publicMetadata?.bottleCheckUsage);
