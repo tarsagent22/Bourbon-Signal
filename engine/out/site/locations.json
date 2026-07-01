@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-01T14:33:10.566Z",
+  "generatedAt": "2026-07-01T14:41:05.957Z",
   "count": 4409,
   "locations": [
     {
@@ -51647,7 +51647,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 135,
-      "lastSignalAt": "2026-07-01T14:07:18.325Z",
+      "lastSignalAt": "2026-07-01T14:39:34.371Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -51671,7 +51671,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 106,
-      "lastSignalAt": "2026-07-01T14:07:19.998Z",
+      "lastSignalAt": "2026-07-01T14:39:36.028Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -51695,7 +51695,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:07:17.836Z",
+      "lastSignalAt": "2026-07-01T14:39:33.788Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -56711,7 +56711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-01T14:07:40.469Z",
+      "lastSignalAt": "2026-07-01T14:39:59.140Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -56927,7 +56927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -56999,7 +56999,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:07:22.432Z",
+      "lastSignalAt": "2026-07-01T14:39:39.342Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -57167,7 +57167,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 53,
-      "lastSignalAt": "2026-07-01T14:07:22.432Z",
+      "lastSignalAt": "2026-07-01T14:39:39.342Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -57359,7 +57359,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:07:34.381Z",
+      "lastSignalAt": "2026-07-01T14:39:51.206Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -57599,7 +57599,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-07-01T14:07:22.432Z",
+      "lastSignalAt": "2026-07-01T14:39:39.342Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -57647,7 +57647,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:08:25.207Z",
+      "lastSignalAt": "2026-07-01T14:40:47.432Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -57815,7 +57815,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:07:53.796Z",
+      "lastSignalAt": "2026-07-01T14:40:16.498Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -57839,7 +57839,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -57983,7 +57983,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -58007,7 +58007,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:07:40.469Z",
+      "lastSignalAt": "2026-07-01T14:39:59.140Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -58295,7 +58295,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-01T14:07:53.796Z",
+      "lastSignalAt": "2026-07-01T14:40:16.498Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -58319,7 +58319,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:07:47.477Z",
+      "lastSignalAt": "2026-07-01T14:40:08.536Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -58511,7 +58511,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 14,
-      "lastSignalAt": "2026-07-01T14:07:22.432Z",
+      "lastSignalAt": "2026-07-01T14:39:39.341Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -58799,7 +58799,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 19,
-      "lastSignalAt": "2026-07-01T14:08:04.281Z",
+      "lastSignalAt": "2026-07-01T14:40:27.732Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -58943,7 +58943,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -60071,7 +60071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 15,
-      "lastSignalAt": "2026-07-01T14:07:22.432Z",
+      "lastSignalAt": "2026-07-01T14:39:39.342Z",
       "lastVerifiedAt": null,
       "notes": "Wake County has a current inventory collector attached; other NC boards are preloaded for future board/store collectors."
     },
@@ -60239,7 +60239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "Preloaded NC board/county infrastructure; board-specific store/inventory collectors can attach later."
     },
@@ -60287,7 +60287,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-07-01T14:07:26.849Z",
+      "lastSignalAt": "2026-07-01T14:39:43.524Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74303,7 +74303,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74327,7 +74327,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74351,7 +74351,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74375,7 +74375,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74399,7 +74399,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74423,7 +74423,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74447,7 +74447,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74471,7 +74471,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74495,7 +74495,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74519,7 +74519,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74543,7 +74543,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74567,7 +74567,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74591,7 +74591,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 2,
-      "lastSignalAt": "2026-07-01T14:08:18.200Z",
+      "lastSignalAt": "2026-07-01T14:40:40.958Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74615,7 +74615,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74639,7 +74639,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 12,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74663,7 +74663,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:16.434Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74687,7 +74687,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74711,7 +74711,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-01T14:08:16.434Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74735,7 +74735,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74759,7 +74759,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:14.374Z",
+      "lastSignalAt": "2026-07-01T14:40:36.977Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74783,7 +74783,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74807,7 +74807,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74831,7 +74831,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74855,7 +74855,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74879,7 +74879,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74903,7 +74903,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-01T14:08:14.374Z",
+      "lastSignalAt": "2026-07-01T14:40:36.976Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74927,7 +74927,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74951,7 +74951,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 12,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74975,7 +74975,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 10,
-      "lastSignalAt": "2026-07-01T14:08:16.434Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -74999,7 +74999,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 8,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75023,7 +75023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75047,7 +75047,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75071,7 +75071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-01T14:08:14.374Z",
+      "lastSignalAt": "2026-07-01T14:40:36.977Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75095,7 +75095,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-01T14:08:14.374Z",
+      "lastSignalAt": "2026-07-01T14:40:36.977Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75119,7 +75119,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75143,7 +75143,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75167,7 +75167,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75191,7 +75191,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-07-01T14:08:17.433Z",
+      "lastSignalAt": "2026-07-01T14:40:39.855Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75215,7 +75215,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 7,
-      "lastSignalAt": "2026-07-01T14:08:16.433Z",
+      "lastSignalAt": "2026-07-01T14:40:38.960Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },
@@ -75239,7 +75239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-01T14:08:14.374Z",
+      "lastSignalAt": "2026-07-01T14:40:36.977Z",
       "lastVerifiedAt": null,
       "notes": "NC is fragmented by local ABC boards. Wake can expose store-level inventory, NC Stock Shipped Data gives board-level shipment evidence, and the NC warehouse page is statewide early-warning radar. Board/warehouse signals are useful planning intelligence but must not be described as exact shelf inventory."
     },

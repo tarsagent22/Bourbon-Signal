@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-01T14:07:17.836Z",
+  "generatedAt": "2026-07-01T14:39:33.788Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-07-01T14:07:18.038Z"
+    "observedAt": "2026-07-01T14:39:33.992Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
     "rowCount": 3297,
     "bourbonOrWhiskeyRowCount": 666,
-    "observedAt": "2026-07-01T14:07:18.273Z",
+    "observedAt": "2026-07-01T14:39:34.240Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -1945,7 +1945,7 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-07-01T14:07:18.325Z",
+    "observedAt": "2026-07-01T14:39:34.371Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
@@ -1964,7 +1964,7 @@
     "rowCount": 3241,
     "trackedRowCount": 106,
     "positiveTrackedRowCount": 32,
-    "observedAt": "2026-07-01T14:07:19.998Z",
+    "observedAt": "2026-07-01T14:39:36.028Z",
     "increaseCount": 0,
     "controlledDistributionSignalCount": 61,
     "priceEnrichedSignalCount": 106,
@@ -2247,7 +2247,7 @@
       "finalUrl": "https://www.cumberlandabc.com/about-3",
       "ok": true,
       "status": 200,
-      "bytes": 388915,
+      "bytes": 388443,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2285,7 +2285,7 @@
       "finalUrl": "https://www.cumberlandabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 421414,
+      "bytes": 421557,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2319,7 +2319,7 @@
       "finalUrl": "https://www.cumberlandabc.com/products",
       "ok": true,
       "status": 200,
-      "bytes": 406327,
+      "bytes": 405916,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2357,7 +2357,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65954,
+      "bytes": 65903,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2423,7 +2423,7 @@
       "finalUrl": "https://wakeabc.com/search-results/",
       "ok": true,
       "status": 200,
-      "bytes": 64175,
+      "bytes": 64300,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -2480,7 +2480,7 @@
       "finalUrl": "https://wakeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 86290,
+      "bytes": 86341,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2547,7 +2547,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65954,
+      "bytes": 65903,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2670,7 +2670,7 @@
       "finalUrl": "https://www.greensboroabc.com/greensboro-abc-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 120974,
+      "bytes": 120975,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2728,7 +2728,7 @@
       "finalUrl": "https://www.greensboroabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 177318,
+      "bytes": 177301,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2820,7 +2820,7 @@
       "finalUrl": "https://www.durhamabc.com/drops",
       "ok": true,
       "status": 200,
-      "bytes": 810077,
+      "bytes": 810066,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2860,7 +2860,7 @@
       "finalUrl": "https://www.durhamabc.com/news",
       "ok": true,
       "status": 200,
-      "bytes": 1120208,
+      "bytes": 1120358,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2928,7 +2928,7 @@
       "finalUrl": "https://www.durhamabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 872897,
+      "bytes": 872835,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2972,7 +2972,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/bourbon-blast/",
       "ok": true,
       "status": 200,
-      "bytes": 111016,
+      "bytes": 111061,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3040,7 +3040,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/barrels/",
       "ok": true,
       "status": 200,
-      "bytes": 159364,
+      "bytes": 159409,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3107,7 +3107,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 179553,
+      "bytes": 179598,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -3174,7 +3174,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 147428,
+      "bytes": 147473,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3477,7 +3477,7 @@
       "finalUrl": "https://orangeabc.com/specialty-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 90235,
+      "bytes": 90313,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -3530,7 +3530,7 @@
       "finalUrl": "https://orangeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 108963,
+      "bytes": 109090,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -4108,7 +4108,7 @@
       "finalUrl": "https://www.jacksoncountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 459589,
+      "bytes": 459070,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": true,
@@ -4269,7 +4269,7 @@
       "finalUrl": "https://www.moore-abc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 716319,
+      "bytes": 714550,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -4283,7 +4283,7 @@
       "finalUrl": "https://carteretcountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 29683,
+      "bytes": 29687,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -4511,35 +4511,6 @@
       "error": null
     },
     {
-      "boardName": "Wilson County ABC Board",
-      "url": "http://wilson.ncabcboards.com/",
-      "finalUrl": "https://wilson.ncabcboards.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 198178,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [
-        {
-          "href": "https://wilson.ncabcboards.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://wilson.ncabcboards.com/monthly-specials/",
-          "label": "Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Orders Price List"
-        }
-      ],
-      "error": null
-    },
-    {
       "boardName": "Craven County ABC Board",
       "url": "http://craven.ncabcboards.com/",
       "finalUrl": "https://craven.ncabcboards.com/",
@@ -4611,7 +4582,7 @@
       "finalUrl": "https://catawbaabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 126175,
+      "bytes": 126252,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4901,7 +4872,7 @@
       "finalUrl": "https://www.angierabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 1338531,
+      "bytes": 1336810,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -5401,7 +5372,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-07-01T14:08:04.035Z",
+    "observedAt": "2026-07-01T14:40:26.484Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5499,7 +5470,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-07-01T14:08:04.281Z",
+    "observedAt": "2026-07-01T14:40:27.732Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
@@ -7524,7 +7495,6 @@
       "trackedShipmentRows": 4,
       "trackedUnits": 66,
       "capabilities": [
-        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
         "official_board_website",
@@ -7534,18 +7504,7 @@
       "sourceUrls": [
         "http://wilson.ncabcboards.com"
       ],
-      "officialPageReports": [
-        {
-          "url": "http://wilson.ncabcboards.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
+      "officialPageReports": []
     },
     {
       "boardName": "Triad Municipal ABC Board",
