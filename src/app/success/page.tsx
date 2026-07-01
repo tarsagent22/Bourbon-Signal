@@ -83,9 +83,10 @@ function SuccessContent() {
             justifyContent: "center",
             margin: "0 auto 32px",
             fontSize: "28px",
+            lineHeight: 1,
           }}
         >
-          🥃
+          <span aria-hidden style={{ display: "block", lineHeight: 1, transform: "translateY(2px)" }}>🥃</span>
         </div>
 
         {/* Heading */}

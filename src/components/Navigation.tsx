@@ -460,7 +460,7 @@ export default function Navigation() {
                 </p>
                 {isFounderMember ? (
                   <div style={{ borderRadius: 999, border: "1px solid rgba(232,201,122,0.28)", background: "rgba(232,201,122,0.10)", color: "#E8C97A", padding: "6px 10px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>
-                    BiB {founderProfileNumber}
+                    Founder {founderProfileNumber}
                   </div>
                 ) : null}
                 {canManageBilling ? (
