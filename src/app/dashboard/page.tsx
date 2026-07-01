@@ -269,7 +269,6 @@ function SignalStrengthCard({ model, onSectionSelect }: { model: SignalStrengthM
       </div>
 
       <div className="signal-meter" aria-hidden="true">
-        <div className="signal-meter-label">Signal Strength</div>
         <div className="signal-meter-arc">
           {Array.from({ length: 73 }).map((_, index) => (
             <span
@@ -280,6 +279,7 @@ function SignalStrengthCard({ model, onSectionSelect }: { model: SignalStrengthM
           ))}
         </div>
         <div className="signal-meter-core">
+          <div className="signal-meter-label">Signal Strength</div>
           <div className="signal-meter-score">{model.meterLabel}</div>
         </div>
       </div>
@@ -1917,16 +1917,13 @@ export default function DashboardPage() {
             display: grid;
             align-content: center;
             justify-items: center;
-            gap: 8px;
           }
           .signal-meter-label {
-            position: relative;
-            z-index: 2;
             font-family: var(--font-playfair);
-            font-size: clamp(20px, 2.5vw, 30px);
+            font-size: clamp(21px, 2.8vw, 32px);
             font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.018em;
+            line-height: 0.95;
+            letter-spacing: -0.025em;
             color: rgba(245,237,214,0.92);
             text-shadow: 0 0 24px rgba(196,148,58,0.18);
           }
@@ -1963,7 +1960,7 @@ export default function DashboardPage() {
             display: grid;
             place-items: center;
             text-align: center;
-            gap: 4px;
+            gap: 2px;
           }
           .signal-meter-core::before {
             content: "";
@@ -2248,8 +2245,8 @@ export default function DashboardPage() {
             .signal-meter-arc { width: min(108%, 390px); }
             .signal-meter-arc span { height: 88px; width: 1.38px; }
             .signal-meter-core { bottom: 4px; width: min(230px, 72%); }
+            .signal-meter-label { font-size: clamp(23px, 7vw, 30px); }
             .signal-meter-score { font-size: clamp(32px, 10vw, 44px); }
-            .signal-meter-caption { font-size: 8px; max-width: 20ch; }
             .signal-strength-dimensions { grid-template-columns: 1fr; gap: 7px; }
             .signal-dimension { padding: 10px; }
             .signal-dimension p { display: none; }
