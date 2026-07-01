@@ -20,7 +20,8 @@ interface DropsResponse {
   lastUpdated?: string;
 }
 
-let cachedDefaultResponse: DropsResponse | null = null;
+let cachedDefaultResponse: { data: DropsResponse; expiresAt: number } | null = null;
+const DROPS_CLIENT_CACHE_MS = 60_000;
 
 function buildQuery(options: UseDropsOptions) {
   const params = new URLSearchParams();
@@ -36,22 +37,25 @@ function buildQuery(options: UseDropsOptions) {
 export function useDrops(options: UseDropsOptions = {}) {
   const endpoint = useMemo(() => buildQuery(options), [options.limit, options.offset, options.bottle, options.store, options.state]);
   const cacheable = endpoint === "/api/drops";
-  const [response, setResponse] = useState<DropsResponse | null>(cacheable ? cachedDefaultResponse : null);
-  const [loading, setLoading] = useState(cacheable ? cachedDefaultResponse === null : true);
+  const cachedResponse = cacheable && cachedDefaultResponse && cachedDefaultResponse.expiresAt > Date.now()
+    ? cachedDefaultResponse.data
+    : null;
+  const [response, setResponse] = useState<DropsResponse | null>(cachedResponse);
+  const [loading, setLoading] = useState(cacheable ? cachedResponse === null : true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDrops = useCallback(async () => {
-    const res = await fetch(endpoint);
+    const res = await fetch(endpoint, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to load drops");
     const data = (await res.json()) as DropsResponse;
-    if (cacheable) cachedDefaultResponse = data;
+    if (cacheable) cachedDefaultResponse = { data, expiresAt: Date.now() + DROPS_CLIENT_CACHE_MS };
     setResponse(data);
     return data;
   }, [cacheable, endpoint]);
 
   useEffect(() => {
-    if (cacheable && cachedDefaultResponse !== null) {
-      setResponse(cachedDefaultResponse);
+    if (cacheable && cachedDefaultResponse !== null && cachedDefaultResponse.expiresAt > Date.now()) {
+      setResponse(cachedDefaultResponse.data);
       setLoading(false);
       return;
     }

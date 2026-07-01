@@ -136,8 +136,16 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
   const states = Array.isArray((refreshHealth as Record<string, unknown>).degradedStates)
     ? (refreshHealth as Record<string, unknown>).degradedStates as Array<Record<string, unknown>>
     : [];
+
   return new Set(
     states
+      .filter((state) => {
+        const status = String(state.status ?? "").toLowerCase();
+        // stale_useful means the engine intentionally retained recent usable rows
+        // from the prior successful state run. Do not turn that into a blank UI;
+        // individual drop-age gates below still prevent old signals from looking fresh.
+        return status !== "stale_useful";
+      })
       .map((state) => String(state.state ?? "").toUpperCase())
       .filter(Boolean)
   );
@@ -220,21 +228,34 @@ export async function GET(request: Request) {
     const exportPayload = readSiteExport("drops");
     const statsPayload = readSiteExport("stats") as Record<string, unknown> | null | undefined;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
-    let drops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+    const normalizedDrops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+    let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
+    let degradedStateFallback = false;
+
+    const isBlockedWarehouseDrop = (drop: Record<string, unknown>) => {
+      const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
+      const eventType = String(drop.event_type ?? "");
+      const scope = String(drop.availability_scope ?? "");
+      return dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse");
+    };
+
+    const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean; requireFreshEngine: boolean }) => {
+      let filtered = [...items];
+      if (options.requireFreshEngine && !engineFresh) filtered = [];
+      filtered = filtered.filter((drop) => isUserFacingDropSignal(drop));
+      filtered = filtered.filter((drop) => {
+        const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
+        return !isBlockedWarehouseDrop(drop as Record<string, unknown>) && (!options.filterDegradedStates || !degradedStates.has(dropState));
+      });
+      filtered = filtered.filter((drop) => isDropFeedRarity(drop));
+      filtered = filtered.filter((drop) => isFreshEnoughForPublicFeed(drop as Record<string, unknown>));
+      return filtered;
+    };
 
     if (include !== "all") {
-      if (!engineFresh) drops = [];
-      drops = drops.filter((drop) => isUserFacingDropSignal(drop));
-      drops = drops.filter((drop) => {
-        const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
-        const eventType = String(drop.event_type ?? "");
-        const scope = String(drop.availability_scope ?? "");
-        return !degradedStates.has(dropState) && !(dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse"));
-      });
-      drops = drops.filter((drop) => isDropFeedRarity(drop));
-      drops = drops.filter((drop) => isFreshEnoughForPublicFeed(drop as Record<string, unknown>));
+      drops = applyPublicDropFilters(drops, { filterDegradedStates: true, requireFreshEngine: true });
     }
 
     if (state) {
@@ -243,6 +264,13 @@ export async function GET(request: Request) {
 
     if (tierFilter.size > 0) {
       drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
+    }
+
+    if (include !== "all" && state && drops.length === 0 && !bottle && !store && degradedStates.has(state)) {
+      drops = applyPublicDropFilters(normalizedDrops, { filterDegradedStates: false, requireFreshEngine: true })
+        .filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
+      if (tierFilter.size > 0) drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
+      degradedStateFallback = drops.length > 0;
     }
 
     if (bottle) {
@@ -307,6 +335,7 @@ export async function GET(request: Request) {
         lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
         engineFresh,
         degradedStatesFiltered: Array.from(degradedStates),
+        degradedStateFallback,
       },
       {
         headers: {
@@ -329,7 +358,7 @@ export async function GET(request: Request) {
         engineFresh: false,
         degradedStatesFiltered: [],
         error: "Engine export temporarily unavailable",
-        fallback: true,
+
       },
       {
         status: 503,
