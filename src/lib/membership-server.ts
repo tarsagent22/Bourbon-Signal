@@ -1,8 +1,17 @@
 import { clerkClient } from "@clerk/nextjs/server";
-import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { FOUNDER_SPOT_LIMIT, isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { nextFounderNumber, type FounderAllocationUser } from "@/lib/founder-allocation";
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
+}
+
+async function allocateFounderNumber(client: Awaited<ReturnType<typeof clerkClient>>, userId: string) {
+  const result = await client.users.getUserList({ limit: 500 });
+  const users = (Array.isArray(result) ? result : result.data) as FounderAllocationUser[];
+  const number = nextFounderNumber(users, userId, FOUNDER_SPOT_LIMIT);
+  if (!number) throw new Error("Bottled-in-Bond Founder memberships are sold out.");
+  return number;
 }
 
 export async function findUserByStripeCustomerId(customerId: string) {
@@ -25,8 +34,11 @@ export async function activateMembership(userId: string, input: {
   const status = input.status || "active";
   const accessTier = isMembershipAccessActive(input.tier, status, input.plan) ? input.tier : "free";
   const accessPlan = accessTier === "free" ? "free" : input.plan;
+  const founderNumber = accessTier === "bottled-in-bond" && accessPlan === "bib_lifetime"
+    ? await allocateFounderNumber(client, userId)
+    : null;
 
-  // Entitlement access depends on both tier and billing status. Keep this write tiny and first so Keep this write tiny and first so
+  // Entitlement access depends on both tier and billing status. Keep this write tiny and first so
   // large private metadata surfaces (alert inboxes, delivery records, etc.) cannot block a
   // paid checkout from activating the user's tier.
   await client.users.updateUserMetadata(userId, {
@@ -38,6 +50,7 @@ export async function activateMembership(userId: string, input: {
       membershipStatus: status,
       subscribedAt: stringValue(user.publicMetadata?.subscribedAt) || now,
       membershipUpdatedAt: now,
+      ...(founderNumber ? { founderNumber, memberNumber: founderNumber } : {}),
       ...(input.stripeCustomerId ? { stripeCustomerId: input.stripeCustomerId } : {}),
     },
   });

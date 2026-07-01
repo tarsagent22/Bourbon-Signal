@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, resolveEffectiveMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
+import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +31,8 @@ function appUrl(req: NextRequest) {
 async function founderSpotsSold() {
   const client = await clerkClient();
   const result = await client.users.getUserList({ limit: 500 });
-  const users = Array.isArray(result) ? result : result.data;
-  return users.filter((user) => {
-    const tier = user.publicMetadata?.tier;
-    const plan = user.publicMetadata?.plan;
-    return tier === "bottled-in-bond" || plan === "bib_lifetime";
-  }).length;
+  const users = (Array.isArray(result) ? result : result.data) as FounderAllocationUser[];
+  return countFounderMemberships(users);
 }
 
 export async function POST(req: NextRequest) {

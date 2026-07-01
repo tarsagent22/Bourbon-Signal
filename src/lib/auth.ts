@@ -15,8 +15,13 @@ export function useAuth() {
   const memberNumber = Number.isFinite(rawMemberNumber) && rawMemberNumber > 0 ? rawMemberNumber : 0;
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !user || memberTier !== "free") return;
-    const key = `bourbon_signal_checkout_recover_${user.id}`;
+    if (!isLoaded || !isSignedIn || !user) return;
+    const needsCheckoutRecovery = memberTier === "free";
+    const needsFounderNumber = memberTier === "bottled-in-bond" && memberNumber === 0;
+    if (!needsCheckoutRecovery && !needsFounderNumber) return;
+
+    const recoverMode = needsFounderNumber ? "founder_number" : "checkout";
+    const key = `bourbon_signal_${recoverMode}_recover_${user.id}`;
     if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1") return;
     if (typeof window !== "undefined") window.sessionStorage.setItem(key, "1");
 
@@ -29,7 +34,7 @@ export function useAuth() {
         if (data?.activated) await user.reload();
       })
       .catch(() => {});
-  }, [isLoaded, isSignedIn, memberTier, user]);
+  }, [isLoaded, isSignedIn, memberNumber, memberTier, user]);
 
   return {
     isLoaded,
