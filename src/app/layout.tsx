@@ -48,10 +48,10 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og-homepage-bg.jpg",
+        url: "/og-bourbon-signal.png?v=shelf-20260701",
         width: 1200,
         height: 630,
-        alt: "Bourbon Signal premium bourbon background",
+        alt: "Bourbon Signal premium bourbon shelf background",
       },
     ],
   },
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
-    images: ["/og-homepage-bg.jpg"],
+    images: ["/og-bourbon-signal.png?v=shelf-20260701"],
   },
 };
 
