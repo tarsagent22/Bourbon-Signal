@@ -1109,14 +1109,14 @@ export default function DashboardPage() {
   }, [alertBottleLibraryOptions, selectedCanonicalKeys]);
 
   useEffect(() => {
-    if (!mounted || !isSignedIn || bottleOptions.length === 0) return;
+    if (!mounted || !isSignedIn || alertBottleLibraryOptions.length === 0) return;
     const savedNames = prefs.bottleAlertPreferences.bottleNames.map(normalizePreferenceBottleKey).filter(Boolean);
     const savedKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizePreferenceBottleKey).filter(Boolean);
     const savedSignature = [...savedNames, ...savedKeys].sort().join("|");
     if (!savedSignature || hydratedBottlePrefsKeyRef.current === savedSignature) return;
 
     const savedSet = new Set([...savedNames, ...savedKeys]);
-    const matchingOptions = bottleOptions.filter((option) => {
+    const matchingOptions = alertBottleLibraryOptions.filter((option) => {
       const optionKeys = [option.canonicalKey, option.label, option.bottle.name, ...(option.bottle.search_aliases || [])]
         .filter(Boolean)
         .map((value) => normalizePreferenceBottleKey(String(value)));
@@ -1125,7 +1125,7 @@ export default function DashboardPage() {
 
     matchingOptions.forEach((option) => option.bottleIds.forEach((id) => addBottle(id)));
     hydratedBottlePrefsKeyRef.current = savedSignature;
-  }, [addBottle, bottleOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
+  }, [addBottle, alertBottleLibraryOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
 
   const ncBoards = useMemo(() => {
     const boardNames = new Set<string>();
