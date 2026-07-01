@@ -264,16 +264,12 @@ function SignalStrengthCard({ model, onSectionSelect }: { model: SignalStrengthM
   return (
     <section className="signal-strength-card" data-free-access={isFreeAccess ? "true" : "false"} aria-label="Signal Strength">
       <div className="signal-strength-copy">
-        <div className="signal-strength-eyebrow">Signal Strength</div>
-        <div className="signal-strength-heading-row">
-          <h2>{signalLevelLabel(model.level)}</h2>
-          {model.modeLabel ? <span>{model.modeLabel}</span> : null}
-        </div>
         <p>{model.body}</p>
         {cta}
       </div>
 
       <div className="signal-meter" aria-hidden="true">
+        <div className="signal-meter-label">Signal Strength</div>
         <div className="signal-meter-arc">
           {Array.from({ length: 73 }).map((_, index) => (
             <span
@@ -285,7 +281,6 @@ function SignalStrengthCard({ model, onSectionSelect }: { model: SignalStrengthM
         </div>
         <div className="signal-meter-core">
           <div className="signal-meter-score">{model.meterLabel}</div>
-          <div className="signal-meter-caption">{model.headline}</div>
         </div>
       </div>
 
@@ -1920,13 +1915,26 @@ export default function DashboardPage() {
             grid-row: 1;
             align-self: center;
             display: grid;
-            place-items: center;
+            align-content: center;
+            justify-items: center;
+            gap: 8px;
+          }
+          .signal-meter-label {
+            position: relative;
+            z-index: 2;
+            font-family: var(--font-playfair);
+            font-size: clamp(20px, 2.5vw, 30px);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.018em;
+            color: rgba(245,237,214,0.92);
+            text-shadow: 0 0 24px rgba(196,148,58,0.18);
           }
           .signal-meter-arc {
             position: relative;
             width: min(112%, 560px);
             aspect-ratio: 2 / 1;
-            margin-top: 2px;
+            margin-top: 0;
             filter: drop-shadow(0 0 14px rgba(196,148,58,0.08));
           }
           .signal-meter-arc span {
@@ -1976,22 +1984,9 @@ export default function DashboardPage() {
             text-wrap: balance;
             max-width: 100%;
           }
-          .signal-meter-caption {
-            max-width: 25ch;
-            font-family: var(--font-jetbrains);
-            font-size: 9px;
-            font-weight: 850;
-            letter-spacing: 0.065em;
-            text-transform: uppercase;
-            color: rgba(245,237,214,0.50);
-            line-height: 1.45;
-          }
           .signal-strength-card[data-free-access="true"] .signal-meter-arc span.active {
             opacity: 0.82;
             box-shadow: 0 0 7px rgba(232,201,122,0.24), 0 0 14px rgba(196,148,58,0.08);
-          }
-          .signal-strength-card[data-free-access="true"] .signal-meter-caption {
-            color: rgba(245,237,214,0.42);
           }
           .signal-strength-dimensions {
             grid-column: 1 / -1;
