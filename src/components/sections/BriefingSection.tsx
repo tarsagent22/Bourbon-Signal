@@ -13,9 +13,16 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Frey Ranch 10-Year enters the collector watchlist",
+    summary: "Frey Ranch's 10-Year-Old Bourbon Batch #1, its oldest standalone whiskey, launched by lottery and is now moving into the shipment/watch-list window.",
+    note: "Best of the morning: age-stated Nevada bourbon is still a scarce craft lane, and this gives hunters a concrete bottle to track after the lottery closes.",
+    href: "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
+    source: "Frey Ranch",
+  },
+  {
     title: "Bulleit pushes rye into a 20-year collector lane",
     summary: "Bulleit is releasing an ultra-limited 20-year straight rye, positioning the brand's high-rye identity in a much older, more collectible tier.",
-    note: "Best of the morning: scarce, brand-backed, and useful for hunters who track older rye alongside allocated bourbon.",
+    note: "Scarce, brand-backed, and useful for hunters who track older rye alongside allocated bourbon.",
     href: "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
     source: "Bulleit",
   },
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
     source: "Heaven Hill",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Lost Lantern turns all 50 states into one bourbon story",
     summary: "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
     source: "Lost Lantern Whiskey",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Old Fitzgerald joins July's allocation radar",
     summary: "Heaven Hill's Spring 2026 Old Fitzgerald Bottled-in-Bond release puts a 10-year decanter into the summer chase window.",

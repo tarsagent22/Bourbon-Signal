@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-30T09:30:00-04:00",
+  "updatedAt": "2026-07-01T10:15:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
     {
@@ -14,7 +14,7 @@
       "source": "Lost Lantern Whiskey",
       "url": "https://www.lostlanternwhiskey.com/united-states-of-bourbon/",
       "firstReportedAt": "2026-06-26",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Old Fitzgerald joins July's allocation radar",
@@ -66,17 +66,38 @@
       "status": "homepage-visible"
     },
     {
-      "title": "Knob Creek packages its 9-year bourbon for America\u2019s 250th",
+      "title": "Knob Creek packages its 9-year bourbon for America’s 250th",
       "source": "The Bourbon Flight",
       "url": "https://www.thebourbonflight.com/knob-creek-celebrates-americas-250th-with-limited-edition-independence-release/",
       "firstReportedAt": "2026-06-30",
       "status": "reported"
     },
     {
-      "title": "Buzzard\u2019s Roost adds Red, White & Roost Double Oak Bourbon",
-      "source": "Buzzard\u2019s Roost / Wine Industry Advisor",
+      "title": "Buzzard’s Roost adds Red, White & Roost Double Oak Bourbon",
+      "source": "Buzzard’s Roost / Wine Industry Advisor",
       "url": "https://wineindustryadvisor.com/2026/06/24/buzzards-roost-distillery-introduces-new-red-white-roost-double-oak-bourbon/",
       "firstReportedAt": "2026-06-30",
+      "status": "reported"
+    },
+    {
+      "title": "Horse Soldier Farms opens its Kentucky campus for July 4 weekend",
+      "source": "Horse Soldier Bourbon / PBR",
+      "url": "https://www.pbr.com/news/2026/06/horse-soldier-farms-announces-performers-and-pbr-professional-bull-riders-for-grand-opening-fourth-of-july-celebration/",
+      "firstReportedAt": "2026-07-01",
+      "status": "reported"
+    },
+    {
+      "title": "Frey Ranch 10-Year Bourbon ships after lottery launch",
+      "source": "Frey Ranch / RunFair",
+      "url": "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
+      "firstReportedAt": "2026-07-01",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "Whisky Advocate flags 19 summer bottles worth hunting",
+      "source": "Whisky Advocate",
+      "url": "https://whiskyadvocate.com/19-hot-whiskies-to-hunt-summer-2026",
+      "firstReportedAt": "2026-07-01",
       "status": "reported"
     }
   ]

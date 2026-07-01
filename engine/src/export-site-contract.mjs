@@ -15,10 +15,11 @@ const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHO
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 12);
 // VA uses the official Virginia ABC storeNearby cache during launch because the
-// live broad store scan is expensive and rate-limit sensitive. Keep the public
-// feed freshness window aligned with that cache-reuse policy instead of dropping
-// every VA row while the engine still considers the VA cache current.
-const VA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.VA_STORE_INVENTORY_MAX_AGE_HOURS || 30);
+// live broad store scan is expensive and rate-limit sensitive. Keep a slightly
+// longer public feed window for VA cache fallbacks, but do not let older cached
+// rows become outbound/current-inventory alert candidates.
+const VA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.VA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
+const CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 24);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
@@ -942,9 +943,15 @@ function buildAlerts(alerts) {
 }
 
 
+function dropAgeHours(drop) {
+  const observed = Date.parse(drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || 0);
+  return Number.isFinite(observed) ? Math.max(0, (Date.now() - observed) / (60 * 60 * 1000)) : Infinity;
+}
+
 function buildCurrentInventoryAlertsFromDrops(drops) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsInventory && drop.locationPrecision === 'store_level')
+    .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
     .filter((drop) => Number(drop.quantity || 0) > 0)
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .slice(0, 75)
@@ -957,7 +964,7 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
       sendRecommendation: 'send_to_matching_testers',
-      freshnessHours: null,
+      freshnessHours: Number(dropAgeHours(drop).toFixed(1)),
       bootstrap: false,
       changeType: 'current_inventory_signal',
       dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
