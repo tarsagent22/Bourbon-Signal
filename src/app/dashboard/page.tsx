@@ -586,9 +586,13 @@ function BottleChip({ option, onRemove }: { option: BottleOption; onRemove: () =
   return (
     <div
       style={{
-        display: "inline-flex",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) 34px",
         alignItems: "center",
         gap: "12px",
+        width: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
         padding: "12px 14px",
         borderRadius: "999px",
         border: "1px solid rgba(196,148,58,0.18)",
@@ -800,45 +804,19 @@ export default function DashboardPage() {
     }));
   };
 
-  const watchedBottleOptions = useMemo(() => {
-    if (!mounted) return [];
-    return bottleOptions.filter((option) =>
-      option.bottleIds.some((id) => watchedBottles.includes(id))
-    );
-  }, [bottleOptions, watchedBottles, mounted]);
-
-  const selectedCanonicalKeys = useMemo(
-    () => new Set(watchedBottleOptions.map((option) => option.canonicalKey)),
-    [watchedBottleOptions]
-  );
-
-  const filteredBottleOptions = useMemo(() => {
-    const query = bottleQuery.trim().toLowerCase();
-    return bottleOptions.filter((option) => {
-      if (selectedCanonicalKeys.has(option.canonicalKey)) return false;
-      if (!query) return true;
-      return [
-        option.label,
-        option.bottle.distillery,
-        ...(option.bottle.search_aliases || []),
-        ...Object.values(option.bottle.state_aliases || {}).flat(),
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-    });
-  }, [bottleOptions, bottleQuery, selectedCanonicalKeys]);
-
   const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
   const shouldPrepareCollection = preparedDashboardSections.has("collection") || preparedDashboardSections.has("recommendations");
   const shouldPrepareRecommendations = preparedDashboardSections.has("recommendations");
+  const shouldPrepareWatchlistSearch = activeDashboardSection === "alerts" && alertMode === "specific_bottles";
+  const shouldPrepareBottleCatalog = shouldPrepareCollection || shouldPrepareWatchlistSearch;
 
   useEffect(() => {
     if (activeDashboardSection === "recommendations") setRecommendationVisibleCount(4);
   }, [activeDashboardSection]);
 
   useEffect(() => {
-    if (!shouldPrepareCollection || broadBottleCatalog.length > 0) return;
+    if (!shouldPrepareBottleCatalog || broadBottleCatalog.length > 0) return;
     let cancelled = false;
     fetch("/api/bottle-catalog")
       .then((response) => response.ok ? response.json() : null)
@@ -852,7 +830,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [broadBottleCatalog.length, shouldPrepareCollection]);
+  }, [broadBottleCatalog.length, shouldPrepareBottleCatalog]);
 
   useEffect(() => {
     const query = collectionBottleQuery.trim();
@@ -919,7 +897,7 @@ export default function DashboardPage() {
   }, [collectionBibleSuggestions]);
 
   const broadCatalogBottleOptions = useMemo<BottleOption[]>(() => {
-    if (!shouldPrepareCollection) return [];
+    if (!shouldPrepareBottleCatalog) return [];
     return broadBottleCatalog.slice(0, 900).map((suggestion) => {
       const canonicalKey = canonicalBottleKey(suggestion.canonicalName);
       const bottle: Bottle = {
@@ -943,7 +921,44 @@ export default function DashboardPage() {
       };
       return { canonicalKey, label: suggestion.canonicalName, bottleIds: [bottle.id], bottle };
     });
-  }, [broadBottleCatalog, shouldPrepareCollection]);
+  }, [broadBottleCatalog, shouldPrepareBottleCatalog]);
+
+  const alertBottleLibraryOptions = useMemo<BottleOption[]>(() => {
+    const merged = new Map<string, BottleOption>();
+    for (const option of bottleOptions) merged.set(option.canonicalKey, option);
+    for (const option of broadCatalogBottleOptions) {
+      if (!merged.has(option.canonicalKey)) merged.set(option.canonicalKey, option);
+    }
+    return Array.from(merged.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [bottleOptions, broadCatalogBottleOptions]);
+
+  const watchedBottleOptions = useMemo(() => {
+    if (!mounted) return [];
+    return alertBottleLibraryOptions.filter((option) =>
+      option.bottleIds.some((id) => watchedBottles.includes(id))
+    );
+  }, [alertBottleLibraryOptions, watchedBottles, mounted]);
+
+  const selectedCanonicalKeys = useMemo(
+    () => new Set(watchedBottleOptions.map((option) => option.canonicalKey)),
+    [watchedBottleOptions]
+  );
+
+  const filteredBottleOptions = useMemo(() => {
+    const query = bottleQuery.trim().toLowerCase();
+    return alertBottleLibraryOptions.filter((option) => {
+      if (selectedCanonicalKeys.has(option.canonicalKey)) return false;
+      if (!query) return true;
+      return [
+        option.label,
+        option.bottle.distillery,
+        ...(option.bottle.search_aliases || []),
+        ...Object.values(option.bottle.state_aliases || {}).flat(),
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }, [alertBottleLibraryOptions, bottleQuery, selectedCanonicalKeys]);
 
   const filteredCollectionBottleOptions = useMemo(() => {
     if (!shouldPrepareCollection) return [];
@@ -1088,10 +1103,10 @@ export default function DashboardPage() {
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, recommendationRefreshNonce, selectedCanonicalKeys, shouldPrepareRecommendations]);
 
   const suggestedBottleOptions = useMemo(() => {
-    const pool = getPopularBottlePool(bottleOptions.map((option) => option.bottle)).slice(0, 5);
+    const pool = getPopularBottlePool(alertBottleLibraryOptions.map((option) => option.bottle)).slice(0, 5);
     const ids = new Set(pool.map((bottle) => bottle.id));
-    return bottleOptions.filter((option) => ids.has(option.bottle.id) && !selectedCanonicalKeys.has(option.canonicalKey));
-  }, [bottleOptions, selectedCanonicalKeys]);
+    return alertBottleLibraryOptions.filter((option) => ids.has(option.bottle.id) && !selectedCanonicalKeys.has(option.canonicalKey));
+  }, [alertBottleLibraryOptions, selectedCanonicalKeys]);
 
   useEffect(() => {
     if (!mounted || !isSignedIn || bottleOptions.length === 0) return;
@@ -2179,6 +2194,11 @@ export default function DashboardPage() {
             transform: rotate(180deg);
           }
           .dashboard-drawer-shell {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            overflow: hidden;
             margin-top: 0;
             margin-bottom: 14px;
             border-radius: 22px;
@@ -2562,6 +2582,8 @@ export default function DashboardPage() {
                   placeholder={loading ? "Loading bottle library…" : "Search bourbon, rye, distillery, or release"}
                   style={{
                     width: "100%",
+                    minWidth: 0,
+                    boxSizing: "border-box",
                     padding: "16px 18px",
                     borderRadius: "18px",
                     border: "1px solid rgba(255,255,255,0.08)",
@@ -2575,7 +2597,7 @@ export default function DashboardPage() {
               </div>
 
               {watchedBottleOptions.length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: "12px", width: "100%", maxWidth: "100%", minWidth: 0 }}>
                   {watchedBottleOptions.map((option) => (
                     <BottleChip key={option.canonicalKey} option={option} onRemove={() => removeBottleOption(option)} />
                   ))}
@@ -2587,7 +2609,7 @@ export default function DashboardPage() {
               )}
 
               {!bottleQuery.trim() && suggestedBottleOptions.length > 0 ? (
-                <div style={{ display: "grid", gap: "10px" }}>
+                <div style={{ display: "grid", gap: "10px", width: "100%", maxWidth: "100%", minWidth: 0 }}>
                   <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     Popular right now
                   </div>
@@ -2597,6 +2619,8 @@ export default function DashboardPage() {
                       onClick={() => addBottleOption(option)}
                       style={{
                         width: "100%",
+                        minWidth: 0,
+                        boxSizing: "border-box",
                         textAlign: "left",
                         padding: "14px 16px",
                         borderRadius: "16px",
@@ -2606,7 +2630,7 @@ export default function DashboardPage() {
                         cursor: "pointer",
                       }}
                     >
-                      <div style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)" }}>{option.label}</div>
+                      <div style={{ minWidth: 0, overflowWrap: "anywhere", fontFamily: "var(--font-playfair)", fontSize: "20px", color: "var(--color-cream)", lineHeight: 1.15 }}>{option.label}</div>
                       <div style={{ marginTop: "4px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
                     </button>
                   ))}
@@ -2614,13 +2638,15 @@ export default function DashboardPage() {
               ) : null}
 
               {bottleQuery.trim() ? (
-                <div style={{ display: "grid", gap: "10px" }}>
+                <div style={{ display: "grid", gap: "10px", width: "100%", maxWidth: "100%", minWidth: 0 }}>
                   {filteredBottleOptions.slice(0, 10).map((option) => (
                   <button
                     key={option.canonicalKey}
                     onClick={() => addBottleOption(option)}
                     style={{
                       width: "100%",
+                      minWidth: 0,
+                      boxSizing: "border-box",
                       textAlign: "left",
                       padding: "16px 18px",
                       borderRadius: "18px",
@@ -2629,7 +2655,7 @@ export default function DashboardPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)" }}>{option.label}</div>
+                    <div style={{ minWidth: 0, overflowWrap: "anywhere", fontFamily: "var(--font-playfair)", fontSize: "22px", color: "var(--color-cream)", lineHeight: 1.15 }}>{option.label}</div>
                     <div style={{ marginTop: "6px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>{option.bottle.distillery}</div>
                   </button>
                   ))}
