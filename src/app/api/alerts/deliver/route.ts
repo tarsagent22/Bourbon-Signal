@@ -21,6 +21,7 @@ async function runDelivery(req: NextRequest) {
     const result = testEmail
       ? await sendOperationalTestAlertEmail(req)
       : await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly, baselineSmsOnly });
+    console.info("Bourbon Signal alert delivery summary", JSON.stringify(result));
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

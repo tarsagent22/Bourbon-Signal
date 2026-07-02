@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
+import { isPaidTier } from "@/lib/entitlements";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
@@ -53,10 +54,10 @@ const MAX_RECENT_ONSITE_ALERTS_PER_USER = 100;
 const DELIVERY_DEDUPE_WINDOW_HOURS = 24;
 const MAX_DELIVERY_USERS = Number(process.env.ALERT_DELIVERY_MAX_USERS || 500);
 const MAX_EMAILS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_RUN || 250);
-const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 5);
-const MAX_SMS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_RUN || 3);
+const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 1);
+const MAX_SMS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_RUN || 25);
 const MAX_SMS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_USER || 1);
-const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 10);
+const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 1);
 const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
@@ -183,6 +184,45 @@ function candidateMatchesEmailMode(candidate: CandidateAlert, mode: EmailAlertMo
 function candidateMatchesSmsMode(candidate: CandidateAlert, mode: SmsAlertMode, bottlePrefs: BottleAlertPreferences) {
   if (mode === "major_only") return candidate.priorityClass === "major";
   return candidateMatchesBottlePrefs(candidate, "specific_bottles", bottlePrefs);
+}
+
+function hasSavedAreaPreferences(areaPrefs: AreaPreferences) {
+  return Boolean(
+    areaPrefs.states.length ||
+    areaPrefs.ncBoards.length ||
+    areaPrefs.vaCities.length ||
+    areaPrefs.ohCities.length ||
+    areaPrefs.iaCities.length ||
+    areaPrefs.idCities.length ||
+    areaPrefs.paCounties.length ||
+    areaPrefs.paStores.length
+  );
+}
+
+function candidateAlertRank(candidate: CandidateAlert) {
+  const priorityClass = asString(candidate.priorityClass).toLowerCase();
+  const tier = asString(candidate.tier).toLowerCase();
+  const deliveryChannel = asString(candidate.deliveryChannel).toLowerCase();
+  const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
+  const eventType = asString(candidate.eventType).toLowerCase();
+  const quantity = asNumber(candidate.quantity) || asNumber(candidate.warehouseQty);
+  const reliability = asNumber(candidate.reliabilityScore, asNumber(candidate.score));
+  const freshnessHours = asNumber(candidate.freshnessHours, 999);
+
+  let rank = reliability;
+  if (priorityClass === "major") rank += 1000;
+  if (tier === "unicorn") rank += 700;
+  if (tier === "allocated") rank += 450;
+  if (deliveryChannel === "watch_candidate") rank += 175;
+  if (locationPrecision === "store_level") rank += 150;
+  if (/board_shipment|shipment_snapshot|warehouse_stock|limited_release_store_drop/.test(eventType)) rank += 100;
+  if (quantity > 0) rank += Math.min(quantity, 75);
+  if (Number.isFinite(freshnessHours)) rank -= Math.min(freshnessHours, 72) * 2;
+  return rank;
+}
+
+function sortCandidatesForMember(a: CandidateAlert, b: CandidateAlert) {
+  return candidateAlertRank(b) - candidateAlertRank(a);
 }
 
 export function candidateCanSendEmail(candidate: CandidateAlert) {
@@ -580,6 +620,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     candidateCount: candidates.length,
     skippedSafetyGuardrail: rawEligibleCandidateCount - candidates.length,
     usersConsidered: 0,
+    paidUsersConsidered: 0,
+    skippedFreeUsers: 0,
+    skippedNoAreaPreferences: 0,
     usersWithOnSiteEnabled: 0,
     usersWithEmailEnabled: 0,
     usersWithSmsEnabled: 0,
@@ -630,8 +673,19 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
 
       const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
       const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+      if (!isPaidTier(publicMetadata)) {
+        summary.skippedFreeUsers += 1;
+        continue;
+      }
+      summary.paidUsersConsidered += 1;
+
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
       const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences);
+      if (!hasSavedAreaPreferences(areaPrefs)) {
+        summary.skippedNoAreaPreferences += 1;
+        continue;
+      }
+
       const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
@@ -641,7 +695,13 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
           const matches = candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs);
           if (!matches && alertMode === "specific_bottles") summary.skippedSpecificBottlePrefs += 1;
           return matches;
-        });
+        })
+        .sort(sortCandidatesForMember)
+        .slice(0, 1);
+
+      if (matchingPreferenceCandidates.length) {
+        summary.usersMatched += 1;
+      }
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
@@ -717,10 +777,6 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               return !duplicate;
             })
             .slice(0, Math.max(1, MAX_EMAILS_PER_USER));
-
-          if (matchedCandidates.length) {
-            summary.usersMatched += 1;
-          }
 
           for (const candidate of matchedCandidates) {
             if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;

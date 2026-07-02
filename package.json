@@ -14,7 +14,8 @@
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
-    "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs"
+    "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs",
+    "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
