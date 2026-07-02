@@ -19,6 +19,7 @@ const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
 const DURHAM_STRUCTURED_PRODUCTS_URL = 'https://www.durhamabc.com/4552233';
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition|single barrel\s+(?:OES|OBS))|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)|booker'?s|baker'?s|little book|parker'?s\s+heritage|old forester\s+(?:birthday|president'?s choice)|russell'?s\s+reserve\s+(?:13|15)|1792\s+(?:sweet wheat|single barrel|full proof|bottled in bond|12\s*year)|heaven hill\s+(?:heritage|grain to glass|18|17|90th)|knob creek\s+(?:12|15|18)|woodford reserve\s+(?:double double|masters collection|barrel strength)|jack daniel'?s\s+(?:10|12|14)|remus repeal|holladay|shenk'?s|bomberger'?s/i;
+const STRICT_TRACKED_EXCLUDE_RE = /cream|liqueur|cordial|cocktail|ready[ -]?to[ -]?drink|rtd|vodka|gin|rum|tequila|mezcal|cognac|brandy|wine|beer|seltzer/i;
 const NC_CONTROLLED_PRODUCT_RE = /bourbon|whiskey|whisky|rye|blanton|weller|eagle rare|stagg|taylor|buffalo trace|pappy|van winkle|michter|willett|old fitz|fitzgerald|elmer|rock hill|blood oath|four roses|1792|russell|old forester|heaven hill|knob creek|booker|baker|parker|little book|woodford|maker|sazerac|holladay|remus|jack daniel|shenk|bomberger|ben holladay/i;
 const NC_CONTROLLED_EXCLUDE_RE = /tequila|vodka|gin|rum|liqueur|cordial|cognac|hennessy|crown royal|cream|wine|beer|cocktail|mezcal|scotch|single malt|irish|brandy|absinthe|schnapps|moonshine/i;
 const RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|bourbon|barrel|drop|specialty|special release|rare|whiskey|whisky|product search|inventory|stock|coming soon|release calendar/i;
@@ -302,7 +303,8 @@ function isoFromNcExtract(value) {
 }
 
 function strictTrackedProduct(name) {
-  return STRICT_TRACKED_RE.test(String(name || ''));
+  const text = String(name || '');
+  return STRICT_TRACKED_RE.test(text) && !STRICT_TRACKED_EXCLUDE_RE.test(text);
 }
 
 function signalBase(config, sourceLabel, sourceUrl, rawName, bible, confidence = 0.72) {

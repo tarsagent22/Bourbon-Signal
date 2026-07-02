@@ -21,6 +21,7 @@ const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTO
 const VA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.VA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 24);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)/i;
+const NC_STRICT_SIGNAL_EXCLUDE_RE = /cream|liqueur|cordial|cocktail|ready[ -]?to[ -]?drink|rtd|vodka|gin|rum|tequila|mezcal|cognac|brandy|wine|beer|seltzer/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
 const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
@@ -596,7 +597,8 @@ function isSafePublicSignal(signal) {
     if (/^BAKER'?S$/i.test(name) || String(signal.ncCode || '').trim() === '27006') return false;
   }
   if (signal.state === 'NC' && (type === 'nc_board_shipment_snapshot' || type === 'nc_statewide_warehouse_stock')) {
-    return NC_STRICT_SIGNAL_RE.test(String(signal.rawName || signal.canonicalName || ''));
+    const name = String(signal.rawName || signal.canonicalName || '');
+    return NC_STRICT_SIGNAL_RE.test(name) && !NC_STRICT_SIGNAL_EXCLUDE_RE.test(name);
   }
   return true;
 }
