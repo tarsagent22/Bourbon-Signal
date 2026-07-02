@@ -729,7 +729,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const hiddenLocationCount = Math.max(drop.locations.length - visibleLocations.length, 0);
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const [glowing, setGlowing] = useState(isNew);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
   const distilleryMeta = getDistilleryCardMeta(drop);
   const description = getEventDescription(drop);
@@ -769,16 +768,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       </button>
     </div>
   ) : null;
-
-  // Glow timer for newest drop
-  useEffect(() => {
-    if (isNew && index === 0) {
-      setGlowing(true);
-      const timer = setTimeout(() => setGlowing(false), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [isNew, index]);
-
   // Build detail fields
   const details: { label: string; value: string }[] = [];
   if (distilleryMeta) {
@@ -832,9 +821,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
         filter: isBlurred ? `blur(${blurAmount}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
-        ...(glowing && hasTopCardAccent
-          ? { animation: "newDropGlow 2s ease infinite" }
-          : {}),
       }}
     >
 
@@ -846,7 +832,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           marginBottom: "12px",
           padding: "15px 15px 14px",
           borderRadius: "22px",
-          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : hasTopCardAccent && glowing ? "rgba(196,148,58,0.42)" : "rgba(245,237,214,0.085)"}`,
+          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : "rgba(245,237,214,0.085)"}`,
           background:
             distilleryMeta
               ? "linear-gradient(145deg, rgba(196,148,58,0.11) 0%, rgba(31,22,12,0.94) 42%, rgba(11,9,7,0.96) 100%)"
@@ -858,19 +844,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           cursor: hasDetails ? "pointer" : "default",
         }}
       >
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: "3px",
-            background: tier.borderColor,
-            opacity: canUseHeroAccent ? (hasTopCardAccent ? 0.9 : 0.55) : 0,
-          }}
-        />
-
         <div className="flex items-center justify-between gap-3" style={{ marginBottom: "8px" }}>
           <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
             {distilleryMeta ? (
@@ -1810,10 +1783,6 @@ export default function DropFeed() {
         @keyframes shimmer {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
-        }
-        @keyframes newDropGlow {
-          0%, 100% { box-shadow: inset 3px 0 0 rgba(196,148,58,0.4), 0 0 0 rgba(196,148,58,0); }
-          50% { box-shadow: inset 3px 0 0 rgba(196,148,58,1), 0 0 20px rgba(196,148,58,0.15); }
         }
         @keyframes signalTape {
           0% { transform: translate3d(0, 0, 0); }
