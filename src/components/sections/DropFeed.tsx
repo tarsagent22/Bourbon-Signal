@@ -987,12 +987,10 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
         className="hidden md:flex items-center"
         style={{
           padding: "16px 20px",
-          borderLeft: `3px solid ${distilleryMeta ? "rgba(196,148,58,0.9)" : tier.borderColor}`,
           cursor: hasDetails ? "pointer" : "default",
           background: hovered ? "rgba(196, 148, 58, 0.08)" : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : "transparent",
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
-          borderColor: hovered ? "rgba(212, 146, 11, 0.5)" : tier.borderColor,
           transition: "all 200ms ease",
         }}
         onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
