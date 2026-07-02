@@ -261,7 +261,7 @@ function isUsefulAreaLabel(label?: string | null, state?: string | null) {
   if (normalized.length < 2) return false;
   if (stateCode && normalized === stateCode.toLowerCase()) return false;
   if (stateName && normalized === normalizeFilterText(stateName)) return false;
-  if (/\b(statewide|master list|coverage|inventory watch|program)\b/i.test(cleaned)) return false;
+  if (/\b(statewide|master list|coverage|inventory watch|watch area|search area|program)\b/i.test(cleaned)) return false;
   return true;
 }
 
@@ -1532,7 +1532,8 @@ export default function DropFeed() {
       const baseLabel = cleanAreaLabel(labelValue);
       if (!state || !activeStateCodes.has(state)) return;
       if (selectedState && state !== selectedState) return;
-      if (!hasSignal) return;
+      const includeNcBoardDirectoryOption = state === "NC" && kind === "board";
+      if (!hasSignal && !includeNcBoardDirectoryOption) return;
       if (!isUsefulAreaLabel(baseLabel, state)) return;
       const displayLabel = areaMenuLabel(state, baseLabel, kind);
       if (!displayLabel) return;
@@ -1569,7 +1570,7 @@ export default function DropFeed() {
     return Array.from(options.values())
       .filter((option) => {
         if (option.state !== "NC") return true;
-        return /\bABC$/i.test(option.baseLabel) && !/warehouse/i.test(option.baseLabel);
+        return /\bABC(?:\s*·\s*NC)?$/i.test(option.label) && !/warehouse/i.test(option.label);
       })
       .sort((a, b) => a.state.localeCompare(b.state) || a.baseLabel.localeCompare(b.baseLabel));
   }, [activeTiers, feedStateOptions, feedStateParam, grouped, hasSelectedStates, preferredStates, stores]);
