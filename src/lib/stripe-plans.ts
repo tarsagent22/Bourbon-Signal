@@ -59,8 +59,20 @@ export const LAUNCH_BILLING_PLANS: Record<BillingPlanId, LaunchBillingPlan> = {
   },
 };
 
+const LEGACY_STRIPE_PRICE_ENV_KEYS: Partial<Record<BillingPlanId, string[]>> = {
+  standard_monthly: ["STRIPE_PRICE_MONTHLY"],
+  standard_annual: ["STRIPE_PRICE_ANNUAL"],
+  bib_lifetime: ["STRIPE_PRICE_FOUNDER"],
+};
+
 export function getStripePriceId(planId: BillingPlanId) {
-  return process.env[LAUNCH_BILLING_PLANS[planId].envKey]?.trim() || null;
+  const primary = process.env[LAUNCH_BILLING_PLANS[planId].envKey]?.trim();
+  if (primary) return primary;
+  for (const legacyKey of LEGACY_STRIPE_PRICE_ENV_KEYS[planId] || []) {
+    const legacy = process.env[legacyKey]?.trim();
+    if (legacy) return legacy;
+  }
+  return null;
 }
 
 export function getPlanByPriceId(priceId: string | null | undefined) {

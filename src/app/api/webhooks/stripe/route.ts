@@ -3,7 +3,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
 import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
-import { activateMembership, downgradeMembershipForSubscription, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
+import { activateMembership, downgradeMembershipForSubscription, findUserByEmailAddress, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +18,10 @@ function getWebhookSecret() {
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
+}
+
+function checkoutEmail(session: Stripe.Checkout.Session) {
+  return (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
 }
 
 function planFromMetadata(planId: string | null): LaunchBillingPlan | null {
@@ -61,8 +65,10 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const userId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     const plan = await planFromCheckoutSession(stripe, session);
+    const metadataUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
+    const emailMatchedUser = !metadataUserId ? await findUserByEmailAddress(checkoutEmail(session)) : null;
+    const userId = metadataUserId || emailMatchedUser?.id || null;
     if (userId && plan && (plan.id === "bib_lifetime" || !session.subscription)) {
       await activateMembership(userId, {
         tier: plan.tier,

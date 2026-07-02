@@ -48,7 +48,6 @@ export async function POST() {
   const sessions = await stripe.checkout.sessions.list({ limit: 100 });
   for (const session of sessions.data) {
     if (session.status !== "complete" || (session.payment_status !== "paid" && session.payment_status !== "no_payment_required")) continue;
-    if (session.metadata?.source !== "bourbon_signal_launch") continue;
     const checkoutUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     const emailMatches = checkoutEmail(session) === email;
     if (checkoutUserId && checkoutUserId !== userId) continue;

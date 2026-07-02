@@ -14,6 +14,15 @@ async function allocateFounderNumber(client: Awaited<ReturnType<typeof clerkClie
   return number;
 }
 
+export async function findUserByEmailAddress(email: string) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return null;
+  const client = await clerkClient();
+  const result = await client.users.getUserList({ emailAddress: [normalized], limit: 10 });
+  const users = Array.isArray(result) ? result : result.data;
+  return users.find((user) => user.emailAddresses?.some((item) => item.emailAddress.toLowerCase() === normalized)) || null;
+}
+
 export async function findUserByStripeCustomerId(customerId: string) {
   const client = await clerkClient();
   const result = await client.users.getUserList({ limit: 500 });
