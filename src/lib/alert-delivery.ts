@@ -192,13 +192,22 @@ export function candidateCanSendEmail(candidate: CandidateAlert) {
   const locationPrecision = asString(candidate.locationPrecision).toLowerCase();
   const quantity = asNumber(candidate.quantity) || asNumber(candidate.warehouseQty);
   const status = `${asString(candidate.availabilityStatus)} ${asString(candidate.availabilityLabel)}`.toLowerCase();
+  const priorityClass = asString(candidate.priorityClass).toLowerCase();
+  const tier = asString(candidate.tier).toLowerCase();
+  const isRareBottle = priorityClass === "major" || tier === "unicorn" || tier === "allocated";
+  const isActionableWatch = deliveryChannel === "watch_candidate"
+    && isRareBottle
+    && quantity > 0
+    && /board_shipment|shipment_snapshot|warehouse_stock|limited_release_store_drop/i.test(eventType)
+    && ["store_level", "board_county", "board_warehouse", "store_aggregate"].includes(locationPrecision);
 
   if (state === "IA" && /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot/.test(eventType)) return false;
   if ((state === "MD-MONTGOMERY" || state === "UT") && /county_inventory_aggregate|board_inventory_aggregate|county_product|county_allocated|catalog_row|release_document|allocated_release/.test(eventType)) return false;
-  if (deliveryChannel === "watch_candidate") return false;
+  if (deliveryChannel === "watch_candidate" && !isActionableWatch) return false;
   if (eventType.includes("release_surface") || eventType.includes("release-watch")) return false;
   if (eventType.includes("policy") || eventType.includes("license")) return false;
   if (eventType.includes("raffle") || eventType.includes("tasting")) return false;
+  if (isActionableWatch) return true;
   if (locationPrecision === "store_level") return true;
   if (quantity > 0) return true;
   return /in_stock|limited|available|on_hand/.test(status);

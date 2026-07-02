@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-02T17:26:58.213Z",
+  "generatedAt": "2026-07-02T18:27:24.553Z",
   "count": 2852,
   "stores": [
     {
@@ -3658,11 +3658,11 @@
       "signalCount": 1
     },
     {
-      "id": "47fb0e6034309652",
-      "sourceStoreId": "47fb0e6034309652",
+      "id": "9503dc9bd4e83a1b",
+      "sourceStoreId": "9503dc9bd4e83a1b",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -3672,11 +3672,11 @@
       "signalCount": 2
     },
     {
-      "id": "9503dc9bd4e83a1b",
-      "sourceStoreId": "9503dc9bd4e83a1b",
+      "id": "47fb0e6034309652",
+      "sourceStoreId": "47fb0e6034309652",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -12783,7 +12783,7 @@
       "lat": 41.1779536,
       "lng": -85.0973602,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -34679,7 +34679,7 @@
       "lat": null,
       "lng": null,
       "source": "Da Brown Bag Clover public inventory API",
-      "signalCount": 17
+      "signalCount": 12
     },
     {
       "id": "dev-liquors:620164924a3ea84d57c21d6f",

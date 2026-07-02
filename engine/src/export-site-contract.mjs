@@ -956,7 +956,7 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
     .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
     .filter((drop) => Number(drop.quantity || 0) > 0)
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
-    .slice(0, 75)
+    .slice(0, 150)
     .map((drop) => ({
       id: stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
       action: 'inventory_alert_candidate',
@@ -993,6 +993,55 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       policyMode: drop.policyMode,
       inventorySemantics: safeString(drop.inventorySemantics, 700),
       reason: 'Current source-backed store-level drop eligible for member alert matching.',
+      evidence: safeString(drop.evidence, 700)
+    }));
+}
+
+function buildRegionalWatchAlertsFromDrops(drops) {
+  return (drops || [])
+    .filter((drop) => drop && drop.canAlertAsWatch && !drop.canAlertAsInventory)
+    .filter((drop) => ['board_county', 'board_warehouse', 'store_aggregate'].includes(String(drop.locationPrecision || '')))
+    .filter((drop) => dropAgeHours(drop) <= 168)
+    .filter((drop) => Number(drop.quantity || 0) + Number(drop.warehouseQty || 0) > 0)
+    .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
+    .filter((drop) => /shipment|warehouse|limited_release_store_drop/i.test(String(drop.type || drop.eventType || '')))
+    .slice(0, 100)
+    .map((drop) => ({
+      id: stableId(['regional_watch_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
+      action: 'watch_alert_candidate',
+      score: drop.tier === 'unicorn' ? 145 : drop.tier === 'allocated' ? 130 : 108,
+      reliabilityScore: drop.tier === 'unicorn' ? 90 : drop.tier === 'allocated' ? 86 : 80,
+      eligibleForDelivery: true,
+      priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
+      deliveryChannel: 'watch_candidate',
+      sendRecommendation: 'send_to_matching_testers',
+      freshnessHours: Number(dropAgeHours(drop).toFixed(1)),
+      bootstrap: false,
+      changeType: 'current_regional_watch_signal',
+      dedupeKey: stableId(['regional_watch_alert', drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
+      matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName || 'regional']),
+      gates: ['current_public_drop', 'regional_watch', 'positive_quantity'],
+      blockers: [],
+      cautions: ['regional_not_store_level', 'verify_before_driving'],
+      state: drop.state,
+      bottle: drop.bottleName || drop.canonicalName,
+      tier: drop.tier,
+      eventType: drop.type,
+      source: drop.source,
+      sourceUrl: drop.sourceUrl,
+      locationPrecision: drop.locationPrecision,
+      locationName: drop.locationName,
+      storeName: drop.storeName,
+      storeAddress: drop.storeAddress,
+      quantity: drop.quantity || 0,
+      availabilityStatus: drop.availabilityStatus,
+      availabilityLabel: drop.availabilityLabel,
+      warehouseQty: drop.warehouseQty || 0,
+      price: drop.price || 0,
+      confidence: drop.confidence,
+      policyMode: drop.policyMode,
+      inventorySemantics: safeString(drop.inventorySemantics, 700),
+      reason: 'Current source-backed regional shipment/warehouse signal eligible for member watch alert matching.',
       evidence: safeString(drop.evidence, 700)
     }));
 }
@@ -1188,7 +1237,11 @@ async function main() {
   const drops = buildDrops(historicalSignals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
   const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
-  const alertCandidates = reportedAlertCandidates.length ? reportedAlertCandidates : buildCurrentInventoryAlertsFromDrops(drops);
+  const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(drops);
+  const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(drops);
+  const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates], (candidate) => candidate.dedupeKey || candidate.id)
+    .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0))
+    .slice(0, 200);
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
