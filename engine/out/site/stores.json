@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-01T14:41:05.957Z",
-  "count": 2863,
+  "generatedAt": "2026-07-02T01:43:11.528Z",
+  "count": 2806,
   "stores": [
     {
       "id": "alabc:001",
@@ -12965,7 +12965,7 @@
       "lat": 41.0984937,
       "lng": -85.089103,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e95",
@@ -13035,7 +13035,7 @@
       "lat": 41.1069418,
       "lng": -85.1166123,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb8",
@@ -13959,7 +13959,7 @@
       "lat": 39.95698369999999,
       "lng": -86.11678979999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "big-red:5e9254b278e8f13c2cb1e1f8",
@@ -14925,7 +14925,7 @@
       "lat": 41.05697139999999,
       "lng": -85.2262477,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "cap-n-cork:5e8f34fb9ea142251855ff61",
@@ -27413,7 +27413,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 32
+      "signalCount": 31
     },
     {
       "id": "high-point-wendover-ave",
@@ -27511,7 +27511,7 @@
       "lat": 36.002358,
       "lng": -79.790507,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "greensboro-36",
@@ -27553,7 +27553,7 @@
       "lat": 36.069891,
       "lng": -79.86625,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "greensboro-39",
@@ -28550,34 +28550,6 @@
       "signalCount": 4
     },
     {
-      "id": "264",
-      "sourceStoreId": "264",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0264",
-      "address": "Shaler Plaza, 880 Butler Street, Pittsburgh, PA, 15223",
-      "city": "Pittsburgh",
-      "county": null,
-      "zip": null,
-      "lat": 40.509817,
-      "lng": -79.946057,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "265",
-      "sourceStoreId": "265",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0265",
-      "address": "908 Little Deer Creek Valley Road, Russellton, PA, 15076",
-      "city": "Russellton",
-      "county": null,
-      "zip": null,
-      "lat": 40.60466,
-      "lng": -79.831972,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
       "id": "266",
       "sourceStoreId": "266",
       "state": "PA",
@@ -28630,6 +28602,20 @@
       "zip": null,
       "lat": 40.429968,
       "lng": -80.007257,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
+      "id": "274",
+      "sourceStoreId": "274",
+      "state": "PA",
+      "name": "FINE WINE & GOOD SPIRITS 0274",
+      "address": "Lebanon Shops, 300 Mount Lebanon Boulevard, Pittsburgh, PA, 15234",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.3688,
+      "lng": -80.03594,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 1
     },
@@ -28799,7 +28785,7 @@
       "lat": 40.465245,
       "lng": -79.826994,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "303",
@@ -28856,48 +28842,6 @@
       "lng": -80.230149,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 1
-    },
-    {
-      "id": "407",
-      "sourceStoreId": "407",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0407",
-      "address": "400 9th Street, New Brighton, PA, 15066-1943",
-      "city": "New Brighton",
-      "county": null,
-      "zip": null,
-      "lat": 40.7344861,
-      "lng": -80.31216,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "409",
-      "sourceStoreId": "409",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0409",
-      "address": "Chippewa Center, 2580 Constitution Boulevard, Beaver Falls, PA, 15010",
-      "city": "Beaver Falls",
-      "county": null,
-      "zip": null,
-      "lat": 40.772685,
-      "lng": -80.373449,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "410",
-      "sourceStoreId": "410",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0410",
-      "address": "2719 Brodhead Road, Aliquippa, PA, 15001",
-      "city": "Aliquippa",
-      "county": null,
-      "zip": null,
-      "lat": 40.609759,
-      "lng": -80.281447,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
     },
     {
       "id": "414",
@@ -28996,62 +28940,6 @@
       "lng": -76.009394,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 5
-    },
-    {
-      "id": "608",
-      "sourceStoreId": "608",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0608",
-      "address": "Spring Towne Center, 2671 Shillington Road, Sinking Spring, PA, 19608",
-      "city": "Sinking Spring",
-      "county": null,
-      "zip": null,
-      "lat": 40.315765,
-      "lng": -76.000548,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "611",
-      "sourceStoreId": "611",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0611",
-      "address": "Broadcasting Square, 2721 North Meridian Boulevard, Wyomissing, PA, 19610",
-      "city": "Wyomissing",
-      "county": null,
-      "zip": null,
-      "lat": 40.356702,
-      "lng": -75.981951,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
-    },
-    {
-      "id": "615",
-      "sourceStoreId": "615",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0615",
-      "address": "Douglassville Shopping Center, 180 Old Swede Road, Douglassville, PA, 19518",
-      "city": "Douglassville",
-      "county": null,
-      "zip": null,
-      "lat": 40.264152,
-      "lng": -75.726267,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "617",
-      "sourceStoreId": "617",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0617",
-      "address": "430 North Third Street, Womelsdorf, PA, 19567",
-      "city": "Womelsdorf",
-      "county": null,
-      "zip": null,
-      "lat": 40.375628,
-      "lng": -76.188986,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
     },
     {
       "id": "624",
@@ -30619,7 +30507,7 @@
       "lat": 40.308586,
       "lng": -76.804015,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "2211",
@@ -31151,7 +31039,7 @@
       "lat": 39.906033,
       "lng": -79.753825,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "2701",
@@ -31308,34 +31196,6 @@
       "signalCount": 4
     },
     {
-      "id": "3301",
-      "sourceStoreId": "3301",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3301",
-      "address": "160 Main Street, Brookville, PA, 15825",
-      "city": "Brookville",
-      "county": null,
-      "zip": null,
-      "lat": 41.160104,
-      "lng": -79.077297,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3302",
-      "sourceStoreId": "3302",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3302",
-      "address": "Punxy Plaza, 567 West Mahoning Street, Punxsutawney, PA, 15767",
-      "city": "Punxsutawney",
-      "county": null,
-      "zip": null,
-      "lat": 40.942355,
-      "lng": -78.983353,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
       "id": "3401",
       "sourceStoreId": "3401",
       "state": "PA",
@@ -31346,48 +31206,6 @@
       "zip": null,
       "lat": 40.562147,
       "lng": -77.391,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3503",
-      "sourceStoreId": "3503",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3503",
-      "address": "1520 South Main Avenue, Scranton, PA, 18504",
-      "city": "Scranton",
-      "county": null,
-      "zip": null,
-      "lat": 41.392362,
-      "lng": -75.69338,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "3505",
-      "sourceStoreId": "3505",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3505",
-      "address": "305 South Main Street, Old Forge, PA, 18518",
-      "city": "Old Forge",
-      "county": null,
-      "zip": null,
-      "lat": 41.369722,
-      "lng": -75.736411,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3507",
-      "sourceStoreId": "3507",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3507",
-      "address": "3378 Birney Ave, Moosic, PA, 18507",
-      "city": "Moosic",
-      "county": null,
-      "zip": null,
-      "lat": 41.375433,
-      "lng": -75.702371,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 2
     },
@@ -31406,160 +31224,6 @@
       "signalCount": 1
     },
     {
-      "id": "3510",
-      "sourceStoreId": "3510",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3510",
-      "address": "1531 Main Street, Peckville, PA, 18452",
-      "city": "Peckville",
-      "county": null,
-      "zip": null,
-      "lat": 41.478203,
-      "lng": -75.602106,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3512",
-      "sourceStoreId": "3512",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3512",
-      "address": "Dickson City Commons, 1106 Commerce Boulevard, Dickson City, PA, 18519",
-      "city": "Dickson City",
-      "county": null,
-      "zip": null,
-      "lat": 41.4697242,
-      "lng": -75.640254,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "3516",
-      "sourceStoreId": "3516",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3516",
-      "address": "222 Northern Boulevard, South Abington Township, PA, 18411",
-      "city": "South Abington Township",
-      "county": null,
-      "zip": null,
-      "lat": 41.46854,
-      "lng": -75.672133,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "3518",
-      "sourceStoreId": "3518",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3518",
-      "address": "Keyser Oak Plaza, 1762 North Keyser Avenue, Scranton, PA, 18508",
-      "city": "Scranton",
-      "county": null,
-      "zip": null,
-      "lat": 41.444711,
-      "lng": -75.667858,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3520",
-      "sourceStoreId": "3520",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3520",
-      "address": "Green Ridge Plaza, 1610 Nay Aug Avenue, Scranton, PA, 18509",
-      "city": "Scranton",
-      "county": null,
-      "zip": null,
-      "lat": 41.432973,
-      "lng": -75.659669,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "3521",
-      "sourceStoreId": "3521",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3521",
-      "address": "921 Drinker Turnpike, Covington Township, PA, 18444",
-      "city": "Covington Township",
-      "county": null,
-      "zip": null,
-      "lat": 41.308617,
-      "lng": -75.517717,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "3522",
-      "sourceStoreId": "3522",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3522",
-      "address": "210 Meadow Avenue, Scranton, PA, 18505",
-      "city": "Scranton",
-      "county": null,
-      "zip": null,
-      "lat": 41.395824,
-      "lng": -75.650914,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "3523",
-      "sourceStoreId": "3523",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3523",
-      "address": "Hillside Plaza, 771 Scranton Carbondale Highway, Eynon, PA, 18403",
-      "city": "Eynon",
-      "county": null,
-      "zip": null,
-      "lat": 41.507089,
-      "lng": -75.578878,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3525",
-      "sourceStoreId": "3525",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3525",
-      "address": "63 South Main Street, Carbondale, PA, 18407",
-      "city": "Carbondale",
-      "county": null,
-      "zip": null,
-      "lat": 41.569888,
-      "lng": -75.502748,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3601",
-      "sourceStoreId": "3601",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3601",
-      "address": "New Holland Shopping Center, 681 West Main Street, New Holland, PA, 17557",
-      "city": "New Holland",
-      "county": null,
-      "zip": null,
-      "lat": 40.095435,
-      "lng": -76.109878,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "3603",
-      "sourceStoreId": "3603",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3603",
-      "address": "Columbia Shopping Center, 36 South 18th Street, Columbia, PA, 17512",
-      "city": "Columbia",
-      "county": null,
-      "zip": null,
-      "lat": 40.031278,
-      "lng": -76.47705,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "3604",
       "sourceStoreId": "3604",
       "state": "PA",
@@ -31574,20 +31238,6 @@
       "signalCount": 4
     },
     {
-      "id": "3605",
-      "sourceStoreId": "3605",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3605",
-      "address": "Manheim Shopping Center, 97 Doe Run Road, Manheim, PA, 17545",
-      "city": "Manheim",
-      "county": null,
-      "zip": null,
-      "lat": 40.170829,
-      "lng": -76.383705,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
       "id": "3608",
       "sourceStoreId": "3608",
       "state": "PA",
@@ -31600,62 +31250,6 @@
       "lng": -76.326748,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 3
-    },
-    {
-      "id": "3610",
-      "sourceStoreId": "3610",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3610",
-      "address": "Muddy Creek Shoppes, 2350 North Reading Road, Denver, PA, 17517",
-      "city": "Denver",
-      "county": null,
-      "zip": null,
-      "lat": 40.227691,
-      "lng": -76.088965,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "3611",
-      "sourceStoreId": "3611",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3611",
-      "address": "1575 South Market Street, Elizabethtown, PA, 17022",
-      "city": "Elizabethtown",
-      "county": null,
-      "zip": null,
-      "lat": 40.13805,
-      "lng": -76.584693,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "3612",
-      "sourceStoreId": "3612",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3612",
-      "address": "Village at Gap, 5360 Lincoln Highway, Gap, PA, 17527",
-      "city": "Gap",
-      "county": null,
-      "zip": null,
-      "lat": 39.991731,
-      "lng": -76.018739,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "3615",
-      "sourceStoreId": "3615",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3615",
-      "address": "1622 Lincoln Highway East, Lancaster, PA, 17602",
-      "city": "Lancaster",
-      "county": null,
-      "zip": null,
-      "lat": 40.037643,
-      "lng": -76.270059,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
     },
     {
       "id": "3618",
@@ -31739,7 +31333,7 @@
       "lat": 40.055096,
       "lng": -76.398283,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3626",
@@ -32330,76 +31924,6 @@
       "signalCount": 4
     },
     {
-      "id": "4102",
-      "sourceStoreId": "4102",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4102",
-      "address": "449 Hepburn Street, Williamsport, PA, 17701",
-      "city": "Williamsport",
-      "county": null,
-      "zip": null,
-      "lat": 41.242172,
-      "lng": -77.00701,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "4103",
-      "sourceStoreId": "4103",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4103",
-      "address": "354 Allegheny Street, Jersey Shore, PA, 17740",
-      "city": "Jersey Shore",
-      "county": null,
-      "zip": null,
-      "lat": 41.203314,
-      "lng": -77.258345,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "4104",
-      "sourceStoreId": "4104",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4104",
-      "address": "1274 East Penn Street, Muncy, PA, 17756",
-      "city": "Muncy",
-      "county": null,
-      "zip": null,
-      "lat": 41.210883,
-      "lng": -76.760888,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "4107",
-      "sourceStoreId": "4107",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4107",
-      "address": "803 North Loyalsock Avenue, Montoursville, PA, 17754",
-      "city": "Montoursville",
-      "county": null,
-      "zip": null,
-      "lat": 41.259304,
-      "lng": -76.91737,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "4109",
-      "sourceStoreId": "4109",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4109",
-      "address": "510 West Southern Avenue, South Williamsport, PA, 17702",
-      "city": "South Williamsport",
-      "county": null,
-      "zip": null,
-      "lat": 41.231541,
-      "lng": -77.000323,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "4110",
       "sourceStoreId": "4110",
       "state": "PA",
@@ -32453,7 +31977,7 @@
       "lat": 41.808732,
       "lng": -78.285228,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "4303",
@@ -32565,7 +32089,7 @@
       "lat": 41.181083,
       "lng": -75.267978,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "4506",
@@ -32760,146 +32284,6 @@
       "zip": null,
       "lat": 40.104066,
       "lng": -75.213044,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "4624",
-      "sourceStoreId": "4624",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4624",
-      "address": "125 West Dekalb Pike, King of Prussia, PA, 19406",
-      "city": "King of Prussia",
-      "county": null,
-      "zip": null,
-      "lat": 40.093403,
-      "lng": -75.363864,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
-    },
-    {
-      "id": "4626",
-      "sourceStoreId": "4626",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4626",
-      "address": "2501 Main Street, Norristown, PA, 19403",
-      "city": "Norristown",
-      "county": null,
-      "zip": null,
-      "lat": 40.139806,
-      "lng": -75.386338,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "4627",
-      "sourceStoreId": "4627",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4627",
-      "address": "Hillcrest Shopping Center, 644 East Main Street, Lansdale, PA, 19446",
-      "city": "Lansdale",
-      "county": null,
-      "zip": null,
-      "lat": 40.234037,
-      "lng": -75.2712,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "4629",
-      "sourceStoreId": "4629",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4629",
-      "address": "Fairway Shopping Center, 1825 Limekiln Pike, Dresher, PA, 19025",
-      "city": "Dresher",
-      "county": null,
-      "zip": null,
-      "lat": 40.130576,
-      "lng": -75.166871,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "4632",
-      "sourceStoreId": "4632",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4632",
-      "address": "Gwynedd Crossing, 1210 Bethlehem Pike, North Wales, PA, 19454",
-      "city": "North Wales",
-      "county": null,
-      "zip": null,
-      "lat": 40.208843,
-      "lng": -75.224932,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "4635",
-      "sourceStoreId": "4635",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4635",
-      "address": "Regency Square, 1029 North Easton Road, Willow Grove, PA, 19090",
-      "city": "Willow Grove",
-      "county": null,
-      "zip": null,
-      "lat": 40.154427,
-      "lng": -75.121544,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "4636",
-      "sourceStoreId": "4636",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4636",
-      "address": "1 Station Circle, Narberth, PA, 19072",
-      "city": "Narberth",
-      "county": null,
-      "zip": null,
-      "lat": 40.005134,
-      "lng": -75.261237,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "4637",
-      "sourceStoreId": "4637",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4637",
-      "address": "Audubon Village Shopping Center, 2860 Audubon Village Drive, Audubon, PA, 19403",
-      "city": "Audubon",
-      "county": null,
-      "zip": null,
-      "lat": 40.127234,
-      "lng": -75.43797,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "4638",
-      "sourceStoreId": "4638",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4638",
-      "address": "123 South Easton Road, Glenside, PA, 19038",
-      "city": "Glenside",
-      "county": null,
-      "zip": null,
-      "lat": 40.099839,
-      "lng": -75.154111,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "4639",
-      "sourceStoreId": "4639",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 4639",
-      "address": "Gilbertsville Shopping Center, 1050 East Philadelphia Avenue, Gilbertsville, PA, 19525",
-      "city": "Gilbertsville",
-      "county": null,
-      "zip": null,
-      "lat": 40.325003,
-      "lng": -75.618755,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 5
     },
@@ -33366,20 +32750,6 @@
       "signalCount": 4
     },
     {
-      "id": "5108",
-      "sourceStoreId": "5108",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5108",
-      "address": "3250 North Broad Street, Philadelphia, PA, 19140",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.002408,
-      "lng": -75.152702,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "5111",
       "sourceStoreId": "5111",
       "state": "PA",
@@ -33392,174 +32762,6 @@
       "lng": -75.210541,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 4
-    },
-    {
-      "id": "5112",
-      "sourceStoreId": "5112",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5112",
-      "address": "The Court at Grant Avenue, 2550 Grant Avenue, Philadelphia, PA, 19114",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.079,
-      "lng": -75.025,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "5114",
-      "sourceStoreId": "5114",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5114",
-      "address": "Shelly's Plaza, 8844 Frankford Avenue, Philadelphia, PA, 19136",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.049707,
-      "lng": -75.011417,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "5116",
-      "sourceStoreId": "5116",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5116",
-      "address": "One & Olney, 101 East Olney Avenue, Philadelphia, PA, 19120",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.035102,
-      "lng": -75.119404,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "5117",
-      "sourceStoreId": "5117",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5117",
-      "address": "3151 Market Street, JFK Blvd Entrance, Philadelphia, PA, 19104-3083",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 39.9561222,
-      "lng": -75.186435,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "5119",
-      "sourceStoreId": "5119",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5119",
-      "address": "724 South Street, Philadelphia, PA, 19147",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 39.942202,
-      "lng": -75.154323,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "5120",
-      "sourceStoreId": "5120",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5120",
-      "address": "Academy Plaza Shopping Center, 3246 Red Lion Road, Philadelphia, PA, 19114",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.08059,
-      "lng": -74.993204,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "5121",
-      "sourceStoreId": "5121",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5121",
-      "address": "8705 Germantown Avenue, Philadelphia, PA, 19118",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.07731,
-      "lng": -75.208682,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "5126",
-      "sourceStoreId": "5126",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5126",
-      "address": "The Shops at Brewerytown, 3101 West Girard Avenue, Philadelphia, PA, 19130",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 39.975177,
-      "lng": -75.186829,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "5133",
-      "sourceStoreId": "5133",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5133",
-      "address": "Philadelphia Mills, 401 Franklin Mills Circle, Philadelphia, PA, 19154",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.084803,
-      "lng": -74.964571,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
-    },
-    {
-      "id": "5134",
-      "sourceStoreId": "5134",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5134",
-      "address": "32 South Second Street, Philadelphia, PA, 19106",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 39.949134,
-      "lng": -75.14398,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "5137",
-      "sourceStoreId": "5137",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5137",
-      "address": "5159 Lancaster Avenue, Philadelphia, PA, 19131",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 39.976833,
-      "lng": -75.225411,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "5138",
-      "sourceStoreId": "5138",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 5138",
-      "address": "7204 Germantown Avenue, Philadelphia, PA, 19119",
-      "city": "Philadelphia",
-      "county": null,
-      "zip": null,
-      "lat": 40.06009,
-      "lng": -75.191011,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
     },
     {
       "id": "5141",
@@ -34080,48 +33282,6 @@
       "signalCount": 5
     },
     {
-      "id": "6101",
-      "sourceStoreId": "6101",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 6101",
-      "address": "50 Seneca Street, Oil City, PA, 16301",
-      "city": "Oil City",
-      "county": null,
-      "zip": null,
-      "lat": 41.43302,
-      "lng": -79.708302,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "6102",
-      "sourceStoreId": "6102",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 6102",
-      "address": "541 Allegheny Boulevard, Franklin, PA, 16323",
-      "city": "Franklin",
-      "county": null,
-      "zip": null,
-      "lat": 41.402572,
-      "lng": -79.80758,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "6103",
-      "sourceStoreId": "6103",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 6103",
-      "address": "17 Kimberly Lane, Cranberry, PA, 16319",
-      "city": "Cranberry",
-      "county": null,
-      "zip": null,
-      "lat": 41.350574,
-      "lng": -79.718652,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
       "id": "6201",
       "sourceStoreId": "6201",
       "state": "PA",
@@ -34232,20 +33392,6 @@
       "lng": -75.224253,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 2
-    },
-    {
-      "id": "6505",
-      "sourceStoreId": "6505",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 6505",
-      "address": "328 Central City Plaza, New Kensington, PA, 15068",
-      "city": "New Kensington",
-      "county": null,
-      "zip": null,
-      "lat": 40.564587,
-      "lng": -79.76888,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
     },
     {
       "id": "6507",
@@ -35085,7 +34231,7 @@
       "lat": 36.1570489,
       "lng": -86.7943734,
       "source": "Corkdorks CityHive store inventory",
-      "signalCount": 19
+      "signalCount": 20
     },
     {
       "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
@@ -35281,7 +34427,7 @@
       "lat": 35.9121068,
       "lng": -86.82835680000001,
       "source": "Red Dog Wine and Spirits CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
@@ -35309,7 +34455,7 @@
       "lat": 37.548658,
       "lng": -77.464868,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "103",
@@ -35323,7 +34469,7 @@
       "lat": 38.13279,
       "lng": -77.523362,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "104",
@@ -35337,7 +34483,7 @@
       "lat": 37.403809,
       "lng": -77.686236,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "105",
@@ -35351,7 +34497,7 @@
       "lat": 36.812244,
       "lng": -76.071969,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "106",
@@ -35365,7 +34511,7 @@
       "lat": 36.910088,
       "lng": -76.075377,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "107",
@@ -35379,7 +34525,7 @@
       "lat": 36.857221,
       "lng": -76.289844,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "108",
@@ -35393,7 +34539,7 @@
       "lat": 37.656506,
       "lng": -77.525194,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "109",
@@ -35407,7 +34553,7 @@
       "lat": 38.892554,
       "lng": -77.08179,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "110",
@@ -35421,7 +34567,7 @@
       "lat": 36.836658,
       "lng": -76.311485,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "111",
@@ -35435,7 +34581,7 @@
       "lat": 38.83382,
       "lng": -77.414422,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "112",
@@ -35449,7 +34595,7 @@
       "lat": 37.020668,
       "lng": -76.319569,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "113",
@@ -35463,7 +34609,7 @@
       "lat": 37.999792,
       "lng": -79.831914,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "114",
@@ -35477,7 +34623,7 @@
       "lat": 37.250206,
       "lng": -77.371458,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "115",
@@ -35491,7 +34637,7 @@
       "lat": 37.284918,
       "lng": -79.932537,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "116",
@@ -35505,7 +34651,7 @@
       "lat": 37.352915,
       "lng": -77.410654,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "117",
@@ -35519,7 +34665,7 @@
       "lat": 37.411815,
       "lng": -79.141347,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "118",
@@ -35533,7 +34679,7 @@
       "lat": 37.227577,
       "lng": -77.403881,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "119",
@@ -35547,7 +34693,7 @@
       "lat": 38.813935,
       "lng": -77.042797,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "120",
@@ -35561,7 +34707,7 @@
       "lat": 38.771389,
       "lng": -77.138841,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "121",
@@ -35575,7 +34721,7 @@
       "lat": 38.302398,
       "lng": -77.463233,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "122",
@@ -35589,7 +34735,7 @@
       "lat": 38.147668,
       "lng": -79.069213,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "124",
@@ -35603,7 +34749,7 @@
       "lat": 37.769643,
       "lng": -79.990029,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "125",
@@ -35617,7 +34763,7 @@
       "lat": 38.032761,
       "lng": -78.457627,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "126",
@@ -35631,7 +34777,7 @@
       "lat": 37.890029,
       "lng": -78.874298,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "127",
@@ -35645,7 +34791,7 @@
       "lat": 38.907476,
       "lng": -77.404673,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "128",
@@ -35659,7 +34805,7 @@
       "lat": 36.954318,
       "lng": -76.252999,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "129",
@@ -35673,7 +34819,7 @@
       "lat": 36.78428,
       "lng": -76.002118,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "130",
@@ -35687,7 +34833,7 @@
       "lat": 38.254105,
       "lng": -76.977058,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "131",
@@ -35701,7 +34847,7 @@
       "lat": 38.813034,
       "lng": -77.184136,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "132",
@@ -35715,7 +34861,7 @@
       "lat": 36.652888,
       "lng": -79.872699,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "133",
@@ -35729,7 +34875,7 @@
       "lat": 38.757343,
       "lng": -77.467244,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "134",
@@ -35743,7 +34889,7 @@
       "lat": 36.872614,
       "lng": -76.296506,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "135",
@@ -35757,7 +34903,7 @@
       "lat": 36.845813,
       "lng": -81.502986,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "136",
@@ -35771,7 +34917,7 @@
       "lat": 39.107965,
       "lng": -77.564947,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "137",
@@ -35785,7 +34931,7 @@
       "lat": 36.958286,
       "lng": -82.603534,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "138",
@@ -35799,7 +34945,7 @@
       "lat": 38.02107,
       "lng": -77.990803,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "139",
@@ -35813,7 +34959,7 @@
       "lat": 39.210167,
       "lng": -78.174202,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "140",
@@ -35827,7 +34973,7 @@
       "lat": 37.77981,
       "lng": -79.4375,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "141",
@@ -35841,7 +34987,7 @@
       "lat": 36.759724,
       "lng": -80.737857,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "142",
@@ -35855,7 +35001,7 @@
       "lat": 38.910149,
       "lng": -78.188437,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "143",
@@ -35869,7 +35015,7 @@
       "lat": 36.719297,
       "lng": -78.118292,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "144",
@@ -35883,7 +35029,7 @@
       "lat": 36.704338,
       "lng": -77.541504,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "145",
@@ -35897,7 +35043,7 @@
       "lat": 38.453129,
       "lng": -78.867396,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "146",
@@ -35911,7 +35057,7 @@
       "lat": 36.570636,
       "lng": -79.418963,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "147",
@@ -35925,7 +35071,7 @@
       "lat": 38.411796,
       "lng": -79.581648,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "148",
@@ -35939,7 +35085,7 @@
       "lat": 37.272331,
       "lng": -76.760511,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "149",
@@ -35953,7 +35099,7 @@
       "lat": 37.963069,
       "lng": -76.776607,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "150",
@@ -35967,7 +35113,7 @@
       "lat": 37.614437,
       "lng": -77.457727,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "151",
@@ -35981,7 +35127,7 @@
       "lat": 37.302979,
       "lng": -77.287272,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "152",
@@ -35995,7 +35141,7 @@
       "lat": 37.283269,
       "lng": -78.392867,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "153",
@@ -36009,7 +35155,7 @@
       "lat": 36.948248,
       "lng": -81.08537,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "155",
@@ -36023,7 +35169,7 @@
       "lat": 37.275923,
       "lng": -76.496641,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "156",
@@ -36037,7 +35183,7 @@
       "lat": 37.269433,
       "lng": -75.973084,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "157",
@@ -36051,7 +35197,7 @@
       "lat": 36.749002,
       "lng": -77.864605,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "158",
@@ -36065,7 +35211,7 @@
       "lat": 36.984139,
       "lng": -76.424785,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "159",
@@ -36079,7 +35225,7 @@
       "lat": 37.49782,
       "lng": -77.527101,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "160",
@@ -36093,7 +35239,7 @@
       "lat": 37.324852,
       "lng": -79.494976,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "161",
@@ -36107,7 +35253,7 @@
       "lat": 36.96281,
       "lng": -78.134896,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "162",
@@ -36121,7 +35267,7 @@
       "lat": 37.94356,
       "lng": -75.539503,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "163",
@@ -36135,7 +35281,7 @@
       "lat": 38.257747,
       "lng": -78.114054,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "164",
@@ -36149,7 +35295,7 @@
       "lat": 37.189226,
       "lng": -78.145755,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "165",
@@ -36163,7 +35309,7 @@
       "lat": 36.822163,
       "lng": -76.274411,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "166",
@@ -36177,7 +35323,7 @@
       "lat": 39.107646,
       "lng": -77.530063,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "167",
@@ -36191,7 +35337,7 @@
       "lat": 39.15068,
       "lng": -77.982827,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "168",
@@ -36205,7 +35351,7 @@
       "lat": 38.884607,
       "lng": -77.092621,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "169",
@@ -36219,7 +35365,7 @@
       "lat": 37.554958,
       "lng": -77.486702,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "170",
@@ -36233,7 +35379,7 @@
       "lat": 38.96198,
       "lng": -77.400752,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "171",
@@ -36247,7 +35393,7 @@
       "lat": 37.632907,
       "lng": -77.540336,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "172",
@@ -36261,7 +35407,7 @@
       "lat": 36.797926,
       "lng": -78.458502,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "173",
@@ -36275,7 +35421,7 @@
       "lat": 38.406213,
       "lng": -78.652221,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "174",
@@ -36289,7 +35435,7 @@
       "lat": 37.256098,
       "lng": -82.107468,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "175",
@@ -36303,7 +35449,7 @@
       "lat": 37.536444,
       "lng": -76.797871,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "176",
@@ -36317,7 +35463,7 @@
       "lat": 37.044456,
       "lng": -78.945553,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "177",
@@ -36331,7 +35477,7 @@
       "lat": 37.933834,
       "lng": -75.366161,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "178",
@@ -36345,7 +35491,7 @@
       "lat": 37.542604,
       "lng": -78.458117,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "179",
@@ -36359,7 +35505,7 @@
       "lat": 37.636103,
       "lng": -76.577336,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "180",
@@ -36373,7 +35519,7 @@
       "lat": 37.528798,
       "lng": -77.421063,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "181",
@@ -36387,7 +35533,7 @@
       "lat": 38.968465,
       "lng": -77.737226,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "182",
@@ -36401,7 +35547,7 @@
       "lat": 37.552095,
       "lng": -77.453085,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "183",
@@ -36415,7 +35561,7 @@
       "lat": 38.369957,
       "lng": -77.527428,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "184",
@@ -36429,7 +35575,7 @@
       "lat": 38.423203,
       "lng": -78.840679,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "185",
@@ -36443,7 +35589,7 @@
       "lat": 38.03093,
       "lng": -78.487994,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "186",
@@ -36457,7 +35603,7 @@
       "lat": 37.289906,
       "lng": -80.077728,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "187",
@@ -36471,7 +35617,7 @@
       "lat": 37.538282,
       "lng": -77.413137,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "188",
@@ -36485,7 +35631,7 @@
       "lat": 36.821669,
       "lng": -76.120392,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "189",
@@ -36499,7 +35645,7 @@
       "lat": 37.809032,
       "lng": -78.5025,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "190",
@@ -36513,7 +35659,7 @@
       "lat": 37.416305,
       "lng": -77.638194,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "191",
@@ -36527,7 +35673,7 @@
       "lat": 37.012257,
       "lng": -79.866816,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "192",
@@ -36541,7 +35687,7 @@
       "lat": 37.709051,
       "lng": -76.379828,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "193",
@@ -36555,7 +35701,7 @@
       "lat": 38.6625,
       "lng": -78.491044,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "194",
@@ -36569,7 +35715,7 @@
       "lat": 36.906722,
       "lng": -82.315355,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "195",
@@ -36583,7 +35729,7 @@
       "lat": 37.131108,
       "lng": -80.410706,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "196",
@@ -36597,7 +35743,7 @@
       "lat": 37.040343,
       "lng": -78.483997,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "197",
@@ -36611,7 +35757,7 @@
       "lat": 37.063868,
       "lng": -81.740072,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "198",
@@ -36625,7 +35771,7 @@
       "lat": 37.905746,
       "lng": -76.862736,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "199",
@@ -36639,7 +35785,7 @@
       "lat": 37.329119,
       "lng": -80.709684,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "200",
@@ -36653,7 +35799,7 @@
       "lat": 38.475917,
       "lng": -77.422588,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "204",
@@ -36667,7 +35813,7 @@
       "lat": 37.490832,
       "lng": -78.252456,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "205",
@@ -36681,7 +35827,7 @@
       "lat": 37.62304,
       "lng": -77.622986,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "206",
@@ -36695,7 +35841,7 @@
       "lat": 36.866642,
       "lng": -82.77426,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "207",
@@ -36709,7 +35855,7 @@
       "lat": 37.673894,
       "lng": -77.462679,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "209",
@@ -36723,7 +35869,7 @@
       "lat": 38.256372,
       "lng": -77.498888,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "213",
@@ -36737,7 +35883,7 @@
       "lat": 37.23181,
       "lng": -79.81059,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "219",
@@ -36751,7 +35897,7 @@
       "lat": 38.915434,
       "lng": -77.236379,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "221",
@@ -36765,7 +35911,7 @@
       "lat": 38.350145,
       "lng": -77.055081,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "222",
@@ -36779,7 +35925,7 @@
       "lat": 37.114715,
       "lng": -76.46444,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "223",
@@ -36793,7 +35939,7 @@
       "lat": 37.528404,
       "lng": -75.831108,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "225",
@@ -36807,7 +35953,7 @@
       "lat": 36.858528,
       "lng": -75.982727,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "228",
@@ -36821,7 +35967,7 @@
       "lat": 38.776114,
       "lng": -77.059633,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "229",
@@ -36835,7 +35981,7 @@
       "lat": 37.312385,
       "lng": -79.880927,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "230",
@@ -36849,7 +35995,7 @@
       "lat": 37.132343,
       "lng": -81.493478,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "233",
@@ -36863,7 +36009,7 @@
       "lat": 37.398362,
       "lng": -76.52872,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "238",
@@ -36877,7 +36023,7 @@
       "lat": 37.968098,
       "lng": -76.557824,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "239",
@@ -36891,7 +36037,7 @@
       "lat": 38.047922,
       "lng": -77.358329,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "240",
@@ -36905,7 +36051,7 @@
       "lat": 37.034943,
       "lng": -77.091267,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 45
     },
     {
       "id": "241",
@@ -36919,7 +36065,7 @@
       "lat": 38.848514,
       "lng": -77.352861,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "242",
@@ -36933,7 +36079,7 @@
       "lat": 37.580844,
       "lng": -77.498884,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "243",
@@ -36947,7 +36093,7 @@
       "lat": 37.76097,
       "lng": -77.469121,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "244",
@@ -36961,7 +36107,7 @@
       "lat": 37.024158,
       "lng": -76.433866,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "246",
@@ -36975,7 +36121,7 @@
       "lat": 36.794638,
       "lng": -76.165879,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "248",
@@ -36989,7 +36135,7 @@
       "lat": 38.89829,
       "lng": -77.122384,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "251",
@@ -37003,7 +36149,7 @@
       "lat": 37.570915,
       "lng": -77.432869,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "252",
@@ -37017,7 +36163,7 @@
       "lat": 37.50109,
       "lng": -77.477886,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "253",
@@ -37031,7 +36177,7 @@
       "lat": 38.05282,
       "lng": -78.4984,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "254",
@@ -37045,7 +36191,7 @@
       "lat": 37.590145,
       "lng": -77.532542,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "255",
@@ -37059,7 +36205,7 @@
       "lat": 37.182575,
       "lng": -77.368321,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "257",
@@ -37073,7 +36219,7 @@
       "lat": 37.743636,
       "lng": -77.136111,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "258",
@@ -37087,7 +36233,7 @@
       "lat": 37.010873,
       "lng": -76.353958,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "259",
@@ -37101,7 +36247,7 @@
       "lat": 37.317766,
       "lng": -79.965444,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "261",
@@ -37115,7 +36261,7 @@
       "lat": 39.166149,
       "lng": -78.17213,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "262",
@@ -37129,7 +36275,7 @@
       "lat": 37.350947,
       "lng": -79.227887,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "263",
@@ -37143,7 +36289,35 @@
       "lat": 36.857097,
       "lng": -76.202681,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
+    },
+    {
+      "id": "264",
+      "sourceStoreId": "264",
+      "state": "VA",
+      "name": "Virginia ABC Store 264",
+      "address": "16661 River Ridge Boulevard Woodbridge VA 22191",
+      "city": "Woodbridge",
+      "county": null,
+      "zip": null,
+      "lat": 38.588301,
+      "lng": -77.303316,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 46
+    },
+    {
+      "id": "265",
+      "sourceStoreId": "265",
+      "state": "VA",
+      "name": "Virginia ABC Store 265",
+      "address": "19 Towne Center Way Hampton VA 23666",
+      "city": "Hampton",
+      "county": null,
+      "zip": null,
+      "lat": 37.063617,
+      "lng": -76.425643,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 46
     },
     {
       "id": "268",
@@ -37157,7 +36331,7 @@
       "lat": 38.780916,
       "lng": -77.189435,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "269",
@@ -37171,7 +36345,7 @@
       "lat": 37.255476,
       "lng": -79.957541,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "270",
@@ -37185,21 +36359,7 @@
       "lat": 37.634913,
       "lng": -77.457599,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
-    },
-    {
-      "id": "274",
-      "sourceStoreId": "274",
-      "state": "VA",
-      "name": "Virginia ABC Store 274",
-      "address": "28 Madison Plaza Drive Unit E Madison VA 22727-0053",
-      "city": "Madison",
-      "county": null,
-      "zip": null,
-      "lat": 38.366797,
-      "lng": -78.269603,
-      "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "275",
@@ -37213,7 +36373,7 @@
       "lat": 37.06213,
       "lng": -78.004246,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "276",
@@ -37227,7 +36387,7 @@
       "lat": 36.625907,
       "lng": -79.398533,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "277",
@@ -37241,7 +36401,7 @@
       "lat": 36.738746,
       "lng": -79.954128,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "279",
@@ -37255,7 +36415,7 @@
       "lat": 37.376747,
       "lng": -79.247654,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "280",
@@ -37269,7 +36429,7 @@
       "lat": 36.809878,
       "lng": -76.219808,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "283",
@@ -37283,7 +36443,7 @@
       "lat": 36.790103,
       "lng": -79.396106,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "287",
@@ -37297,7 +36457,7 @@
       "lat": 37.446232,
       "lng": -79.218249,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "289",
@@ -37311,7 +36471,7 @@
       "lat": 37.291894,
       "lng": -79.990916,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "291",
@@ -37325,7 +36485,7 @@
       "lat": 36.695586,
       "lng": -79.899152,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "293",
@@ -37339,7 +36499,7 @@
       "lat": 38.749779,
       "lng": -78.640016,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "294",
@@ -37353,7 +36513,7 @@
       "lat": 38.84634,
       "lng": -77.11859,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "295",
@@ -37367,7 +36527,7 @@
       "lat": 38.785207,
       "lng": -77.52011,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "297",
@@ -37381,7 +36541,7 @@
       "lat": 38.713295,
       "lng": -77.794373,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "300",
@@ -37395,7 +36555,7 @@
       "lat": 37.659443,
       "lng": -77.38371,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "301",
@@ -37409,7 +36569,7 @@
       "lat": 38.674578,
       "lng": -77.335039,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "304",
@@ -37423,7 +36583,7 @@
       "lat": 37.700025,
       "lng": -77.887694,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "305",
@@ -37437,7 +36597,7 @@
       "lat": 37.568958,
       "lng": -77.401482,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "306",
@@ -37451,7 +36611,7 @@
       "lat": 36.790162,
       "lng": -76.123609,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "307",
@@ -37465,7 +36625,7 @@
       "lat": 36.813112,
       "lng": -76.169135,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "308",
@@ -37479,7 +36639,7 @@
       "lat": 37.598761,
       "lng": -77.620953,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "310",
@@ -37493,7 +36653,7 @@
       "lat": 37.259044,
       "lng": -77.325012,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "311",
@@ -37507,7 +36667,7 @@
       "lat": 36.810261,
       "lng": -76.355879,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "312",
@@ -37521,7 +36681,7 @@
       "lat": 36.776715,
       "lng": -76.583952,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "313",
@@ -37535,7 +36695,7 @@
       "lat": 38.290226,
       "lng": -77.535805,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "314",
@@ -37549,7 +36709,7 @@
       "lat": 37.528265,
       "lng": -77.353893,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 45
     },
     {
       "id": "315",
@@ -37563,7 +36723,7 @@
       "lat": 37.376687,
       "lng": -77.510648,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "316",
@@ -37577,7 +36737,7 @@
       "lat": 38.596043,
       "lng": -77.331999,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "317",
@@ -37591,7 +36751,7 @@
       "lat": 38.842479,
       "lng": -77.274473,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "318",
@@ -37605,7 +36765,7 @@
       "lat": 38.87292,
       "lng": -78.5314,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "32",
@@ -37619,7 +36779,7 @@
       "lat": 37.5531,
       "lng": -76.35598,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "320",
@@ -37633,7 +36793,7 @@
       "lat": 37.282076,
       "lng": -76.722234,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "321",
@@ -37647,7 +36807,7 @@
       "lat": 37.753076,
       "lng": -78.878192,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "322",
@@ -37661,7 +36821,7 @@
       "lat": 38.836383,
       "lng": -77.437584,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "323",
@@ -37675,7 +36835,7 @@
       "lat": 39.135192,
       "lng": -77.699003,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "324",
@@ -37689,7 +36849,7 @@
       "lat": 36.633622,
       "lng": -80.268287,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 45
     },
     {
       "id": "325",
@@ -37703,7 +36863,7 @@
       "lat": 36.708906,
       "lng": -77.056835,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "326",
@@ -37717,7 +36877,7 @@
       "lat": 37.539565,
       "lng": -77.885463,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "327",
@@ -37731,7 +36891,7 @@
       "lat": 37.216165,
       "lng": -80.402117,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "328",
@@ -37745,7 +36905,7 @@
       "lat": 36.77138,
       "lng": -76.23397,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "329",
@@ -37759,7 +36919,7 @@
       "lat": 38.464033,
       "lng": -77.999197,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "33",
@@ -37773,7 +36933,7 @@
       "lat": 38.68041,
       "lng": -77.36407,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "330",
@@ -37787,7 +36947,7 @@
       "lat": 37.44314,
       "lng": -77.474431,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "331",
@@ -37801,7 +36961,7 @@
       "lat": 37.648441,
       "lng": -77.61582,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "332",
@@ -37815,7 +36975,7 @@
       "lat": 37.614417,
       "lng": -77.49893,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "333",
@@ -37829,7 +36989,7 @@
       "lat": 37.436541,
       "lng": -76.319479,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "334",
@@ -37843,7 +37003,7 @@
       "lat": 37.610719,
       "lng": -77.334365,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "335",
@@ -37857,7 +37017,7 @@
       "lat": 37.268476,
       "lng": -76.675926,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "336",
@@ -37871,7 +37031,7 @@
       "lat": 36.87218,
       "lng": -76.135645,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "337",
@@ -37885,7 +37045,7 @@
       "lat": 37.271859,
       "lng": -79.888883,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "338",
@@ -37899,7 +37059,7 @@
       "lat": 38.065556,
       "lng": -78.935758,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "339",
@@ -37913,7 +37073,7 @@
       "lat": 38.202075,
       "lng": -79.008361,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "340",
@@ -37927,7 +37087,7 @@
       "lat": 37.105595,
       "lng": -76.510762,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "341",
@@ -37941,7 +37101,7 @@
       "lat": 37.143075,
       "lng": -76.520599,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "343",
@@ -37955,7 +37115,7 @@
       "lat": 36.596752,
       "lng": -82.208861,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "344",
@@ -37969,7 +37129,7 @@
       "lat": 37.698087,
       "lng": -75.718994,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "345",
@@ -37983,7 +37143,7 @@
       "lat": 37.081964,
       "lng": -80.693668,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "346",
@@ -37997,7 +37157,7 @@
       "lat": 38.874104,
       "lng": -77.225266,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "347",
@@ -38011,7 +37171,7 @@
       "lat": 37.143316,
       "lng": -79.2678,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "348",
@@ -38025,7 +37185,7 @@
       "lat": 37.537972,
       "lng": -77.525639,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "349",
@@ -38039,7 +37199,7 @@
       "lat": 36.715829,
       "lng": -76.237285,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "35",
@@ -38053,7 +37213,7 @@
       "lat": 38.455871,
       "lng": -77.406817,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "350",
@@ -38067,7 +37227,7 @@
       "lat": 37.506518,
       "lng": -77.60205,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "351",
@@ -38081,7 +37241,7 @@
       "lat": 37.359999,
       "lng": -77.953754,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "352",
@@ -38095,7 +37255,7 @@
       "lat": 38.926401,
       "lng": -77.37557,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "353",
@@ -38109,7 +37269,7 @@
       "lat": 38.645091,
       "lng": -77.333531,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "354",
@@ -38123,7 +37283,7 @@
       "lat": 37.36574,
       "lng": -78.844054,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "355",
@@ -38137,7 +37297,7 @@
       "lat": 36.82607,
       "lng": -76.41054,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "356",
@@ -38151,7 +37311,7 @@
       "lat": 37.136543,
       "lng": -80.572463,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "357",
@@ -38165,7 +37325,7 @@
       "lat": 38.97886,
       "lng": -77.350258,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "359",
@@ -38179,7 +37339,7 @@
       "lat": 38.087441,
       "lng": -78.474963,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "36",
@@ -38193,7 +37353,7 @@
       "lat": 38.785784,
       "lng": -77.649117,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "360",
@@ -38207,7 +37367,7 @@
       "lat": 37.574413,
       "lng": -77.484447,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "361",
@@ -38221,7 +37381,7 @@
       "lat": 36.826204,
       "lng": -76.338146,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "362",
@@ -38235,7 +37395,7 @@
       "lat": 39.04025,
       "lng": -77.412196,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "363",
@@ -38249,7 +37409,7 @@
       "lat": 37.442287,
       "lng": -77.580102,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "364",
@@ -38263,7 +37423,7 @@
       "lat": 37.395909,
       "lng": -79.910677,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "365",
@@ -38277,7 +37437,7 @@
       "lat": 37.149648,
       "lng": -82.454571,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "366",
@@ -38291,7 +37451,7 @@
       "lat": 37.605143,
       "lng": -77.59131,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "367",
@@ -38305,7 +37465,7 @@
       "lat": 39.060958,
       "lng": -77.470525,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "368",
@@ -38319,7 +37479,7 @@
       "lat": 38.848466,
       "lng": -77.302594,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "369",
@@ -38333,7 +37493,7 @@
       "lat": 38.836465,
       "lng": -77.154987,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "37",
@@ -38347,7 +37507,7 @@
       "lat": 38.484299,
       "lng": -77.969574,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "370",
@@ -38361,7 +37521,7 @@
       "lat": 36.758136,
       "lng": -76.007639,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "371",
@@ -38375,7 +37535,7 @@
       "lat": 38.798793,
       "lng": -77.322407,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "372",
@@ -38389,7 +37549,7 @@
       "lat": 38.808924,
       "lng": -77.085823,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "373",
@@ -38403,7 +37563,7 @@
       "lat": 36.586088,
       "lng": -79.426668,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "374",
@@ -38417,7 +37577,7 @@
       "lat": 38.84549,
       "lng": -77.067726,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "375",
@@ -38431,7 +37591,7 @@
       "lat": 38.682768,
       "lng": -77.296086,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "376",
@@ -38445,7 +37605,7 @@
       "lat": 38.082519,
       "lng": -77.85144,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "377",
@@ -38459,7 +37619,7 @@
       "lat": 36.861081,
       "lng": -76.467312,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "378",
@@ -38473,7 +37633,7 @@
       "lat": 38.862299,
       "lng": -77.087543,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "379",
@@ -38487,7 +37647,7 @@
       "lat": 36.881205,
       "lng": -76.187608,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "38",
@@ -38501,7 +37661,7 @@
       "lat": 37.519752,
       "lng": -77.185825,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "380",
@@ -38515,7 +37675,7 @@
       "lat": 38.840546,
       "lng": -77.062732,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "381",
@@ -38529,7 +37689,7 @@
       "lat": 37.249012,
       "lng": -76.685618,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "382",
@@ -38543,7 +37703,7 @@
       "lat": 37.125336,
       "lng": -76.392628,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "383",
@@ -38557,7 +37717,7 @@
       "lat": 38.420008,
       "lng": -78.872358,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "384",
@@ -38571,7 +37731,7 @@
       "lat": 38.867183,
       "lng": -77.446924,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "385",
@@ -38585,7 +37745,7 @@
       "lat": 38.817464,
       "lng": -77.275998,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "386",
@@ -38599,7 +37759,7 @@
       "lat": 38.034812,
       "lng": -79.038274,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "387",
@@ -38613,7 +37773,7 @@
       "lat": 38.965432,
       "lng": -78.192379,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "389",
@@ -38627,7 +37787,7 @@
       "lat": 37.683271,
       "lng": -77.586733,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "39",
@@ -38641,7 +37801,7 @@
       "lat": 38.732632,
       "lng": -77.550564,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "390",
@@ -38655,7 +37815,7 @@
       "lat": 37.81294,
       "lng": -77.662514,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "391",
@@ -38669,7 +37829,7 @@
       "lat": 36.954394,
       "lng": -76.531378,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "392",
@@ -38683,7 +37843,7 @@
       "lat": 38.011232,
       "lng": -78.498741,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "393",
@@ -38697,7 +37857,7 @@
       "lat": 38.824764,
       "lng": -77.315332,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "394",
@@ -38711,7 +37871,7 @@
       "lat": 36.849149,
       "lng": -75.994682,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "395",
@@ -38725,7 +37885,7 @@
       "lat": 36.922229,
       "lng": -80.324406,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "396",
@@ -38739,7 +37899,7 @@
       "lat": 37.307153,
       "lng": -79.309906,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "397",
@@ -38753,7 +37913,7 @@
       "lat": 38.804516,
       "lng": -77.14106,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "399",
@@ -38767,7 +37927,7 @@
       "lat": 37.276083,
       "lng": -79.097737,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "40",
@@ -38781,7 +37941,7 @@
       "lat": 39.005647,
       "lng": -77.437956,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "400",
@@ -38795,7 +37955,7 @@
       "lat": 37.369428,
       "lng": -79.301489,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "404",
@@ -38809,7 +37969,7 @@
       "lat": 37.524065,
       "lng": -77.439192,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "405",
@@ -38823,7 +37983,7 @@
       "lat": 36.875,
       "lng": -76.30362,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "406",
@@ -38837,7 +37997,21 @@
       "lat": 38.426252,
       "lng": -77.433878,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
+    },
+    {
+      "id": "407",
+      "sourceStoreId": "407",
+      "state": "VA",
+      "name": "Virginia ABC Store 407",
+      "address": "13113 River's Bend Boulevard Chester VA 23836",
+      "city": "Chester",
+      "county": null,
+      "zip": null,
+      "lat": 37.35068,
+      "lng": -77.35538,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 46
     },
     {
       "id": "408",
@@ -38851,7 +38025,21 @@
       "lat": 37.97835,
       "lng": -78.210772,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
+    },
+    {
+      "id": "409",
+      "sourceStoreId": "409",
+      "state": "VA",
+      "name": "Virginia ABC Store 409",
+      "address": "7550 Granby Street Suite #80 Norfolk VA 23505",
+      "city": "Norfolk",
+      "county": null,
+      "zip": null,
+      "lat": 36.913443,
+      "lng": -76.271433,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 46
     },
     {
       "id": "41",
@@ -38865,7 +38053,21 @@
       "lat": 38.950053,
       "lng": -77.408306,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
+    },
+    {
+      "id": "410",
+      "sourceStoreId": "410",
+      "state": "VA",
+      "name": "Virginia ABC Store 410",
+      "address": "14807 Moneta Road Suite B Moneta VA 24121",
+      "city": "Moneta",
+      "county": null,
+      "zip": null,
+      "lat": 37.166527,
+      "lng": -79.638624,
+      "source": "Virginia ABC storeNearby inventory API",
+      "signalCount": 46
     },
     {
       "id": "411",
@@ -38879,7 +38081,7 @@
       "lat": 38.255963,
       "lng": -78.8232,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "412",
@@ -38893,7 +38095,7 @@
       "lat": 38.476218,
       "lng": -77.47178,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "413",
@@ -38907,7 +38109,7 @@
       "lat": 36.748002,
       "lng": -76.584078,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "417",
@@ -38921,7 +38123,7 @@
       "lat": 37.191701,
       "lng": -76.488164,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "418",
@@ -38935,7 +38137,7 @@
       "lat": 38.938532,
       "lng": -77.520385,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "419",
@@ -38949,7 +38151,7 @@
       "lat": 38.740085,
       "lng": -77.21297,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "42",
@@ -38963,7 +38165,7 @@
       "lat": 38.755063,
       "lng": -77.081679,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "420",
@@ -38977,7 +38179,7 @@
       "lat": 37.096006,
       "lng": -76.457885,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "421",
@@ -38991,7 +38193,7 @@
       "lat": 38.862185,
       "lng": -77.295449,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "422",
@@ -39005,7 +38207,7 @@
       "lat": 37.127246,
       "lng": -76.53401,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "423",
@@ -39019,7 +38221,7 @@
       "lat": 36.896549,
       "lng": -76.225448,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "424",
@@ -39033,7 +38235,7 @@
       "lat": 39.050884,
       "lng": -77.452959,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "425",
@@ -39047,7 +38249,7 @@
       "lat": 38.790274,
       "lng": -77.065229,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "426",
@@ -39061,7 +38263,7 @@
       "lat": 38.631299,
       "lng": -78.774899,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "427",
@@ -39075,7 +38277,7 @@
       "lat": 36.900578,
       "lng": -82.059006,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "428",
@@ -39089,7 +38291,7 @@
       "lat": 36.903845,
       "lng": -76.137588,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "429",
@@ -39103,7 +38305,7 @@
       "lat": 36.841275,
       "lng": -76.13383,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "43",
@@ -39117,7 +38319,7 @@
       "lat": 36.660444,
       "lng": -76.233482,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "436",
@@ -39131,7 +38333,7 @@
       "lat": 39.219875,
       "lng": -78.136313,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "437",
@@ -39145,7 +38347,7 @@
       "lat": 36.763376,
       "lng": -76.201881,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "438",
@@ -39159,7 +38361,7 @@
       "lat": 38.829179,
       "lng": -77.109694,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "439",
@@ -39173,7 +38375,7 @@
       "lat": 38.64044,
       "lng": -77.3012,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "44",
@@ -39187,7 +38389,7 @@
       "lat": 38.00735,
       "lng": -77.51701,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "440",
@@ -39201,7 +38403,7 @@
       "lat": 38.066972,
       "lng": -78.887537,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "441",
@@ -39215,7 +38417,7 @@
       "lat": 37.543973,
       "lng": -77.365324,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "442",
@@ -39229,7 +38431,7 @@
       "lat": 37.6307,
       "lng": -77.36202,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "443",
@@ -39243,7 +38445,7 @@
       "lat": 38.817446,
       "lng": -77.643142,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "444",
@@ -39257,7 +38459,7 @@
       "lat": 36.844881,
       "lng": -75.97648,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "45",
@@ -39271,7 +38473,7 @@
       "lat": 38.78105,
       "lng": -77.23513,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "46",
@@ -39285,7 +38487,7 @@
       "lat": 38.128003,
       "lng": -78.4434,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "47",
@@ -39299,7 +38501,7 @@
       "lat": 39.187833,
       "lng": -78.133407,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "48",
@@ -39313,7 +38515,7 @@
       "lat": 37.338625,
       "lng": -76.755505,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "49",
@@ -39327,7 +38529,7 @@
       "lat": 38.880873,
       "lng": -77.107523,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "50",
@@ -39341,7 +38543,7 @@
       "lat": 38.051842,
       "lng": -78.680976,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "51",
@@ -39355,7 +38557,7 @@
       "lat": 37.90388,
       "lng": -78.34146,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "52",
@@ -39369,7 +38571,7 @@
       "lat": 38.997112,
       "lng": -78.349161,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "521",
@@ -39383,7 +38585,7 @@
       "lat": 36.620966,
       "lng": -81.142333,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "522",
@@ -39397,7 +38599,7 @@
       "lat": 39.119094,
       "lng": -78.19457,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "523",
@@ -39411,7 +38613,7 @@
       "lat": 38.997569,
       "lng": -77.286998,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "524",
@@ -39425,7 +38627,7 @@
       "lat": 37.271805,
       "lng": -79.939339,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "528",
@@ -39439,7 +38641,7 @@
       "lat": 36.68427,
       "lng": -83.12929,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "529",
@@ -39453,7 +38655,7 @@
       "lat": 38.803454,
       "lng": -77.047319,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "53",
@@ -39467,7 +38669,7 @@
       "lat": 36.805156,
       "lng": -76.726673,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "530",
@@ -39481,7 +38683,7 @@
       "lat": 39.08301,
       "lng": -77.56312,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 47
     },
     {
       "id": "531",
@@ -39495,7 +38697,7 @@
       "lat": 39.27401,
       "lng": -77.64026,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "54",
@@ -39509,7 +38711,7 @@
       "lat": 38.939663,
       "lng": -77.549334,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "55",
@@ -39523,7 +38725,7 @@
       "lat": 38.719791,
       "lng": -77.398258,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "56",
@@ -39537,7 +38739,7 @@
       "lat": 39.158758,
       "lng": -78.153813,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "57",
@@ -39551,7 +38753,7 @@
       "lat": 38.136217,
       "lng": -79.045974,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "58",
@@ -39565,7 +38767,7 @@
       "lat": 36.62957,
       "lng": -82.14635,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "59",
@@ -39579,7 +38781,7 @@
       "lat": 36.731967,
       "lng": -78.918822,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "60",
@@ -39593,7 +38795,7 @@
       "lat": 37.212401,
       "lng": -77.458338,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "61",
@@ -39607,7 +38809,7 @@
       "lat": 38.997212,
       "lng": -77.408413,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "62",
@@ -39621,7 +38823,7 @@
       "lat": 38.302169,
       "lng": -77.508395,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "64",
@@ -39635,7 +38837,7 @@
       "lat": 38.309253,
       "lng": -77.427034,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "66",
@@ -39649,7 +38851,7 @@
       "lat": 38.579298,
       "lng": -77.765463,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "67",
@@ -39663,7 +38865,7 @@
       "lat": 37.163929,
       "lng": -80.418524,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "68",
@@ -39677,7 +38879,7 @@
       "lat": 38.431663,
       "lng": -78.910911,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "69",
@@ -39691,7 +38893,7 @@
       "lat": 36.719395,
       "lng": -76.307896,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "70",
@@ -39705,7 +38907,7 @@
       "lat": 38.21067,
       "lng": -78.397369,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "71",
@@ -39719,7 +38921,7 @@
       "lat": 36.847429,
       "lng": -76.291874,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "72",
@@ -39733,7 +38935,7 @@
       "lat": 38.326222,
       "lng": -77.730557,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "73",
@@ -39747,7 +38949,7 @@
       "lat": 39.027094,
       "lng": -77.509306,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "75",
@@ -39761,7 +38963,7 @@
       "lat": 39.081784,
       "lng": -78.20282,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "76",
@@ -39775,7 +38977,7 @@
       "lat": 38.894813,
       "lng": -77.192362,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "77",
@@ -39789,7 +38991,7 @@
       "lat": 37.515947,
       "lng": -77.78999,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "78",
@@ -39803,7 +39005,7 @@
       "lat": 38.844371,
       "lng": -77.641598,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "79",
@@ -39817,7 +39019,7 @@
       "lat": 36.767907,
       "lng": -76.249912,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "80",
@@ -39831,7 +39033,7 @@
       "lat": 38.819212,
       "lng": -77.140888,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "81",
@@ -39845,7 +39047,7 @@
       "lat": 38.864185,
       "lng": -77.06327,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "82",
@@ -39859,7 +39061,7 @@
       "lat": 39.017901,
       "lng": -77.375771,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "83",
@@ -39873,7 +39075,7 @@
       "lat": 38.86503,
       "lng": -77.196683,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "84",
@@ -39887,7 +39089,7 @@
       "lat": 38.873224,
       "lng": -77.373229,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "85",
@@ -39901,7 +39103,7 @@
       "lat": 38.882823,
       "lng": -77.300223,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "86",
@@ -39915,7 +39117,7 @@
       "lat": 37.537585,
       "lng": -77.565187,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "87",
@@ -39929,7 +39131,7 @@
       "lat": 37.238757,
       "lng": -81.256706,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "88",
@@ -39943,7 +39145,7 @@
       "lat": 38.863249,
       "lng": -77.848846,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "89",
@@ -39957,7 +39159,7 @@
       "lat": 37.671312,
       "lng": -77.681473,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "90",
@@ -39971,7 +39173,7 @@
       "lat": 38.858989,
       "lng": -77.389159,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "92",
@@ -39985,7 +39187,7 @@
       "lat": 37.042461,
       "lng": -76.352686,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "93",
@@ -39999,7 +39201,7 @@
       "lat": 38.784552,
       "lng": -77.122259,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "94",
@@ -40013,7 +39215,7 @@
       "lat": 38.986206,
       "lng": -77.536962,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "95",
@@ -40027,7 +39229,7 @@
       "lat": 38.22225,
       "lng": -77.50618,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "96",
@@ -40041,7 +39243,7 @@
       "lat": 36.681808,
       "lng": -80.89469,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "97",
@@ -40055,7 +39257,7 @@
       "lat": 37.480458,
       "lng": -77.512888,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "98",
@@ -40069,7 +39271,7 @@
       "lat": 36.77298,
       "lng": -76.084297,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     },
     {
       "id": "99",
@@ -40083,7 +39285,7 @@
       "lat": 38.969039,
       "lng": -77.374421,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 6
+      "signalCount": 46
     }
   ]
 }
