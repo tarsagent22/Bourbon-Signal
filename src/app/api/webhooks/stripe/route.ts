@@ -44,6 +44,13 @@ async function planFromSubscription(subscription: Stripe.Subscription) {
   return planFromMetadata(stringValue(subscription.metadata?.plan));
 }
 
+async function emailFromStripeCustomer(stripe: Stripe, customerId: string | null) {
+  if (!customerId) return "";
+  const customer = await stripe.customers.retrieve(customerId);
+  if ("deleted" in customer && customer.deleted) return "";
+  return ("email" in customer && typeof customer.email === "string" ? customer.email : "").trim().toLowerCase();
+}
+
 export async function POST(req: NextRequest) {
   const stripe = getStripeClient();
   const webhookSecret = getWebhookSecret();
@@ -69,13 +76,19 @@ export async function POST(req: NextRequest) {
     const metadataUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     const emailMatchedUser = !metadataUserId ? await findUserByEmailAddress(checkoutEmail(session)) : null;
     const userId = metadataUserId || emailMatchedUser?.id || null;
-    if (userId && plan && (plan.id === "bib_lifetime" || !session.subscription)) {
+    let membershipStatus = "active";
+    const subscriptionId = stringValue(session.subscription);
+    if (plan && plan.id !== "bib_lifetime" && subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      membershipStatus = subscription.status;
+    }
+    if (userId && plan && isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) {
       await activateMembership(userId, {
         tier: plan.tier,
         plan: plan.id,
         stripeCustomerId: stringValue(session.customer),
-        stripeSubscriptionId: stringValue(session.subscription),
-        status: "active",
+        stripeSubscriptionId: subscriptionId,
+        status: membershipStatus,
       });
     }
   }
@@ -85,7 +98,8 @@ export async function POST(req: NextRequest) {
     const customerId = stringValue(subscription.customer);
     const metadataUserId = stringValue(subscription.metadata?.userId);
     const existingUser = !metadataUserId && customerId ? await findUserByStripeCustomerId(customerId) : null;
-    const userId = metadataUserId || existingUser?.id || null;
+    const emailMatchedUser = !metadataUserId && !existingUser ? await findUserByEmailAddress(await emailFromStripeCustomer(stripe, customerId)) : null;
+    const userId = metadataUserId || existingUser?.id || emailMatchedUser?.id || null;
     const plan = await planFromSubscription(subscription);
     if (userId && plan && isMembershipAccessActive(plan.tier, subscription.status, plan.id)) {
       await activateMembership(userId, {
