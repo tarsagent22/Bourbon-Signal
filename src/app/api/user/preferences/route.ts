@@ -352,10 +352,20 @@ export async function POST(req: NextRequest) {
   );
   if (payload.notificationPreferences !== undefined) {
     const existingSms = existing.notificationPreferences?.sms;
-    const samePhone = existingSms?.phone && existingSms.phone === notificationPreferences.sms.phone;
+    const savedPhone = notificationPreferences.sms.phone?.trim();
+    const samePhone = Boolean(savedPhone && existingSms?.phone === savedPhone);
+    const smsConsentedOnSave = Boolean(notificationPreferences.sms.enabled && savedPhone);
     notificationPreferences = {
       ...notificationPreferences,
-      sms: { ...notificationPreferences.sms, verified: Boolean(samePhone && existingSms?.verified) },
+      sms: {
+        ...notificationPreferences.sms,
+        phone: savedPhone || undefined,
+        // The settings form is the SMS opt-in point: if a member enters a phone,
+        // enables SMS, and saves, that phone is allowed to receive alerts. Every
+        // SMS includes STOP opt-out copy; a future OTP flow can replace this flag
+        // without silently blocking saved opted-in numbers today.
+        verified: smsConsentedOnSave || Boolean(samePhone && existingSms?.verified),
+      },
     };
   }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
