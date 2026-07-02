@@ -5,6 +5,7 @@ import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, resolveEffectiveMembershipTie
 import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
+import { activateMembership } from "@/lib/membership-server";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,34 @@ async function founderSpotsSold() {
   const result = await client.users.getUserList({ limit: 500 });
   const users = (Array.isArray(result) ? result : result.data) as FounderAllocationUser[];
   return countFounderMemberships(users);
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : null;
+}
+
+async function checkoutSessionMatchesPlan(stripe: Stripe, session: Stripe.Checkout.Session, planId: BillingPlanId, priceId: string) {
+  if (session.metadata?.plan === planId) return true;
+  const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+  return lineItems.data.some((item) => item.price?.id === priceId);
+}
+
+async function findReusableCheckoutSession(stripe: Stripe, userId: string, planId: BillingPlanId, priceId: string) {
+  const sessions = await stripe.checkout.sessions.list({ limit: 100 });
+  for (const session of sessions.data) {
+    const sessionUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
+    if (sessionUserId !== userId) continue;
+    if (!(await checkoutSessionMatchesPlan(stripe, session, planId, priceId))) continue;
+
+    if (session.status === "complete" && (session.payment_status === "paid" || session.payment_status === "no_payment_required")) {
+      return session;
+    }
+
+    if (session.status === "open" && session.url && (!session.expires_at || session.expires_at > Math.floor(Date.now() / 1000))) {
+      return session;
+    }
+  }
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -78,8 +107,34 @@ export async function POST(req: NextRequest) {
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
   }
+
+  const reusableSession = await findReusableCheckoutSession(stripe, userId, planId, priceId);
+  if (reusableSession) {
+    if (reusableSession.status === "complete" && (reusableSession.payment_status === "paid" || reusableSession.payment_status === "no_payment_required")) {
+      let membershipStatus = "active";
+      const subscriptionId = stringValue(reusableSession.subscription);
+      if (planId !== "bib_lifetime" && subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        membershipStatus = subscription.status;
+      }
+      await activateMembership(userId, {
+        tier: plan.tier,
+        plan: plan.id,
+        stripeCustomerId: stringValue(reusableSession.customer),
+        stripeSubscriptionId: subscriptionId,
+        status: membershipStatus,
+      });
+      return NextResponse.json({ url: `${appUrl(req)}/success?session_id=${reusableSession.id}`, recovered: true });
+    }
+
+    if (reusableSession.url) {
+      return NextResponse.json({ url: reusableSession.url, reused: true });
+    }
+  }
+
   const email = user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress;
   const origin = appUrl(req);
+
   const metadata = {
     userId,
     tier: plan.tier,

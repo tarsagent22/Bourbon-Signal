@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import type { BillingPlanId } from "@/lib/entitlements";
@@ -25,6 +25,7 @@ function ContinueCheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
+  const checkoutStartedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const plan = useMemo(() => normalizePlan(searchParams.get("plan")), [searchParams]);
 
@@ -35,9 +36,12 @@ function ContinueCheckoutContent() {
     }
     if (!isLoaded) return;
     if (!isSignedIn) {
+      checkoutStartedRef.current = false;
       router.replace(`/sign-up?redirect_url=${encodeURIComponent(`/checkout/continue?plan=${plan}`)}`);
       return;
     }
+    if (checkoutStartedRef.current) return;
+    checkoutStartedRef.current = true;
 
     let cancelled = false;
     async function openCheckout() {
@@ -52,6 +56,7 @@ function ContinueCheckoutContent() {
         if (!res.ok || !data.url) throw new Error(data.error || "Checkout is not available.");
         if (!cancelled) window.location.href = data.url;
       } catch (checkoutError) {
+        checkoutStartedRef.current = false;
         if (!cancelled) setError(checkoutError instanceof Error ? checkoutError.message : "Checkout is not available.");
       }
     }
