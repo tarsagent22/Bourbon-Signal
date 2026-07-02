@@ -2,6 +2,13 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { FOUNDER_SPOT_LIMIT, isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { nextFounderNumber, type FounderAllocationUser } from "@/lib/founder-allocation";
 
+type ClerkMembershipUser = {
+  id: string;
+  publicMetadata?: Record<string, unknown>;
+  privateMetadata?: Record<string, unknown>;
+  emailAddresses?: Array<{ emailAddress: string }>;
+};
+
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
 }
@@ -19,14 +26,14 @@ export async function findUserByEmailAddress(email: string) {
   if (!normalized) return null;
   const client = await clerkClient();
   const result = await client.users.getUserList({ emailAddress: [normalized], limit: 10 });
-  const users = Array.isArray(result) ? result : result.data;
+  const users = (Array.isArray(result) ? result : result.data) as ClerkMembershipUser[];
   return users.find((user) => user.emailAddresses?.some((item) => item.emailAddress.toLowerCase() === normalized)) || null;
 }
 
 export async function findUserByStripeCustomerId(customerId: string) {
   const client = await clerkClient();
   const result = await client.users.getUserList({ limit: 500 });
-  const users = Array.isArray(result) ? result : result.data;
+  const users = (Array.isArray(result) ? result : result.data) as ClerkMembershipUser[];
   return users.find((user) => user.publicMetadata?.stripeCustomerId === customerId || user.privateMetadata?.stripeCustomerId === customerId) || null;
 }
 
