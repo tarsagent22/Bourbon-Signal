@@ -1,13 +1,20 @@
 {
-  "updatedAt": "2026-07-01T10:15:00-04:00",
+  "updatedAt": "2026-07-02T10:00:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "Buffalo Trace brings back its Prohibition Collection",
+      "source": "Buffalo Trace Distillery / Breaking Bourbon",
+      "url": "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
+      "firstReportedAt": "2026-07-02",
+      "status": "homepage-visible"
+    },
     {
       "title": "Elijah Craig 21 Year returns as a true trophy bottle",
       "source": "Heaven Hill",
       "url": "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
       "firstReportedAt": "2026-06-29",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Lost Lantern turns all 50 states into one bourbon story",

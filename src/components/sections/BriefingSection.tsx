@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Buffalo Trace brings back its Prohibition Collection",
+    summary: "Buffalo Trace's third Prohibition Collection is a five-bottle limited set tied to the distillery's medicinal-whiskey era, now moving into select retailer, bar, and restaurant distribution.",
+    note: "Best of the morning: Buffalo Trace plus a scarce multi-bottle set is the clearest collector signal for members to watch before local sightings appear.",
+    href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
+    source: "Buffalo Trace Distillery",
+  },
+  {
     title: "Frey Ranch 10-Year enters the collector watchlist",
     summary: "Frey Ranch's 10-Year-Old Bourbon Batch #1, its oldest standalone whiskey, launched by lottery and is now moving into the shipment/watch-list window.",
     note: "Best of the morning: age-stated Nevada bourbon is still a scarce craft lane, and this gives hunters a concrete bottle to track after the lottery closes.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
     source: "Bulleit",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Elijah Craig 21 Year returns as a true trophy bottle",
     summary: "Heaven Hill is bringing back Elijah Craig 21-Year-Old Single Barrel as a limited 2026 release, with an initial distillery debut and select-market bottles later in the year.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://heavenhill.com/news-and-notes/elijah-craig-expands-single-barrel-lineup-with-rare-21-year-old-release/",
     source: "Heaven Hill",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Lost Lantern turns all 50 states into one bourbon story",
     summary: "Lost Lantern's United States of Bourbon line blends straight bourbon from every state, with a limited 1776 Edition built for America's 250th.",
@@ -298,7 +305,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated June 30, 2026</span>
+            <span className="daily-briefing-updated">Updated July 2, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>
@@ -314,7 +321,7 @@ export default function BriefingSection() {
         {isPaidUser ? (
           <details className="daily-briefing-more">
             <summary className="daily-briefing-more-button">
-              <span>Show 3 more stories</span>
+              <span>Show more stories</span>
             </summary>
             <div className="daily-briefing-list" aria-label="Additional daily briefing stories">
               {additionalBriefingItems.map((item, index) => (
