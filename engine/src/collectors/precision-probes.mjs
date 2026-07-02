@@ -1964,7 +1964,10 @@ async function writeTennesseeCityHiveCache(signals, roadblocks) {
   const nextChains = tennesseeCityHivePositiveInventoryChains(signals);
   const previous = await readTennesseeCityHiveCache();
   const previousChains = tennesseeCityHivePositiveInventoryChains(previous?.signals || []);
-  if (previousChains.size >= 2 && nextChains.size < previousChains.size) return;
+  const previousPositiveCount = Number(previous?.positiveInventorySignalCount || previous?.signals?.filter?.((signal) => signal.eventType === 'cityhive_store_inventory_result').length || 0);
+  const allowDegradedCacheWrite = process.env.BOURBON_SIGNAL_TN_ALLOW_DEGRADED_CITYHIVE_CACHE_WRITE === '1';
+  if (!allowDegradedCacheWrite && previousChains.size >= 2 && nextChains.size < previousChains.size) return;
+  if (!allowDegradedCacheWrite && previousPositiveCount >= 60 && nextPositiveCount < Math.floor(previousPositiveCount * 0.85)) return;
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'Tennessee CityHive retailer inventory cache',

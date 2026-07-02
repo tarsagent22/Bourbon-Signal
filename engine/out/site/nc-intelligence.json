@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-01T14:39:33.788Z",
+  "generatedAt": "2026-07-02T01:30:02.779Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-07-01T14:39:33.992Z"
+    "observedAt": "2026-07-02T01:30:02.885Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
-    "rowCount": 3297,
-    "bourbonOrWhiskeyRowCount": 666,
-    "observedAt": "2026-07-01T14:39:34.240Z",
+    "rowCount": 3286,
+    "bourbonOrWhiskeyRowCount": 665,
+    "observedAt": "2026-07-02T01:30:03.114Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -208,12 +208,12 @@
         "category": "Controlled Distribution Items",
         "controlledDistributionType": "controlled_distribution",
         "sourceRow": 20,
-        "supplier": "Heaven Hill",
-        "proof": "105",
-        "size": "700ML",
-        "price": 99.95,
-        "mixedBeveragePrice": 103.45,
-        "priceName": "Heaven Hill Grain to Glass KY ST Bourbon"
+        "supplier": null,
+        "proof": null,
+        "size": null,
+        "price": null,
+        "mixedBeveragePrice": null,
+        "priceName": null
       },
       {
         "ncCode": "17911",
@@ -975,12 +975,12 @@
         "category": "Controlled Distribution Items",
         "controlledDistributionType": "controlled_distribution",
         "sourceRow": 98,
-        "supplier": "American Spirits Exchange",
-        "proof": "116.6",
-        "size": ".75L",
-        "price": 237.95,
-        "mixedBeveragePrice": 241.7,
-        "priceName": "Old Carter SB Bourbon"
+        "supplier": null,
+        "proof": null,
+        "size": null,
+        "price": null,
+        "mixedBeveragePrice": null,
+        "priceName": null
       },
       {
         "ncCode": "17670",
@@ -1274,12 +1274,12 @@
         "category": "Controlled Distribution Items",
         "controlledDistributionType": "controlled_distribution",
         "sourceRow": 148,
-        "supplier": "McCormick Distilling Co.",
-        "proof": "120",
-        "size": ".75L",
-        "price": 74.95,
-        "mixedBeveragePrice": 78.7,
-        "priceName": "Ben Holladay Rickhouse Proof Bourbon Whiskey"
+        "supplier": null,
+        "proof": null,
+        "size": null,
+        "price": null,
+        "mixedBeveragePrice": null,
+        "priceName": null
       },
       {
         "ncCode": "18126",
@@ -1945,29 +1945,29 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-07-01T14:39:34.371Z",
+    "observedAt": "2026-07-02T01:30:03.174Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
     "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
-    "observedAt": "2026-06-30T15:04:18.000Z",
+    "observedAt": "2026-07-01T15:04:13.000Z",
     "boardCount": 174,
-    "productCount": 2679,
-    "recordCount": 77400,
-    "trackedSignalCount": 565,
-    "controlledDistributionSignalCount": 347,
-    "priceEnrichedSignalCount": 565,
+    "productCount": 2687,
+    "recordCount": 79157,
+    "trackedSignalCount": 572,
+    "controlledDistributionSignalCount": 348,
+    "priceEnrichedSignalCount": 572,
     "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching."
   },
   "warehouse": {
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/Stocks",
-    "rowCount": 3241,
-    "trackedRowCount": 106,
+    "rowCount": 3210,
+    "trackedRowCount": 99,
     "positiveTrackedRowCount": 32,
-    "observedAt": "2026-07-01T14:39:36.028Z",
+    "observedAt": "2026-07-02T01:30:04.975Z",
     "increaseCount": 0,
-    "controlledDistributionSignalCount": 61,
-    "priceEnrichedSignalCount": 106,
+    "controlledDistributionSignalCount": 55,
+    "priceEnrichedSignalCount": 99,
     "topIncreases": [],
     "updateNote": "Official page states warehouse stock status is refreshed frequently; treat as statewide radar, not store inventory."
   },
@@ -2285,7 +2285,7 @@
       "finalUrl": "https://www.cumberlandabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 421557,
+      "bytes": 421431,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2319,7 +2319,7 @@
       "finalUrl": "https://www.cumberlandabc.com/products",
       "ok": true,
       "status": 200,
-      "bytes": 405916,
+      "bytes": 405680,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2423,7 +2423,7 @@
       "finalUrl": "https://wakeabc.com/search-results/",
       "ok": true,
       "status": 200,
-      "bytes": 64300,
+      "bytes": 64301,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -2480,7 +2480,7 @@
       "finalUrl": "https://wakeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 86341,
+      "bytes": 86290,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2613,7 +2613,7 @@
       "finalUrl": "https://wakeabc.com/search-results/",
       "ok": true,
       "status": 200,
-      "bytes": 64300,
+      "bytes": 64301,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -2728,7 +2728,7 @@
       "finalUrl": "https://www.greensboroabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 177301,
+      "bytes": 177199,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2820,7 +2820,7 @@
       "finalUrl": "https://www.durhamabc.com/drops",
       "ok": true,
       "status": 200,
-      "bytes": 810066,
+      "bytes": 810177,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2860,7 +2860,7 @@
       "finalUrl": "https://www.durhamabc.com/news",
       "ok": true,
       "status": 200,
-      "bytes": 1120358,
+      "bytes": 1120181,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2928,7 +2928,7 @@
       "finalUrl": "https://www.durhamabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 872835,
+      "bytes": 872670,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2972,7 +2972,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/bourbon-blast/",
       "ok": true,
       "status": 200,
-      "bytes": 111061,
+      "bytes": 101927,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3040,7 +3040,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/barrels/",
       "ok": true,
       "status": 200,
-      "bytes": 159409,
+      "bytes": 159426,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3107,7 +3107,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 179598,
+      "bytes": 179615,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -3174,7 +3174,7 @@
       "finalUrl": "https://www.newhanovercountyabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 147473,
+      "bytes": 147490,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3213,7 +3213,7 @@
       "finalUrl": "https://highpointabc.com/products",
       "ok": true,
       "status": 200,
-      "bytes": 132983,
+      "bytes": 134156,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -3307,7 +3307,7 @@
       "finalUrl": "https://highpointabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 156091,
+      "bytes": 157264,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3472,202 +3472,6 @@
       "error": null
     },
     {
-      "boardName": "Orange County ABC Board",
-      "url": "https://orangeabc.com/specialty-lottery/",
-      "finalUrl": "https://orangeabc.com/specialty-lottery/",
-      "ok": true,
-      "status": 200,
-      "bytes": 90313,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "lottery_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#ajax-content-wrap",
-          "label": "Skip to main content"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#searchbox",
-          "label": "search"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#sidewidgetarea",
-          "label": "Menu"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#searchbox",
-          "label": "search"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#",
-          "label": "Close Search"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/#",
-          "label": ""
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Orange County ABC Board",
-      "url": "http://orangeabc.com/",
-      "finalUrl": "https://orangeabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 109090,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "lottery_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        },
-        {
-          "href": "https://abc2.nc.gov/Pricing/SpecialItems",
-          "label": "https://abc2.nc.gov/Pricing/SpecialItems"
-        },
-        {
-          "href": "https://orangeabc.com/specialty-lottery/",
-          "label": "Specialty Lottery"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wayne County ABC Board",
-      "url": "https://wayneabc.com/allocation-policy/",
-      "finalUrl": "https://wayneabc.com/allocation-policy/",
-      "ok": true,
-      "status": 200,
-      "bytes": 84003,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "allocation_policy_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wayneabc.com/allocation-policy/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wayneabc.com/allocation-policy/#",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://wayneabc.com/allocation-policy/",
-          "label": "Bourbon Allocation"
-        },
-        {
-          "href": "https://wayneabc.com/monthly-specials/",
-          "label": "Pricing &#038; Monthly Specials"
-        },
-        {
-          "href": "https://wayneabc.com/product-information/",
-          "label": "Types of Products"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wayne County ABC Board",
-      "url": "http://www.wayneabc.com/",
-      "finalUrl": "https://wayneabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 194214,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "allocation_policy_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wayneabc.com/#",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://wayneabc.com/allocation-policy/",
-          "label": "Bourbon Allocation"
-        },
-        {
-          "href": "https://wayneabc.com/monthly-specials/",
-          "label": "Pricing &#038; Monthly Specials"
-        },
-        {
-          "href": "https://wayneabc.com/product-information/",
-          "label": "Types of Products"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Wayne County ABC Board",
-      "url": "http://www.wayneabc.com/allocation-policy",
-      "finalUrl": "https://wayneabc.com/allocation-policy/",
-      "ok": true,
-      "status": 200,
-      "bytes": 84003,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "allocation_policy_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://wayneabc.com/allocation-policy/#",
-          "label": "About"
-        },
-        {
-          "href": "https://wayneabc.com/allocation-policy/#",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://wayneabc.com/allocation-policy/",
-          "label": "Bourbon Allocation"
-        },
-        {
-          "href": "https://wayneabc.com/monthly-specials/",
-          "label": "Pricing &#038; Monthly Specials"
-        },
-        {
-          "href": "https://wayneabc.com/product-information/",
-          "label": "Types of Products"
-        }
-      ],
-      "error": null
-    },
-    {
       "boardName": "Weaverville ABC Board",
       "url": "https://weaverville.ncabcboards.com/blog/",
       "finalUrl": "https://weaverville.ncabcboards.com/blog/",
@@ -3802,48 +3606,100 @@
       "error": null
     },
     {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-      "finalUrl": "https://abc2.nc.gov/Pricing/SpirituousLiquorReports/3",
+      "boardName": "Orange County ABC Board",
+      "url": "https://orangeabc.com/specialty-lottery/",
+      "finalUrl": "https://orangeabc.com/specialty-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 95215,
-      "contentType": "text/html; charset=utf-8",
-      "capabilities": [],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [],
-      "error": null
-    },
-    {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://abc.nc.gov/Pricing/SpecialItems",
-      "finalUrl": "https://abc2.nc.gov/Pricing/SpecialItems",
-      "ok": true,
-      "status": 200,
-      "bytes": 3813191,
-      "contentType": "text/html; charset=utf-8",
-      "capabilities": [],
+      "bytes": 90313,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "lottery_page"
+      ],
       "releaseLanguage": true,
       "strongReleaseLanguage": true,
       "interestingLinks": [
         {
-          "href": "https://abc2.nc.gov/Pricing/SpecialItems#main-content",
+          "href": "https://orangeabc.com/specialty-lottery/#ajax-content-wrap",
           "label": "Skip to main content"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/#searchbox",
+          "label": "search"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/#sidewidgetarea",
+          "label": "Menu"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/#searchbox",
+          "label": "search"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/#",
+          "label": "Close Search"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/#",
+          "label": ""
         }
       ],
       "error": null
     },
     {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-      "finalUrl": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
+      "boardName": "Orange County ABC Board",
+      "url": "http://orangeabc.com/",
+      "finalUrl": "https://orangeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 152007,
+      "bytes": 108963,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
-        "lottery_page",
+        "lottery_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": true,
+      "interestingLinks": [
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        },
+        {
+          "href": "https://abc2.nc.gov/Pricing/SpecialItems",
+          "label": "https://abc2.nc.gov/Pricing/SpecialItems"
+        },
+        {
+          "href": "https://orangeabc.com/specialty-lottery/",
+          "label": "Specialty Lottery"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Wayne County ABC Board",
+      "url": "https://wayneabc.com/allocation-policy/",
+      "finalUrl": "https://wayneabc.com/allocation-policy/",
+      "ok": true,
+      "status": 200,
+      "bytes": 84003,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
         "allocation_policy_page",
         "news_or_announcement_page"
       ],
@@ -3851,66 +3707,37 @@
       "strongReleaseLanguage": true,
       "interestingLinks": [
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/#",
-          "label": "Resources"
+          "href": "https://wayneabc.com/allocation-policy/#",
+          "label": "About"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
-          "label": "ABC Policy for Allocation and Sale of Special Liquors"
+          "href": "https://wayneabc.com/allocation-policy/#",
+          "label": "Product Information"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
+          "href": "https://wayneabc.com/allocation-policy/",
+          "label": "Bourbon Allocation"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/#",
-          "label": "Pricing"
+          "href": "https://wayneabc.com/monthly-specials/",
+          "label": "Pricing &#038; Monthly Specials"
         },
         {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Pricing List"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/wp-content/uploads/2025/12/December-13th-2025-Bourbon-Lottery.pdf",
-          "label": "December 13th 2025 Bourbon Lottery"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "PREVIOUS"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "label": "Weaverville ABC Lottery 12/13/2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "Weaverville ABC Lottery List 9-20-2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-          "label": "Weaverville ABC Bourbon Lottery 5/10/25"
+          "href": "https://wayneabc.com/product-information/",
+          "label": "Types of Products"
         }
       ],
       "error": null
     },
     {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-      "finalUrl": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
+      "boardName": "Wayne County ABC Board",
+      "url": "http://www.wayneabc.com/",
+      "finalUrl": "https://wayneabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 152491,
+      "bytes": 101417,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
-        "lottery_page",
         "allocation_policy_page",
         "news_or_announcement_page"
       ],
@@ -3918,66 +3745,33 @@
       "strongReleaseLanguage": true,
       "interestingLinks": [
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/#",
-          "label": "Resources"
+          "href": "https://wayneabc.com/#",
+          "label": "Product Information"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
-          "label": "ABC Policy for Allocation and Sale of Special Liquors"
+          "href": "https://wayneabc.com/allocation-policy/",
+          "label": "Bourbon Allocation"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
+          "href": "https://wayneabc.com/monthly-specials/",
+          "label": "Pricing &#038; Monthly Specials"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/#",
-          "label": "Pricing"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Pricing List"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/wp-content/uploads/2025/09/9-20-25-lottery_0001.pdf",
-          "label": "9-20-25 lottery_0001"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-          "label": "PREVIOUS"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "label": "NEXT"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "label": "Weaverville ABC Lottery 12/13/2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "Weaverville ABC Lottery List 9-20-2025"
+          "href": "https://wayneabc.com/product-information/",
+          "label": "Types of Products"
         }
       ],
       "error": null
     },
     {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-      "finalUrl": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
+      "boardName": "Wayne County ABC Board",
+      "url": "http://www.wayneabc.com/allocation-policy",
+      "finalUrl": "https://wayneabc.com/allocation-policy/",
       "ok": true,
       "status": 200,
-      "bytes": 152542,
+      "bytes": 84003,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
-        "lottery_page",
         "allocation_policy_page",
         "news_or_announcement_page"
       ],
@@ -3985,119 +3779,24 @@
       "strongReleaseLanguage": true,
       "interestingLinks": [
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/#",
-          "label": "Resources"
+          "href": "https://wayneabc.com/allocation-policy/#",
+          "label": "About"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
-          "label": "ABC Policy for Allocation and Sale of Special Liquors"
+          "href": "https://wayneabc.com/allocation-policy/#",
+          "label": "Product Information"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
+          "href": "https://wayneabc.com/allocation-policy/",
+          "label": "Bourbon Allocation"
         },
         {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/#",
-          "label": "Pricing"
+          "href": "https://wayneabc.com/monthly-specials/",
+          "label": "Pricing &#038; Monthly Specials"
         },
         {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Pricing List"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/wp-content/uploads/2025/04/Bourbon-Lottery-5-10-1.pdf",
-          "label": "Bourbon-Lottery-5-10 (1)"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/",
-          "label": "PREVIOUS"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "NEXT"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "label": "Weaverville ABC Lottery 12/13/2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "Weaverville ABC Lottery List 9-20-2025"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Weaverville ABC Board",
-      "url": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/",
-      "finalUrl": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/",
-      "ok": true,
-      "status": 200,
-      "bytes": 151939,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "lottery_page",
-        "allocation_policy_page",
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/#",
-          "label": "Resources"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
-          "label": "ABC Policy for Allocation and Sale of Special Liquors"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/#",
-          "label": "Pricing"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://abc.nc.gov/Pricing/SpecialItems",
-          "label": "Special Pricing List"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/blog/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-december-14th-2024/",
-          "label": "PREVIOUS"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-          "label": "NEXT"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "label": "Weaverville ABC Lottery 12/13/2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "label": "Weaverville ABC Lottery List 9-20-2025"
-        },
-        {
-          "href": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-          "label": "Weaverville ABC Bourbon Lottery 5/10/25"
+          "href": "https://wayneabc.com/product-information/",
+          "label": "Types of Products"
         }
       ],
       "error": null
@@ -4108,7 +3807,7 @@
       "finalUrl": "https://www.jacksoncountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 459070,
+      "bytes": 459017,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": true,
@@ -4147,7 +3846,7 @@
       "finalUrl": "https://ashevilleabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 115266,
+      "bytes": 116327,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4194,71 +3893,6 @@
         {
           "href": "https://ashevilleabc.com/news/",
           "label": "News"
-        }
-      ],
-      "error": null
-    },
-    {
-      "boardName": "Franklin ABC Board",
-      "url": "http://www.franklinncabc.com/",
-      "finalUrl": "https://www.franklinncabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 188212,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://www.franklinncabc.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://www.franklinncabc.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials/",
-          "label": "Shop Now"
-        },
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
         }
       ],
       "error": null
@@ -4283,7 +3917,7 @@
       "finalUrl": "https://carteretcountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 29687,
+      "bytes": 29683,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -4297,7 +3931,7 @@
       "finalUrl": "https://bessemercityabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 178463,
+      "bytes": 46275,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4420,7 +4054,7 @@
       "finalUrl": "https://www.franklintonabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 186845,
+      "bytes": 264712,
       "contentType": "text/html;charset=utf-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4511,6 +4145,51 @@
       "error": null
     },
     {
+      "boardName": "Wilson County ABC Board",
+      "url": "http://wilson.ncabcboards.com/",
+      "finalUrl": "https://wilson.ncabcboards.com/",
+      "ok": true,
+      "status": 200,
+      "bytes": 198178,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": true,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [
+        {
+          "href": "https://wilson.ncabcboards.com/announcements/",
+          "label": "Announcements"
+        },
+        {
+          "href": "https://wilson.ncabcboards.com/monthly-specials/",
+          "label": "Specials"
+        },
+        {
+          "href": "https://abc.nc.gov/Pricing/SpecialItems",
+          "label": "Special Orders Price List"
+        }
+      ],
+      "error": null
+    },
+    {
+      "boardName": "Catawba County ABC Board",
+      "url": "http://catawbaabc.org/",
+      "finalUrl": "https://catawbaabc.org/",
+      "ok": true,
+      "status": 200,
+      "bytes": 126181,
+      "contentType": "text/html; charset=UTF-8",
+      "capabilities": [
+        "news_or_announcement_page"
+      ],
+      "releaseLanguage": false,
+      "strongReleaseLanguage": false,
+      "interestingLinks": [],
+      "error": null
+    },
+    {
       "boardName": "Craven County ABC Board",
       "url": "http://craven.ncabcboards.com/",
       "finalUrl": "https://craven.ncabcboards.com/",
@@ -4574,22 +4253,6 @@
           "label": "Special Orders Price List"
         }
       ],
-      "error": null
-    },
-    {
-      "boardName": "Catawba County ABC Board",
-      "url": "http://catawbaabc.org/",
-      "finalUrl": "https://catawbaabc.org/",
-      "ok": true,
-      "status": 200,
-      "bytes": 126252,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": false,
-      "strongReleaseLanguage": false,
-      "interestingLinks": [],
       "error": null
     },
     {
@@ -4855,10 +4518,10 @@
     {
       "boardName": "Troutman ABC Board",
       "url": "http://www.troutmanabc.com/",
-      "finalUrl": "https://www.troutmanabc.com/",
+      "finalUrl": "https://troutmanabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 18938,
+      "bytes": 18934,
       "contentType": "text/html",
       "capabilities": [],
       "releaseLanguage": false,
@@ -4872,7 +4535,7 @@
       "finalUrl": "https://www.angierabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 1336810,
+      "bytes": 1336902,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -5372,7 +5035,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-07-01T14:40:26.484Z",
+    "observedAt": "2026-07-02T01:30:51.466Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5470,7 +5133,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-07-01T14:40:27.732Z",
+    "observedAt": "2026-07-02T01:30:51.713Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
@@ -5692,10 +5355,10 @@
       "modelUrl": "https://wabi-us-east2-b-primary-api.analysis.windows.net/public/reports/0589991e-d404-42c8-acbb-3c94606edcf2/modelsAndExploration?preferReadOnlySession=true",
       "queryUrl": "https://wabi-us-east2-b-primary-api.analysis.windows.net/public/reports/querydata",
       "status": 200,
-      "totalRows": 3812,
-      "decodedRows": 3812,
+      "totalRows": 3814,
+      "decodedRows": 3814,
       "matchedProductCount": 60,
-      "positiveStoreRows": 208,
+      "positiveStoreRows": 207,
       "storeColumns": [
         "Wendover Ave",
         "Fairfield Rd",
@@ -5705,7 +5368,7 @@
         "Skeet Club Rd",
         "Brookridge Lane"
       ],
-      "observedAt": "2026-07-01T14:08:28.458Z"
+      "observedAt": "2026-07-02T01:31:26.453Z"
     },
     {
       "source": "High Point ABC Shopify product suggestion API",
@@ -5796,9 +5459,9 @@
     {
       "boardName": "Mecklenburg County ABC Board",
       "website": "http://www.meckabc.com",
-      "shipmentRows": 1857,
+      "shipmentRows": 1910,
       "trackedShipmentRows": 10,
-      "trackedUnits": 1398,
+      "trackedUnits": 1446,
       "capabilities": [
         "allocation_policy_page",
         "inventory_or_product_search_page",
@@ -5941,7 +5604,7 @@
       "website": "http://www.wakeabc.com",
       "shipmentRows": 2006,
       "trackedShipmentRows": 12,
-      "trackedUnits": 390,
+      "trackedUnits": 384,
       "capabilities": [
         "allocation_policy_page",
         "inventory_or_product_search_page",
@@ -6016,6 +5679,24 @@
       ]
     },
     {
+      "boardName": "Indian Trail ABC Board",
+      "website": "https://indiantrail.ncabc",
+      "shipmentRows": 964,
+      "trackedShipmentRows": 8,
+      "trackedUnits": 378,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "https://indiantrail.ncabc"
+      ],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Jackson County ABC Board",
       "website": "http://www.jacksoncountyabc.org",
       "shipmentRows": 539,
@@ -6044,27 +5725,9 @@
       ]
     },
     {
-      "boardName": "Indian Trail ABC Board",
-      "website": "https://indiantrail.ncabc",
-      "shipmentRows": 715,
-      "trackedShipmentRows": 8,
-      "trackedUnits": 366,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "https://indiantrail.ncabc"
-      ],
-      "officialPageReports": []
-    },
-    {
       "boardName": "Greensboro ABC Board",
       "website": "http://www.greensboroabc.com",
-      "shipmentRows": 1510,
+      "shipmentRows": 1532,
       "trackedShipmentRows": 7,
       "trackedUnits": 360,
       "capabilities": [
@@ -6135,6 +5798,21 @@
       "officialPageReports": []
     },
     {
+      "boardName": "Dare County ABC Board",
+      "website": null,
+      "shipmentRows": 998,
+      "trackedShipmentRows": 5,
+      "trackedUnits": 312,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Waxhaw ABC Board",
       "website": null,
       "shipmentRows": 540,
@@ -6182,7 +5860,7 @@
     {
       "boardName": "Morganton ABC Board",
       "website": null,
-      "shipmentRows": 539,
+      "shipmentRows": 541,
       "trackedShipmentRows": 7,
       "trackedUnits": 282,
       "capabilities": [
@@ -6212,9 +5890,9 @@
     {
       "boardName": "Shelby ABC Board",
       "website": null,
-      "shipmentRows": 537,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 276,
+      "shipmentRows": 538,
+      "trackedShipmentRows": 6,
+      "trackedUnits": 279,
       "capabilities": [
         "official_board_directory",
         "official_board_shipment_rows",
@@ -6242,9 +5920,9 @@
     {
       "boardName": "Youngsville ABC Board",
       "website": "http://www.youngsvilleabc.com",
-      "shipmentRows": 558,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 228,
+      "shipmentRows": 765,
+      "trackedShipmentRows": 8,
+      "trackedUnits": 264,
       "capabilities": [
         "news_or_announcement_page",
         "official_board_directory",
@@ -6270,9 +5948,9 @@
       ]
     },
     {
-      "boardName": "Waynesville ABC Board",
+      "boardName": "Forest City ABC Board",
       "website": null,
-      "shipmentRows": 402,
+      "shipmentRows": 691,
       "trackedShipmentRows": 8,
       "trackedUnits": 204,
       "capabilities": [
@@ -6285,26 +5963,11 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Dare County ABC Board",
+      "boardName": "Waynesville ABC Board",
       "website": null,
-      "shipmentRows": 907,
-      "trackedShipmentRows": 5,
-      "trackedUnits": 192,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Forest City ABC Board",
-      "website": null,
-      "shipmentRows": 440,
-      "trackedShipmentRows": 7,
-      "trackedUnits": 186,
+      "shipmentRows": 402,
+      "trackedShipmentRows": 8,
+      "trackedUnits": 204,
       "capabilities": [
         "official_board_directory",
         "official_board_shipment_rows",
@@ -6366,29 +6029,16 @@
       "trackedShipmentRows": 6,
       "trackedUnits": 174,
       "capabilities": [
-        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
         "official_board_website",
-        "official_release_language_found",
         "tracked_board_shipments"
       ],
       "precisionLevel": "board_shipment",
       "sourceUrls": [
         "http://www.franklinncabc.com"
       ],
-      "officialPageReports": [
-        {
-          "url": "http://www.franklinncabc.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        }
-      ]
+      "officialPageReports": []
     },
     {
       "boardName": "Calabash ABC Board",
@@ -6540,7 +6190,7 @@
     {
       "boardName": "Rutherfordton ABC Board",
       "website": null,
-      "shipmentRows": 124,
+      "shipmentRows": 220,
       "trackedShipmentRows": 7,
       "trackedUnits": 150,
       "capabilities": [
@@ -7230,6 +6880,36 @@
       ]
     },
     {
+      "boardName": "Black Mountain ABC Board",
+      "website": null,
+      "shipmentRows": 548,
+      "trackedShipmentRows": 3,
+      "trackedUnits": 90,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Woodfin ABC Board",
+      "website": null,
+      "shipmentRows": 514,
+      "trackedShipmentRows": 7,
+      "trackedUnits": 84,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
       "boardName": "Brunswick County ABC Board",
       "website": null,
       "shipmentRows": 731,
@@ -7247,23 +6927,8 @@
     {
       "boardName": "Pender County ABC Board",
       "website": null,
-      "shipmentRows": 870,
+      "shipmentRows": 871,
       "trackedShipmentRows": 4,
-      "trackedUnits": 84,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Black Mountain ABC Board",
-      "website": null,
-      "shipmentRows": 421,
-      "trackedShipmentRows": 3,
       "trackedUnits": 84,
       "capabilities": [
         "official_board_directory",
@@ -7303,21 +6968,6 @@
           "matchedBottles": []
         }
       ]
-    },
-    {
-      "boardName": "Woodfin ABC Board",
-      "website": null,
-      "shipmentRows": 343,
-      "trackedShipmentRows": 7,
-      "trackedUnits": 78,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
     },
     {
       "boardName": "Mooresville ABC Board",
@@ -7495,6 +7145,7 @@
       "trackedShipmentRows": 4,
       "trackedUnits": 66,
       "capabilities": [
+        "news_or_announcement_page",
         "official_board_directory",
         "official_board_shipment_rows",
         "official_board_website",
@@ -7504,7 +7155,18 @@
       "sourceUrls": [
         "http://wilson.ncabcboards.com"
       ],
-      "officialPageReports": []
+      "officialPageReports": [
+        {
+          "url": "http://wilson.ncabcboards.com/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Triad Municipal ABC Board",
@@ -7534,10 +7196,55 @@
       ]
     },
     {
+      "boardName": "Catawba County ABC Board",
+      "website": "http://catawbaabc.org",
+      "shipmentRows": 1183,
+      "trackedShipmentRows": 4,
+      "trackedUnits": 60,
+      "capabilities": [
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_board_website",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [
+        "http://catawbaabc.org"
+      ],
+      "officialPageReports": [
+        {
+          "url": "http://catawbaabc.org/",
+          "status": 200,
+          "capabilities": [
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": false,
+          "strongReleaseLanguage": false,
+          "matchedBottles": []
+        }
+      ]
+    },
+    {
       "boardName": "Pilot Mountain ABC Board",
       "website": null,
       "shipmentRows": 154,
       "trackedShipmentRows": 4,
+      "trackedUnits": 60,
+      "capabilities": [
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": []
+    },
+    {
+      "boardName": "Fletcher ABC Board",
+      "website": null,
+      "shipmentRows": 595,
+      "trackedShipmentRows": 3,
       "trackedUnits": 60,
       "capabilities": [
         "official_board_directory",
@@ -7639,36 +7346,6 @@
       "officialPageReports": []
     },
     {
-      "boardName": "Catawba County ABC Board",
-      "website": "http://catawbaabc.org",
-      "shipmentRows": 1080,
-      "trackedShipmentRows": 4,
-      "trackedUnits": 48,
-      "capabilities": [
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_board_website",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [
-        "http://catawbaabc.org"
-      ],
-      "officialPageReports": [
-        {
-          "url": "http://catawbaabc.org/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": false,
-          "strongReleaseLanguage": false,
-          "matchedBottles": []
-        }
-      ]
-    },
-    {
       "boardName": "Pembroke ABC Board",
       "website": null,
       "shipmentRows": 327,
@@ -7682,6 +7359,50 @@
       "precisionLevel": "board_shipment",
       "sourceUrls": [],
       "officialPageReports": []
+    },
+    {
+      "boardName": "Weaverville ABC Board",
+      "website": null,
+      "shipmentRows": 636,
+      "trackedShipmentRows": 4,
+      "trackedUnits": 48,
+      "capabilities": [
+        "allocation_policy_page",
+        "lottery_page",
+        "news_or_announcement_page",
+        "official_board_directory",
+        "official_board_shipment_rows",
+        "official_release_language_found",
+        "tracked_board_shipments"
+      ],
+      "precisionLevel": "board_shipment",
+      "sourceUrls": [],
+      "officialPageReports": [
+        {
+          "url": "https://weaverville.ncabcboards.com/blog/",
+          "status": 200,
+          "capabilities": [
+            "lottery_page",
+            "allocation_policy_page",
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        },
+        {
+          "url": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
+          "status": 200,
+          "capabilities": [
+            "lottery_page",
+            "allocation_policy_page",
+            "news_or_announcement_page"
+          ],
+          "releaseLanguage": true,
+          "strongReleaseLanguage": true,
+          "matchedBottles": []
+        }
+      ]
     },
     {
       "boardName": "Boone ABC Board",
@@ -7762,21 +7483,6 @@
       "boardName": "Beaufort County ABC Board",
       "website": null,
       "shipmentRows": 496,
-      "trackedShipmentRows": 3,
-      "trackedUnits": 36,
-      "capabilities": [
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": []
-    },
-    {
-      "boardName": "Fletcher ABC Board",
-      "website": null,
-      "shipmentRows": 435,
       "trackedShipmentRows": 3,
       "trackedUnits": 36,
       "capabilities": [
@@ -8002,7 +7708,7 @@
     {
       "boardName": "Hyde County ABC Board",
       "website": null,
-      "shipmentRows": 211,
+      "shipmentRows": 247,
       "trackedShipmentRows": 2,
       "trackedUnits": 24,
       "capabilities": [
@@ -8150,114 +7856,6 @@
           "url": "http://www.wayneabc.com/allocation-policy",
           "status": 200,
           "capabilities": [
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        }
-      ]
-    },
-    {
-      "boardName": "Weaverville ABC Board",
-      "website": null,
-      "shipmentRows": 484,
-      "trackedShipmentRows": 2,
-      "trackedUnits": 18,
-      "capabilities": [
-        "allocation_policy_page",
-        "lottery_page",
-        "news_or_announcement_page",
-        "official_board_directory",
-        "official_board_shipment_rows",
-        "official_release_language_found",
-        "tracked_board_shipments"
-      ],
-      "precisionLevel": "board_shipment",
-      "sourceUrls": [],
-      "officialPageReports": [
-        {
-          "url": "https://weaverville.ncabcboards.com/blog/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://abc.nc.gov/Pricing/MonthlyReductions/3",
-          "status": 200,
-          "capabilities": [],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://abc.nc.gov/Pricing/SpecialItems",
-          "status": 200,
-          "capabilities": [],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-12-13-2025/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://weaverville.ncabcboards.com/weaverville-abc-lottery-list-9-20-2025/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-5-10-25/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
-            "allocation_policy_page",
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        },
-        {
-          "url": "https://weaverville.ncabcboards.com/weaverville-abc-bourbon-lottery-may-10th-2025/",
-          "status": 200,
-          "capabilities": [
-            "lottery_page",
             "allocation_policy_page",
             "news_or_announcement_page"
           ],
@@ -8679,7 +8277,7 @@
     {
       "boardName": "Highlands ABC Board",
       "website": null,
-      "shipmentRows": 464,
+      "shipmentRows": 474,
       "trackedShipmentRows": 1,
       "trackedUnits": 6,
       "capabilities": [
@@ -9010,7 +8608,7 @@
     {
       "boardName": "Lake Waccamaw ABC Board",
       "website": null,
-      "shipmentRows": 144,
+      "shipmentRows": 145,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -9338,7 +8936,7 @@
     {
       "boardName": "Vance County ABC Board",
       "website": null,
-      "shipmentRows": 542,
+      "shipmentRows": 566,
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
@@ -9407,11 +9005,12 @@
     "boardCount": 174,
     "withWebsite": 40,
     "withTrackedShipments": 135,
-    "withReleasePages": 16,
+    "withReleasePages": 15,
     "withInventoryPages": 7,
     "noWebsiteYet": [
       "Marshville ABC Board",
       "Thomasville ABC Board",
+      "Dare County ABC Board",
       "Waxhaw ABC Board",
       "Currituck County ABC Board",
       "Ocean Isle Beach ABC Board",
@@ -9419,9 +9018,8 @@
       "Granville County ABC Board",
       "Shelby ABC Board",
       "Belville ABC Board",
-      "Waynesville ABC Board",
-      "Dare County ABC Board",
       "Forest City ABC Board",
+      "Waynesville ABC Board",
       "Lincolnton ABC Board",
       "Calabash ABC Board",
       "Shallotte ABC Board",
@@ -9447,10 +9045,10 @@
       "Newton Grove ABC Board",
       "Maggie Valley ABC Board",
       "Siler City ABC Board",
-      "Brunswick County ABC Board",
-      "Pender County ABC Board",
       "Black Mountain ABC Board",
       "Woodfin ABC Board",
+      "Brunswick County ABC Board",
+      "Pender County ABC Board",
       "Mooresville ABC Board",
       "Lincoln County ABC Board",
       "Kenansville ABC Board",
@@ -9458,22 +9056,22 @@
       "Sanford ABC Board",
       "Southport ABC Board",
       "Pilot Mountain ABC Board",
-      "Person County ABC Board",
-      "Wilkesboro ABC Board"
+      "Fletcher ABC Board",
+      "Person County ABC Board"
     ]
   },
   "signalCounts": {
     "nc_controlled_distribution_product_reference": 147,
-    "nc_board_shipment_snapshot": 565,
-    "nc_statewide_warehouse_out_of_stock": 74,
+    "nc_board_shipment_snapshot": 572,
+    "nc_statewide_warehouse_out_of_stock": 67,
     "nc_statewide_warehouse_stock": 32,
-    "nc_board_lottery_surface": 24,
+    "nc_board_lottery_surface": 20,
     "nc_board_inventory_surface": 12,
     "nc_board_barrel_pick_surface": 4,
-    "nc_board_release_surface": 10,
+    "nc_board_release_surface": 7,
     "nc_board_structured_allocated_product_release": 45,
     "nc_board_barrel_pick_item": 11,
-    "store_inventory_result": 443,
+    "store_inventory_result": 444,
     "store_inventory_aggregate": 8,
     "store_inventory_out_of_stock": 1
   },
