@@ -31,7 +31,8 @@ export default function PricingCards() {
       return;
     }
 
-    router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
+    const checkoutPlan = plan === "monthly" ? "standard_monthly" : plan === "annual" ? "standard_annual" : "bib_lifetime";
+    router.push(`/sign-up?redirect_url=${encodeURIComponent(`/checkout/continue?plan=${checkoutPlan}`)}`);
   };
 
   return (

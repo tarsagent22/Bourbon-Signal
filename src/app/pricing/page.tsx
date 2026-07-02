@@ -28,6 +28,10 @@ const checkoutPlanTiers: Record<PaidPlanId, MembershipTier> = {
   bib_lifetime: "bottled-in-bond",
 };
 
+function checkoutContinueUrl(plan: PaidPlanId) {
+  return `/checkout/continue?plan=${plan}`;
+}
+
 type PricingTier = {
   tier: MembershipTier;
   name: string;
@@ -171,7 +175,7 @@ function PricingPageContent() {
       return;
     }
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=${encodeURIComponent(`/pricing?checkout=${plan}`)}`);
+      router.push(`/sign-up?redirect_url=${encodeURIComponent(checkoutContinueUrl(plan))}`);
       return;
     }
 
@@ -203,6 +207,7 @@ function PricingPageContent() {
     if (tierRank[tier.tier] < currentTierRank) return "Included";
     if (tier.tier === memberTier) return "Current plan";
     if (plan !== null && pendingPlan === plan) return "Opening checkout…";
+    if (!isSignedIn) return tier.tier === "bottled-in-bond" ? "Create account & claim spot" : "Create account & join";
     if (tier.tier === "bottled-in-bond") return "Claim lifetime spot";
     return `Choose ${tier.name}`;
   }
