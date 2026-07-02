@@ -118,7 +118,7 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_ALLOWED_RECIPIENTS', 'emailBaselineDedupeKeys', 'baselineEmail', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend', 'isPaidTier(publicMetadata)', 'hasSavedAreaPreferences(areaPrefs)', 'skippedFreeUsers', 'skippedNoAreaPreferences', 'sortCandidatesForMember']) {
+for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_ALLOWED_RECIPIENTS', 'onSiteBaselineDedupeKeys', 'emailBaselineDedupeKeys', 'baselineEmail', 'baselineOnSiteOnly', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend', 'isPaidTier(publicMetadata)', 'hasSavedAreaPreferences(areaPrefs)', 'skippedFreeUsers', 'skippedNoAreaPreferences', 'sortCandidatesForMember']) {
   if (!alertDelivery.includes(phrase)) {
     fail(`Alert delivery guardrails should include: ${phrase}`);
   }

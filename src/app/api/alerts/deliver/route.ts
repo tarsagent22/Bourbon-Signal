@@ -15,12 +15,13 @@ export async function POST(req: NextRequest) {
 async function runDelivery(req: NextRequest) {
   try {
     const dryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
+    const baselineOnSiteOnly = req.nextUrl.searchParams.get("baselineOnSite") === "1" || req.nextUrl.searchParams.get("baseline_onsite") === "1";
     const baselineEmailOnly = req.nextUrl.searchParams.get("baselineEmail") === "1" || req.nextUrl.searchParams.get("baseline_email") === "1";
     const baselineSmsOnly = req.nextUrl.searchParams.get("baselineSms") === "1" || req.nextUrl.searchParams.get("baseline_sms") === "1";
     const testEmail = req.nextUrl.searchParams.get("testEmail") === "1" || req.nextUrl.searchParams.get("test_email") === "1";
     const result = testEmail
       ? await sendOperationalTestAlertEmail(req)
-      : await deliverPreferenceAlerts(req, { dryRun, baselineEmailOnly, baselineSmsOnly });
+      : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly });
     console.info("Bourbon Signal alert delivery summary", JSON.stringify(result));
     return NextResponse.json(result);
   } catch (error) {

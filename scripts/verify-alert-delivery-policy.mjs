@@ -25,6 +25,8 @@ for (const phrase of [
   'deliveryChannel === "watch_candidate"',
   'isActionableWatch',
   'recentDeliverySet',
+  'onSiteBaselineDedupeKeys',
+  'baselineOnSiteOnly',
   'emailBaselineDedupeKeys',
   'smsBaselineDedupeKeys',
   'MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 1)',

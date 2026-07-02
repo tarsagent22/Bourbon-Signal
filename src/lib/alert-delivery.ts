@@ -37,8 +37,10 @@ type DeliveryRecord = {
 
 type AlertDeliveryMetadata = {
   recent?: DeliveryRecord[];
+  onSiteBaselineDedupeKeys?: string[];
   emailBaselineDedupeKeys?: string[];
   smsBaselineDedupeKeys?: string[];
+  lastOnSiteBaselineAt?: string;
   lastEmailBaselineAt?: string;
   lastSmsBaselineAt?: string;
   lastRunAt?: string;
@@ -355,8 +357,10 @@ function normalizeDeliveryMetadata(input: unknown): AlertDeliveryMetadata {
     : [];
   return {
     recent,
+    onSiteBaselineDedupeKeys: uniqueStrings(toStrings(source.onSiteBaselineDedupeKeys)).slice(0, 1000),
     emailBaselineDedupeKeys: uniqueStrings(toStrings(source.emailBaselineDedupeKeys)).slice(0, 1000),
     smsBaselineDedupeKeys: uniqueStrings(toStrings(source.smsBaselineDedupeKeys)).slice(0, 1000),
+    lastOnSiteBaselineAt: asString(source.lastOnSiteBaselineAt) || undefined,
     lastEmailBaselineAt: asString(source.lastEmailBaselineAt) || undefined,
     lastSmsBaselineAt: asString(source.lastSmsBaselineAt) || undefined,
     lastRunAt: asString(source.lastRunAt) || undefined
@@ -590,10 +594,11 @@ export async function sendOperationalTestAlertEmail(req: Request) {
   };
 }
 
-export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean; baselineEmailOnly?: boolean; baselineSmsOnly?: boolean } = {}) {
+export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean; baselineOnSiteOnly?: boolean; baselineEmailOnly?: boolean; baselineSmsOnly?: boolean } = {}) {
   assertAlertDeliveryAuthorized(req);
 
   const dryRun = options.dryRun === true;
+  const baselineOnSiteOnly = options.baselineOnSiteOnly === true;
   const baselineEmailOnly = options.baselineEmailOnly === true;
   const baselineSmsOnly = options.baselineSmsOnly === true;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
@@ -638,6 +643,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     skippedSmsRecipientNotAllowed: 0,
     skippedEmailBaseline: 0,
     skippedSmsBaseline: 0,
+    onSiteBaselinesCreated: 0,
     emailBaselinesCreated: 0,
     smsBaselinesCreated: 0,
     skippedDailyRoundup: 0,
@@ -705,16 +711,39 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
+      if (baselineOnSiteOnly) {
+        const baselineDedupeKeys = uniqueStrings(matchingPreferenceCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
+        summary.onSiteBaselinesCreated += baselineDedupeKeys.length;
+        if (!dryRun && baselineDedupeKeys.length) {
+          await client.users.updateUserMetadata(userId, {
+            privateMetadata: {
+              alertDelivery: {
+                recent: deliveryMetadata.recent || [],
+                onSiteBaselineDedupeKeys: baselineDedupeKeys,
+                emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
+                smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
+                lastOnSiteBaselineAt: now,
+                lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
+                lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
+                lastRunAt: deliveryMetadata.lastRunAt,
+              },
+            },
+          });
+        }
+        continue;
+      }
+
       if (notificationPrefs.onSite.enabled) {
         summary.usersWithOnSiteEnabled += 1;
       }
 
       if (notificationPrefs.onSite.enabled && !baselineEmailOnly && !baselineSmsOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
+        const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
         newOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => {
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-            const duplicate = existingOnSiteDedupe.has(dedupeKey);
+            const duplicate = existingOnSiteDedupe.has(dedupeKey) || onSiteBaseline.has(dedupeKey);
             if (duplicate) summary.skippedOnSiteDedupe += 1;
             return !duplicate;
           })
@@ -749,8 +778,10 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                 privateMetadata: {
                   alertDelivery: {
                     recent: deliveryMetadata.recent || [],
+                    onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
                     emailBaselineDedupeKeys: baselineDedupeKeys,
                     smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
+                    lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                     lastEmailBaselineAt: now,
                     lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
                     lastRunAt: deliveryMetadata.lastRunAt,
@@ -858,8 +889,10 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               privateMetadata: {
                 alertDelivery: {
                   recent: deliveryMetadata.recent || [],
+                  onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
                   emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
                   smsBaselineDedupeKeys: baselineDedupeKeys,
+                  lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                   lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
                   lastSmsBaselineAt: now,
                   lastRunAt: deliveryMetadata.lastRunAt,
@@ -922,8 +955,10 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
             privateMetadata: {
               alertDelivery: {
                 recent: nextRecent,
+                onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
                 emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
                 smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
+                lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                 lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
                 lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
                 lastRunAt: now,
