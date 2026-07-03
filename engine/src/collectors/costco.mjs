@@ -8,6 +8,12 @@ const DEFAULT_OBSERVATIONS = path.resolve('data/costco-observations.json');
 const COSTCO_SOURCE_URL = 'https://sameday.costco.com/store/costco/s?k=bourbon';
 const POSITIVE_STATUS_RE = /\b(available|in[ _-]?stock|limited[ _-]?supply|low[ _-]?stock|on[ _-]?hand)\b/i;
 const NEGATIVE_STATUS_RE = /\b(out[ _-]?of[ _-]?stock|sold[ _-]?out|not[ _-]?available|unavailable)\b/i;
+const DEFAULT_MAX_OBSERVATION_AGE_HOURS = 6;
+
+function maxObservationAgeHours() {
+  const configured = Number(process.env.COSTCO_MAX_OBSERVATION_AGE_HOURS || DEFAULT_MAX_OBSERVATION_AGE_HOURS);
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_MAX_OBSERVATION_AGE_HOURS;
+}
 
 async function readJson(file, fallback) {
   try {
@@ -36,6 +42,24 @@ function normalizeStatus(value, quantity) {
 function toNumber(value) {
   const num = Number(String(value ?? '').replace(/[^0-9.]/g, ''));
   return Number.isFinite(num) ? num : null;
+}
+
+function isFreshObservation(observedAt, generatedAt) {
+  const timestamp = Date.parse(observedAt || generatedAt || '');
+  if (!Number.isFinite(timestamp)) return false;
+  const ageMs = Date.now() - timestamp;
+  if (ageMs < -15 * 60 * 1000) return false;
+  return ageMs <= maxObservationAgeHours() * 60 * 60 * 1000;
+}
+
+function sourceReliability(row) {
+  const sourceSystem = String(row.sourceSystem || row.source || '').toLowerCase();
+  const hasWarehouse = Boolean(row.storeNumber || row.warehouseNumber || row.locationNumber || row.storeId || row.retailerLocationId);
+  const hasAppSignal = /costco_sameday|instacart|costco app|warehouse inventory/.test(sourceSystem)
+    || /sameday\.costco\.com|instacart\.com/.test(String(row.sourceUrl || row.url || ''));
+  if (hasAppSignal && hasWarehouse) return { level: 'app_warehouse_observation', confidenceBoost: 0.08 };
+  if (hasWarehouse) return { level: 'warehouse_observation', confidenceBoost: 0.04 };
+  return { level: 'unverified_observation', confidenceBoost: -0.08 };
 }
 
 function watchlistIndex(items = []) {
@@ -77,19 +101,23 @@ function normalizeObservation(row, bible, index, generatedAt, targetState) {
   const status = normalizeStatus(row.status || row.availability || row.availabilityStatus, quantity);
   const positive = status === 'in_stock' || quantity > 0;
   if (!positive) return null;
+  const observedAt = safeString(row.observedAt || row.fetchedAt || row.updatedAt || generatedAt, 80) || generatedAt;
+  if (!isFreshObservation(observedAt, generatedAt)) return null;
   const match = matchBottle(rawName, bible, watchItem);
   const state = safeString(row.state || row.stateCode || row.warehouseState, 20)?.toUpperCase();
   if (!state || !isCostcoSpiritsEligibleState(state)) return null;
   if (targetState && state !== targetState) return null;
   const city = safeString(row.city || row.warehouseCity, 120);
-  const storeNumber = safeString(row.storeNumber || row.warehouseNumber || row.locationNumber || row.storeId, 80);
+  const storeNumber = safeString(row.storeNumber || row.warehouseNumber || row.locationNumber || row.storeId || row.retailerLocationId, 80);
   const storeName = safeString(row.storeName || row.warehouseName || (city ? `Costco ${city}` : 'Costco warehouse'), 160);
+  if (!storeName || !storeNumber) return null;
   const sourceUrl = safeString(row.sourceUrl || row.url || COSTCO_SOURCE_URL, 500);
-  const observedAt = safeString(row.observedAt || row.fetchedAt || row.updatedAt || generatedAt, 80) || generatedAt;
   const canonicalName = match?.record?.canonical || watchItem?.canonicalName || titleCase(rawName || 'Costco Bourbon');
   const canonicalBottleId = match?.record?.id || null;
   const tier = match?.record?.tier || watchItem?.tier || 'allocated';
   const locationBits = [city, state].filter(Boolean).join(', ');
+  const reliability = sourceReliability(row);
+  const confidence = Math.min(0.86, Math.max(0.6, (match?.confidence || (watchItem ? 0.7 : 0.62)) + reliability.confidenceBoost));
   return {
     id: stableId([state, 'costco', itemNumber, canonicalName, storeNumber, storeName, city, observedAt, quantity || 0]),
     key: stableId([state, 'costco', itemNumber, canonicalName, storeNumber, storeName, city]),
@@ -103,8 +131,8 @@ function normalizeObservation(row, bible, index, generatedAt, targetState) {
     bottleId: canonicalBottleId,
     canonicalName,
     tier,
-    confidence: match?.confidence ? Math.max(0.72, match.confidence) : 0.68,
-    sourceMatchStatus: match?.record ? 'bottle_bible_match' : 'costco_watchlist_match',
+    confidence,
+    sourceMatchStatus: match?.record ? 'bottle_bible_match' : watchItem ? 'costco_watchlist_match' : 'costco_name_match',
     quantity: quantity || 1,
     storeQty: quantity || 1,
     price: toNumber(row.price || row.retailPrice || row.retail_price),
@@ -123,12 +151,14 @@ function normalizeObservation(row, bible, index, generatedAt, targetState) {
     canAlertAsInventory: true,
     canAlertAsWatch: true,
     dataLane: 'inventory',
+    sourceReliability: reliability.level,
     inventorySemantics: 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.',
     evidence: `Costco warehouse inventory reported ${canonicalName}${itemNumber ? ` (item #${itemNumber})` : ''}${locationBits ? ` near ${locationBits}` : ''}.`,
     raw: {
       ...row,
       costcoItemNumber: itemNumber || null,
-      sourceMatchStatus: match?.record ? 'bottle_bible_match' : 'costco_watchlist_match'
+      sourceReliability: reliability.level,
+      sourceMatchStatus: match?.record ? 'bottle_bible_match' : watchItem ? 'costco_watchlist_match' : 'costco_name_match'
     }
   };
 }

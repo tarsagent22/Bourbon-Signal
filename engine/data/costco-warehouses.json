@@ -1,0 +1,266 @@
+{
+  "generatedAt": "2026-07-03T00:00:00.000Z",
+  "notes": "Priority Costco warehouses for Bourbon Signal Costco-only/in-state retailer source monitoring. These are probe targets, not evidence of current inventory.",
+  "warehouses": [
+    {
+      "state": "AL",
+      "market": "Birmingham",
+      "city": "Hoover",
+      "zip": "35244",
+      "latitude": 33.3785,
+      "longitude": -86.8066,
+      "priority": 2,
+      "lead": "Supported AL Costco spirits market; start with Birmingham metro warehouse."
+    },
+    {
+      "state": "IA",
+      "market": "Des Moines",
+      "city": "West Des Moines",
+      "zip": "50266",
+      "latitude": 41.5597,
+      "longitude": -93.7805,
+      "priority": 2,
+      "lead": "Supported IA Costco spirits market; Des Moines metro."
+    },
+    {
+      "state": "IL",
+      "market": "Chicago",
+      "city": "Chicago",
+      "zip": "60607",
+      "latitude": 41.8756,
+      "longitude": -87.6244,
+      "priority": 2,
+      "lead": "Supported IL private-retailer market; Chicago metro Costco liquor."
+    },
+    {
+      "state": "IN",
+      "market": "Indianapolis",
+      "city": "Indianapolis",
+      "zip": "46250",
+      "latitude": 39.9067,
+      "longitude": -86.0475,
+      "priority": 2,
+      "lead": "Supported IN private-retailer market; Indy Costco liquor."
+    },
+    {
+      "state": "KY",
+      "market": "Louisville",
+      "city": "Louisville",
+      "zip": "40241",
+      "latitude": 38.3098,
+      "longitude": -85.5836,
+      "priority": 2,
+      "lead": "Supported KY bourbon market; Louisville Costco liquor."
+    },
+    {
+      "state": "SC",
+      "market": "Greenville",
+      "city": "Greenville",
+      "zip": "29607",
+      "latitude": 34.8248,
+      "longitude": -82.3392,
+      "priority": 2,
+      "lead": "Supported SC private-retailer market; Greenville Costco liquor."
+    },
+    {
+      "state": "CA",
+      "market": "Bay Area",
+      "city": "Fremont",
+      "zip": "94538",
+      "latitude": 37.5485,
+      "longitude": -121.9886,
+      "priority": 1,
+      "lead": "Public/historical Costco Eagle Rare lead; strong Bay Area Costco bourbon signal."
+    },
+    {
+      "state": "CA",
+      "market": "Central Valley",
+      "city": "Tracy",
+      "zip": "95304",
+      "latitude": 37.7397,
+      "longitude": -121.4252,
+      "priority": 1,
+      "lead": "Public/historical Costco Blanton's lead."
+    },
+    {
+      "state": "CA",
+      "market": "Orange County",
+      "city": "Irvine",
+      "zip": "92618",
+      "latitude": 33.6846,
+      "longitude": -117.8265,
+      "priority": 1,
+      "lead": "Public/historical Blanton's Gold / allocated Costco lead."
+    },
+    {
+      "state": "CA",
+      "market": "Orange County",
+      "city": "San Juan Capistrano",
+      "zip": "92675",
+      "latitude": 33.5017,
+      "longitude": -117.6626,
+      "priority": 1,
+      "lead": "Southern California Costco whiskey lead market."
+    },
+    {
+      "state": "NV",
+      "market": "Reno/Sparks",
+      "city": "Reno",
+      "zip": "89502",
+      "latitude": 39.505,
+      "longitude": -119.78,
+      "priority": 1,
+      "lead": "Public/historical Reno/Sparks Weller/Blanton's Costco drop lead."
+    },
+    {
+      "state": "NV",
+      "market": "Las Vegas",
+      "city": "Las Vegas",
+      "zip": "89135",
+      "latitude": 36.15,
+      "longitude": -115.333,
+      "priority": 1,
+      "lead": "Large Costco liquor market; strong bourbon hunter density."
+    },
+    {
+      "state": "AZ",
+      "market": "Scottsdale",
+      "city": "Scottsdale",
+      "zip": "85260",
+      "latitude": 33.6119,
+      "longitude": -111.8906,
+      "priority": 1,
+      "lead": "Scottsdale Hayden identified as strong Arizona Costco bourbon location."
+    },
+    {
+      "state": "AZ",
+      "market": "Phoenix/Tempe",
+      "city": "Tempe",
+      "zip": "85284",
+      "latitude": 33.337,
+      "longitude": -111.935,
+      "priority": 2,
+      "lead": "Phoenix metro Costco liquor backup probe."
+    },
+    {
+      "state": "WA",
+      "market": "Seattle",
+      "city": "Seattle",
+      "zip": "98101",
+      "latitude": 47.6109,
+      "longitude": -122.3364,
+      "priority": 1,
+      "lead": "Seattle Weller C.Y.P.B./item-number lead; Same-Day availability path verified."
+    },
+    {
+      "state": "WA",
+      "market": "Eastside",
+      "city": "Kirkland",
+      "zip": "98033",
+      "latitude": 47.6815,
+      "longitude": -122.2087,
+      "priority": 1,
+      "lead": "High-value Seattle-area Costco liquor market."
+    },
+    {
+      "state": "WA",
+      "market": "Eastside",
+      "city": "Issaquah",
+      "zip": "98027",
+      "latitude": 47.5301,
+      "longitude": -122.0326,
+      "priority": 1,
+      "lead": "Costco HQ-area warehouse market; high signal potential."
+    },
+    {
+      "state": "MI",
+      "market": "Detroit",
+      "city": "Auburn Hills",
+      "zip": "48326",
+      "latitude": 42.6875,
+      "longitude": -83.2341,
+      "priority": 1,
+      "lead": "Public discussion around Auburn Hills/Lakeside Blanton's/Eagle Rare attempts."
+    },
+    {
+      "state": "MI",
+      "market": "Detroit",
+      "city": "Sterling Heights",
+      "zip": "48313",
+      "latitude": 42.5803,
+      "longitude": -83.0302,
+      "priority": 2,
+      "lead": "Lakeside/Detroit metro Costco bourbon lead."
+    },
+    {
+      "state": "GA",
+      "market": "Atlanta",
+      "city": "Atlanta",
+      "zip": "30339",
+      "latitude": 33.875,
+      "longitude": -84.46,
+      "priority": 2,
+      "lead": "Atlanta/Cumberland Costco liquor market."
+    },
+    {
+      "state": "FL",
+      "market": "Orlando",
+      "city": "Orlando",
+      "zip": "32839",
+      "latitude": 28.49,
+      "longitude": -81.405,
+      "priority": 2,
+      "lead": "Large Florida Costco liquor market."
+    },
+    {
+      "state": "FL",
+      "market": "Tampa",
+      "city": "Tampa",
+      "zip": "33625",
+      "latitude": 28.061,
+      "longitude": -82.559,
+      "priority": 2,
+      "lead": "Large Florida Costco liquor market."
+    },
+    {
+      "state": "MN",
+      "market": "Twin Cities",
+      "city": "Eden Prairie",
+      "zip": "55344",
+      "latitude": 44.86,
+      "longitude": -93.43,
+      "priority": 2,
+      "lead": "Twin Cities Costco liquor market."
+    },
+    {
+      "state": "MO",
+      "market": "St. Louis",
+      "city": "St. Louis",
+      "zip": "63131",
+      "latitude": 38.61,
+      "longitude": -90.45,
+      "priority": 2,
+      "lead": "St. Louis Costco liquor market."
+    },
+    {
+      "state": "WI",
+      "market": "Madison",
+      "city": "Madison",
+      "zip": "53719",
+      "latitude": 43.04,
+      "longitude": -89.5,
+      "priority": 2,
+      "lead": "Madison Costco liquor market."
+    },
+    {
+      "state": "WI",
+      "market": "Milwaukee",
+      "city": "Menomonee Falls",
+      "zip": "53051",
+      "latitude": 43.1789,
+      "longitude": -88.1173,
+      "priority": 2,
+      "lead": "Milwaukee-area Costco liquor market."
+    }
+  ]
+}

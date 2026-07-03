@@ -2,49 +2,215 @@
   {
     "itemNumber": "1280805",
     "canonicalName": "Weller C.Y.P.B.",
-    "aliases": ["Weller CYPB", "W.L. Weller C.Y.P.B.", "WL Weller CYPB"],
+    "aliases": [
+      "Weller CYPB",
+      "W.L. Weller C.Y.P.B.",
+      "WL Weller CYPB"
+    ],
     "tier": "unicorn"
   },
   {
     "itemNumber": "122438",
     "canonicalName": "Blanton's Single Barrel",
-    "aliases": ["Blantons", "Blanton's Bourbon", "Blanton's Single Barrel Bourbon"],
+    "aliases": [
+      "Blantons",
+      "Blanton's Bourbon",
+      "Blanton's Single Barrel Bourbon"
+    ],
     "tier": "allocated"
   },
   {
     "itemNumber": "149017",
     "canonicalName": "Eagle Rare 10 Year",
-    "aliases": ["Eagle Rare", "Eagle Rare 10"],
+    "aliases": [
+      "Eagle Rare",
+      "Eagle Rare 10"
+    ],
     "tier": "allocated"
   },
   {
     "itemNumber": "822398",
     "canonicalName": "Stagg Jr.",
-    "aliases": ["Stagg", "George T. Stagg Jr", "Stagg Barrel Proof"],
+    "aliases": [
+      "Stagg",
+      "George T. Stagg Jr",
+      "Stagg Barrel Proof"
+    ],
     "tier": "unicorn"
   },
   {
     "itemNumber": "850279",
     "canonicalName": "George T. Stagg",
-    "aliases": ["GTS", "George T Stagg", "Buffalo Trace Antique Collection George T. Stagg"],
+    "aliases": [
+      "GTS",
+      "George T Stagg",
+      "Buffalo Trace Antique Collection George T. Stagg"
+    ],
     "tier": "unicorn"
   },
   {
     "itemNumber": "964541",
     "canonicalName": "William Larue Weller",
-    "aliases": ["William L. Weller", "WLW", "Weller BTAC"],
+    "aliases": [
+      "William L. Weller",
+      "WLW",
+      "Weller BTAC"
+    ],
     "tier": "unicorn"
   },
   {
     "itemNumber": "952976",
     "canonicalName": "Old Forester Birthday Bourbon",
-    "aliases": ["Birthday Bourbon", "Old Forester Birthday"],
+    "aliases": [
+      "Birthday Bourbon",
+      "Old Forester Birthday"
+    ],
     "tier": "unicorn"
   },
   {
     "itemNumber": "1206681",
     "canonicalName": "High West A Midwinter Night's Dram",
-    "aliases": ["Midwinter Night's Dram", "MWND", "High West Midwinter"],
+    "aliases": [
+      "Midwinter Night's Dram",
+      "MWND",
+      "High West Midwinter"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "E.H. Taylor Small Batch",
+    "aliases": [
+      "EH Taylor Small Batch",
+      "Colonel E.H. Taylor Small Batch",
+      "E H Taylor Small Batch"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "E.H. Taylor Single Barrel",
+    "aliases": [
+      "EH Taylor Single Barrel",
+      "Colonel E.H. Taylor Single Barrel"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Weller 12 Year",
+    "aliases": [
+      "Weller 12",
+      "W.L. Weller 12 Year",
+      "WL Weller 12"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Weller Full Proof",
+    "aliases": [
+      "W.L. Weller Full Proof",
+      "WL Weller Full Proof"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Weller Antique 107",
+    "aliases": [
+      "Old Weller Antique",
+      "W.L. Weller Antique 107",
+      "Weller 107"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Buffalo Trace Bourbon",
+    "aliases": [
+      "Buffalo Trace Kentucky Straight Bourbon",
+      "Buffalo Trace"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Elmer T. Lee Single Barrel",
+    "aliases": [
+      "Elmer T Lee",
+      "Elmer T. Lee"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Rock Hill Farms Single Barrel",
+    "aliases": [
+      "Rock Hill Farms"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Henry McKenna 10 Year Single Barrel",
+    "aliases": [
+      "Henry McKenna 10",
+      "Henry McKenna Single Barrel"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Michter's 10 Year Bourbon",
+    "aliases": [
+      "Michters 10 Bourbon",
+      "Michter's 10 Bourbon"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Russell's Reserve 13 Year",
+    "aliases": [
+      "Russells Reserve 13",
+      "Russell Reserve 13"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Four Roses Limited Edition Small Batch",
+    "aliases": [
+      "Four Roses Limited Edition",
+      "Four Roses LE Small Batch"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Parker's Heritage Collection",
+    "aliases": [
+      "Parkers Heritage",
+      "Parker Heritage"
+    ],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Blood Oath Pact",
+    "aliases": [
+      "Blood Oath"
+    ],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": null,
+    "canonicalName": "Little Book",
+    "aliases": [
+      "Little Book Whiskey",
+      "Little Book Bourbon"
+    ],
     "tier": "allocated"
   }
 ]

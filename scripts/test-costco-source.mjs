@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { BourbonBible } from '../engine/src/core/bible.mjs';
@@ -58,6 +58,7 @@ await writeFile(observationsFile, JSON.stringify({
 }, null, 2));
 process.env.COSTCO_OBSERVATIONS_FILE = observationsFile;
 process.env.COSTCO_WATCHLIST_FILE = path.resolve('engine/data/costco-bourbon-watchlist.json');
+process.env.COSTCO_MAX_OBSERVATION_AGE_HOURS = '999999';
 
 try {
   const activeIds = [...CUSTOMER_ACTIVE_STATE_IDS];
@@ -67,6 +68,11 @@ try {
   const expansionEligibleStates = ['AZ', 'CA', 'FL', 'GA', 'MI', 'MN', 'MO', 'NV', 'WA', 'WI'];
   const eligibleStates = [...originalEligibleStates, ...expansionEligibleStates];
   const ineligibleActiveStates = ['NC', 'VA', 'PA', 'ID', 'TN', 'MD-MONTGOMERY'];
+  const warehouses = JSON.parse(await readFile(path.resolve('engine/data/costco-warehouses.json'), 'utf8')).warehouses;
+  assert.ok(warehouses.length >= 20, 'Costco probe list should cover a useful multi-state warehouse set');
+  for (const state of eligibleStates) {
+    assert.ok(warehouses.some((warehouse) => warehouse.state === state), `${state} should have at least one Costco probe warehouse`);
+  }
   for (const state of eligibleStates) {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} should be active`);
@@ -101,6 +107,7 @@ try {
   assert.equal(signal.eventType, 'costco_warehouse_inventory_result');
   assert.equal(signal.canAlertAsInventory, true);
   assert.equal(signal.sourceLabel, 'Costco warehouse inventory');
+  assert.equal(signal.sourceReliability, 'warehouse_observation');
   assert.equal(signal.raw.costcoItemNumber, '1280805');
   assert.match(signal.evidence, /Costco warehouse inventory reported/i);
 

@@ -19,7 +19,8 @@
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
     "test:sighting-manual-review": "node --experimental-strip-types scripts/test-sighting-manual-review.mjs",
     "test:sighting-votes": "node scripts/test-sighting-votes.mjs",
-    "test:costco-source": "node scripts/test-costco-source.mjs"
+    "test:costco-source": "node scripts/test-costco-source.mjs",
+    "costco:probe": "node scripts/probe-costco-sameday.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
