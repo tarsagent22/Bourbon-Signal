@@ -11,7 +11,17 @@
     "TN",
     "SC",
     "MD-MONTGOMERY",
-    "KY"
+    "KY",
+    "AZ",
+    "CA",
+    "FL",
+    "GA",
+    "MI",
+    "MN",
+    "MO",
+    "NV",
+    "WA",
+    "WI"
   ],
   "states": {
     "NC": {
@@ -152,21 +162,21 @@
     },
     "FL": {
       "customerLabel": "Florida",
-      "sourceLabel": "Florida ABT + retailer mesh target",
-      "publicStatus": "research_only",
-      "lifecycle": "retailer_mesh_candidate",
-      "coverageTier": "policy_source_discovery",
-      "refinementLevel": "statewide",
-      "customerSummary": "Retailer-mesh candidate. Official ABT sources are regulatory/licensing context, not bottle availability."
+      "sourceLabel": "Florida Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Florida warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
     },
     "GA": {
       "customerLabel": "Georgia",
-      "sourceLabel": "Georgia DOR + retailer mesh target",
-      "publicStatus": "research_only",
-      "lifecycle": "retailer_mesh_candidate",
-      "coverageTier": "catalog_watch",
-      "refinementLevel": "statewide",
-      "customerSummary": "Retailer-mesh candidate. Official DOR sources are registration/license context, not consumer bottle availability."
+      "sourceLabel": "Georgia Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Georgia warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
     },
     "KY": {
       "customerLabel": "Kentucky",
@@ -185,6 +195,78 @@
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
+    },
+    "AZ": {
+      "customerLabel": "Arizona",
+      "sourceLabel": "Arizona Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Arizona warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "CA": {
+      "customerLabel": "California",
+      "sourceLabel": "California Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for California warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "MI": {
+      "customerLabel": "Michigan",
+      "sourceLabel": "Michigan Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Michigan warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "MN": {
+      "customerLabel": "Minnesota",
+      "sourceLabel": "Minnesota Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Minnesota warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "MO": {
+      "customerLabel": "Missouri",
+      "sourceLabel": "Missouri Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Missouri warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "NV": {
+      "customerLabel": "Nevada",
+      "sourceLabel": "Nevada Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Nevada warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "WA": {
+      "customerLabel": "Washington",
+      "sourceLabel": "Washington Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Washington warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+    },
+    "WI": {
+      "customerLabel": "Wisconsin",
+      "sourceLabel": "Wisconsin Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "costco_warehouse_inventory_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse bourbon signals for Wisconsin warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
     }
   }
 }

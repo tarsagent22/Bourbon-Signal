@@ -1,4 +1,4 @@
-export const COSTCO_SPIRITS_ELIGIBLE_STATES = new Set(['AL', 'IA', 'IL', 'IN', 'KY', 'SC']);
+export const COSTCO_SPIRITS_ELIGIBLE_STATES = new Set(['AL', 'IA', 'IL', 'IN', 'KY', 'SC', 'AZ', 'CA', 'FL', 'GA', 'MI', 'MN', 'MO', 'NV', 'WA', 'WI']);
 
 export const COSTCO_SPIRITS_INELIGIBLE_ACTIVE_STATES = {
   NC: 'Costco does not provide a useful spirits/bourbon retail path in North Carolina; ABC boards control spirits sales.',

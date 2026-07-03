@@ -192,17 +192,6 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'MI', label: 'Michigan MLCC', tier: 'C', strategy: 'price_book_and_new_item_watch', cadence: 'monthly-weekly',
-    value: 'Price book/new-item intelligence, not consumer availability. Useful for product bible and release awareness.',
-    sources: [
-      { kind: 'html', url: 'https://www.michigan.gov/lara/bureau-list/lcc/spirits-price-book-info', label: 'Spirits price book info' },
-      { kind: 'pdf', url: 'https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/2-1-26-RETAIL-PRICE-CHANGES-PDF.pdf', label: 'Retail price changes PDF' },
-      { kind: 'pdf', url: 'https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/11-2-25-NEW-ITEM-PRICE-LIST-PDF.pdf', label: 'New item price list PDF' },
-      { kind: 'html', url: 'https://customers.mlcc.michigan.gov/SoM_ProductRegistration/s/search-pricebook', label: 'SIPS pricebook search' }
-    ],
-    apiCandidates: []
-  },
-  {
     id: 'MT', label: 'Montana Department of Revenue', tier: 'C', strategy: 'warehouse_product_and_agency_store_watch', cadence: 'weekly',
     value: 'Warehouse/product ordering info and agency store list. Public inventory is likely weak.',
     sources: [
@@ -316,28 +305,65 @@ const BASE_STATE_SOURCES = [
     ],
     apiCandidates: []
   },
+
   {
-    id: 'GA', label: 'Georgia DOR Alcohol', tier: 'C', strategy: 'shipment_report_and_license_watch', cadence: 'weekly-monthly',
-    value: 'Private retail market; official DOR pages expose alcohol shipment reporting and licensing, but not consumer bottle inventory.',
-    rareSignalTarget: false,
-    sources: [
-      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-shipment-reports', label: 'Georgia alcohol shipment reports' },
-      { kind: 'html', url: 'https://dor.georgia.gov/brand-label-registration', label: 'Georgia brand and label registration' },
-      { kind: 'html', url: 'https://dor.georgia.gov/active-alcohol-licenses', label: 'Georgia active alcohol licenses' },
-      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-tobacco', label: 'Georgia alcohol and tobacco' },
-      { kind: 'html', url: 'https://dor.georgia.gov/alcohol-licenses-permits', label: 'Georgia alcohol licenses and permits' }
-    ],
+    id: 'AZ', label: 'Arizona Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Arizona Costco warehouses are useful private-market bourbon signals when verified through warehouse/app observations.',
+    sources: [],
     apiCandidates: []
   },
   {
-    id: 'FL', label: 'Florida ABT', tier: 'C', strategy: 'license_lottery_and_policy_watch', cadence: 'weekly-monthly',
-    value: 'Private retail market; official ABT pages expose quota/license lottery and regulatory data, not public bourbon availability.',
-    rareSignalTarget: false,
-    sources: [
-      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/', label: 'Florida ABT homepage' },
-      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/quota-license-information/', label: 'Florida quota license information' },
-      { kind: 'html', url: 'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/licensing/', label: 'Florida ABT licensing' }
-    ],
+    id: 'CA', label: 'California Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. California is one of the strongest Costco whiskey/bourbon markets; treat observations as fast-moving warehouse signals.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'MI', label: 'Michigan Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Michigan Costco spirits access can produce useful bourbon warehouse signals where verified.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'MN', label: 'Minnesota Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Minnesota Costco spirits access can produce useful bourbon warehouse signals where verified.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'MO', label: 'Missouri Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Missouri Costco warehouses are useful private-market bourbon signals where verified.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'NV', label: 'Nevada Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Nevada Costco warehouses, especially major metro/travel markets, are useful bourbon signals where verified.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'WA', label: 'Washington Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Washington is a high-signal Costco spirits market and should be monitored through warehouse/app observations.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'WI', label: 'Wisconsin Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Wisconsin Costco spirits access can produce useful bourbon warehouse signals where verified.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'GA', label: 'Georgia Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
+    sources: [],
+    apiCandidates: []
+  },
+  {
+    id: 'FL', label: 'Florida Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
+    value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
+    sources: [],
     apiCandidates: []
   }
 ];

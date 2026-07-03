@@ -42,6 +42,17 @@ await writeFile(observationsFile, JSON.stringify({
       storeNumber: '1150',
       city: 'Louisville',
       state: 'KY'
+    },
+    {
+      itemNumber: '122438',
+      bottleName: "Blanton's Single Barrel",
+      status: 'available',
+      quantity: 1,
+      storeName: 'Costco Seattle',
+      storeNumber: '1',
+      city: 'Seattle',
+      state: 'WA',
+      observedAt: '2026-07-03T15:57:00.000Z'
     }
   ]
 }, null, 2));
@@ -52,7 +63,9 @@ try {
   const activeIds = [...CUSTOMER_ACTIVE_STATE_IDS];
   assert.ok(!activeIds.includes('US-COSTCO'), 'Costco must not be a customer-facing pseudo-state');
 
-  const eligibleStates = ['AL', 'IA', 'IL', 'IN', 'KY', 'SC'];
+  const originalEligibleStates = ['AL', 'IA', 'IL', 'IN', 'KY', 'SC'];
+  const expansionEligibleStates = ['AZ', 'CA', 'FL', 'GA', 'MI', 'MN', 'MO', 'NV', 'WA', 'WI'];
+  const eligibleStates = [...originalEligibleStates, ...expansionEligibleStates];
   const ineligibleActiveStates = ['NC', 'VA', 'PA', 'ID', 'TN', 'MD-MONTGOMERY'];
   for (const state of eligibleStates) {
     const config = STATE_SOURCES.find((source) => source.id === state);
@@ -63,6 +76,12 @@ try {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} should be active`);
     assert.ok(!config.sources.some((source) => source.kind === 'costco'), `${state} should not include Costco spirits source`);
+  }
+  for (const state of expansionEligibleStates) {
+    const config = STATE_SOURCES.find((source) => source.id === state);
+    assert.ok(config, `${state} expansion state should be active`);
+    assert.equal(config.sources.length, 1, `${state} expansion engine should be Costco-only`);
+    assert.equal(config.sources[0].kind, 'costco', `${state} expansion engine should only contain Costco`);
   }
 
   const bible = await BourbonBible.load(path.resolve('engine/out/bourbon-bible.json'));
@@ -84,6 +103,11 @@ try {
   assert.equal(signal.sourceLabel, 'Costco warehouse inventory');
   assert.equal(signal.raw.costcoItemNumber, '1280805');
   assert.match(signal.evidence, /Costco warehouse inventory reported/i);
+
+  const waReport = await collectCostco({ id: 'WA', label: 'Washington Costco warehouse bourbon watch' }, bible);
+  assert.equal(waReport.status, 'signals_normalized');
+  assert.equal(waReport.signals.length, 1);
+  assert.equal(waReport.signals[0].state, 'WA');
 
   const ncReport = await collectCostco({ id: 'NC', label: 'North Carolina ABC + county boards' }, bible);
   assert.equal(ncReport.signals.length, 0, 'NC Costco observations must be ignored because Costco spirits are not eligible there');
