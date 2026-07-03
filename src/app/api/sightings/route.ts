@@ -3,6 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
 import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary, type SightingVerificationSource } from "@/lib/sighting-rewards";
+import { sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
@@ -162,12 +163,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
   }
   const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
-  const bottleName = String(payload.bottleName || "").trim().slice(0, 140);
-  const storeName = String(payload.storeName || "").trim().slice(0, 180);
-  const storeAddress = String(payload.storeAddress || "").trim().slice(0, 220);
-  const storeId = String(payload.storeId || "").trim().slice(0, 160);
-  if (!bottleName || !storeName || !storeAddress || !storeId) {
+  const bottleName = sanitizeManualSightingField(payload.bottleName, 140);
+  const storeName = sanitizeManualSightingField(payload.storeName, 180);
+  const storeAddress = sanitizeManualSightingField(payload.storeAddress, 220);
+  const storeId = sanitizeManualSightingField(payload.storeId, 160);
+  const reviewInput = payload.reviewState && typeof payload.reviewState === "object" ? payload.reviewState : {};
+  const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName);
+  const needsStoreReview = Boolean(reviewInput.needsStoreReview || reviewInput.manualStoreName);
+  const manualStoreCity = sanitizeManualSightingField(reviewInput.manualStoreCity || payload.storeCity, 120);
+  const manualStoreState = sanitizeManualSightingField(reviewInput.manualStoreState || payload.storeState, 10).toUpperCase();
+  if (!bottleName || !storeName || !storeId || (!storeAddress && !needsStoreReview)) {
     return NextResponse.json({ error: "Missing bottle or store details" }, { status: 400 });
+  }
+  if (needsStoreReview && (!manualStoreCity || !manualStoreState)) {
+    return NextResponse.json({ error: "Missing city or state for manual store" }, { status: 400 });
   }
 
   const client = await clerkClient();
@@ -192,11 +201,24 @@ export async function POST(req: NextRequest) {
     reporterUserId: userId,
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
     rewardState: {},
+    reviewState: (needsBottleReview || needsStoreReview) ? {
+      needsBottleReview,
+      needsStoreReview,
+      manualBottleName: needsBottleReview ? sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140) : undefined,
+      manualBottleRarityTier: needsBottleReview ? normalizeRarityTier(reviewInput.manualBottleRarityTier || payload.rarityTier) : undefined,
+      manualStoreName: needsStoreReview ? sanitizeManualSightingField(reviewInput.manualStoreName || storeName, 180) : undefined,
+      manualStoreAddress: needsStoreReview ? storeAddress : undefined,
+      manualStoreCity: needsStoreReview ? manualStoreCity : undefined,
+      manualStoreState: needsStoreReview ? manualStoreState : undefined,
+      manualStoreZip: needsStoreReview ? sanitizeManualSightingField(reviewInput.manualStoreZip || payload.storeZip, 20) : undefined,
+    } : undefined,
     createdAt: payload.createdAt || new Date().toISOString(),
   };
   const next = { ...prefs, submittedSightings: [sighting, ...prefs.submittedSightings].slice(0, 100) };
+
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
+
   await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   const sightings = await getAggregateSightings(userId);
   const rewards: MemberRewardsSummary = summarizeMemberRewards(next.submittedSightings, nextRewards);

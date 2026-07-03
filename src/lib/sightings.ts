@@ -11,6 +11,21 @@ export interface SightingVote {
   createdAt: string;
 }
 
+export interface SightingReviewState {
+  needsBottleReview?: boolean;
+  needsStoreReview?: boolean;
+  manualBottleName?: string;
+  manualBottleRarityTier?: "unicorn" | "allocated" | "limited";
+  manualStoreName?: string;
+  manualStoreAddress?: string;
+  manualStoreCity?: string;
+  manualStoreState?: string;
+  manualStoreZip?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNote?: string;
+}
+
 export interface MemberSighting {
   id: string;
   bottleName: string;
@@ -34,6 +49,7 @@ export interface MemberSighting {
   myVote?: SightingVoteKind | null;
   storeTimeZone?: string;
   rewardState?: SightingRewardState;
+  reviewState?: SightingReviewState;
   reporterDisplayName?: string;
   reporterBadges?: string[];
 }

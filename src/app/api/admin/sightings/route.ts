@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
 import { isRewardsAdminEmail, reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
+import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
@@ -37,12 +38,13 @@ export async function GET() {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
     return prefs.submittedSightings
-      .filter((sighting) => sighting.rewardState?.photoProof || sighting.rewardState?.removedAt || sighting.rewardState?.rejectedAt)
+      .filter((sighting) => needsSightingReview(sighting))
       .map((sighting) => ({
         ...sighting,
         reporterUserId: sighting.reporterUserId || user.id,
         reporterEmail: primaryEmail(user),
         reporterName: [user.firstName, user.lastName].filter(Boolean).join(" ") || "Member",
+        reviewReasons: reviewReasonLabels(sighting.reviewState),
       }));
   }).sort((a, b) => +new Date(b.rewardState?.photoProof?.uploadedAt || b.createdAt) - +new Date(a.rewardState?.photoProof?.uploadedAt || a.createdAt));
   return NextResponse.json({ ok: true, sightings });
@@ -63,12 +65,14 @@ export async function PATCH(req: NextRequest) {
   let status: SightingPhotoReviewStatus | null = null;
   let remove = false;
   let rejectSighting = false;
+  let resolveManualReview = false;
   if (payload.action === "verify_public") status = "verified_public";
   if (payload.action === "verify_private") status = "verified_private";
   if (payload.action === "reject_photo") status = "rejected";
   if (payload.action === "remove_sighting") remove = true;
   if (payload.action === "reject_sighting") rejectSighting = true;
-  if (!status && !remove && !rejectSighting) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  if (payload.action === "resolve_manual_review") resolveManualReview = true;
+  if (!status && !remove && !rejectSighting && !resolveManualReview) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 
   const nextSightings = prefs.submittedSightings.map((sighting) => {
     if (sighting.id !== sightingId) return sighting;
@@ -78,6 +82,14 @@ export async function PATCH(req: NextRequest) {
     if (status === "rejected") sources.delete("photo");
     return {
       ...sighting,
+      reviewState: resolveManualReview ? {
+        ...(sighting.reviewState || {}),
+        needsBottleReview: false,
+        needsStoreReview: false,
+        reviewedAt: now,
+        reviewedBy: admin.adminUserId,
+        reviewNote: String(payload.reason || "Manual bottle/store reviewed for catalog mapping").slice(0, 180),
+      } : sighting.reviewState,
       rewardState: {
         ...(sighting.rewardState || {}),
         ...(proof && status ? {
