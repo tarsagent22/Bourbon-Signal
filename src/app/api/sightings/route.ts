@@ -251,16 +251,18 @@ export async function PATCH(req: NextRequest) {
 
   const allSightings = await getAggregateSightings(userId);
   const target = allSightings.find((sighting) => sighting.id === sightingId);
-  // poster cannot vote on their own sighting
   if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
-  if (target.reporterUserId === userId) return NextResponse.json({ error: "You cannot vote on your own sighting" }, { status: 403 });
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
+  const existingVote = (prefs.sightingVotes || []).find((item) => item.sightingId === sightingId);
   const withoutExisting = (prefs.sightingVotes || []).filter((item) => item.sightingId !== sightingId);
   const nextVote: SightingVote = { sightingId, kind: vote, createdAt: new Date().toISOString() };
-  const next = { ...prefs, sightingVotes: [nextVote, ...withoutExisting].slice(0, 500) };
+  const nextVotes: SightingVote[] = existingVote?.kind === vote
+    ? withoutExisting
+    : [nextVote, ...withoutExisting].slice(0, 500);
+  const next = { ...prefs, sightingVotes: nextVotes };
   await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next } });
 
   if (target.reporterUserId) {

@@ -17,7 +17,8 @@
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
-    "test:sighting-manual-review": "node --experimental-strip-types scripts/test-sighting-manual-review.mjs"
+    "test:sighting-manual-review": "node --experimental-strip-types scripts/test-sighting-manual-review.mjs",
+    "test:sighting-votes": "node scripts/test-sighting-votes.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
