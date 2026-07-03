@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { stableId, titleCase } from '../core/text.mjs';
+import { isCostcoSpiritsEligibleState } from '../costco-eligibility.mjs';
 
 const DEFAULT_WATCHLIST = path.resolve('data/costco-bourbon-watchlist.json');
 const DEFAULT_OBSERVATIONS = path.resolve('data/costco-observations.json');
@@ -67,7 +68,7 @@ function matchBottle(rawName, bible, watchItem) {
   return null;
 }
 
-function normalizeObservation(row, bible, index, generatedAt) {
+function normalizeObservation(row, bible, index, generatedAt, targetState) {
   const itemNumber = normalizedItemNumber(row.itemNumber || row.item_number || row.itemNo || row.sku);
   const watchItem = lookupWatchItem(row, index);
   const rawName = safeString(row.bottleName || row.productName || row.name || row.description || watchItem?.canonicalName, 180);
@@ -78,6 +79,8 @@ function normalizeObservation(row, bible, index, generatedAt) {
   if (!positive) return null;
   const match = matchBottle(rawName, bible, watchItem);
   const state = safeString(row.state || row.stateCode || row.warehouseState, 20)?.toUpperCase();
+  if (!state || !isCostcoSpiritsEligibleState(state)) return null;
+  if (targetState && state !== targetState) return null;
   const city = safeString(row.city || row.warehouseCity, 120);
   const storeNumber = safeString(row.storeNumber || row.warehouseNumber || row.locationNumber || row.storeId, 80);
   const storeName = safeString(row.storeName || row.warehouseName || (city ? `Costco ${city}` : 'Costco warehouse'), 160);
@@ -88,10 +91,10 @@ function normalizeObservation(row, bible, index, generatedAt) {
   const tier = match?.record?.tier || watchItem?.tier || 'allocated';
   const locationBits = [city, state].filter(Boolean).join(', ');
   return {
-    id: stableId(['US-COSTCO', itemNumber, canonicalName, storeNumber, storeName, city, state, observedAt, quantity || 0]),
-    key: stableId(['US-COSTCO', itemNumber, canonicalName, storeNumber, storeName, city, state]),
-    state: 'US-COSTCO',
-    displayState: state || 'Costco',
+    id: stableId([state, 'costco', itemNumber, canonicalName, storeNumber, storeName, city, observedAt, quantity || 0]),
+    key: stableId([state, 'costco', itemNumber, canonicalName, storeNumber, storeName, city]),
+    state,
+    displayState: state,
     sourceUrl,
     sourceLabel: 'Costco warehouse inventory',
     eventType: 'costco_warehouse_inventory_result',
@@ -139,7 +142,8 @@ export async function collectCostco(config, bible) {
   const index = watchlistIndex(Array.isArray(watchlist) ? watchlist : []);
   const rows = Array.isArray(observations) ? observations : Array.isArray(observations?.observations) ? observations.observations : [];
   const generatedAt = safeString(observations?.generatedAt, 80) || new Date().toISOString();
-  const signals = rows.map((row) => normalizeObservation(row, bible, index, generatedAt)).filter(Boolean).slice(0, 500);
+  const targetState = config.id ? String(config.id).toUpperCase() : null;
+  const signals = rows.map((row) => normalizeObservation(row, bible, index, generatedAt, targetState)).filter(Boolean).slice(0, 500);
   const roadblocks = [];
   if (!rows.length) {
     roadblocks.push({

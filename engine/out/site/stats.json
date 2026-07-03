@@ -1,30 +1,30 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-03T20:32:26.410Z",
-  "engineGeneratedAt": "2026-07-03T20:03:20.587Z",
-  "stateCount": 13,
-  "signalCount": 25858,
-  "historicalSignalCount": 202035,
+  "generatedAt": "2026-07-03T21:08:17.423Z",
+  "engineGeneratedAt": "2026-07-03T21:03:13.856Z",
+  "stateCount": 12,
+  "signalCount": 25857,
+  "historicalSignalCount": 202695,
   "historyDays": 30,
   "snapshotCount": 40,
   "bottleCount": 151,
   "bibleRecordCount": 151,
   "storeCount": 2850,
-  "locationCount": 4374,
+  "locationCount": 4375,
   "officialLocationCount": 1218,
   "preloadedLocationCount": 1385,
-  "dropCount": 6192,
-  "eventCount": 2383,
+  "dropCount": 6190,
+  "eventCount": 2335,
   "historicalTrendCount": 100,
   "alertCandidateCount": 200,
-  "roadblockCount": 15,
+  "roadblockCount": 16,
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,
     "failedStateCount": 0,
     "degradedStates": []
   },
-  "statesAtTargetPrecision": 13,
+  "statesAtTargetPrecision": 12,
   "rareStatesVerified": 12,
   "stateCoverage": {
     "counts": {
@@ -33,8 +33,7 @@
       "store_availability_status": 1,
       "shipment_drop_intelligence": 1,
       "aggregate_inventory_watch": 1,
-      "distillery_release_watch": 1,
-      "retailer_warehouse_inventory": 1
+      "distillery_release_watch": 1
     },
     "states": [
       {
@@ -45,7 +44,7 @@
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "store_inventory_and_board_leads",
-        "signalCount": 1084,
+        "signalCount": 1085,
         "roadblockCount": 0,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -97,7 +96,7 @@
       {
         "state": "IA",
         "label": "Iowa",
-        "sourceLabel": "Iowa ABD",
+        "sourceLabel": "Iowa ABD + Costco warehouse watch",
         "tier": "A",
         "status": "useful",
         "publicStatus": "active",
@@ -110,7 +109,7 @@
         "refinementLevel": "city",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory.",
+        "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Iowa warehouses.",
         "coverageTier": "store_delivery_leads"
       },
       {
@@ -135,7 +134,7 @@
       {
         "state": "AL",
         "label": "Alabama",
-        "sourceLabel": "Alabama ABC",
+        "sourceLabel": "Alabama ABC + Costco warehouse watch",
         "tier": "A",
         "status": "useful",
         "publicStatus": "active",
@@ -148,13 +147,13 @@
         "refinementLevel": "statewide",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory.",
+        "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Alabama warehouses.",
         "coverageTier": "shipment_drop_intelligence"
       },
       {
         "state": "IL",
         "label": "Illinois",
-        "sourceLabel": "Illinois Binny's + retailer inventory watch",
+        "sourceLabel": "Illinois Binny's + Costco + retailer inventory watch",
         "tier": "B",
         "status": "useful",
         "publicStatus": "active",
@@ -167,18 +166,18 @@
         "refinementLevel": "statewide",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats.",
+        "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats. Costco warehouse bourbon signals are included alongside Illinois retailer inventory where verified.",
         "coverageTier": "live_store_inventory"
       },
       {
         "state": "IN",
         "label": "Indiana",
-        "sourceLabel": "Indiana ATC + retailer inventory watch",
+        "sourceLabel": "Indiana ATC + Costco + retailer inventory watch",
         "tier": "B",
         "status": "useful",
         "publicStatus": "active",
         "lifecycle": "retailer_store_inventory",
-        "signalCount": 1491,
+        "signalCount": 1489,
         "roadblockCount": 5,
         "targetLocationPrecision": "store_level",
         "bestLocationPrecision": "store_level",
@@ -186,7 +185,7 @@
         "refinementLevel": "statewide",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Retailer-specific store inventory/watch surfaces plus ATC store-spine context. ATC rows are not bottle availability.",
+        "customerSummary": "Retailer-specific store inventory/watch surfaces plus ATC store-spine context. ATC rows are not bottle availability. Costco warehouse bourbon signals are included alongside Indiana retailer inventory where verified.",
         "coverageTier": "live_store_inventory"
       },
       {
@@ -211,7 +210,7 @@
       {
         "state": "SC",
         "label": "South Carolina",
-        "sourceLabel": "South Carolina retailer inventory mesh",
+        "sourceLabel": "South Carolina Costco + retailer inventory mesh",
         "tier": "B",
         "status": "useful",
         "publicStatus": "active",
@@ -224,7 +223,7 @@
         "refinementLevel": "statewide",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only.",
+        "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified.",
         "coverageTier": "live_store_inventory"
       },
       {
@@ -251,7 +250,7 @@
       {
         "state": "KY",
         "label": "Kentucky",
-        "sourceLabel": "Kentucky official distillery drops + release watch",
+        "sourceLabel": "Kentucky distillery drops + Costco warehouse watch",
         "tier": "B",
         "status": "useful",
         "publicStatus": "active",
@@ -264,32 +263,13 @@
         "refinementLevel": "distillery",
         "customerAreaLabel": null,
         "areaOptions": [],
-        "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts.",
+        "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts. Costco warehouse bourbon signals are included where verified for Kentucky warehouses.",
         "coverageTier": "distillery_release_watch"
-      },
-      {
-        "state": "US-COSTCO",
-        "label": "Costco",
-        "sourceLabel": "Costco warehouse bourbon watch",
-        "tier": null,
-        "status": "awaiting_current_source_run",
-        "publicStatus": "active",
-        "lifecycle": "national_retailer_item_number_watch",
-        "signalCount": 0,
-        "roadblockCount": 0,
-        "targetLocationPrecision": null,
-        "bestLocationPrecision": null,
-        "strategy": "national_retailer_item_number_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse/app availability for allocated bourbon item numbers. Signals use Bourbon Signal copy and caveats, not Discord bot-style alert formatting.",
-        "coverageTier": "retailer_warehouse_inventory"
       }
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-07-03T20:32:26.414Z",
+    "generatedAt": "2026-07-03T21:08:17.437Z",
     "focusStates": [
       "NC",
       "VA",
@@ -308,7 +288,7 @@
         "label": "North Carolina",
         "status": "useful",
         "coverageTier": "live_store_inventory",
-        "signalCount": 1084,
+        "signalCount": 1085,
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
@@ -332,7 +312,7 @@
         "bestLocationPrecision": "store_level",
         "testerValue": "Shipment, warehouse, board, or release intelligence; useful leads but not exact shelf stock.",
         "customerAreaLabel": null,
-        "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory."
+        "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Alabama warehouses."
       },
       "TN": {
         "label": "Tennessee",
@@ -352,7 +332,7 @@
         "bestLocationPrecision": "store_level",
         "testerValue": "Live/store inventory where public source permits.",
         "customerAreaLabel": null,
-        "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only."
+        "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
       },
       "KY": {
         "label": "Kentucky",
@@ -362,7 +342,7 @@
         "bestLocationPrecision": "distillery",
         "testerValue": "Official distillery gift-shop drops and release-watch pages; distinct from retailer store inventory.",
         "customerAreaLabel": null,
-        "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts."
+        "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts. Costco warehouse bourbon signals are included where verified for Kentucky warehouses."
       }
     },
     "bestCurrentSignals": {
@@ -527,7 +507,7 @@
           "confidence": 0.9,
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
-          "summary": "NC ABC warehouse stock page shows 1065 unit(s) available statewide for 1792 Full Proof (-1 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
+          "summary": "NC ABC warehouse stock page shows 1065 unit(s) available statewide for 1792 Full Proof (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
         },
         {
           "id": "93e5b263d2238f48",
@@ -594,6 +574,22 @@
           "summary": "NC ABC warehouse stock page shows 453 unit(s) available statewide for Willett Family Estate Small Batch Bourbon 4Y (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
         },
         {
+          "id": "a40ddfbfdd3784a5",
+          "state": "NC",
+          "type": "nc_statewide_warehouse_stock",
+          "source": "NC ABC Warehouse Stock Status",
+          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/164341",
+          "bottle": "Booker's Bourbon",
+          "rawName": "Booker's",
+          "locationPrecision": "board_warehouse",
+          "locationName": "NC ABC state warehouse",
+          "quantity": 441,
+          "confidence": 0.9,
+          "canAlertAsInventory": false,
+          "canAlertAsWatch": true,
+          "summary": "NC ABC warehouse stock page shows 441 unit(s) available statewide for Booker's (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory."
+        },
+        {
           "id": "42112660bd6fdf81",
           "state": "NC",
           "type": "nc_statewide_warehouse_stock",
@@ -608,22 +604,6 @@
           "canAlertAsInventory": false,
           "canAlertAsWatch": true,
           "summary": "NC ABC warehouse stock page shows 413 unit(s) available statewide for E.H. Taylor Jr. Small Batch (+0 since previous Bourbon Signal snapshot). This is early-warning radar only; it does not identify receiving boards or shelf inventory. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-product movement."
-        },
-        {
-          "id": "5d98b483f8b72161",
-          "state": "NC",
-          "type": "nc_board_shipment_snapshot",
-          "source": "NC ABC Stock Shipped Data",
-          "sourceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/164182",
-          "bottle": "Henry McKenna 10 Year",
-          "rawName": "Henry McKenna Single Barrel .75L",
-          "locationPrecision": "board_county",
-          "locationName": "Mecklenburg County ABC Board",
-          "quantity": 408,
-          "confidence": 0.9,
-          "canAlertAsInventory": false,
-          "canAlertAsWatch": true,
-          "summary": "NC ABC Stock Shipped Data reports 408 unit(s) of Henry McKenna Single Barrel .75L shipped to Mecklenburg County ABC Board. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity. NC ABC also flags this NC Code in its product-control spreadsheet (controlled distribution), which helps distinguish ordinary replenishment from high-demand controlled-produc"
         }
       ],
       "alReleaseIntel": [
@@ -896,7 +876,7 @@
     "boardCount": 174,
     "boardsWithWebsites": 40,
     "boardsWithTrackedShipments": 111,
-    "boardsWithReleasePages": 15,
+    "boardsWithReleasePages": 16,
     "boardsWithInventoryPages": 7,
     "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports."
   },
@@ -934,8 +914,8 @@
       "inventoryObservations": 0,
       "watchObservations": 266,
       "positiveQuantities": 266,
-      "firstObservedAt": "2026-07-02T08:59:40.277Z",
-      "lastObservedAt": "2026-07-03T19:58:04.404Z",
+      "firstObservedAt": "2026-07-02T10:59:10.851Z",
+      "lastObservedAt": "2026-07-03T20:58:04.371Z",
       "sampleSignalIds": [
         "9b24ddebf3e1e87f",
         "9b24ddebf3e1e87f",
@@ -952,11 +932,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Highland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:21:39.604Z",
-      "lastObservedAt": "2026-07-03T20:01:31.793Z",
+      "inventoryObservations": 152,
+      "watchObservations": 152,
+      "positiveQuantities": 152,
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
         "8a737d57a80f4aff",
         "8a737d57a80f4aff",
@@ -964,7 +944,7 @@
         "8a737d57a80f4aff",
         "8a737d57a80f4aff"
       ],
-      "observationCount": 296,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -973,11 +953,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Orland Park",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:21:39.604Z",
-      "lastObservedAt": "2026-07-03T20:01:31.793Z",
+      "inventoryObservations": 152,
+      "watchObservations": 152,
+      "positiveQuantities": 152,
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
         "3dbaa2eb38360026",
         "3dbaa2eb38360026",
@@ -985,7 +965,7 @@
         "3dbaa2eb38360026",
         "3dbaa2eb38360026"
       ],
-      "observationCount": 296,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -994,11 +974,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Champaign",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:21:39.604Z",
-      "lastObservedAt": "2026-07-03T20:01:31.793Z",
+      "inventoryObservations": 152,
+      "watchObservations": 152,
+      "positiveQuantities": 152,
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7",
@@ -1006,7 +986,7 @@
         "d544783f1d2a4dc7",
         "d544783f1d2a4dc7"
       ],
-      "observationCount": 296,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1015,11 +995,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Mokena",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:21:39.604Z",
-      "lastObservedAt": "2026-07-03T20:01:31.793Z",
+      "inventoryObservations": 152,
+      "watchObservations": 152,
+      "positiveQuantities": 152,
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
         "bf7c2d280c13fb0b",
         "bf7c2d280c13fb0b",
@@ -1027,7 +1007,7 @@
         "bf7c2d280c13fb0b",
         "bf7c2d280c13fb0b"
       ],
-      "observationCount": 296,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1036,11 +1016,11 @@
       "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
       "source": "Binny's Downtown",
       "locationPrecision": "store_level",
-      "inventoryObservations": 148,
-      "watchObservations": 148,
-      "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:21:39.604Z",
-      "lastObservedAt": "2026-07-03T20:01:31.793Z",
+      "inventoryObservations": 152,
+      "watchObservations": 152,
+      "positiveQuantities": 152,
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
         "9b1619082b879b4c",
         "9b1619082b879b4c",
@@ -1048,7 +1028,7 @@
         "9b1619082b879b4c",
         "9b1619082b879b4c"
       ],
-      "observationCount": 296,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
@@ -1060,8 +1040,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "bc5df8b41fb838df",
         "bc5df8b41fb838df",
@@ -1081,8 +1061,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "c38e24889aa5a5ad",
         "c38e24889aa5a5ad",
@@ -1102,8 +1082,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "c774d30ced79b621",
         "c774d30ced79b621",
@@ -1123,8 +1103,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "0e433a6aa9e81762",
         "0e433a6aa9e81762",
@@ -1144,8 +1124,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "8433e16d2d13b4e1",
         "8433e16d2d13b4e1",
@@ -1165,8 +1145,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "47b73e5513f8619a",
         "47b73e5513f8619a",
@@ -1186,8 +1166,8 @@
       "inventoryObservations": 148,
       "watchObservations": 148,
       "positiveQuantities": 148,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "32e76c6da2436489",
         "32e76c6da2436489",
@@ -1207,8 +1187,8 @@
       "inventoryObservations": 144,
       "watchObservations": 144,
       "positiveQuantities": 144,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "9e915a7156feeb65",
         "9e915a7156feeb65",
@@ -1228,8 +1208,8 @@
       "inventoryObservations": 144,
       "watchObservations": 144,
       "positiveQuantities": 144,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "c4a1259374bc5cb6",
         "c4a1259374bc5cb6",
@@ -1249,8 +1229,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "5404f86aa4d7bd76",
         "5404f86aa4d7bd76",
@@ -1270,8 +1250,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "8cef2ff67b139f7a",
         "8cef2ff67b139f7a",
@@ -1291,8 +1271,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "403d968607884f23",
         "403d968607884f23",
@@ -1312,8 +1292,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "fd19c1614df6ebc8",
         "fd19c1614df6ebc8",
@@ -1333,8 +1313,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "b31f281e2b48ec13",
         "b31f281e2b48ec13",
@@ -1354,8 +1334,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "610b62f92ce14e63",
         "610b62f92ce14e63",
@@ -1375,8 +1355,8 @@
       "inventoryObservations": 140,
       "watchObservations": 140,
       "positiveQuantities": 140,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "572d532cd5c727ea",
         "572d532cd5c727ea",
@@ -1393,11 +1373,11 @@
       "bottleName": "Bulleit Bourbon",
       "source": "Big Red #210 - Indianapolis",
       "locationPrecision": "store_level",
-      "inventoryObservations": 132,
-      "watchObservations": 132,
-      "positiveQuantities": 132,
-      "firstObservedAt": "2026-07-02T09:11:25.016Z",
-      "lastObservedAt": "2026-07-03T19:38:52.117Z",
+      "inventoryObservations": 130,
+      "watchObservations": 130,
+      "positiveQuantities": 130,
+      "firstObservedAt": "2026-07-02T11:11:00.404Z",
+      "lastObservedAt": "2026-07-03T20:38:08.742Z",
       "sampleSignalIds": [
         "e60c428aeddf3808",
         "e60c428aeddf3808",
@@ -1405,49 +1385,49 @@
         "e60c428aeddf3808",
         "e60c428aeddf3808"
       ],
-      "observationCount": 264,
+      "observationCount": 260,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
     {
-      "state": "SC",
-      "bottleName": "Buffalo Trace Bourbon",
-      "source": "Da Brown Bag ABC Store",
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Skokie",
       "locationPrecision": "store_level",
-      "inventoryObservations": 114,
-      "watchObservations": 114,
+      "inventoryObservations": 152,
+      "watchObservations": 152,
       "positiveQuantities": 114,
-      "firstObservedAt": "2026-07-02T09:26:02.864Z",
-      "lastObservedAt": "2026-07-03T20:02:37.909Z",
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
-        "f3e606a0985a6c08",
-        "f3e606a0985a6c08",
-        "f3e606a0985a6c08",
-        "f3e606a0985a6c08",
-        "f3e606a0985a6c08"
+        "078466be5913d6de",
+        "078466be5913d6de",
+        "078466be5913d6de",
+        "1dbd6c6a837b82ec",
+        "078466be5913d6de"
       ],
-      "observationCount": 228,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     },
     {
-      "state": "TN",
-      "bottleName": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
-      "source": "Cool Springs Wine & Spirits",
+      "state": "IL",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "source": "Binny's Rockford",
       "locationPrecision": "store_level",
-      "inventoryObservations": 114,
-      "watchObservations": 114,
+      "inventoryObservations": 152,
+      "watchObservations": 152,
       "positiveQuantities": 114,
-      "firstObservedAt": "2026-07-02T09:25:30.583Z",
-      "lastObservedAt": "2026-07-03T20:02:29.426Z",
+      "firstObservedAt": "2026-07-02T10:17:11.753Z",
+      "lastObservedAt": "2026-07-03T21:01:28.140Z",
       "sampleSignalIds": [
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7",
-        "393c4fa509abd6a7"
+        "7fb6c8166a2e069e",
+        "7fb6c8166a2e069e",
+        "7fb6c8166a2e069e",
+        "2e8d66662f521eb7",
+        "7fb6c8166a2e069e"
       ],
-      "observationCount": 228,
+      "observationCount": 304,
       "current": true,
       "trendLabel": "repeated_inventory_or_shipment_signal"
     }

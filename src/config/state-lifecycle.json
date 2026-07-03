@@ -11,8 +11,7 @@
     "TN",
     "SC",
     "MD-MONTGOMERY",
-    "KY",
-    "US-COSTCO"
+    "KY"
   ],
   "states": {
     "NC": {
@@ -53,14 +52,14 @@
     },
     "IA": {
       "customerLabel": "Iowa",
-      "sourceLabel": "Iowa ABD",
+      "sourceLabel": "Iowa ABD + Costco warehouse watch",
       "publicStatus": "active",
       "lifecycle": "store_delivery_leads",
       "coverageTier": "store_delivery_leads",
       "refinementLevel": "city",
       "inventoryAlertable": false,
       "watchAlertable": true,
-      "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory."
+      "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Iowa warehouses."
     },
     "ID": {
       "customerLabel": "Idaho",
@@ -73,30 +72,30 @@
     },
     "AL": {
       "customerLabel": "Alabama",
-      "sourceLabel": "Alabama ABC",
+      "sourceLabel": "Alabama ABC + Costco warehouse watch",
       "publicStatus": "active",
       "lifecycle": "scheduled_release_leads",
       "coverageTier": "shipment_drop_intelligence",
       "refinementLevel": "statewide",
-      "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory."
+      "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Alabama warehouses."
     },
     "IL": {
       "customerLabel": "Illinois",
-      "sourceLabel": "Illinois Binny's + retailer inventory watch",
+      "sourceLabel": "Illinois Binny's + Costco + retailer inventory watch",
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
-      "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats."
+      "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats. Costco warehouse bourbon signals are included alongside Illinois retailer inventory where verified."
     },
     "IN": {
       "customerLabel": "Indiana",
-      "sourceLabel": "Indiana ATC + retailer inventory watch",
+      "sourceLabel": "Indiana ATC + Costco + retailer inventory watch",
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
-      "customerSummary": "Retailer-specific store inventory/watch surfaces plus ATC store-spine context. ATC rows are not bottle availability."
+      "customerSummary": "Retailer-specific store inventory/watch surfaces plus ATC store-spine context. ATC rows are not bottle availability. Costco warehouse bourbon signals are included alongside Indiana retailer inventory where verified."
     },
     "TN": {
       "customerLabel": "Tennessee",
@@ -171,30 +170,21 @@
     },
     "KY": {
       "customerLabel": "Kentucky",
-      "sourceLabel": "Kentucky official distillery drops + release watch",
+      "sourceLabel": "Kentucky distillery drops + Costco warehouse watch",
       "publicStatus": "active",
       "lifecycle": "distillery_drop_release_watch",
       "coverageTier": "distillery_release_watch",
       "refinementLevel": "distillery",
-      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts."
+      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts. Costco warehouse bourbon signals are included where verified for Kentucky warehouses."
     },
     "SC": {
       "customerLabel": "South Carolina",
-      "sourceLabel": "South Carolina retailer inventory mesh",
+      "sourceLabel": "South Carolina Costco + retailer inventory mesh",
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
-      "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only."
-    },
-    "US-COSTCO": {
-      "customerLabel": "Costco",
-      "sourceLabel": "Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "national_retailer_item_number_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse/app availability for allocated bourbon item numbers. Signals use Bourbon Signal copy and caveats, not Discord bot-style alert formatting."
+      "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
     }
   }
 }

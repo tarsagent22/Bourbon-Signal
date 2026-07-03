@@ -5,6 +5,7 @@ import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle } from './state-lifecycle.mjs';
+import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -202,10 +203,15 @@ function isSouthCarolinaRetailerInventory(signal) {
     && /,\s*SC\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
 
+function isCostcoWarehouseInventorySignal(signal) {
+  return isCostcoSpiritsEligibleState(signal.state)
+    && /^costco_warehouse_inventory_result$/i.test(String(signal.eventType || signal.type || ''));
+}
+
 function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
-  const isCostcoWarehouseInventory = signal.state === 'US-COSTCO' && /^costco_warehouse_inventory_result$/i.test(String(signal.eventType || ''));
+  const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
   const preferOfficialSourceName = preferRetailerName || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
@@ -488,7 +494,7 @@ function dropPriority(signal) {
   if (signalCanAlertAsInventory(signal)) return 50;
   if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
   if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
-  if (signal.state === 'US-COSTCO' && type === 'costco_warehouse_inventory_result') return 72;
+  if (isCostcoWarehouseInventorySignal(signal)) return 72;
   if (/store_delivery_snapshot|store_allocation_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
@@ -522,7 +528,7 @@ function isUserFacingDropSignal(signal) {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
     return quantity > 0;
   }
-  if (type === 'costco_warehouse_inventory_result') return signal.state === 'US-COSTCO' && precision === 'store_level' && quantity > 0;
+  if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && quantity > 0;
   if (type === 'retailer_store_inventory_result') return quantity > 0;
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
@@ -595,7 +601,7 @@ function isSafePublicSignal(signal) {
     const maxAgeMs = PA_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
     if (!Number.isFinite(observedAt) || Date.now() - observedAt > maxAgeMs) return false;
   }
-  if (signal.state === 'US-COSTCO' && type === 'costco_warehouse_inventory_result') {
+  if (isCostcoWarehouseInventorySignal(signal)) {
     const name = String(signal.rawName || signal.canonicalName || '');
     if (!/costco/i.test(String(signal.sourceLabel || signal.source || ''))) return false;
     if (!/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|blood oath|four roses|1792|old forester|birthday|high west|midwinter/i.test(name)) return false;
@@ -645,7 +651,7 @@ function buildDrops(signals, bible, currentSignals = []) {
       if (!isMarylandOrUtahAggregateLead(s)) return true;
       return currentAggregateLeadIds.has(aggregateLeadIdentity(s));
     })
-    .filter((s) => findBibleRecord(s, bible) || (s.state === 'US-COSTCO' && /^costco_warehouse_inventory_result$/i.test(String(s.eventType || ''))) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => findBibleRecord(s, bible) || isCostcoWarehouseInventorySignal(s) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {

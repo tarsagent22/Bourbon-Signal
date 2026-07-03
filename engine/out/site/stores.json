@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-03T20:32:26.410Z",
+  "generatedAt": "2026-07-03T21:08:17.423Z",
   "count": 2850,
   "stores": [
     {
@@ -3672,11 +3672,11 @@
       "signalCount": 1
     },
     {
-      "id": "47fb0e6034309652",
-      "sourceStoreId": "47fb0e6034309652",
+      "id": "9503dc9bd4e83a1b",
+      "sourceStoreId": "9503dc9bd4e83a1b",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -3686,11 +3686,11 @@
       "signalCount": 2
     },
     {
-      "id": "9503dc9bd4e83a1b",
-      "sourceStoreId": "9503dc9bd4e83a1b",
+      "id": "47fb0e6034309652",
+      "sourceStoreId": "47fb0e6034309652",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -13651,7 +13651,7 @@
       "lat": 39.6518669,
       "lng": -86.0833471,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "big-red:5e92549678e8f13c2cb1e1d0",
@@ -14071,7 +14071,7 @@
       "lat": 39.7844947,
       "lng": -86.2412647,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "big-red:5e8d529395c26868324a7bda",

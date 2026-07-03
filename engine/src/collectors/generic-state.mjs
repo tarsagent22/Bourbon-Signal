@@ -256,12 +256,18 @@ async function collectBrowserDiscoverySignals(config, bible) {
 }
 
 export async function collectState(config, bible) {
-  if (config.id === 'US-COSTCO') return collectCostco(config, bible);
-
   const startedAt = new Date().toISOString();
   const sourceReports = [];
   const signals = [];
   const roadblocks = [];
+
+  const hasCostcoSource = (config.sources || []).some((source) => source.kind === 'costco' || source.signalType === 'costco_warehouse_inventory');
+  if (hasCostcoSource) {
+    const costcoReport = await collectCostco(config, bible);
+    signals.push(...(costcoReport.signals || []));
+    roadblocks.push(...(costcoReport.roadblocks || []));
+    sourceReports.push(...(costcoReport.sources || []));
+  }
 
   for (const source of config.sources) {
     if (source.precisionOnly) {
