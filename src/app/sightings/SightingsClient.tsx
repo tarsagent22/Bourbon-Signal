@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Award, BadgeCheck, Camera, Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useSightings } from "@/hooks/useSightings";
 import { formatStoreAddress, makeSightingId, normalizeBottleKey, sightingTypeLabel, type MemberSighting, type SightingType } from "@/lib/sightings";
+import { isSightingVerified, publicProofUrl } from "@/lib/sighting-rewards";
 
 function norm(value?: string | null) {
   return (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -55,6 +56,18 @@ function tierLabel(tier?: MemberSighting["rarityTier"]) {
   if (tier === "unicorn") return "Unicorn";
   if (tier === "allocated") return "Allocated";
   return "Limited";
+}
+
+function memberPointCopy(tier?: MemberSighting["rarityTier"]) {
+  if (tier === "unicorn") return "Unicorn sighting: +2 Member Points. Photo or 3+ net member upvotes can verify it for +1 more.";
+  if (tier === "allocated") return "Allocated sighting: +1 Member Point. Photo or 3+ net member upvotes can verify it for +1 more.";
+  return "Limited sightings help the feed, but do not earn Member Points.";
+}
+
+function tierTone(tier?: MemberSighting["rarityTier"]) {
+  if (tier === "unicorn") return "rgba(232,201,122,.2)";
+  if (tier === "allocated") return "rgba(196,148,58,.12)";
+  return "rgba(245,237,214,.04)";
 }
 
 function formatPrice(value?: number | null) {
@@ -137,7 +150,7 @@ export default function SightingsClient() {
   const { stores, loading: storesLoading } = useStores();
   const canReadSightings = entitlements.canReadSightings;
   const isFreePreview = isSignedIn && !canReadSightings;
-  const { sightings, states, addSighting, voteSighting, saving, loading } = useSightings(isSignedIn && canReadSightings);
+  const { sightings, states, rewards, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(isSignedIn && canReadSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
@@ -147,9 +160,15 @@ export default function SightingsClient() {
   const [selectedBottleTier, setSelectedBottleTier] = useState<MemberSighting["rarityTier"]>("limited");
   const [storeQuery, setStoreQuery] = useState(searchParams.get("store") || "");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [manualStoreMode, setManualStoreMode] = useState(false);
+  const [manualStoreAddress, setManualStoreAddress] = useState("");
+  const [manualStoreCity, setManualStoreCity] = useState("");
+  const [manualStoreState, setManualStoreState] = useState("");
+  const [manualStoreZip, setManualStoreZip] = useState("");
   const [quantityEstimate, setQuantityEstimate] = useState("");
   const [price, setPrice] = useState("");
   const [notes, setNotes] = useState("");
+  const [proofPhoto, setProofPhoto] = useState<File | null>(null);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [saved, setSaved] = useState<MemberSighting | null>(null);
@@ -206,6 +225,10 @@ export default function SightingsClient() {
   }, [stores, storeQuery, geo]);
 
   const exactAddress = selectedStore ? formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip]) : "Select an exact store to show the address on the sighting card.";
+  const manualStoreName = storeQuery.trim();
+  const manualStoreLine = formatStoreAddress([manualStoreAddress, manualStoreCity, manualStoreState.toUpperCase(), manualStoreZip]);
+  const isManualBottle = Boolean(bottleQuery.trim() && !selectedBottleId);
+  const isManualStore = manualStoreMode && !selectedStore;
   const stateOptions = useMemo(() => Array.from(new Set([...states, ...sightings.map((s) => s.storeState).filter(Boolean) as string[]])).sort(), [states, sightings]);
   const sightingStateOptions = useMemo(() => [
     { value: "ALL", label: "All states" },
@@ -229,30 +252,54 @@ export default function SightingsClient() {
     if (!canReadSightings) return setSubmitError("Paid members only. Upgrade to submit sightings.");
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
-    if (!selectedStore) return setSubmitError("Select an exact store from the suggestions.");
+    if (!selectedStore && !isManualStore) return setSubmitError("Select a store or use the manual store option.");
+    if (isManualStore && (!manualStoreName || !manualStoreCity.trim() || !manualStoreState.trim())) return setSubmitError("Manual stores need a store name, city, and state.");
+    const storeName = selectedStore ? storeDisplay(selectedStore) : manualStoreName;
+    const storeAddress = selectedStore ? exactAddress : manualStoreLine;
+    const storeCity = selectedStore ? selectedStore.city : manualStoreCity.trim();
+    const storeState = selectedStore ? selectedStore.state : manualStoreState.trim().toUpperCase();
+    const storeZip = selectedStore ? selectedStore.zip : manualStoreZip.trim();
     const sighting: MemberSighting = {
       id: makeSightingId(),
       bottleName,
       bottleId: selectedBottleId || normalizeBottleKey(bottleName),
       rarityTier: selectedBottleTier || "limited",
-      storeId: selectedStore.id,
-      storeName: storeDisplay(selectedStore),
-      storeAddress: exactAddress,
-      storeCity: selectedStore.city,
-      storeState: selectedStore.state,
-      storeZip: selectedStore.zip,
+      storeId: selectedStore?.id || `manual-store-${normalizeBottleKey([manualStoreName, manualStoreCity, manualStoreState].filter(Boolean).join(" "))}`,
+      storeName,
+      storeAddress,
+      storeCity,
+      storeState,
+      storeZip,
       quantityEstimate: quantityEstimate.trim() || undefined,
       price: price.trim() ? Number(price) : null,
       notes: notes.trim() || undefined,
       source: "custom",
       sightingType,
+      reviewState: (isManualBottle || isManualStore) ? {
+        needsBottleReview: isManualBottle,
+        needsStoreReview: isManualStore,
+        manualBottleName: isManualBottle ? bottleName : undefined,
+        manualBottleRarityTier: isManualBottle ? selectedBottleTier || "limited" : undefined,
+        manualStoreName: isManualStore ? manualStoreName : undefined,
+        manualStoreAddress: isManualStore ? manualStoreAddress.trim() || undefined : undefined,
+        manualStoreCity: isManualStore ? manualStoreCity.trim() : undefined,
+        manualStoreState: isManualStore ? manualStoreState.trim().toUpperCase() : undefined,
+        manualStoreZip: isManualStore ? manualStoreZip.trim() || undefined : undefined,
+      } : undefined,
       createdAt: new Date().toISOString(),
     };
-    await addSighting(sighting);
-    setSaved(sighting);
+    const savedSighting = await addSighting(sighting);
+    if (proofPhoto) await uploadSightingPhoto(savedSighting.id, proofPhoto);
+    setSaved(savedSighting);
     setQuantityEstimate("");
     setPrice("");
     setNotes("");
+    setProofPhoto(null);
+    setManualStoreMode(false);
+    setManualStoreAddress("");
+    setManualStoreCity("");
+    setManualStoreState("");
+    setManualStoreZip("");
     setActiveTab("feed");
   };
 
@@ -301,6 +348,7 @@ export default function SightingsClient() {
         .sighting-submit{margin-top:18px;width:100%;border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.09)}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
         .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.2);background:rgba(245,237,214,.06)}
+        .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}.manual-review-pill{display:inline-flex;margin-top:7px;border:1px solid rgba(196,148,58,.22);border-radius:999px;padding:5px 8px;color:rgba(232,201,122,.9);font-family:var(--font-jetbrains);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
         .sighting-tab{position:relative;border-radius:0;background:transparent;border:0;color:rgba(245,237,214,.48);padding:12px 7px 13px;min-width:86px;letter-spacing:.01em}
         .sighting-tab:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:transparent;transition:background .18s ease,opacity .18s ease}
         .sighting-tab.active{color:var(--color-cream);background:transparent;box-shadow:none}
@@ -332,6 +380,16 @@ export default function SightingsClient() {
         .sighting-address{position:relative;margin:4px 0 0 22px;color:rgba(245,237,214,.42);font-size:12px;line-height:1.45}
         .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
         .sighting-detail-pill{border:1px solid rgba(245,237,214,.075);border-radius:999px;background:rgba(5,4,3,.24);padding:6px 9px;color:rgba(245,237,214,.6);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
+        .sighting-detail-pill.verified{border-color:rgba(83,211,146,.26);background:rgba(83,211,146,.09);color:rgba(198,255,222,.88)}
+        .sighting-proof-photo{margin-top:12px;width:100%;max-height:360px;object-fit:cover;border-radius:16px;border:1px solid rgba(245,237,214,.1);background:#050403}
+        .member-rewards-card{border:1px solid rgba(196,148,58,.18);border-radius:24px;background:linear-gradient(145deg,rgba(196,148,58,.09),rgba(245,237,214,.025));padding:18px;margin:18px 0 22px;box-shadow:0 18px 52px rgba(0,0,0,.22)}
+        .member-rewards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+        .member-reward-stat{border:1px solid rgba(245,237,214,.08);border-radius:16px;background:rgba(5,4,3,.22);padding:12px}
+        .member-reward-stat strong{display:block;font-family:var(--font-playfair);font-size:28px;line-height:1;color:var(--color-cream)}
+        .member-reward-stat span{display:block;margin-top:5px;font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.48)}
+        .badge-progress-list{display:grid;gap:8px;margin-top:14px}
+        .badge-progress-row{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;color:rgba(245,237,214,.68);font-size:12px}
+        .badge-progress-bar{height:7px;border-radius:99px;background:rgba(245,237,214,.08);overflow:hidden}.badge-progress-bar span{display:block;height:100%;background:rgba(196,148,58,.68)}
         .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.22);border-radius:0 12px 12px 0;color:rgba(245,237,214,.64);font-size:13px;line-height:1.5}
         .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.055)}
         .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.38)}
@@ -354,6 +412,17 @@ export default function SightingsClient() {
           <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings.</p>
         </motion.div>
 
+        {rewards ? (
+          <section className="member-rewards-card" aria-label="Member Points and badge progress">
+            <div style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(232,201,122,.86)", fontFamily: "var(--font-jetbrains)", fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}><Award size={16} /> Member Points</div>
+            <div className="member-rewards-grid">
+              <div className="member-reward-stat"><strong>{rewards.points}</strong><span>Total points</span></div>
+              <div className="member-reward-stat"><strong>{rewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
+              <div className="member-reward-stat"><strong>{rewards.badges.length}</strong><span>Badges</span></div>
+            </div>
+          </section>
+        ) : null}
+
         <div className="sighting-mode-shell">
           <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => setActiveTab("submit")}>Submit</button>
           <button type="button" className={`sighting-tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>Feed</button>
@@ -364,17 +433,28 @@ export default function SightingsClient() {
             {isFreePreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Preview the sighting form</strong><span>Upgrade to submit member sightings.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to use</a></div> : null}
             <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 18 }}>
               <div>
-                <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}</label>
+                <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}{!isFreePreview && isManualBottle ? <span className="manual-review-pill">Manual bottle · admin review</span> : null}</label>
+                {isManualBottle ? <div className="manual-review-box" style={{ margin: "-6px 0 16px" }}><strong>Not in the bottle database?</strong><p>Submit it anyway. It will enter the admin catalog queue so we can add or map it after review.</p><div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>{(["limited", "allocated", "unicorn"] as const).map((tier) => <button key={tier} type="button" className="sighting-location-button" onClick={() => setSelectedBottleTier(tier)} style={{ borderColor: selectedBottleTier === tier ? "rgba(196,148,58,.36)" : undefined, background: selectedBottleTier === tier ? "rgba(196,148,58,.1)" : undefined }}>{tierLabel(tier)}</button>)}</div></div> : null}
+                <div style={{ margin: "-6px 0 16px", border: "1px solid rgba(245,237,214,.08)", borderRadius: 14, background: tierTone(selectedBottleTier), padding: "10px 12px", color: "rgba(245,237,214,.62)", fontSize: 12, lineHeight: 1.5 }}>{memberPointCopy(selectedBottleTier)}</div>
                 <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="City, ZIP, street, or store name" disabled={isFreePreview} /></div></label>
-                <button type="button" onClick={requestLocation} disabled={isFreePreview} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
-                {selectedStore ? (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" onClick={requestLocation} disabled={isFreePreview || manualStoreMode} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button><button type="button" disabled={isFreePreview} className="sighting-location-button" onClick={() => { setManualStoreMode((current) => !current); setSelectedStore(null); }}>{manualStoreMode ? "Use store search" : "Store missing? Enter manually"}</button></div>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
+                {manualStoreMode ? (
+                  <div className="manual-review-box">
+                    <strong>Manual store · admin review</strong>
+                    <p>Use this when the Myrtle Beach / local store is missing. We’ll review it and add/map it to the store database.</p>
+                    <input className="sighting-plain-input" value={storeQuery} onChange={(e) => setStoreQuery(e.target.value)} placeholder="Store name" disabled={isFreePreview} />
+                    <input className="sighting-plain-input" value={manualStoreAddress} onChange={(e) => setManualStoreAddress(e.target.value)} placeholder="Street address · optional but helpful" disabled={isFreePreview} />
+                    <div className="manual-grid"><input className="sighting-plain-input" value={manualStoreCity} onChange={(e) => setManualStoreCity(e.target.value)} placeholder="City" disabled={isFreePreview} /><input className="sighting-plain-input" value={manualStoreState} onChange={(e) => setManualStoreState(e.target.value.toUpperCase().slice(0, 2))} placeholder="State" disabled={isFreePreview} /></div>
+                    <input className="sighting-plain-input" value={manualStoreZip} onChange={(e) => setManualStoreZip(e.target.value)} placeholder="ZIP · optional" disabled={isFreePreview} />
+                  </div>
+                ) : selectedStore ? (
                   <div className="selected-store-card" aria-live="polite">
                     <strong>{storeDisplay(selectedStore)}</strong>
                     <span>{formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip])}</span>
                     <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
                   </div>
                 ) : (
-                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location. If it is missing, use manual entry.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
                 )}
               </div>
               <div>
@@ -382,6 +462,8 @@ export default function SightingsClient() {
                 <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online/Social Media" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
                 <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" disabled={isFreePreview} /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" disabled={isFreePreview} /></label></div>
                 <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: purchase limit, shelf location, Facebook group context, etc." rows={4} disabled={isFreePreview} /></label>
+                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Proof photo · optional</span><input className="sighting-plain-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e) => setProofPhoto(e.target.files?.[0] || null)} disabled={isFreePreview} /></label>
+                <p style={{ color: "rgba(245,237,214,.46)", fontSize: 12, lineHeight: 1.5, margin: "8px 0 0" }}>Photos are reviewed before verification. Admin can verify privately if the image contains faces or sensitive info.</p>
                 {submitError ? <div style={{ color: "#ffb4a3", marginTop: 12, fontSize: 13 }}>{submitError}</div> : null}{saved ? <div style={{ color: "var(--color-accent-amber)", marginTop: 12, fontSize: 13 }}>Sighting saved. It now appears in the member feed.</div> : null}
                 <button type="button" onClick={submit} disabled={saving || isFreePreview} className="sighting-submit"><Send size={16} /> {isFreePreview ? "Upgrade to use" : saving ? "Saving…" : "Submit sighting"}</button>
               </div>
@@ -405,15 +487,18 @@ export default function SightingsClient() {
             <div className="sighting-card-list">{filteredSightings.map((sighting) => {
               const priceLabel = formatPrice(sighting.price);
               const detailPills = [sighting.quantityEstimate, priceLabel].filter(Boolean);
+              const verified = isSightingVerified(sighting);
+              const proofUrl = publicProofUrl(sighting);
               return (
                 <article key={sighting.id} className="sighting-card">
                   <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
                   <h3 className="sighting-title">{sighting.bottleName}</h3>
                   <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>
                   <p className="sighting-address">{sightingLocationLine(sighting)}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
-                  {detailPills.length > 0 ? <div className="sighting-detail-row">{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div> : null}
+                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{(sighting.reporterBadges || []).map((badge) => <span key={badge} className="sighting-detail-pill">{badge}</span>)}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">Manual bottle pending</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">Manual store pending</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
+                  {proofUrl ? <img className="sighting-proof-photo" src={proofUrl} alt={`Proof photo for ${sighting.bottleName}`} loading="lazy" /> : null}
                   {sighting.notes ? <div className="sighting-note">“{sighting.notes}”</div> : null}
-                  <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
+                  <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}{sighting.reporterDisplayName ? ` · ${sighting.reporterDisplayName}` : ""}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
                 </article>
               );
             })}</div>

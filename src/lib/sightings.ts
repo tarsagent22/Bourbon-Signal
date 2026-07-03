@@ -1,3 +1,5 @@
+import type { SightingRewardState } from "@/lib/sighting-rewards";
+
 export type SightingSource = "custom" | "feed" | "finder";
 export type SightingType = "seen_in_store" | "online_social";
 export type SightingVoteKind = "up" | "down";
@@ -7,6 +9,21 @@ export interface SightingVote {
   sightingId: string;
   kind: SightingVoteKind;
   createdAt: string;
+}
+
+export interface SightingReviewState {
+  needsBottleReview?: boolean;
+  needsStoreReview?: boolean;
+  manualBottleName?: string;
+  manualBottleRarityTier?: "unicorn" | "allocated" | "limited";
+  manualStoreName?: string;
+  manualStoreAddress?: string;
+  manualStoreCity?: string;
+  manualStoreState?: string;
+  manualStoreZip?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNote?: string;
 }
 
 export interface MemberSighting {
@@ -30,6 +47,11 @@ export interface MemberSighting {
   upCount?: number;
   downCount?: number;
   myVote?: SightingVoteKind | null;
+  storeTimeZone?: string;
+  rewardState?: SightingRewardState;
+  reviewState?: SightingReviewState;
+  reporterDisplayName?: string;
+  reporterBadges?: string[];
 }
 
 export interface SignalReport {
