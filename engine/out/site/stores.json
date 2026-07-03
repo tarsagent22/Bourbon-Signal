@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-02T18:27:24.553Z",
-  "count": 2852,
+  "generatedAt": "2026-07-03T20:32:26.410Z",
+  "count": 2850,
   "stores": [
     {
       "id": "alabc:001",
@@ -2510,6 +2510,20 @@
       "signalCount": 2
     },
     {
+      "id": "daf500d7dd4c83ed",
+      "sourceStoreId": "daf500d7dd4c83ed",
+      "state": "IA",
+      "name": "7 Star Liquor & Tobacco / Waterloo",
+      "address": "2844 University Ave, Waterloo, IA, 50701",
+      "city": "Waterloo",
+      "county": null,
+      "zip": "50701",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "9256ec5cfb29d4e3",
       "sourceStoreId": "9256ec5cfb29d4e3",
       "state": "IA",
@@ -2577,7 +2591,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "30c3643436b32113",
@@ -2604,8 +2618,8 @@
       "zip": "50009",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "af1ecf363d11e731",
@@ -2619,7 +2633,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "93331e34614cf9d6",
@@ -2647,7 +2661,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "36185a4529784648",
@@ -3640,8 +3654,8 @@
       "zip": "51553",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "c2bfd7ce5b3dc651",
@@ -3658,11 +3672,11 @@
       "signalCount": 1
     },
     {
-      "id": "9503dc9bd4e83a1b",
-      "sourceStoreId": "9503dc9bd4e83a1b",
+      "id": "47fb0e6034309652",
+      "sourceStoreId": "47fb0e6034309652",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
+      "address": "113 Welch Avenue, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -3672,11 +3686,11 @@
       "signalCount": 2
     },
     {
-      "id": "47fb0e6034309652",
-      "sourceStoreId": "47fb0e6034309652",
+      "id": "9503dc9bd4e83a1b",
+      "sourceStoreId": "9503dc9bd4e83a1b",
       "state": "IA",
       "name": "Crown Liquor / Ames",
-      "address": "113 Welch Avenue, Ames, IA, 50014",
+      "address": "4518 Mortensen Rd STE 109, Ames, IA, 50014",
       "city": "Ames",
       "county": null,
       "zip": "50014",
@@ -3736,20 +3750,6 @@
       "city": "Ames",
       "county": null,
       "zip": "50010",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "48410cdc9ca78c0b",
-      "sourceStoreId": "48410cdc9ca78c0b",
-      "state": "IA",
-      "name": "D & T Gas & Food LLC / Baldwin",
-      "address": "5358 Highway 64, Baldwin, IA, 52207",
-      "city": "Baldwin",
-      "county": null,
-      "zip": "52207",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -4158,8 +4158,8 @@
       "zip": "51503",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "5fdc8009eb03ab75",
@@ -4621,20 +4621,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "e8d677f39b350504",
-      "sourceStoreId": "e8d677f39b350504",
-      "state": "IA",
-      "name": "Fareway Stores #840 / Monticello",
-      "address": "433 North Farley Street, Monticello, IA, 52310",
-      "city": "Monticello",
-      "county": null,
-      "zip": "52310",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -5170,20 +5156,6 @@
       "signalCount": 1
     },
     {
-      "id": "33b3d172d987e186",
-      "sourceStoreId": "33b3d172d987e186",
-      "state": "IA",
-      "name": "Giggle Juice Liquor Station, LLC",
-      "address": "600 W. Main St., Anamosa, IA, 52205",
-      "city": "Anamosa",
-      "county": null,
-      "zip": "52205",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "5dcb7cd9595831c6",
       "sourceStoreId": "5dcb7cd9595831c6",
       "state": "IA",
@@ -5450,20 +5422,6 @@
       "signalCount": 1
     },
     {
-      "id": "f8d68bf6493ee034",
-      "sourceStoreId": "f8d68bf6493ee034",
-      "state": "IA",
-      "name": "Hawks Smoke Shop / Marion",
-      "address": "1396 7th Ave, Marion, IA, 52302",
-      "city": "Marion",
-      "county": null,
-      "zip": "52302",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "6d37ade5ec3761a3",
       "sourceStoreId": "6d37ade5ec3761a3",
       "state": "IA",
@@ -5531,20 +5489,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "3a870df71314db7c",
-      "sourceStoreId": "3a870df71314db7c",
-      "state": "IA",
-      "name": "Hometown Foods / Panora",
-      "address": "601 E Main, Panora, IA, 50216",
-      "city": "Panora",
-      "county": null,
-      "zip": "50216",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -5642,8 +5586,8 @@
       "zip": "52237",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "b57e3d79439689ca",
@@ -6010,20 +5954,6 @@
       "signalCount": 2
     },
     {
-      "id": "d1ea786a5711e2f3",
-      "sourceStoreId": "d1ea786a5711e2f3",
-      "state": "IA",
-      "name": "Hy-Vee Dollar Fresh / Monticello",
-      "address": "122 North Main Street, Monticello, IA, 52310",
-      "city": "Monticello",
-      "county": null,
-      "zip": "52310",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "8cd8e373728585ea",
       "sourceStoreId": "8cd8e373728585ea",
       "state": "IA",
@@ -6076,8 +6006,8 @@
       "zip": "52402",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "0ea705999bc35784",
@@ -6132,8 +6062,8 @@
       "zip": "52302",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "27fc21a82940e6a2",
@@ -7032,20 +6962,6 @@
       "signalCount": 2
     },
     {
-      "id": "a0abbe5dc1c4fbf8",
-      "sourceStoreId": "a0abbe5dc1c4fbf8",
-      "state": "IA",
-      "name": "Jubilee Foods",
-      "address": "200 State St, Guthrie Center, IA, 50115",
-      "city": "Guthrie Center",
-      "county": null,
-      "zip": "50115",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "e3211307ba6afc37",
       "sourceStoreId": "e3211307ba6afc37",
       "state": "IA",
@@ -7350,8 +7266,8 @@
       "zip": "50216",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "9bff9ff5f0d26151",
@@ -7998,20 +7914,6 @@
       "signalCount": 1
     },
     {
-      "id": "cd731a8b132796d3",
-      "sourceStoreId": "cd731a8b132796d3",
-      "state": "IA",
-      "name": "Mega Retail / Marion",
-      "address": "5680 Kacena Ave., Marion, IA, 52302",
-      "city": "Marion",
-      "county": null,
-      "zip": "52302",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "f5ed534bd3a1cae2",
       "sourceStoreId": "f5ed534bd3a1cae2",
       "state": "IA",
@@ -8288,8 +8190,8 @@
       "zip": "52302",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 3
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 2
     },
     {
       "id": "aaaa796fcfab4ed8",
@@ -8862,8 +8764,8 @@
       "zip": "52332",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "e76056272d9407bf",
@@ -8960,8 +8862,8 @@
       "zip": "52302",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "e56cbd6a7edacb23",
@@ -9086,8 +8988,8 @@
       "zip": "52336",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "30d9d7f3da9d2508",
@@ -9608,6 +9510,48 @@
       "signalCount": 2
     },
     {
+      "id": "2b256fcb7ad57b28",
+      "sourceStoreId": "2b256fcb7ad57b28",
+      "state": "IA",
+      "name": "Uni Mart / Waterloo",
+      "address": "1615 Bishop Ave, Waterloo, IA, 50703",
+      "city": "Waterloo",
+      "county": null,
+      "zip": "50703",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "9310e5db7a1ad78e",
+      "sourceStoreId": "9310e5db7a1ad78e",
+      "state": "IA",
+      "name": "University Liquors / West Des Moines",
+      "address": "9250 University Ave Suite 114, West Des Moines, IA, 50266",
+      "city": "West Des Moines",
+      "county": null,
+      "zip": "50266",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "f99d13533b01f6ef",
+      "sourceStoreId": "f99d13533b01f6ef",
+      "state": "IA",
+      "name": "Uptown Liquor, Llc",
+      "address": "306 Hwy 69 South, Forest City, IA, 50436",
+      "city": "Forest City",
+      "county": null,
+      "zip": "50436",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "c3c3187ee0f8f474",
       "sourceStoreId": "c3c3187ee0f8f474",
       "state": "IA",
@@ -9622,6 +9566,20 @@
       "signalCount": 1
     },
     {
+      "id": "46177e2487cf5a92",
+      "sourceStoreId": "46177e2487cf5a92",
+      "state": "IA",
+      "name": "Wal-Mart 4256 / Ames",
+      "address": "534 SouthDuff Ave, Ames, IA, 50010",
+      "city": "Ames",
+      "county": null,
+      "zip": "50010",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "cabebc5e584a32c1",
       "sourceStoreId": "cabebc5e584a32c1",
       "state": "IA",
@@ -9632,8 +9590,8 @@
       "zip": "50266",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "09e89e94866bd11f",
@@ -9646,8 +9604,8 @@
       "zip": "52353",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "2ccd1ba988a1cba8",
@@ -9661,6 +9619,20 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
+    },
+    {
+      "id": "755538eae2b55b12",
+      "sourceStoreId": "755538eae2b55b12",
+      "state": "IA",
+      "name": "Westside Grocery / Davenport",
+      "address": "1802 West 7th Street, Davenport, IA, 52802",
+      "city": "Davenport",
+      "county": null,
+      "zip": "52802",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -9678,6 +9650,20 @@
       "signalCount": 1
     },
     {
+      "id": "7d076dc541b161ba",
+      "sourceStoreId": "7d076dc541b161ba",
+      "state": "IA",
+      "name": "Westside Spirits / Cedar Rapids",
+      "address": "3330 16th Ave. SW, Cedar Rapids, IA, 52404",
+      "city": "Cedar Rapids",
+      "county": null,
+      "zip": "52404",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "ddf3290cab848391",
       "sourceStoreId": "ddf3290cab848391",
       "state": "IA",
@@ -9688,8 +9674,8 @@
       "zip": "52314",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "f36f491420fb373a",
@@ -9702,8 +9688,8 @@
       "zip": "52722",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "782c106b0d7a6170",
@@ -9716,7 +9702,21 @@
       "zip": "52778",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "37c35c556ec4576d",
+      "sourceStoreId": "37c35c556ec4576d",
+      "state": "IA",
+      "name": "Wines and Spirits / Washington",
+      "address": "106 W 2nd St, Washington, IA, 52353",
+      "city": "Washington",
+      "county": null,
+      "zip": "52353",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -9744,8 +9744,8 @@
       "zip": "51449",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-216",
@@ -10039,7 +10039,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 9
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-302",
@@ -10389,7 +10389,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-135",
@@ -10417,7 +10417,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-259",
@@ -10445,7 +10445,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-309",
@@ -10585,7 +10585,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-304",
@@ -10627,7 +10627,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-318",
@@ -10697,7 +10697,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-120",
@@ -12783,7 +12783,7 @@
       "lat": 41.1779536,
       "lng": -85.0973602,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -13637,7 +13637,7 @@
       "lat": 39.6608323,
       "lng": -86.3102971,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 5
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -15177,7 +15177,7 @@
       "lat": 41.615844,
       "lng": -85.8933109,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d341b77cb36d0a2d2ecc",
@@ -27049,7 +27049,7 @@
       "lat": 41.5952817,
       "lng": -87.04614839999999,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "wise-guys:60803cb5ad4b017e711ec6fa",
@@ -27063,7 +27063,7 @@
       "lat": 41.4716231,
       "lng": -87.3167897,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 3
     },
     {
       "id": "wise-guys:5eb1dc10054c392621980908",
@@ -27189,7 +27189,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 28
+      "signalCount": 27
     },
     {
       "id": "high-point-english-rd",
@@ -27217,7 +27217,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 28
+      "signalCount": 27
     },
     {
       "id": "high-point-gate-city-blvd",
@@ -27259,7 +27259,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 30
+      "signalCount": 31
     },
     {
       "id": "high-point-wendover-ave",
@@ -27273,7 +27273,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 33
+      "signalCount": 32
     },
     {
       "id": "greensboro-27",
@@ -27329,7 +27329,7 @@
       "lat": 36.192777,
       "lng": -79.890666,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "greensboro-31",
@@ -27413,7 +27413,7 @@
       "lat": 36.13156,
       "lng": -79.795102,
       "source": "Greensboro ABC SuiteCommerce pickup inventory",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "greensboro-40",
@@ -27567,7 +27567,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "2e2938c0fb7a16c7",
@@ -27581,7 +27581,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "03d8b44fa200eb8d",
@@ -27651,7 +27651,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 9
+      "signalCount": 8
     },
     {
       "id": "058ecf708192c2e6",
@@ -27665,7 +27665,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "80202712503f1e52",
@@ -27777,7 +27777,7 @@
       "lat": null,
       "lng": null,
       "source": "Wake County ABC store inventory search",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "7ecca1cf337f7f8f",
@@ -28603,7 +28603,7 @@
       "lat": 40.427532,
       "lng": -80.05453,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "292",
@@ -28659,7 +28659,7 @@
       "lat": 40.465245,
       "lng": -79.826994,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "303",
@@ -28897,7 +28897,7 @@
       "lat": 40.264152,
       "lng": -75.726267,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 3
     },
     {
       "id": "617",
@@ -29121,7 +29121,7 @@
       "lat": 40.319784,
       "lng": -75.305773,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "912",
@@ -29205,7 +29205,7 @@
       "lat": 40.443736,
       "lng": -75.357123,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "927",
@@ -29807,7 +29807,7 @@
       "lat": 40.022891,
       "lng": -75.62798,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "1506",
@@ -30017,7 +30017,7 @@
       "lat": 40.051279,
       "lng": -75.663597,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "1527",
@@ -30157,7 +30157,7 @@
       "lat": 41.12335,
       "lng": -78.726906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "1705",
@@ -30185,7 +30185,7 @@
       "lat": 40.905351,
       "lng": -78.234796,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "1804",
@@ -30241,7 +30241,7 @@
       "lat": 41.639419,
       "lng": -80.154866,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "2002",
@@ -30354,20 +30354,6 @@
       "lng": -76.946212,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 3
-    },
-    {
-      "id": "2108",
-      "sourceStoreId": "2108",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 2108",
-      "address": "Summerdale Plaza, 443 North Enola Road, Enola, PA, 17025",
-      "city": "Enola",
-      "county": null,
-      "zip": null,
-      "lat": 40.299666,
-      "lng": -76.927888,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
     },
     {
       "id": "2110",
@@ -31137,7 +31123,7 @@
       "lat": 40.479399,
       "lng": -78.013494,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "3202",
@@ -31207,7 +31193,7 @@
       "lat": 40.562147,
       "lng": -77.391,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "3503",
@@ -31334,20 +31320,6 @@
       "lng": -75.659669,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 4
-    },
-    {
-      "id": "3521",
-      "sourceStoreId": "3521",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 3521",
-      "address": "921 Drinker Turnpike, Covington Township, PA, 18444",
-      "city": "Covington Township",
-      "county": null,
-      "zip": null,
-      "lat": 41.308617,
-      "lng": -75.517717,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
     },
     {
       "id": "3522",
@@ -31767,7 +31739,7 @@
       "lat": 40.677537,
       "lng": -75.613827,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "3903",
@@ -32131,7 +32103,7 @@
       "lat": 40.967445,
       "lng": -76.007165,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "4033",
@@ -32313,7 +32285,7 @@
       "lat": 41.808732,
       "lng": -78.285228,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4303",
@@ -32551,7 +32523,7 @@
       "lat": 40.19353,
       "lng": -75.533666,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4613",
@@ -32593,7 +32565,7 @@
       "lat": 40.252516,
       "lng": -75.463339,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "4622",
@@ -32607,7 +32579,7 @@
       "lat": 40.081398,
       "lng": -75.090089,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "4623",
@@ -34679,7 +34651,7 @@
       "lat": null,
       "lng": null,
       "source": "Da Brown Bag Clover public inventory API",
-      "signalCount": 12
+      "signalCount": 17
     },
     {
       "id": "dev-liquors:620164924a3ea84d57c21d6f",
@@ -34707,7 +34679,7 @@
       "lat": 33.9903416,
       "lng": -81.0300477,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "greens-beverage:61dc583152bc522be69a8b9e",
@@ -34847,7 +34819,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 9
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -34987,7 +34959,7 @@
       "lat": 36.149323,
       "lng": -86.77812259999999,
       "source": "Frugal MacDoogal CityHive store inventory",
-      "signalCount": 13
+      "signalCount": 14
     },
     {
       "id": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
@@ -35001,7 +34973,7 @@
       "lat": 35.8660287,
       "lng": -86.45380279999999,
       "source": "Gateway Wine & Spirits Grabbl public store API",
-      "signalCount": 12
+      "signalCount": 22
     },
     {
       "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
@@ -35043,7 +35015,7 @@
       "lat": 36.0240857,
       "lng": -83.9248823,
       "source": "Liquor Vault Knoxville CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "m-and-j-liquor:6978c02491ff50558a0168d5",
@@ -35085,7 +35057,7 @@
       "lat": 35.089561,
       "lng": -85.31184019999999,
       "source": "My Discount Liquor Tobacco RedBank TN CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "northshore-wine-spirits:5980fcddd05b4360e32f7f02",
@@ -35141,7 +35113,7 @@
       "lat": 35.9121068,
       "lng": -86.82835680000001,
       "source": "Red Dog Wine and Spirits CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
@@ -35155,7 +35127,7 @@
       "lat": 35.9293792,
       "lng": -86.9195292,
       "source": "Westside Wine & Spirits CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "102",
@@ -36191,7 +36163,7 @@
       "lat": 37.933834,
       "lng": -75.366161,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "178",
@@ -36765,7 +36737,7 @@
       "lat": 37.034943,
       "lng": -77.091267,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "241",
@@ -36828,8 +36800,8 @@
       "sourceStoreId": "246",
       "state": "VA",
       "name": "Virginia ABC Store 246",
-      "address": "5020 Ferrell Parkway Suite 207 Virginia Beach VA 23464",
-      "city": "Virginia Beach",
+      "address": "5020 FERRELL PKWY Suite 207 VIRGINIA BEACH VA 23464-8869",
+      "city": "VIRGINIA BEACH",
       "county": null,
       "zip": null,
       "lat": 36.794638,
@@ -36863,7 +36835,7 @@
       "lat": 37.570915,
       "lng": -77.432869,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "252",
@@ -36926,8 +36898,8 @@
       "sourceStoreId": "257",
       "state": "VA",
       "name": "Virginia ABC Store 257",
-      "address": "4917 Richmond Tappahannock Highway Aylett VA 23009",
-      "city": "Aylett",
+      "address": "4917 RICHMOND TAPPAHANNOCK HWY AYLETT VA 23009-3416",
+      "city": "AYLETT",
       "county": null,
       "zip": null,
       "lat": 37.743636,
@@ -37262,8 +37234,8 @@
       "sourceStoreId": "304",
       "state": "VA",
       "name": "Virginia ABC Store 304",
-      "address": "2734 Fairground Road Goochland VA 23063-0019",
-      "city": "Goochland",
+      "address": "2734 FAIRGROUND RD GOOCHLAND VA 23063-3103",
+      "city": "GOOCHLAND",
       "county": null,
       "zip": null,
       "lat": 37.700025,
@@ -37353,7 +37325,7 @@
       "lat": 36.810261,
       "lng": -76.355879,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "312",
@@ -37395,7 +37367,7 @@
       "lat": 37.528265,
       "lng": -77.353893,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "315",
@@ -37535,7 +37507,7 @@
       "lat": 36.633622,
       "lng": -80.268287,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "325",
@@ -39327,7 +39299,7 @@
       "lat": 39.08301,
       "lng": -77.56312,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 47
+      "signalCount": 46
     },
     {
       "id": "531",
@@ -39803,7 +39775,7 @@
       "lat": 37.671312,
       "lng": -77.681473,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "90",

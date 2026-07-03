@@ -1239,7 +1239,7 @@ async function main() {
   const ncIntelligenceRaw = await readJson(path.join(OUT, 'nc-board-intelligence.json'), null);
 
   const signals = (snapshot.signals || []).filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state));
-  const activeStateIds = new Set((summary.states || []).map((state) => state.state).filter((state) => SITE_ACTIVE_STATE_IDS.has(state)));
+  const activeStateIds = SITE_ACTIVE_STATE_IDS;
   const activeOfficialLocations = (officialLocationBible.locations || []).filter((location) => activeStateIds.has(location.state));
   const activeOfficialSourceReports = (officialLocationBible.sourceReports || []).filter((report) => !report.state || activeStateIds.has(report.state));
   const historicalSignals = uniqueHistoricalSignals(snapshots, signals).filter((signal) => activeStateIds.has(signal.state));
@@ -1257,9 +1257,29 @@ async function main() {
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
-  const stateCoverage = buildStateCoverage(summary, { stateFilter: activeStateIds });
-  const southeastReadiness = buildSoutheastReadiness(summary, signals);
-  const activeSummaryStates = (summary.states || []).filter((state) => activeStateIds.has(state.state));
+  const summaryStatesById = new Map((summary.states || []).filter((state) => activeStateIds.has(state.state)).map((state) => [state.state, state]));
+  const activeSummaryStates = [...activeStateIds].map((stateId) => summaryStatesById.get(stateId) || {
+    state: stateId,
+    label: getStateLifecycle(stateId)?.customerLabel || stateId,
+    sourceLabel: getStateLifecycle(stateId)?.sourceLabel || stateId,
+    tier: null,
+    status: 'awaiting_current_source_run',
+    stale: false,
+    sourceCount: 0,
+    signalCount: 0,
+    roadblockCount: 0,
+    targetLocationPrecision: null,
+    bestLocationPrecision: null,
+    strategy: getStateLifecycle(stateId)?.lifecycle || null,
+    publicStatus: getStateLifecycle(stateId)?.publicStatus || null,
+    lifecycle: getStateLifecycle(stateId)?.lifecycle || null,
+    coverageTier: getStateLifecycle(stateId)?.coverageTier || null,
+    refinementLevel: getStateLifecycle(stateId)?.refinementLevel || null,
+    customerAreaLabel: getStateLifecycle(stateId)?.customerAreaLabel || null,
+    customerSummary: getStateLifecycle(stateId)?.customerSummary || null
+  });
+  const stateCoverage = buildStateCoverage({ ...summary, states: activeSummaryStates }, { stateFilter: activeStateIds });
+  const southeastReadiness = buildSoutheastReadiness({ ...summary, states: activeSummaryStates }, signals);
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const stats = {
     contractVersion: CONTRACT_VERSION,
