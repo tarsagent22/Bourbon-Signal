@@ -22,6 +22,7 @@ export const STATE_CONFIDENCE_POLICY = {
   WY: { maxAlertMode: 'wholesale_catalog_watch', inventorySemantics: 'Wyoming public data is wholesale/product-level. No consumer store inventory found.', defaultCadence: 'monthly-weekly' },
   MS: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Mississippi public sources expose monthly SPA/bailment price-change PDFs plus vendor/product policy. Treat as product/price-change intelligence, not live store inventory.', defaultCadence: 'monthly-weekly' },
   KY: { maxAlertMode: 'distillery_release_watch', inventorySemantics: 'Kentucky has official distillery gift-shop/product availability and release-watch pages. Treat these as a distinct distillery drop/release lane, not retailer store inventory. Alerts/cards must clearly distinguish distillery pickup/release leads from store shipment/inventory alerts.', defaultCadence: 'daily-60m' },
+  'US-COSTCO': { maxAlertMode: 'alert_costco_warehouse_inventory_caveat', inventorySemantics: 'Costco warehouse/app availability can expose allocated bourbon by item number and warehouse. Treat as retailer-published warehouse availability with a verify-before-driving caveat; keep copy in Bourbon Signal style rather than Discord bot syntax.', defaultCadence: '15-60m' },
   TN: { maxAlertMode: 'license_document_watch', inventorySemantics: 'Tennessee ABC official public surfaces expose public information/forms and license lists for a private retail market. Treat official pages as source-discovery/license intelligence only; retailer CityHive/e-commerce rows may separately qualify as caveated store inventory.', defaultCadence: 'daily-60m' },
   TX: { maxAlertMode: 'catalog_release_watch', inventorySemantics: "Texas is a private retail market. TABC/comptroller pages are policy/license context; Spec's public product/event pages are retailer catalog or release-watch signals, not live shelf inventory unless a store-specific row is later extracted.", defaultCadence: 'daily-weekly' },
   SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.', defaultCadence: 'weekly-monthly' },
@@ -54,6 +55,7 @@ const MODE_CAPS = {
   license_document_watch: 0.48,
   license_spine_plus_retailer_watch: 0.54,
   alert_retailer_store_inventory_caveat: 0.86,
+  alert_costco_warehouse_inventory_caveat: 0.84,
   catalog_release_watch: 0.58,
   wholesale_catalog_watch: 0.5,
   store_aggregate_until_pickup_api: 0.76,
@@ -100,6 +102,12 @@ const KENTUCKY_DISTILLERY_POLICY = {
   defaultCadence: 'daily-60m'
 };
 
+const COSTCO_WAREHOUSE_POLICY = {
+  maxAlertMode: 'alert_costco_warehouse_inventory_caveat',
+  inventorySemantics: 'Costco warehouse/app availability can expose allocated bourbon by item number and warehouse. Treat as retailer-published warehouse availability with a verify-before-driving caveat; keep copy in Bourbon Signal style rather than Discord bot syntax.',
+  defaultCadence: '15-60m'
+};
+
 function policyForSignal(signal) {
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
@@ -113,6 +121,7 @@ function policyForSignal(signal) {
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
+  if (signal.state === 'US-COSTCO' && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
 }
 

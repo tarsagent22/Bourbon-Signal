@@ -205,6 +205,7 @@ function isSouthCarolinaRetailerInventory(signal) {
 function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
+  const isCostcoWarehouseInventory = signal.state === 'US-COSTCO' && /^costco_warehouse_inventory_result$/i.test(String(signal.eventType || ''));
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
   const preferOfficialSourceName = preferRetailerName || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
@@ -212,13 +213,15 @@ function publicSignal(signal, bible, freshness = null) {
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
   const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
-  const inventorySemantics = isTnRetailerInventory
-    ? 'Tennessee is a private retail market. Retailer e-commerce pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
-    : isScRetailerInventory
-      ? 'South Carolina is a private retail market. Whitelisted public retailer sources can expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
-      : signal.inventorySemantics;
-  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
-  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
+  const inventorySemantics = isCostcoWarehouseInventory
+    ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
+    : isTnRetailerInventory
+      ? 'Tennessee is a private retail market. Retailer e-commerce pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.'
+      : isScRetailerInventory
+        ? 'South Carolina is a private retail market. Whitelisted public retailer sources can expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
+        : signal.inventorySemantics;
+  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
+  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -270,13 +273,15 @@ function publicSignal(signal, bible, freshness = null) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isTnRetailerInventory || isScRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
     dataLane,
     informationalOnly: dataLane === 'informational',
-    inventoryCaveat: isKentuckyDistilleryDrop(signal)
-      ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
+    inventoryCaveat: isCostcoWarehouseInventory
+      ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
+      : isKentuckyDistilleryDrop(signal)
+        ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
       : isKyOfficialDistillery
         ? 'Official distillery release-watch intelligence only; not retailer store inventory or a store shipment alert.'
       : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -483,6 +488,7 @@ function dropPriority(signal) {
   if (signalCanAlertAsInventory(signal)) return 50;
   if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
   if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
+  if (signal.state === 'US-COSTCO' && type === 'costco_warehouse_inventory_result') return 72;
   if (/store_delivery_snapshot|store_allocation_snapshot|store_inventory_result|limited_supply|in_stock/i.test(type)) return 34;
   if (/release|allocated|lottery/i.test(type)) return 26;
   return 0;
@@ -516,6 +522,7 @@ function isUserFacingDropSignal(signal) {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
     return quantity > 0;
   }
+  if (type === 'costco_warehouse_inventory_result') return signal.state === 'US-COSTCO' && precision === 'store_level' && quantity > 0;
   if (type === 'retailer_store_inventory_result') return quantity > 0;
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
@@ -588,6 +595,11 @@ function isSafePublicSignal(signal) {
     const maxAgeMs = PA_STORE_INVENTORY_MAX_AGE_HOURS * 60 * 60 * 1000;
     if (!Number.isFinite(observedAt) || Date.now() - observedAt > maxAgeMs) return false;
   }
+  if (signal.state === 'US-COSTCO' && type === 'costco_warehouse_inventory_result') {
+    const name = String(signal.rawName || signal.canonicalName || '');
+    if (!/costco/i.test(String(signal.sourceLabel || signal.source || ''))) return false;
+    if (!/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|blood oath|four roses|1792|old forester|birthday|high west|midwinter/i.test(name)) return false;
+  }
   if (signal.state === 'NC' && /Greensboro ABC SuiteCommerce/i.test(String(signal.sourceLabel || signal.source || ''))) {
     const name = String(signal.rawName || signal.canonicalName || '');
     return NC_GREENSBORO_STORE_SIGNAL_RE.test(name) && !NC_GREENSBORO_STORE_EXCLUDE_RE.test(name);
@@ -633,7 +645,7 @@ function buildDrops(signals, bible, currentSignals = []) {
       if (!isMarylandOrUtahAggregateLead(s)) return true;
       return currentAggregateLeadIds.has(aggregateLeadIdentity(s));
     })
-    .filter((s) => findBibleRecord(s, bible) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
+    .filter((s) => findBibleRecord(s, bible) || (s.state === 'US-COSTCO' && /^costco_warehouse_inventory_result$/i.test(String(s.eventType || ''))) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
     .sort((a, b) => dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {

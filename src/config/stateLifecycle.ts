@@ -11,7 +11,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "TN",
     "SC",
     "MD-MONTGOMERY",
-    "KY"
+    "KY",
+    "US-COSTCO"
   ],
   "states": {
     "NC": {
@@ -185,6 +186,15 @@ export const STATE_LIFECYCLE_CONFIG = {
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only."
+    },
+    "US-COSTCO": {
+      "customerLabel": "Costco",
+      "sourceLabel": "Costco warehouse bourbon watch",
+      "publicStatus": "active",
+      "lifecycle": "national_retailer_item_number_watch",
+      "coverageTier": "retailer_warehouse_inventory",
+      "refinementLevel": "warehouse",
+      "customerSummary": "Costco warehouse/app availability for allocated bourbon item numbers. Signals use Bourbon Signal copy and caveats, not Discord bot-style alert formatting."
     }
   }
 } as const;

@@ -1,0 +1,50 @@
+[
+  {
+    "itemNumber": "1280805",
+    "canonicalName": "Weller C.Y.P.B.",
+    "aliases": ["Weller CYPB", "W.L. Weller C.Y.P.B.", "WL Weller CYPB"],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": "122438",
+    "canonicalName": "Blanton's Single Barrel",
+    "aliases": ["Blantons", "Blanton's Bourbon", "Blanton's Single Barrel Bourbon"],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": "149017",
+    "canonicalName": "Eagle Rare 10 Year",
+    "aliases": ["Eagle Rare", "Eagle Rare 10"],
+    "tier": "allocated"
+  },
+  {
+    "itemNumber": "822398",
+    "canonicalName": "Stagg Jr.",
+    "aliases": ["Stagg", "George T. Stagg Jr", "Stagg Barrel Proof"],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": "850279",
+    "canonicalName": "George T. Stagg",
+    "aliases": ["GTS", "George T Stagg", "Buffalo Trace Antique Collection George T. Stagg"],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": "964541",
+    "canonicalName": "William Larue Weller",
+    "aliases": ["William L. Weller", "WLW", "Weller BTAC"],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": "952976",
+    "canonicalName": "Old Forester Birthday Bourbon",
+    "aliases": ["Birthday Bourbon", "Old Forester Birthday"],
+    "tier": "unicorn"
+  },
+  {
+    "itemNumber": "1206681",
+    "canonicalName": "High West A Midwinter Night's Dram",
+    "aliases": ["Midwinter Night's Dram", "MWND", "High West Midwinter"],
+    "tier": "allocated"
+  }
+]

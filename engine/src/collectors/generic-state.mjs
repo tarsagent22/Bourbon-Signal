@@ -4,6 +4,7 @@ import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
 import { readFile } from 'node:fs/promises';
+import { collectCostco } from './costco.mjs';
 
 const SIGNAL_TERMS = [
   'bourbon', 'whiskey', 'whisky', 'allocated', 'limited', 'release', 'lottery', 'barrel', 'single barrel',
@@ -255,6 +256,8 @@ async function collectBrowserDiscoverySignals(config, bible) {
 }
 
 export async function collectState(config, bible) {
+  if (config.id === 'US-COSTCO') return collectCostco(config, bible);
+
   const startedAt = new Date().toISOString();
   const sourceReports = [];
   const signals = [];

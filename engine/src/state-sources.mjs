@@ -242,6 +242,15 @@ export const ALL_STATE_SOURCES = [
     apiCandidates: []
   },
   {
+    id: 'US-COSTCO', label: 'Costco warehouse bourbon watch', tier: 'B', strategy: 'national_retailer_item_number_watch', cadence: '15-60m',
+    value: 'Nationwide Costco warehouse/app availability for allocated bourbon item numbers. This is folded into Bourbon Signal as source-backed warehouse intel with verify-before-driving caveats, not copied Discord-style retailer bot formatting.',
+    sources: [
+      { kind: 'html', url: 'https://sameday.costco.com/store/costco/s?k=bourbon', label: 'Costco Same-Day bourbon search', precisionOnly: true },
+      { kind: 'json', url: 'engine/data/costco-bourbon-watchlist.json', label: 'Costco allocated bourbon item-number watchlist', precisionOnly: true }
+    ],
+    apiCandidates: []
+  },
+  {
     id: 'KY', label: 'Kentucky official distillery drops + release watch', tier: 'B', strategy: 'official_distillery_drop_and_release_watch', cadence: 'daily-60m',
     value: 'Kentucky is the distillery Mecca. Customer-facing value comes from Buffalo Trace gift-shop availability plus official release-watch pages from major Kentucky distilleries, explicitly separated from retailer store inventory.',
     rareSignalTarget: true,
