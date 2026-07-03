@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { needsSightingReview, reviewReasonLabels, sanitizeManualSightingField } from '../src/lib/sighting-review.ts';
+import { isLikelyDuplicateSighting, needsSightingReview, reviewReasonLabels, sanitizeManualSightingField, sightingDuplicateKey } from '../src/lib/sighting-review.ts';
 
 const baseSighting = {
   id: 'sighting_manual_1',
@@ -55,5 +55,16 @@ const canonical = needsSightingReview({
   storeId: 'abc-123',
 });
 assert.equal(canonical, false, 'canonical sightings without proof do not require admin review');
+
+
+assert.equal(sightingDuplicateKey({ bottleName: 'E.H. Taylor Cured Oak', storeName: 'Beach Discount Beverage' }), 'e h taylor cured oak::beach discount beverage');
+assert.equal(isLikelyDuplicateSighting(
+  { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Beach Discount Beverage', createdAt: '2026-07-03T14:36:34Z' },
+  { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Beach Discount Beverage', createdAt: '2026-07-03T14:42:34Z' }
+), true, 'same bottle/store inside the duplicate window is suppressed');
+assert.equal(isLikelyDuplicateSighting(
+  { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Beach Discount Beverage', createdAt: '2026-07-03T14:36:34Z' },
+  { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Other Store', createdAt: '2026-07-03T14:42:34Z' }
+), false, 'different store is not a duplicate');
 
 console.log('Manual sighting review policy verified.');

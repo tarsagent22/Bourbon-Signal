@@ -3,7 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
 import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary, type SightingVerificationSource } from "@/lib/sighting-rewards";
-import { sanitizeManualSightingField } from "@/lib/sighting-review";
+import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
@@ -217,6 +217,13 @@ export async function POST(req: NextRequest) {
   const next = { ...prefs, submittedSightings: [sighting, ...prefs.submittedSightings].slice(0, 100) };
 
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const duplicate = prefs.submittedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
+  if (duplicate) {
+    const sightings = await getAggregateSightings(userId);
+    const rewards: MemberRewardsSummary = summarizeMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
+    return NextResponse.json({ ok: true, duplicate: true, sighting: duplicate, sightings, rewards });
+  }
+
   const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
 
   await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
