@@ -107,7 +107,7 @@ interface BourbonDnaSummary {
   summary: string;
 }
 
-type DashboardSection = "alerts" | "collection" | "recommendations";
+type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
 
 
 type SignalStrengthLevel = "low" | "building" | "focused" | "strong" | "precision";
@@ -720,7 +720,8 @@ export default function DashboardPage() {
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
   const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(() => {
     if (typeof window === "undefined") return null;
-    return new URLSearchParams(window.location.search).get("section") === "alerts" ? "alerts" : null;
+    const section = new URLSearchParams(window.location.search).get("section");
+    return section === "alerts" || section === "collection" || section === "recommendations" || section === "memberPoints" ? section : null;
   });
   const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -1646,7 +1647,8 @@ export default function DashboardPage() {
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+    { key: "memberPoints", label: "Member Points", eyebrow: "Sightings rewards", summary: "Track points, badges, streaks, and what to do next.", status: memberRewards ? `${memberRewards.points} pts` : "Loading" },
+  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, memberRewards, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -1807,6 +1809,22 @@ export default function DashboardPage() {
           .member-badge-progress-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 10px; font-family: var(--font-dm-sans); font-size: 12px; color: rgba(245,237,214,0.68); }
           .member-badge-progress-bar { height: 7px; border-radius: 99px; background: rgba(245,237,214,0.08); overflow: hidden; }
           .member-badge-progress-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(196,148,58,0.72), rgba(232,201,122,0.86)); }
+          .member-points-drawer-content { display: grid; gap: 14px; }
+          .member-points-drawer-content .member-rewards-dashboard-card { margin: 0; }
+          .member-points-how-it-works { border: 1px solid rgba(245,237,214,0.08); border-radius: 22px; background: rgba(245,237,214,0.032); padding: 18px; display: grid; gap: 16px; }
+          .member-points-how-copy { display: grid; gap: 7px; }
+          .member-points-how-copy span { font-family: var(--font-jetbrains); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
+          .member-points-how-copy h3 { margin: 0; font-family: var(--font-playfair); font-size: clamp(24px, 4vw, 31px); line-height: 1.04; color: var(--color-cream); }
+          .member-points-how-copy p { margin: 0; max-width: 58ch; font-family: var(--font-dm-sans); font-size: 13px; line-height: 1.65; color: rgba(245,237,214,0.66); }
+          .member-points-rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+          .member-points-rules-grid div { border: 1px solid rgba(196,148,58,0.14); border-radius: 15px; background: rgba(196,148,58,0.045); padding: 12px; display: grid; gap: 5px; }
+          .member-points-rules-grid strong { font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 13px; }
+          .member-points-rules-grid span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
+          .member-points-badges { border-top: 1px solid rgba(245,237,214,0.075); padding-top: 14px; }
+          .member-points-badges h4 { margin: 0 0 10px; font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 14px; }
+          .member-points-badges ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+          .member-points-badges li { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.62); font-size: 12px; line-height: 1.5; }
+          .member-points-badges li strong { color: rgba(245,237,214,0.86); }
 
           .signal-strength-card {
             position: relative;
@@ -2257,6 +2275,11 @@ export default function DashboardPage() {
             .dashboard-section-button[data-active="true"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
             .dashboard-drawer-shell { border-radius: 18px; margin-bottom: 12px; }
             .dashboard-drawer-shell[data-attached="true"] { border-radius: 0 0 18px 18px; }
+            .member-points-rules-grid { grid-template-columns: 1fr; }
+            .member-badge-progress-row { grid-template-columns: minmax(96px, 0.9fr) minmax(80px, 1fr) auto; gap: 8px; }
+            .member-rewards-dashboard-grid { gap: 8px; }
+            .member-rewards-dashboard-stat { padding: 11px 9px; }
+            .member-rewards-dashboard-stat strong { font-size: 25px; }
             .section-eyebrow { font-size: 9px; }
             .section-title { font-size: 19px; font-family: var(--font-dm-sans); font-weight: 850; letter-spacing: -0.01em; }
             .section-summary { font-size: 12px; line-height: 1.45; }
@@ -2281,28 +2304,6 @@ export default function DashboardPage() {
 
         <div id="dashboard-workspace" className="dashboard-shell">
           <div className="dashboard-workspace">
-
-          {memberRewards ? (
-            <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
-              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
-              <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Badges, streaks, and sighting progress</div>
-              <div className="member-rewards-dashboard-grid">
-                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.points}</strong><span>Total points</span></div>
-                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
-                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
-              </div>
-              <div className="member-badge-progress-list">
-                {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 5).map((item) => (
-                  <div className="member-badge-progress-row" key={item.id}>
-                    <span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span>
-                    <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
-                    <span>{item.current}/{item.target}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/sightings" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
-            </section>
-          ) : null}
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
@@ -3284,6 +3285,77 @@ export default function DashboardPage() {
 
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
             </div>
+          </StepShell>
+          ) : null}
+
+          {renderSectionButton("memberPoints")}
+
+          {activeDashboardSection === "memberPoints" ? (
+          <StepShell
+            step="Member Points"
+            title="Badges, streaks, and sighting progress"
+            subtitle="A quick read on what you’ve earned and what counts next."
+            hideHeader
+            attached
+          >
+            {memberRewards ? (
+              <div className="member-points-drawer-content">
+                <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
+                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Badges, streaks, and sighting progress</div>
+                  <div className="member-rewards-dashboard-grid">
+                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.points}</strong><span>Total points</span></div>
+                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
+                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
+                  </div>
+                  <div className="member-badge-progress-list">
+                    {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 5).map((item) => (
+                      <div className="member-badge-progress-row" key={item.id}>
+                        <span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span>
+                        <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
+                        <span>{item.current}/{item.target}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Link href="/sightings" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
+                </section>
+
+                <section className="member-points-how-it-works" aria-label="How member points work">
+                  <div className="member-points-how-copy">
+                    <span>How it works</span>
+                    <h3>Post useful sightings. Keep the signal clean.</h3>
+                    <p>Points are for bottles other members actually care about. Limited bottles can still help the feed, but rewards start with allocated and unicorn finds.</p>
+                  </div>
+                  <div className="member-points-rules-grid">
+                    <div><strong>Allocated sighting</strong><span>+1 point when you post it.</span></div>
+                    <div><strong>Unicorn sighting</strong><span>+2 points when you post it.</span></div>
+                    <div><strong>Verified sighting</strong><span>+1 more when a photo is approved or the community backs it.</span></div>
+                    <div><strong>Weekly streak</strong><span>+1 for keeping an eligible weekly streak alive.</span></div>
+                    <div><strong>Badge earned</strong><span>+1 when you unlock a badge.</span></div>
+                    <div><strong>Bad info</strong><span>Rejected or removed sightings lose the points.</span></div>
+                  </div>
+                  <div className="member-points-badges">
+                    <h4>Badges</h4>
+                    <ul>
+                      <li><strong>First Sighting</strong> — your first allocated or unicorn report.</li>
+                      <li><strong>Verified Scout</strong> — your first verified report.</li>
+                      <li><strong>Spotter</strong> — volume badge: 5, 25, 50, then 100 eligible sightings.</li>
+                      <li><strong>Unicorn Hunter</strong> — verified unicorn finds: 1, 5, then 15.</li>
+                      <li><strong>Sharp Eye</strong> — verified sightings: 5, 25, then 75.</li>
+                      <li><strong>Local Scout</strong> — repeated verified hits in the same area: 5, 15, then 40.</li>
+                      <li><strong>Weekend Warrior</strong> — eligible Friday night / weekend reports across 3, 8, 20, then 40 weeks.</li>
+                      <li><strong>Clean Signal</strong> — strong accuracy over time: 10, 25, then 50 sightings with a high verification rate.</li>
+                      <li><strong>Streak</strong> — eligible sightings in back-to-back weeks: 2, 4, then 8.</li>
+                    </ul>
+                  </div>
+                </section>
+              </div>
+            ) : (
+              <div className="dashboard-loading-panel">
+                <strong>Loading member points</strong>
+                <span>Your points and badge progress will show here once sightings load.</span>
+              </div>
+            )}
           </StepShell>
           ) : null}
 
