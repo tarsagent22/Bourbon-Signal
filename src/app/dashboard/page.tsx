@@ -13,6 +13,7 @@ import { useWatchlistStore } from "@/lib/watchlist";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStats } from "@/lib/useEngineData";
+import { useSightings } from "@/hooks/useSightings";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
@@ -700,6 +701,7 @@ export default function DashboardPage() {
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
+  const { rewards: memberRewards } = useSightings(isSignedIn && canAccessDashboard);
 
   const [mounted, setMounted] = useState(false);
   const [bottleQuery, setBottleQuery] = useState("");
@@ -1789,6 +1791,23 @@ export default function DashboardPage() {
             gap: 0;
             min-width: 0;
           }
+          .member-rewards-dashboard-card {
+            border: 1px solid rgba(196,148,58,0.16);
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(24,17,11,0.94), rgba(8,7,5,0.98));
+            box-shadow: 0 24px 64px rgba(0,0,0,0.26), inset 0 1px 0 rgba(245,237,214,0.04);
+            padding: 18px;
+            margin: 0 0 18px;
+          }
+          .member-rewards-dashboard-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+          .member-rewards-dashboard-stat { border: 1px solid rgba(245,237,214,0.075); border-radius: 15px; background: rgba(245,237,214,0.035); padding: 12px; }
+          .member-rewards-dashboard-stat strong { display: block; font-family: var(--font-playfair); font-size: 27px; line-height: 1; color: var(--color-cream); }
+          .member-rewards-dashboard-stat span { display: block; margin-top: 5px; font-family: var(--font-jetbrains); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(245,237,214,0.48); }
+          .member-badge-progress-list { display: grid; gap: 9px; margin-top: 15px; }
+          .member-badge-progress-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 10px; font-family: var(--font-dm-sans); font-size: 12px; color: rgba(245,237,214,0.68); }
+          .member-badge-progress-bar { height: 7px; border-radius: 99px; background: rgba(245,237,214,0.08); overflow: hidden; }
+          .member-badge-progress-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(196,148,58,0.72), rgba(232,201,122,0.86)); }
+
           .signal-strength-card {
             position: relative;
             overflow: hidden;
@@ -2262,6 +2281,28 @@ export default function DashboardPage() {
 
         <div id="dashboard-workspace" className="dashboard-shell">
           <div className="dashboard-workspace">
+
+          {memberRewards ? (
+            <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
+              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
+              <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Badges, streaks, and sighting progress</div>
+              <div className="member-rewards-dashboard-grid">
+                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.points}</strong><span>Total points</span></div>
+                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
+                <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
+              </div>
+              <div className="member-badge-progress-list">
+                {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 5).map((item) => (
+                  <div className="member-badge-progress-row" key={item.id}>
+                    <span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span>
+                    <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
+                    <span>{item.current}/{item.target}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/sightings" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
+            </section>
+          ) : null}
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>

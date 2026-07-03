@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MemberSighting, SignalReport, SightingVoteKind, SightingsPreferences } from "@/lib/sightings";
 import { EMPTY_SIGHTINGS_PREFERENCES } from "@/lib/sightings";
 
+import type { MemberRewardsSummary } from "@/lib/sighting-rewards";
+
 interface PreferencesResponse {
   sightingsPreferences?: SightingsPreferences;
   [key: string]: unknown;
@@ -12,6 +14,7 @@ interface PreferencesResponse {
 interface SightingsFeedResponse {
   sightings?: MemberSighting[];
   states?: string[];
+  rewards?: MemberRewardsSummary;
 }
 
 export function useSightings(enabled: boolean = true) {
@@ -19,6 +22,7 @@ export function useSightings(enabled: boolean = true) {
   const [rawPreferences, setRawPreferences] = useState<PreferencesResponse | null>(null);
   const [sightings, setSightings] = useState<MemberSighting[]>([]);
   const [states, setStates] = useState<string[]>([]);
+  const [rewards, setRewards] = useState<MemberRewardsSummary | null>(null);
   const [loading, setLoading] = useState(enabled);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +43,7 @@ export function useSightings(enabled: boolean = true) {
     const data = (await res.json()) as SightingsFeedResponse;
     setSightings(data.sightings || []);
     setStates(data.states || []);
+    setRewards(data.rewards || null);
     return data;
   }, []);
 
@@ -103,6 +108,7 @@ export function useSightings(enabled: boolean = true) {
       if (!res.ok) throw new Error("Unable to save sighting");
       const data = (await res.json()) as SightingsFeedResponse & { sighting?: MemberSighting };
       setSightings(data.sightings || []);
+      if (data.rewards) setRewards(data.rewards);
       await refreshPreferences().catch(() => undefined);
       return data.sighting || sighting;
     } catch (err) {
@@ -126,6 +132,7 @@ export function useSightings(enabled: boolean = true) {
       if (!res.ok) throw new Error("Unable to save vote");
       const data = (await res.json()) as SightingsFeedResponse;
       setSightings(data.sightings || []);
+      if (data.rewards) setRewards(data.rewards);
       await refreshPreferences().catch(() => undefined);
     } catch (err) {
       console.error("Failed to save sighting vote", err);
@@ -135,6 +142,27 @@ export function useSightings(enabled: boolean = true) {
       setSaving(false);
     }
   }, [refreshPreferences]);
+
+  const uploadSightingPhoto = useCallback(async (sightingId: string, file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.set("sightingId", sightingId);
+      form.set("photo", file);
+      const res = await fetch("/api/sightings/photo", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unable to upload photo");
+      await refreshSightings();
+      return data;
+    } catch (err) {
+      console.error("Failed to upload sighting photo", err);
+      setError("Unable to upload photo");
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  }, [refreshSightings]);
 
   const addSignalReport = useCallback(async (report: SignalReport) => {
     const withoutSameUserSignal = preferences.signalReports.filter((item) => item.signalId !== report.signalId);
@@ -155,6 +183,7 @@ export function useSightings(enabled: boolean = true) {
   return {
     sightings,
     states,
+    rewards,
     reports: preferences.signalReports,
     reportsBySignalId,
     loading,
@@ -163,6 +192,7 @@ export function useSightings(enabled: boolean = true) {
     refresh,
     addSighting,
     voteSighting,
+    uploadSightingPhoto,
     addSignalReport,
   };
 }

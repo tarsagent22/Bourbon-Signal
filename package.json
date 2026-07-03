@@ -15,7 +15,8 @@
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs",
-    "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs"
+    "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs",
+    "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
@@ -24,6 +25,7 @@
     "@stripe/stripe-js": "^9.0.0",
     "@types/three": "^0.183.1",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.5.0",
     "framer-motion": "^12.38.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
+import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary, type SightingVerificationSource } from "@/lib/sighting-rewards";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 
 function normalizeSightingType(value: unknown): SightingType {
@@ -45,6 +46,28 @@ async function listUsers() {
   return Array.isArray(result) ? result : result.data;
 }
 
+function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
+  const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
+  const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
+  const primary = emails.find((email) => email.id === primaryId) || emails[0];
+  return typeof primary?.emailAddress === "string" ? primary.emailAddress : "";
+}
+
+function rewardBadgeLabels(privateMetadata: Record<string, unknown>) {
+  const rewards = privateMetadata.memberRewards && typeof privateMetadata.memberRewards === "object" ? privateMetadata.memberRewards as Record<string, unknown> : {};
+  const badges = Array.isArray(rewards.badges) ? rewards.badges as Array<Record<string, unknown>> : [];
+  return badges.slice(0, 2).map((badge) => [badge.label, badge.tier].filter(Boolean).join(" "));
+}
+
+async function reconcileUserRewards(client: Awaited<ReturnType<typeof clerkClient>>, user: Record<string, unknown>) {
+  const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
+  const nextRewards = reconcileMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
+  await client.users.updateUserMetadata(String(user.id), { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  return nextRewards;
+}
+
 async function getAggregateSightings(currentUserId: string) {
   const users = await listUsers();
   const counts = voteCounts(users, currentUserId);
@@ -55,11 +78,17 @@ async function getAggregateSightings(currentUserId: string) {
       const id = sighting.id;
       if (!id) continue;
       const row = counts.get(id) || { upCount: 0, downCount: 0, myVote: null };
+      const rewardState = sighting.rewardState || {};
+      const verificationSources = new Set(rewardState.verificationSources || []);
+      if (communityVerified(row.upCount, row.downCount)) verificationSources.add("community");
       sightings.push({
         ...sighting,
         reporterUserId: sighting.reporterUserId || user.id,
+        reporterDisplayName: typeof user.firstName === "string" ? user.firstName : "Member",
+        reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
         sightingType: normalizeSightingType(sighting.sightingType),
         rarityTier: normalizeRarityTier(sighting.rarityTier),
+        rewardState: { ...rewardState, verificationSources: Array.from(verificationSources) },
         upCount: row.upCount,
         downCount: row.downCount,
         myVote: row.myVote,
@@ -88,8 +117,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
   const sightings = await getAggregateSightings(userId);
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
+  const nextRewards = reconcileMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
+  await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  const rewards: MemberRewardsSummary = summarizeMemberRewards(prefs.submittedSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
-  return NextResponse.json({ sightings, states });
+  return NextResponse.json({ sightings, states, rewards });
 }
 
 export async function POST(req: NextRequest) {
@@ -153,12 +190,17 @@ export async function POST(req: NextRequest) {
     source: "custom",
     sightingType: normalizeSightingType(payload.sightingType),
     reporterUserId: userId,
+    storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
+    rewardState: {},
     createdAt: payload.createdAt || new Date().toISOString(),
   };
   const next = { ...prefs, submittedSightings: [sighting, ...prefs.submittedSightings].slice(0, 100) };
-  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next } });
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
+  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   const sightings = await getAggregateSightings(userId);
-  return NextResponse.json({ ok: true, sighting, sightings });
+  const rewards: MemberRewardsSummary = summarizeMemberRewards(next.submittedSightings, nextRewards);
+  return NextResponse.json({ ok: true, sighting, sightings, rewards });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -191,6 +233,25 @@ export async function PATCH(req: NextRequest) {
   const nextVote: SightingVote = { sightingId, kind: vote, createdAt: new Date().toISOString() };
   const next = { ...prefs, sightingVotes: [nextVote, ...withoutExisting].slice(0, 500) };
   await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next } });
+
+  if (target.reporterUserId) {
+    const owner = await client.users.getUser(target.reporterUserId);
+    const ownerPublicMetadata = (owner.publicMetadata && typeof owner.publicMetadata === "object" ? owner.publicMetadata : {}) as Record<string, unknown>;
+    const ownerPrivateMetadata = (owner.privateMetadata && typeof owner.privateMetadata === "object" ? owner.privateMetadata : {}) as Record<string, unknown>;
+    const ownerPrefs = normalizePrefs(ownerPublicMetadata.sightingsPreferences);
+    const updatedOwnerSightings: MemberSighting[] = ownerPrefs.submittedSightings.map((item) => {
+      const nextUpCount = (target.upCount || 0) + (vote === "up" && target.myVote !== "up" ? 1 : 0);
+      if (item.id !== sightingId || !communityVerified(nextUpCount, target.downCount || 0)) return item;
+      const verificationSources: SightingVerificationSource[] = Array.from(new Set<SightingVerificationSource>([...(item.rewardState?.verificationSources || []), "community"]));
+      return { ...item, rewardState: { ...(item.rewardState || {}), verificationSources, verifiedAt: item.rewardState?.verifiedAt || new Date().toISOString() } };
+    });
+    const ownerNextPrefs = { ...ownerPrefs, submittedSightings: updatedOwnerSightings };
+    const ownerRewards = reconcileMemberRewards(updatedOwnerSightings, ownerPrivateMetadata.memberRewards);
+    await client.users.updateUserMetadata(target.reporterUserId, { publicMetadata: { ...ownerPublicMetadata, sightingsPreferences: ownerNextPrefs }, privateMetadata: { ...ownerPrivateMetadata, memberRewards: ownerRewards } });
+  }
+
   const sightings = await getAggregateSightings(userId);
-  return NextResponse.json({ ok: true, sightings });
+  const updatedUser = await client.users.getUser(userId);
+  const rewards: MemberRewardsSummary = summarizeMemberRewards(normalizePrefs(updatedUser.publicMetadata?.sightingsPreferences).submittedSightings, updatedUser.privateMetadata?.memberRewards);
+  return NextResponse.json({ ok: true, sightings, rewards });
 }

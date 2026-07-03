@@ -1,3 +1,5 @@
+import type { SightingRewardState } from "@/lib/sighting-rewards";
+
 export type SightingSource = "custom" | "feed" | "finder";
 export type SightingType = "seen_in_store" | "online_social";
 export type SightingVoteKind = "up" | "down";
@@ -30,6 +32,10 @@ export interface MemberSighting {
   upCount?: number;
   downCount?: number;
   myVote?: SightingVoteKind | null;
+  storeTimeZone?: string;
+  rewardState?: SightingRewardState;
+  reporterDisplayName?: string;
+  reporterBadges?: string[];
 }
 
 export interface SignalReport {
