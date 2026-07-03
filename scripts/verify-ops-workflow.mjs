@@ -58,9 +58,14 @@ for (const state of ['AL', 'IL', 'IN', 'NC', 'PA', 'SC', 'TN', 'VA', 'IA', 'ID',
   }
 }
 for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
-  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage.`);
-  if (stateLifecycleConfig.states?.[state]?.publicStatus !== 'research_only') {
-    fail(`${state} should have explicit research_only lifecycle status.`);
+  const lifecycle = stateLifecycleConfig.states?.[state];
+  const isCostcoOnlyExpansion = customerStates.has(state)
+    && lifecycle?.lifecycle === 'costco_warehouse_inventory_watch'
+    && lifecycle?.coverageTier === 'retailer_warehouse_inventory';
+  if (isCostcoOnlyExpansion) continue;
+  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage, unless it is explicitly Costco-only.`);
+  if (lifecycle?.publicStatus !== 'research_only') {
+    fail(`${state} should have explicit research_only lifecycle status unless it is explicitly Costco-only.`);
   }
 }
 if (stateLifecycleConfig.states?.SC?.publicStatus !== 'active'
