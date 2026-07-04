@@ -68,7 +68,7 @@ function SignalTicker({
     { label: "Total signals detected", value: formatTickerNumber(totalSignals) },
     { label: "Live signals", value: formatTickerNumber(liveSignals) },
     { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
-    { label: "Members tracking", value: formatTickerNumber(memberCount) },
+    { label: "Member Count", value: formatTickerNumber(memberCount) },
     { label: "Last refreshed", value: refreshedText },
   ];
   const tapeItems = [...items, ...items];
