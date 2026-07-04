@@ -134,6 +134,7 @@ export default function BottleCheckPage() {
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
   const [addingMissingBottle, setAddingMissingBottle] = useState(false);
   const [missingBottleAdded, setMissingBottleAdded] = useState(false);
+  const [missingBottleAddedName, setMissingBottleAddedName] = useState("");
   const [missingBottleError, setMissingBottleError] = useState<string | null>(null);
 
   const remainingFreeChecks = bottleCheckLimit === null ? null : Math.max(0, bottleCheckLimit - freeChecksUsed);
@@ -256,6 +257,8 @@ export default function BottleCheckPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not add that bottle yet.");
       setMissingBottleAdded(true);
+      setMissingBottleAddedName(rawName);
+      setLiveSuggestions([]);
     } catch (error) {
       setMissingBottleError(error instanceof Error ? error.message : "Could not add that bottle yet.");
     } finally {
@@ -335,7 +338,7 @@ export default function BottleCheckPage() {
                 <input
                   id="bottle-search"
                   value={query}
-                  onChange={(event) => { setQuery(event.target.value); setMissingBottleAdded(false); setMissingBottleError(null); }}
+                  onChange={(event) => { setQuery(event.target.value); setMissingBottleAdded(false); setMissingBottleAddedName(""); setMissingBottleError(null); }}
                   placeholder="Try Blanton's, Weller Green, Maker's Mark…"
                   autoComplete="off"
                 />
@@ -349,6 +352,7 @@ export default function BottleCheckPage() {
                       setResult(null);
                       setHasSearched(false);
                       setMissingBottleAdded(false);
+                      setMissingBottleAddedName("");
                       setMissingBottleError(null);
                     }}
                   >
@@ -391,6 +395,22 @@ export default function BottleCheckPage() {
             </div>
             <button type="submit" disabled={!hasFreeChecksRemaining}>{hasFreeChecksRemaining ? "Check bottle" : "Upgrade for unlimited"}</button>
           </form>
+
+          {(missingBottleAdded || missingBottleError) ? (
+            <div className={`bc-missing-confirmation ${missingBottleAdded ? "success" : "error"}`} role="status" aria-live="polite">
+              {missingBottleAdded ? (
+                <>
+                  <strong>Added to Bourbon Signal ✓</strong>
+                  <p>“{missingBottleAddedName || query.trim() || submittedQuery}” is in the bottle queue. We’ll match it to an official Bottle Bible record before it becomes trusted catalog data.</p>
+                </>
+              ) : (
+                <>
+                  <strong>Could not add that bottle yet</strong>
+                  <p>{missingBottleError}</p>
+                </>
+              )}
+            </div>
+          ) : null}
 
           {loading ? (
             <div className="bc-panel muted">Checking Bottle Signal…</div>
