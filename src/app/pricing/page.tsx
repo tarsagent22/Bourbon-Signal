@@ -231,7 +231,7 @@ function PricingPageContent() {
                 Monthly
               </button>
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>Save 17%</span>
+                Annual <span>Save up to 30%</span>
               </button>
             </div>
           </ScrollReveal>
