@@ -132,6 +132,9 @@ export default function BottleCheckPage() {
   const [trackSaved, setTrackSaved] = useState(false);
   const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
+  const [addingMissingBottle, setAddingMissingBottle] = useState(false);
+  const [missingBottleAdded, setMissingBottleAdded] = useState(false);
+  const [missingBottleError, setMissingBottleError] = useState<string | null>(null);
 
   const remainingFreeChecks = bottleCheckLimit === null ? null : Math.max(0, bottleCheckLimit - freeChecksUsed);
   const hasFreeChecksRemaining = remainingFreeChecks === null || remainingFreeChecks > 0;
@@ -232,6 +235,32 @@ export default function BottleCheckPage() {
     }
     setSubmittedState(state);
     setSubmittedQuery(nextQuery);
+  }
+
+  async function addMissingBottleFromCheck() {
+    const rawName = submittedQuery.trim() || query.trim();
+    if (!rawName) return;
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    setAddingMissingBottle(true);
+    setMissingBottleError(null);
+    setMissingBottleAdded(false);
+    try {
+      const res = await fetch("/api/bottle-contributions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawName, source: "bottle_check", context: { state: submittedState, searchQuery: rawName } }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not add that bottle yet.");
+      setMissingBottleAdded(true);
+    } catch (error) {
+      setMissingBottleError(error instanceof Error ? error.message : "Could not add that bottle yet.");
+    } finally {
+      setAddingMissingBottle(false);
+    }
   }
 
   function toggleTrackingState(nextState: string) {
@@ -366,7 +395,12 @@ export default function BottleCheckPage() {
           ) : !bottle ? (
             <div className="bc-panel empty">
               <strong>We do not have that bottle yet.</strong>
-              <p>{result?.message || "Try a different spelling. Unknown searches help Bourbon Signal improve the Bottle Check index."}</p>
+              <p>{result?.message || "Add it to Bourbon Signal and we’ll use it to improve future Bottle Check results."}</p>
+              <button type="button" className="bc-missing-button" onClick={addMissingBottleFromCheck} disabled={addingMissingBottle || missingBottleAdded}>
+                {!isSignedIn ? "Sign in to add missing bottle" : addingMissingBottle ? "Adding…" : missingBottleAdded ? "Added to Bourbon Signal ✓" : `Add “${submittedQuery || query}” to Bourbon Signal`}
+              </button>
+              {missingBottleError ? <small className="bc-track-error">{missingBottleError}</small> : null}
+              {missingBottleAdded ? <small className="bc-track-success">We’ll match this to an official bottle record before it becomes a trusted Bottle Bible entry.</small> : null}
             </div>
           ) : (
             <div className="bc-result-grid">

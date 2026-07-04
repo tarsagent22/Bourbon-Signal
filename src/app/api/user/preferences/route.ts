@@ -31,6 +31,8 @@ export interface CollectionBottlePreference {
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
   notes?: string;
+  pendingCanonicalMatch?: boolean;
+  bottleContributionId?: string;
   addedAt: string;
   updatedAt: string;
 }
@@ -174,6 +176,8 @@ function normalizeCollectionPreferences(input: unknown): UserAlertPreferences["c
         : [],
       wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : rating >= 80,
       notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",
+      pendingCanonicalMatch: item.pendingCanonicalMatch === true,
+      bottleContributionId: typeof item.bottleContributionId === "string" ? item.bottleContributionId.slice(0, 180) : undefined,
       addedAt,
       updatedAt,
     });

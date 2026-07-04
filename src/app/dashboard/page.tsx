@@ -773,6 +773,7 @@ export default function DashboardPage() {
   const [savingCollection, setSavingCollection] = useState(false);
   const [savedCollection, setSavedCollection] = useState(false);
   const [collectionError, setCollectionError] = useState<string | null>(null);
+  const [manualCollectionBottleReady, setManualCollectionBottleReady] = useState(false);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
@@ -1364,11 +1365,71 @@ export default function DashboardPage() {
   };
 
   const saveStagedCollectionBottle = async () => {
-    if (!selectedCollectionBottle) {
-      setCollectionError("Choose a bottle from the suggestions before saving.");
+    if (selectedCollectionBottle) {
+      await addCollectionBottle(selectedCollectionBottle);
       return;
     }
-    await addCollectionBottle(selectedCollectionBottle);
+    if (manualCollectionBottleReady && collectionBottleQuery.trim().length >= 2) {
+      await addManualCollectionBottle();
+      return;
+    }
+    setCollectionError("Choose a suggested bottle or use this as a new bottle.");
+  };
+
+
+  const addManualCollectionBottle = async () => {
+    const rawName = collectionBottleQuery.trim().replace(/\s+/g, " ");
+    if (rawName.length < 2) return;
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    setSavingCollection(true);
+    setCollectionError(null);
+    try {
+      const res = await fetch("/api/bottle-contributions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawName,
+          source: "collection",
+          context: { rating: collectionRating, tasteTags: collectionTasteTags, notes: collectionNotes.trim() },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not add that bottle yet.");
+      const now = new Date().toISOString();
+      const canonicalKey = `pending:${rawName.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim()}`;
+      const nextEntries = [
+        ...collectionEntries.filter((entry) => entry.canonicalKey !== canonicalKey),
+        {
+          bottleId: data.contribution?.id || canonicalKey,
+          bottleName: rawName,
+          canonicalKey,
+          rating: collectionRating,
+          tasteTags: collectionTasteTags,
+          wouldBuyAgain: collectionRating >= 80,
+          notes: collectionNotes.trim(),
+          pendingCanonicalMatch: true,
+          bottleContributionId: data.contribution?.id,
+          addedAt: now,
+          updatedAt: now,
+        },
+      ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
+      const saved = await saveCollectionEntries(nextEntries);
+      if (saved) {
+        setSelectedCollectionBottle(null);
+        setManualCollectionBottleReady(false);
+        setCollectionBottleQuery("");
+        setCollectionRating(85);
+        setCollectionTasteTags([]);
+        setCollectionNotes("");
+      }
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not add that bottle yet.");
+    } finally {
+      setSavingCollection(false);
+    }
   };
 
   const addCollectionBottle = async (option: BottleOption) => {
@@ -3074,6 +3135,7 @@ export default function DashboardPage() {
                     value={collectionBottleQuery}
                     onChange={(event) => {
                       setCollectionBottleQuery(event.target.value);
+                      setManualCollectionBottleReady(false);
                       if (selectedCollectionBottle && event.target.value !== selectedCollectionBottle.label) setSelectedCollectionBottle(null);
                     }}
                     placeholder="Search a bottle you own or have tasted..."
@@ -3097,11 +3159,22 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   ) : collectionBottleQuery.trim() && !selectedCollectionBottle ? (
-                    <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(12,9,7,0.98)", boxShadow: "0 18px 42px rgba(0,0,0,0.36)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-                      {loadingCollectionSuggestions ? "Searching the broader bourbon catalog…" : "No matching bottle found yet. Try the brand, expression, or a shorter spelling."}
+                    <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, borderRadius: "14px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(12,9,7,0.98)", boxShadow: "0 18px 42px rgba(0,0,0,0.36)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", display: "grid", gap: "10px" }}>
+                      <span>{loadingCollectionSuggestions ? "Searching the broader bourbon catalog…" : "No matching bottle found yet. Save it now and we’ll match it to an official bottle record later."}</span>
+                      {!loadingCollectionSuggestions ? <button type="button" onClick={() => { setManualCollectionBottleReady(true); setCollectionError(null); }} style={{ justifySelf: "start", border: "1px solid rgba(196,148,58,0.32)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-cream)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 850, cursor: "pointer" }}>Use “{collectionBottleQuery.trim()}” as a new bottle</button> : null}
                     </div>
                   ) : null}
                 </div>
+                {manualCollectionBottleReady && !selectedCollectionBottle ? (
+                  <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>New bottle ready</div>
+                      <div style={{ marginTop: 4, fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, color: "var(--color-cream)" }}>{collectionBottleQuery.trim()}</div>
+                      <div style={{ marginTop: 3, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)" }}>Saved to your collection now; Bourbon Signal will match it to an official record later.</div>
+                    </div>
+                    <button type="button" onClick={() => setManualCollectionBottleReady(false)} style={{ border: "1px solid rgba(255,255,255,0.10)", borderRadius: "999px", background: "rgba(255,255,255,0.04)", color: "var(--color-text-secondary)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", cursor: "pointer" }}>Change</button>
+                  </div>
+                ) : null}
                 {selectedCollectionBottle ? (
                   <div style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                     <div>
@@ -3153,10 +3226,10 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={saveStagedCollectionBottle}
-                  disabled={savingCollection || !selectedCollectionBottle}
-                  style={{ border: "1px solid rgba(196,148,58,0.30)", borderRadius: "14px", background: selectedCollectionBottle ? "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)" : "rgba(255,255,255,0.045)", color: selectedCollectionBottle ? "#0D0B07" : "var(--color-text-tertiary)", padding: "13px 16px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, cursor: savingCollection ? "progress" : selectedCollectionBottle ? "pointer" : "not-allowed", opacity: savingCollection ? 0.75 : 1 }}
+                  disabled={savingCollection || (!selectedCollectionBottle && !manualCollectionBottleReady)}
+                  style={{ border: "1px solid rgba(196,148,58,0.30)", borderRadius: "14px", background: (selectedCollectionBottle || manualCollectionBottleReady) ? "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)" : "rgba(255,255,255,0.045)", color: (selectedCollectionBottle || manualCollectionBottleReady) ? "#0D0B07" : "var(--color-text-tertiary)", padding: "13px 16px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, cursor: savingCollection ? "progress" : (selectedCollectionBottle || manualCollectionBottleReady) ? "pointer" : "not-allowed", opacity: savingCollection ? 0.75 : 1 }}
                 >
-                  {savingCollection ? "Saving bottle…" : selectedCollectionBottle ? "Save bottle to collection" : "Select a suggested bottle to save"}
+                  {savingCollection ? "Saving bottle…" : selectedCollectionBottle ? "Save bottle to collection" : manualCollectionBottleReady ? "Save new bottle to collection" : "Select or add a bottle to save"}
                 </button>
                 <p style={{ margin: "-4px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
                   Every rating sharpens your recommendations.
@@ -3173,7 +3246,7 @@ export default function DashboardPage() {
                           <div style={{ minWidth: 0, paddingRight: "44px" }}>
                             <h3 style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "15px", lineHeight: 1.35, fontWeight: 800 }}>{entry.bottleName}</h3>
                             <div style={{ marginTop: 5, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                              {tasteScoreLabel(entry.rating)} · {formatTasteScore(entry.rating)}/10
+                              {entry.pendingCanonicalMatch ? "Pending match" : tasteScoreLabel(entry.rating)} · {formatTasteScore(entry.rating)}/10
                             </div>
                           </div>
                           <button type="button" onClick={() => setEditingCollectionKey(editing ? null : entry.canonicalKey)} style={{ position: "absolute", right: "10px", bottom: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: editing ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.035)", color: editing ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", padding: "6px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: "pointer" }}>

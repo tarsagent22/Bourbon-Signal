@@ -5,6 +5,7 @@ import { getEntitlements } from "@/lib/entitlements";
 import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary, type SightingVerificationSource } from "@/lib/sighting-rewards";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
+import { addBottleContribution } from "@/lib/bottle-contributions";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -227,6 +228,15 @@ export async function POST(req: NextRequest) {
   const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
 
   await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  if (needsBottleReview) {
+    await addBottleContribution({
+      rawName: sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140),
+      source: "sighting",
+      userId,
+      userEmail: primaryEmail(user),
+      context: { sightingId: sighting.id, storeName, storeCity: sighting.storeCity, storeState: sighting.storeState, rarityTier: sighting.rarityTier },
+    }).catch((error) => console.error("bottle contribution from sighting failed", error));
+  }
   const sightings = await getAggregateSightings(userId);
   const rewards: MemberRewardsSummary = summarizeMemberRewards(next.submittedSightings, nextRewards);
   return NextResponse.json({ ok: true, sighting, sightings, rewards });
