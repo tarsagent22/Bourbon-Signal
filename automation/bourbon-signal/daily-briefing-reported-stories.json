@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-02T10:00:00-04:00",
+  "updatedAt": "2026-07-04T09:45:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
     {
@@ -70,7 +70,7 @@
       "source": "Bulleit / PRNewswire",
       "url": "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
       "firstReportedAt": "2026-06-30",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Knob Creek packages its 9-year bourbon for America’s 250th",
@@ -88,10 +88,10 @@
     },
     {
       "title": "Horse Soldier Farms opens its Kentucky campus for July 4 weekend",
-      "source": "Horse Soldier Bourbon / PBR",
-      "url": "https://www.pbr.com/news/2026/06/horse-soldier-farms-announces-performers-and-pbr-professional-bull-riders-for-grand-opening-fourth-of-july-celebration/",
+      "source": "Horse Soldier Bourbon",
+      "url": "https://horsesoldierbourbon.com/blogs/news/horse-solider-farms-announces-performers-and-pbr-for-grand-opening-fourth-of-july-celebration",
       "firstReportedAt": "2026-07-01",
-      "status": "reported"
+      "status": "homepage-visible"
     },
     {
       "title": "Frey Ranch 10-Year Bourbon ships after lottery launch",

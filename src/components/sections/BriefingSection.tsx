@@ -13,19 +13,29 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Horse Soldier opens its $200M Kentucky bourbon campus",
+    summary: "Horse Soldier Farms is opening over July 4 weekend with bourbon experiences, concerts, PBR events, fireworks, and a 250th-birthday frame built around American Freedom Distillery's veteran-founded story.",
+    note: "Best patriotic pick: it is live on July 4, Kentucky-based, bourbon-first, and turns America's 250th into a real destination story instead of just a commemorative label.",
+    href: "https://horsesoldierbourbon.com/blogs/news/horse-solider-farms-announces-performers-and-pbr-for-grand-opening-fourth-of-july-celebration",
+    source: "Horse Soldier Bourbon",
+  },
+  {
     title: "Buffalo Trace brings back its Prohibition Collection",
     summary: "Buffalo Trace's third Prohibition Collection is a five-bottle limited set tied to the distillery's medicinal-whiskey era, now moving into select retailer, bar, and restaurant distribution.",
-    note: "Best of the morning: Buffalo Trace plus a scarce multi-bottle set is the clearest collector signal for members to watch before local sightings appear.",
+    note: "Buffalo Trace plus a scarce multi-bottle set is the clearest collector signal for members to watch before local sightings appear.",
     href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
     source: "Buffalo Trace Distillery",
   },
   {
     title: "Frey Ranch 10-Year enters the collector watchlist",
     summary: "Frey Ranch's 10-Year-Old Bourbon Batch #1, its oldest standalone whiskey, launched by lottery and is now moving into the shipment/watch-list window.",
-    note: "Best of the morning: age-stated Nevada bourbon is still a scarce craft lane, and this gives hunters a concrete bottle to track after the lottery closes.",
+    note: "Age-stated Nevada bourbon is still a scarce craft lane, and this gives hunters a concrete bottle to track after the lottery closes.",
     href: "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
     source: "Frey Ranch",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Bulleit pushes rye into a 20-year collector lane",
     summary: "Bulleit is releasing an ultra-limited 20-year straight rye, positioning the brand's high-rye identity in a much older, more collectible tier.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.prnewswire.com/news-releases/bulleit-goes-two-decades-deep-with-new-20-year-old-straight-rye-whiskey-302809454.html",
     source: "Bulleit",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Elijah Craig 21 Year returns as a true trophy bottle",
     summary: "Heaven Hill is bringing back Elijah Craig 21-Year-Old Single Barrel as a limited 2026 release, with an initial distillery debut and select-market bottles later in the year.",
@@ -305,7 +312,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated July 2, 2026</span>
+            <span className="daily-briefing-updated">Updated July 4, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>
