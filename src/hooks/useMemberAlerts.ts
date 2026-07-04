@@ -55,18 +55,24 @@ export function useMemberAlerts(polling = false) {
   const [data, setData] = useState<AlertsResponse>(EMPTY_RESPONSE);
   const [loading, setLoading] = useState(false);
   const seenAlertIds = useRef<Set<string>>(new Set());
+  const hasLoadedRef = useRef(false);
+  const inFlightRef = useRef(false);
   const addToast = useToastStore((state) => state.addToast);
 
   const isEligible = isSignedIn && memberTier !== "free";
   const isPaidOrTester = isEligible;
 
-  const fetchAlerts = useCallback(async () => {
+  const fetchAlerts = useCallback(async (options: { background?: boolean } = {}) => {
     if (!isPaidOrTester) {
       setData(EMPTY_RESPONSE);
+      hasLoadedRef.current = false;
       return EMPTY_RESPONSE;
     }
+    if (inFlightRef.current) return EMPTY_RESPONSE;
 
-    setLoading(true);
+    const background = options.background === true || hasLoadedRef.current;
+    inFlightRef.current = true;
+    if (!background) setLoading(true);
     try {
       const res = await fetch("/api/alerts", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to load alerts");
@@ -89,10 +95,12 @@ export function useMemberAlerts(polling = false) {
       }
 
       seenAlertIds.current = new Set(nextUnreadIds);
+      hasLoadedRef.current = true;
       setData(payload);
       return payload;
     } finally {
-      setLoading(false);
+      inFlightRef.current = false;
+      if (!background) setLoading(false);
     }
   }, [addToast, isPaidOrTester, pathname, polling]);
 
@@ -103,13 +111,24 @@ export function useMemberAlerts(polling = false) {
   useEffect(() => {
     if (!polling || !isPaidOrTester) return;
     const timer = window.setInterval(() => {
-      fetchAlerts().catch(() => undefined);
-    }, 30000);
+      fetchAlerts({ background: true }).catch(() => undefined);
+    }, 60000);
     return () => window.clearInterval(timer);
   }, [fetchAlerts, isPaidOrTester, polling]);
 
   const mutate = useCallback(async (action: "mark_read" | "mark_all_read" | "archive", alertId?: string) => {
     if (!isEligible) return EMPTY_RESPONSE;
+    const optimisticAt = new Date().toISOString();
+    setData((prev) => {
+      const alerts = prev.alerts.map((alert) => {
+        if (action === "mark_all_read") return alert.readAt || alert.archivedAt ? alert : { ...alert, readAt: optimisticAt };
+        if (!alertId || alert.id !== alertId) return alert;
+        if (action === "mark_read") return alert.readAt ? alert : { ...alert, readAt: optimisticAt };
+        if (action === "archive") return { ...alert, archivedAt: optimisticAt, readAt: alert.readAt ?? optimisticAt };
+        return alert;
+      });
+      return { ...prev, alerts, unreadCount: alerts.filter((alert) => !alert.readAt && !alert.archivedAt).length };
+    });
     const res = await fetch("/api/alerts", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

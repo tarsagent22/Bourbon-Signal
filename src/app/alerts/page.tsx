@@ -16,7 +16,7 @@ export default function AlertsPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("unread");
   const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
   const { isSignedIn } = useAuth();
-  const { alerts, unreadCount, loading, isEligible, markRead, markAllRead, archive } = useMemberAlerts(true);
+  const { alerts, unreadCount, loading, isEligible, markRead, markAllRead, archive } = useMemberAlerts(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);

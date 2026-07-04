@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -8,6 +8,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 function SuccessContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const { user, isLoaded } = useUser();
@@ -25,7 +26,10 @@ function SuccessContent() {
       .then(async (res) => {
         if (!res.ok) throw new Error("Could not activate membership");
         if (user) await user.reload();
-        if (!cancelled) setActivationStatus("active");
+        if (!cancelled) {
+          setActivationStatus("active");
+          window.setTimeout(() => router.push("/alerts?welcome=1&from=checkout"), 2200);
+        }
       })
       .catch(() => {
         if (!cancelled) setActivationStatus("error");
@@ -33,7 +37,7 @@ function SuccessContent() {
     return () => {
       cancelled = true;
     };
-  }, [activationStatus, isLoaded, sessionId, user]);
+  }, [activationStatus, isLoaded, router, sessionId, user]);
 
   return (
     <div
@@ -133,7 +137,7 @@ function SuccessContent() {
               marginBottom: 0,
             }}
           >
-            {activationStatus === "error" ? "If access does not update in a moment, refresh this page or contact support from the account email used at checkout." : "Next step: set your alert areas and watchlist so Bourbon Signal can match source-backed drops to the bottles and markets you care about."}
+            {activationStatus === "error" ? "If access does not update in a moment, refresh this page or contact support from the account email used at checkout." : "Next step: set your alert areas and watchlist. We’ll take you to the signal inbox next so you can configure the markets and bottles you care about."}
           </p>
         </div>
 
@@ -152,7 +156,7 @@ function SuccessContent() {
 
         {/* CTA */}
         <Link
-          href="/dashboard"
+          href="/alerts?welcome=1&from=checkout"
           style={{
             display: "inline-block",
             background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
@@ -179,7 +183,7 @@ function SuccessContent() {
               "translateY(0)";
           }}
         >
-          Start Hunting →
+          Set Up Alerts →
         </Link>
       </div>
     </div>

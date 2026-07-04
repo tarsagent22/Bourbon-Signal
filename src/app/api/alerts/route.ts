@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { readSiteExport } from "@/lib/site-engine-contract";
-import { isPaidTier } from "@/lib/entitlements";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
 import { candidateCanSendEmail, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshEmailGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences } from "@/lib/alert-delivery";
 
@@ -47,94 +46,13 @@ function reliabilitySummary(candidates: CandidateAlert[]) {
   };
 }
 
-function hasSavedAreaPreferences(areaPrefs: ReturnType<typeof normalizeAreaPrefs>) {
-  return Boolean(
-    areaPrefs.states.length ||
-    areaPrefs.ncBoards.length ||
-    areaPrefs.vaCities.length ||
-    areaPrefs.ohCities.length ||
-    areaPrefs.iaCities.length ||
-    areaPrefs.idCities.length ||
-    areaPrefs.paCounties.length ||
-    areaPrefs.paStores.length
-  );
-}
-
-function candidateRank(candidate: CandidateAlert) {
-  const priorityClass = asString(candidate.priorityClass).toLowerCase();
-  const tier = asString(candidate.tier).toLowerCase();
-  const reliability = asNumber(candidate.reliabilityScore, asNumber(candidate.score));
-  const freshnessHours = asNumber(candidate.freshnessHours, 999);
-  let rank = reliability;
-  if (priorityClass === "major") rank += 1000;
-  if (tier === "unicorn") rank += 700;
-  if (tier === "allocated") rank += 450;
-  if (Number.isFinite(freshnessHours)) rank -= Math.min(freshnessHours, 72) * 2;
-  return rank;
-}
-
-async function syncOnSiteAlertsForUser(
-  userId: string,
-  user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
-  limit = 1,
-) {
-  const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
-  if (!isPaidTier(publicMetadata)) return { created: 0, skipped: "not_paid" as const };
-
-  const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
-  if (!notificationPrefs.onSite.enabled) return { created: 0, skipped: "on_site_disabled" as const };
-
-  const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences);
-  if (!hasSavedAreaPreferences(areaPrefs)) return { created: 0, skipped: "no_area_preferences" as const };
-
-  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-  const inbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
-  const existingDedupe = new Set(inbox.recent.map((alert) => alert.dedupeKey));
-  const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
-  const alertMode = publicMetadata.alertMode;
-
-  const candidates = readCandidates()
-    .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
-    .filter(candidateCanSendEmail)
-    .filter(candidatePassesFreshEmailGuardrails)
-    .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
-    .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
-    .filter((candidate) => !existingDedupe.has(asString(candidate.dedupeKey, asString(candidate.id))))
-    .sort((a, b) => candidateRank(b) - candidateRank(a))
-    .slice(0, Math.max(1, Math.min(5, limit)));
-
-  if (!candidates.length) return { created: 0, skipped: "no_new_matches" as const };
-
-  const createdAt = new Date().toISOString();
-  const created = candidates.map((candidate) => candidateToMemberAlert(userId, candidate, createdAt, areaPrefs));
-  const client = await clerkClient();
-  await client.users.updateUserMetadata(userId, {
-    privateMetadata: {
-      ...privateMetadata,
-      alertInbox: {
-        recent: [...created, ...inbox.recent].slice(0, 100),
-        lastSyncedAt: createdAt,
-      },
-    },
-  });
-
-  return { created: created.length, skipped: null };
-}
-
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  let opportunisticSync: Awaited<ReturnType<typeof syncOnSiteAlertsForUser>> | null = null;
-  try {
-    opportunisticSync = await syncOnSiteAlertsForUser(userId, user, 1);
-  } catch (err) {
-    console.error("[api/alerts] Opportunistic on-site alert sync failed:", err);
-  }
-  const freshUser = opportunisticSync?.created ? await client.users.getUser(userId) : user;
-  const privateMetadata = (freshUser.privateMetadata && typeof freshUser.privateMetadata === "object" ? freshUser.privateMetadata : {}) as Record<string, unknown>;
+  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const userAlerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
@@ -155,7 +73,6 @@ export async function GET() {
     onSiteDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
     emailDeliveryEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
     emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
-    opportunisticSync,
     alertPolicyNote: "Eligible engine candidates can be synced on-site and delivered by the protected email delivery worker when preferences match.",
   });
 }
@@ -270,4 +187,5 @@ export async function PATCH(req: NextRequest) {
     unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length,
   });
 }
+
 

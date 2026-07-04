@@ -52,12 +52,14 @@ function SignalTicker({
   totalSignals,
   liveSignals,
   storesMonitored,
+  memberCount,
   lastRefreshed,
   reduceMotion,
 }: {
   totalSignals?: number;
   liveSignals?: number;
   storesMonitored?: number;
+  memberCount?: number;
   lastRefreshed?: string;
   reduceMotion: boolean;
 }) {
@@ -66,6 +68,7 @@ function SignalTicker({
     { label: "Total signals detected", value: formatTickerNumber(totalSignals) },
     { label: "Live signals", value: formatTickerNumber(liveSignals) },
     { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
+    { label: "Members tracking", value: formatTickerNumber(memberCount) },
     { label: "Last refreshed", value: refreshedText },
   ];
   const tapeItems = [...items, ...items];
@@ -1314,6 +1317,27 @@ export default function DropFeed() {
   const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn && canReadSightings);
   const { stores } = useStores();
   const { stats: engineStats } = useStats();
+  const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMemberCount() {
+      try {
+        const res = await fetch("/api/member-count", { cache: "no-store" });
+        if (!res.ok) return;
+        const payload = (await res.json()) as { totalMembers?: number };
+        if (!cancelled && typeof payload.totalMembers === "number") setMemberCount(payload.totalMembers);
+      } catch {
+        // Keep the market tape usable if the live member counter is temporarily unavailable.
+      }
+    }
+    loadMemberCount();
+    const timer = window.setInterval(loadMemberCount, 60000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
   const areaPrefs = prefs.areaPreferences;
   const isFreeUser = entitlements.tier === "free";
   const [data, setData] = useState<DropsResponse | null>(null);
@@ -2173,6 +2197,7 @@ export default function DropFeed() {
             totalSignals={engineStats.historicalSignalCount ?? engineStats.signalCount}
             liveSignals={engineStats.signalCount}
             storesMonitored={engineStats.total_stores}
+            memberCount={memberCount}
             lastRefreshed={tickerLastRefreshed}
             reduceMotion={Boolean(shouldReduceMotion)}
           />
