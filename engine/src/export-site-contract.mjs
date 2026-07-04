@@ -919,6 +919,7 @@ function buildEvents(signals, bible) {
 function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
+    .filter((c) => ['unicorn', 'allocated', 'limited'].includes(String(c.tier || '').toLowerCase()))
     .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
     .filter((c) => !['MD-MONTGOMERY', 'UT'].includes(c.state) || !/^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(String(c.eventType || '')))
     .map((c) => ({
@@ -962,6 +963,47 @@ function buildAlerts(alerts) {
     .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0));
 }
 
+function alertCandidateSort(a, b) {
+  return Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0);
+}
+
+function alertDropSort(a, b) {
+  const tierRank = { unicorn: 3, allocated: 2, limited: 1 };
+  return (tierRank[String(b.tier || '')] || 0) - (tierRank[String(a.tier || '')] || 0)
+    || Number(b.quantity || b.warehouseQty || 0) - Number(a.quantity || a.warehouseQty || 0)
+    || String(b.observedAt || b.lastConfirmedAt || b.displayAt || '').localeCompare(String(a.observedAt || a.lastConfirmedAt || a.displayAt || ''));
+}
+
+function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
+  const selected = [];
+  const byState = new Map();
+  for (const candidate of candidates.slice().sort(alertCandidateSort)) {
+    const state = candidate.state || 'UNKNOWN';
+    if (!byState.has(state)) byState.set(state, []);
+    byState.get(state).push(candidate);
+  }
+  for (let round = 0; selected.length < limit; round += 1) {
+    let added = false;
+    for (const bucket of byState.values()) {
+      if (round >= Math.min(bucket.length, perStateCap)) continue;
+      selected.push(bucket[round]);
+      added = true;
+      if (selected.length >= limit) break;
+    }
+    if (!added) break;
+  }
+  if (selected.length < limit) {
+    const already = new Set(selected.map((candidate) => candidate.dedupeKey || candidate.id));
+    for (const candidate of candidates.slice().sort(alertCandidateSort)) {
+      const key = candidate.dedupeKey || candidate.id;
+      if (already.has(key)) continue;
+      selected.push(candidate);
+      already.add(key);
+      if (selected.length >= limit) break;
+    }
+  }
+  return selected.sort(alertCandidateSort);
+}
 
 function dropAgeHours(drop) {
   const observed = Date.parse(drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || 0);
@@ -974,6 +1016,7 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
     .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
     .filter((drop) => Number(drop.quantity || 0) > 0)
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
+    .sort(alertDropSort)
     .slice(0, 150)
     .map((drop) => ({
       id: stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
@@ -1023,6 +1066,7 @@ function buildRegionalWatchAlertsFromDrops(drops) {
     .filter((drop) => Number(drop.quantity || 0) + Number(drop.warehouseQty || 0) > 0)
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .filter((drop) => /shipment|warehouse|limited_release_store_drop/i.test(String(drop.type || drop.eventType || '')))
+    .sort(alertDropSort)
     .slice(0, 100)
     .map((drop) => ({
       id: stableId(['regional_watch_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
@@ -1258,8 +1302,8 @@ async function main() {
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(drops);
   const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(drops);
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates], (candidate) => candidate.dedupeKey || candidate.id)
-    .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0))
-    .slice(0, 200);
+    .sort(alertCandidateSort);
+  const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 200, 50);
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
@@ -1305,7 +1349,7 @@ async function main() {
     dropCount: drops.length,
     eventCount: events.length,
     historicalTrendCount: historicalTrends.length,
-    alertCandidateCount: alertCandidates.length,
+    alertCandidateCount: cappedAlertCandidates.length,
     roadblockCount: summary.roadblockCount || 0,
     refreshHealth: {
       degradedStateCount: summary.degradedStateCount || 0,
@@ -1362,7 +1406,7 @@ async function main() {
       location: Object.keys(locations[0] || {}),
       drop: Object.keys(drops[0] || {}),
       event: Object.keys(events[0] || {}),
-      alert: Object.keys(alertCandidates[0] || {}),
+      alert: Object.keys(cappedAlertCandidates[0] || {}),
       historicalTrend: Object.keys(historicalTrends[0] || {})
     }
   };
@@ -1374,13 +1418,13 @@ async function main() {
   await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: locations.length, locations }, null, 2));
   await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: drops.length, drops }, null, 2));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: events.length, events }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: alertCandidates.length, alerts: alertCandidates }, null, 2));
+  await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: cappedAlertCandidates.length, alerts: cappedAlertCandidates }, null, 2));
   await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, null, 2));
   if (ncIntelligenceRaw) {
     await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, ...ncIntelligenceRaw }, null, 2));
   }
 
-  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${alertCandidates.length} alert candidates -> out/site/`);
+  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${cappedAlertCandidates.length} alert candidates -> out/site/`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });
