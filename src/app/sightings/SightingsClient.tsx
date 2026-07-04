@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { Award, BadgeCheck, Camera, Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { BadgeCheck, Camera, Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
@@ -14,6 +14,52 @@ import { isSightingVerified, publicProofUrl } from "@/lib/sighting-rewards";
 
 function norm(value?: string | null) {
   return (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+const BOTTLE_QUERY_ALIASES: Record<string, string[]> = {
+  eht: ["e h taylor", "colonel e h taylor", "eh taylor"],
+  btac: ["george t stagg", "william larue weller", "thomas h handy", "eagle rare 17", "sazerac 18"],
+  wfp: ["weller full proof"],
+  rr13: ["russell reserve 13"],
+  rr15: ["russell reserve 15"],
+  ofbb: ["old forester birthday bourbon"],
+  ehtbp: ["e h taylor barrel proof", "colonel e h taylor barrel proof"],
+  blantons: ["blanton", "blanton's"],
+};
+
+const STORE_QUERY_ALIASES: Record<string, string[]> = {
+  abc: ["abc store", "abc spirits", "alcoholic beverage control"],
+  costco: ["costco wholesale"],
+  totalwine: ["total wine", "total wine spirits"],
+  binnys: ["binny", "binny's"],
+  kroger: ["kroger liquor"],
+};
+
+function expandQuery(value: string, aliases: Record<string, string[]>) {
+  const base = norm(value);
+  if (!base) return [];
+  const compact = base.replace(/\s+/g, "");
+  return Array.from(new Set([base, compact, ...(aliases[base] || []), ...(aliases[compact] || [])].map(norm).filter(Boolean)));
+}
+
+function tokenScore(searchable: string, queryTerms: string[]) {
+  if (!queryTerms.length) return 0;
+  const haystack = norm(searchable);
+  const compactHaystack = haystack.replace(/\s+/g, "");
+  let best = 0;
+  for (const term of queryTerms) {
+    if (!term) continue;
+    const compactTerm = term.replace(/\s+/g, "");
+    if (haystack === term || compactHaystack === compactTerm) best = Math.max(best, 120);
+    else if (haystack.startsWith(term) || compactHaystack.startsWith(compactTerm)) best = Math.max(best, 95);
+    else if (haystack.includes(term) || compactHaystack.includes(compactTerm)) best = Math.max(best, 76);
+    else {
+      const words = term.split(" ").filter(Boolean);
+      const matchedWords = words.filter((word) => haystack.includes(word)).length;
+      if (words.length) best = Math.max(best, Math.round((matchedWords / words.length) * 62));
+    }
+  }
+  return best;
 }
 
 function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
@@ -56,18 +102,6 @@ function tierLabel(tier?: MemberSighting["rarityTier"]) {
   if (tier === "unicorn") return "Unicorn";
   if (tier === "allocated") return "Allocated";
   return "Limited";
-}
-
-function memberPointCopy(tier?: MemberSighting["rarityTier"]) {
-  if (tier === "unicorn") return "Unicorn sighting: +2 Member Points. Photo or 3+ net member upvotes can verify it for +1 more.";
-  if (tier === "allocated") return "Allocated sighting: +1 Member Point. Photo or 3+ net member upvotes can verify it for +1 more.";
-  return "Limited sightings help the feed, but do not earn Member Points.";
-}
-
-function tierTone(tier?: MemberSighting["rarityTier"]) {
-  if (tier === "unicorn") return "rgba(232,201,122,.2)";
-  if (tier === "allocated") return "rgba(196,148,58,.12)";
-  return "rgba(245,237,214,.04)";
 }
 
 function formatPrice(value?: number | null) {
@@ -150,7 +184,7 @@ export default function SightingsClient() {
   const { stores, loading: storesLoading } = useStores();
   const canReadSightings = entitlements.canReadSightings;
   const isFreePreview = isSignedIn && !canReadSightings;
-  const { sightings, states, rewards, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(isSignedIn && canReadSightings);
+  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(isSignedIn && canReadSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
@@ -199,27 +233,32 @@ export default function SightingsClient() {
   }, [bottleQuery]);
 
   const bottleMatches = useMemo(() => {
-    const needle = norm(bottleQuery);
-    if (!needle) return [];
-    const matches = bottles.filter((bottle) => [bottle.name, bottle.canonical_name, bottle.canonical_id, ...(bottle.aliases || []), ...(bottle.search_aliases || [])].some((value) => norm(value).includes(needle) || needle.includes(norm(value))));
-    const byId = new Map<string, Bottle>();
-    [...matches, ...bottleCheckMatches].forEach((bottle) => {
+    const queryTerms = expandQuery(bottleQuery, BOTTLE_QUERY_ALIASES);
+    if (!queryTerms.length) return [];
+    const byId = new Map<string, { bottle: Bottle; score: number }>();
+    [...bottles, ...bottleCheckMatches].forEach((bottle) => {
+      const searchable = [bottle.name, bottle.canonical_name, bottle.canonical_id, bottle.distillery, ...(bottle.aliases || []), ...(bottle.search_aliases || [])].filter(Boolean).join(" ");
+      const score = tokenScore(searchable, queryTerms) + (bottleCheckMatches.some((match) => (match.id || match.name) === (bottle.id || bottle.name)) ? 8 : 0);
+      if (score < 38) return;
       const key = bottle.id || bottle.canonical_id || bottle.name;
-      if (key && !byId.has(key)) byId.set(key, bottle);
+      const existing = byId.get(key);
+      if (key && (!existing || score > existing.score)) byId.set(key, { bottle, score });
     });
-    return Array.from(byId.values()).slice(0, 7);
+    return Array.from(byId.values()).sort((a, b) => b.score - a.score || a.bottle.name.localeCompare(b.bottle.name)).slice(0, 8).map(({ bottle }) => bottle);
   }, [bottleQuery, bottles, bottleCheckMatches]);
 
   const storeMatches = useMemo(() => {
-    const needle = norm(storeQuery);
+    const queryTerms = expandQuery(storeQuery, STORE_QUERY_ALIASES);
     return stores
       .filter((store) => store.precision === "store" && (store.searchable ?? true))
       .map((store) => {
-        const searchable = norm([store.name, store.displayLabel, store.address, store.city, store.county, store.zip, store.state].filter(Boolean).join(" "));
-        return { store, searchable, score: (needle && !searchable.includes(needle) ? 25 : 0) + Math.min(distanceMiles(geo, store), 250) };
+        const searchable = [store.name, store.displayLabel, store.address, store.city, store.county, store.zip, store.state].filter(Boolean).join(" ");
+        const matchScore = tokenScore(searchable, queryTerms);
+        const locationBoost = geo ? Math.max(0, 70 - Math.min(distanceMiles(geo, store), 70)) : 0;
+        return { store, score: matchScore + locationBoost };
       })
-      .filter(({ searchable }) => (!needle ? Boolean(geo) : searchable.includes(needle)))
-      .sort((a, b) => a.score - b.score)
+      .filter(({ score }) => (queryTerms.length ? score >= 34 : Boolean(geo) && score > 0))
+      .sort((a, b) => b.score - a.score || storeDisplay(a.store).localeCompare(storeDisplay(b.store)))
       .slice(0, 8)
       .map(({ store }) => store);
   }, [stores, storeQuery, geo]);
@@ -252,8 +291,8 @@ export default function SightingsClient() {
     if (!canReadSightings) return setSubmitError("Paid members only. Upgrade to submit sightings.");
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
-    if (!selectedStore && !isManualStore) return setSubmitError("Select a store or use the manual store option.");
-    if (isManualStore && (!manualStoreName || !manualStoreCity.trim() || !manualStoreState.trim())) return setSubmitError("Manual stores need a store name, city, and state.");
+    if (!selectedStore && !isManualStore) return setSubmitError("Choose a store or add the missing store details.");
+    if (isManualStore && (!manualStoreName || !manualStoreCity.trim() || !manualStoreState.trim())) return setSubmitError("Add the store name, city, and state so other members can use it too.");
     const storeName = selectedStore ? storeDisplay(selectedStore) : manualStoreName;
     const storeAddress = selectedStore ? exactAddress : manualStoreLine;
     const storeCity = selectedStore ? selectedStore.city : manualStoreCity.trim();
@@ -279,7 +318,7 @@ export default function SightingsClient() {
         needsBottleReview: isManualBottle,
         needsStoreReview: isManualStore,
         manualBottleName: isManualBottle ? bottleName : undefined,
-        manualBottleRarityTier: isManualBottle ? selectedBottleTier || "limited" : undefined,
+        manualBottleRarityTier: undefined,
         manualStoreName: isManualStore ? manualStoreName : undefined,
         manualStoreAddress: isManualStore ? manualStoreAddress.trim() || undefined : undefined,
         manualStoreCity: isManualStore ? manualStoreCity.trim() : undefined,
@@ -348,7 +387,14 @@ export default function SightingsClient() {
         .sighting-submit{margin-top:18px;width:100%;border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.09)}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
         .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.2);background:rgba(245,237,214,.06)}
-        .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}.manual-review-pill{display:inline-flex;margin-top:7px;border:1px solid rgba(196,148,58,.22);border-radius:999px;padding:5px 8px;color:rgba(232,201,122,.9);font-family:var(--font-jetbrains);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+        .sighting-step-card{position:relative;border:1px solid rgba(245,237,214,.085);border-radius:20px;background:linear-gradient(145deg,rgba(18,13,9,.78),rgba(7,6,5,.54));padding:16px;box-shadow:inset 0 1px 0 rgba(245,237,214,.032)}
+        .sighting-step-card[data-complete="true"]{border-color:rgba(196,148,58,.22);background:linear-gradient(145deg,rgba(196,148,58,.075),rgba(7,6,5,.48))}
+        .sighting-step-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:13px}
+        .sighting-step-number{display:grid;place-items:center;flex:0 0 auto;width:27px;height:27px;border:1px solid rgba(196,148,58,.28);border-radius:999px;background:rgba(196,148,58,.09);color:rgba(232,201,122,.92);font-family:var(--font-jetbrains);font-size:10px;font-weight:900}
+        .sighting-step-head strong{display:block;color:var(--color-cream);font-family:var(--font-dm-sans);font-size:15px;font-weight:900;line-height:1.2}
+        .sighting-step-head span{display:block;margin-top:3px;color:rgba(245,237,214,.5);font-family:var(--font-dm-sans);font-size:12px;line-height:1.4}
+        .sighting-selected-pill{display:inline-flex;align-items:center;gap:7px;margin-top:9px;border:1px solid rgba(83,211,146,.22);border-radius:999px;background:rgba(83,211,146,.07);padding:7px 10px;color:rgba(203,255,225,.9);font-family:var(--font-dm-sans);font-size:12px;font-weight:800}
+        .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}
         .sighting-tab{position:relative;border-radius:0;background:transparent;border:0;color:rgba(245,237,214,.48);padding:12px 7px 13px;min-width:86px;letter-spacing:.01em}
         .sighting-tab:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:transparent;transition:background .18s ease,opacity .18s ease}
         .sighting-tab.active{color:var(--color-cream);background:transparent;box-shadow:none}
@@ -382,14 +428,7 @@ export default function SightingsClient() {
         .sighting-detail-pill{border:1px solid rgba(245,237,214,.075);border-radius:999px;background:rgba(5,4,3,.24);padding:6px 9px;color:rgba(245,237,214,.6);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
         .sighting-detail-pill.verified{border-color:rgba(83,211,146,.26);background:rgba(83,211,146,.09);color:rgba(198,255,222,.88)}
         .sighting-proof-photo{margin-top:12px;width:100%;max-height:360px;object-fit:cover;border-radius:16px;border:1px solid rgba(245,237,214,.1);background:#050403}
-        .member-rewards-card{border:1px solid rgba(196,148,58,.18);border-radius:24px;background:linear-gradient(145deg,rgba(196,148,58,.09),rgba(245,237,214,.025));padding:18px;margin:18px 0 22px;box-shadow:0 18px 52px rgba(0,0,0,.22)}
-        .member-rewards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
-        .member-reward-stat{border:1px solid rgba(245,237,214,.08);border-radius:16px;background:rgba(5,4,3,.22);padding:12px}
-        .member-reward-stat strong{display:block;font-family:var(--font-playfair);font-size:28px;line-height:1;color:var(--color-cream)}
-        .member-reward-stat span{display:block;margin-top:5px;font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(245,237,214,.48)}
-        .badge-progress-list{display:grid;gap:8px;margin-top:14px}
-        .badge-progress-row{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;color:rgba(245,237,214,.68);font-size:12px}
-        .badge-progress-bar{height:7px;border-radius:99px;background:rgba(245,237,214,.08);overflow:hidden}.badge-progress-bar span{display:block;height:100%;background:rgba(196,148,58,.68)}
+
         .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.22);border-radius:0 12px 12px 0;color:rgba(245,237,214,.64);font-size:13px;line-height:1.5}
         .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.055)}
         .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.38)}
@@ -412,16 +451,6 @@ export default function SightingsClient() {
           <p style={{ maxWidth: 720, color: "rgba(245,237,214,0.68)", fontSize: 17, lineHeight: 1.65 }}>Submit and browse member-reported sightings.</p>
         </motion.div>
 
-        {rewards ? (
-          <section className="member-rewards-card" aria-label="Member Points and badge progress">
-            <div style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(232,201,122,.86)", fontFamily: "var(--font-jetbrains)", fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}><Award size={16} /> Member Points</div>
-            <div className="member-rewards-grid">
-              <div className="member-reward-stat"><strong>{rewards.points}</strong><span>Total points</span></div>
-              <div className="member-reward-stat"><strong>{rewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
-              <div className="member-reward-stat"><strong>{rewards.badges.length}</strong><span>Badges</span></div>
-            </div>
-          </section>
-        ) : null}
 
         <div className="sighting-mode-shell">
           <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => setActiveTab("submit")}>Submit</button>
@@ -431,17 +460,22 @@ export default function SightingsClient() {
         {activeTab === "submit" ? (
           <section style={{ border: "1px solid rgba(245,237,214,0.1)", borderRadius: "0 28px 28px 28px", background: "rgba(245,237,214,0.045)", padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
             {isFreePreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Preview the sighting form</strong><span>Upgrade to submit member sightings.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to use</a></div> : null}
-            <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 18 }}>
-              <div>
-                <label style={{ display: "block", marginBottom: 18 }}><span className="sighting-label">Bottle</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Search or type bottle name" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{bottle.distillery}</span></button>)}</div> : null}{!isFreePreview && isManualBottle ? <span className="manual-review-pill">Manual bottle · admin review</span> : null}</label>
-                {isManualBottle ? <div className="manual-review-box" style={{ margin: "-6px 0 16px" }}><strong>Not in the bottle database?</strong><p>Submit it anyway. It will enter the admin catalog queue so we can add or map it after review.</p><div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>{(["limited", "allocated", "unicorn"] as const).map((tier) => <button key={tier} type="button" className="sighting-location-button" onClick={() => setSelectedBottleTier(tier)} style={{ borderColor: selectedBottleTier === tier ? "rgba(196,148,58,.36)" : undefined, background: selectedBottleTier === tier ? "rgba(196,148,58,.1)" : undefined }}>{tierLabel(tier)}</button>)}</div></div> : null}
-                <div style={{ margin: "-6px 0 16px", border: "1px solid rgba(245,237,214,.08)", borderRadius: 14, background: tierTone(selectedBottleTier), padding: "10px 12px", color: "rgba(245,237,214,.62)", fontSize: 12, lineHeight: 1.5 }}>{memberPointCopy(selectedBottleTier)}</div>
-                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="City, ZIP, street, or store name" disabled={isFreePreview} /></div></label>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" onClick={requestLocation} disabled={isFreePreview || manualStoreMode} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button><button type="button" disabled={isFreePreview} className="sighting-location-button" onClick={() => { setManualStoreMode((current) => !current); setSelectedStore(null); }}>{manualStoreMode ? "Use store search" : "Store missing? Enter manually"}</button></div>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
+            <div style={{ display: "grid", gap: 14 }}>
+              <section className="sighting-step-card" data-complete={Boolean(bottleQuery.trim())}>
+                <div className="sighting-step-head"><span className="sighting-step-number">01</span><div><strong>Bottle</strong><span>Search first. If we do not have it yet, add the bottle name and keep going.</span></div></div>
+                <label style={{ display: "block" }}><span className="sighting-label">Bottle name</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Try Blanton’s, EHT, RR13, Weller Full Proof…" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{[bottle.distillery, bottle.tier ? `${tierLabel(bottle.tier)} bottle` : null].filter(Boolean).join(" · ")}</span></button>)}</div> : null}</label>
+                {!isFreePreview && isManualBottle ? <div className="manual-review-box"><strong>Add this bottle to Bourbon Signal</strong><p>Looks like a new bottle for the community. Submit the sighting and we’ll use the bottle name to improve future searches and reports.</p></div> : null}
+                {selectedBottleId ? <div className="sighting-selected-pill"><BadgeCheck size={13} /> Bottle matched</div> : null}
+              </section>
+
+              <section className="sighting-step-card" data-complete={Boolean(selectedStore || isManualStore)}>
+                <div className="sighting-step-head"><span className="sighting-step-number">02</span><div><strong>Store</strong><span>Use location, search by city/name/address, or add a missing store for other members.</span></div></div>
+                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store search</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="Store name, city, ZIP, or street" disabled={isFreePreview || manualStoreMode} /></div></label>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" onClick={requestLocation} disabled={isFreePreview || manualStoreMode} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button><button type="button" disabled={isFreePreview} className="sighting-location-button" onClick={() => { setManualStoreMode((current) => !current); setSelectedStore(null); }}>{manualStoreMode ? "Back to store search" : "Can’t find the store? Add it"}</button></div>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
                 {manualStoreMode ? (
                   <div className="manual-review-box">
-                    <strong>Manual store · admin review</strong>
-                    <p>Use this when the Myrtle Beach / local store is missing. We’ll review it and add/map it to the store database.</p>
+                    <strong>Add a missing store</strong>
+                    <p>Help other members by adding a location we do not have yet. The more detail you add, the easier it is to reuse for future sightings.</p>
                     <input className="sighting-plain-input" value={storeQuery} onChange={(e) => setStoreQuery(e.target.value)} placeholder="Store name" disabled={isFreePreview} />
                     <input className="sighting-plain-input" value={manualStoreAddress} onChange={(e) => setManualStoreAddress(e.target.value)} placeholder="Street address · optional but helpful" disabled={isFreePreview} />
                     <div className="manual-grid"><input className="sighting-plain-input" value={manualStoreCity} onChange={(e) => setManualStoreCity(e.target.value)} placeholder="City" disabled={isFreePreview} /><input className="sighting-plain-input" value={manualStoreState} onChange={(e) => setManualStoreState(e.target.value.toUpperCase().slice(0, 2))} placeholder="State" disabled={isFreePreview} /></div>
@@ -454,19 +488,25 @@ export default function SightingsClient() {
                     <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
                   </div>
                 ) : (
-                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by city, ZIP, street, store name, or use your location. If it is missing, use manual entry.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by store name, city, ZIP, or street. Not seeing it? Add the store so the community can reuse it.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
                 )}
-              </div>
-              <div>
+              </section>
+
+              <section className="sighting-step-card" data-complete={Boolean(quantityEstimate || price || notes || proofPhoto)}>
+                <div className="sighting-step-head"><span className="sighting-step-number">03</span><div><strong>Details</strong><span>Add the quick field intel that helps someone decide whether to make the trip.</span></div></div>
                 <span className="sighting-label">Sighting type</span>
-                <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online/Social Media" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online / social" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
                 <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" disabled={isFreePreview} /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" disabled={isFreePreview} /></label></div>
-                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: purchase limit, shelf location, Facebook group context, etc." rows={4} disabled={isFreePreview} /></label>
-                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Proof photo · optional</span><input className="sighting-plain-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e) => setProofPhoto(e.target.files?.[0] || null)} disabled={isFreePreview} /></label>
-                <p style={{ color: "rgba(245,237,214,.46)", fontSize: 12, lineHeight: 1.5, margin: "8px 0 0" }}>Photos are reviewed before verification. Admin can verify privately if the image contains faces or sensitive info.</p>
+                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: shelf location, purchase limit, social post context…" rows={4} disabled={isFreePreview} /></label>
+                <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Photo · optional</span><input className="sighting-plain-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e) => setProofPhoto(e.target.files?.[0] || null)} disabled={isFreePreview} /></label>
+                <p style={{ color: "rgba(245,237,214,.46)", fontSize: 12, lineHeight: 1.5, margin: "8px 0 0" }}>A clear shelf or receipt photo can make the report more useful. Keep faces and personal info out of frame when possible.</p>
+              </section>
+
+              <section className="sighting-step-card" data-complete={Boolean(bottleQuery.trim() && (selectedStore || isManualStore))}>
+                <div className="sighting-step-head"><span className="sighting-step-number">04</span><div><strong>Submit</strong><span>We’ll add the report to the member feed and use new bottle/store info to strengthen Bourbon Signal.</span></div></div>
                 {submitError ? <div style={{ color: "#ffb4a3", marginTop: 12, fontSize: 13 }}>{submitError}</div> : null}{saved ? <div style={{ color: "var(--color-accent-amber)", marginTop: 12, fontSize: 13 }}>Sighting saved. It now appears in the member feed.</div> : null}
                 <button type="button" onClick={submit} disabled={saving || isFreePreview} className="sighting-submit"><Send size={16} /> {isFreePreview ? "Upgrade to use" : saving ? "Saving…" : "Submit sighting"}</button>
-              </div>
+              </section>
             </div>
           </section>
         ) : isFreePreview ? (
@@ -495,7 +535,7 @@ export default function SightingsClient() {
                   <h3 className="sighting-title">{sighting.bottleName}</h3>
                   <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>
                   <p className="sighting-address">{sightingLocationLine(sighting)}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
-                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{(sighting.reporterBadges || []).map((badge) => <span key={badge} className="sighting-detail-pill">{badge}</span>)}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">Manual bottle pending</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">Manual store pending</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
+                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{(sighting.reporterBadges || []).map((badge) => <span key={badge} className="sighting-detail-pill">{badge}</span>)}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">New bottle</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">New store</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
                   {proofUrl ? <img className="sighting-proof-photo" src={proofUrl} alt={`Proof photo for ${sighting.bottleName}`} loading="lazy" /> : null}
                   {sighting.notes ? <div className="sighting-note">“{sighting.notes}”</div> : null}
                   <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}{sighting.reporterDisplayName ? ` · ${sighting.reporterDisplayName}` : ""}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>

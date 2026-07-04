@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="First Sighting badge">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="58%">
+      <stop offset="0" stop-color="#2b1d10"/>
+      <stop offset="0.58" stop-color="#14100c"/>
+      <stop offset="1" stop-color="#050403"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="30" x2="96" y1="20" y2="108">
+      <stop offset="0" stop-color="#f5d889"/>
+      <stop offset="0.45" stop-color="#c4943a"/>
+      <stop offset="1" stop-color="#7b5521"/>
+    </linearGradient>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="58" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="55" fill="none" stroke="#c4943a" stroke-width="3" opacity="0.88"/>
+  <circle cx="64" cy="64" r="48" fill="none" stroke="#f5d889" stroke-width="1" opacity="0.22"/>
+  <path d="M57 31h20c3 0 5 2 5 5v9c0 4-4 6-6 9v40c0 8-5 13-13 13h-2c-8 0-13-5-13-13V54c-2-3-6-5-6-9v-9c0-3 2-5 5-5h10Z" fill="url(#gold)"/>
+  <path d="M54 61h16c3 0 5 2 5 5v19c0 3-2 5-5 5H54V61Z" fill="#100c08" opacity="0.74"/>
+  <path d="M52 37h24v8H52z" fill="#100c08" opacity="0.42"/>
+  <path d="M88 28l4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" fill="#f5d889" filter="url(#glow)"/>
+  <path d="M37 78l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" fill="#c4943a" opacity="0.88"/>
+</svg>

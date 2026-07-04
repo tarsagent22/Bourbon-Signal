@@ -107,6 +107,42 @@ interface BourbonDnaSummary {
   summary: string;
 }
 
+const BADGE_ICON_BY_KEY: Record<string, string> = {
+  first_sighting: "/badge-icons/first-sighting.svg",
+  verified_scout: "/badge-icons/verified-scout.jpg",
+  spotter: "/badge-icons/spotter.jpg",
+  unicorn_hunter: "/badge-icons/unicorn-hunter.jpg",
+  sharp_eye: "/badge-icons/sharp-eye.jpg",
+  local_scout: "/badge-icons/local-scout.jpg",
+  weekend_warrior: "/badge-icons/weekend-warrior.jpg",
+  clean_signal: "/badge-icons/clean-signal.jpg",
+  streak: "/badge-icons/streak.jpg",
+};
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  first_sighting: "Post your first eligible field report.",
+  verified_scout: "Get a report backed by photo or community signal.",
+  spotter: "Build a track record of useful sightings.",
+  unicorn_hunter: "Find the rare bottles people chase.",
+  sharp_eye: "Keep reports accurate enough to verify.",
+  local_scout: "Become reliable in your home area.",
+  weekend_warrior: "Contribute when weekend hunting heats up.",
+  clean_signal: "Sustain a high-quality reporting record.",
+  streak: "Keep useful sightings coming week after week.",
+};
+
+function badgeBaseKey(id: string) {
+  return id.replace(/_(bronze|silver|gold|platinum)$/u, "");
+}
+
+function badgeIconFor(id: string) {
+  return BADGE_ICON_BY_KEY[badgeBaseKey(id)] || "/badge-icons/first-sighting.svg";
+}
+
+function badgeDescriptionFor(id: string) {
+  return BADGE_DESCRIPTIONS[badgeBaseKey(id)] || "Keep contributing useful community signal.";
+}
+
 type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
 
 
@@ -1805,10 +1841,23 @@ export default function DashboardPage() {
           .member-rewards-dashboard-stat { border: 1px solid rgba(245,237,214,0.075); border-radius: 15px; background: rgba(245,237,214,0.035); padding: 12px; }
           .member-rewards-dashboard-stat strong { display: block; font-family: var(--font-playfair); font-size: 27px; line-height: 1; color: var(--color-cream); }
           .member-rewards-dashboard-stat span { display: block; margin-top: 5px; font-family: var(--font-jetbrains); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(245,237,214,0.48); }
-          .member-badge-progress-list { display: grid; gap: 9px; margin-top: 15px; }
-          .member-badge-progress-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 10px; font-family: var(--font-dm-sans); font-size: 12px; color: rgba(245,237,214,0.68); }
+          .member-badge-progress-list { display: grid; gap: 10px; margin-top: 15px; }
+          .member-badge-progress-row { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: 11px; border: 1px solid rgba(245,237,214,0.075); border-radius: 17px; background: rgba(5,4,3,0.22); padding: 9px; }
+          .member-badge-icon { width: 48px; height: 48px; border-radius: 999px; object-fit: cover; border: 1px solid rgba(196,148,58,0.28); background: rgba(5,4,3,0.45); box-shadow: 0 0 18px rgba(196,148,58,0.08); }
+          .member-badge-progress-copy { min-width: 0; display: grid; gap: 6px; }
+          .member-badge-progress-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.88); font-size: 13px; font-weight: 850; }
+          .member-badge-progress-title span:last-child { font-family: var(--font-jetbrains); color: rgba(232,201,122,0.82); font-size: 10px; font-weight: 850; white-space: nowrap; }
+          .member-badge-progress-copy p { margin: 0; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.35; }
           .member-badge-progress-bar { height: 7px; border-radius: 99px; background: rgba(245,237,214,0.08); overflow: hidden; }
           .member-badge-progress-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(196,148,58,0.72), rgba(232,201,122,0.86)); }
+          .member-points-next-action { border: 1px solid rgba(196,148,58,0.18); border-radius: 18px; background: linear-gradient(145deg, rgba(196,148,58,0.075), rgba(245,237,214,0.025)); padding: 14px; display: grid; gap: 6px; margin-top: 14px; }
+          .member-points-next-action strong { font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 14px; }
+          .member-points-next-action span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
+          .member-badge-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+          .member-badge-card { border: 1px solid rgba(245,237,214,0.075); border-radius: 18px; background: rgba(5,4,3,0.22); padding: 12px; display: grid; gap: 8px; min-width: 0; }
+          .member-badge-card img { width: 54px; height: 54px; border-radius: 999px; object-fit: cover; border: 1px solid rgba(196,148,58,0.24); }
+          .member-badge-card strong { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.9); font-size: 13px; }
+          .member-badge-card span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.4; }
           .member-points-drawer-content { display: grid; gap: 14px; }
           .member-points-drawer-content .member-rewards-dashboard-card { margin: 0; }
           .member-points-how-it-works { border: 1px solid rgba(245,237,214,0.08); border-radius: 22px; background: rgba(245,237,214,0.032); padding: 18px; display: grid; gap: 16px; }
@@ -2276,7 +2325,9 @@ export default function DashboardPage() {
             .dashboard-drawer-shell { border-radius: 18px; margin-bottom: 12px; }
             .dashboard-drawer-shell[data-attached="true"] { border-radius: 0 0 18px 18px; }
             .member-points-rules-grid { grid-template-columns: 1fr; }
-            .member-badge-progress-row { grid-template-columns: minmax(96px, 0.9fr) minmax(80px, 1fr) auto; gap: 8px; }
+            .member-badge-progress-row { grid-template-columns: 46px minmax(0,1fr); }
+            .member-badge-icon { width: 44px; height: 44px; }
+            .member-badge-card-grid { grid-template-columns: 1fr; }
             .member-rewards-dashboard-grid { gap: 8px; }
             .member-rewards-dashboard-stat { padding: 11px 9px; }
             .member-rewards-dashboard-stat strong { font-size: 25px; }
@@ -3302,18 +3353,32 @@ export default function DashboardPage() {
               <div className="member-points-drawer-content">
                 <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
                   <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
-                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Badges, streaks, and sighting progress</div>
+                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Your community signal board</div>
                   <div className="member-rewards-dashboard-grid">
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.points}</strong><span>Total points</span></div>
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
                   </div>
+                  {(() => {
+                    const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
+                    return nextBadge ? (
+                      <div className="member-points-next-action">
+                        <strong>Next up: {nextBadge.label}{nextBadge.tier ? ` · ${nextBadge.tier}` : ""}</strong>
+                        <span>{badgeDescriptionFor(nextBadge.id)} You’re at {nextBadge.current}/{nextBadge.target}.</span>
+                      </div>
+                    ) : (
+                      <div className="member-points-next-action"><strong>Everything visible is earned.</strong><span>Keep adding useful sightings to build your next tier as new badges unlock.</span></div>
+                    );
+                  })()}
                   <div className="member-badge-progress-list">
-                    {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 5).map((item) => (
+                    {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 4).map((item) => (
                       <div className="member-badge-progress-row" key={item.id}>
-                        <span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span>
-                        <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
-                        <span>{item.current}/{item.target}</span>
+                        <img className="member-badge-icon" src={badgeIconFor(item.id)} alt="" loading="lazy" />
+                        <div className="member-badge-progress-copy">
+                          <div className="member-badge-progress-title"><span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
+                          <p>{badgeDescriptionFor(item.id)}</p>
+                          <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3324,29 +3389,37 @@ export default function DashboardPage() {
                   <div className="member-points-how-copy">
                     <span>How it works</span>
                     <h3>Post useful sightings. Keep the signal clean.</h3>
-                    <p>Points are for bottles other members actually care about. Limited bottles can still help the feed, but rewards start with allocated and unicorn finds.</p>
+                    <p>Points happen in the background. Members should focus on accurate bottle and store intel; Bourbon Signal handles classification and reward logic.</p>
                   </div>
                   <div className="member-points-rules-grid">
-                    <div><strong>Allocated sighting</strong><span>+1 point when you post it.</span></div>
-                    <div><strong>Unicorn sighting</strong><span>+2 points when you post it.</span></div>
-                    <div><strong>Verified sighting</strong><span>+1 more when a photo is approved or the community backs it.</span></div>
+                    <div><strong>Allocated sighting</strong><span>+1 when Bourbon Signal classifies the report as allocated.</span></div>
+                    <div><strong>Unicorn sighting</strong><span>+2 when the report is classified as a unicorn find.</span></div>
+                    <div><strong>Verified sighting</strong><span>+1 more when a photo or community signal backs it.</span></div>
                     <div><strong>Weekly streak</strong><span>+1 for keeping an eligible weekly streak alive.</span></div>
                     <div><strong>Badge earned</strong><span>+1 when you unlock a badge.</span></div>
-                    <div><strong>Bad info</strong><span>Rejected or removed sightings lose the points.</span></div>
+                    <div><strong>Removed report</strong><span>Points are removed if a sighting is rejected or deleted.</span></div>
                   </div>
                   <div className="member-points-badges">
-                    <h4>Badges</h4>
-                    <ul>
-                      <li><strong>First Sighting</strong> — your first allocated or unicorn report.</li>
-                      <li><strong>Verified Scout</strong> — your first verified report.</li>
-                      <li><strong>Spotter</strong> — volume badge: 5, 25, 50, then 100 eligible sightings.</li>
-                      <li><strong>Unicorn Hunter</strong> — verified unicorn finds: 1, 5, then 15.</li>
-                      <li><strong>Sharp Eye</strong> — verified sightings: 5, 25, then 75.</li>
-                      <li><strong>Local Scout</strong> — repeated verified hits in the same area: 5, 15, then 40.</li>
-                      <li><strong>Weekend Warrior</strong> — eligible Friday night / weekend reports across 3, 8, 20, then 40 weeks.</li>
-                      <li><strong>Clean Signal</strong> — strong accuracy over time: 10, 25, then 50 sightings with a high verification rate.</li>
-                      <li><strong>Streak</strong> — eligible sightings in back-to-back weeks: 2, 4, then 8.</li>
-                    </ul>
+                    <h4>Badge collection</h4>
+                    <div className="member-badge-card-grid">
+                      {[
+                        { id: "first_sighting", label: "First Sighting" },
+                        { id: "verified_scout", label: "Verified Scout" },
+                        { id: "spotter", label: "Spotter" },
+                        { id: "unicorn_hunter", label: "Unicorn Hunter" },
+                        { id: "sharp_eye", label: "Sharp Eye" },
+                        { id: "local_scout", label: "Local Scout" },
+                        { id: "weekend_warrior", label: "Weekend Warrior" },
+                        { id: "clean_signal", label: "Clean Signal" },
+                        { id: "streak", label: "Streak" },
+                      ].map((badge) => (
+                        <div className="member-badge-card" key={badge.id}>
+                          <img src={badgeIconFor(badge.id)} alt="" loading="lazy" />
+                          <strong>{badge.label}</strong>
+                          <span>{badgeDescriptionFor(badge.id)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </section>
               </div>
