@@ -191,6 +191,7 @@ export default function SightingsClient() {
   const [stateFilter, setStateFilter] = useState("ALL");
   const [bottleQuery, setBottleQuery] = useState(searchParams.get("bottle") || "");
   const [selectedBottleId, setSelectedBottleId] = useState(searchParams.get("bottleId") || "");
+  const [manualBottleConfirmed, setManualBottleConfirmed] = useState(false);
   const [selectedBottleTier, setSelectedBottleTier] = useState<MemberSighting["rarityTier"]>("limited");
   const [storeQuery, setStoreQuery] = useState(searchParams.get("store") || "");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -291,6 +292,7 @@ export default function SightingsClient() {
     if (!canReadSightings) return setSubmitError("Paid members only. Upgrade to submit sightings.");
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
+    if (isManualBottle && !manualBottleConfirmed) return setSubmitError("Tap “Use as new bottle” so we know to add this bottle with your sighting.");
     if (!selectedStore && !isManualStore) return setSubmitError("Choose a store or add the missing store details.");
     if (isManualStore && (!manualStoreName || !manualStoreCity.trim() || !manualStoreState.trim())) return setSubmitError("Add the store name, city, and state so other members can use it too.");
     const storeName = selectedStore ? storeDisplay(selectedStore) : manualStoreName;
@@ -339,6 +341,7 @@ export default function SightingsClient() {
     setManualStoreCity("");
     setManualStoreState("");
     setManualStoreZip("");
+    setManualBottleConfirmed(false);
     setActiveTab("feed");
   };
 
@@ -395,7 +398,7 @@ export default function SightingsClient() {
         .sighting-step-head strong{display:block;color:var(--color-cream);font-family:var(--font-playfair);font-size:clamp(24px,5.6vw,30px);font-weight:800;line-height:1.02;letter-spacing:-.015em}
         .sighting-step-head span:last-child{display:block;margin-top:6px;color:rgba(245,237,214,.56);font-family:var(--font-dm-sans);font-size:13px;line-height:1.45}
         .sighting-selected-pill{display:inline-flex;align-items:center;gap:7px;margin-top:9px;border:1px solid rgba(83,211,146,.22);border-radius:999px;background:rgba(83,211,146,.07);padding:7px 10px;color:rgba(203,255,225,.9);font-family:var(--font-dm-sans);font-size:12px;font-weight:800}
-        .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}
+        .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box[data-confirmed="true"]{border-style:solid;border-color:rgba(83,211,146,.26);background:rgba(83,211,146,.07)}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}.manual-bottle-action{width:100%;border:1px solid rgba(196,148,58,.32);border-radius:13px;background:linear-gradient(135deg,rgba(196,148,58,.18),rgba(232,201,122,.08));color:var(--color-cream);font-family:var(--font-dm-sans);font-size:13px;font-weight:850;padding:11px 12px;cursor:pointer;text-align:center}.manual-bottle-action.confirmed{border-color:rgba(83,211,146,.28);background:rgba(83,211,146,.1);color:rgba(203,255,225,.92)}
         .sighting-tab{position:relative;border-radius:0;background:transparent;border:0;color:rgba(245,237,214,.48);padding:12px 7px 13px;min-width:86px;letter-spacing:.01em}
         .sighting-tab:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:transparent;transition:background .18s ease,opacity .18s ease}
         .sighting-tab.active{color:var(--color-cream);background:transparent;box-shadow:none}
@@ -462,10 +465,10 @@ export default function SightingsClient() {
           <section style={{ border: "1px solid rgba(245,237,214,0.1)", borderRadius: "0 28px 28px 28px", background: "rgba(245,237,214,0.045)", padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
             {isFreePreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Preview the sighting form</strong><span>Upgrade to submit member sightings.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to use</a></div> : null}
             <div style={{ display: "grid", gap: 14 }}>
-              <section className="sighting-step-card" data-complete={Boolean(bottleQuery.trim())}>
+              <section className="sighting-step-card" data-complete={Boolean(selectedBottleId || (isManualBottle && manualBottleConfirmed))}>
                 <div className="sighting-step-head"><span className="sighting-step-number">01</span><div><strong>Bottle</strong><span>Search first. If we do not have it yet, add the bottle name and keep going.</span></div></div>
-                <label style={{ display: "block" }}><span className="sighting-label">Bottle name</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); }} placeholder="Try Blanton’s, EHT, RR13, Weller Full Proof…" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{[bottle.distillery, bottle.tier ? `${tierLabel(bottle.tier)} bottle` : null].filter(Boolean).join(" · ")}</span></button>)}</div> : null}</label>
-                {!isFreePreview && isManualBottle ? <div className="manual-review-box"><strong>Add this bottle to Bourbon Signal</strong><p>Looks like a new bottle for the community. Submit the sighting and we’ll use the bottle name to improve future searches and reports.</p></div> : null}
+                <label style={{ display: "block" }}><span className="sighting-label">Bottle name</span><div className="sighting-input-wrap"><Search size={16} /><input value={bottleQuery} onChange={(e) => { setBottleQuery(e.target.value); setSelectedBottleId(""); setManualBottleConfirmed(false); }} placeholder="Try Blanton’s, EHT, RR13, Weller Full Proof…" disabled={isFreePreview} /></div>{!isFreePreview && bottleMatches.length > 0 && !selectedBottleId ? <div className="sighting-suggestions">{bottleMatches.map((bottle) => <button key={bottle.id} type="button" onClick={() => { setBottleQuery(bottle.name); setSelectedBottleId(bottle.id); setManualBottleConfirmed(false); setSelectedBottleTier(bottle.tier || "limited"); }}>{bottle.name}<span>{[bottle.distillery, bottle.tier ? `${tierLabel(bottle.tier)} bottle` : null].filter(Boolean).join(" · ")}</span></button>)}</div> : null}</label>
+                {!isFreePreview && isManualBottle ? <div className="manual-review-box" data-confirmed={manualBottleConfirmed}><strong>{manualBottleConfirmed ? "New bottle ready" : "Bottle not found yet"}</strong><p>{manualBottleConfirmed ? `“${bottleQuery.trim()}” will be added with this sighting so it can improve future searches and reports.` : "If this is the right name, confirm it as a new bottle before moving on."}</p><button type="button" className={`manual-bottle-action ${manualBottleConfirmed ? "confirmed" : ""}`} onClick={() => setManualBottleConfirmed(true)}>{manualBottleConfirmed ? "✓ Using this as a new bottle" : `Use “${bottleQuery.trim()}” as a new bottle`}</button></div> : null}
                 {selectedBottleId ? <div className="sighting-selected-pill"><BadgeCheck size={13} /> Bottle matched</div> : null}
               </section>
 

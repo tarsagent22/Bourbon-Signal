@@ -1855,10 +1855,15 @@ export default function DashboardPage() {
           .member-points-next-action strong { font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 14px; }
           .member-points-next-action span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
           .member-badge-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-          .member-badge-card { border: 1px solid rgba(245,237,214,0.075); border-radius: 18px; background: rgba(5,4,3,0.22); padding: 12px; display: grid; gap: 8px; min-width: 0; }
+          .member-badge-card { position: relative; border: 1px solid rgba(245,237,214,0.075); border-radius: 18px; background: rgba(5,4,3,0.22); padding: 12px; display: grid; gap: 8px; min-width: 0; overflow: hidden; }
+          .member-badge-card[data-earned="false"] { opacity: 0.54; background: rgba(5,4,3,0.14); border-style: dashed; }
+          .member-badge-card[data-earned="false"] img { filter: grayscale(1) saturate(.25); opacity: .5; }
+          .member-badge-card[data-earned="true"] { border-color: rgba(196,148,58,0.22); background: linear-gradient(145deg, rgba(196,148,58,0.07), rgba(5,4,3,0.24)); }
           .member-badge-card img { width: 54px; height: 54px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; }
           .member-badge-card strong { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.9); font-size: 13px; }
           .member-badge-card span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.4; }
+          .member-badge-status { width: fit-content; border-radius: 999px; border: 1px solid rgba(245,237,214,0.1); padding: 4px 7px; font-family: var(--font-jetbrains)!important; font-size: 9px!important; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: rgba(245,237,214,0.45)!important; }
+          .member-badge-card[data-earned="true"] .member-badge-status { border-color: rgba(83,211,146,0.24); background: rgba(83,211,146,0.08); color: rgba(198,255,222,0.86)!important; }
           .member-points-drawer-content { display: grid; gap: 14px; }
           .member-points-drawer-content .member-rewards-dashboard-card { margin: 0; }
           .member-points-how-it-works { border: 1px solid rgba(245,237,214,0.08); border-radius: 22px; background: rgba(245,237,214,0.032); padding: 18px; display: grid; gap: 16px; }
@@ -3399,13 +3404,19 @@ export default function DashboardPage() {
                       { id: "weekend_warrior", label: "Weekend Warrior" },
                       { id: "clean_signal", label: "Clean Signal" },
                       { id: "streak", label: "Streak" },
-                    ].map((badge) => (
-                      <div className="member-badge-card" key={badge.id}>
+                    ].map((badge) => {
+                      const badgeProgress = memberRewards.badgeProgress.filter((item) => badgeBaseKey(item.id) === badge.id);
+                      const earned = memberRewards.badges.some((item) => badgeBaseKey(item.id) === badge.id) || badgeProgress.some((item) => item.earned);
+                      const nextProgress = badgeProgress.find((item) => !item.earned) || badgeProgress[0];
+                      return (
+                      <div className="member-badge-card" data-earned={earned} key={badge.id}>
                         {badgeIconFor(badge.id) ? <img src={badgeIconFor(badge.id) || undefined} alt="" loading="lazy" /> : null}
+                        <span className="member-badge-status">{earned ? "Earned" : nextProgress ? `Locked · ${nextProgress.current}/${nextProgress.target}` : "Locked"}</span>
                         <strong>{badge.label}</strong>
                         <span>{badgeDescriptionFor(badge.id)}</span>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 </section>
               </div>
