@@ -108,7 +108,7 @@ interface BourbonDnaSummary {
 }
 
 const BADGE_ICON_BY_KEY: Record<string, string | null> = {
-  first_sighting: "/badge-icons/first-sighting.svg",
+  first_sighting: "/badge-icons/first-sighting.png",
   verified_scout: "/badge-icons/verified-scout.png",
   spotter: "/badge-icons/spotter.png",
   unicorn_hunter: "/badge-icons/unicorn-hunter.png",

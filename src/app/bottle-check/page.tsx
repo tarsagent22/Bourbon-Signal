@@ -38,6 +38,11 @@ interface BottleResult {
     canTrack: boolean;
     trackDisabledReason?: string;
   };
+  memberTasteScore?: {
+    average: number;
+    count: number;
+    label: string;
+  } | null;
   suggestions?: BottleResult["bottle"][];
   showSuggestions?: boolean;
   message?: string;
@@ -200,6 +205,7 @@ export default function BottleCheckPage() {
 
   const bottle = result?.bottle || null;
   const signal = result?.localSignal;
+  const memberTasteScore = result?.memberTasteScore || null;
   const bottleKey = bottle ? normalizeBottleKey(bottle.canonicalName) : "";
   const savedBottleKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizeBottleKey);
   const savedBottleNames = prefs.bottleAlertPreferences.bottleNames.map(normalizeBottleKey);
@@ -382,6 +388,17 @@ export default function BottleCheckPage() {
                     <small>{signal.scoreStatus === "local_adjusted" ? "Adjusted with recent Bourbon Signal sightings." : "Based on bottle profile; no recent local sightings yet."}</small>
                   </div>
                 ) : null}
+
+                {memberTasteScore ? (
+                  <div className="bc-member-taste-score">
+                    <div>
+                      <span>Member Taste Score</span>
+                      <strong>{(memberTasteScore.average / 10).toFixed(1)}</strong>
+                    </div>
+                    <p>{memberTasteScore.label}</p>
+                    <small>{memberTasteScore.count} member {memberTasteScore.count === 1 ? "rating" : "ratings"} from saved collections.</small>
+                  </div>
+                ) : null}
                 <div className="bc-guidance">
                   <h3>In-store read</h3>
                   <p>{signal?.verdict || bottle.guidance}</p>
@@ -506,6 +523,11 @@ const bottleCheckCss = `
 .bc-score.hot { border-color:rgba(196,148,58,.38); box-shadow:inset 0 0 0 1px rgba(196,148,58,.08); }
 .bc-score.hot strong, .bc-score.warm strong { color:var(--color-accent-amber); }
 .bc-score.quiet strong { color:rgba(245,237,214,.55); }
+.bc-member-taste-score { margin-top:12px; display:grid; grid-template-columns:116px minmax(0,1fr); gap:14px; align-items:center; border-radius:20px; border:1px solid rgba(232,201,122,.18); padding:14px 16px; background:linear-gradient(135deg, rgba(196,148,58,.075), rgba(0,0,0,.16)); }
+.bc-member-taste-score span { display:block; color:rgba(232,201,122,.78); font:900 10px/1 var(--font-jetbrains); letter-spacing:.11em; text-transform:uppercase; }
+.bc-member-taste-score strong { display:block; margin-top:6px; font:800 34px/.9 var(--font-playfair); color:var(--color-accent-amber); }
+.bc-member-taste-score p { margin:0; color:var(--color-cream); font:800 15px/1.25 var(--font-dm-sans); }
+.bc-member-taste-score small { display:block; margin-top:5px; color:var(--color-text-tertiary); font:700 12px/1.35 var(--font-dm-sans); }
 .bc-guidance { margin-top:22px; }
 .bc-guidance h3, .bc-detail-card h3, .bc-recent h4, .bc-suggestions h4 { margin:0; color:var(--color-cream); font:800 15px/1 var(--font-dm-sans); letter-spacing:.04em; text-transform:uppercase; }
 .bc-guidance p { margin:10px 0 0; color:var(--color-text-primary); font:16px/1.7 var(--font-dm-sans); }
@@ -531,6 +553,6 @@ const bottleCheckCss = `
 .bc-sighting strong { display:block; color:var(--color-cream); font:800 13px/1.25 var(--font-dm-sans); }
 .bc-sighting span, .bc-recent p { display:block; margin-top:5px; color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 .bc-suggestions button { text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:12px; background:rgba(255,255,255,.03); color:var(--color-text-primary); padding:10px 12px; font:700 13px/1.2 var(--font-dm-sans); cursor:pointer; }
-@media (max-width: 900px) { .bc-search-card, .bc-result-grid, .bc-score, .bc-track-box { grid-template-columns:1fr; flex-direction:column; align-items:stretch; } .bc-field, .bc-field.grow, .bc-field.state { width:100%; max-width:100%; } .bc-search-card > button, .bc-track-box > button { width:100%; } .bc-stat-grid { grid-template-columns:1fr; } }
+@media (max-width: 900px) { .bc-search-card, .bc-result-grid, .bc-score, .bc-member-taste-score, .bc-track-box { grid-template-columns:1fr; flex-direction:column; align-items:stretch; } .bc-field, .bc-field.grow, .bc-field.state { width:100%; max-width:100%; } .bc-search-card > button, .bc-track-box > button { width:100%; } .bc-stat-grid { grid-template-columns:1fr; } }
 @media (max-width: 520px) { .bc-hero, .bc-shell { width:calc(100% - 28px); } .bc-hero { padding-top:42px; } .bc-hero h1 { font-size:clamp(42px, 12vw, 56px); line-height:.96; } .bc-search-card { padding:14px; border-radius:22px; } .bc-live-suggestions button { grid-template-columns:minmax(0,1fr); align-items:start; gap:6px; padding:11px 12px; } .bc-live-suggestions .bc-tier { justify-self:start; max-width:100%; } }
 `;

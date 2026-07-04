@@ -4,6 +4,7 @@ import { getBottleById, normalizeBottleKey, searchBourbonBible, type Availabilit
 import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { getEntitlements } from "@/lib/entitlements";
+import { getMemberTasteScore } from "@/lib/member-taste-score";
 
 
 const FREE_BOTTLE_CHECK_LIMIT = 3;
@@ -329,6 +330,7 @@ export async function GET(request: Request) {
   }
 
   const localSignal = getLocalSignal(bottle, state);
+  const memberTasteScore = await getMemberTasteScore(bottle);
   const matchedBottle = bottle as BibleBottle & { matchScore?: number };
   const matchScore = typeof matchedBottle.matchScore === "number" ? matchedBottle.matchScore : 120;
 
@@ -351,6 +353,7 @@ export async function GET(request: Request) {
       state,
       bottle: userFacingBottle(bottle),
       localSignal,
+      memberTasteScore,
       suggestions: suggestions.map(userFacingBottle),
       showSuggestions: matchScore < 95,
       usage: usageGate.usage,
