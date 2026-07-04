@@ -108,7 +108,7 @@ interface BourbonDnaSummary {
 }
 
 const BADGE_ICON_BY_KEY: Record<string, string | null> = {
-  first_sighting: null,
+  first_sighting: "/badge-icons/first-sighting.svg",
   verified_scout: "/badge-icons/verified-scout.png",
   spotter: "/badge-icons/spotter.png",
   unicorn_hunter: "/badge-icons/unicorn-hunter.png",
@@ -1844,7 +1844,7 @@ export default function DashboardPage() {
           .member-badge-progress-list { display: grid; gap: 10px; margin-top: 15px; }
           .member-badge-progress-row { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: 11px; border: 1px solid rgba(245,237,214,0.075); border-radius: 17px; background: rgba(5,4,3,0.22); padding: 9px; }
           .member-badge-icon { width: 48px; height: 48px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; box-shadow: none; }
-          .member-badge-fallback { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; background: radial-gradient(circle, rgba(196,148,58,0.16), rgba(5,4,3,0.36)); color: rgba(232,201,122,0.88); font-family: var(--font-jetbrains); font-size: 11px; font-weight: 900; letter-spacing: 0.08em; }
+          .member-badge-fallback { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; background: radial-gradient(circle, rgba(196,148,58,0.16), rgba(5,4,3,0.36)); color: rgba(232,201,122,0.88); font-size: 20px; }
           .member-badge-progress-copy { min-width: 0; display: grid; gap: 6px; }
           .member-badge-progress-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.88); font-size: 13px; font-weight: 850; }
           .member-badge-progress-title span:last-child { font-family: var(--font-jetbrains); color: rgba(232,201,122,0.82); font-size: 10px; font-weight: 850; white-space: nowrap; }
@@ -3374,7 +3374,7 @@ export default function DashboardPage() {
                   <div className="member-badge-progress-list">
                     {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 4).map((item) => (
                       <div className="member-badge-progress-row" key={item.id}>
-                        {badgeIconFor(item.id) ? <img className="member-badge-icon" src={badgeIconFor(item.id) || undefined} alt="" loading="lazy" /> : <span className="member-badge-fallback">01</span>}
+                        {badgeIconFor(item.id) ? <img className="member-badge-icon" src={badgeIconFor(item.id) || undefined} alt="" loading="lazy" /> : <span className="member-badge-fallback">🥃</span>}
                         <div className="member-badge-progress-copy">
                           <div className="member-badge-progress-title"><span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
                           <p>{badgeDescriptionFor(item.id)}</p>
@@ -3386,40 +3386,26 @@ export default function DashboardPage() {
                   <Link href="/sightings" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
                 </section>
 
-                <section className="member-points-how-it-works" aria-label="How member points work">
-                  <div className="member-points-how-copy">
-                    <span>How it works</span>
-                    <h3>Post useful sightings. Keep the signal clean.</h3>
-                    <p>Points happen in the background. Members should focus on accurate bottle and store intel; Bourbon Signal handles classification and reward logic.</p>
-                  </div>
-                  <div className="member-points-rules-grid">
-                    <div><strong>Allocated sighting</strong><span>+1 when Bourbon Signal classifies the report as allocated.</span></div>
-                    <div><strong>Unicorn sighting</strong><span>+2 when the report is classified as a unicorn find.</span></div>
-                    <div><strong>Verified sighting</strong><span>+1 more when a photo or community signal backs it.</span></div>
-                    <div><strong>Weekly streak</strong><span>+1 for keeping an eligible weekly streak alive.</span></div>
-                    <div><strong>Badge earned</strong><span>+1 when you unlock a badge.</span></div>
-                    <div><strong>Removed report</strong><span>Points are removed if a sighting is rejected or deleted.</span></div>
-                  </div>
-                  <div className="member-points-badges">
-                    <h4>Badge collection</h4>
-                    <div className="member-badge-card-grid">
-                      {[
-                        { id: "verified_scout", label: "Verified Scout" },
-                        { id: "spotter", label: "Spotter" },
-                        { id: "unicorn_hunter", label: "Unicorn Hunter" },
-                        { id: "sharp_eye", label: "Sharp Eye" },
-                        { id: "local_scout", label: "Local Scout" },
-                        { id: "weekend_warrior", label: "Weekend Warrior" },
-                        { id: "clean_signal", label: "Clean Signal" },
-                        { id: "streak", label: "Streak" },
-                      ].map((badge) => (
-                        <div className="member-badge-card" key={badge.id}>
-                          {badgeIconFor(badge.id) ? <img src={badgeIconFor(badge.id) || undefined} alt="" loading="lazy" /> : null}
-                          <strong>{badge.label}</strong>
-                          <span>{badgeDescriptionFor(badge.id)}</span>
-                        </div>
-                      ))}
-                    </div>
+                <section className="member-points-badges" aria-label="Badge collection">
+                  <h4>Badge collection</h4>
+                  <div className="member-badge-card-grid">
+                    {[
+                      { id: "first_sighting", label: "First Sighting" },
+                      { id: "verified_scout", label: "Verified Scout" },
+                      { id: "spotter", label: "Spotter" },
+                      { id: "unicorn_hunter", label: "Unicorn Hunter" },
+                      { id: "sharp_eye", label: "Sharp Eye" },
+                      { id: "local_scout", label: "Local Scout" },
+                      { id: "weekend_warrior", label: "Weekend Warrior" },
+                      { id: "clean_signal", label: "Clean Signal" },
+                      { id: "streak", label: "Streak" },
+                    ].map((badge) => (
+                      <div className="member-badge-card" key={badge.id}>
+                        {badgeIconFor(badge.id) ? <img src={badgeIconFor(badge.id) || undefined} alt="" loading="lazy" /> : null}
+                        <strong>{badge.label}</strong>
+                        <span>{badgeDescriptionFor(badge.id)}</span>
+                      </div>
+                    ))}
                   </div>
                 </section>
               </div>
