@@ -238,7 +238,7 @@ export default function BottleCheckPage() {
   }
 
   async function addMissingBottleFromCheck() {
-    const rawName = submittedQuery.trim() || query.trim();
+    const rawName = query.trim() || submittedQuery.trim();
     if (!rawName) return;
     if (!isSignedIn) {
       signIn();
@@ -335,7 +335,7 @@ export default function BottleCheckPage() {
                 <input
                   id="bottle-search"
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => { setQuery(event.target.value); setMissingBottleAdded(false); setMissingBottleError(null); }}
                   placeholder="Try Blanton's, Weller Green, Maker's Mark…"
                   autoComplete="off"
                 />
@@ -348,6 +348,8 @@ export default function BottleCheckPage() {
                       setQuery("");
                       setResult(null);
                       setHasSearched(false);
+                      setMissingBottleAdded(false);
+                      setMissingBottleError(null);
                     }}
                   >
                     ×
@@ -371,6 +373,11 @@ export default function BottleCheckPage() {
                       <em className={`bc-tier ${suggestion.availability}`}>{availabilityLabels[suggestion.availability] || suggestion.availability}</em>
                     </button>
                   ))}
+                  <button type="button" className="bc-live-missing" onClick={addMissingBottleFromCheck} disabled={addingMissingBottle || missingBottleAdded}>
+                    <span>{missingBottleAdded ? "Added to Bourbon Signal ✓" : `Can’t find it? Add “${query.trim()}” to Bourbon Signal`}</span>
+                    <em>{!isSignedIn ? "Sign in" : addingMissingBottle ? "Adding…" : "Missing bottle"}</em>
+                  </button>
+                  {missingBottleError ? <small className="bc-track-error">{missingBottleError}</small> : null}
                 </div>
               ) : null}
             </div>
@@ -533,6 +540,8 @@ const bottleCheckCss = `
 .bc-live-suggestions { margin-top:8px; display:grid; gap:7px; width:100%; max-width:100%; min-width:0; overflow:hidden; }
 .bc-live-suggestions button { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; width:100%; max-width:100%; min-width:0; box-sizing:border-box; text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:13px; background:rgba(255,255,255,.035); color:var(--color-text-primary); padding:9px 10px 9px 12px; font:800 13px/1.2 var(--font-dm-sans); cursor:pointer; }
 .bc-live-suggestions button:hover, .bc-live-suggestions button:focus-visible { border-color:rgba(196,148,58,.48); background:rgba(196,148,58,.095); outline:none; }
+.bc-live-suggestions .bc-live-missing { margin-top:6px; border-color:rgba(196,148,58,.32); background:rgba(196,148,58,.11); }
+.bc-live-suggestions .bc-live-missing em { color:var(--color-accent-amber); }
 .bc-live-suggestions span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-live-suggestions .bc-tier { flex-shrink:0; min-width:0; max-width:42vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }

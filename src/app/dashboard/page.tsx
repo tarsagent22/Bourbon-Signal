@@ -3157,6 +3157,15 @@ export default function DashboardPage() {
                           </span>
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedCollectionBottle(null); setManualCollectionBottleReady(true); setCollectionError(null); setCollectionBibleSuggestions([]); }}
+                        disabled={savingCollection}
+                        style={{ width: "100%", textAlign: "left", padding: "12px 13px", borderRadius: "12px", border: "1px solid rgba(196,148,58,0.30)", background: "rgba(196,148,58,0.10)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
+                      >
+                        <strong>Can’t find it? Add “{collectionBottleQuery.trim()}”</strong>
+                        <span style={{ display: "block", marginTop: 4, color: "var(--color-accent-amber)", fontSize: 12 }}>Save now and we’ll match it to an official bottle record later.</span>
+                      </button>
                     </div>
                   ) : collectionBottleQuery.trim() && !selectedCollectionBottle ? (
                     <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 50, borderRadius: "14px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(12,9,7,0.98)", boxShadow: "0 18px 42px rgba(0,0,0,0.36)", padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", display: "grid", gap: "10px" }}>
