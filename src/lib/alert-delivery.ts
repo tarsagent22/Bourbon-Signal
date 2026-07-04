@@ -672,7 +672,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     if (!page.data.length) break;
 
     for (const rawUser of page.data) {
-      if (summary.usersConsidered >= MAX_DELIVERY_USERS || globalEmailCount >= MAX_EMAILS_PER_RUN) break;
+      if (summary.usersConsidered >= MAX_DELIVERY_USERS) break;
       const user = rawUser as Record<string, unknown>;
       const userId = asString(user.id);
       summary.usersConsidered += 1;
@@ -988,7 +988,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     }
 
     offset += page.data.length;
-    if (!page.totalCount || offset >= page.totalCount || globalEmailCount >= MAX_EMAILS_PER_RUN) break;
+    if (!page.totalCount || offset >= page.totalCount) break;
   }
 
   return summary;

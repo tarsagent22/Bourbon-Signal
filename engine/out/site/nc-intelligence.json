@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-03T21:00:10.298Z",
+  "generatedAt": "2026-07-04T14:30:00.950Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-07-03T21:00:10.410Z"
+    "observedAt": "2026-07-04T14:30:01.112Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
     "rowCount": 3268,
     "bourbonOrWhiskeyRowCount": 659,
-    "observedAt": "2026-07-03T21:00:10.602Z",
+    "observedAt": "2026-07-04T14:30:02.663Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -1945,7 +1945,7 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-07-03T21:00:10.661Z",
+    "observedAt": "2026-07-04T14:30:02.808Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
@@ -1964,7 +1964,7 @@
     "rowCount": 3212,
     "trackedRowCount": 98,
     "positiveTrackedRowCount": 30,
-    "observedAt": "2026-07-03T21:00:12.269Z",
+    "observedAt": "2026-07-04T14:30:06.871Z",
     "increaseCount": 0,
     "controlledDistributionSignalCount": 54,
     "priceEnrichedSignalCount": 98,
@@ -2613,7 +2613,7 @@
       "finalUrl": "https://wakeabc.com/search-results/",
       "ok": true,
       "status": 200,
-      "bytes": 64300,
+      "bytes": 64175,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -2728,7 +2728,7 @@
       "finalUrl": "https://www.greensboroabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 177201,
+      "bytes": 177181,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2820,7 +2820,7 @@
       "finalUrl": "https://orangeabc.com/specialty-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 90235,
+      "bytes": 90312,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -3278,7 +3278,7 @@
       "finalUrl": "https://www.durhamabc.com/news",
       "ok": true,
       "status": 200,
-      "bytes": 1120029,
+      "bytes": 1120215,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -3346,7 +3346,7 @@
       "finalUrl": "https://www.durhamabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 872844,
+      "bytes": 872744,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -3484,7 +3484,7 @@
       "finalUrl": "https://highpointabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 156091,
+      "bytes": 157264,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -3514,7 +3514,7 @@
       "finalUrl": "https://highpointabc.com/products",
       "ok": true,
       "status": 200,
-      "bytes": 132983,
+      "bytes": 134156,
       "contentType": "text/html; charset=utf-8",
       "capabilities": [
         "inventory_or_product_search_page"
@@ -3563,7 +3563,7 @@
       "finalUrl": "https://wayneabc.com/allocation-policy/",
       "ok": true,
       "status": 200,
-      "bytes": 166178,
+      "bytes": 84030,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3601,7 +3601,7 @@
       "finalUrl": "https://wayneabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 206738,
+      "bytes": 194241,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -3635,7 +3635,7 @@
       "finalUrl": "https://wayneabc.com/allocation-policy/",
       "ok": true,
       "status": 200,
-      "bytes": 166178,
+      "bytes": 84030,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "allocation_policy_page",
@@ -4108,7 +4108,7 @@
       "finalUrl": "https://ashevilleabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 116250,
+      "bytes": 116376,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4179,7 +4179,7 @@
       "finalUrl": "https://carteretcountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 29683,
+      "bytes": 29684,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -4923,71 +4923,6 @@
       "error": null
     },
     {
-      "boardName": "Franklin ABC Board",
-      "url": "http://www.franklinncabc.com/",
-      "finalUrl": "https://www.franklinncabc.com/",
-      "ok": true,
-      "status": 200,
-      "bytes": 188214,
-      "contentType": "text/html; charset=UTF-8",
-      "capabilities": [
-        "news_or_announcement_page"
-      ],
-      "releaseLanguage": true,
-      "strongReleaseLanguage": true,
-      "interestingLinks": [
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://www.franklinncabc.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
-        },
-        {
-          "href": "https://www.franklinncabc.com/announcements/",
-          "label": "Announcements"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials/",
-          "label": "Shop Now"
-        },
-        {
-          "href": "https://www.franklinncabc.com/#",
-          "label": "Products"
-        },
-        {
-          "href": "https://www.franklinncabc.com/monthly-specials",
-          "label": "Monthly Specials"
-        },
-        {
-          "href": "https://www.franklinncabc.com/product-information/",
-          "label": "Product Information"
-        }
-      ],
-      "error": null
-    },
-    {
       "boardName": "Mount Holly ABC Board",
       "url": "http://mtholly.ncabcboards.com/",
       "finalUrl": "https://mtholly.ncabcboards.com/",
@@ -5401,7 +5336,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-07-03T21:00:44.250Z",
+    "observedAt": "2026-07-04T14:30:39.020Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5499,7 +5434,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-07-03T21:00:44.522Z",
+    "observedAt": "2026-07-04T14:30:39.307Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
@@ -5734,7 +5669,7 @@
         "Skeet Club Rd",
         "Brookridge Lane"
       ],
-      "observedAt": "2026-07-03T21:01:06.282Z"
+      "observedAt": "2026-07-04T13:31:13.993Z"
     },
     {
       "source": "High Point ABC Shopify product suggestion API",
@@ -8729,27 +8664,14 @@
       "trackedShipmentRows": 0,
       "trackedUnits": 0,
       "capabilities": [
-        "news_or_announcement_page",
         "official_board_directory",
-        "official_board_website",
-        "official_release_language_found"
+        "official_board_website"
       ],
-      "precisionLevel": "board_release_policy",
+      "precisionLevel": "board_website_watch",
       "sourceUrls": [
         "http://www.franklinncabc.com"
       ],
-      "officialPageReports": [
-        {
-          "url": "http://www.franklinncabc.com/",
-          "status": 200,
-          "capabilities": [
-            "news_or_announcement_page"
-          ],
-          "releaseLanguage": true,
-          "strongReleaseLanguage": true,
-          "matchedBottles": []
-        }
-      ]
+      "officialPageReports": []
     },
     {
       "boardName": "Gates County ABC Board",
@@ -9400,7 +9322,7 @@
     "boardCount": 174,
     "withWebsite": 40,
     "withTrackedShipments": 111,
-    "withReleasePages": 16,
+    "withReleasePages": 15,
     "withInventoryPages": 7,
     "noWebsiteYet": [
       "Thomasville ABC Board",
@@ -9463,7 +9385,7 @@
     "nc_board_lottery_surface": 24,
     "nc_board_inventory_surface": 12,
     "nc_board_barrel_pick_surface": 4,
-    "nc_board_release_surface": 10,
+    "nc_board_release_surface": 9,
     "nc_board_structured_allocated_product_release": 45,
     "nc_board_barrel_pick_item": 11,
     "store_inventory_result": 423,

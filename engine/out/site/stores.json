@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-03T21:19:46.245Z",
-  "count": 2850,
+  "generatedAt": "2026-07-04T14:33:36.956Z",
+  "count": 2851,
   "stores": [
     {
       "id": "alabc:001",
@@ -2507,7 +2507,21 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
+    },
+    {
+      "id": "eabe77a1fa2748e2",
+      "sourceStoreId": "eabe77a1fa2748e2",
+      "state": "IA",
+      "name": "7 Rayos Liquor Store",
+      "address": "120 E Main St, Marshalltown, IA, 50158",
+      "city": "Marshalltown",
+      "county": null,
+      "zip": "50158",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
     },
     {
       "id": "daf500d7dd4c83ed",
@@ -2549,7 +2563,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "54e95e3907f9feec",
@@ -2618,8 +2632,8 @@
       "zip": "50009",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "af1ecf363d11e731",
@@ -2633,7 +2647,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "93331e34614cf9d6",
@@ -2661,7 +2675,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "36185a4529784648",
@@ -9843,7 +9857,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-108",
@@ -9899,7 +9913,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "idaho-liquor-store-113",
@@ -10053,7 +10067,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-305",
@@ -10095,7 +10109,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-117",
@@ -10179,7 +10193,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 10
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-203",
@@ -10207,7 +10221,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-208",
@@ -10347,7 +10361,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 8
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-132",
@@ -10361,7 +10375,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "idaho-liquor-store-133",
@@ -10389,7 +10403,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 8
     },
     {
       "id": "idaho-liquor-store-135",
@@ -10417,7 +10431,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-259",
@@ -10613,7 +10627,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "idaho-liquor-store-331",
@@ -12783,7 +12797,7 @@
       "lat": 41.1779536,
       "lng": -85.0973602,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d33ab77cb36d0a2d2e90",
@@ -13063,7 +13077,7 @@
       "lat": 41.0955093,
       "lng": -85.1573343,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -13623,7 +13637,7 @@
       "lat": 39.8993173,
       "lng": -85.99296,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -13749,7 +13763,7 @@
       "lat": 39.8579945,
       "lng": -86.3913441,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 5
     },
     {
       "id": "big-red:5e9254aa78e8f13c2cb1e1ec",
@@ -13931,7 +13945,7 @@
       "lat": 40.0440694,
       "lng": -86.14080609999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "big-red:5e9254ca78e8f13c2cb1e21c",
@@ -13945,7 +13959,7 @@
       "lat": 39.6053,
       "lng": -86.10568409999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 4
     },
     {
       "id": "big-red:5e9254cd78e8f13c2cb1e220",
@@ -13959,7 +13973,7 @@
       "lat": 39.6286916,
       "lng": -86.1235722,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "big-red:5e9254d178e8f13c2cb1e224",
@@ -14071,7 +14085,7 @@
       "lat": 39.7844947,
       "lng": -86.2412647,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "big-red:5e8d529395c26868324a7bda",
@@ -14085,7 +14099,7 @@
       "lat": 39.7624257,
       "lng": -86.3793675,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "big-red:5e8d534e9a81cb43a6b0948f",
@@ -14155,7 +14169,7 @@
       "lat": 39.9789992,
       "lng": -86.15431009999999,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "big-red:5e8d59149ea1420c2876426c",
@@ -14757,7 +14771,7 @@
       "lat": 41.1293034,
       "lng": -85.1350928,
       "source": "Cap n' Cork CityHive store inventory",
-      "signalCount": 19
+      "signalCount": 20
     },
     {
       "id": "cap-n-cork:5e8f2a1fb851035361e0f22c",
@@ -21869,7 +21883,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "DL4913533",
@@ -27077,7 +27091,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 17
+      "signalCount": 18
     },
     {
       "id": "DL4901139",
@@ -27231,7 +27245,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 31
+      "signalCount": 30
     },
     {
       "id": "high-point-parris-ave",
@@ -27245,7 +27259,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 31
+      "signalCount": 32
     },
     {
       "id": "high-point-skeet-club-rd",
@@ -27259,7 +27273,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 31
+      "signalCount": 30
     },
     {
       "id": "high-point-wendover-ave",
@@ -27273,7 +27287,7 @@
       "lat": null,
       "lng": null,
       "source": "High Point ABC public Power BI store inventory",
-      "signalCount": 32
+      "signalCount": 33
     },
     {
       "id": "greensboro-27",
@@ -28435,7 +28449,7 @@
       "lat": 40.539788,
       "lng": -80.179824,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "267",
@@ -28645,7 +28659,7 @@
       "lat": 40.365271,
       "lng": -80.108187,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "299",
@@ -30255,7 +30269,7 @@
       "lat": 41.626351,
       "lng": -79.671508,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "2006",
@@ -30395,7 +30409,7 @@
       "lat": 40.221633,
       "lng": -76.933161,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "2204",
@@ -30423,7 +30437,7 @@
       "lat": 40.566513,
       "lng": -76.700448,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "2206",
@@ -30521,7 +30535,7 @@
       "lat": 40.261594,
       "lng": -76.777627,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "2220",
@@ -31879,7 +31893,7 @@
       "lat": 40.527354,
       "lng": -75.509753,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3922",
@@ -32005,7 +32019,7 @@
       "lat": 41.28117,
       "lng": -75.895441,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "4007",
@@ -32705,7 +32719,7 @@
       "lat": 40.127234,
       "lng": -75.43797,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "4638",
@@ -32929,7 +32943,7 @@
       "lat": 40.158905,
       "lng": -75.149402,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "4701",
@@ -32943,7 +32957,7 @@
       "lat": 40.966195,
       "lng": -76.616563,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "4801",
@@ -34091,7 +34105,7 @@
       "lat": 40.24783,
       "lng": -79.245091,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "6509",
@@ -34343,7 +34357,7 @@
       "lat": 39.938261,
       "lng": -76.69045,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "6708",
@@ -34763,7 +34777,7 @@
       "lat": 34.9408142,
       "lng": -80.9621524,
       "source": "O'Darby's Liquor Barn South Carolina CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "palmetto-liquor:66c9e5c12556e329502b0e5e",
@@ -34917,7 +34931,7 @@
       "lat": 36.1570489,
       "lng": -86.7943734,
       "source": "Corkdorks CityHive store inventory",
-      "signalCount": 20
+      "signalCount": 15
     },
     {
       "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
@@ -34945,7 +34959,7 @@
       "lat": 35.0298185,
       "lng": -85.18369369999999,
       "source": "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store inventory",
-      "signalCount": 14
+      "signalCount": 15
     },
     {
       "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
@@ -34973,7 +34987,7 @@
       "lat": 35.8660287,
       "lng": -86.45380279999999,
       "source": "Gateway Wine & Spirits Grabbl public store API",
-      "signalCount": 22
+      "signalCount": 16
     },
     {
       "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
@@ -35897,7 +35911,7 @@
       "lat": 36.984139,
       "lng": -76.424785,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "159",
@@ -36163,7 +36177,7 @@
       "lat": 37.933834,
       "lng": -75.366161,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "178",
@@ -36835,7 +36849,7 @@
       "lat": 37.570915,
       "lng": -77.432869,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "252",
@@ -37325,7 +37339,7 @@
       "lat": 36.810261,
       "lng": -76.355879,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "312",
@@ -37843,7 +37857,7 @@
       "lat": 37.537972,
       "lng": -77.525639,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 46
+      "signalCount": 45
     },
     {
       "id": "349",
@@ -39775,7 +39789,7 @@
       "lat": 37.671312,
       "lng": -77.681473,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "90",
