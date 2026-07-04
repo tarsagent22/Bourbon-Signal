@@ -107,16 +107,16 @@ interface BourbonDnaSummary {
   summary: string;
 }
 
-const BADGE_ICON_BY_KEY: Record<string, string> = {
-  first_sighting: "/badge-icons/first-sighting.svg",
-  verified_scout: "/badge-icons/verified-scout.jpg",
-  spotter: "/badge-icons/spotter.jpg",
-  unicorn_hunter: "/badge-icons/unicorn-hunter.jpg",
-  sharp_eye: "/badge-icons/sharp-eye.jpg",
-  local_scout: "/badge-icons/local-scout.jpg",
-  weekend_warrior: "/badge-icons/weekend-warrior.jpg",
-  clean_signal: "/badge-icons/clean-signal.jpg",
-  streak: "/badge-icons/streak.jpg",
+const BADGE_ICON_BY_KEY: Record<string, string | null> = {
+  first_sighting: null,
+  verified_scout: "/badge-icons/verified-scout.png",
+  spotter: "/badge-icons/spotter.png",
+  unicorn_hunter: "/badge-icons/unicorn-hunter.png",
+  sharp_eye: "/badge-icons/sharp-eye.png",
+  local_scout: "/badge-icons/local-scout.png",
+  weekend_warrior: "/badge-icons/weekend-warrior.png",
+  clean_signal: "/badge-icons/clean-signal.png",
+  streak: "/badge-icons/streak.png",
 };
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
@@ -136,7 +136,7 @@ function badgeBaseKey(id: string) {
 }
 
 function badgeIconFor(id: string) {
-  return BADGE_ICON_BY_KEY[badgeBaseKey(id)] || "/badge-icons/first-sighting.svg";
+  return BADGE_ICON_BY_KEY[badgeBaseKey(id)] ?? null;
 }
 
 function badgeDescriptionFor(id: string) {
@@ -1843,7 +1843,8 @@ export default function DashboardPage() {
           .member-rewards-dashboard-stat span { display: block; margin-top: 5px; font-family: var(--font-jetbrains); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(245,237,214,0.48); }
           .member-badge-progress-list { display: grid; gap: 10px; margin-top: 15px; }
           .member-badge-progress-row { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: 11px; border: 1px solid rgba(245,237,214,0.075); border-radius: 17px; background: rgba(5,4,3,0.22); padding: 9px; }
-          .member-badge-icon { width: 48px; height: 48px; border-radius: 999px; object-fit: cover; border: 1px solid rgba(196,148,58,0.28); background: rgba(5,4,3,0.45); box-shadow: 0 0 18px rgba(196,148,58,0.08); }
+          .member-badge-icon { width: 48px; height: 48px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; box-shadow: none; }
+          .member-badge-fallback { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; background: radial-gradient(circle, rgba(196,148,58,0.16), rgba(5,4,3,0.36)); color: rgba(232,201,122,0.88); font-family: var(--font-jetbrains); font-size: 11px; font-weight: 900; letter-spacing: 0.08em; }
           .member-badge-progress-copy { min-width: 0; display: grid; gap: 6px; }
           .member-badge-progress-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.88); font-size: 13px; font-weight: 850; }
           .member-badge-progress-title span:last-child { font-family: var(--font-jetbrains); color: rgba(232,201,122,0.82); font-size: 10px; font-weight: 850; white-space: nowrap; }
@@ -1855,7 +1856,7 @@ export default function DashboardPage() {
           .member-points-next-action span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
           .member-badge-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
           .member-badge-card { border: 1px solid rgba(245,237,214,0.075); border-radius: 18px; background: rgba(5,4,3,0.22); padding: 12px; display: grid; gap: 8px; min-width: 0; }
-          .member-badge-card img { width: 54px; height: 54px; border-radius: 999px; object-fit: cover; border: 1px solid rgba(196,148,58,0.24); }
+          .member-badge-card img { width: 54px; height: 54px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; }
           .member-badge-card strong { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.9); font-size: 13px; }
           .member-badge-card span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.4; }
           .member-points-drawer-content { display: grid; gap: 14px; }
@@ -3373,7 +3374,7 @@ export default function DashboardPage() {
                   <div className="member-badge-progress-list">
                     {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 4).map((item) => (
                       <div className="member-badge-progress-row" key={item.id}>
-                        <img className="member-badge-icon" src={badgeIconFor(item.id)} alt="" loading="lazy" />
+                        {badgeIconFor(item.id) ? <img className="member-badge-icon" src={badgeIconFor(item.id) || undefined} alt="" loading="lazy" /> : <span className="member-badge-fallback">01</span>}
                         <div className="member-badge-progress-copy">
                           <div className="member-badge-progress-title"><span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
                           <p>{badgeDescriptionFor(item.id)}</p>
@@ -3403,7 +3404,6 @@ export default function DashboardPage() {
                     <h4>Badge collection</h4>
                     <div className="member-badge-card-grid">
                       {[
-                        { id: "first_sighting", label: "First Sighting" },
                         { id: "verified_scout", label: "Verified Scout" },
                         { id: "spotter", label: "Spotter" },
                         { id: "unicorn_hunter", label: "Unicorn Hunter" },
@@ -3414,7 +3414,7 @@ export default function DashboardPage() {
                         { id: "streak", label: "Streak" },
                       ].map((badge) => (
                         <div className="member-badge-card" key={badge.id}>
-                          <img src={badgeIconFor(badge.id)} alt="" loading="lazy" />
+                          {badgeIconFor(badge.id) ? <img src={badgeIconFor(badge.id) || undefined} alt="" loading="lazy" /> : null}
                           <strong>{badge.label}</strong>
                           <span>{badgeDescriptionFor(badge.id)}</span>
                         </div>

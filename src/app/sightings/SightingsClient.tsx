@@ -387,12 +387,13 @@ export default function SightingsClient() {
         .sighting-submit{margin-top:18px;width:100%;border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.09)}
         .sighting-location-button{padding:9px 12px;background:rgba(245,237,214,.035);border-color:rgba(245,237,214,.1);color:rgba(245,237,214,.72)}
         .sighting-location-button:hover,.sighting-submit:hover,.sighting-tab:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.2);background:rgba(245,237,214,.06)}
-        .sighting-step-card{position:relative;border:1px solid rgba(245,237,214,.085);border-radius:20px;background:linear-gradient(145deg,rgba(18,13,9,.78),rgba(7,6,5,.54));padding:16px;box-shadow:inset 0 1px 0 rgba(245,237,214,.032)}
-        .sighting-step-card[data-complete="true"]{border-color:rgba(196,148,58,.22);background:linear-gradient(145deg,rgba(196,148,58,.075),rgba(7,6,5,.48))}
-        .sighting-step-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:13px}
-        .sighting-step-number{display:grid;place-items:center;flex:0 0 auto;width:27px;height:27px;border:1px solid rgba(196,148,58,.28);border-radius:999px;background:rgba(196,148,58,.09);color:rgba(232,201,122,.92);font-family:var(--font-jetbrains);font-size:10px;font-weight:900}
-        .sighting-step-head strong{display:block;color:var(--color-cream);font-family:var(--font-dm-sans);font-size:15px;font-weight:900;line-height:1.2}
-        .sighting-step-head span{display:block;margin-top:3px;color:rgba(245,237,214,.5);font-family:var(--font-dm-sans);font-size:12px;line-height:1.4}
+        .sighting-step-card{position:relative;border:1px solid rgba(245,237,214,.085);border-radius:20px;background:linear-gradient(145deg,rgba(18,13,9,.78),rgba(7,6,5,.54));padding:18px;box-shadow:inset 0 1px 0 rgba(245,237,214,.032)}
+        .sighting-step-card[data-complete="true"]{border-color:rgba(196,148,58,.18);background:linear-gradient(145deg,rgba(18,13,9,.84),rgba(7,6,5,.56))}
+        .sighting-step-head{display:grid;gap:8px;margin-bottom:14px}
+        .sighting-step-number{display:inline-flex;align-items:center;gap:10px;width:fit-content;color:rgba(232,201,122,.78);font-family:var(--font-jetbrains);font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+        .sighting-step-number:after{content:"";display:block;width:38px;height:1px;background:rgba(196,148,58,.32)}
+        .sighting-step-head strong{display:block;color:var(--color-cream);font-family:var(--font-playfair);font-size:clamp(24px,5.6vw,30px);font-weight:800;line-height:1.02;letter-spacing:-.015em}
+        .sighting-step-head span:last-child{display:block;margin-top:6px;color:rgba(245,237,214,.56);font-family:var(--font-dm-sans);font-size:13px;line-height:1.45}
         .sighting-selected-pill{display:inline-flex;align-items:center;gap:7px;margin-top:9px;border:1px solid rgba(83,211,146,.22);border-radius:999px;background:rgba(83,211,146,.07);padding:7px 10px;color:rgba(203,255,225,.9);font-family:var(--font-dm-sans);font-size:12px;font-weight:800}
         .manual-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;display:grid;gap:10px}.manual-review-box strong{font-family:var(--font-dm-sans);font-size:13px;color:var(--color-cream)}.manual-review-box p{margin:0;color:rgba(245,237,214,.55);font-size:12px;line-height:1.5}.manual-grid{display:grid;grid-template-columns:1fr 92px;gap:10px}
         .sighting-tab{position:relative;border-radius:0;background:transparent;border:0;color:rgba(245,237,214,.48);padding:12px 7px 13px;min-width:86px;letter-spacing:.01em}
@@ -403,8 +404,8 @@ export default function SightingsClient() {
         .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.07);border-radius:24px;background:linear-gradient(180deg,rgba(16,12,9,.78),rgba(8,6,5,.46));padding:13px 0 0;box-shadow:0 20px 64px rgba(0,0,0,.24);overflow:hidden}
         .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(245,237,214,.026),transparent 28%);opacity:.8}
         .sighting-mode-shell{position:relative;margin-top:22px;margin-bottom:10px;border:0;border-radius:0;background:transparent;padding:0;display:flex;gap:22px;width:fit-content;max-width:100%}
-        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;padding:0 16px 12px;border-bottom:1px solid rgba(245,237,214,.055)}
-        .sighting-feed-count{display:inline-flex;font-family:var(--font-dm-sans);font-size:13px;font-weight:650;color:rgba(245,237,214,.5)}
+        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;padding:0 16px 14px;border-bottom:1px solid rgba(245,237,214,.055)}
+        .sighting-feed-count{display:inline-flex;font-family:var(--font-dm-sans);font-size:13px;font-weight:750;color:rgba(245,237,214,.62)}
         .sighting-menu{position:relative;min-width:172px}
         .sighting-menu > span{display:block;margin-bottom:5px;font-family:var(--font-jetbrains);font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,237,214,.34)}
         .sighting-menu-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;height:40px;border-radius:12px;border:1px solid rgba(245,237,214,.105);background:rgba(12,9,7,.7);color:rgba(245,237,214,.88);font-family:var(--font-dm-sans);font-size:13px;font-weight:750;padding:9px 11px;outline:none;text-align:left;cursor:pointer;box-shadow:inset 0 1px 0 rgba(245,237,214,.025)}
@@ -413,25 +414,25 @@ export default function SightingsClient() {
         .sighting-menu-panel{position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;max-height:286px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;padding:8px;border-radius:15px;border:1px solid rgba(245,237,214,.11);background:rgba(13,10,8,.98);box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-color:rgba(245,237,214,.42) rgba(245,237,214,.08);scrollbar-width:thin}
         .sighting-menu-option{min-height:42px;border-radius:11px;border:1px solid rgba(245,237,214,.06);background:rgba(245,237,214,.022);color:rgba(245,237,214,.68);font-family:var(--font-dm-sans);font-size:13px;font-weight:650;text-align:left;padding:9px 11px;cursor:pointer}
         .sighting-menu-option:hover,.sighting-menu-option.active{border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.075);color:var(--color-cream)}
-        .sighting-card-list{position:relative;display:grid;gap:11px;padding:12px}
-        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(245,237,214,.08);border-radius:21px;padding:17px;background:linear-gradient(145deg,rgba(23,17,12,.92),rgba(9,7,6,.97));box-shadow:0 16px 42px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)}
-        .sighting-card:before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:1px;background:rgba(196,148,58,.34);opacity:.7}
+        .sighting-card-list{position:relative;display:grid;gap:13px;padding:12px}
+        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(245,237,214,.075);border-radius:21px;padding:18px;background:linear-gradient(145deg,rgba(18,13,10,.94),rgba(8,7,6,.98));box-shadow:0 14px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.03)}
+        .sighting-card:before{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(196,148,58,.22),transparent);opacity:.8}
         .sighting-card:after{content:none}
-        .sighting-card-kicker{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-        .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(206,169,91,.68);font-weight:800}
-        .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.42);white-space:nowrap}
-        .sighting-title{position:relative;margin:0;font-family:var(--font-playfair);font-size:clamp(23px,6vw,31px);line-height:1.03;letter-spacing:-.01em;color:var(--color-cream);padding-right:10px}
-        .sighting-store-line{position:relative;display:flex;align-items:flex-start;gap:8px;margin-top:9px;color:rgba(245,237,214,.76);font-size:14px;line-height:1.45;font-weight:750}
-        .sighting-store-line svg{flex:0 0 auto;margin-top:2px;color:rgba(245,237,214,.38)}
-        .sighting-address{position:relative;margin:4px 0 0 22px;color:rgba(245,237,214,.42);font-size:12px;line-height:1.45}
-        .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-        .sighting-detail-pill{border:1px solid rgba(245,237,214,.075);border-radius:999px;background:rgba(5,4,3,.24);padding:6px 9px;color:rgba(245,237,214,.6);font-family:var(--font-dm-sans);font-size:12px;font-weight:700;line-height:1}
-        .sighting-detail-pill.verified{border-color:rgba(83,211,146,.26);background:rgba(83,211,146,.09);color:rgba(198,255,222,.88)}
+        .sighting-card-kicker{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+        .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(206,169,91,.72);font-weight:800}
+        .sighting-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.38);white-space:nowrap}
+        .sighting-title{position:relative;margin:0;font-family:var(--font-playfair);font-size:clamp(25px,6.4vw,33px);line-height:1.02;letter-spacing:-.012em;color:var(--color-cream);padding-right:4px}
+        .sighting-store-line{position:relative;display:flex;align-items:flex-start;gap:8px;margin-top:11px;color:rgba(245,237,214,.78);font-size:14px;line-height:1.35;font-weight:800}
+        .sighting-store-line svg{flex:0 0 auto;margin-top:1px;color:rgba(206,169,91,.54)}
+        .sighting-address{position:relative;margin:4px 0 0 23px;color:rgba(245,237,214,.43);font-size:12px;line-height:1.45}
+        .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;align-items:center}
+        .sighting-detail-pill{border:1px solid rgba(245,237,214,.07);border-radius:999px;background:rgba(5,4,3,.2);padding:6px 9px;color:rgba(245,237,214,.58);font-family:var(--font-dm-sans);font-size:11px;font-weight:760;line-height:1;max-width:100%}
+        .sighting-detail-pill.verified{border-color:rgba(83,211,146,.24);background:rgba(83,211,146,.08);color:rgba(198,255,222,.88)}
         .sighting-proof-photo{margin-top:12px;width:100%;max-height:360px;object-fit:cover;border-radius:16px;border:1px solid rgba(245,237,214,.1);background:#050403}
 
-        .sighting-note{position:relative;margin:12px 0 0;padding:11px 13px;border-left:1px solid rgba(245,237,214,.12);background:rgba(5,4,3,.22);border-radius:0 12px 12px 0;color:rgba(245,237,214,.64);font-size:13px;line-height:1.5}
+        .sighting-note{position:relative;margin:13px 0 0;padding:12px 13px;border-left:1px solid rgba(196,148,58,.18);background:rgba(5,4,3,.18);border-radius:0 12px 12px 0;color:rgba(245,237,214,.62);font-size:13px;line-height:1.55}
         .sighting-bottom{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(245,237,214,.055)}
-        .sighting-tier-line{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:rgba(245,237,214,.38)}
+        .sighting-tier-line{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(245,237,214,.38);line-height:1.35}
         .sighting-votes{display:flex;align-items:center;gap:6px;margin-left:auto}
         .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.085);background:rgba(245,237,214,.028);color:rgba(245,237,214,.58);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
         .vote-button:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.18);color:rgba(245,237,214,.86);background:rgba(245,237,214,.045)}
@@ -442,7 +443,7 @@ export default function SightingsClient() {
         .sighting-loading-card{height:156px;border-radius:20px;border:1px solid rgba(245,237,214,.06);background:linear-gradient(100deg,rgba(245,237,214,.026),rgba(245,237,214,.06),rgba(245,237,214,.026));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
         @keyframes sightingShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
         @media (prefers-reduced-motion:reduce){.sighting-loading-card{animation:none}.vote-button,.sighting-card,.sighting-location-button,.sighting-submit,.sighting-tab{transition:none!important}}
-        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-mode-shell{gap:18px;margin-top:20px;margin-bottom:9px}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:22px;padding-top:12px}.sighting-feed-top{align-items:flex-end;padding:0 13px 11px}.sighting-menu{min-width:150px}.sighting-card-list{padding:10px;gap:10px}.sighting-card{border-radius:19px;padding:16px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{max-width:48%;line-height:1.45}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{min-width:auto;padding-left:4px;padding-right:4px}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:0}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 10px 10px;padding:18px}}
+        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-mode-shell{gap:18px;margin-top:20px;margin-bottom:9px}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:22px;padding-top:12px}.sighting-feed-top{align-items:flex-end;padding:0 13px 12px}.sighting-menu{min-width:150px}.sighting-card-list{padding:10px;gap:12px}.sighting-card{border-radius:19px;padding:17px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{flex:1;min-width:0}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{min-width:auto;padding-left:4px;padding-right:4px}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:23px}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 10px 10px;padding:18px}}
       `}</style>
 
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
@@ -535,10 +536,10 @@ export default function SightingsClient() {
                   <h3 className="sighting-title">{sighting.bottleName}</h3>
                   <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>
                   <p className="sighting-address">{sightingLocationLine(sighting)}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
-                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{(sighting.reporterBadges || []).map((badge) => <span key={badge} className="sighting-detail-pill">{badge}</span>)}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">New bottle</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">New store</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
+                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">New bottle</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">New store</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
                   {proofUrl ? <img className="sighting-proof-photo" src={proofUrl} alt={`Proof photo for ${sighting.bottleName}`} loading="lazy" /> : null}
                   {sighting.notes ? <div className="sighting-note">“{sighting.notes}”</div> : null}
-                  <div className="sighting-bottom"><span className="sighting-tier-line">Member sighting · {tierLabel(sighting.rarityTier)}{sighting.reporterDisplayName ? ` · ${sighting.reporterDisplayName}` : ""}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
+                  <div className="sighting-bottom"><span className="sighting-tier-line"><span>Member sighting</span><span>{tierLabel(sighting.rarityTier)}</span>{sighting.reporterDisplayName ? <span>{sighting.reporterDisplayName}</span> : null}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
                 </article>
               );
             })}</div>
