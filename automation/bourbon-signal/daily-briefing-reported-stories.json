@@ -1,7 +1,14 @@
 {
-  "updatedAt": "2026-07-04T09:45:00-04:00",
+  "updatedAt": "2026-07-05T15:14:23-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "NC ABC opens comment window on statewide liquor pricing",
+      "source": "NC ABCC",
+      "url": "https://www.abc.nc.gov/spirituous-liquor-pricing",
+      "firstReportedAt": "2026-07-05",
+      "status": "homepage-visible"
+    },
     {
       "title": "Buffalo Trace brings back its Prohibition Collection",
       "source": "Buffalo Trace Distillery / Breaking Bourbon",
@@ -98,7 +105,7 @@
       "source": "Frey Ranch / RunFair",
       "url": "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
       "firstReportedAt": "2026-07-01",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Whisky Advocate flags 19 summer bottles worth hunting",

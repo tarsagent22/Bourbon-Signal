@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "NC ABC opens comment window on statewide liquor pricing",
+    summary: "North Carolina's ABC Commission is studying baseline pricing for spirituous liquor and taking public comments through July 29, a policy lane that could affect how bottles are priced across every ABC store in the state.",
+    note: "This is not a drop, but it is source-level NC intelligence: statewide pricing rules can shape member expectations before any board-level shelf signal appears.",
+    href: "https://www.abc.nc.gov/spirituous-liquor-pricing",
+    source: "NC ABCC",
+  },
+  {
     title: "Horse Soldier opens its $200M Kentucky bourbon campus",
     summary: "Horse Soldier Farms is opening over July 4 weekend with bourbon experiences, concerts, PBR events, fireworks, and a 250th-birthday frame built around American Freedom Distillery's veteran-founded story.",
     note: "Best patriotic pick: it is live on July 4, Kentucky-based, bourbon-first, and turns America's 250th into a real destination story instead of just a commemorative label.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
     source: "Buffalo Trace Distillery",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Frey Ranch 10-Year enters the collector watchlist",
     summary: "Frey Ranch's 10-Year-Old Bourbon Batch #1, its oldest standalone whiskey, launched by lottery and is now moving into the shipment/watch-list window.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
     source: "Frey Ranch",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Bulleit pushes rye into a 20-year collector lane",
     summary: "Bulleit is releasing an ultra-limited 20-year straight rye, positioning the brand's high-rye identity in a much older, more collectible tier.",
@@ -312,7 +319,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated July 4, 2026</span>
+            <span className="daily-briefing-updated">Updated July 5, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>

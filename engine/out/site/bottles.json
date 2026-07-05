@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
   "generatedAt": "2026-07-04T14:33:36.956Z",
-  "count": 152,
+  "count": 153,
   "bottles": [
     {
       "id": "bb_3bccb93448bf8456",
@@ -3852,6 +3852,32 @@
       ],
       "tier": "unknown",
       "producer": null,
+      "signalCount": 0,
+      "stateCount": 0,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 0,
+      "bestLocationPrecision": "statewide_catalog",
+      "bestConfidence": 0,
+      "states": [],
+      "latestObservedAt": null
+    },
+    {
+      "id": "bb_2756c209b14f10ab",
+      "canonical_id": "bb_2756c209b14f10ab",
+      "canonical_name": "10,000 Drops Single Barrel Bourbon",
+      "canonical_key": "10 000 drops",
+      "name": "10,000 Drops Single Barrel Bourbon",
+      "aliases": [
+        "10,000 Drops Bourbon",
+        "10,000 Drops Single Barrel",
+        "10,000 Drops Single Barrel Bourbon",
+        "10000 Drops Bourbon",
+        "10000 Drops Single Barrel",
+        "10000 Drops Single Barrel Bourbon",
+        "10K Drops Single Barrel Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "10,000 Drops Craft Distillers",
       "signalCount": 0,
       "stateCount": 0,
       "inventorySignalCount": 0,

@@ -2,6 +2,22 @@
   "notes": "Curated additions gathered from state source rows/search-index evidence during the second hardening pass. Keep distinct expressions separate when proof, age, mash bill, or annual batch matters.",
   "families": [
     {
+      "canonical": "10,000 Drops Single Barrel Bourbon",
+      "aliases": [
+        "10000 Drops Single Barrel Bourbon",
+        "10,000 Drops Bourbon",
+        "10000 Drops Bourbon",
+        "10,000 Drops Single Barrel",
+        "10000 Drops Single Barrel",
+        "10K Drops Single Barrel Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "10,000 Drops Craft Distillers",
+      "sourceStates": [
+        "MN"
+      ]
+    },
+    {
       "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
       "aliases": [
         "HEAVEN HILL BOTTLED-IN-BOND 7YR",
