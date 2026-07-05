@@ -87,12 +87,16 @@
       "aliases": [
         "BARDSTOWN BOURBON ORIGIN SERIES KENTUCKY STRAIGHT BOURBON WH",
         "Bardstown Origin Kentucky Straight Bourbon",
-        "Bardstown Origin Bourbon"
+        "Bardstown Origin Bourbon",
+        "Bardstown Origin Bourbon Whiskey White Label",
+        "Bardstown Origin Bourbon Whiskey",
+        "Bardstown Origin Series Bourbon Whiskey White Label"
       ],
       "tier": "standard",
       "producer": "Bardstown Bourbon Company",
       "sourceStates": [
-        "IA"
+        "IA",
+        "TN"
       ]
     },
     {
@@ -1161,6 +1165,115 @@
       "producer": "Jim Beam",
       "sourceStates": [
         "SC"
+      ]
+    },
+    {
+      "canonical": "Angel's Envy Bourbon",
+      "aliases": [
+        "Angel's Envy Bourbon 750mL",
+        "Angels Envy Bourbon",
+        "Angel's Envy Kentucky Straight Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Angel's Envy",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Woodford Reserve Double Oaked Bourbon",
+      "aliases": [
+        "Woodford Reserve Double Oaked Bourbon Whiskey",
+        "Woodford Reserve BSAM Barrel Double Oaked Bourbon Whiskey 2025",
+        "Woodford Reserve Double Oaked 750mL"
+      ],
+      "tier": "standard",
+      "producer": "Woodford Reserve",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Maker's Mark Private Selection",
+      "aliases": [
+        "Makers Mark BSAM Private Selection Cask Strength Bourbon",
+        "Maker Mark Private Selection Cask Strength Bourbon",
+        "Maker\u2019s Mark Private Selection"
+      ],
+      "tier": "limited",
+      "producer": "Maker's Mark",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Belle Meade Bourbon Classic",
+      "aliases": [
+        "Belle Meade Bourbon Classic 750mL",
+        "Belle Meade Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Nelson\u2019s Green Brier Distillery",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Belle Meade Bourbon Reserve",
+      "aliases": [
+        "Belle Meade Bourbon Reserve 750mL"
+      ],
+      "tier": "limited",
+      "producer": "Nelson\u2019s Green Brier Distillery",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Chattanooga Whiskey 111",
+      "aliases": [
+        "Chattanooga Whiskey 111 Proof Bourbon",
+        "Chattanooga Whiskey 111 Proof Bourbon 750ml"
+      ],
+      "tier": "standard",
+      "producer": "Chattanooga Whiskey",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Hard Truth Sweet Mash Bourbon",
+      "aliases": [
+        "Hard Truth Sweet Mash Bourbon Whiskey",
+        "Hard Truth Sweet Mash Bourbon Whiskey 750ml"
+      ],
+      "tier": "standard",
+      "producer": "Hard Truth Distilling",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Pursuit United Double Oaked Bourbon",
+      "aliases": [
+        "Pursuit United Double Oak Bourbon",
+        "Pursuit United Double Oak Bourbon 750mL"
+      ],
+      "tier": "standard",
+      "producer": "Pursuit Spirits",
+      "sourceStates": [
+        "TN"
+      ]
+    },
+    {
+      "canonical": "Pursuit United Bourbon",
+      "aliases": [
+        "Pursuit United Bourbon 750mL"
+      ],
+      "tier": "standard",
+      "producer": "Pursuit Spirits",
+      "sourceStates": [
+        "TN"
       ]
     }
   ],

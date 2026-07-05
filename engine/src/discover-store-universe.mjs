@@ -223,11 +223,28 @@ function scoreProbe(probe) {
   if (probe.address && /\bTN\b|Tennessee/i.test(probe.address)) score += 3;
   if (probe.tnMerchantCount > 0) score += 4;
   if (probe.platforms.includes('cityhive')) score += 3;
+  if (probe.platforms.includes('shopify')) score += 3;
   if (probe.productCount > 0) score += 3;
   if (probe.positiveProductOptions > 0) score += 5;
   if (probe.fetchOkCount > 0) score += 1;
   if (probe.outOfStateMerchantCount > 0 && probe.tnMerchantCount === 0) score -= 5;
   return score;
+}
+
+
+async function fetchShopifyStats(baseUrl) {
+  try {
+    const root = new URL(baseUrl);
+    const url = `${root.protocol}//${root.host}/collections/bourbon/products.json?limit=50`;
+    const res = await fetchText(url, { timeoutMs: DEFAULT_TIMEOUT_MS });
+    if (!res.ok || !/^\s*\{/.test(res.text)) return { productCount: 0, availableCount: 0, url, ok: false };
+    const json = JSON.parse(res.text);
+    const products = Array.isArray(json.products) ? json.products : [];
+    const availableCount = products.reduce((sum, product) => sum + (product.variants || []).filter((variant) => variant.available).length, 0);
+    return { productCount: products.length, availableCount, url, ok: products.length > 0 };
+  } catch {
+    return { productCount: 0, availableCount: 0, url: null, ok: false };
+  }
 }
 
 async function probeStore(seed, stateId) {
@@ -245,6 +262,7 @@ async function probeStore(seed, stateId) {
   const blobs = cityHiveJsonBlobs(combined);
   const products = cityHiveProducts(blobs);
   const configs = cityHiveMerchantConfigs(blobs);
+  const shopifyStats = await fetchShopifyStats(baseUrl);
   const merchants = uniqueBy(configs.map((cfg) => cfg?.merchant || cfg).filter(Boolean), (merchant) => merchant.id || merchant.name || merchant.display_name);
   const merchantRows = merchants.map((merchant) => {
     const a = cityHiveAddressParts(merchant.address || {});
@@ -276,6 +294,7 @@ async function probeStore(seed, stateId) {
   const outOfStateMerchants = merchantRows.filter((row) => row.state && row.state !== stateId && !/\bTN\b|Tennessee/i.test(row.address || ''));
   const platforms = [];
   if (/cityhive|assets\.cityhive|widget\.cityhive|sites\.cityhive\.app|Powered\s+By\s+City\s*Hive/i.test(combined)) platforms.push('cityhive');
+  if (shopifyStats.ok) platforms.push('shopify');
   const probe = {
     seedName: seed.name,
     baseUrl,
@@ -285,15 +304,22 @@ async function probeStore(seed, stateId) {
     platforms,
     address,
     city: textCity,
-    productCount: products.length,
+    productCount: products.length + shopifyStats.productCount,
+    cityHiveProductCount: products.length,
+    shopifyProductCount: shopifyStats.productCount,
     productOptionCount: optionStats.optionCount,
-    positiveProductOptions: optionStats.positiveOptionCount,
+    positiveProductOptions: optionStats.positiveOptionCount + shopifyStats.availableCount,
+    shopifyAvailableVariants: shopifyStats.availableCount,
     merchantCount: merchantRows.length,
     tnMerchantCount: tnMerchants.length,
     outOfStateMerchantCount: outOfStateMerchants.length,
     merchants: tnMerchants.length ? tnMerchants : (merchantRows.length ? merchantRows : (address ? [{ id: null, name: seed.name, address, city: textCity, state: stateId }] : [])),
     errors: errors.slice(0, 3)
   };
+  if (!probe.merchants.length && shopifyStats.ok && seed.city) {
+    probe.merchants = [{ id: null, name: seed.name, address: seed.address || null, city: canonicalCity(seed.city), state: stateId }];
+    probe.tnMerchantCount = 1;
+  }
   probe.inventoryStatus = seed.inventoryStatus && seed.inventoryStatus !== 'source-registry' ? seed.inventoryStatus : inventoryStatusForProbe(probe);
   probe.score = scoreProbe(probe);
   probe.promotable = probe.inventoryStatus === 'live-inventory' && probe.tnMerchantCount > 0 && probe.platforms.includes('cityhive');
@@ -302,7 +328,8 @@ async function probeStore(seed, stateId) {
 
 function storesFromStateOutput(stateReport, stateId) {
   const signals = (stateReport?.signals || []).filter((row) => row.state === stateId && row.locationPrecision === 'store_level' && (row.storeName || row.locationName) && (row.storeAddress || row.city));
-  return uniqueBy(signals.map((row) => ({
+  const statusRank = { 'storefront-probeable': 3, 'live-inventory': 5 };
+  const rows = signals.map((row) => ({
     id: row.storeId || null,
     name: row.storeName || row.locationName,
     address: row.storeAddress || null,
@@ -314,7 +341,16 @@ function storesFromStateOutput(stateReport, stateId) {
     sourceLabels: [row.sourceLabel || row.source].filter(Boolean),
     inventoryStatus: /inventory_result/i.test(row.eventType || row.type || '') && Number(row.quantity || 0) > 0 && row.canAlertAsInventory ? 'live-inventory' : 'storefront-probeable',
     discoverySource: 'state-output'
-  })), (row) => `${norm(row.name)}|${norm(row.address)}|${norm(row.city)}`);
+  }));
+  const byStore = new Map();
+  for (const row of rows) {
+    const key = `${norm(row.name)}|${norm(row.address)}|${norm(row.city)}`;
+    const previous = byStore.get(key);
+    if (!previous || (statusRank[row.inventoryStatus] || 0) > (statusRank[previous.inventoryStatus] || 0)) {
+      byStore.set(key, { ...(previous || {}), ...row, sourceLabels: uniqueBy([...(previous?.sourceLabels || []), ...(row.sourceLabels || [])], (value) => value) });
+    }
+  }
+  return [...byStore.values()];
 }
 
 function storesFromProbe(probe, stateId) {

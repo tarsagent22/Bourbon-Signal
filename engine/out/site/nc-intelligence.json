@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-05T21:00:10.050Z",
+  "generatedAt": "2026-07-05T22:00:22.266Z",
   "sourcePolicy": "Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.",
   "precisionModel": {
     "store_level": "specific store inventory when an official board exposes it",
@@ -13,14 +13,14 @@
     "sourceUrl": "https://abc2.nc.gov/StoresBoards/BoardList",
     "parsedBoardCount": 173,
     "websiteCount": 40,
-    "observedAt": "2026-07-05T21:00:10.163Z"
+    "observedAt": "2026-07-05T22:00:22.383Z"
   },
   "currentPriceList": {
     "sourceUrl": "https://abc2.nc.gov/Pricing/ExportData",
     "status": 200,
     "rowCount": 3268,
     "bourbonOrWhiskeyRowCount": 659,
-    "observedAt": "2026-07-05T21:00:10.366Z",
+    "observedAt": "2026-07-05T22:00:22.558Z",
     "note": "Official current quarterly price CSV used to enrich controlled-distribution, shipment, and warehouse rows by NC Code."
   },
   "controlledDistributionList": {
@@ -1945,7 +1945,7 @@
         "priceName": "Elmer T. Lee Single Barrel"
       }
     ],
-    "observedAt": "2026-07-05T21:00:10.429Z",
+    "observedAt": "2026-07-05T22:00:22.621Z",
     "note": "Official public spreadsheet linked from NC ABCC Pricing Reports. It identifies product-control status only; it does not claim current stock, shipment, lottery, or store availability."
   },
   "stockShipped": {
@@ -1964,7 +1964,7 @@
     "rowCount": 3212,
     "trackedRowCount": 98,
     "positiveTrackedRowCount": 30,
-    "observedAt": "2026-07-05T21:00:11.891Z",
+    "observedAt": "2026-07-05T22:00:24.120Z",
     "increaseCount": 0,
     "controlledDistributionSignalCount": 54,
     "priceEnrichedSignalCount": 98,
@@ -2357,7 +2357,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65828,
+      "bytes": 65903,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2480,7 +2480,7 @@
       "finalUrl": "https://wakeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 87012,
+      "bytes": 87062,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2547,7 +2547,7 @@
       "finalUrl": "https://wakeabc.com/search-our-inventory/",
       "ok": true,
       "status": 200,
-      "bytes": 65828,
+      "bytes": 65903,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "inventory_or_product_search_page",
@@ -2728,7 +2728,7 @@
       "finalUrl": "https://www.greensboroabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 177181,
+      "bytes": 177199,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page",
@@ -2820,7 +2820,7 @@
       "finalUrl": "https://orangeabc.com/specialty-lottery/",
       "ok": true,
       "status": 200,
-      "bytes": 90236,
+      "bytes": 90312,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -2873,7 +2873,7 @@
       "finalUrl": "https://orangeabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 109091,
+      "bytes": 108963,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "lottery_page"
@@ -4108,7 +4108,7 @@
       "finalUrl": "https://ashevilleabc.com/",
       "ok": true,
       "status": 200,
-      "bytes": 116377,
+      "bytes": 116376,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [
         "news_or_announcement_page"
@@ -4165,7 +4165,7 @@
       "finalUrl": "https://carteretcountyabc.org/",
       "ok": true,
       "status": 200,
-      "bytes": 29688,
+      "bytes": 29685,
       "contentType": "text/html; charset=UTF-8",
       "capabilities": [],
       "releaseLanguage": false,
@@ -5336,7 +5336,7 @@
         "rowId": "b44bc0c2-056d-4d0a-83d6-6c6a25c81b38"
       }
     ],
-    "observedAt": "2026-07-05T21:00:48.251Z",
+    "observedAt": "2026-07-05T22:00:59.881Z",
     "note": "Parsed hidden Wix warmup dataset rows with productName / ncCode / price fields. No per-store quantity is exposed."
   },
   "newHanoverPublicProducts": {
@@ -5434,7 +5434,7 @@
         "size": ".750L"
       }
     ],
-    "observedAt": "2026-07-05T21:00:48.500Z",
+    "observedAt": "2026-07-05T22:01:00.149Z",
     "note": "Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity."
   },
   "storeLevelProbes": [
@@ -5669,7 +5669,7 @@
         "Skeet Club Rd",
         "Brookridge Lane"
       ],
-      "observedAt": "2026-07-05T21:01:14.052Z"
+      "observedAt": "2026-07-05T22:01:26.91Z"
     },
     {
       "source": "High Point ABC Shopify product suggestion API",

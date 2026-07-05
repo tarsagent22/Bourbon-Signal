@@ -253,7 +253,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'TN', label: 'Tennessee retailer inventory watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
-    value: 'Private retail market. Official ABC pages are policy/license context only; selected public retailer e-commerce pages expose store-level bourbon inventory with verify-before-driving caveats across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Franklin, Brentwood, Germantown, Mount Pleasant, Maryville, Smyrna, Hendersonville, Crossville, and Murfreesboro.',
+    value: 'Private retail market. Official ABC pages are policy/license context only; selected public retailer e-commerce pages and Shopify storefront JSON expose store-level bourbon inventory with verify-before-driving caveats across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Franklin, Brentwood, Germantown, Mount Pleasant, Maryville, Smyrna, Hendersonville, Crossville, and Murfreesboro.',
     sources: [
       { kind: 'html', url: 'https://www.tn.gov/abc.html', label: 'Tennessee ABC homepage' },
       { kind: 'html', url: 'https://www.tn.gov/abc/licensing.html', label: 'Tennessee ABC licensing' },
@@ -279,6 +279,7 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=bourbon', label: 'Good Times Wine Spirits & Brew Crossville CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://campbellstationwine.com/shop/?subtype=bourbon', label: 'Campbell Station Wine & Spirits Knoxville CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://shopredspirits.com/shop/?subtype=bourbon', label: 'RED Spirits & Wine Nashville CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'json', url: 'https://thebottleshopfranklin.com/collections/bourbon/products.json?limit=250', label: 'The Bottle Shop at McEwen Shopify bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://mnjliquor.com/shop/?subtype=bourbon', label: 'M&J Chattanooga CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://redbankliquor.com/shop/?subtype=bourbon', label: 'Red Bank Chattanooga CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://chattliquor.com/shop/?subtype=bourbon', label: 'Discount Liquor Chattanooga CityHive bourbon inventory', precisionOnly: true },

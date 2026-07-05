@@ -436,7 +436,8 @@ Current export reports 22 active states/lanes. Only states with current alert ca
 
 **Current source mesh:**
 
-- CityHive retailer pages across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Lakeland, Franklin, Brentwood, Germantown, Mount Pleasant, Alcoa/Maryville, Smyrna, Hendersonville, Crossville, Farragut/Knoxville, and Bellevue/Nashville.
+- CityHive retailer pages plus selected Shopify storefront JSON across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Lakeland, Franklin, Brentwood, Germantown, Mount Pleasant, Alcoa/Maryville, Smyrna, Hendersonville, Crossville, Farragut/Knoxville, and Bellevue/Nashville.
+- The Bottle Shop at McEwen public Shopify collection JSON (Franklin).
 - Cool Springs Wine & Spirits public catalog API (Franklin).
 - Gateway Wine & Spirits Grabbl public store API (Murfreesboro).
 - Tennessee ABC official pages remain policy/license context only.

@@ -353,6 +353,21 @@ const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIV
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
 const TN_COOL_SPRINGS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_PAGE_SIZE || 100));
 const TN_COOL_SPRINGS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_MAX_PAGES || 3);
+const TN_SHOPIFY_MAX_PRODUCTS = Math.min(250, Number(process.env.BOURBON_SIGNAL_TN_SHOPIFY_MAX_PRODUCTS || 120));
+const TN_SHOPIFY_SOURCES = [
+  {
+    id: 'bottle-shop-mcewen',
+    chainName: 'The Bottle Shop at McEwen',
+    sourceLabel: 'The Bottle Shop at McEwen Shopify bourbon inventory',
+    baseUrl: 'https://thebottleshopfranklin.com',
+    collectionUrl: 'https://thebottleshopfranklin.com/collections/bourbon/products.json?limit=250',
+    address: '1556 W McEwen Dr #102, Franklin, TN 37067',
+    city: 'Franklin',
+    zip: '37067',
+    lat: 35.9336,
+    lng: -86.8227
+  }
+];
 const TN_GRABBL_BASE_URL = 'https://backend-prod.grabbl.io';
 const TN_GRABBL_GATEWAY_APP_ID = '40b00b93-3936-4edc-a8a9-eb3ea9d8c83a';
 const TN_GRABBL_GATEWAY_SEARCH_TERMS = ['bourbon', 'blanton', 'eagle rare', 'buffalo trace', 'weller', '1792', 'four roses', 'woodford', 'elijah craig', 'old forester', 'knob creek', 'maker'];
@@ -1453,6 +1468,7 @@ function cityHiveSafeBottleMatch(rawName, bible) {
   if (/\brye\b/.test(raw) && !/\brye\b/.test(canonical)) return { match, record: null, unsafeReason: 'rye_matched_non_rye' };
   if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return { match, record: null, unsafeReason: 'bourbon_matched_rye' };
   if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return { match, record: null, unsafeReason: 'wheated_matched_non_wheated' };
+  if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return { match, record: null, unsafeReason: 'reserve_matched_non_reserve' };
   const requiredPhrases = [
     'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
     'small batch', 'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
@@ -2498,6 +2514,130 @@ async function fetchCoolSpringsProducts(pageNumber) {
   }
 }
 
+
+function isTennesseeShopifyBourbonCandidate(product) {
+  const text = normalizedBottleText(`${product?.title || ''} ${product?.product_type || ''} ${(product?.tags || []).join(' ')}`);
+  if (!text) return false;
+  if (/\b(vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|margarita|brandy|cognac|mezcal|champagne|cabernet|pinot|chardonnay)\b/i.test(text) && !/\b(bourbon|whiskey|whisky|rye)\b/i.test(text)) return false;
+  return /\b(bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker'?s mark|benchmark|belle meade|chattanooga whiskey|hard truth|pursuit united)\b/i.test(text);
+}
+
+async function fetchTennesseeShopifyProducts(source) {
+  const res = await textFetch(source.collectionUrl, { headers: { accept: 'application/json,*/*' }, timeoutMs: 24_000 });
+  if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, products: [] };
+  try {
+    const json = JSON.parse(res.text);
+    return { ok: true, status: res.status, products: Array.isArray(json.products) ? json.products : [] };
+  } catch (error) {
+    return { ok: false, status: res.status, error: error instanceof Error ? error.message : String(error), products: [] };
+  }
+}
+
+async function collectTennesseeShopify(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  for (const source of TN_SHOPIFY_SOURCES) {
+    const page = await fetchTennesseeShopifyProducts(source);
+    if (!page.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.collectionUrl,
+        status: page.status || 0,
+        error: page.error || 'Shopify collection did not return parseable product JSON.',
+        nextRoute: 'Retry Shopify public collection JSON or inspect storefront collection handles.'
+      });
+      continue;
+    }
+    signals.push({
+      id: stableId([config.id, 'shopify-store-location', source.id]),
+      state: config.id,
+      sourceLabel: `${source.chainName} Shopify store locator`,
+      sourceUrl: source.baseUrl,
+      rawName: source.chainName,
+      canonicalBottleId: null,
+      canonicalName: null,
+      confidence: 0.72,
+      eventType: 'retailer_store_location',
+      locationPrecision: 'store_level',
+      locationName: source.chainName,
+      storeName: source.chainName,
+      storeId: source.id,
+      storeAddress: source.address,
+      city: source.city,
+      stateCode: 'TN',
+      postalCode: source.zip,
+      zip: source.zip,
+      lat: source.lat,
+      lng: source.lng,
+      quantity: 0,
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      inventorySemantics: `${source.chainName} Shopify collection identifies the retailer/storefront. Store rows are not bottle inventory by themselves.`,
+      evidence: `${source.chainName} public Shopify storefront is reachable at ${source.baseUrl}.`,
+      raw: { source: 'tn_shopify_store_location', sourceConfig: source }
+    });
+    const seen = new Set();
+    for (const product of page.products.slice(0, TN_SHOPIFY_MAX_PRODUCTS)) {
+      if (!isTennesseeShopifyBourbonCandidate(product)) continue;
+      for (const variant of product.variants || []) {
+        if (!variant?.available) continue;
+        const rawName = [product.title, variant.title && variant.title !== 'Default Title' ? variant.title : null].filter(Boolean).join(' ');
+        const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+        if (!record) continue;
+        const key = `${source.id}|${product.id}|${variant.id}|${record.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const price = Number(variant.price || 0) || null;
+        signals.push({
+          id: stableId([config.id, 'shopify-store-inventory', source.id, product.id, variant.id, record.id, price]),
+          state: config.id,
+          sourceLabel: source.sourceLabel,
+          sourceUrl: `${source.baseUrl}/products/${product.handle || product.id}`,
+          rawName,
+          canonicalBottleId: record.id,
+          canonicalName: record.canonical,
+          confidence: Math.max(0.78, match?.confidence || 0.5),
+          eventType: 'retailer_store_inventory_result',
+          locationPrecision: 'store_level',
+          locationName: source.chainName,
+          storeName: source.chainName,
+          storeId: source.id,
+          storeAddress: source.address,
+          city: source.city,
+          stateCode: 'TN',
+          postalCode: source.zip,
+          zip: source.zip,
+          lat: source.lat,
+          lng: source.lng,
+          quantity: 1,
+          price,
+          availabilityStatus: 'shopify_available',
+          availabilityLabel: 'Available online',
+          observedAt,
+          canAlertAsInventory: true,
+          canAlertAsWatch: true,
+          inventorySemantics: `${source.chainName} Shopify products.json marks this variant available. Shopify does not expose exact on-hand count; quantity is a lower-bound availability marker and should be verified before driving/order placement.`,
+          evidence: `${source.chainName} Shopify collection lists ${rawName}${price ? ` for $${price.toFixed(2)}` : ''} with variant.available=true.`,
+          raw: { source: 'tn_shopify_products_json', sourceConfig: source, product: { id: product.id, title: product.title, handle: product.handle, product_type: product.product_type, tags: product.tags }, variant, matchGuard: unsafeReason }
+        });
+      }
+    }
+    if (!signals.some((signal) => signal.sourceLabel === source.sourceLabel && signal.eventType === 'retailer_store_inventory_result')) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.collectionUrl,
+        status: 'reachable_no_safe_bourbon_inventory',
+        error: `Read ${page.products.length} Shopify product(s), but none survived availability + bottle-bible guards.`,
+        nextRoute: 'Inspect Shopify collection handles and add bottle aliases only for unambiguous products.'
+      });
+    }
+  }
+  return { signals, roadblocks };
+}
+
 async function collectTennesseeCoolSprings(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -3183,9 +3323,10 @@ async function collectSouthCarolina(config, bible) {
 async function collectTennessee(config, bible) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
+  const shopify = await collectTennesseeShopify(config, bible, observedAt);
   const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt);
   const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt);
-  return { signals: [...cityHive.signals, ...coolSprings.signals, ...gatewayGrabbl.signals], roadblocks: [...cityHive.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks] };
+  return { signals: [...cityHive.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals], roadblocks: [...cityHive.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks] };
 }
 
 function specsProductNameFromText(text, fallbackUrl) {

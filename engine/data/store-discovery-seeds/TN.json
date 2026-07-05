@@ -97,6 +97,42 @@
       "url": "https://shopredspirits.com/",
       "city": "Nashville",
       "source": "web_search: CityHive product/accessibility result"
+    },
+    {
+      "name": "The Bottle Shop at McEwen Shopify",
+      "url": "https://thebottleshopfranklin.com/",
+      "city": "Franklin",
+      "source": "web_search/domain-match: Shopify storefront for Bottle Shop at McEwen"
+    },
+    {
+      "name": "B&B Package Store",
+      "url": "https://www.bbpackagestore.com/",
+      "city": "Kingsport",
+      "source": "web_search/domain-match: official website"
+    },
+    {
+      "name": "Corks Wine & Spirits",
+      "url": "https://www.corkstn.com/",
+      "city": "Knoxville",
+      "source": "web_search/domain-match: official website"
+    },
+    {
+      "name": "Total Wine & More Brentwood",
+      "url": "https://www.totalwine.com/store-info/tennessee-brentwood-nashville/2002",
+      "city": "Brentwood",
+      "source": "web_search/domain-match: official Total Wine store page"
+    },
+    {
+      "name": "Total Wine & More Knoxville",
+      "url": "https://www.totalwine.com/store-info/tennessee-knoxville/2001",
+      "city": "Knoxville",
+      "source": "web_search/domain-match: official Total Wine store page"
+    },
+    {
+      "name": "Great Wine & Spirits of Memphis",
+      "url": "https://www.greatwinesmemphis.com/",
+      "city": "Memphis",
+      "source": "web_search/domain-match: official website"
     }
   ],
   "directorySeeds": [
@@ -175,13 +211,56 @@
       "address": "7066 Hwy 70 S, Nashville, TN 37221",
       "source": "web_search: CityHive mobile app listing",
       "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "B&B Package Store",
+      "city": "Kingsport",
+      "url": "https://www.bbpackagestore.com/",
+      "source": "web_search/domain-match: official website",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Corks Wine & Spirits",
+      "city": "Knoxville",
+      "url": "https://www.corkstn.com/",
+      "source": "web_search/domain-match: official website",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Great Wine & Spirits of Memphis",
+      "city": "Memphis",
+      "url": "https://www.greatwinesmemphis.com/",
+      "source": "web_search/domain-match: official website",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Total Wine & More Knoxville",
+      "city": "Knoxville",
+      "url": "https://www.totalwine.com/store-info/tennessee-knoxville/2001",
+      "source": "web_search/domain-match: official Total Wine store page",
+      "inventoryStatus": "storefront-probeable"
     }
   ],
   "directoryUrls": [
     {
       "url": "https://liquorfind.com/stores/tn",
       "source": "LiquorFind public Tennessee liquor-store directory",
-      "limit": 75
+      "limit": 250
+    },
+    {
+      "url": "https://liquorfind.com/stores/tn?page=1",
+      "source": "LiquorFind public Tennessee liquor-store directory pagination",
+      "limit": 125
+    },
+    {
+      "url": "https://liquorfind.com/stores/tn?page=2",
+      "source": "LiquorFind public Tennessee liquor-store directory pagination",
+      "limit": 125
+    },
+    {
+      "url": "https://liquorfind.com/stores/tn?page=3",
+      "source": "LiquorFind public Tennessee liquor-store directory pagination",
+      "limit": 125
     }
   ]
 }

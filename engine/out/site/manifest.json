@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-05T21:14:15.430Z",
+  "generatedAt": "2026-07-05T22:11:33.637Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -191,8 +191,6 @@
       "eligibleForEmail",
       "eligibleForSms",
       "actionabilityClass",
-      "freshnessPolicyHours",
-      "deliveryCaveat",
       "priorityClass",
       "deliveryChannel",
       "sendRecommendation",
@@ -223,7 +221,9 @@
       "policyMode",
       "inventorySemantics",
       "reason",
-      "evidence"
+      "evidence",
+      "freshnessPolicyHours",
+      "deliveryCaveat"
     ],
     "historicalTrend": [
       "state",

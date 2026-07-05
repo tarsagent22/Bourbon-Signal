@@ -1,66 +1,163 @@
 {
-  "generatedAt": "2026-07-05T21:17:48.082Z",
+  "generatedAt": "2026-07-05T22:12:27.637Z",
   "state": "TN",
   "model": "Bourbon Signal national store universe v0.1",
   "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates directory-only, platform/probeable, live inventory, and alert-grade semantics.",
   "summary": {
-    "seedCount": 32,
-    "probedCount": 32,
-    "knownStoreCount": 117,
-    "currentStoreCount": 31,
-    "probeDiscoveredStoreCount": 30,
-    "directorySeedStoreCount": 11,
-    "directoryUrlStoreCount": 75,
+    "seedCount": 37,
+    "probedCount": 37,
+    "knownStoreCount": 419,
+    "currentStoreCount": 32,
+    "probeDiscoveredStoreCount": 0,
+    "directorySeedStoreCount": 15,
+    "directoryUrlStoreCount": 373,
     "byStatus": {
-      "live-inventory": 30,
-      "directory-only": 79,
-      "storefront-probeable": 8
+      "directory-only": 377,
+      "live-inventory": 29,
+      "storefront-probeable": 13
     },
-    "cityCount": 36,
+    "cityCount": 103,
     "byCity": {
-      "Alcoa/Maryville": 1,
-      "Brentwood": 2,
-      "Celina": 1,
-      "Chattanooga": 12,
-      "Clarksville": 1,
-      "Cordova": 3,
+      "Alcoa/Maryville": 3,
+      "Antioch": 2,
+      "Arlington": 2,
+      "Benton": 2,
+      "Bluff City": 1,
+      "Brentwood": 3,
+      "Bristol": 2,
+      "Byrdstown": 2,
+      "Celina": 2,
+      "Chattanooga": 28,
+      "Clarksville": 8,
+      "Cleveland": 1,
+      "Collinwood": 1,
+      "Columbia": 4,
+      "Cookeville": 2,
+      "Copperhill": 1,
+      "Cordova": 4,
+      "Covington": 2,
+      "Cowan": 1,
       "Crossville": 4,
+      "Cypress Inn": 1,
+      "Dandridge": 1,
+      "Dickson": 3,
       "Dunlap": 1,
+      "Dyersburg": 4,
+      "Englewood": 1,
+      "Fairview": 4,
       "Fall Branch": 1,
-      "Franklin": 6,
-      "Germantown": 1,
-      "Goodlettsville": 1,
-      "Hendersonville": 2,
+      "Fayetteville": 3,
+      "Franklin": 8,
+      "Gainesboro": 2,
+      "Gallatin": 3,
+      "Gatlinburg": 3,
+      "Germantown": 2,
+      "Goodlettsville": 2,
+      "Greeneville": 1,
+      "Hampton": 2,
+      "Harriman": 3,
+      "Hartsville": 2,
+      "Henderson": 1,
+      "Hendersonville": 4,
+      "Hermitage": 2,
       "Hixson": 2,
-      "Jackson": 4,
+      "Humboldt": 1,
+      "Jackson": 9,
+      "Jasper": 1,
+      "Jefferson City": 1,
       "Jellico": 1,
-      "Johnson City": 2,
-      "Kingsport": 1,
-      "Knoxville": 7,
+      "Johnson City": 12,
+      "Kingsport": 7,
+      "Knoxville": 33,
+      "La Vergne": 3,
+      "Lafayette": 1,
       "Lakeland": 1,
       "Lawrenceburg": 1,
+      "Lebanon": 3,
+      "Lenoir City": 1,
+      "Lewisburg": 1,
+      "Lexington": 1,
+      "Linden": 1,
       "Lobelville": 1,
       "Louisville": 1,
-      "Manchester": 3,
-      "Memphis": 30,
+      "Manchester": 4,
+      "Mcminnville": 2,
+      "Memphis": 89,
+      "Middleton": 1,
       "Millington": 1,
-      "Mount Pleasant": 1,
-      "Murfreesboro": 3,
-      "Nashville": 12,
+      "Monteagle": 1,
+      "Monterey": 1,
+      "Morristown": 2,
+      "Moss": 1,
+      "Mount Pleasant": 2,
+      "Mountain City": 1,
+      "Murfreesboro": 11,
+      "Nashville": 49,
+      "New Johnsonville": 1,
+      "Newbern": 1,
+      "Oak Ridge": 3,
+      "Oakland": 1,
+      "Old Hickory": 2,
+      "Paris": 1,
       "Portland": 1,
-      "Savannah": 1,
-      "Shelbyville": 3,
+      "Pulaski": 3,
+      "Rogersville": 1,
+      "Saulsbury": 1,
+      "Savannah": 2,
+      "Shelbyville": 4,
+      "Smithville": 1,
       "Smyrna": 2,
+      "Soddy Daisy": 1,
+      "South Pittsburg": 1,
+      "Sparta": 1,
+      "Spring City": 1,
+      "Springfield": 2,
+      "Sweetwater": 1,
       "Tazewell": 1,
       "Thompson's Station": 1,
-      "Winchester": 1
+      "Tiptonville": 1,
+      "Trenton": 1,
+      "Tullahoma": 4,
+      "Union City": 1,
+      "Watauga": 1,
+      "Winchester": 2
     },
-    "promotableCityHiveSourceCount": 27,
+    "promotableCityHiveSourceCount": 0,
     "newPromotableCityHiveSourceCount": 0
   },
   "stores": [
     {
-      "id": "greenmea1758acc7.sites.cityhive.app:5980fcd8d05b4360e32f7ed2",
+      "id": null,
+      "name": "Bull Distributing",
+      "address": null,
+      "city": "Alcoa/Maryville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/alcoa/bull-distributing",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bull-distributing-alcoa-maryville"
+    },
+    {
+      "id": null,
+      "name": "Foothills Plaza Wines & Spirits",
+      "address": null,
+      "city": "Alcoa/Maryville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/maryville/foothills-plaza-wines-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "foothills-plaza-wines-and-spirits-alcoa-maryville"
+    },
+    {
+      "id": "green-meadow-wine-spirits:5980fcd8d05b4360e32f7ed2",
       "name": "Green Meadow Wine & Spirits",
       "address": "1147 Hunters Crossing, Alcoa, TN 37701, USA",
       "city": "Alcoa/Maryville",
@@ -70,16 +167,134 @@
       "lng": -83.99000889999999,
       "sourceLabels": [
         "Green Meadow Wine & Spirits CityHive store locator",
-        "Green Meadow Wine & Spirits Maryville CityHive bourbon inventory probe"
+        "Green Meadow Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "green-meadow-wine-and-spirits-alcoa-maryville-37701"
     },
     {
-      "id": "moonwineandspirits.com:5ec7d3fd3fd3873558e289e0",
+      "id": null,
+      "name": "Hickory Hollow Discount Wines & Liquors",
+      "address": null,
+      "city": "Antioch",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/antioch/hickory-hollow-discount-wines-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hickory-hollow-discount-wines-and-liquors-antioch"
+    },
+    {
+      "id": null,
+      "name": "J T Liquors",
+      "address": null,
+      "city": "Antioch",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/antioch/j-t-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "j-t-liquors-antioch"
+    },
+    {
+      "id": null,
+      "name": "Arlington Liquors",
+      "address": null,
+      "city": "Arlington",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/arlington/arlington-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "arlington-liquors-arlington"
+    },
+    {
+      "id": null,
+      "name": "Caesar's Wine & Liquor",
+      "address": null,
+      "city": "Arlington",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/arlington/caesars-wine-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "caesar-s-wine-and-liquor-arlington"
+    },
+    {
+      "id": null,
+      "name": "Log Cabin Carry Out",
+      "address": null,
+      "city": "Benton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/benton/log-cabin-carry-out",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "log-cabin-carry-out-benton"
+    },
+    {
+      "id": null,
+      "name": "Stoney's Package Store",
+      "address": null,
+      "city": "Benton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/benton/stoneys-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "stoney-s-package-store-benton"
+    },
+    {
+      "id": null,
+      "name": "Pit Row Wine & Liquor",
+      "address": null,
+      "city": "Bluff City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/bluff-city/pit-row-wine-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "pit-row-wine-and-liquor-bluff-city"
+    },
+    {
+      "id": null,
+      "name": "Grapevine Wine & Spirits",
+      "address": null,
+      "city": "Brentwood",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/brentwood/grapevine-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "grapevine-wine-and-spirits-brentwood"
+    },
+    {
+      "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
       "name": "Moon Wine & Spirits",
       "address": "6910 Moores Ln, Brentwood, TN 37027, USA",
       "city": "Brentwood",
@@ -89,12 +304,10 @@
       "lng": -86.8318783,
       "sourceLabels": [
         "Moon Wine & Spirits CityHive store locator",
-        "Moon Wine & Spirits CityHive bourbon inventory probe"
+        "Moon Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://moonwineandspirits.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "moon-wine-and-spirits-brentwood-37027"
     },
     {
@@ -114,6 +327,81 @@
     },
     {
       "id": null,
+      "name": "Belmont Package CO",
+      "address": null,
+      "city": "Bristol",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/bristol/belmont-package-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "belmont-package-co-bristol"
+    },
+    {
+      "id": null,
+      "name": "Vintage Collections",
+      "address": null,
+      "city": "Bristol",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/bristol/vintage-collections",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "vintage-collections-bristol"
+    },
+    {
+      "id": null,
+      "name": "Anna's Place",
+      "address": null,
+      "city": "Byrdstown",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/byrdstown/annas-place",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "anna-s-place-byrdstown"
+    },
+    {
+      "id": null,
+      "name": "Evans Place",
+      "address": null,
+      "city": "Byrdstown",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/byrdstown/evans-place",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "evans-place-byrdstown"
+    },
+    {
+      "id": null,
+      "name": "Boles Whiskey River Liquors",
+      "address": null,
+      "city": "Celina",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/celina/boles-whiskey-river-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "boles-whiskey-river-liquors-celina"
+    },
+    {
+      "id": null,
       "name": "L & W Package Store",
       "address": null,
       "city": "Celina",
@@ -126,6 +414,51 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "l-and-w-package-store-celina"
+    },
+    {
+      "id": null,
+      "name": "All American Bottling",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/all-american-bottling",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "all-american-bottling-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Athens Distributing CO",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/athens-distributing-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "athens-distributing-co-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Beasley Distributing CO Inc",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/beasley-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beasley-distributing-co-inc-chattanooga"
     },
     {
       "id": null,
@@ -144,6 +477,21 @@
     },
     {
       "id": null,
+      "name": "Bottle Shoppe",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/bottle-shoppe",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bottle-shoppe-chattanooga"
+    },
+    {
+      "id": null,
       "name": "C & B Package Store",
       "address": null,
       "city": "Chattanooga",
@@ -158,7 +506,37 @@
       "key": "c-and-b-package-store-chattanooga"
     },
     {
-      "id": "chattliquor.com:699b529abc7a0517b781e2e0",
+      "id": null,
+      "name": "Carter Distributing Company",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/carter-distributing-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "carter-distributing-company-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Crowley's Corner Pub",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/crowleys-corner-pub",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "crowley-s-corner-pub-chattanooga"
+    },
+    {
+      "id": "discount-liquor-chattanooga:699b529abc7a0517b781e2e0",
       "name": "Discount Liquor",
       "address": "6231 Perimeter Dr #213, Chattanooga, TN 37421, USA",
       "city": "Chattanooga",
@@ -168,13 +546,71 @@
       "lng": -85.18369369999999,
       "sourceLabels": [
         "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store locator",
-        "Discount Liquor Chattanooga CityHive bourbon inventory probe"
+        "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://chattliquor.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "discount-liquor-chattanooga-37421"
+    },
+    {
+      "id": null,
+      "name": "East Brainerd Wine & Spirits",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/east-brainerd-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-brainerd-wine-and-spirits-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Frankie's Place",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/frankies-place",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "frankie-s-place-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Gene's Food Mart",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/genes-food-mart",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "gene-s-food-mart-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Hamilton Liquor",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/hamilton-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hamilton-liquor-chattanooga"
     },
     {
       "id": null,
@@ -190,6 +626,36 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "henry-s-ez-liquor-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Highway 58 Liquors",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/highway-58-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "highway-58-liquors-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Horizon Wine & Spirits",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/horizon-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "horizon-wine-and-spirits-chattanooga"
     },
     {
       "id": null,
@@ -223,6 +689,36 @@
     },
     {
       "id": null,
+      "name": "Kanku's Wine & Spirits",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/kankus-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kanku-s-wine-and-spirits-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Kay's Market",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/kays-market",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kay-s-market-chattanooga"
+    },
+    {
+      "id": null,
       "name": "Ken's Liquor Store",
       "address": null,
       "city": "Chattanooga",
@@ -253,6 +749,21 @@
     },
     {
       "id": null,
+      "name": "Lamplight Package Store",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/lamplight-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lamplight-package-store-chattanooga"
+    },
+    {
+      "id": null,
       "name": "M & J Liquor Store",
       "address": null,
       "city": "Chattanooga",
@@ -267,7 +778,7 @@
       "key": "m-and-j-liquor-store-chattanooga"
     },
     {
-      "id": "mnjliquor.com:6978c02491ff50558a0168d5",
+      "id": "m-and-j-liquor:6978c02491ff50558a0168d5",
       "name": "M&J Liquor Wine Tobacoo",
       "address": "309 Morrison Springs Rd, Chattanooga, TN 37415, USA",
       "city": "Chattanooga",
@@ -277,12 +788,10 @@
       "lng": -85.2939899,
       "sourceLabels": [
         "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store locator",
-        "M&J Chattanooga CityHive bourbon inventory probe"
+        "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://mnjliquor.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "m-and-j-liquor-wine-tobacoo-chattanooga-37415"
     },
     {
@@ -301,7 +810,7 @@
       "key": "mack-s-highway-market-chattanooga"
     },
     {
-      "id": "redbankliquor.com:65e9dd7cdb12802bbb99668e",
+      "id": "red-bank-liquor:65e9dd7cdb12802bbb99668e",
       "name": "My Discount Liquor Tobacco",
       "address": "2004 Dayton Blvd, Chattanooga, TN 37415, USA",
       "city": "Chattanooga",
@@ -311,13 +820,101 @@
       "lng": -85.31184019999999,
       "sourceLabels": [
         "My Discount Liquor Tobacco RedBank TN CityHive store locator",
-        "Red Bank Chattanooga CityHive bourbon inventory probe"
+        "My Discount Liquor Tobacco RedBank TN CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://redbankliquor.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "my-discount-liquor-tobacco-chattanooga-37415"
+    },
+    {
+      "id": null,
+      "name": "Riverside Wine & Spirits",
+      "address": null,
+      "city": "Chattanooga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/chattanooga/riverside-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "riverside-wine-and-spirits-chattanooga"
+    },
+    {
+      "id": null,
+      "name": "Ajax Distributing CO Inc",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/ajax-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ajax-distributing-co-inc-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Beachaven Vineyards & Winery",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/beachaven-vineyards-winery",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beachaven-vineyards-and-winery-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Bill's Package Store",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/bills-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bill-s-package-store-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Budweiser of Clarksville",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/budweiser-clarksville",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "budweiser-of-clarksville-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Caddy's Discount Liquor",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/caddys-discount-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "caddy-s-discount-liquor-clarksville"
     },
     {
       "id": null,
@@ -333,6 +930,186 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "caddy-s-discount-liquors-incorporated-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Hide-A-Way Party Rite",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/hide-way-party-rite",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hide-a-way-party-rite-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Ideal Distributing CO Inc",
+      "address": null,
+      "city": "Clarksville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/clarksville/ideal-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ideal-distributing-co-inc-clarksville"
+    },
+    {
+      "id": null,
+      "name": "Carter Distributing CO Inc",
+      "address": null,
+      "city": "Cleveland",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cleveland/carter-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "carter-distributing-co-inc-cleveland"
+    },
+    {
+      "id": null,
+      "name": "G G'S Market",
+      "address": null,
+      "city": "Collinwood",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/collinwood/g-gs-market",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "g-g-s-market-collinwood"
+    },
+    {
+      "id": null,
+      "name": "By-Pass Package Store",
+      "address": null,
+      "city": "Columbia",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/columbia/pass-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "by-pass-package-store-columbia"
+    },
+    {
+      "id": null,
+      "name": "Columbia Discount Tobacco and Beer 1",
+      "address": null,
+      "city": "Columbia",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/columbia/columbia-discount-tobacco-and-beer-1",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "columbia-discount-tobacco-and-beer-1-columbia"
+    },
+    {
+      "id": null,
+      "name": "Crown Liquors",
+      "address": null,
+      "city": "Columbia",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/columbia/crown-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "crown-liquors-columbia"
+    },
+    {
+      "id": null,
+      "name": "Maury Package Store",
+      "address": null,
+      "city": "Columbia",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/columbia/maury-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "maury-package-store-columbia"
+    },
+    {
+      "id": null,
+      "name": "Budweiser of Cookeville",
+      "address": null,
+      "city": "Cookeville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cookeville/budweiser-cookeville",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "budweiser-of-cookeville-cookeville"
+    },
+    {
+      "id": null,
+      "name": "Hilltop Tavern",
+      "address": null,
+      "city": "Cookeville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cookeville/hilltop-tavern",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hilltop-tavern-cookeville"
+    },
+    {
+      "id": null,
+      "name": "Freddy's Lounge & Grill",
+      "address": null,
+      "city": "Copperhill",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/copperhill/freddys-lounge-grill",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "freddy-s-lounge-and-grill-copperhill"
+    },
+    {
+      "id": null,
+      "name": "Cordova Beverages",
+      "address": null,
+      "city": "Cordova",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cordova/cordova-beverages",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cordova-beverages-cordova"
     },
     {
       "id": null,
@@ -381,6 +1158,51 @@
     },
     {
       "id": null,
+      "name": "Covington Liquor Store",
+      "address": null,
+      "city": "Covington",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/covington/covington-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "covington-liquor-store-covington"
+    },
+    {
+      "id": null,
+      "name": "Discount Liquors and Wines",
+      "address": null,
+      "city": "Covington",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/covington/discount-liquors-and-wines",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "discount-liquors-and-wines-covington"
+    },
+    {
+      "id": null,
+      "name": "41 A Liquors",
+      "address": null,
+      "city": "Cowan",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cowan/41-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "41-a-liquors-cowan"
+    },
+    {
+      "id": null,
       "name": "D & D Liquor",
       "address": null,
       "city": "Crossville",
@@ -395,7 +1217,7 @@
       "key": "d-and-d-liquor-crossville"
     },
     {
-      "id": "goodtime438b8d5d.sites.cityhive.app:624b47df137f3348be13d671",
+      "id": "good-times-crossville:624b47df137f3348be13d671",
       "name": "GOOD TIMES WINE SPIRITS & BREW",
       "address": "1369 Interstate Dr, Crossville, TN 38555, USA",
       "city": "Crossville",
@@ -405,12 +1227,10 @@
       "lng": -85.0357892,
       "sourceLabels": [
         "GOOD TIMES WINE SPIRITS & BREW CityHive store locator",
-        "Good Times Wine Spirits & Brew Crossville CityHive bourbon inventory probe"
+        "GOOD TIMES WINE SPIRITS & BREW CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "good-times-wine-spirits-and-brew-crossville-38555"
     },
     {
@@ -445,6 +1265,81 @@
     },
     {
       "id": null,
+      "name": "Berry's Package Store",
+      "address": null,
+      "city": "Cypress Inn",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/cypress-inn/berrys-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "berry-s-package-store-cypress-inn"
+    },
+    {
+      "id": null,
+      "name": "English Mountain Spring Water Company",
+      "address": null,
+      "city": "Dandridge",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dandridge/english-mountain-spring-water-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "english-mountain-spring-water-company-dandridge"
+    },
+    {
+      "id": null,
+      "name": "Burns Discount Liqour",
+      "address": null,
+      "city": "Dickson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dickson/burns-discount-liqour",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "burns-discount-liqour-dickson"
+    },
+    {
+      "id": null,
+      "name": "Cork and Bottle Liquors",
+      "address": null,
+      "city": "Dickson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dickson/cork-and-bottle-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cork-and-bottle-liquors-dickson"
+    },
+    {
+      "id": null,
+      "name": "East End Liquors",
+      "address": null,
+      "city": "Dickson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dickson/east-end-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-end-liquors-dickson"
+    },
+    {
+      "id": null,
       "name": "Hillbilly's Liquor",
       "address": null,
       "city": "Dunlap",
@@ -460,6 +1355,141 @@
     },
     {
       "id": null,
+      "name": "Burks Beverage LP",
+      "address": null,
+      "city": "Dyersburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dyersburg/burks-beverage-lp",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "burks-beverage-lp-dyersburg"
+    },
+    {
+      "id": null,
+      "name": "City Liquors",
+      "address": null,
+      "city": "Dyersburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dyersburg/city-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "city-liquors-dyersburg"
+    },
+    {
+      "id": null,
+      "name": "Clark Distributing CO",
+      "address": null,
+      "city": "Dyersburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dyersburg/clark-distributing-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "clark-distributing-co-dyersburg"
+    },
+    {
+      "id": null,
+      "name": "Dixie Liquor Store",
+      "address": null,
+      "city": "Dyersburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/dyersburg/dixie-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "dixie-liquor-store-dyersburg"
+    },
+    {
+      "id": null,
+      "name": "411 Package Store",
+      "address": null,
+      "city": "Englewood",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/englewood/411-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "411-package-store-englewood"
+    },
+    {
+      "id": null,
+      "name": "182 Wine & Spirits",
+      "address": null,
+      "city": "Fairview",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fairview/182-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "182-wine-and-spirits-fairview"
+    },
+    {
+      "id": null,
+      "name": "Fairview Liquors",
+      "address": null,
+      "city": "Fairview",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fairview/fairview-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "fairview-liquors-fairview"
+    },
+    {
+      "id": null,
+      "name": "Good Times Spirits & Wines",
+      "address": null,
+      "city": "Fairview",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fairview/good-times-spirits-wines",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "good-times-spirits-and-wines-fairview"
+    },
+    {
+      "id": null,
+      "name": "Key Chiropractic",
+      "address": null,
+      "city": "Fairview",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fairview/key-chiropractic",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "key-chiropractic-fairview"
+    },
+    {
+      "id": null,
       "name": "J & M Package Store",
       "address": null,
       "city": "Fall Branch",
@@ -472,6 +1502,51 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "j-and-m-package-store-fall-branch"
+    },
+    {
+      "id": null,
+      "name": "Bill's Liquor Store",
+      "address": null,
+      "city": "Fayetteville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fayetteville/bills-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bill-s-liquor-store-fayetteville"
+    },
+    {
+      "id": null,
+      "name": "East End Liquors",
+      "address": null,
+      "city": "Fayetteville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fayetteville/east-end-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-end-liquors-fayetteville"
+    },
+    {
+      "id": null,
+      "name": "Liquor Locker",
+      "address": null,
+      "city": "Fayetteville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/fayetteville/liquor-locker",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-locker-fayetteville"
     },
     {
       "id": "cool-springs:1000-1057",
@@ -505,7 +1580,22 @@
       "key": "estela-s-fine-wine-and-liquors-franklin"
     },
     {
-      "id": "happyour0c3f6e1f.sites.cityhive.app:65499b36b456692bd7d53c32",
+      "id": null,
+      "name": "Extreme Beverage Company",
+      "address": null,
+      "city": "Franklin",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/franklin/extreme-beverage-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "extreme-beverage-company-franklin"
+    },
+    {
+      "id": "happy-ours-wine-and-spirits:65499b36b456692bd7d53c32",
       "name": "Happy Ours Wine & Spirits",
       "address": "327 Independence Sq, Franklin, TN 37064, USA",
       "city": "Franklin",
@@ -515,16 +1605,29 @@
       "lng": -86.8787524,
       "sourceLabels": [
         "Happy Ours Wine & Spirits CityHive store locator",
-        "Happy Ours Wine & Spirits Franklin CityHive bourbon inventory probe"
+        "Happy Ours Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://happyour0c3f6e1f.sites.cityhive.app/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "happy-ours-wine-and-spirits-franklin-37064"
     },
     {
-      "id": "shop.reddogwineandspirits.com:5e8c76c132b79e014d2883e2",
+      "id": null,
+      "name": "Holiday Beverages",
+      "address": null,
+      "city": "Franklin",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/franklin/holiday-beverages",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "holiday-beverages-franklin"
+    },
+    {
+      "id": "red-dog-wine-spirits:5e8c76c132b79e014d2883e2",
       "name": "Red Dog Wine and Spirits",
       "address": "1031 Riverside Dr, Franklin, TN 37064, USA",
       "city": "Franklin",
@@ -534,31 +1637,31 @@
       "lng": -86.82835680000001,
       "sourceLabels": [
         "Red Dog Wine and Spirits CityHive store locator",
-        "Red Dog Franklin CityHive bourbon inventory probe"
+        "Red Dog Wine and Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://shop.reddogwineandspirits.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "red-dog-wine-and-spirits-franklin-37064"
     },
     {
-      "id": null,
+      "id": "bottle-shop-mcewen",
       "name": "The Bottle Shop at McEwen",
       "address": "1556 W McEwen Dr #102, Franklin, TN 37067",
       "city": "Franklin",
       "state": "TN",
-      "website": null,
-      "ecommercePlatform": null,
-      "inventoryStatus": "storefront-probeable",
-      "discoverySource": "web_search: CityHive mobile app listing",
+      "zip": "37067",
+      "lat": 35.9336,
+      "lng": -86.8227,
       "sourceLabels": [
-        "web_search: CityHive mobile app listing"
+        "The Bottle Shop at McEwen Shopify store locator",
+        "The Bottle Shop at McEwen Shopify bourbon inventory"
       ],
-      "key": "the-bottle-shop-at-mcewen-franklin"
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "the-bottle-shop-at-mcewen-franklin-37067"
     },
     {
-      "id": "westsidewineandspirits.com:5f3dd0fd52b3904ef965b902",
+      "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
       "name": "Westside Wine & Spirits",
       "address": "188 Front St #106, Franklin, TN 37064, USA",
       "city": "Franklin",
@@ -568,16 +1671,134 @@
       "lng": -86.9195292,
       "sourceLabels": [
         "Westside Wine & Spirits CityHive store locator",
-        "Westside Wine & Spirits CityHive bourbon inventory probe"
+        "Westside Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://westsidewineandspirits.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "westside-wine-and-spirits-franklin-37064"
     },
     {
-      "id": "germanto0f24660d.sites.cityhive.app:6054cf968c3b62112b04d9f8",
+      "id": null,
+      "name": "Country Cabin Liquors",
+      "address": null,
+      "city": "Gainesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gainesboro/country-cabin-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "country-cabin-liquors-gainesboro"
+    },
+    {
+      "id": null,
+      "name": "Lakefront Liquors & Wines",
+      "address": null,
+      "city": "Gainesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gainesboro/lakefront-liquors-wines",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lakefront-liquors-and-wines-gainesboro"
+    },
+    {
+      "id": null,
+      "name": "Broadway Discount Liquors",
+      "address": null,
+      "city": "Gallatin",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gallatin/broadway-discount-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "broadway-discount-liquors-gallatin"
+    },
+    {
+      "id": null,
+      "name": "Gallatin Liquor Store",
+      "address": null,
+      "city": "Gallatin",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gallatin/gallatin-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "gallatin-liquor-store-gallatin"
+    },
+    {
+      "id": null,
+      "name": "Liquor World",
+      "address": null,
+      "city": "Gallatin",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gallatin/liquor-world",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-world-gallatin"
+    },
+    {
+      "id": null,
+      "name": "Craft Center Liquor & Wine",
+      "address": null,
+      "city": "Gatlinburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gatlinburg/craft-center-liquor-wine",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "craft-center-liquor-and-wine-gatlinburg"
+    },
+    {
+      "id": null,
+      "name": "Epifanio's Liquor & Wines",
+      "address": null,
+      "city": "Gatlinburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gatlinburg/epifanios-liquor-wines",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "epifanio-s-liquor-and-wines-gatlinburg"
+    },
+    {
+      "id": null,
+      "name": "Gatlinburg Package Store",
+      "address": null,
+      "city": "Gatlinburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/gatlinburg/gatlinburg-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "gatlinburg-package-store-gatlinburg"
+    },
+    {
+      "id": "germantown-village-wine-and-liquor:6054cf968c3b62112b04d9f8",
       "name": "Germantown Wine & Liquor",
       "address": "7730 Poplar Ave STE 5, Germantown, TN 38138, USA",
       "city": "Germantown",
@@ -587,13 +1808,41 @@
       "lng": -89.8052379,
       "sourceLabels": [
         "Germantown Wine & Liquor CityHive store locator",
-        "Germantown Wine & Liquor CityHive bourbon inventory probe"
+        "Germantown Wine & Liquor CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://germanto0f24660d.sites.cityhive.app/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "germantown-wine-and-liquor-germantown-38138"
+    },
+    {
+      "id": null,
+      "name": "Kirby Parkway Liquors Inc",
+      "address": null,
+      "city": "Germantown",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/germantown/kirby-parkway-liquors-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kirby-parkway-liquors-inc-germantown"
+    },
+    {
+      "id": null,
+      "name": "31 W Market",
+      "address": null,
+      "city": "Goodlettsville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/goodlettsville/31-w-market",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "31-w-market-goodlettsville"
     },
     {
       "id": null,
@@ -612,6 +1861,171 @@
     },
     {
       "id": null,
+      "name": "Greeneville Beverage Store No 2",
+      "address": null,
+      "city": "Greeneville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/greeneville/greeneville-beverage-store-no-2",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "greeneville-beverage-store-no-2-greeneville"
+    },
+    {
+      "id": null,
+      "name": "Captain Jacks MT View Beverage",
+      "address": null,
+      "city": "Hampton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hampton/captain-jacks-mt-view-beverage",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "captain-jacks-mt-view-beverage-hampton"
+    },
+    {
+      "id": null,
+      "name": "Hampton Saloon & Beverage Shop",
+      "address": null,
+      "city": "Hampton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hampton/hampton-saloon-beverage-shop",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hampton-saloon-and-beverage-shop-hampton"
+    },
+    {
+      "id": null,
+      "name": "Frank's Liquors",
+      "address": null,
+      "city": "Harriman",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/harriman/franks-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "frank-s-liquors-harriman"
+    },
+    {
+      "id": null,
+      "name": "Goldston Package Liquor",
+      "address": null,
+      "city": "Harriman",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/harriman/goldston-package-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "goldston-package-liquor-harriman"
+    },
+    {
+      "id": null,
+      "name": "Laura's Beverage Center",
+      "address": null,
+      "city": "Harriman",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/harriman/lauras-beverage-center",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "laura-s-beverage-center-harriman"
+    },
+    {
+      "id": null,
+      "name": "East End Liquors",
+      "address": null,
+      "city": "Hartsville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hartsville/east-end-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-end-liquors-hartsville"
+    },
+    {
+      "id": null,
+      "name": "Hartsville Liquor Store",
+      "address": null,
+      "city": "Hartsville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hartsville/hartsville-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hartsville-liquor-store-hartsville"
+    },
+    {
+      "id": null,
+      "name": "Frogg & CO",
+      "address": null,
+      "city": "Henderson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/henderson/frogg-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "frogg-and-co-henderson"
+    },
+    {
+      "id": null,
+      "name": "Bluegrass Beverages",
+      "address": null,
+      "city": "Hendersonville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hendersonville/bluegrass-beverages",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bluegrass-beverages-hendersonville"
+    },
+    {
+      "id": null,
+      "name": "Center Point Liquors",
+      "address": null,
+      "city": "Hendersonville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hendersonville/center-point-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "center-point-liquors-hendersonville"
+    },
+    {
+      "id": null,
       "name": "Pour Vous Spirits Wine & Beer",
       "address": "263 Indian Lake Blvd, Hendersonville, TN 37075",
       "city": "Hendersonville",
@@ -626,7 +2040,7 @@
       "key": "pour-vous-spirits-wine-and-beer-hendersonville"
     },
     {
-      "id": "pourvous.us:5e6f90c8712a7d0a8ee14b51",
+      "id": "pour-vous-hendersonville:5e6f90c8712a7d0a8ee14b51",
       "name": "Pour Vous Wine, Spirits & Beer",
       "address": "263 Indian Lake Blvd, Hendersonville, TN 37075, USA",
       "city": "Hendersonville",
@@ -636,13 +2050,41 @@
       "lng": -86.5960147,
       "sourceLabels": [
         "Pour Vous Wine, Spirits & Beer CityHive store locator",
-        "Pour Vous Wine Spirits & Beer Hendersonville CityHive bourbon inventory probe"
+        "Pour Vous Wine, Spirits & Beer CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://pourvous.us/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "pour-vous-wine-spirits-and-beer-hendersonville-37075"
+    },
+    {
+      "id": null,
+      "name": "First Discount Tobacco & Beer",
+      "address": null,
+      "city": "Hermitage",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hermitage/first-discount-tobacco-beer",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "first-discount-tobacco-and-beer-hermitage"
+    },
+    {
+      "id": null,
+      "name": "Kwik Sak",
+      "address": null,
+      "city": "Hermitage",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/hermitage/kwik-sak",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kwik-sak-hermitage"
     },
     {
       "id": null,
@@ -676,6 +2118,21 @@
     },
     {
       "id": null,
+      "name": "Central Avenue Wines & Liquors",
+      "address": null,
+      "city": "Humboldt",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/humboldt/central-avenue-wines-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "central-avenue-wines-and-liquors-humboldt"
+    },
+    {
+      "id": null,
       "name": "Barrel Wine & Spirits Company",
       "address": null,
       "city": "Jackson",
@@ -691,6 +2148,21 @@
     },
     {
       "id": null,
+      "name": "Big Al's Package Store",
+      "address": null,
+      "city": "Jackson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jackson/big-als-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "big-al-s-package-store-jackson"
+    },
+    {
+      "id": null,
       "name": "C & C Wine and Liquor",
       "address": "2644 N Highland Ave, Jackson, TN 38305",
       "city": "Jackson",
@@ -703,6 +2175,66 @@
         "web_search: chamber/local listing"
       ],
       "key": "c-and-c-wine-and-liquor-jackson"
+    },
+    {
+      "id": null,
+      "name": "Central Distributors Inc",
+      "address": null,
+      "city": "Jackson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jackson/central-distributors-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "central-distributors-inc-jackson"
+    },
+    {
+      "id": null,
+      "name": "DET Distributing Company",
+      "address": null,
+      "city": "Jackson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jackson/det-distributing-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "det-distributing-company-jackson"
+    },
+    {
+      "id": null,
+      "name": "Hollywood Liquors",
+      "address": null,
+      "city": "Jackson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jackson/hollywood-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hollywood-liquors-jackson"
+    },
+    {
+      "id": null,
+      "name": "Madison South Liquor & Wine",
+      "address": null,
+      "city": "Jackson",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jackson/madison-south-liquor-wine",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "madison-south-liquor-and-wine-jackson"
     },
     {
       "id": null,
@@ -736,6 +2268,36 @@
     },
     {
       "id": null,
+      "name": "Lucifer's Liquor",
+      "address": null,
+      "city": "Jasper",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jasper/lucifers-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lucifer-s-liquor-jasper"
+    },
+    {
+      "id": null,
+      "name": "Jefferson Package Store",
+      "address": null,
+      "city": "Jefferson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/jefferson-city/jefferson-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "jefferson-package-store-jefferson-city"
+    },
+    {
+      "id": null,
       "name": "B & D Drive-Thru",
       "address": null,
       "city": "Jellico",
@@ -750,7 +2312,142 @@
       "key": "b-and-d-drive-thru-jellico"
     },
     {
-      "id": "onestopwines.net:672b6a0791de502911a082b3",
+      "id": null,
+      "name": "Aaa Package Store",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/aaa-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "aaa-package-store-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Alpine Package Store",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/alpine-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "alpine-package-store-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Boone Distributing CO",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/boone-distributing-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "boone-distributing-co-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Clyce Distributing Company Inc",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/clyce-distributing-company-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "clyce-distributing-company-inc-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Colonel Steve's Wine & Liquor Warehouse",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/colonel-steves-wine-liquor-warehouse",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "colonel-steve-s-wine-and-liquor-warehouse-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Franklin Package Store",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/franklin-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "franklin-package-store-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Holiday Mart",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/holiday-mart",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "holiday-mart-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Holston Distributing Company",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/holston-distributing-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "holston-distributing-company-johnson-city"
+    },
+    {
+      "id": null,
+      "name": "Nestle Beverage Company",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/nestle-beverage-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "nestle-beverage-company-johnson-city"
+    },
+    {
+      "id": "one-stop-wines-johnson-city:672b6a0791de502911a082b3",
       "name": "One Stop Wines & Spirits - Franklin Rd",
       "address": "1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA",
       "city": "Johnson City",
@@ -759,17 +2456,14 @@
       "lat": 36.3008869,
       "lng": -82.37741079999999,
       "sourceLabels": [
-        "One Stop Wines & Spirits Johnson City TN CityHive store locator",
-        "One Stop Johnson City CityHive bourbon inventory probe"
+        "One Stop Wines & Spirits Johnson City TN CityHive store locator"
       ],
-      "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://onestopwines.net/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "state-output",
       "key": "one-stop-wines-and-spirits-franklin-rd-johnson-city-37604"
     },
     {
-      "id": "onestopwines.net:672b8fbd53a80c28dd63b086",
+      "id": "one-stop-wines-johnson-city:672b8fbd53a80c28dd63b086",
       "name": "One Stop Wines & Spirits - Roan St",
       "address": "2710 N Roan St, Johnson City, TN 37601, USA",
       "city": "Johnson City",
@@ -779,13 +2473,26 @@
       "lng": -82.38251729999999,
       "sourceLabels": [
         "One Stop Wines & Spirits Johnson City TN CityHive store locator",
-        "One Stop Johnson City CityHive bourbon inventory probe"
+        "One Stop Wines & Spirits Johnson City TN CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://onestopwines.net/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "one-stop-wines-and-spirits-roan-st-johnson-city-37601"
+    },
+    {
+      "id": null,
+      "name": "Plaza Package Store",
+      "address": null,
+      "city": "Johnson City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/johnson-city/plaza-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "plaza-package-store-johnson-city"
     },
     {
       "id": null,
@@ -803,7 +2510,172 @@
       "key": "b-and-b-package-store-kingsport"
     },
     {
-      "id": "campbellstationwine.com:5f7f26b331859f2928949d72",
+      "id": null,
+      "name": "B&B Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://www.bbpackagestore.com/",
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search/domain-match: official website",
+      "sourceLabels": [
+        "web_search/domain-match: official website"
+      ],
+      "key": "b-and-b-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "Colonial Heights Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/kingsport/colonial-heights-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "colonial-heights-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "Discount Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/kingsport/discount-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "discount-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "Greenacres Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/kingsport/greenacres-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "greenacres-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "Kelleys Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/kingsport/kelleys-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kelleys-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "Sam's Package Store",
+      "address": null,
+      "city": "Kingsport",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/kingsport/sams-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "sam-s-package-store-kingsport"
+    },
+    {
+      "id": null,
+      "name": "640 Liquor Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/640-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "640-liquor-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Adobe Package Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/adobe-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "adobe-package-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "ALCOA Highway Liquors",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/alcoa-highway-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "alcoa-highway-liquors-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Beverage Control Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/beverage-control-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beverage-control-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Bob's Package Store Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/bobs-package-store-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bob-s-package-store-inc-knoxville"
+    },
+    {
+      "id": "campbell-station-wine-spirits:5f7f26b331859f2928949d72",
       "name": "Campbell Station Wine & Spirits",
       "address": "707 N Campbell Station Rd, Farragut, TN 37934, USA",
       "city": "Knoxville",
@@ -813,12 +2685,10 @@
       "lng": -84.17539660000001,
       "sourceLabels": [
         "Campbell Station Wine & Spirits CityHive store locator",
-        "Campbell Station Wine & Spirits Knoxville CityHive bourbon inventory probe"
+        "Campbell Station Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://campbellstationwine.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "campbell-station-wine-and-spirits-knoxville-37934"
     },
     {
@@ -838,6 +2708,51 @@
     },
     {
       "id": null,
+      "name": "Casey's Wines & Spirits LLC",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/caseys-wines-spirits-llc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "casey-s-wines-and-spirits-llc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Cherokee Distributing CO Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/cherokee-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cherokee-distributing-co-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Cork & Bottle",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/cork-bottle",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cork-and-bottle-knoxville"
+    },
+    {
+      "id": null,
       "name": "Corks & Vines",
       "address": null,
       "city": "Knoxville",
@@ -852,7 +2767,22 @@
       "key": "corks-and-vines-knoxville"
     },
     {
-      "id": "cristysliquorstore.com:6060f6cb3aa83f4de4838714",
+      "id": null,
+      "name": "Corks Wine & Spirits",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://www.corkstn.com/",
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search/domain-match: official website",
+      "sourceLabels": [
+        "web_search/domain-match: official website"
+      ],
+      "key": "corks-wine-and-spirits-knoxville"
+    },
+    {
+      "id": "cristys-liquor-store:6060f6cb3aa83f4de4838714",
       "name": "Cristy's Liquor Store",
       "address": "4613 Rutledge Pike, Knoxville, TN 37914, USA",
       "city": "Knoxville",
@@ -862,16 +2792,179 @@
       "lng": -83.8699566,
       "sourceLabels": [
         "Cristy's Liquor Store CityHive store locator",
-        "Cristy's Brentwood CityHive bourbon inventory probe"
+        "Cristy's Liquor Store CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://cristysliquorstore.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "cristy-s-liquor-store-knoxville-37914"
     },
     {
-      "id": "lakeshorewineandspirit.com:684c7a13853c9b28ea4a4eca",
+      "id": null,
+      "name": "Cristy's Liquor Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/cristys-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cristy-s-liquor-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Crossroads Liquor Store Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/crossroads-liquor-store-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "crossroads-liquor-store-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "D and V Distributing CO",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/d-and-v-distributing-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "d-and-v-distributing-co-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Dinwiddie George Distributing Company Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/dinwiddie-george-distributing-company-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "dinwiddie-george-distributing-company-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Dixie Lee Wines & Liquors",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/dixie-lee-wines-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "dixie-lee-wines-and-liquors-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Eagle Distributing CO Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/eagle-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "eagle-distributing-co-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Earl's Liquor Barn",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/earls-liquor-barn",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "earl-s-liquor-barn-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Holston Package Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/holston-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "holston-package-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Jerry's Package Store - Retail Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/jerrys-package-store-retail-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "jerry-s-package-store-retail-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "K'S Package Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/ks-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "k-s-package-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Knoxville Beverage CO Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/knoxville-beverage-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "knoxville-beverage-co-inc-knoxville"
+    },
+    {
+      "id": "lakeshore-wine-and-spirits:684c7a13853c9b28ea4a4eca",
       "name": "Lakeshore Wine & Spirits",
       "address": "311 S Northshore Dr, Knoxville, TN 37919, USA",
       "city": "Knoxville",
@@ -881,16 +2974,44 @@
       "lng": -84.0014351,
       "sourceLabels": [
         "Lakeshore Wine & Spirits CityHive store locator",
-        "Lakeshore Wine & Spirits Knoxville CityHive bourbon inventory probe"
+        "Lakeshore Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://lakeshorewineandspirit.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "lakeshore-wine-and-spirits-knoxville-37919"
     },
     {
-      "id": "liquorvault.com:6862952392864d25df3762b8",
+      "id": null,
+      "name": "Lange's Liquor Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/langes-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lange-s-liquor-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Leaf and Ale",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/leaf-and-ale",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "leaf-and-ale-knoxville"
+    },
+    {
+      "id": "liquor-vault-knoxville:6862952392864d25df3762b8",
       "name": "Liquor Vault Knoxville",
       "address": "2901 Tazewell Pike, Knoxville, TN 37918, USA",
       "city": "Knoxville",
@@ -900,16 +3021,59 @@
       "lng": -83.9248823,
       "sourceLabels": [
         "Liquor Vault Knoxville CityHive store locator",
-        "Liquor Vault Knoxville CityHive bourbon inventory probe"
+        "Liquor Vault Knoxville CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://liquorvault.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "liquor-vault-knoxville-knoxville-37918"
     },
     {
-      "id": "northshorews.com:5980fcddd05b4360e32f7f02",
+      "id": null,
+      "name": "Little John's Package Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/little-johns-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "little-john-s-package-store-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Malt Beverage Media Services Inc",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/malt-beverage-media-services-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "malt-beverage-media-services-inc-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Middlebrook Package Store",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/knoxville/middlebrook-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "middlebrook-package-store-knoxville"
+    },
+    {
+      "id": "northshore-wine-spirits:5980fcddd05b4360e32f7f02",
       "name": "Northshore Wine & Spirits",
       "address": "9427 S Northshore Dr, Knoxville, TN 37922, USA",
       "city": "Knoxville",
@@ -919,16 +3083,89 @@
       "lng": -84.06586,
       "sourceLabels": [
         "Northshore Wine & Spirits CityHive store locator",
-        "Northshore Wine & Spirits Chattanooga CityHive bourbon inventory probe"
+        "Northshore Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://northshorews.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "northshore-wine-and-spirits-knoxville-37922"
     },
     {
-      "id": "lakedistrictwineandliquor.com:62d49efea85f7b25af50381a",
+      "id": null,
+      "name": "Total Wine & More Knoxville",
+      "address": null,
+      "city": "Knoxville",
+      "state": "TN",
+      "website": "https://www.totalwine.com/store-info/tennessee-knoxville/2001",
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search/domain-match: official Total Wine store page",
+      "sourceLabels": [
+        "web_search/domain-match: official Total Wine store page"
+      ],
+      "key": "total-wine-and-more-knoxville-knoxville"
+    },
+    {
+      "id": null,
+      "name": "Kwik Sak",
+      "address": null,
+      "city": "La Vergne",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/la-vergne/kwik-sak",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kwik-sak-la-vergne"
+    },
+    {
+      "id": null,
+      "name": "Lavergne Liquor",
+      "address": null,
+      "city": "La Vergne",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/la-vergne/lavergne-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lavergne-liquor-la-vergne"
+    },
+    {
+      "id": null,
+      "name": "Wine & Spirits Unlimited",
+      "address": null,
+      "city": "La Vergne",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/la-vergne/wine-spirits-unlimited",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "wine-and-spirits-unlimited-la-vergne"
+    },
+    {
+      "id": null,
+      "name": "Highway 10 Package Store",
+      "address": null,
+      "city": "Lafayette",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lafayette/highway-10-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "highway-10-package-store-lafayette"
+    },
+    {
+      "id": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
       "name": "Lake District Wine and Liquor",
       "address": "9845 Lake District Dr, Lakeland, TN 38002, USA",
       "city": "Lakeland",
@@ -938,12 +3175,10 @@
       "lng": -89.7345481,
       "sourceLabels": [
         "Lake District Wine and Liquor CityHive store locator",
-        "Lake District Wine and Liquor Lakeland CityHive bourbon inventory probe"
+        "Lake District Wine and Liquor CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://lakedistrictwineandliquor.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "lake-district-wine-and-liquor-lakeland-38002"
     },
     {
@@ -960,6 +3195,111 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "a-to-z-spirits-lawrenceburg"
+    },
+    {
+      "id": null,
+      "name": "East Side Liquors",
+      "address": null,
+      "city": "Lebanon",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lebanon/east-side-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-side-liquors-lebanon"
+    },
+    {
+      "id": null,
+      "name": "Liquor World",
+      "address": null,
+      "city": "Lebanon",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lebanon/liquor-world",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-world-lebanon"
+    },
+    {
+      "id": null,
+      "name": "Market Basket Liquors",
+      "address": null,
+      "city": "Lebanon",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lebanon/market-basket-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "market-basket-liquors-lebanon"
+    },
+    {
+      "id": null,
+      "name": "Eagle Distributing CO Inc",
+      "address": null,
+      "city": "Lenoir City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lenoir-city/eagle-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "eagle-distributing-co-inc-lenoir-city"
+    },
+    {
+      "id": null,
+      "name": "East Side Liquors",
+      "address": null,
+      "city": "Lewisburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lewisburg/east-side-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-side-liquors-lewisburg"
+    },
+    {
+      "id": null,
+      "name": "Coca-Cola Dr Pepper Bottling Works",
+      "address": null,
+      "city": "Lexington",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/lexington/coca-cola-dr-pepper-bottling-works",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "coca-cola-dr-pepper-bottling-works-lexington"
+    },
+    {
+      "id": null,
+      "name": "Beer Hut",
+      "address": null,
+      "city": "Linden",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/linden/beer-hut",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beer-hut-linden"
     },
     {
       "id": null,
@@ -1008,6 +3348,21 @@
     },
     {
       "id": null,
+      "name": "Interstate Liquors",
+      "address": null,
+      "city": "Manchester",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/manchester/interstate-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "interstate-liquors-manchester"
+    },
+    {
+      "id": null,
       "name": "Manchester Liquors",
       "address": null,
       "city": "Manchester",
@@ -1038,6 +3393,96 @@
     },
     {
       "id": null,
+      "name": "American Telephone",
+      "address": null,
+      "city": "Mcminnville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/mcminnville/american-telephone",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "american-telephone-mcminnville"
+    },
+    {
+      "id": null,
+      "name": "Forrest Park Package Store",
+      "address": null,
+      "city": "Mcminnville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/mcminnville/forrest-park-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "forrest-park-package-store-mcminnville"
+    },
+    {
+      "id": null,
+      "name": "Alex's Discount Liquor",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/alexs-discount-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "alex-s-discount-liquor-memphis"
+    },
+    {
+      "id": null,
+      "name": "All American Bottlers",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/all-american-bottlers",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "all-american-bottlers-memphis"
+    },
+    {
+      "id": null,
+      "name": "Athens Distributing CO",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/athens-distributing-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "athens-distributing-co-memphis"
+    },
+    {
+      "id": null,
+      "name": "Ayoka Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/ayoka-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ayoka-liquor-store-memphis"
+    },
+    {
+      "id": null,
       "name": "Azor's Liquor",
       "address": null,
       "city": "Memphis",
@@ -1050,6 +3495,21 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "azor-s-liquor-memphis"
+    },
+    {
+      "id": null,
+      "name": "B & B Liquor Shop",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/b-b-liquor-shop",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "b-and-b-liquor-shop-memphis"
     },
     {
       "id": null,
@@ -1068,6 +3528,111 @@
     },
     {
       "id": null,
+      "name": "Bellevue Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/bellevue-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bellevue-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Bernie's C & S Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/bernies-c-s-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bernie-s-c-and-s-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Beverage Center",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/beverage-center",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beverage-center-memphis"
+    },
+    {
+      "id": null,
+      "name": "Big Lee's Liquor's",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/big-lees-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "big-lee-s-liquor-s-memphis"
+    },
+    {
+      "id": null,
+      "name": "Blue 4 Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/blue-4-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "blue-4-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Bob's Drive Inn Grocery",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/bobs-drive-inn-grocery",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bob-s-drive-inn-grocery-memphis"
+    },
+    {
+      "id": null,
+      "name": "Brown Jug Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/brown-jug-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "brown-jug-liquors-memphis"
+    },
+    {
+      "id": null,
       "name": "Bud & Hal's Liquors",
       "address": null,
       "city": "Memphis",
@@ -1082,7 +3647,52 @@
       "key": "bud-and-hal-s-liquors-memphis"
     },
     {
-      "id": "bustersliquors.com:662124505fbcb5293d346405",
+      "id": null,
+      "name": "Budget Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/budget-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "budget-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Bull Distributing of Tennesse",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/bull-distributing-tennesse",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bull-distributing-of-tennesse-memphis"
+    },
+    {
+      "id": null,
+      "name": "Bursi Charlie Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/bursi-charlie-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bursi-charlie-liquor-store-memphis"
+    },
+    {
+      "id": "busters-liquors:662124505fbcb5293d346405",
       "name": "Buster’s Liquors | East",
       "address": "5851 Poplar Ave, Memphis, TN 38119, USA",
       "city": "Memphis",
@@ -1091,17 +3701,14 @@
       "lat": 35.1007384,
       "lng": -89.8651132,
       "sourceLabels": [
-        "Buster's Liquors & Wines CityHive store locator",
-        "Buster's Memphis CityHive bourbon inventory probe"
+        "Buster's Liquors & Wines CityHive store locator"
       ],
-      "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://bustersliquors.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "state-output",
       "key": "buster-s-liquors-east-memphis-38119"
     },
     {
-      "id": "bustersliquors.com:599b740a1783f8451693062c",
+      "id": "busters-liquors:599b740a1783f8451693062c",
       "name": "Buster’s Liquors | University",
       "address": "Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA",
       "city": "Memphis",
@@ -1111,12 +3718,10 @@
       "lng": -89.9459231,
       "sourceLabels": [
         "Buster's Liquors & Wines CityHive store locator",
-        "Buster's Memphis CityHive bourbon inventory probe"
+        "Buster's Liquors & Wines CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://bustersliquors.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "buster-s-liquors-university-memphis-38111"
     },
     {
@@ -1136,6 +3741,186 @@
     },
     {
       "id": null,
+      "name": "Cardosi Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/cardosi-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cardosi-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Carl's Wines & Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/carls-wines-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "carl-s-wines-and-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Cattaneo Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/cattaneo-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cattaneo-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Cedar Grove Station Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/cedar-grove-station-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cedar-grove-station-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Central Avenue Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/central-avenue-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "central-avenue-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Chelsea Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/chelsea-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "chelsea-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Coca Cola Bottling CO of Memphis",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/coca-cola-bottling-co-memphis",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "coca-cola-bottling-co-of-memphis-memphis"
+    },
+    {
+      "id": null,
+      "name": "Cocacola Enterprises",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/cocacola-enterprises",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cocacola-enterprises-memphis"
+    },
+    {
+      "id": null,
+      "name": "Coda Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/coda-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "coda-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Corkscrew",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/corkscrew",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "corkscrew-memphis"
+    },
+    {
+      "id": null,
+      "name": "County Line Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/county-line-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "county-line-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Crown Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/crown-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "crown-liquor-store-memphis"
+    },
+    {
+      "id": null,
       "name": "D Canale Beverages Incorporated",
       "address": null,
       "city": "Memphis",
@@ -1148,6 +3933,66 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "d-canale-beverages-incorporated-memphis"
+    },
+    {
+      "id": null,
+      "name": "Davenport's Wine & Spirits",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/davenports-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "davenport-s-wine-and-spirits-memphis"
+    },
+    {
+      "id": null,
+      "name": "Delta Wholesale Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/delta-wholesale-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "delta-wholesale-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Desoto Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/desoto-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "desoto-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Downtown Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/downtown-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "downtown-liquors-memphis"
     },
     {
       "id": null,
@@ -1166,6 +4011,81 @@
     },
     {
       "id": null,
+      "name": "Fountain Liquor Drive-In",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/fountain-liquor-drive",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "fountain-liquor-drive-in-memphis"
+    },
+    {
+      "id": null,
+      "name": "Fox Meadows Liquors LLC",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/fox-meadows-liquors-llc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "fox-meadows-liquors-llc-memphis"
+    },
+    {
+      "id": null,
+      "name": "Fox Ridge Discount Liquor",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/fox-ridge-discount-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "fox-ridge-discount-liquor-memphis"
+    },
+    {
+      "id": null,
+      "name": "Frank's Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/franks-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "frank-s-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Frayser Wine & Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/frayser-wine-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "frayser-wine-and-liquors-memphis"
+    },
+    {
+      "id": null,
       "name": "Gagliano's Liquor Store",
       "address": null,
       "city": "Memphis",
@@ -1178,6 +4098,156 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "gagliano-s-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Gaslight Liquor Shoppe",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/gaslight-liquor-shoppe",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "gaslight-liquor-shoppe-memphis"
+    },
+    {
+      "id": null,
+      "name": "Getwell Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/getwell-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "getwell-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Globe Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/globe-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "globe-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Graceland Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/graceland-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "graceland-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Great Wine & Spirits of Memphis",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://www.greatwinesmemphis.com/",
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search/domain-match: official website",
+      "sourceLabels": [
+        "web_search/domain-match: official website"
+      ],
+      "key": "great-wine-and-spirits-of-memphis-memphis"
+    },
+    {
+      "id": null,
+      "name": "Heart of Frayser Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/heart-frayser-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "heart-of-frayser-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Highway 51 Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/highway-51-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "highway-51-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Hollywood Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/hollywood-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hollywood-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "Holmes Road Liquor",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/holmes-road-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "holmes-road-liquor-memphis"
+    },
+    {
+      "id": null,
+      "name": "Humphreys Wine & Spirits",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/humphreys-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "humphreys-wine-and-spirits-memphis"
     },
     {
       "id": null,
@@ -1196,6 +4266,36 @@
     },
     {
       "id": null,
+      "name": "ICEE Corporation",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/icee-corporation",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "icee-corporation-memphis"
+    },
+    {
+      "id": null,
+      "name": "J & J Liquors Inc",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/j-j-liquors-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "j-and-j-liquors-inc-memphis"
+    },
+    {
+      "id": null,
       "name": "J & S Liquor Store",
       "address": null,
       "city": "Memphis",
@@ -1208,6 +4308,21 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "j-and-s-liquor-store-memphis"
+    },
+    {
+      "id": null,
+      "name": "JB's liquor store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/jbs-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "jb-s-liquor-store-memphis"
     },
     {
       "id": null,
@@ -1240,7 +4355,22 @@
       "key": "k-jays-liquor-store-memphis"
     },
     {
-      "id": "kimbroughwines.com:61f0226010e5b74ab40ee942",
+      "id": null,
+      "name": "Kaufman Liquor Store",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/kaufman-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kaufman-liquor-store-memphis"
+    },
+    {
+      "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
       "name": "Kimbrough Fine Wine & Spirits",
       "address": "1483 Union Ave, Memphis, TN 38104, USA",
       "city": "Memphis",
@@ -1250,13 +4380,26 @@
       "lng": -90.0121156,
       "sourceLabels": [
         "Kimbrough Fine Wine & Spirits CityHive store locator",
-        "Kimbrough Memphis CityHive bourbon inventory probe"
+        "Kimbrough Fine Wine & Spirits CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://kimbroughwines.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "kimbrough-fine-wine-and-spirits-memphis-38104"
+    },
+    {
+      "id": null,
+      "name": "Kimbrough Towers Fine Wine & Spirits",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/kimbrough-towers-fine-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kimbrough-towers-fine-wine-and-spirits-memphis"
     },
     {
       "id": null,
@@ -1274,7 +4417,7 @@
       "key": "king-s-liquors-memphis"
     },
     {
-      "id": "kirbywina689aaf8.sites.cityhive.app:6054cfa68c3b62112b04dc2e",
+      "id": "kirby-wines-liquors:6054cfa68c3b62112b04dc2e",
       "name": "Kirby Wines & Liquors",
       "address": "2865 Kirby Pkwy, Memphis, TN 38119, USA",
       "city": "Memphis",
@@ -1284,13 +4427,56 @@
       "lng": -89.84364029999999,
       "sourceLabels": [
         "Kirby Wines & Liquors CityHive store locator",
-        "Kirby Wines & Liquors Memphis CityHive bourbon inventory probe"
+        "Kirby Wines & Liquors CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://kirbywina689aaf8.sites.cityhive.app/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "kirby-wines-and-liquors-memphis-38119"
+    },
+    {
+      "id": null,
+      "name": "Kirby Wines and Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/kirby-wines-and-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "kirby-wines-and-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Lagrange Discount Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/lagrange-discount-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lagrange-discount-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Lauderdale Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/lauderdale-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lauderdale-liquors-memphis"
     },
     {
       "id": null,
@@ -1324,6 +4510,21 @@
     },
     {
       "id": null,
+      "name": "Liquor Mart",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/liquor-mart",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-mart-memphis"
+    },
+    {
+      "id": null,
       "name": "Lottie's Liquor",
       "address": null,
       "city": "Memphis",
@@ -1339,6 +4540,21 @@
     },
     {
       "id": null,
+      "name": "Lou's Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/lous-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lou-s-liquors-memphis"
+    },
+    {
+      "id": null,
       "name": "Martha's Palace",
       "address": null,
       "city": "Memphis",
@@ -1351,6 +4567,36 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "martha-s-palace-memphis"
+    },
+    {
+      "id": null,
+      "name": "Massa Liquors",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/massa-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "massa-liquors-memphis"
+    },
+    {
+      "id": null,
+      "name": "Memphis Smokes",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/memphis-smokes",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "memphis-smokes-memphis"
     },
     {
       "id": null,
@@ -1504,6 +4750,36 @@
     },
     {
       "id": null,
+      "name": "Wild Wes's Smokehouse Grill",
+      "address": null,
+      "city": "Memphis",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/memphis/wild-wess-smokehouse-grill",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "wild-wes-s-smokehouse-grill-memphis"
+    },
+    {
+      "id": null,
+      "name": "Cardwell's State Line",
+      "address": null,
+      "city": "Middleton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/middleton/cardwells-state-line",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cardwell-s-state-line-middleton"
+    },
+    {
+      "id": null,
       "name": "Fly Wine & Spirits",
       "address": null,
       "city": "Millington",
@@ -1518,7 +4794,97 @@
       "key": "fly-wine-and-spirits-millington"
     },
     {
-      "id": "foursixesliquors.com:6723a588d3b5392b884e024e",
+      "id": null,
+      "name": "Eagle Liquors",
+      "address": null,
+      "city": "Monteagle",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/monteagle/eagle-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "eagle-liquors-monteagle"
+    },
+    {
+      "id": null,
+      "name": "Cove Market & Deli",
+      "address": null,
+      "city": "Monterey",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/monterey/cove-market-deli",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cove-market-and-deli-monterey"
+    },
+    {
+      "id": null,
+      "name": "Cellar",
+      "address": null,
+      "city": "Morristown",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/morristown/cellar",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cellar-morristown"
+    },
+    {
+      "id": null,
+      "name": "Irma Elizabeth Mexican Restaurant",
+      "address": null,
+      "city": "Morristown",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/morristown/irma-elizabeth-mexican-restaurant",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "irma-elizabeth-mexican-restaurant-morristown"
+    },
+    {
+      "id": null,
+      "name": "Goolsbys Package Store",
+      "address": null,
+      "city": "Moss",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/moss/goolsbys-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "goolsbys-package-store-moss"
+    },
+    {
+      "id": null,
+      "name": "Four Sixes Liquor Store Inc",
+      "address": null,
+      "city": "Mount Pleasant",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/mt-pleasant/four-sixes-liquor-store-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "four-sixes-liquor-store-inc-mount-pleasant"
+    },
+    {
+      "id": "four-sixes-liquors-and-wines:6723a588d3b5392b884e024e",
       "name": "Four Sixes Liquors & Wines",
       "address": "715 S Main St, Mt Pleasant, TN 38474, USA",
       "city": "Mount Pleasant",
@@ -1528,13 +4894,41 @@
       "lng": -87.21053359999999,
       "sourceLabels": [
         "Four Sixes Liquors & Wines CityHive store locator",
-        "Four Sixes Liquors & Wines Mount Pleasant CityHive bourbon inventory probe"
+        "Four Sixes Liquors & Wines CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://foursixesliquors.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "four-sixes-liquors-and-wines-mount-pleasant-38474"
+    },
+    {
+      "id": null,
+      "name": "Country's Stateline Tavern",
+      "address": null,
+      "city": "Mountain City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/mountain-city/countrys-stateline-tavern",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "country-s-stateline-tavern-mountain-city"
+    },
+    {
+      "id": null,
+      "name": "Boro Liqor Store",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/boro-liqor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "boro-liqor-store-murfreesboro"
     },
     {
       "id": null,
@@ -1552,6 +4946,51 @@
       "key": "bubba-s-wine-and-liquors-murfreesboro"
     },
     {
+      "id": null,
+      "name": "C N G Wine & Spirits",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/c-n-g-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "c-n-g-wine-and-spirits-murfreesboro"
+    },
+    {
+      "id": null,
+      "name": "Esquire Discount Liquors",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/esquire-discount-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "esquire-discount-liquors-murfreesboro"
+    },
+    {
+      "id": null,
+      "name": "Food Lion Incorporated",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/food-lion-incorporated",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "food-lion-incorporated-murfreesboro"
+    },
+    {
       "id": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
       "name": "Gateway Wine & Spirits",
       "address": "3119 Medical Center Parkway A5, Murfreesboro, TN 37129",
@@ -1559,13 +4998,73 @@
       "state": "TN",
       "zip": "37129",
       "lat": 35.8660287,
-      "lng": -86.4538028,
+      "lng": -86.45380279999999,
       "sourceLabels": [
         "Gateway Wine & Spirits Grabbl public store API"
       ],
-      "inventoryStatus": "storefront-probeable",
+      "inventoryStatus": "live-inventory",
       "discoverySource": "state-output",
       "key": "gateway-wine-and-spirits-murfreesboro-37129"
+    },
+    {
+      "id": null,
+      "name": "Goff's Barbecue & Market",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/goffs-barbecue-market",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "goff-s-barbecue-and-market-murfreesboro"
+    },
+    {
+      "id": null,
+      "name": "Innsbrook Wine & Spirits",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/innsbrook-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "innsbrook-wine-and-spirits-murfreesboro"
+    },
+    {
+      "id": null,
+      "name": "J & A Liquor",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/j-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "j-and-a-liquor-murfreesboro"
+    },
+    {
+      "id": null,
+      "name": "Longhorn Liquor Inc",
+      "address": null,
+      "city": "Murfreesboro",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/murfreesboro/longhorn-liquor-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "longhorn-liquor-inc-murfreesboro"
     },
     {
       "id": null,
@@ -1583,7 +5082,172 @@
       "key": "r-and-b-liquors-murfreesboro"
     },
     {
-      "id": "corkdorkswine.com:5b52b2903ff14a3c5d9cdd19",
+      "id": null,
+      "name": "A & W Root Beer Bottling CO",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/w-root-beer-bottling-co",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "a-and-w-root-beer-bottling-co-nashville"
+    },
+    {
+      "id": null,
+      "name": "A-Z Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/z-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "a-z-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Ajax Turner CO Inc",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/ajax-turner-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ajax-turner-co-inc-nashville"
+    },
+    {
+      "id": null,
+      "name": "Beer Mart",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/beer-mart",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beer-mart-nashville"
+    },
+    {
+      "id": null,
+      "name": "Berry Hill Liquors & Wines",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/berry-hill-liquors-wines",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "berry-hill-liquors-and-wines-nashville"
+    },
+    {
+      "id": null,
+      "name": "Best Brands Inc",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/best-brands-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "best-brands-inc-nashville"
+    },
+    {
+      "id": null,
+      "name": "Bordeaux Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/bordeaux-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "bordeaux-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Brentwood Wines & Spirits",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/brentwood-wines-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "brentwood-wines-and-spirits-nashville"
+    },
+    {
+      "id": null,
+      "name": "Charlotte Pike Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/charlotte-pike-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "charlotte-pike-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Citco",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/citco",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "citco-nashville"
+    },
+    {
+      "id": null,
+      "name": "Colonial Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/colonial-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "colonial-liquors-nashville"
+    },
+    {
+      "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",
       "name": "Corkdorks Wine Spirits Beer - Green Hills",
       "address": "4009 Hillsboro Pike, Nashville, TN 37215, USA",
       "city": "Nashville",
@@ -1592,17 +5256,14 @@
       "lat": 36.104219,
       "lng": -86.81589699999999,
       "sourceLabels": [
-        "Corkdorks Wine Spirits Beer CityHive store locator",
-        "Corkdorks CityHive bourbon inventory probe"
+        "Corkdorks Wine Spirits Beer CityHive store locator"
       ],
-      "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://corkdorkswine.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "state-output",
       "key": "corkdorks-wine-spirits-beer-green-hills-nashville-37215"
     },
     {
-      "id": "corkdorkswine.com:5c2a8cae7309395802faf15d",
+      "id": "corkdorks:5c2a8cae7309395802faf15d",
       "name": "Corkdorks Wine Spirits Beer - Midtown",
       "address": "1610 Church St, Nashville, TN 37203, USA",
       "city": "Nashville",
@@ -1612,13 +5273,101 @@
       "lng": -86.7943734,
       "sourceLabels": [
         "Corkdorks Wine Spirits Beer CityHive store locator",
-        "Corkdorks CityHive bourbon inventory probe"
+        "Corkdorks CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://corkdorkswine.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "corkdorks-wine-spirits-beer-midtown-nashville-37203"
+    },
+    {
+      "id": null,
+      "name": "David's Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/davids-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "david-s-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Discount Beer Market",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/discount-beer-market",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "discount-beer-market-nashville"
+    },
+    {
+      "id": null,
+      "name": "Discount Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/discount-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "discount-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Donelson Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/donelson-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "donelson-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Donelson Pike Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/donelson-pike-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "donelson-pike-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Firehouse Discount Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/firehouse-discount-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "firehouse-discount-liquors-nashville"
     },
     {
       "id": null,
@@ -1636,7 +5385,7 @@
       "key": "frugal-mac-doogal-warehouse-nashville"
     },
     {
-      "id": "frugalmacdoogal.com:6599a3f98893882b7f30798d",
+      "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "name": "Frugal MacDoogal",
       "address": "701 Division St, Nashville, TN 37203, USA",
       "city": "Nashville",
@@ -1646,13 +5395,146 @@
       "lng": -86.77812259999999,
       "sourceLabels": [
         "Frugal MacDoogal CityHive store locator",
-        "Frugal MacDoogal CityHive bourbon inventory probe"
+        "Frugal MacDoogal CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://www.frugalmacdoogal.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "frugal-macdoogal-nashville-37203"
+    },
+    {
+      "id": null,
+      "name": "Grand CRU Wine and Spirits",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/grand-cru-wine-and-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "grand-cru-wine-and-spirits-nashville"
+    },
+    {
+      "id": null,
+      "name": "Harold's Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/harolds-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "harold-s-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Hickory Discount Liquors 1",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/hickory-discount-liquors-1",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hickory-discount-liquors-1-nashville"
+    },
+    {
+      "id": null,
+      "name": "High Note Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/high-note-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "high-note-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Hillsboro Beer World",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/hillsboro-beer-world",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hillsboro-beer-world-nashville"
+    },
+    {
+      "id": null,
+      "name": "Hillwood Village Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/hillwood-village-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hillwood-village-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Horizon Wine and Spirits-Nashville Inc",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/horizon-wine-and-spirits-nashville-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "horizon-wine-and-spirits-nashville-inc-nashville"
+    },
+    {
+      "id": null,
+      "name": "Ideal Liquor Store",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/ideal-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ideal-liquor-store-nashville"
+    },
+    {
+      "id": null,
+      "name": "J & J'S Market & Cafe",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/j-js-market-cafe",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "j-and-j-s-market-and-cafe-nashville"
     },
     {
       "id": null,
@@ -1671,6 +5553,21 @@
     },
     {
       "id": null,
+      "name": "J & S Party PAC Wines & Liquors Inc",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/j-s-party-pac-wines-liquors-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "j-and-s-party-pac-wines-and-liquors-inc-nashville"
+    },
+    {
+      "id": null,
       "name": "J Barleycorn Liquor Barn",
       "address": null,
       "city": "Nashville",
@@ -1686,6 +5583,21 @@
     },
     {
       "id": null,
+      "name": "Jackson Downs Wine and Liquor",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/jackson-downs-wine-and-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "jackson-downs-wine-and-liquor-nashville"
+    },
+    {
+      "id": null,
       "name": "L'Ete Du VIN",
       "address": null,
       "city": "Nashville",
@@ -1698,6 +5610,111 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "l-ete-du-vin-nashville"
+    },
+    {
+      "id": null,
+      "name": "Lake Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/lake-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lake-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Last Chance Liquor Store",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/last-chance-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "last-chance-liquor-store-nashville"
+    },
+    {
+      "id": null,
+      "name": "Lipman BROS Inc",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/lipman-bros-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lipman-bros-inc-nashville"
+    },
+    {
+      "id": null,
+      "name": "Liquor World of Nashville",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/liquor-world-nashville",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-world-of-nashville-nashville"
+    },
+    {
+      "id": null,
+      "name": "M & M Discount Liquor Store",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/m-m-discount-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "m-and-m-discount-liquor-store-nashville"
+    },
+    {
+      "id": null,
+      "name": "Main Street Liquor Store",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/main-street-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "main-street-liquor-store-nashville"
+    },
+    {
+      "id": null,
+      "name": "Mr Mario",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/mr-mario",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "mr-mario-nashville"
     },
     {
       "id": null,
@@ -1745,7 +5762,7 @@
       "key": "r-and-r-liquor-store-nashville"
     },
     {
-      "id": "shopredspirits.com:5e9656b14e4e042f8a551e9f",
+      "id": "red-spirits-and-wine:5e9656b14e4e042f8a551e9f",
       "name": "RED Spirits & Wine",
       "address": "7066 Hwy 70 S, Nashville, TN 37221, USA",
       "city": "Nashville",
@@ -1755,12 +5772,10 @@
       "lng": -86.9196262,
       "sourceLabels": [
         "RED Spirits & Wine CityHive store locator",
-        "RED Spirits & Wine Nashville CityHive bourbon inventory probe"
+        "RED Spirits & Wine CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://shopredspirits.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "red-spirits-and-wine-nashville-37221"
     },
     {
@@ -1780,6 +5795,171 @@
     },
     {
       "id": null,
+      "name": "Uncle Koto's Liquors",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/uncle-kotos-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "uncle-koto-s-liquors-nashville"
+    },
+    {
+      "id": null,
+      "name": "Weiss Liquors Incorporated",
+      "address": null,
+      "city": "Nashville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/nashville/weiss-liquors-incorporated",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "weiss-liquors-incorporated-nashville"
+    },
+    {
+      "id": null,
+      "name": "Hunt's Riverside Wines & Liquors",
+      "address": null,
+      "city": "New Johnsonville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/new-johnsonville/hunts-riverside-wines-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hunt-s-riverside-wines-and-liquors-new-johnsonville"
+    },
+    {
+      "id": null,
+      "name": "Pussers Wine & Liquor",
+      "address": null,
+      "city": "Newbern",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/newbern/pussers-wine-liquor",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "pussers-wine-and-liquor-newbern"
+    },
+    {
+      "id": null,
+      "name": "Jb's Wine & Spirits Incorporated",
+      "address": null,
+      "city": "Oak Ridge",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/oak-ridge/jbs-wine-spirits-incorporated",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "jb-s-wine-and-spirits-incorporated-oak-ridge"
+    },
+    {
+      "id": null,
+      "name": "Lizz's Wine & Spirits",
+      "address": null,
+      "city": "Oak Ridge",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/oak-ridge/lizzs-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lizz-s-wine-and-spirits-oak-ridge"
+    },
+    {
+      "id": null,
+      "name": "Turnpike Wine & Spirits",
+      "address": null,
+      "city": "Oak Ridge",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/oak-ridge/turnpike-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "turnpike-wine-and-spirits-oak-ridge"
+    },
+    {
+      "id": null,
+      "name": "Hilltop Wine & Spirits",
+      "address": null,
+      "city": "Oakland",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/oakland/hilltop-wine-spirits",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hilltop-wine-and-spirits-oakland"
+    },
+    {
+      "id": null,
+      "name": "Hermitage Liquors",
+      "address": null,
+      "city": "Old Hickory",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/old-hickory/hermitage-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hermitage-liquors-old-hickory"
+    },
+    {
+      "id": null,
+      "name": "Lakewood Liquors",
+      "address": null,
+      "city": "Old Hickory",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/old-hickory/lakewood-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "lakewood-liquors-old-hickory"
+    },
+    {
+      "id": null,
+      "name": "Ajax Distributing CO Inc",
+      "address": null,
+      "city": "Paris",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/paris/ajax-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "ajax-distributing-co-inc-paris"
+    },
+    {
+      "id": null,
       "name": "X Press Liquor",
       "address": null,
       "city": "Portland",
@@ -1795,6 +5975,96 @@
     },
     {
       "id": null,
+      "name": "Cardin Distributing Company Inc",
+      "address": null,
+      "city": "Pulaski",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/pulaski/cardin-distributing-company-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cardin-distributing-company-inc-pulaski"
+    },
+    {
+      "id": null,
+      "name": "Hillside Hospital - Bed 141 A- Bed 144 A",
+      "address": null,
+      "city": "Pulaski",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/pulaski/hillside-hospital-bed-141-bed-144",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hillside-hospital-bed-141-a-bed-144-a-pulaski"
+    },
+    {
+      "id": null,
+      "name": "Mid South Distributing",
+      "address": null,
+      "city": "Pulaski",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/pulaski/mid-south-distributing",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "mid-south-distributing-pulaski"
+    },
+    {
+      "id": null,
+      "name": "Beech Creek Market & Deli",
+      "address": null,
+      "city": "Rogersville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/rogersville/beech-creek-market-deli",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beech-creek-market-and-deli-rogersville"
+    },
+    {
+      "id": null,
+      "name": "Leon's Place",
+      "address": null,
+      "city": "Saulsbury",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/saulsbury/leons-place",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "leon-s-place-saulsbury"
+    },
+    {
+      "id": null,
+      "name": "Cedar Chest Liquors",
+      "address": null,
+      "city": "Savannah",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/savannah/cedar-chest-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cedar-chest-liquors-savannah"
+    },
+    {
+      "id": null,
       "name": "Sixty Four Liquors",
       "address": null,
       "city": "Savannah",
@@ -1807,6 +6077,21 @@
         "LiquorFind Tennessee directory"
       ],
       "key": "sixty-four-liquors-savannah"
+    },
+    {
+      "id": null,
+      "name": "Celebration Liquors",
+      "address": null,
+      "city": "Shelbyville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/shelbyville/celebration-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "celebration-liquors-shelbyville"
     },
     {
       "id": null,
@@ -1855,6 +6140,21 @@
     },
     {
       "id": null,
+      "name": "Hanky Panky's",
+      "address": null,
+      "city": "Smithville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/smithville/hanky-pankys",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hanky-panky-s-smithville"
+    },
+    {
+      "id": null,
       "name": "Junction Liquors",
       "address": "401 Chaney Rd, Smyrna, TN 37167",
       "city": "Smyrna",
@@ -1869,7 +6169,7 @@
       "key": "junction-liquors-smyrna"
     },
     {
-      "id": "junction-liquors.com:67d88a7a7aec9317bbb8c5ec",
+      "id": "junction-liquors-smyrna:67d88a7a7aec9317bbb8c5ec",
       "name": "Junction Liquors - Smyrna",
       "address": "401 Chaney Rd, Smyrna, TN 37167, USA",
       "city": "Smyrna",
@@ -1879,13 +6179,116 @@
       "lng": -86.56073789999999,
       "sourceLabels": [
         "Junction Liquors - Smyrna CityHive store locator",
-        "Junction Liquors Smyrna CityHive bourbon inventory probe"
+        "Junction Liquors - Smyrna CityHive store inventory"
       ],
       "inventoryStatus": "live-inventory",
-      "discoverySource": "probe",
-      "website": "https://junction-liquors.com/shop/?subtype=bourbon",
-      "ecommercePlatform": "cityhive",
+      "discoverySource": "state-output",
       "key": "junction-liquors-smyrna-smyrna-37167"
+    },
+    {
+      "id": null,
+      "name": "Beasley Distributing CO Inc",
+      "address": null,
+      "city": "Soddy Daisy",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/soddy-daisy/beasley-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "beasley-distributing-co-inc-soddy-daisy"
+    },
+    {
+      "id": null,
+      "name": "Suzanne's Liquors",
+      "address": null,
+      "city": "South Pittsburg",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/south-pittsburg/suzannes-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "suzanne-s-liquors-south-pittsburg"
+    },
+    {
+      "id": null,
+      "name": "Rosie's Package Store",
+      "address": null,
+      "city": "Sparta",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/sparta/rosies-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "rosie-s-package-store-sparta"
+    },
+    {
+      "id": null,
+      "name": "Junction Service Station",
+      "address": null,
+      "city": "Spring City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/spring-city/junction-service-station",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "junction-service-station-spring-city"
+    },
+    {
+      "id": null,
+      "name": "Cornsilk Liquors",
+      "address": null,
+      "city": "Springfield",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/springfield/cornsilk-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "cornsilk-liquors-springfield"
+    },
+    {
+      "id": null,
+      "name": "Express Liquors",
+      "address": null,
+      "city": "Springfield",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/springfield/express-liquors",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "express-liquors-springfield"
+    },
+    {
+      "id": null,
+      "name": "Hiwassee Sales Company",
+      "address": null,
+      "city": "Sweetwater",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/sweetwater/hiwassee-sales-company",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "hiwassee-sales-company-sweetwater"
     },
     {
       "id": null,
@@ -1916,6 +6319,141 @@
         "web_search: CityHive mobile app listing"
       ],
       "key": "tollgate-wine-and-spirits-thompson-s-station"
+    },
+    {
+      "id": null,
+      "name": "East End Liquor Store",
+      "address": null,
+      "city": "Tiptonville",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/tiptonville/east-end-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=2",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "east-end-liquor-store-tiptonville"
+    },
+    {
+      "id": null,
+      "name": "45 Package Store",
+      "address": null,
+      "city": "Trenton",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/trenton/45-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "45-package-store-trenton"
+    },
+    {
+      "id": null,
+      "name": "Carroll Street Liquor Store",
+      "address": null,
+      "city": "Tullahoma",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/tullahoma/carroll-street-liquor-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "carroll-street-liquor-store-tullahoma"
+    },
+    {
+      "id": null,
+      "name": "L & H Distributing CO Inc",
+      "address": null,
+      "city": "Tullahoma",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/tullahoma/l-h-distributing-co-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "l-and-h-distributing-co-inc-tullahoma"
+    },
+    {
+      "id": null,
+      "name": "Liquor Locker Inc",
+      "address": null,
+      "city": "Tullahoma",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/tullahoma/liquor-locker-inc",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "liquor-locker-inc-tullahoma"
+    },
+    {
+      "id": null,
+      "name": "Mid-South Distributing",
+      "address": null,
+      "city": "Tullahoma",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/tullahoma/mid-south-distributing",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=3",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "mid-south-distributing-tullahoma"
+    },
+    {
+      "id": null,
+      "name": "C C Coin Caterers Corporation",
+      "address": null,
+      "city": "Union City",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/union-city/c-c-coin-caterers-corporation",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "c-c-coin-caterers-corporation-union-city"
+    },
+    {
+      "id": null,
+      "name": "Barn Shoppe",
+      "address": null,
+      "city": "Watauga",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/watauga/barn-shoppe",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "barn-shoppe-watauga"
+    },
+    {
+      "id": null,
+      "name": "Billy's Package Store",
+      "address": null,
+      "city": "Winchester",
+      "state": "TN",
+      "website": "https://liquorfind.com/stores/tn/winchester/billys-package-store",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "directory-url:https://liquorfind.com/stores/tn?page=1",
+      "sourceLabels": [
+        "LiquorFind Tennessee directory"
+      ],
+      "key": "billy-s-package-store-winchester"
     },
     {
       "id": null,

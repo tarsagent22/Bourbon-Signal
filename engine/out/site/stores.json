@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-05T21:14:15.430Z",
+  "generatedAt": "2026-07-05T22:11:33.637Z",
   "count": 2848,
   "stores": [
     {
@@ -13469,7 +13469,7 @@
       "lat": 39.6608323,
       "lng": -86.3102971,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -16311,20 +16311,6 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
-      "signalCount": 1
-    },
-    {
-      "id": "doordash:26286224",
-      "sourceStoreId": "doordash:26286224",
-      "state": "IN",
-      "name": "Frontier Liquors - Oak Hill Road",
-      "address": "1701 Oak Hill Road, Evansville, IN 47711",
-      "city": "Evansville",
-      "county": null,
-      "zip": "47711",
-      "lat": 37.992805,
-      "lng": -87.52567,
-      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
       "signalCount": 1
     },
     {
@@ -34469,7 +34455,7 @@
       "lat": null,
       "lng": null,
       "source": "Da Brown Bag Clover public inventory API",
-      "signalCount": 17
+      "signalCount": 20
     },
     {
       "id": "dev-liquors:620164924a3ea84d57c21d6f",
@@ -34721,7 +34707,7 @@
       "lat": 35.955476,
       "lng": -86.817278,
       "source": "Cool Springs Wine & Spirits public catalog API",
-      "signalCount": 14
+      "signalCount": 15
     },
     {
       "id": "corkdorks:5b52b2903ff14a3c5d9cdd19",
@@ -34819,7 +34805,7 @@
       "lat": 35.8660287,
       "lng": -86.45380279999999,
       "source": "Gateway Wine & Spirits Grabbl public store API",
-      "signalCount": 16
+      "signalCount": 17
     },
     {
       "id": "germantown-village-wine-and-liquor:6054cf968c3b62112b04d9f8",
@@ -35086,6 +35072,20 @@
       "lng": -86.9196262,
       "source": "RED Spirits & Wine CityHive store inventory",
       "signalCount": 6
+    },
+    {
+      "id": "bottle-shop-mcewen",
+      "sourceStoreId": "bottle-shop-mcewen",
+      "state": "TN",
+      "name": "The Bottle Shop at McEwen",
+      "address": "1556 W McEwen Dr #102, Franklin, TN 37067",
+      "city": "Franklin",
+      "county": null,
+      "zip": "37067",
+      "lat": 35.9336,
+      "lng": -86.8227,
+      "source": "The Bottle Shop at McEwen Shopify bourbon inventory",
+      "signalCount": 16
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
