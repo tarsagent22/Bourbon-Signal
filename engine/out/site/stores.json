@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-05T19:31:21.044Z",
-  "count": 2837,
+  "generatedAt": "2026-07-05T20:25:49.019Z",
+  "count": 2845,
   "stores": [
     {
       "id": "alabc:001",
@@ -16314,20 +16314,6 @@
       "signalCount": 1
     },
     {
-      "id": "doordash:26286224",
-      "sourceStoreId": "doordash:26286224",
-      "state": "IN",
-      "name": "Frontier Liquors - Oak Hill Road",
-      "address": "1701 Oak Hill Road, Evansville, IN 47711",
-      "city": "Evansville",
-      "county": null,
-      "zip": "47711",
-      "lat": 37.992805,
-      "lng": -87.52567,
-      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
-      "signalCount": 1
-    },
-    {
       "id": "DL4303279",
       "sourceStoreId": "DL4303279",
       "state": "IN",
@@ -28967,7 +28953,7 @@
       "lat": 40.148506,
       "lng": -74.998452,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "915",
@@ -32887,7 +32873,7 @@
       "lat": 40.079,
       "lng": -75.025,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "5114",
@@ -34766,6 +34752,20 @@
       "signalCount": 15
     },
     {
+      "id": "four-sixes-liquors-and-wines:6723a588d3b5392b884e024e",
+      "sourceStoreId": "four-sixes-liquors-and-wines:6723a588d3b5392b884e024e",
+      "state": "TN",
+      "name": "Four Sixes Liquors & Wines",
+      "address": "715 S Main St, Mt Pleasant, TN 38474, USA",
+      "city": "Mt Pleasant",
+      "county": null,
+      "zip": "38474",
+      "lat": 35.52663,
+      "lng": -87.21053359999999,
+      "source": "Four Sixes Liquors & Wines CityHive store inventory",
+      "signalCount": 9
+    },
+    {
       "id": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "sourceStoreId": "frugal-macdoogal:6599a3f98893882b7f30798d",
       "state": "TN",
@@ -34794,6 +34794,76 @@
       "signalCount": 16
     },
     {
+      "id": "germantown-village-wine-and-liquor:6054cf968c3b62112b04d9f8",
+      "sourceStoreId": "germantown-village-wine-and-liquor:6054cf968c3b62112b04d9f8",
+      "state": "TN",
+      "name": "Germantown Wine & Liquor",
+      "address": "7730 Poplar Ave STE 5, Germantown, TN 38138, USA",
+      "city": "Germantown",
+      "county": null,
+      "zip": "38138",
+      "lat": 35.0916034,
+      "lng": -89.8052379,
+      "source": "Germantown Wine & Liquor CityHive store inventory",
+      "signalCount": 16
+    },
+    {
+      "id": "good-times-crossville:624b47df137f3348be13d671",
+      "sourceStoreId": "good-times-crossville:624b47df137f3348be13d671",
+      "state": "TN",
+      "name": "GOOD TIMES WINE SPIRITS & BREW",
+      "address": "1369 Interstate Dr, Crossville, TN 38555, USA",
+      "city": "Crossville",
+      "county": null,
+      "zip": "38555",
+      "lat": 35.9865435,
+      "lng": -85.0357892,
+      "source": "GOOD TIMES WINE SPIRITS & BREW CityHive store inventory",
+      "signalCount": 2
+    },
+    {
+      "id": "green-meadow-wine-spirits:5980fcd8d05b4360e32f7ed2",
+      "sourceStoreId": "green-meadow-wine-spirits:5980fcd8d05b4360e32f7ed2",
+      "state": "TN",
+      "name": "Green Meadow Wine & Spirits",
+      "address": "1147 Hunters Crossing, Alcoa, TN 37701, USA",
+      "city": "Alcoa",
+      "county": null,
+      "zip": "37701",
+      "lat": 35.7651893,
+      "lng": -83.99000889999999,
+      "source": "Green Meadow Wine & Spirits CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "happy-ours-wine-and-spirits:65499b36b456692bd7d53c32",
+      "sourceStoreId": "happy-ours-wine-and-spirits:65499b36b456692bd7d53c32",
+      "state": "TN",
+      "name": "Happy Ours Wine & Spirits",
+      "address": "327 Independence Sq, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "county": null,
+      "zip": "37064",
+      "lat": 35.9328962,
+      "lng": -86.8787524,
+      "source": "Happy Ours Wine & Spirits CityHive store inventory",
+      "signalCount": 8
+    },
+    {
+      "id": "junction-liquors-smyrna:67d88a7a7aec9317bbb8c5ec",
+      "sourceStoreId": "junction-liquors-smyrna:67d88a7a7aec9317bbb8c5ec",
+      "state": "TN",
+      "name": "Junction Liquors - Smyrna",
+      "address": "401 Chaney Rd, Smyrna, TN 37167, USA",
+      "city": "Smyrna",
+      "county": null,
+      "zip": "37167",
+      "lat": 35.9812479,
+      "lng": -86.56073789999999,
+      "source": "Junction Liquors - Smyrna CityHive store inventory",
+      "signalCount": 7
+    },
+    {
       "id": "kimbrough-wines:61f0226010e5b74ab40ee942",
       "sourceStoreId": "kimbrough-wines:61f0226010e5b74ab40ee942",
       "state": "TN",
@@ -34808,6 +34878,20 @@
       "signalCount": 9
     },
     {
+      "id": "kirby-wines-liquors:6054cfa68c3b62112b04dc2e",
+      "sourceStoreId": "kirby-wines-liquors:6054cfa68c3b62112b04dc2e",
+      "state": "TN",
+      "name": "Kirby Wines & Liquors",
+      "address": "2865 Kirby Pkwy, Memphis, TN 38119, USA",
+      "city": "Memphis",
+      "county": null,
+      "zip": "38119",
+      "lat": 35.07059479999999,
+      "lng": -89.84364029999999,
+      "source": "Kirby Wines & Liquors CityHive store inventory",
+      "signalCount": 11
+    },
+    {
       "id": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
       "sourceStoreId": "lake-district-wine-liquor:62d49efea85f7b25af50381a",
       "state": "TN",
@@ -34820,6 +34904,20 @@
       "lng": -89.7345481,
       "source": "Lake District Wine and Liquor CityHive store inventory",
       "signalCount": 8
+    },
+    {
+      "id": "lakeshore-wine-and-spirits:684c7a13853c9b28ea4a4eca",
+      "sourceStoreId": "lakeshore-wine-and-spirits:684c7a13853c9b28ea4a4eca",
+      "state": "TN",
+      "name": "Lakeshore Wine & Spirits",
+      "address": "311 S Northshore Dr, Knoxville, TN 37919, USA",
+      "city": "Knoxville",
+      "county": null,
+      "zip": "37919",
+      "lat": 35.9296109,
+      "lng": -84.0014351,
+      "source": "Lakeshore Wine & Spirits CityHive store inventory",
+      "signalCount": 9
     },
     {
       "id": "liquor-vault-knoxville:6862952392864d25df3762b8",
@@ -34917,6 +35015,20 @@
       "lat": 36.3560166,
       "lng": -82.38251729999999,
       "source": "One Stop Wines & Spirits Johnson City TN CityHive store inventory",
+      "signalCount": 7
+    },
+    {
+      "id": "pour-vous-hendersonville:5e6f90c8712a7d0a8ee14b51",
+      "sourceStoreId": "pour-vous-hendersonville:5e6f90c8712a7d0a8ee14b51",
+      "state": "TN",
+      "name": "Pour Vous Wine, Spirits & Beer",
+      "address": "263 Indian Lake Blvd, Hendersonville, TN 37075, USA",
+      "city": "Hendersonville",
+      "county": null,
+      "zip": "37075",
+      "lat": 36.3266873,
+      "lng": -86.5960147,
+      "source": "Pour Vous Wine, Spirits & Beer CityHive store inventory",
       "signalCount": 7
     },
     {

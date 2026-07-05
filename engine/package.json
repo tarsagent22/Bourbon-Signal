@@ -34,6 +34,7 @@
     "fwgs": "node src/fwgs-browser-collector.mjs",
     "fwgs:full": "node src/fwgs-browser-full.mjs",
     "browser:discover": "node src/browser-source-discovery.mjs",
+    "discover:stores": "node src/discover-store-universe.mjs",
     "or": "node src/or-browser-collector.mjs",
     "bible-report": "node src/bible-report.mjs",
     "test": "node src/verify.mjs",

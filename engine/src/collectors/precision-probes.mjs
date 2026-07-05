@@ -530,7 +530,98 @@ const TN_CITYHIVE_SOURCES = [
       'https://liquorvault.com/shop/?subtype=bourbon',
       'https://liquorvault.com/shop/?subtype=whiskey'
     ]
+  },
+  {
+    id: 'four-sixes-liquors-and-wines',
+    chainName: 'Four Sixes Liquors & Wines',
+    sourceLabel: 'Four Sixes Liquors & Wines CityHive store inventory',
+    baseUrl: 'https://foursixesliquors.com',
+    urls: [
+      'https://foursixesliquors.com/shop/?subtype=bourbon',
+      'https://foursixesliquors.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'happy-ours-wine-and-spirits',
+    chainName: 'Happy Ours Wine & Spirits',
+    sourceLabel: 'Happy Ours Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://happyour0c3f6e1f.sites.cityhive.app',
+    urls: [
+      'https://happyour0c3f6e1f.sites.cityhive.app/shop/?subtype=bourbon',
+      'https://happyour0c3f6e1f.sites.cityhive.app/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'germantown-village-wine-and-liquor',
+    chainName: 'Germantown Wine & Liquor',
+    sourceLabel: 'Germantown Wine & Liquor CityHive store inventory',
+    baseUrl: 'https://germanto0f24660d.sites.cityhive.app',
+    urls: [
+      'https://germanto0f24660d.sites.cityhive.app/shop/?subtype=bourbon',
+      'https://germanto0f24660d.sites.cityhive.app/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'lakeshore-wine-and-spirits',
+    chainName: 'Lakeshore Wine & Spirits',
+    sourceLabel: 'Lakeshore Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://lakeshorewineandspirit.com',
+    urls: [
+      'https://lakeshorewineandspirit.com/shop/?subtype=bourbon',
+      'https://lakeshorewineandspirit.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'kirby-wines-liquors',
+    chainName: 'Kirby Wines & Liquors',
+    sourceLabel: 'Kirby Wines & Liquors CityHive store inventory',
+    baseUrl: 'https://kirbywina689aaf8.sites.cityhive.app',
+    urls: [
+      'https://kirbywina689aaf8.sites.cityhive.app/shop/?subtype=bourbon',
+      'https://kirbywina689aaf8.sites.cityhive.app/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'green-meadow-wine-spirits',
+    chainName: 'Green Meadow Wine & Spirits',
+    sourceLabel: 'Green Meadow Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://greenmea1758acc7.sites.cityhive.app',
+    urls: [
+      'https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=bourbon',
+      'https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'junction-liquors-smyrna',
+    chainName: 'Junction Liquors - Smyrna',
+    sourceLabel: 'Junction Liquors - Smyrna CityHive store inventory',
+    baseUrl: 'https://junction-liquors.com',
+    urls: [
+      'https://junction-liquors.com/shop/?subtype=bourbon',
+      'https://junction-liquors.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'pour-vous-hendersonville',
+    chainName: 'Pour Vous Wine, Spirits & Beer',
+    sourceLabel: 'Pour Vous Wine, Spirits & Beer CityHive store inventory',
+    baseUrl: 'https://pourvous.us',
+    urls: [
+      'https://pourvous.us/shop/?subtype=bourbon',
+      'https://pourvous.us/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'good-times-crossville',
+    chainName: 'GOOD TIMES WINE SPIRITS & BREW',
+    sourceLabel: 'GOOD TIMES WINE SPIRITS & BREW CityHive store inventory',
+    baseUrl: 'https://goodtime438b8d5d.sites.cityhive.app',
+    urls: [
+      'https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=bourbon',
+      'https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=whiskey'
+    ]
   }
+
 ];
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';

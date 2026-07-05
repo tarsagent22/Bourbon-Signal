@@ -1,0 +1,725 @@
+{
+  "generatedAt": "2026-07-05T20:25:19.517Z",
+  "state": "TN",
+  "model": "Bourbon Signal national store universe v0.1",
+  "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates directory-only, platform/probeable, live inventory, and alert-grade semantics.",
+  "summary": {
+    "seedCount": 29,
+    "probedCount": 29,
+    "knownStoreCount": 38,
+    "currentStoreCount": 30,
+    "probeDiscoveredStoreCount": 28,
+    "directorySeedStoreCount": 8,
+    "byStatus": {
+      "live-inventory": 29,
+      "directory-only": 4,
+      "storefront-probeable": 5
+    },
+    "cityCount": 19,
+    "byCity": {
+      "Alcoa": 1,
+      "Brentwood": 2,
+      "Chattanooga": 3,
+      "Crossville": 3,
+      "Franklin": 4,
+      "Germantown": 1,
+      "Hendersonville": 2,
+      "Jackson": 1,
+      "Johnson City": 2,
+      "Knoxville": 4,
+      "Lakeland": 1,
+      "Louisville": 1,
+      "Memphis": 4,
+      "Mount Pleasant": 1,
+      "Mt Pleasant": 1,
+      "Murfreesboro": 1,
+      "Nashville": 3,
+      "Smyrna": 2,
+      "Thompson's Station": 1
+    },
+    "promotableCityHiveSourceCount": 25
+  },
+  "stores": [
+    {
+      "id": "greenmea1758acc7.sites.cityhive.app:5980fcd8d05b4360e32f7ed2",
+      "name": "Green Meadow Wine & Spirits",
+      "address": "1147 Hunters Crossing, Alcoa, TN 37701, USA",
+      "city": "Alcoa",
+      "state": "TN",
+      "zip": "37701",
+      "lat": 35.7651893,
+      "lng": -83.99000889999999,
+      "sourceLabels": [
+        "Green Meadow Wine & Spirits CityHive store locator",
+        "Green Meadow Wine & Spirits Maryville CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://greenmea1758acc7.sites.cityhive.app/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "green-meadow-wine-and-spirits-alcoa-37701"
+    },
+    {
+      "id": "moonwineandspirits.com:5ec7d3fd3fd3873558e289e0",
+      "name": "Moon Wine & Spirits",
+      "address": "6910 Moores Ln, Brentwood, TN 37027, USA",
+      "city": "Brentwood",
+      "state": "TN",
+      "zip": "37027",
+      "lat": 35.973703,
+      "lng": -86.8318783,
+      "sourceLabels": [
+        "Moon Wine & Spirits CityHive store locator",
+        "Moon Wine & Spirits CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://moonwineandspirits.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "moon-wine-and-spirits-brentwood-37027"
+    },
+    {
+      "id": null,
+      "name": "Total Wine & More Brentwood",
+      "address": null,
+      "city": "Brentwood",
+      "state": "TN",
+      "website": "https://www.totalwine.com/store-info/tennessee-brentwood-nashville/2002",
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "web_search: Total Wine TN store page",
+      "sourceLabels": [
+        "web_search: Total Wine TN store page"
+      ],
+      "key": "total-wine-and-more-brentwood-brentwood"
+    },
+    {
+      "id": "chattliquor.com:699b529abc7a0517b781e2e0",
+      "name": "Discount Liquor",
+      "address": "6231 Perimeter Dr #213, Chattanooga, TN 37421, USA",
+      "city": "Chattanooga",
+      "state": "TN",
+      "zip": "37421",
+      "lat": 35.0298185,
+      "lng": -85.18369369999999,
+      "sourceLabels": [
+        "Ma Kalika Partnership dba Discount liquor Chattanooga TN CityHive store locator",
+        "Discount Liquor Chattanooga CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://chattliquor.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "discount-liquor-chattanooga-37421"
+    },
+    {
+      "id": "mnjliquor.com:6978c02491ff50558a0168d5",
+      "name": "M&J Liquor Wine Tobacoo",
+      "address": "309 Morrison Springs Rd, Chattanooga, TN 37415, USA",
+      "city": "Chattanooga",
+      "state": "TN",
+      "zip": "37415",
+      "lat": 35.1217967,
+      "lng": -85.2939899,
+      "sourceLabels": [
+        "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store locator",
+        "M&J Chattanooga CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://mnjliquor.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "m-and-j-liquor-wine-tobacoo-chattanooga-37415"
+    },
+    {
+      "id": "redbankliquor.com:65e9dd7cdb12802bbb99668e",
+      "name": "My Discount Liquor Tobacco",
+      "address": "2004 Dayton Blvd, Chattanooga, TN 37415, USA",
+      "city": "Chattanooga",
+      "state": "TN",
+      "zip": "37415",
+      "lat": 35.089561,
+      "lng": -85.31184019999999,
+      "sourceLabels": [
+        "My Discount Liquor Tobacco RedBank TN CityHive store locator",
+        "Red Bank Chattanooga CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://redbankliquor.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "my-discount-liquor-tobacco-chattanooga-37415"
+    },
+    {
+      "id": "goodtime438b8d5d.sites.cityhive.app:624b47df137f3348be13d671",
+      "name": "GOOD TIMES WINE SPIRITS & BREW",
+      "address": "1369 Interstate Dr, Crossville, TN 38555, USA",
+      "city": "Crossville",
+      "state": "TN",
+      "zip": "38555",
+      "lat": 35.9865435,
+      "lng": -85.0357892,
+      "sourceLabels": [
+        "GOOD TIMES WINE SPIRITS & BREW CityHive store locator",
+        "Good Times Wine Spirits & Brew Crossville CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "good-times-wine-spirits-and-brew-crossville-38555"
+    },
+    {
+      "id": null,
+      "name": "Good Times Wine Spirits & Brew",
+      "address": "1369 Interstate Dr, Crossville, TN 38555",
+      "city": "Crossville",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search: CityHive mobile app listing",
+      "sourceLabels": [
+        "web_search: CityHive mobile app listing"
+      ],
+      "key": "good-times-wine-spirits-and-brew-crossville"
+    },
+    {
+      "id": null,
+      "name": "Jan's Wine & Liquor",
+      "address": null,
+      "city": "Crossville",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "web_search: local listing",
+      "sourceLabels": [
+        "web_search: local listing"
+      ],
+      "key": "jan-s-wine-and-liquor-crossville"
+    },
+    {
+      "id": "cool-springs:1000-1057",
+      "name": "Cool Springs Wine & Spirits",
+      "address": "1935 Mallory Lane, Franklin, TN 37067",
+      "city": "Franklin",
+      "state": "TN",
+      "zip": "37067",
+      "lat": 35.955476,
+      "lng": -86.817278,
+      "sourceLabels": [
+        "Cool Springs Wine & Spirits public catalog API"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "cool-springs-wine-and-spirits-franklin-37067"
+    },
+    {
+      "id": "happyour0c3f6e1f.sites.cityhive.app:65499b36b456692bd7d53c32",
+      "name": "Happy Ours Wine & Spirits",
+      "address": "327 Independence Sq, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "state": "TN",
+      "zip": "37064",
+      "lat": 35.9328962,
+      "lng": -86.8787524,
+      "sourceLabels": [
+        "Happy Ours Wine & Spirits CityHive store locator",
+        "Happy Ours Wine & Spirits Franklin CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://happyour0c3f6e1f.sites.cityhive.app/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "happy-ours-wine-and-spirits-franklin-37064"
+    },
+    {
+      "id": "shop.reddogwineandspirits.com:5e8c76c132b79e014d2883e2",
+      "name": "Red Dog Wine and Spirits",
+      "address": "1031 Riverside Dr, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "state": "TN",
+      "zip": "37064",
+      "lat": 35.9121068,
+      "lng": -86.82835680000001,
+      "sourceLabels": [
+        "Red Dog Wine and Spirits CityHive store locator",
+        "Red Dog Franklin CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://shop.reddogwineandspirits.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "red-dog-wine-and-spirits-franklin-37064"
+    },
+    {
+      "id": "westsidewineandspirits.com:5f3dd0fd52b3904ef965b902",
+      "name": "Westside Wine & Spirits",
+      "address": "188 Front St #106, Franklin, TN 37064, USA",
+      "city": "Franklin",
+      "state": "TN",
+      "zip": "37064",
+      "lat": 35.9293792,
+      "lng": -86.9195292,
+      "sourceLabels": [
+        "Westside Wine & Spirits CityHive store locator",
+        "Westside Wine & Spirits CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://westsidewineandspirits.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "westside-wine-and-spirits-franklin-37064"
+    },
+    {
+      "id": "germanto0f24660d.sites.cityhive.app:6054cf968c3b62112b04d9f8",
+      "name": "Germantown Wine & Liquor",
+      "address": "7730 Poplar Ave STE 5, Germantown, TN 38138, USA",
+      "city": "Germantown",
+      "state": "TN",
+      "zip": "38138",
+      "lat": 35.0916034,
+      "lng": -89.8052379,
+      "sourceLabels": [
+        "Germantown Wine & Liquor CityHive store locator",
+        "Germantown Wine & Liquor CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://germanto0f24660d.sites.cityhive.app/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "germantown-wine-and-liquor-germantown-38138"
+    },
+    {
+      "id": null,
+      "name": "Pour Vous Spirits Wine & Beer",
+      "address": "263 Indian Lake Blvd, Hendersonville, TN 37075",
+      "city": "Hendersonville",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search: CityHive mobile app listing",
+      "sourceLabels": [
+        "web_search: CityHive mobile app listing"
+      ],
+      "key": "pour-vous-spirits-wine-and-beer-hendersonville"
+    },
+    {
+      "id": "pourvous.us:5e6f90c8712a7d0a8ee14b51",
+      "name": "Pour Vous Wine, Spirits & Beer",
+      "address": "263 Indian Lake Blvd, Hendersonville, TN 37075, USA",
+      "city": "Hendersonville",
+      "state": "TN",
+      "zip": "37075",
+      "lat": 36.3266873,
+      "lng": -86.5960147,
+      "sourceLabels": [
+        "Pour Vous Wine, Spirits & Beer CityHive store locator",
+        "Pour Vous Wine Spirits & Beer Hendersonville CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://pourvous.us/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "pour-vous-wine-spirits-and-beer-hendersonville-37075"
+    },
+    {
+      "id": null,
+      "name": "C & C Wine and Liquor",
+      "address": "2644 N Highland Ave, Jackson, TN 38305",
+      "city": "Jackson",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "web_search: chamber/local listing",
+      "sourceLabels": [
+        "web_search: chamber/local listing"
+      ],
+      "key": "c-and-c-wine-and-liquor-jackson"
+    },
+    {
+      "id": "onestopwines.net:672b6a0791de502911a082b3",
+      "name": "One Stop Wines & Spirits - Franklin Rd",
+      "address": "1735 W State of Franklin Rd #11, Johnson City, TN 37604, USA",
+      "city": "Johnson City",
+      "state": "TN",
+      "zip": "37604",
+      "lat": 36.3008869,
+      "lng": -82.37741079999999,
+      "sourceLabels": [
+        "One Stop Wines & Spirits Johnson City TN CityHive store locator",
+        "One Stop Johnson City CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://onestopwines.net/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "one-stop-wines-and-spirits-franklin-rd-johnson-city-37604"
+    },
+    {
+      "id": "onestopwines.net:672b8fbd53a80c28dd63b086",
+      "name": "One Stop Wines & Spirits - Roan St",
+      "address": "2710 N Roan St, Johnson City, TN 37601, USA",
+      "city": "Johnson City",
+      "state": "TN",
+      "zip": "37601",
+      "lat": 36.3560166,
+      "lng": -82.38251729999999,
+      "sourceLabels": [
+        "One Stop Wines & Spirits Johnson City TN CityHive store locator",
+        "One Stop Johnson City CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://onestopwines.net/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "one-stop-wines-and-spirits-roan-st-johnson-city-37601"
+    },
+    {
+      "id": "cristysliquorstore.com:6060f6cb3aa83f4de4838714",
+      "name": "Cristy's Liquor Store",
+      "address": "4613 Rutledge Pike, Knoxville, TN 37914, USA",
+      "city": "Knoxville",
+      "state": "TN",
+      "zip": "37914",
+      "lat": 36.0115107,
+      "lng": -83.8699566,
+      "sourceLabels": [
+        "Cristy's Liquor Store CityHive store locator",
+        "Cristy's Brentwood CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://cristysliquorstore.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "cristy-s-liquor-store-knoxville-37914"
+    },
+    {
+      "id": "lakeshorewineandspirit.com:684c7a13853c9b28ea4a4eca",
+      "name": "Lakeshore Wine & Spirits",
+      "address": "311 S Northshore Dr, Knoxville, TN 37919, USA",
+      "city": "Knoxville",
+      "state": "TN",
+      "zip": "37919",
+      "lat": 35.9296109,
+      "lng": -84.0014351,
+      "sourceLabels": [
+        "Lakeshore Wine & Spirits CityHive store locator",
+        "Lakeshore Wine & Spirits Knoxville CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://lakeshorewineandspirit.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "lakeshore-wine-and-spirits-knoxville-37919"
+    },
+    {
+      "id": "liquorvault.com:6862952392864d25df3762b8",
+      "name": "Liquor Vault Knoxville",
+      "address": "2901 Tazewell Pike, Knoxville, TN 37918, USA",
+      "city": "Knoxville",
+      "state": "TN",
+      "zip": "37918",
+      "lat": 36.0240857,
+      "lng": -83.9248823,
+      "sourceLabels": [
+        "Liquor Vault Knoxville CityHive store locator",
+        "Liquor Vault Knoxville CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://liquorvault.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "liquor-vault-knoxville-knoxville-37918"
+    },
+    {
+      "id": "northshorews.com:5980fcddd05b4360e32f7f02",
+      "name": "Northshore Wine & Spirits",
+      "address": "9427 S Northshore Dr, Knoxville, TN 37922, USA",
+      "city": "Knoxville",
+      "state": "TN",
+      "zip": "37922",
+      "lat": 35.8630651,
+      "lng": -84.06586,
+      "sourceLabels": [
+        "Northshore Wine & Spirits CityHive store locator",
+        "Northshore Wine & Spirits Chattanooga CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://northshorews.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "northshore-wine-and-spirits-knoxville-37922"
+    },
+    {
+      "id": "lakedistrictwineandliquor.com:62d49efea85f7b25af50381a",
+      "name": "Lake District Wine and Liquor",
+      "address": "9845 Lake District Dr, Lakeland, TN 38002, USA",
+      "city": "Lakeland",
+      "state": "TN",
+      "zip": "38002",
+      "lat": 35.2218551,
+      "lng": -89.7345481,
+      "sourceLabels": [
+        "Lake District Wine and Liquor CityHive store locator",
+        "Lake District Wine and Liquor Lakeland CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://lakedistrictwineandliquor.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "lake-district-wine-and-liquor-lakeland-38002"
+    },
+    {
+      "id": null,
+      "name": "Topside Wine & Spirits",
+      "address": "2037 Topside Rd, Louisville, TN 37777",
+      "city": "Louisville",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "directory-only",
+      "discoverySource": "web_search: local listing",
+      "sourceLabels": [
+        "web_search: local listing"
+      ],
+      "key": "topside-wine-and-spirits-louisville"
+    },
+    {
+      "id": "bustersliquors.com:662124505fbcb5293d346405",
+      "name": "Buster’s Liquors | East",
+      "address": "5851 Poplar Ave, Memphis, TN 38119, USA",
+      "city": "Memphis",
+      "state": "TN",
+      "zip": "38119",
+      "lat": 35.1007384,
+      "lng": -89.8651132,
+      "sourceLabels": [
+        "Buster's Liquors & Wines CityHive store locator",
+        "Buster's Memphis CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://bustersliquors.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "buster-s-liquors-east-memphis-38119"
+    },
+    {
+      "id": "bustersliquors.com:599b740a1783f8451693062c",
+      "name": "Buster’s Liquors | University",
+      "address": "Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA",
+      "city": "Memphis",
+      "state": "TN",
+      "zip": "38111",
+      "lat": 35.1267725,
+      "lng": -89.9459231,
+      "sourceLabels": [
+        "Buster's Liquors & Wines CityHive store locator",
+        "Buster's Memphis CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://bustersliquors.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "buster-s-liquors-university-memphis-38111"
+    },
+    {
+      "id": "kimbroughwines.com:61f0226010e5b74ab40ee942",
+      "name": "Kimbrough Fine Wine & Spirits",
+      "address": "1483 Union Ave, Memphis, TN 38104, USA",
+      "city": "Memphis",
+      "state": "TN",
+      "zip": "38104",
+      "lat": 35.1360118,
+      "lng": -90.0121156,
+      "sourceLabels": [
+        "Kimbrough Fine Wine & Spirits CityHive store locator",
+        "Kimbrough Memphis CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://kimbroughwines.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "kimbrough-fine-wine-and-spirits-memphis-38104"
+    },
+    {
+      "id": "kirbywina689aaf8.sites.cityhive.app:6054cfa68c3b62112b04dc2e",
+      "name": "Kirby Wines & Liquors",
+      "address": "2865 Kirby Pkwy, Memphis, TN 38119, USA",
+      "city": "Memphis",
+      "state": "TN",
+      "zip": "38119",
+      "lat": 35.07059479999999,
+      "lng": -89.84364029999999,
+      "sourceLabels": [
+        "Kirby Wines & Liquors CityHive store locator",
+        "Kirby Wines & Liquors Memphis CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://kirbywina689aaf8.sites.cityhive.app/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "kirby-wines-and-liquors-memphis-38119"
+    },
+    {
+      "id": "foursixesliquors.com:6723a588d3b5392b884e024e",
+      "name": "Four Sixes Liquors & Wines",
+      "address": "715 S Main St, Mt Pleasant, TN 38474, USA",
+      "city": "Mount Pleasant",
+      "state": "TN",
+      "zip": "38474",
+      "lat": 35.52663,
+      "lng": -87.21053359999999,
+      "sourceLabels": [
+        "Four Sixes Liquors & Wines CityHive store locator",
+        "Four Sixes Liquors & Wines Mount Pleasant CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://foursixesliquors.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "four-sixes-liquors-and-wines-mount-pleasant-38474"
+    },
+    {
+      "id": "four-sixes-liquors-and-wines:6723a588d3b5392b884e024e",
+      "name": "Four Sixes Liquors & Wines",
+      "address": "715 S Main St, Mt Pleasant, TN 38474, USA",
+      "city": "Mt Pleasant",
+      "state": "TN",
+      "zip": "38474",
+      "lat": 35.52663,
+      "lng": -87.21053359999999,
+      "sourceLabels": [
+        "Four Sixes Liquors & Wines CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "four-sixes-liquors-and-wines-mt-pleasant-38474"
+    },
+    {
+      "id": "grabbl-gateway:528698ef-ebe1-4778-a583-c4be1cc29693",
+      "name": "Gateway Wine & Spirits",
+      "address": "3119 Medical Center Parkway A5, Murfreesboro, TN 37129",
+      "city": "Murfreesboro",
+      "state": "TN",
+      "zip": "37129",
+      "lat": 35.8660287,
+      "lng": -86.4538028,
+      "sourceLabels": [
+        "Gateway Wine & Spirits Grabbl public store API"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "state-output",
+      "key": "gateway-wine-and-spirits-murfreesboro-37129"
+    },
+    {
+      "id": "corkdorkswine.com:5b52b2903ff14a3c5d9cdd19",
+      "name": "Corkdorks Wine Spirits Beer - Green Hills",
+      "address": "4009 Hillsboro Pike, Nashville, TN 37215, USA",
+      "city": "Nashville",
+      "state": "TN",
+      "zip": "37215",
+      "lat": 36.104219,
+      "lng": -86.81589699999999,
+      "sourceLabels": [
+        "Corkdorks Wine Spirits Beer CityHive store locator",
+        "Corkdorks CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://corkdorkswine.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "corkdorks-wine-spirits-beer-green-hills-nashville-37215"
+    },
+    {
+      "id": "corkdorkswine.com:5c2a8cae7309395802faf15d",
+      "name": "Corkdorks Wine Spirits Beer - Midtown",
+      "address": "1610 Church St, Nashville, TN 37203, USA",
+      "city": "Nashville",
+      "state": "TN",
+      "zip": "37203",
+      "lat": 36.1570489,
+      "lng": -86.7943734,
+      "sourceLabels": [
+        "Corkdorks Wine Spirits Beer CityHive store locator",
+        "Corkdorks CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://corkdorkswine.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "corkdorks-wine-spirits-beer-midtown-nashville-37203"
+    },
+    {
+      "id": "frugalmacdoogal.com:6599a3f98893882b7f30798d",
+      "name": "Frugal MacDoogal",
+      "address": "701 Division St, Nashville, TN 37203, USA",
+      "city": "Nashville",
+      "state": "TN",
+      "zip": "37203",
+      "lat": 36.149323,
+      "lng": -86.77812259999999,
+      "sourceLabels": [
+        "Frugal MacDoogal CityHive store locator",
+        "Frugal MacDoogal CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://www.frugalmacdoogal.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "frugal-macdoogal-nashville-37203"
+    },
+    {
+      "id": null,
+      "name": "Junction Liquors",
+      "address": "401 Chaney Rd, Smyrna, TN 37167",
+      "city": "Smyrna",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search: CityHive mobile app listing",
+      "sourceLabels": [
+        "web_search: CityHive mobile app listing"
+      ],
+      "key": "junction-liquors-smyrna"
+    },
+    {
+      "id": "junction-liquors.com:67d88a7a7aec9317bbb8c5ec",
+      "name": "Junction Liquors - Smyrna",
+      "address": "401 Chaney Rd, Smyrna, TN 37167, USA",
+      "city": "Smyrna",
+      "state": "TN",
+      "zip": "37167",
+      "lat": 35.9812479,
+      "lng": -86.56073789999999,
+      "sourceLabels": [
+        "Junction Liquors - Smyrna CityHive store locator",
+        "Junction Liquors Smyrna CityHive bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://junction-liquors.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "junction-liquors-smyrna-smyrna-37167"
+    },
+    {
+      "id": null,
+      "name": "Tollgate Wine & Spirits",
+      "address": "1900 Tollgate Blvd, Thompson's Station, TN 37179",
+      "city": "Thompson's Station",
+      "state": "TN",
+      "website": null,
+      "ecommercePlatform": null,
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "web_search: CityHive mobile app listing",
+      "sourceLabels": [
+        "web_search: CityHive mobile app listing"
+      ],
+      "key": "tollgate-wine-and-spirits-thompson-s-station"
+    }
+  ]
+}

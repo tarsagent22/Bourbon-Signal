@@ -67,7 +67,9 @@ assert(inventoryCities.has('Brentwood'), `Expected Brentwood TN inventory covera
 assert(inventoryCities.has('Chattanooga'), `Expected Chattanooga TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
 assert(inventoryCities.has('Johnson City'), `Expected Johnson City TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
 assert(inventoryCities.has('Murfreesboro'), `Expected Murfreesboro TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryStores.size >= 8, `Expected at least 8 TN inventory stores; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
+assert(inventoryCities.has('Germantown'), `Expected Germantown TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+assert(inventoryCities.has('Mount Pleasant') || inventoryCities.has('Mt Pleasant'), `Expected Mount Pleasant TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+assert(inventoryStores.size >= 20, `Expected at least 20 TN inventory stores; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
 assert(cityHiveStoreLocations.length >= cityHiveSources.size, `Expected TN CityHive store-location rows for CityHive inventory stores; locations=${cityHiveStoreLocations.length}, cityHiveSources=${cityHiveSources.size}`);
 assert(unsafeCanonicalMatches.length === 0, `Unsafe TN canonical matches found: ${unsafeCanonicalMatches.map((signal) => `${signal.rawName}=>${signal.canonicalName}`).join(', ')}`);
 assert(cacheAgeHours == null || cacheAgeHours <= 12, `TN CityHive cache is too old for customer-facing fast-inventory export: ${cacheAgeHours?.toFixed(1)}h`);

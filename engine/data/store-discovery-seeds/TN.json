@@ -1,0 +1,141 @@
+{
+  "state": "TN",
+  "generatedFrom": "manual web-search seeds plus current Bourbon Signal Tennessee retailer sources",
+  "notes": "First-phase Tennessee discovery seeds prioritize CityHive-like public retailer storefronts and major known Tennessee package-store chains. Discovery/probe scripts classify semantics before any source is promoted to alert-grade inventory.",
+  "platformSeeds": [
+    {
+      "name": "Four Sixes Liquors & Wines",
+      "url": "https://foursixesliquors.com/",
+      "city": "Mount Pleasant",
+      "source": "web_search: CityHive accessibility result"
+    },
+    {
+      "name": "Happy Ours Wine & Spirits",
+      "url": "https://happyour0c3f6e1f.sites.cityhive.app/",
+      "city": "Franklin",
+      "source": "web_search: Powered By CityHive TN result"
+    },
+    {
+      "name": "Germantown Village Wine & Liquor",
+      "url": "https://germanto0f24660d.sites.cityhive.app/",
+      "city": "Germantown",
+      "source": "web_search: CityHive accessibility result"
+    },
+    {
+      "name": "Lakeshore Wine & Spirits",
+      "url": "https://lakeshorewineandspirit.com/",
+      "city": "Knoxville",
+      "source": "web_search: Powered By CityHive TN result"
+    },
+    {
+      "name": "City Farms Wine & Spirits",
+      "url": "https://cityfarmsalcoa.com/",
+      "city": "Alcoa",
+      "source": "web_search: Tennessee store ecommerce result"
+    },
+    {
+      "name": "Archer Liquors",
+      "url": "https://archerliquors.com/",
+      "source": "web_search: CityHive sitemap result; must verify state before promotion"
+    },
+    {
+      "name": "One Stop Wines & Spirits",
+      "url": "https://onestopwines.net/",
+      "city": "Johnson City",
+      "source": "existing source; probe for additional branches/merchant configs"
+    },
+    {
+      "name": "Kirby Wines & Liquors",
+      "url": "https://kirbywina689aaf8.sites.cityhive.app/",
+      "city": "Memphis",
+      "source": "web_search: CityHive Tennessee result"
+    },
+    {
+      "name": "Green Meadow Wine & Spirits",
+      "url": "https://greenmea1758acc7.sites.cityhive.app/",
+      "city": "Maryville",
+      "source": "web_search: CityHive Tennessee result"
+    },
+    {
+      "name": "Junction Liquors",
+      "url": "https://junction-liquors.com/",
+      "city": "Smyrna",
+      "source": "web_search: CityHive accessibility result"
+    },
+    {
+      "name": "Junction Liquors CityHive app",
+      "url": "https://junctionfc706d16.sites.cityhive.app/",
+      "city": "Smyrna",
+      "source": "web_search: CityHive app-site result"
+    },
+    {
+      "name": "Pour Vous Spirits Wine & Beer",
+      "url": "https://pourvous.us/",
+      "city": "Hendersonville",
+      "source": "web_search: CityHive privacy/app result"
+    },
+    {
+      "name": "Good Times Wine Spirits & Brew",
+      "url": "https://goodtime438b8d5d.sites.cityhive.app/",
+      "city": "Crossville",
+      "source": "web_search: CityHive app-site result"
+    }
+  ],
+  "directorySeeds": [
+    {
+      "name": "Total Wine & More Brentwood",
+      "url": "https://www.totalwine.com/store-info/tennessee-brentwood-nashville/2002",
+      "city": "Brentwood",
+      "source": "web_search: Total Wine TN store page",
+      "inventoryStatus": "directory-only"
+    },
+    {
+      "name": "C & C Wine and Liquor",
+      "city": "Jackson",
+      "address": "2644 N Highland Ave, Jackson, TN 38305",
+      "source": "web_search: chamber/local listing",
+      "inventoryStatus": "directory-only"
+    },
+    {
+      "name": "Jan's Wine & Liquor",
+      "city": "Crossville",
+      "source": "web_search: local listing",
+      "inventoryStatus": "directory-only"
+    },
+    {
+      "name": "Topside Wine & Spirits",
+      "city": "Louisville",
+      "address": "2037 Topside Rd, Louisville, TN 37777",
+      "source": "web_search: local listing",
+      "inventoryStatus": "directory-only"
+    },
+    {
+      "name": "Tollgate Wine & Spirits",
+      "city": "Thompson's Station",
+      "address": "1900 Tollgate Blvd, Thompson's Station, TN 37179",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Pour Vous Spirits Wine & Beer",
+      "city": "Hendersonville",
+      "address": "263 Indian Lake Blvd, Hendersonville, TN 37075",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Junction Liquors",
+      "city": "Smyrna",
+      "address": "401 Chaney Rd, Smyrna, TN 37167",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Good Times Wine Spirits & Brew",
+      "city": "Crossville",
+      "address": "1369 Interstate Dr, Crossville, TN 38555",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    }
+  ]
+}

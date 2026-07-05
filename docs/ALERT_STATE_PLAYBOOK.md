@@ -432,11 +432,11 @@ Current export reports 22 active states/lanes. Only states with current alert ca
 **Coverage tier:** live retailer store inventory
 **Lifecycle:** retailer store inventory  
 **Best precision:** store level  
-**Current candidates:** store-level retailer rows from Cool Springs/Gateway plus fresh CityHive rows when the TN CityHive cache is inside the fast-inventory freshness window
+**Current candidates:** store-level retailer rows from Cool Springs/Gateway plus fresh CityHive rows from the expanded Tennessee source mesh when the TN CityHive cache is inside the fast-inventory freshness window
 
 **Current source mesh:**
 
-- CityHive retailer pages across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Lakeland, Franklin, and Brentwood.
+- CityHive retailer pages across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Lakeland, Franklin, Brentwood, Germantown, Mount Pleasant, Alcoa/Maryville, Smyrna, Hendersonville, and Crossville.
 - Cool Springs Wine & Spirits public catalog API (Franklin).
 - Gateway Wine & Spirits Grabbl public store API (Murfreesboro).
 - Tennessee ABC official pages remain policy/license context only.
