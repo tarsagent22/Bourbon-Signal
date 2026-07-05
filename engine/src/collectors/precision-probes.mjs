@@ -620,6 +620,26 @@ const TN_CITYHIVE_SOURCES = [
       'https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=bourbon',
       'https://goodtime438b8d5d.sites.cityhive.app/shop/?subtype=whiskey'
     ]
+  },
+  {
+    id: 'campbell-station-wine-spirits',
+    chainName: 'Campbell Station Wine & Spirits',
+    sourceLabel: 'Campbell Station Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://campbellstationwine.com',
+    urls: [
+      'https://campbellstationwine.com/shop/?subtype=bourbon',
+      'https://campbellstationwine.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'red-spirits-and-wine',
+    chainName: 'RED Spirits & Wine',
+    sourceLabel: 'RED Spirits & Wine CityHive store inventory',
+    baseUrl: 'https://shopredspirits.com',
+    urls: [
+      'https://shopredspirits.com/shop/?subtype=bourbon',
+      'https://shopredspirits.com/shop/?subtype=whiskey'
+    ]
   }
 
 ];

@@ -9,6 +9,7 @@ const UNIVERSE_DATA = path.join(DATA, 'store-universe');
 const USER_AGENT = 'BourbonSignalStoreDiscovery/0.1 (+https://bourbonsignal.com; retailer coverage audit)';
 const DEFAULT_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DISCOVERY_TIMEOUT_MS || 18_000);
 const DEFAULT_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_DISCOVERY_MAX_PAGES || 2);
+const DEFAULT_DIRECTORY_LIMIT = Number(process.env.BOURBON_SIGNAL_DISCOVERY_DIRECTORY_LIMIT || 75);
 
 function slug(value) {
   return String(value || '')
@@ -25,6 +26,21 @@ function norm(value) {
 
 function title(value) {
   return String(value || '').trim().replace(/\w\S*/g, (part) => part[0].toUpperCase() + part.slice(1).toLowerCase());
+}
+
+function canonicalCity(value) {
+  const city = title(value || '');
+  const aliases = {
+    'Mt Pleasant': 'Mount Pleasant',
+    'Mt. Pleasant': 'Mount Pleasant',
+    'Thompsons Station': "Thompson's Station",
+    'Thompson Station': "Thompson's Station",
+    'Farragut': 'Knoxville',
+    'Maryville': 'Alcoa/Maryville',
+    'Alcoa': 'Alcoa/Maryville',
+    'Alcoa/maryville': 'Alcoa/Maryville'
+  };
+  return aliases[city] || city || null;
 }
 
 function uniqueBy(values, keyFn) {
@@ -156,19 +172,42 @@ function addressFromText(text, state) {
 function cityFromAddress(address, state) {
   const text = String(address || '');
   const m = text.match(/,\s*([^,]+),\s*(?:TN|Tennessee)\b/i);
-  if (m) return title(m[1]);
+  if (m) return canonicalCity(m[1]);
   return null;
+}
+
+
+function decodeHtml(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function stripTags(value) {
+  return decodeHtml(String(value || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
 }
 
 function domainFromUrl(url) {
   try { return new URL(url).host.replace(/^www\./, ''); } catch { return null; }
 }
 
-function sourceUrlsForState(stateId) {
+function stateSourceRows(stateId) {
   const source = ALL_STATE_SOURCES.find((row) => row.id === stateId);
-  return (source?.sources || [])
+  return source?.sources || [];
+}
+
+function sourceUrlsForState(stateId) {
+  return stateSourceRows(stateId)
     .filter((row) => row.precisionOnly && row.url && /shop|api|store|inventory|bourbon|whiskey/i.test(`${row.url} ${row.label}`))
     .map((row) => ({ name: row.label, url: row.url, source: 'state-sources', inventoryStatus: 'source-registry' }));
+}
+
+function registeredSourceDomains(stateId) {
+  return new Set(stateSourceRows(stateId).map((row) => domainFromUrl(row.url)).filter(Boolean));
 }
 
 function inventoryStatusForProbe(probe) {
@@ -214,7 +253,7 @@ async function probeStore(seed, stateId) {
       id: merchant.id || null,
       name: merchant.display_name || merchant.name || seed.name || null,
       address: address || null,
-      city: a.city || cityFromAddress(address, stateId) || seed.city || null,
+      city: canonicalCity(a.city || cityFromAddress(address, stateId) || seed.city),
       state: String(a.state || '').toUpperCase() || (address && /\bTN\b|Tennessee/i.test(address) ? 'TN' : null),
       zip: a.zip || null,
       lat: a.lat,
@@ -222,7 +261,7 @@ async function probeStore(seed, stateId) {
     };
   });
   const address = addressFromText(text, stateId) || seed.address || null;
-  const textCity = cityFromAddress(address, stateId) || seed.city || null;
+  const textCity = canonicalCity(cityFromAddress(address, stateId) || seed.city);
   const optionStats = { optionCount: 0, positiveOptionCount: 0, merchantIds: new Set() };
   for (const product of products) {
     for (const merchant of product?.merchants || []) {
@@ -267,7 +306,7 @@ function storesFromStateOutput(stateReport, stateId) {
     id: row.storeId || null,
     name: row.storeName || row.locationName,
     address: row.storeAddress || null,
-    city: row.city || cityFromAddress(row.storeAddress, stateId),
+    city: canonicalCity(row.city || cityFromAddress(row.storeAddress, stateId)),
     state: stateId,
     zip: row.zip || row.postalCode || null,
     lat: row.lat || null,
@@ -283,7 +322,7 @@ function storesFromProbe(probe, stateId) {
     id: merchant.id ? `${probe.domain}:${merchant.id}` : null,
     name: merchant.name || probe.seedName,
     address: merchant.address || probe.address || null,
-    city: merchant.city || probe.city || cityFromAddress(merchant.address || probe.address, stateId),
+    city: canonicalCity(merchant.city || probe.city || cityFromAddress(merchant.address || probe.address, stateId)),
     state: stateId,
     zip: merchant.zip || null,
     lat: merchant.lat || null,
@@ -296,6 +335,46 @@ function storesFromProbe(probe, stateId) {
   })), (row) => `${norm(row.name)}|${norm(row.address)}|${norm(row.city)}`);
 }
 
+
+function storesFromLiquorFindHtml(html, sourceUrl, stateId, limit = DEFAULT_DIRECTORY_LIMIT) {
+  const rows = [];
+  const stateLower = stateId.toLowerCase();
+  const re = new RegExp(`<a[^>]+href=\"([^\"]*?/stores/${stateLower}/([^/\"]+)/[^\"]+)\"[^>]*>([\\s\\S]*?)<\/a>`, 'gi');
+  for (const match of String(html || '').matchAll(re)) {
+    const href = decodeHtml(match[1]);
+    const city = canonicalCity(match[2].replace(/-/g, ' '));
+    const name = stripTags(match[3]);
+    if (!name || /^(liquor stores|tennessee)$/i.test(name)) continue;
+    rows.push({
+      id: null,
+      name,
+      address: null,
+      city,
+      state: stateId,
+      website: href.startsWith('http') ? href : `https://liquorfind.com${href}`,
+      ecommercePlatform: null,
+      inventoryStatus: 'directory-only',
+      discoverySource: `directory-url:${sourceUrl}`,
+      sourceLabels: ['LiquorFind Tennessee directory']
+    });
+    if (rows.length >= limit) break;
+  }
+  return uniqueBy(rows, (row) => `${norm(row.name)}|${norm(row.city)}`);
+}
+
+async function storesFromDirectoryUrls(urls, stateId) {
+  const rows = [];
+  for (const entry of urls || []) {
+    const sourceUrl = typeof entry === 'string' ? entry : entry.url;
+    const limit = typeof entry === 'object' && entry.limit ? Number(entry.limit) : DEFAULT_DIRECTORY_LIMIT;
+    if (!sourceUrl) continue;
+    const res = await fetchText(sourceUrl, { timeoutMs: DEFAULT_TIMEOUT_MS });
+    if (!res.ok) continue;
+    if (/liquorfind\.com\/stores\//i.test(sourceUrl)) rows.push(...storesFromLiquorFindHtml(res.text, sourceUrl, stateId, limit));
+  }
+  return uniqueBy(rows, (row) => `${norm(row.name)}|${norm(row.city)}`);
+}
+
 function cityHiveSourceSnippet(probe) {
   if (!probe.promotable) return null;
   const id = slug(probe.seedName || probe.domain);
@@ -306,8 +385,22 @@ function cityHiveSourceSnippet(probe) {
     chainName,
     sourceLabel: `${chainName} CityHive store inventory`,
     baseUrl,
+    merchantKeys: (probe.merchants || []).map((merchant) => merchant.id || `${norm(merchant.name)}|${norm(merchant.address)}|${norm(merchant.city)}`).filter(Boolean),
     urls: [`${baseUrl}/shop/?subtype=bourbon`, `${baseUrl}/shop/?subtype=whiskey`]
   };
+}
+
+function formatCityHiveSource(source) {
+  return `  {
+    id: '${source.id}',
+    chainName: '${String(source.chainName).replace(/'/g, "\\'")}',
+    sourceLabel: '${String(source.sourceLabel).replace(/'/g, "\\'")}',
+    baseUrl: '${source.baseUrl}',
+    urls: [
+      '${source.urls[0]}',
+      '${source.urls[1]}'
+    ]
+  }`;
 }
 
 async function main() {
@@ -327,11 +420,12 @@ async function main() {
   }
   const currentStores = storesFromStateOutput(stateReport, stateId);
   const probeStores = probes.flatMap((probe) => storesFromProbe(probe, stateId));
+  const directoryUrlStores = await storesFromDirectoryUrls(seedData.directoryUrls || [], stateId);
   const directoryStores = (seedData.directorySeeds || []).map((seed) => ({
     id: null,
     name: seed.name,
     address: seed.address || null,
-    city: seed.city || cityFromAddress(seed.address, stateId),
+    city: canonicalCity(seed.city || cityFromAddress(seed.address, stateId)),
     state: stateId,
     website: seed.url || null,
     ecommercePlatform: null,
@@ -341,7 +435,7 @@ async function main() {
   }));
   const statusRank = { 'directory-only': 1, 'platform-detected': 2, 'storefront-probeable': 3, 'catalog-or-inventory': 4, 'live-inventory': 5, 'alert-grade': 6 };
   const storeMap = new Map();
-  for (const row of [...currentStores, ...probeStores, ...directoryStores]) {
+  for (const row of [...currentStores, ...probeStores, ...directoryStores, ...directoryUrlStores]) {
     const key = `${norm(row.name)}|${norm(row.address)}|${norm(row.city)}`;
     if (!key.trim()) continue;
     const previous = storeMap.get(key);
@@ -354,7 +448,15 @@ async function main() {
     .sort((a, b) => norm(a.city).localeCompare(norm(b.city)) || norm(a.name).localeCompare(norm(b.name)));
   const byStatus = stores.reduce((acc, row) => { acc[row.inventoryStatus] = (acc[row.inventoryStatus] || 0) + 1; return acc; }, {});
   const byCity = stores.reduce((acc, row) => { const city = row.city || 'Unknown'; acc[city] = (acc[city] || 0) + 1; return acc; }, {});
-  const promotableCityHiveSources = uniqueBy(probes.map(cityHiveSourceSnippet).filter(Boolean), (source) => source.baseUrl);
+  const registeredDomains = registeredSourceDomains(stateId);
+  const promotableCityHiveSources = uniqueBy(probes.map(cityHiveSourceSnippet).filter(Boolean), (source) => source.baseUrl)
+    .map((source) => ({ ...source, alreadyRegistered: registeredDomains.has(domainFromUrl(source.baseUrl)) }));
+  const registeredMerchantKeys = new Set(promotableCityHiveSources
+    .filter((source) => source.alreadyRegistered)
+    .flatMap((source) => source.merchantKeys || []));
+  const newPromotableCityHiveSources = promotableCityHiveSources
+    .filter((source) => !source.alreadyRegistered)
+    .filter((source) => !(source.merchantKeys || []).some((key) => registeredMerchantKeys.has(key)));
   const report = {
     generatedAt: new Date().toISOString(),
     state: stateId,
@@ -366,13 +468,16 @@ async function main() {
       currentStoreCount: currentStores.length,
       probeDiscoveredStoreCount: probeStores.length,
       directorySeedStoreCount: directoryStores.length,
+      directoryUrlStoreCount: directoryUrlStores.length,
       byStatus,
       cityCount: Object.keys(byCity).length,
       byCity: Object.fromEntries(Object.entries(byCity).sort()),
-      promotableCityHiveSourceCount: promotableCityHiveSources.length
+      promotableCityHiveSourceCount: promotableCityHiveSources.length,
+      newPromotableCityHiveSourceCount: newPromotableCityHiveSources.length
     },
     probes: probes.sort((a, b) => b.score - a.score),
-    promotableCityHiveSources
+    promotableCityHiveSources,
+    newPromotableCityHiveSources
   };
   const universe = {
     generatedAt: report.generatedAt,
@@ -383,6 +488,7 @@ async function main() {
     stores
   };
   await writeFile(path.join(DISCOVERY_OUT, `${stateId}.json`), JSON.stringify(report, null, 2));
+  await writeFile(path.join(DISCOVERY_OUT, `${stateId}-new-cityhive-sources.mjs`), newPromotableCityHiveSources.map(formatCityHiveSource).join(',\n') + (newPromotableCityHiveSources.length ? '\n' : ''));
   await writeFile(path.join(UNIVERSE_DATA, `${stateId}.json`), JSON.stringify(universe, null, 2));
   console.log(JSON.stringify({
     state: stateId,
@@ -390,7 +496,8 @@ async function main() {
     byStatus,
     cityCount: Object.keys(byCity).length,
     promotableCityHiveSourceCount: promotableCityHiveSources.length,
-    promotableCityHiveSources: promotableCityHiveSources.map((source) => ({ id: source.id, baseUrl: source.baseUrl, chainName: source.chainName }))
+    newPromotableCityHiveSourceCount: newPromotableCityHiveSources.length,
+    newPromotableCityHiveSources: newPromotableCityHiveSources.map((source) => ({ id: source.id, baseUrl: source.baseUrl, chainName: source.chainName }))
   }, null, 2));
 }
 

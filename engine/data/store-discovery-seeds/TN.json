@@ -79,6 +79,24 @@
       "url": "https://goodtime438b8d5d.sites.cityhive.app/",
       "city": "Crossville",
       "source": "web_search: CityHive app-site result"
+    },
+    {
+      "name": "Campbell Station Wine & Spirits",
+      "url": "https://campbellstationwine.com/",
+      "city": "Knoxville",
+      "source": "web_search: CityHive accessibility/app listing"
+    },
+    {
+      "name": "The Bottle Shop at McEwen",
+      "url": "https://bottleshop-mcewen.com/",
+      "city": "Franklin",
+      "source": "web_search: CityHive accessibility/app listing"
+    },
+    {
+      "name": "RED Spirits & Wine",
+      "url": "https://shopredspirits.com/",
+      "city": "Nashville",
+      "source": "web_search: CityHive product/accessibility result"
     }
   ],
   "directorySeeds": [
@@ -136,6 +154,34 @@
       "address": "1369 Interstate Dr, Crossville, TN 38555",
       "source": "web_search: CityHive mobile app listing",
       "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "Campbell Station Wine & Spirits",
+      "city": "Knoxville",
+      "address": "707 N Campbell Station Rd, Knoxville, TN 37934",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "The Bottle Shop at McEwen",
+      "city": "Franklin",
+      "address": "1556 W McEwen Dr #102, Franklin, TN 37067",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    },
+    {
+      "name": "RED Spirits & Wine",
+      "city": "Nashville",
+      "address": "7066 Hwy 70 S, Nashville, TN 37221",
+      "source": "web_search: CityHive mobile app listing",
+      "inventoryStatus": "storefront-probeable"
+    }
+  ],
+  "directoryUrls": [
+    {
+      "url": "https://liquorfind.com/stores/tn",
+      "source": "LiquorFind public Tennessee liquor-store directory",
+      "limit": 75
     }
   ]
 }

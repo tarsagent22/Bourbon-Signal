@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-05T20:25:49.019Z",
-  "count": 2845,
+  "generatedAt": "2026-07-05T21:14:15.430Z",
+  "count": 2848,
   "stores": [
     {
       "id": "alabc:001",
@@ -13581,7 +13581,7 @@
       "lat": 39.8579945,
       "lng": -86.3913441,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "big-red:5e9254aa78e8f13c2cb1e1ec",
@@ -16311,6 +16311,20 @@
       "lat": null,
       "lng": null,
       "source": "Indiana ATC public facility permit search",
+      "signalCount": 1
+    },
+    {
+      "id": "doordash:26286224",
+      "sourceStoreId": "doordash:26286224",
+      "state": "IN",
+      "name": "Frontier Liquors - Oak Hill Road",
+      "address": "1701 Oak Hill Road, Evansville, IN 47711",
+      "city": "Evansville",
+      "county": null,
+      "zip": "47711",
+      "lat": 37.992805,
+      "lng": -87.52567,
+      "source": "DoorDash Frontier Liquors Evansville marketplace inventory",
       "signalCount": 1
     },
     {
@@ -21687,7 +21701,7 @@
       "lat": 40.3849,
       "lng": -86.8556,
       "source": "Penguin Liquor Lafayette in-stock product pages",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "DL4913533",
@@ -34682,6 +34696,20 @@
       "signalCount": 8
     },
     {
+      "id": "campbell-station-wine-spirits:5f7f26b331859f2928949d72",
+      "sourceStoreId": "campbell-station-wine-spirits:5f7f26b331859f2928949d72",
+      "state": "TN",
+      "name": "Campbell Station Wine & Spirits",
+      "address": "707 N Campbell Station Rd, Farragut, TN 37934, USA",
+      "city": "Farragut",
+      "county": null,
+      "zip": "37934",
+      "lat": 35.895652,
+      "lng": -84.17539660000001,
+      "source": "Campbell Station Wine & Spirits CityHive store inventory",
+      "signalCount": 4
+    },
+    {
       "id": "cool-springs:1000-1057",
       "sourceStoreId": "cool-springs:1000-1057",
       "state": "TN",
@@ -35044,6 +35072,20 @@
       "lng": -86.82835680000001,
       "source": "Red Dog Wine and Spirits CityHive store inventory",
       "signalCount": 9
+    },
+    {
+      "id": "red-spirits-and-wine:5e9656b14e4e042f8a551e9f",
+      "sourceStoreId": "red-spirits-and-wine:5e9656b14e4e042f8a551e9f",
+      "state": "TN",
+      "name": "RED Spirits & Wine",
+      "address": "7066 Hwy 70 S, Nashville, TN 37221, USA",
+      "city": "Nashville",
+      "county": null,
+      "zip": "37221",
+      "lat": 36.0748779,
+      "lng": -86.9196262,
+      "source": "RED Spirits & Wine CityHive store inventory",
+      "signalCount": 6
     },
     {
       "id": "westside-wine-spirits:5f3dd0fd52b3904ef965b902",
