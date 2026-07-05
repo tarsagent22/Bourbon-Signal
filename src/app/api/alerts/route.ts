@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
-import { candidateCanSendEmail, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshEmailGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences } from "@/lib/alert-delivery";
+import { candidateCanUseOnSite, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshOnSiteGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences } from "@/lib/alert-delivery";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
 
   const candidates = readCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
-    .filter(candidateCanSendEmail)
-    .filter(candidatePassesFreshEmailGuardrails)
+    .filter(candidateCanUseOnSite)
+    .filter(candidatePassesFreshOnSiteGuardrails)
     .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
     .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore))

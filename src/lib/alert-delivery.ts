@@ -228,6 +228,9 @@ function sortCandidatesForMember(a: CandidateAlert, b: CandidateAlert) {
 }
 
 export function candidateCanSendEmail(candidate: CandidateAlert) {
+  if (candidate.eligibleForEmail === true) return true;
+  if (candidate.eligibleForEmail === false) return false;
+
   const deliveryChannel = asString(candidate.deliveryChannel);
   const eventType = asString(candidate.eventType).toLowerCase();
   const state = asString(candidate.state).toUpperCase();
@@ -255,6 +258,27 @@ export function candidateCanSendEmail(candidate: CandidateAlert) {
   return /in_stock|limited|available|on_hand/.test(status);
 }
 
+export function candidateCanUseOnSite(candidate: CandidateAlert) {
+  if (candidate.eligibleForOnSite === true) return true;
+  if (candidate.eligibleForOnSite === false) return false;
+  return candidateCanSendEmail(candidate);
+}
+
+function candidateCanSendSms(candidate: CandidateAlert) {
+  if (candidate.eligibleForSms === true) return true;
+  if (candidate.eligibleForSms === false) return false;
+  const actionabilityClass = asString(candidate.actionabilityClass).toLowerCase();
+  const tier = asString(candidate.tier).toLowerCase();
+  if (["board_or_county_lead", "retailer_warehouse_watch", "store_delivery_lead", "distillery_release_watch"].includes(actionabilityClass)) return tier === "unicorn";
+  return candidateCanSendEmail(candidate);
+}
+
+function freshnessPolicyHours(candidate: CandidateAlert, channel: "onSite" | "email" | "sms", fallback: number) {
+  const policy = candidate.freshnessPolicyHours && typeof candidate.freshnessPolicyHours === "object" ? candidate.freshnessPolicyHours as Record<string, unknown> : null;
+  const value = asNumber(policy?.[channel], Number.NaN);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 function candidateDeliveryBlockers(candidate: CandidateAlert) {
   return toStrings(candidate.blockers).map((blocker) => blocker.toLowerCase());
 }
@@ -263,24 +287,41 @@ function candidateDeliveryCautions(candidate: CandidateAlert) {
   return toStrings(candidate.cautions).map((caution) => caution.toLowerCase());
 }
 
-export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
+export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert) {
   const blockers = candidateDeliveryBlockers(candidate);
   const cautions = candidateDeliveryCautions(candidate);
   const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
 
+  if (!candidateCanUseOnSite(candidate)) return false;
   if (asBoolean(candidate.bootstrap)) return false;
   if (blockers.includes("bootstrap_run_not_sendable")) return false;
   if (blockers.includes("manual_refresh_quarantine")) return false;
   if (blockers.includes("stale_observation")) return false;
   if (cautions.includes("unknown_freshness")) return false;
   if (!Number.isFinite(freshnessHours)) return false;
-  return freshnessHours <= ALERT_EMAIL_MAX_FRESHNESS_HOURS;
+  return freshnessHours <= freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS);
+}
+
+export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
+  const blockers = candidateDeliveryBlockers(candidate);
+  const cautions = candidateDeliveryCautions(candidate);
+  const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
+
+  if (!candidateCanSendEmail(candidate)) return false;
+  if (asBoolean(candidate.bootstrap)) return false;
+  if (blockers.includes("bootstrap_run_not_sendable")) return false;
+  if (blockers.includes("manual_refresh_quarantine")) return false;
+  if (blockers.includes("stale_observation")) return false;
+  if (cautions.includes("unknown_freshness")) return false;
+  if (!Number.isFinite(freshnessHours)) return false;
+  return freshnessHours <= freshnessPolicyHours(candidate, "email", ALERT_EMAIL_MAX_FRESHNESS_HOURS);
 }
 
 export function candidatePassesFreshSmsGuardrails(candidate: CandidateAlert) {
+  if (!candidateCanSendSms(candidate)) return false;
   if (!candidatePassesFreshEmailGuardrails(candidate)) return false;
   const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
-  return Number.isFinite(freshnessHours) && freshnessHours <= ALERT_SMS_MAX_FRESHNESS_HOURS;
+  return Number.isFinite(freshnessHours) && freshnessHours <= freshnessPolicyHours(candidate, "sms", ALERT_SMS_MAX_FRESHNESS_HOURS);
 }
 
 function candidateTimestampLabel(candidate: CandidateAlert) {
@@ -604,11 +645,11 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
   const rawEligibleCandidateCount = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
-    .filter(candidateCanSendEmail).length;
+    .filter(candidateCanUseOnSite).length;
   const candidates = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
-    .filter(candidateCanSendEmail)
-    .filter((candidate) => candidatePassesFreshEmailGuardrails(candidate) || candidatePassesFreshSmsGuardrails(candidate))
+    .filter(candidateCanUseOnSite)
+    .filter(candidatePassesFreshOnSiteGuardrails)
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
   const now = new Date().toISOString();
@@ -769,7 +810,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         } else if (!emailRecipientAllowed(email)) {
           summary.skippedEmailRecipientNotAllowed += matchingPreferenceCandidates.length;
         } else {
-          const emailModeCandidates = matchingPreferenceCandidates.filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
+          const emailModeCandidates = matchingPreferenceCandidates.filter(candidatePassesFreshEmailGuardrails).filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
           if (baselineEmailOnly) {
             const baselineDedupeKeys = uniqueStrings(emailModeCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
             summary.emailBaselinesCreated += baselineDedupeKeys.length;

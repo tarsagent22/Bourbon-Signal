@@ -32,6 +32,11 @@ for (const phrase of [
   'MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 1)',
   'MAX_SMS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_USER || 1)',
   'MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 1)',
+  'candidateCanUseOnSite',
+  'candidatePassesFreshOnSiteGuardrails',
+  'eligibleForEmail === true',
+  'eligibleForSms === true',
+  'freshnessPolicyHours',
 ]) {
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }

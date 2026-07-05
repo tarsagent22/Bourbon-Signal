@@ -916,18 +916,109 @@ function buildEvents(signals, bible) {
     .slice(0, 5000);
 }
 
+
+function alertActionabilityClass(candidate) {
+  const eventType = String(candidate.eventType || candidate.type || '').toLowerCase();
+  const state = String(candidate.state || '').toUpperCase();
+  const precision = String(candidate.locationPrecision || '').toLowerCase();
+  const source = `${candidate.source || ''} ${candidate.sourceLabel || ''}`.toLowerCase();
+
+  if (/policy|license|catalog_row|source_reachable|regulatory/.test(eventType)) return 'context_only';
+  if (state === 'KY' || precision === 'distillery' || /distillery|release[-_ ]?watch|gift[-_ ]?shop/.test(eventType)) return 'distillery_release_watch';
+  if (/costco|warehouse/.test(source) && precision !== 'board_warehouse') return 'retailer_warehouse_watch';
+  if (['board_county', 'board_warehouse'].includes(precision) || /board_shipment|shipment_snapshot|warehouse_stock/.test(eventType)) return 'board_or_county_lead';
+  if (precision === 'store_aggregate' || /aggregate/.test(eventType)) return 'aggregate_watch';
+  if (precision === 'store_level' && /delivery|allocation/.test(eventType)) return 'store_delivery_lead';
+  if (precision === 'store_level') return 'store_inventory';
+  return 'context_only';
+}
+
+function maxFreshnessForActionability(actionabilityClass, channel) {
+  const table = {
+    store_inventory: { onSite: 24, email: 24, sms: 12 },
+    store_delivery_lead: { onSite: 36, email: 24, sms: 12 },
+    board_or_county_lead: { onSite: 36, email: 24, sms: 12 },
+    distillery_release_watch: { onSite: 168, email: 168, sms: 24 },
+    retailer_warehouse_watch: { onSite: 12, email: 12, sms: 6 },
+    aggregate_watch: { onSite: 24, email: 0, sms: 0 },
+    context_only: { onSite: 0, email: 0, sms: 0 }
+  };
+  return table[actionabilityClass]?.[channel] || 0;
+}
+
+function alertDeliveryCaveat(actionabilityClass) {
+  if (actionabilityClass === 'store_inventory') return 'Store-level signal; verify before driving.';
+  if (actionabilityClass === 'store_delivery_lead') return 'Delivery/allocation lead; shelf availability is not guaranteed.';
+  if (actionabilityClass === 'board_or_county_lead') return 'Board/county/warehouse lead; not exact shelf inventory.';
+  if (actionabilityClass === 'distillery_release_watch') return 'Distillery/release signal; check official release terms.';
+  if (actionabilityClass === 'retailer_warehouse_watch') return 'Warehouse/retailer signal; inventory can move quickly.';
+  if (actionabilityClass === 'aggregate_watch') return 'Aggregate inventory signal; exact store may vary.';
+  return 'Context only; not alertable.';
+}
+
+function alertChannelPolicy(candidate) {
+  const actionabilityClass = candidate.actionabilityClass || alertActionabilityClass(candidate);
+  const freshnessHours = Number(candidate.freshnessHours);
+  const hasFreshness = Number.isFinite(freshnessHours);
+  const tier = String(candidate.tier || '').toLowerCase();
+  const priorityClass = String(candidate.priorityClass || '').toLowerCase();
+  const blockers = Array.isArray(candidate.blockers) ? candidate.blockers.map((b) => String(b).toLowerCase()) : [];
+  const cautions = Array.isArray(candidate.cautions) ? candidate.cautions.map((c) => String(c).toLowerCase()) : [];
+  const blocked = Boolean(candidate.bootstrap) || blockers.includes('bootstrap_run_not_sendable') || blockers.includes('manual_refresh_quarantine') || blockers.includes('stale_observation') || cautions.includes('unknown_freshness') || actionabilityClass === 'context_only';
+  const major = priorityClass === 'major' || tier === 'unicorn' || tier === 'allocated';
+  const unicorn = tier === 'unicorn';
+  const within = (channel) => hasFreshness && freshnessHours <= maxFreshnessForActionability(actionabilityClass, channel);
+
+  const eligibleForOnSite = !blocked && within('onSite');
+  const eligibleForEmail = eligibleForOnSite && within('email') && (
+    actionabilityClass === 'store_inventory' ||
+    actionabilityClass === 'store_delivery_lead' ||
+    (actionabilityClass === 'board_or_county_lead' && (major || unicorn)) ||
+    actionabilityClass === 'distillery_release_watch' ||
+    (actionabilityClass === 'retailer_warehouse_watch' && (major || unicorn))
+  );
+  const eligibleForSms = eligibleForEmail && within('sms') && (
+    (actionabilityClass === 'store_inventory' && (major || unicorn)) ||
+    (actionabilityClass === 'store_delivery_lead' && unicorn) ||
+    (actionabilityClass === 'board_or_county_lead' && unicorn) ||
+    (actionabilityClass === 'retailer_warehouse_watch' && unicorn) ||
+    (actionabilityClass === 'distillery_release_watch' && unicorn)
+  );
+
+  return {
+    actionabilityClass,
+    eligibleForOnSite,
+    eligibleForEmail,
+    eligibleForSms,
+    freshnessPolicyHours: {
+      onSite: maxFreshnessForActionability(actionabilityClass, 'onSite'),
+      email: maxFreshnessForActionability(actionabilityClass, 'email'),
+      sms: maxFreshnessForActionability(actionabilityClass, 'sms')
+    },
+    deliveryCaveat: alertDeliveryCaveat(actionabilityClass)
+  };
+}
+
 function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
     .filter((c) => ['unicorn', 'allocated', 'limited'].includes(String(c.tier || '').toLowerCase()))
     .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
     .filter((c) => !['MD-MONTGOMERY', 'UT'].includes(c.state) || !/^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(String(c.eventType || '')))
-    .map((c) => ({
+    .map((c) => {
+    const policy = alertChannelPolicy(c);
+    return {
     id: c.id,
     action: c.action,
     score: c.score,
     reliabilityScore: c.reliabilityScore ?? null,
-    eligibleForDelivery: Boolean(c.eligibleForDelivery),
+    eligibleForDelivery: Boolean(c.eligibleForDelivery) && policy.eligibleForOnSite,
+    eligibleForOnSite: policy.eligibleForOnSite,
+    eligibleForEmail: policy.eligibleForEmail,
+    eligibleForSms: policy.eligibleForSms,
+    actionabilityClass: policy.actionabilityClass,
+    freshnessPolicyHours: policy.freshnessPolicyHours,
+    deliveryCaveat: policy.deliveryCaveat,
     priorityClass: c.priorityClass || 'hold',
     deliveryChannel: c.deliveryChannel || 'review_only',
     sendRecommendation: c.sendRecommendation || 'review_before_send',
@@ -959,8 +1050,23 @@ function buildAlerts(alerts) {
     inventorySemantics: safeString(c.inventorySemantics, 700),
     reason: safeString(c.reason, 700),
     evidence: safeString(c.evidence, 700)
-  }))
+  }})
     .sort((a, b) => Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0));
+}
+
+
+function applyAlertPolicyToCandidate(candidate) {
+  const policy = alertChannelPolicy(candidate);
+  return {
+    ...candidate,
+    eligibleForDelivery: Boolean(candidate.eligibleForDelivery) && policy.eligibleForOnSite,
+    eligibleForOnSite: policy.eligibleForOnSite,
+    eligibleForEmail: policy.eligibleForEmail,
+    eligibleForSms: policy.eligibleForSms,
+    actionabilityClass: policy.actionabilityClass,
+    freshnessPolicyHours: policy.freshnessPolicyHours,
+    deliveryCaveat: policy.deliveryCaveat
+  };
 }
 
 function alertCandidateSort(a, b) {
@@ -1024,6 +1130,10 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       score: drop.tier === 'unicorn' ? 150 : drop.tier === 'allocated' ? 135 : 112,
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
+      eligibleForOnSite: true,
+      eligibleForEmail: true,
+      eligibleForSms: ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
       sendRecommendation: 'send_to_matching_testers',
@@ -1074,6 +1184,10 @@ function buildRegionalWatchAlertsFromDrops(drops) {
       score: drop.tier === 'unicorn' ? 145 : drop.tier === 'allocated' ? 130 : 108,
       reliabilityScore: drop.tier === 'unicorn' ? 90 : drop.tier === 'allocated' ? 86 : 80,
       eligibleForDelivery: true,
+      eligibleForOnSite: true,
+      eligibleForEmail: ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForSms: String(drop.tier || '') === 'unicorn',
+      actionabilityClass: 'board_or_county_lead',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'watch_candidate',
       sendRecommendation: 'send_to_matching_testers',
@@ -1301,7 +1415,8 @@ async function main() {
   const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(drops);
   const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(drops);
-  const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates], (candidate) => candidate.dedupeKey || candidate.id)
+  const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
+    .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);
   const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 200, 50);
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
