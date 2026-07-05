@@ -428,26 +428,34 @@ Current export reports 22 active states/lanes. Only states with current alert ca
 
 ## TN — Tennessee
 
-**Source:** Tennessee ABC + retailer inventory watch  
-**Coverage tier:** live store inventory  
+**Source:** Tennessee retailer inventory watch + Tennessee ABC policy context
+**Coverage tier:** live retailer store inventory
 **Lifecycle:** retailer store inventory  
 **Best precision:** store level  
-**Current candidates:** 5 mostly unicorn retailer rows
+**Current candidates:** store-level retailer rows from Cool Springs/Gateway plus fresh CityHive rows when the TN CityHive cache is inside the fast-inventory freshness window
+
+**Current source mesh:**
+
+- CityHive retailer pages across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Lakeland, Franklin, and Brentwood.
+- Cool Springs Wine & Spirits public catalog API (Franklin).
+- Gateway Wine & Spirits Grabbl public store API (Murfreesboro).
+- Tennessee ABC official pages remain policy/license context only.
 
 **Alert semantics:**
 
-- Retailer e-commerce rows are alertable when whitelisted and fresh.
-- Official ABC pages are policy context only.
+- Retailer e-commerce rows are alertable only when whitelisted, fresh, store-level, positive-quantity, and bourbon/whiskey filtered.
+- CityHive cache reuse must stay inside the customer-facing fast-inventory freshness window; stale cached rows should fail `verify:tn` rather than silently disappear from export.
+- Official ABC pages and license lists must not become bottle availability.
 
 **Allowed channels:**
 
 - On-site: yes.
-- Email: yes for rare fresh rows.
-- SMS: unicorn/specific bottle only.
+- Email: yes for rare fresh store-level rows.
+- SMS: unicorn/specific bottle only, with a very fresh store-level signal.
 
 **Copy:**
 
-> Tennessee retailer inventory signal. Verify with the retailer before driving.
+> Tennessee retailer inventory signal. Retailer-published availability moves fast; verify with the store before driving.
 
 ## SC — South Carolina
 

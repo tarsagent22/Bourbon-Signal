@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-04T14:33:36.956Z",
-  "count": 2851,
+  "generatedAt": "2026-07-05T19:31:21.044Z",
+  "count": 2837,
   "stores": [
     {
       "id": "alabc:001",
@@ -2507,7 +2507,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "eabe77a1fa2748e2",
@@ -2619,7 +2619,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "1884f34d4839e02d",
@@ -2632,8 +2632,8 @@
       "zip": "50009",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "af1ecf363d11e731",
@@ -2675,6 +2675,20 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "6b7d3f86feabec38",
+      "sourceStoreId": "6b7d3f86feabec38",
+      "state": "IA",
+      "name": "Atlantic Liquor / Atlantic",
+      "address": "411 Chestnut Street, Atlantic, IA, 50022",
+      "city": "Atlantic",
+      "county": null,
+      "zip": "50022",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -2688,8 +2702,8 @@
       "zip": "50613",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "eefb800b6594ad9d",
@@ -2702,8 +2716,8 @@
       "zip": "52601",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "d90c961b708d1377",
@@ -2716,8 +2730,8 @@
       "zip": "52101",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "ce5c962685ec94b8",
@@ -2758,8 +2772,8 @@
       "zip": "52146",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "cb199991166077db",
@@ -2787,7 +2801,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "bec15fe81a046ba5",
@@ -2801,7 +2815,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "667df4316f031c67",
@@ -2814,7 +2828,21 @@
       "zip": "50588",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "1af3cb0e23d1a8f5",
+      "sourceStoreId": "1af3cb0e23d1a8f5",
+      "state": "IA",
+      "name": "Bender Foods / Guttenberg",
+      "address": "619 S Hwy 52, Guttenberg, IA, 52052",
+      "city": "Guttenberg",
+      "county": null,
+      "zip": "52052",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -2829,7 +2857,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "befa8f6b10ca955b",
@@ -2860,6 +2888,20 @@
       "signalCount": 1
     },
     {
+      "id": "d7351b571a56aef8",
+      "sourceStoreId": "d7351b571a56aef8",
+      "state": "IA",
+      "name": "Big Discount Liquor / Cedar Rapids",
+      "address": "5427  Center Point Rd, Cedar Rapids, IA, 52402",
+      "city": "Cedar Rapids",
+      "county": null,
+      "zip": "52402",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "0f1c62d57d551e78",
       "sourceStoreId": "0f1c62d57d551e78",
       "state": "IA",
@@ -2885,7 +2927,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "35f69dcbd838043f",
@@ -2899,7 +2941,21 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
+    },
+    {
+      "id": "2ec6d081ccc9650c",
+      "sourceStoreId": "2ec6d081ccc9650c",
+      "state": "IA",
+      "name": "Bluff Grocery LLC / Council Bluffs",
+      "address": "701 16th Ave, Council Bluffs, IA, 51501",
+      "city": "Council Bluffs",
+      "county": null,
+      "zip": "51501",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
     },
     {
       "id": "5156fa3fa7fa78e8",
@@ -2913,7 +2969,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "0f9cc3b21da1a85d",
@@ -2924,6 +2980,20 @@
       "city": "Coralville",
       "county": null,
       "zip": "52241",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "7c966af1cd86399c",
+      "sourceStoreId": "7c966af1cd86399c",
+      "state": "IA",
+      "name": "BP / Ames",
+      "address": "2720 East 13th Street, Ames, IA, 50010",
+      "city": "Ames",
+      "county": null,
+      "zip": "50010",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -2955,7 +3025,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "81dee286d274e781",
@@ -2996,8 +3066,8 @@
       "zip": "50320",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
     },
     {
       "id": "32869123238f974b",
@@ -3011,7 +3081,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "213bb200d1ae70c2",
@@ -3053,7 +3123,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "d504bba6838d7557",
@@ -3123,7 +3193,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "c6b4245fdb64df84",
@@ -3137,7 +3207,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "c032ce861705b08c",
@@ -3150,8 +3220,22 @@
       "zip": "52211",
       "lat": null,
       "lng": null,
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
+    },
+    {
+      "id": "91b5e09514acfb16",
+      "sourceStoreId": "91b5e09514acfb16",
+      "state": "IA",
+      "name": "Brothers Market  /  Grundy Center",
+      "address": "1400 G  Ave, Grundy Center, IA, 50638",
+      "city": "Grundy Center",
+      "county": null,
+      "zip": "50638",
+      "lat": null,
+      "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "24c959ea3a1b11f7",
@@ -3179,7 +3263,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "566ea2940a6ba75a",
@@ -3221,17 +3305,59 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "8cbdda757decf0d3",
+      "sourceStoreId": "8cbdda757decf0d3",
+      "state": "IA",
+      "name": "Casey's #3763 -Waverly",
+      "address": "1032 4th Street SW, Waverly, IA, 50677",
+      "city": "Waverly",
+      "county": null,
+      "zip": "50677",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
-      "id": "62596ce0ade1f353",
-      "sourceStoreId": "62596ce0ade1f353",
+      "id": "eebb4b4a3e4d551d",
+      "sourceStoreId": "eebb4b4a3e4d551d",
       "state": "IA",
-      "name": "Calamus Country Store / Calamus",
-      "address": "91 Clinton Street, Calamus, IA, 52729",
-      "city": "Calamus",
+      "name": "Casey's #4269 / Waukee",
+      "address": "600 Northwest 10th Street, Waukee, IA, 50263",
+      "city": "Waukee",
       "county": null,
-      "zip": "52729",
+      "zip": "50263",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "1e0cd38d8ab2ce93",
+      "sourceStoreId": "1e0cd38d8ab2ce93",
+      "state": "IA",
+      "name": "Casey's #4333 / Cumming",
+      "address": "5240 Cumming Avenue, Cumming, IA, 50061",
+      "city": "Cumming",
+      "county": null,
+      "zip": "50061",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "153f4dfc0777cf1f",
+      "sourceStoreId": "153f4dfc0777cf1f",
+      "state": "IA",
+      "name": "Casey's #5252 / Waukee",
+      "address": "350 Southeast University Avenue, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": "50263",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3246,6 +3372,20 @@
       "city": "Tama",
       "county": null,
       "zip": "52339",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "8cbbb21a5646a25c",
+      "sourceStoreId": "8cbbb21a5646a25c",
+      "state": "IA",
+      "name": "Casey's General Store # 2179/ Waukee",
+      "address": "1995 SE University, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": "50263",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3291,7 +3431,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "c1f75c8930fcb2bc",
@@ -3316,6 +3456,48 @@
       "city": "Lake Mills",
       "county": null,
       "zip": "50450",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "ab5ce4cb9e0680e5",
+      "sourceStoreId": "ab5ce4cb9e0680e5",
+      "state": "IA",
+      "name": "Casey's General Store #1793 / Iowa Falls",
+      "address": "1801 Washington Ave, Iowa Falls, IA, 50126",
+      "city": "Iowa Falls",
+      "county": null,
+      "zip": "50126",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "be9ac330f2e6e98a",
+      "sourceStoreId": "be9ac330f2e6e98a",
+      "state": "IA",
+      "name": "Casey's General Store #1997 / Waukon",
+      "address": "516 Rossville Rd, Waukon, IA, 52172",
+      "city": "Waukon",
+      "county": null,
+      "zip": "52172",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "378b91f2429c2db1",
+      "sourceStoreId": "378b91f2429c2db1",
+      "state": "IA",
+      "name": "Casey's General Store #2 / Boone",
+      "address": "114 Mamie Eisenhower, Boone, IA, 50036",
+      "city": "Boone",
+      "county": null,
+      "zip": "50036",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3364,14 +3546,28 @@
       "signalCount": 1
     },
     {
-      "id": "931c71991c7431ed",
-      "sourceStoreId": "931c71991c7431ed",
+      "id": "cff95728ea72ecfa",
+      "sourceStoreId": "cff95728ea72ecfa",
       "state": "IA",
-      "name": "Casey's General Store #2566 / Ely",
-      "address": "1495 State St, Ely, IA, 52227",
-      "city": "Ely",
+      "name": "Casey's General Store #2538-Waukee",
+      "address": "20 W. HICKMAN RD, Waukee, IA, 50263",
+      "city": "Waukee",
       "county": null,
-      "zip": "52227",
+      "zip": "50263",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "9c07a14cdeb5a794",
+      "sourceStoreId": "9c07a14cdeb5a794",
+      "state": "IA",
+      "name": "Casey's General Store #2623 / Fairbank",
+      "address": "103 24th St, Fairbank, IA, 50629",
+      "city": "Fairbank",
+      "county": null,
+      "zip": "50629",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3392,14 +3588,14 @@
       "signalCount": 1
     },
     {
-      "id": "1fcffe651193ecdf",
-      "sourceStoreId": "1fcffe651193ecdf",
+      "id": "1de7f38ac3f30e00",
+      "sourceStoreId": "1de7f38ac3f30e00",
       "state": "IA",
-      "name": "Casey's General Store #2776 / Cedar Rapids",
-      "address": "701 Ellis Blvd NW, Cedar Rapids, IA, 52405",
-      "city": "Cedar Rapids",
+      "name": "Casey's General Store #2813 / Fort Dodge",
+      "address": "1230 3rd Ave NW, Fort Dodge, IA, 50501",
+      "city": "Fort Dodge",
       "county": null,
-      "zip": "52405",
+      "zip": "50501",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3434,6 +3630,20 @@
       "signalCount": 1
     },
     {
+      "id": "685b1e56f56cc5f7",
+      "sourceStoreId": "685b1e56f56cc5f7",
+      "state": "IA",
+      "name": "Casey's General Store #3029 / Armstrong",
+      "address": "307, S 4th Ave, Armstrong, IA, 50514",
+      "city": "Armstrong",
+      "county": null,
+      "zip": "50514",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "699ef4f76c7b388c",
       "sourceStoreId": "699ef4f76c7b388c",
       "state": "IA",
@@ -3445,7 +3655,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "6b4abe90e84986d5",
@@ -3456,6 +3666,20 @@
       "city": "Hudson",
       "county": null,
       "zip": "50643",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "b23c5029ca8c68b7",
+      "sourceStoreId": "b23c5029ca8c68b7",
+      "state": "IA",
+      "name": "Casey's General Store #32 / Madrid",
+      "address": "117 N Kennedy Ave, Madrid, IA, 50156",
+      "city": "Madrid",
+      "county": null,
+      "zip": "50156",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3473,6 +3697,20 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "c432f7ac1093df88",
+      "sourceStoreId": "c432f7ac1093df88",
+      "state": "IA",
+      "name": "Casey's General Store #3327 / Fairfield",
+      "address": "2125 Libertyville Rd, Fairfield, IA, 52556",
+      "city": "Fairfield",
+      "county": null,
+      "zip": "52556",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -3487,7 +3725,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "65fba6ee6c13c2c9",
@@ -3498,6 +3736,20 @@
       "city": "West Union",
       "county": null,
       "zip": "52175",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "cf1d483d005be4bb",
+      "sourceStoreId": "cf1d483d005be4bb",
+      "state": "IA",
+      "name": "Casey's General Store #3640 / Waukee",
+      "address": "870 NE Alice's Rd, Waukee, IA, 50263",
+      "city": "Waukee",
+      "county": null,
+      "zip": "50263",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3518,14 +3770,56 @@
       "signalCount": 1
     },
     {
-      "id": "8ccd26067e181c01",
-      "sourceStoreId": "8ccd26067e181c01",
+      "id": "154e1d351fe200f9",
+      "sourceStoreId": "154e1d351fe200f9",
       "state": "IA",
-      "name": "Central City 2",
-      "address": "1501 Michigan Ave, Des Moines, IA, 50314",
+      "name": "Casey's General Store #51 / Humboldt",
+      "address": "907 13th St N, Humboldt, IA, 50548",
+      "city": "Humboldt",
+      "county": null,
+      "zip": "50548",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "f4ed9133c0557a47",
+      "sourceStoreId": "f4ed9133c0557a47",
+      "state": "IA",
+      "name": "Cash Saver #33 / Des Moines",
+      "address": "1320 E Euclid Ave, Des Moines, IA, 50313",
       "city": "Des Moines",
       "county": null,
-      "zip": "50314",
+      "zip": "50313",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "3728cb9ea2f4e78b",
+      "sourceStoreId": "3728cb9ea2f4e78b",
+      "state": "IA",
+      "name": "Cash Saver #34 / Des Moines",
+      "address": "4121 Fleur Drive, Des Moines, IA, 50321",
+      "city": "Des Moines",
+      "county": null,
+      "zip": "50321",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "b2dfc59a82cd9af9",
+      "sourceStoreId": "b2dfc59a82cd9af9",
+      "state": "IA",
+      "name": "CENTER POINT FOODS",
+      "address": "800 Ford Lane, Center Point, IA, 52213",
+      "city": "Center Point",
+      "county": null,
+      "zip": "52213",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3557,7 +3851,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "50d98d711e398c89",
@@ -3588,6 +3882,20 @@
       "signalCount": 2
     },
     {
+      "id": "a5cd98ee636042f8",
+      "sourceStoreId": "a5cd98ee636042f8",
+      "state": "IA",
+      "name": "City Smoke Shop / Johnston",
+      "address": "5765 Merle Hay Road, Johnston, IA, 50131",
+      "city": "Johnston",
+      "county": null,
+      "zip": "50131",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "0118ba5859da1342",
       "sourceStoreId": "0118ba5859da1342",
       "state": "IA",
@@ -3598,8 +3906,8 @@
       "zip": "52753",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "3edfb065f0f5a7e6",
@@ -3613,7 +3921,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "2942c1db32e3dbe5",
@@ -3640,22 +3948,8 @@
       "zip": "50060",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "7bcb1a1c8c7fec90",
-      "sourceStoreId": "7bcb1a1c8c7fec90",
-      "state": "IA",
-      "name": "Country Foods / Belle Plaine",
-      "address": "1206 7th Avenue, Belle Plaine, IA, 52208",
-      "city": "Belle Plaine",
-      "county": null,
-      "zip": "52208",
-      "lat": null,
-      "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "b851e3132b83f992",
@@ -3683,7 +3977,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "9503dc9bd4e83a1b",
@@ -3697,7 +3991,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "47fb0e6034309652",
@@ -3725,7 +4019,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "605bcbf80eda1a55",
@@ -3736,6 +4030,34 @@
       "city": "Muscatine",
       "county": null,
       "zip": "52761",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "c35e3732e0dc54d3",
+      "sourceStoreId": "c35e3732e0dc54d3",
+      "state": "IA",
+      "name": "Crown Liquor & Smoke / Iowa City",
+      "address": "19 Highway 1 West Roosevelt, Iowa City, IA, 52246",
+      "city": "Iowa City",
+      "county": null,
+      "zip": "52246",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "17611a184dfc4d4e",
+      "sourceStoreId": "17611a184dfc4d4e",
+      "state": "IA",
+      "name": "Crown Liquor Tobacco & G Mart / Fairfield",
+      "address": "803 West Burlington Avenue STE A, Fairfield, IA, 52556",
+      "city": "Fairfield",
+      "county": null,
+      "zip": "52556",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3767,6 +4089,34 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 2
+    },
+    {
+      "id": "48410cdc9ca78c0b",
+      "sourceStoreId": "48410cdc9ca78c0b",
+      "state": "IA",
+      "name": "D & T Gas & Food LLC / Baldwin",
+      "address": "5358 Highway 64, Baldwin, IA, 52207",
+      "city": "Baldwin",
+      "county": null,
+      "zip": "52207",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "38825cfbc0755694",
+      "sourceStoreId": "38825cfbc0755694",
+      "state": "IA",
+      "name": "D and M Liquor / Indianola",
+      "address": "1709 North Jefferson Way STE 300, Indianola, IA, 50125",
+      "city": "Indianola",
+      "county": null,
+      "zip": "50125",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -3784,6 +4134,20 @@
       "signalCount": 1
     },
     {
+      "id": "7ccad7484921a636",
+      "sourceStoreId": "7ccad7484921a636",
+      "state": "IA",
+      "name": "Decorah Mart / Decorah",
+      "address": "303 College Drive, Decorah, IA, 52101",
+      "city": "Decorah",
+      "county": null,
+      "zip": "52101",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
       "id": "3602b9ea0b621e7b",
       "sourceStoreId": "3602b9ea0b621e7b",
       "state": "IA",
@@ -3795,7 +4159,7 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "7108e0018a30214d",
@@ -3806,34 +4170,6 @@
       "city": "Davenport",
       "county": null,
       "zip": "52804",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "786f97c7c9a10ba9",
-      "sourceStoreId": "786f97c7c9a10ba9",
-      "state": "IA",
-      "name": "DIVA & TEJ GAS & FOOD",
-      "address": "2293 Hwy 30, Grand Mounds, IA, 52751",
-      "city": "Grand Mounds",
-      "county": null,
-      "zip": "52751",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "3034b4b9627eb437",
-      "sourceStoreId": "3034b4b9627eb437",
-      "state": "IA",
-      "name": "Division Mart / Davenport",
-      "address": "3721 North Division Street, Davenport, IA, 52806",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52806",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -3890,20 +4226,6 @@
       "city": "Orange City",
       "county": null,
       "zip": "51041",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "39420d80649fa26f",
-      "sourceStoreId": "39420d80649fa26f",
-      "state": "IA",
-      "name": "Dyers Mart / Dyersville",
-      "address": "1021 2nd Ave SE, Dyersville, IA, 52040",
-      "city": "Dyersville",
-      "county": null,
-      "zip": "52040",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -4004,21 +4326,7 @@
       "zip": "52804",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
-    },
-    {
-      "id": "f4a255e180a21ea6",
-      "sourceStoreId": "f4a255e180a21ea6",
-      "state": "IA",
-      "name": "Fareway Stores #008 / Dyersville",
-      "address": "1207  12th Ave SE, Dyersville, IA, 52040",
-      "city": "Dyersville",
-      "county": null,
-      "zip": "52040",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
+      "source": "Iowa ABD allocated lottery store distribution CSV",
       "signalCount": 1
     },
     {
@@ -4089,20 +4397,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "fccccb9707ddf454",
-      "sourceStoreId": "fccccb9707ddf454",
-      "state": "IA",
-      "name": "Fareway Stores #025 / Clinton",
-      "address": "1350 11th St NW, Clinton, IA, 52733",
-      "city": "Clinton",
-      "county": null,
-      "zip": "52733",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -4512,20 +4806,6 @@
       "signalCount": 1
     },
     {
-      "id": "9caea2b8c325c8d4",
-      "sourceStoreId": "9caea2b8c325c8d4",
-      "state": "IA",
-      "name": "Fareway Stores #594 / Manchester",
-      "address": "109 East Marion St, Manchester, IA, 52057",
-      "city": "Manchester",
-      "county": null,
-      "zip": "52057",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "77c0d097562c3a7f",
       "sourceStoreId": "77c0d097562c3a7f",
       "state": "IA",
@@ -4788,8 +5068,8 @@
       "zip": "52404",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "eb98fdc689a80489",
@@ -4830,21 +5110,7 @@
       "zip": "52317",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
-    },
-    {
-      "id": "d5d2180c7483838b",
-      "sourceStoreId": "d5d2180c7483838b",
-      "state": "IA",
-      "name": "Fareway Stores #998 / Muscatine",
-      "address": "2100 Cedar Plaza Dr, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
+      "source": "Iowa ABD allocated lottery store distribution CSV",
       "signalCount": 1
     },
     {
@@ -4984,21 +5250,7 @@
       "zip": "52761",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
-    },
-    {
-      "id": "c0179e168fd99eb7",
-      "sourceStoreId": "c0179e168fd99eb7",
-      "state": "IA",
-      "name": "Fast Lane / Burlington",
-      "address": "1532 Osborn Street, Burlington, IA, 52601",
-      "city": "Burlington",
-      "county": null,
-      "zip": "52601",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
+      "source": "Iowa ABD allocated lottery store distribution CSV",
       "signalCount": 1
     },
     {
@@ -5156,34 +5408,6 @@
       "signalCount": 1
     },
     {
-      "id": "ab01d1efcbdccfed",
-      "sourceStoreId": "ab01d1efcbdccfed",
-      "state": "IA",
-      "name": "Gateway Mart / Clinton",
-      "address": "1930 Roosevelt St, Clinton, IA, 52732",
-      "city": "Clinton",
-      "county": null,
-      "zip": "52732",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "5dcb7cd9595831c6",
-      "sourceStoreId": "5dcb7cd9595831c6",
-      "state": "IA",
-      "name": "Giri's Liquor Store / West Liberty",
-      "address": "1006 N. Columbus Street Suite A, West Liberty, IA, 52776",
-      "city": "West Liberty",
-      "county": null,
-      "zip": "52776",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "1fe8d04c964c287a",
       "sourceStoreId": "1fe8d04c964c287a",
       "state": "IA",
@@ -5212,20 +5436,6 @@
       "signalCount": 2
     },
     {
-      "id": "f5aa7183f0f79710",
-      "sourceStoreId": "f5aa7183f0f79710",
-      "state": "IA",
-      "name": "GM Food Mart / Muscatine",
-      "address": "1814 E Ave., Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "e9d6f56329faa35c",
       "sourceStoreId": "e9d6f56329faa35c",
       "state": "IA",
@@ -5234,34 +5444,6 @@
       "city": "Iowa City",
       "county": null,
       "zip": "52240",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "909160b874abb319",
-      "sourceStoreId": "909160b874abb319",
-      "state": "IA",
-      "name": "GM Minimart / Muscatine",
-      "address": "2307 Lucas St, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "c1061a5239b9937a",
-      "sourceStoreId": "c1061a5239b9937a",
-      "state": "IA",
-      "name": "Golden Mart",
-      "address": "1026 W River Drive, Davenport, IA, 52802",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52802",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -5320,8 +5502,8 @@
       "zip": "52208",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "b3180f82ceeddea0",
@@ -5576,20 +5758,6 @@
       "signalCount": 3
     },
     {
-      "id": "e2af91f2652227e3",
-      "sourceStoreId": "e2af91f2652227e3",
-      "state": "IA",
-      "name": "Hop N Shop Mart / Bettendorf",
-      "address": "931 State Street, Bettendorf, IA, 52722",
-      "city": "Bettendorf",
-      "county": null,
-      "zip": "52722",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "6b9943319ac2a187",
       "sourceStoreId": "6b9943319ac2a187",
       "state": "IA",
@@ -5782,8 +5950,8 @@
       "zip": "52241",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "5fd2e0f871570652",
@@ -5811,20 +5979,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "6d57080cc88da1f9",
-      "sourceStoreId": "6d57080cc88da1f9",
-      "state": "IA",
-      "name": "Hy-Vee #3 / BDI / Des Moines",
-      "address": "3221 SE 14th St, Des Moines, IA, 50320",
-      "city": "Des Moines",
-      "county": null,
-      "zip": "50320",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -5868,20 +6022,6 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
-    },
-    {
-      "id": "5c971679a366dc59",
-      "sourceStoreId": "5c971679a366dc59",
-      "state": "IA",
-      "name": "Hy-Vee #5 / Davenport",
-      "address": "2351 W Locust, Davenport, IA, 52804",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52804",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
     },
     {
       "id": "c8c2cf75d9fef361",
@@ -5964,8 +6104,8 @@
       "zip": "52057",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "8cd8e373728585ea",
@@ -6300,8 +6440,8 @@
       "zip": "52241",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "ed3e1c8a02da1d91",
@@ -6343,20 +6483,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "b7cdb8de0b34a17c",
-      "sourceStoreId": "b7cdb8de0b34a17c",
-      "state": "IA",
-      "name": "Hy-Vee Food Store / Muscatine",
-      "address": "2400 2nd Ave, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -6416,20 +6542,6 @@
       "signalCount": 1
     },
     {
-      "id": "7391263ed0508e91",
-      "sourceStoreId": "7391263ed0508e91",
-      "state": "IA",
-      "name": "Hy-Vee Food Store #1 (1054) / Cedar Rapids",
-      "address": "1843 Johnson Avenue, N.W., Cedar Rapids, IA, 52405",
-      "city": "Cedar Rapids",
-      "county": null,
-      "zip": "52405",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "9070c148155a2c48",
       "sourceStoreId": "9070c148155a2c48",
       "state": "IA",
@@ -6482,8 +6594,8 @@
       "zip": "52404",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "aa747f65c9029f20",
@@ -6496,8 +6608,8 @@
       "zip": "50315",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "36ddd8c95b33fad8",
@@ -6524,8 +6636,8 @@
       "zip": "50315",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "b4747b18c1807be9",
@@ -6636,8 +6748,8 @@
       "zip": "52761",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "c305891b508654cd",
@@ -6794,20 +6906,6 @@
       "signalCount": 1
     },
     {
-      "id": "22a2044aae5535bb",
-      "sourceStoreId": "22a2044aae5535bb",
-      "state": "IA",
-      "name": "Hy-Vee Wine and Spirits #1 (1281) / Iowa City",
-      "address": "1720 Waterfront Dr, Iowa City, IA, 52240",
-      "city": "Iowa City",
-      "county": null,
-      "zip": "52240",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "c0f8ed2c8e87d608",
       "sourceStoreId": "c0f8ed2c8e87d608",
       "state": "IA",
@@ -6850,20 +6948,6 @@
       "signalCount": 1
     },
     {
-      "id": "e958050bc29971dc",
-      "sourceStoreId": "e958050bc29971dc",
-      "state": "IA",
-      "name": "Iowa Mini Mart",
-      "address": "234 W 3rd St, Davenport, IA, 52801",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52801",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "983e5b8b0cee0408",
       "sourceStoreId": "983e5b8b0cee0408",
       "state": "IA",
@@ -6886,20 +6970,6 @@
       "city": "Onawa",
       "county": null,
       "zip": "51040",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "6972306c890510d4",
-      "sourceStoreId": "6972306c890510d4",
-      "state": "IA",
-      "name": "Jack & Jill Store / West Branch",
-      "address": "115 East Main Street, West Branch, IA, 52358",
-      "city": "West Branch",
-      "county": null,
-      "zip": "52358",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -6974,20 +7044,6 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
-    },
-    {
-      "id": "e3211307ba6afc37",
-      "sourceStoreId": "e3211307ba6afc37",
-      "state": "IA",
-      "name": "Karam Kaur Khasriya Llc",
-      "address": "702 13th St, Belle Plaine, IA, 52208",
-      "city": "Belle Plaine",
-      "county": null,
-      "zip": "52208",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
     },
     {
       "id": "d420402048c29165",
@@ -7228,20 +7284,6 @@
       "signalCount": 1
     },
     {
-      "id": "a3e0c924aca34d9c",
-      "sourceStoreId": "a3e0c924aca34d9c",
-      "state": "IA",
-      "name": "Liquor, Tobacco & Grocery / Dubuque",
-      "address": "1998 Jackson St, Dubuque, IA, 52001",
-      "city": "Dubuque",
-      "county": null,
-      "zip": "52001",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "58f13c872a6f82d7",
       "sourceStoreId": "58f13c872a6f82d7",
       "state": "IA",
@@ -7337,20 +7379,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "ac587450082c2249",
-      "sourceStoreId": "ac587450082c2249",
-      "state": "IA",
-      "name": "Madella Wine and Spirits / Bettendorf",
-      "address": "3263 Moencks Court Unit 3265, Bettendorf, IA, 52722",
-      "city": "Bettendorf",
-      "county": null,
-      "zip": "52722",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -7686,8 +7714,8 @@
       "zip": "52404",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "59eb707745a2aa46",
@@ -7956,20 +7984,6 @@
       "signalCount": 2
     },
     {
-      "id": "9f5d83043a828573",
-      "sourceStoreId": "9f5d83043a828573",
-      "state": "IA",
-      "name": "Mega Saver / Cedar Rapids",
-      "address": "2604 16th Ave SW, Cedar Rapids, IA, 52404",
-      "city": "Cedar Rapids",
-      "county": null,
-      "zip": "52404",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "396fcc16921d83ff",
       "sourceStoreId": "396fcc16921d83ff",
       "state": "IA",
@@ -8110,20 +8124,6 @@
       "signalCount": 2
     },
     {
-      "id": "aa299204f98efbac",
-      "sourceStoreId": "aa299204f98efbac",
-      "state": "IA",
-      "name": "Monte Spirits",
-      "address": "109 N 4th St, Montezuma, IA, 50171",
-      "city": "Montezuma",
-      "county": null,
-      "zip": "50171",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "0c9a0632a0f4174e",
       "sourceStoreId": "0c9a0632a0f4174e",
       "state": "IA",
@@ -8246,8 +8246,8 @@
       "zip": "50208",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "d7248b79ad6f9efd",
@@ -8362,20 +8362,6 @@
       "signalCount": 1
     },
     {
-      "id": "23579d218cd776ab",
-      "sourceStoreId": "23579d218cd776ab",
-      "state": "IA",
-      "name": "Pearl City Tobacco & Liquor Outlet / Muscatine",
-      "address": "200 Green St, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "7077d3b591c1dc49",
       "sourceStoreId": "7077d3b591c1dc49",
       "state": "IA",
@@ -8384,20 +8370,6 @@
       "city": "Grinnell",
       "county": null,
       "zip": "50112",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "077cc2994159d407",
-      "sourceStoreId": "077cc2994159d407",
-      "state": "IA",
-      "name": "Pit Stop Liquor / Newton",
-      "address": "1324 1st Avenue East, Newton, IA, 50208",
-      "city": "Newton",
-      "county": null,
-      "zip": "50208",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -8442,8 +8414,8 @@
       "zip": "52732",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "dfb74c20ee1682db",
@@ -8628,34 +8600,6 @@
       "signalCount": 1
     },
     {
-      "id": "75165cdc96424c3a",
-      "sourceStoreId": "75165cdc96424c3a",
-      "state": "IA",
-      "name": "River Drive Smoke Shop",
-      "address": "828, W River Dr, Davenport, IA, 52802",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52802",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "3906c582cc26fb00",
-      "sourceStoreId": "3906c582cc26fb00",
-      "state": "IA",
-      "name": "Riverside Liquor",
-      "address": "826 E River Dr, Davenport, IA, 52803",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52803",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "a7f5a068711b1364",
       "sourceStoreId": "a7f5a068711b1364",
       "state": "IA",
@@ -8666,8 +8610,8 @@
       "zip": "52804",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "5675d5ffd72444f0",
@@ -8740,20 +8684,6 @@
       "signalCount": 1
     },
     {
-      "id": "04955c65ab28124e",
-      "sourceStoreId": "04955c65ab28124e",
-      "state": "IA",
-      "name": "Sam's Mainstreet Market / Solon",
-      "address": "123 E Main St, Solon, IA, 52333",
-      "city": "Solon",
-      "county": null,
-      "zip": "52333",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "633d0989c26a4e40",
       "sourceStoreId": "633d0989c26a4e40",
       "state": "IA",
@@ -8790,20 +8720,6 @@
       "city": "Sibley",
       "county": null,
       "zip": "51249",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "0528a0fb6f23cd3e",
-      "sourceStoreId": "0528a0fb6f23cd3e",
-      "state": "IA",
-      "name": "Sid's Beverage Shop",
-      "address": "2727 Dodge St, Dubuque, IA, 52003",
-      "city": "Dubuque",
-      "county": null,
-      "zip": "52003",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -8916,20 +8832,6 @@
       "city": "Cedar Rapids",
       "county": null,
       "zip": "52405",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
-      "id": "abb4912e52257bed",
-      "sourceStoreId": "abb4912e52257bed",
-      "state": "IA",
-      "name": "Smokin' Joe's #8 Tobacco and Liquor Outlet",
-      "address": "902 W. Kimberly Rd Ste 55-56, Davenport, IA, 52806",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52806",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -9076,20 +8978,6 @@
       "signalCount": 1
     },
     {
-      "id": "6a54ff934a6de3c2",
-      "sourceStoreId": "6a54ff934a6de3c2",
-      "state": "IA",
-      "name": "Sub Express & Gas",
-      "address": "4307 W Locust St, Davenport, IA, 52804",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52804",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "be3e93b2b90e50c0",
       "sourceStoreId": "be3e93b2b90e50c0",
       "state": "IA",
@@ -9128,8 +9016,8 @@
       "zip": "52806",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "fc60b52f4fa851e1",
@@ -9158,20 +9046,6 @@
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 2
-    },
-    {
-      "id": "fc37ff9503853edd",
-      "sourceStoreId": "fc37ff9503853edd",
-      "state": "IA",
-      "name": "Super Saver Liquor / Muscatine",
-      "address": "1510 Isett Avenue, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
     },
     {
       "id": "e637b338a778899b",
@@ -9227,20 +9101,6 @@
       "lat": null,
       "lng": null,
       "source": "Iowa ABD allocated lottery store distribution CSV",
-      "signalCount": 1
-    },
-    {
-      "id": "45342753e761932d",
-      "sourceStoreId": "45342753e761932d",
-      "state": "IA",
-      "name": "The Crown Liquor & Smoke / Muscatine",
-      "address": "714 Grandview Avenue, Muscatine, IA, 52761",
-      "city": "Muscatine",
-      "county": null,
-      "zip": "52761",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
       "signalCount": 1
     },
     {
@@ -9454,20 +9314,6 @@
       "signalCount": 1
     },
     {
-      "id": "f0e704e24647e599",
-      "sourceStoreId": "f0e704e24647e599",
-      "state": "IA",
-      "name": "Tobacco Outlet & Liquor",
-      "address": "1545 1st Ave SE, Cedar Rapids, IA, 52402",
-      "city": "Cedar Rapids",
-      "county": null,
-      "zip": "52402",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "967d157678b2f37c",
       "sourceStoreId": "967d157678b2f37c",
       "state": "IA",
@@ -9520,8 +9366,8 @@
       "zip": "52730",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "2b256fcb7ad57b28",
@@ -9636,20 +9482,6 @@
       "signalCount": 1
     },
     {
-      "id": "755538eae2b55b12",
-      "sourceStoreId": "755538eae2b55b12",
-      "state": "IA",
-      "name": "Westside Grocery / Davenport",
-      "address": "1802 West 7th Street, Davenport, IA, 52802",
-      "city": "Davenport",
-      "county": null,
-      "zip": "52802",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "d8f1f290d16cdfbe",
       "sourceStoreId": "d8f1f290d16cdfbe",
       "state": "IA",
@@ -9664,20 +9496,6 @@
       "signalCount": 1
     },
     {
-      "id": "7d076dc541b161ba",
-      "sourceStoreId": "7d076dc541b161ba",
-      "state": "IA",
-      "name": "Westside Spirits / Cedar Rapids",
-      "address": "3330 16th Ave. SW, Cedar Rapids, IA, 52404",
-      "city": "Cedar Rapids",
-      "county": null,
-      "zip": "52404",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "ddf3290cab848391",
       "sourceStoreId": "ddf3290cab848391",
       "state": "IA",
@@ -9688,8 +9506,8 @@
       "zip": "52314",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "f36f491420fb373a",
@@ -9702,8 +9520,8 @@
       "zip": "52722",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "782c106b0d7a6170",
@@ -9716,8 +9534,8 @@
       "zip": "52778",
       "lat": null,
       "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 2
+      "source": "Iowa ABD allocated lottery store distribution CSV",
+      "signalCount": 1
     },
     {
       "id": "37c35c556ec4576d",
@@ -10277,7 +10095,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-209",
@@ -10459,7 +10277,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "idaho-liquor-store-309",
@@ -10599,7 +10417,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "idaho-liquor-store-304",
@@ -10613,7 +10431,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "idaho-liquor-store-306",
@@ -10781,7 +10599,7 @@
       "lat": null,
       "lng": null,
       "source": "Idaho Liquor product availability AJAX",
-      "signalCount": 10
+      "signalCount": 9
     },
     {
       "id": "idaho-liquor-store-214",
@@ -12811,7 +12629,7 @@
       "lat": 41.6507277,
       "lng": -86.23446779999999,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:68126e69c0429248e97bc4bd",
@@ -12881,7 +12699,7 @@
       "lat": 41.102371,
       "lng": -85.0609037,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "belmont-beverage:5ba7d33eb77cb36d0a2d2eb3",
@@ -12993,7 +12811,7 @@
       "lat": 41.6576443,
       "lng": -86.17990429999999,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "belmont-beverage:5ba7d343b77cb36d0a2d2ee5",
@@ -13077,7 +12895,7 @@
       "lat": 41.0955093,
       "lng": -85.1573343,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "belmont-beverage:5ba7d346b77cb36d0a2d2efe",
@@ -13469,7 +13287,7 @@
       "lat": 39.5132669,
       "lng": -87.3814216,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "big-red:5e92546678e8f13c2cb1e194",
@@ -13637,7 +13455,7 @@
       "lat": 39.8993173,
       "lng": -85.99296,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 2
     },
     {
       "id": "big-red:5e92548f78e8f13c2cb1e1c8",
@@ -13651,7 +13469,7 @@
       "lat": 39.6608323,
       "lng": -86.3102971,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "big-red:5e92549278e8f13c2cb1e1cc",
@@ -13693,7 +13511,7 @@
       "lat": 39.9120889,
       "lng": -86.2221318,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "big-red:5e92549d78e8f13c2cb1e1d8",
@@ -13833,7 +13651,7 @@
       "lat": 39.9290858,
       "lng": -85.9180638,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 7
+      "signalCount": 4
     },
     {
       "id": "big-red:5e9254b578e8f13c2cb1e1fc",
@@ -13898,12 +13716,12 @@
       "name": "Big Red #228 - Indianapolis",
       "address": "25 N Pennsylvania St, Indianapolis, IN 46204, USA",
       "city": "Indianapolis",
-      "county": "Marion County",
+      "county": null,
       "zip": "46204",
       "lat": 39.7676772,
       "lng": -86.1560652,
-      "source": "Big Red Liquors CityHive store locator",
-      "signalCount": 1
+      "source": "Big Red Liquors CityHive store inventory",
+      "signalCount": 4
     },
     {
       "id": "big-red:5e9254c178e8f13c2cb1e210",
@@ -13987,7 +13805,7 @@
       "lat": 39.6136857,
       "lng": -86.1569734,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 6
+      "signalCount": 7
     },
     {
       "id": "big-red:6286c31c6094f9534f4a0dda",
@@ -14211,7 +14029,7 @@
       "lat": 39.8173268,
       "lng": -85.7707095,
       "source": "Big Red Liquors CityHive store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "DL6430337",
@@ -15149,7 +14967,7 @@
       "lat": 41.5887503,
       "lng": -85.8438448,
       "source": "Belmont Beverage & Chalet Party Shoppe CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 7
     },
     {
       "id": "belmont-beverage:5ba7d33cb77cb36d0a2d2ea9",
@@ -27063,7 +26881,7 @@
       "lat": 41.5952817,
       "lng": -87.04614839999999,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "wise-guys:60803cb5ad4b017e711ec6fa",
@@ -27091,7 +26909,7 @@
       "lat": 41.4624416,
       "lng": -87.0866222,
       "source": "Wise Guys Discount Liquors CityHive store inventory",
-      "signalCount": 18
+      "signalCount": 17
     },
     {
       "id": "DL4901139",
@@ -28002,20 +27820,6 @@
       "lng": 40.66435028271646,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 2
-    },
-    {
-      "id": "5115",
-      "sourceStoreId": "5115",
-      "state": "PA",
-      "name": "Fine Wine & Good Spirits #5115",
-      "address": "2504 Snyder Ave, Philadelphia, PA, 19145",
-      "city": "Philadelphia",
-      "county": "Philadelphia",
-      "zip": null,
-      "lat": 39.926653,
-      "lng": -75.188071,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
     },
     {
       "id": "6308",
@@ -29163,7 +28967,7 @@
       "lat": 40.148506,
       "lng": -74.998452,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "915",
@@ -29304,174 +29108,6 @@
       "lng": -75.136906,
       "source": "FWGS store pickup inventory API browser-assisted collector",
       "signalCount": 6
-    },
-    {
-      "id": "933",
-      "sourceStoreId": "933",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0933",
-      "address": "Buckingham Green Shopping Village, 4950 Old York Road, Holicong, PA, 18928",
-      "city": "Holicong",
-      "county": null,
-      "zip": null,
-      "lat": 40.33045,
-      "lng": -75.054097,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "934",
-      "sourceStoreId": "934",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0934",
-      "address": "The Shoppes at Veterans Lane, 132 Veterans Lane, Doylestown, PA, 18901",
-      "city": "Doylestown",
-      "county": null,
-      "zip": null,
-      "lat": 40.319332,
-      "lng": -75.131819,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "935",
-      "sourceStoreId": "935",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0935",
-      "address": "Warwick Square, 2395 Old York Road, Jamison, PA, 18929",
-      "city": "Jamison",
-      "county": null,
-      "zip": null,
-      "lat": 40.260675,
-      "lng": -75.085792,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 1
-    },
-    {
-      "id": "937",
-      "sourceStoreId": "937",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0937",
-      "address": "1601 Big Oak Road, Yardley, PA, 19067",
-      "city": "Yardley",
-      "county": null,
-      "zip": null,
-      "lat": 40.198665,
-      "lng": -74.864873,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "938",
-      "sourceStoreId": "938",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0938",
-      "address": "Center Point Place, 748 West Street Road, Warminster, PA, 18974",
-      "city": "Warminster",
-      "county": null,
-      "zip": null,
-      "lat": 40.207011,
-      "lng": -75.102412,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
-    },
-    {
-      "id": "939",
-      "sourceStoreId": "939",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0939",
-      "address": "306 Easton Road, Warrington, PA, 18976",
-      "city": "Warrington",
-      "county": null,
-      "zip": null,
-      "lat": 40.224023,
-      "lng": -75.138129,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "941",
-      "sourceStoreId": "941",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0941",
-      "address": "Deon Square, 532 South Oxford Valley Road, Fairless Hills, PA, 19030",
-      "city": "Fairless Hills",
-      "county": null,
-      "zip": null,
-      "lat": 40.168287,
-      "lng": -74.850958,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
-    },
-    {
-      "id": "942",
-      "sourceStoreId": "942",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0942",
-      "address": "Levittown Town Center, 179C Levittown Parkway, Levittown, PA, 19055",
-      "city": "Levittown",
-      "county": null,
-      "zip": null,
-      "lat": 40.140123,
-      "lng": -74.820774,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
-    },
-    {
-      "id": "943",
-      "sourceStoreId": "943",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0943",
-      "address": "212 South State Street, Newtown, PA, 18940",
-      "city": "Newtown",
-      "county": null,
-      "zip": null,
-      "lat": 40.225863,
-      "lng": -74.937305,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
-    },
-    {
-      "id": "944",
-      "sourceStoreId": "944",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0944",
-      "address": "Buttonwood Park Place, 7 Buttonwood Drive, Yardley, PA, 19067",
-      "city": "Yardley",
-      "county": null,
-      "zip": null,
-      "lat": 40.241311,
-      "lng": -74.839614,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
-    },
-    {
-      "id": "945",
-      "sourceStoreId": "945",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0945",
-      "address": "Addisville Commons, 890 Second Street Pike, Richboro, PA, 18954",
-      "city": "Richboro",
-      "county": null,
-      "zip": null,
-      "lat": 40.211741,
-      "lng": -75.011965,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 6
-    },
-    {
-      "id": "946",
-      "sourceStoreId": "946",
-      "state": "PA",
-      "name": "FINE WINE & GOOD SPIRITS 0946",
-      "address": "Marketplace at Neshaminy, 680 Rockhill Drive, Bensalem, PA, 19020",
-      "city": "Bensalem",
-      "county": null,
-      "zip": null,
-      "lat": 40.13721,
-      "lng": -74.957772,
-      "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 2
     },
     {
       "id": "1002",
@@ -31837,7 +31473,7 @@
       "lat": 40.642569,
       "lng": -75.402736,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "3916",
@@ -34105,7 +33741,7 @@
       "lat": 40.24783,
       "lng": -79.245091,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "6509",
@@ -34371,7 +34007,7 @@
       "lat": 40.22082,
       "lng": -76.859896,
       "source": "FWGS store pickup inventory API browser-assisted collector",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "6709",
@@ -34640,6 +34276,174 @@
       "signalCount": 4
     },
     {
+      "id": "1590",
+      "sourceStoreId": "1590",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 1590",
+      "address": "100 Willowbrook Lane, West Chester, PA, 19382",
+      "city": "West Chester",
+      "county": null,
+      "zip": null,
+      "lat": 39.941754,
+      "lng": -75.586464,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 3
+    },
+    {
+      "id": "2290",
+      "sourceStoreId": "2290",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 2290",
+      "address": "990 Briarsdale Road, Harrisburg, PA, 17109",
+      "city": "Harrisburg",
+      "county": null,
+      "zip": null,
+      "lat": 40.271922,
+      "lng": -76.819527,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "2390",
+      "sourceStoreId": "2390",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 2390",
+      "address": "Lawrence Park Industrial Center, 629 Parkway Drive, Broomall, PA, 19008",
+      "city": "Broomall",
+      "county": null,
+      "zip": null,
+      "lat": 39.961408,
+      "lng": -75.337276,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "3690",
+      "sourceStoreId": "3690",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 3690",
+      "address": "1190 Dillerville Road, Lancaster, PA, 17601",
+      "city": "Lancaster",
+      "county": null,
+      "zip": null,
+      "lat": 40.062035,
+      "lng": -76.316902,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "4090",
+      "sourceStoreId": "4090",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 4090",
+      "address": "1492 Highway 315, Wilkes-Barre, PA, 18702",
+      "city": "Wilkes-Barre",
+      "county": null,
+      "zip": null,
+      "lat": 41.275801,
+      "lng": -75.801055,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
+      "id": "4590",
+      "sourceStoreId": "4590",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 4590",
+      "address": "Jay Park Plaza, Route 209, 288 Dartmouth Drive, Marshalls Creek, PA, 18335",
+      "city": "Marshalls Creek",
+      "county": null,
+      "zip": null,
+      "lat": 41.039883,
+      "lng": -75.124828,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 3
+    },
+    {
+      "id": "4690",
+      "sourceStoreId": "4690",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 4690",
+      "address": "900 Forge Avenue, Suite B-2, Norristown, PA, 19403",
+      "city": "Norristown",
+      "county": null,
+      "zip": null,
+      "lat": 40.125916,
+      "lng": -75.41027,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "4890",
+      "sourceStoreId": "4890",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 4890",
+      "address": "3084 Emrick Boulevard, Bethlehem, PA, 18020",
+      "city": "Bethlehem",
+      "county": null,
+      "zip": null,
+      "lat": 40.666264,
+      "lng": -75.295755,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "6390",
+      "sourceStoreId": "6390",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 6390",
+      "address": "102 Four Coins Drive, Canonsburg, PA, 15317",
+      "city": "Canonsburg",
+      "county": null,
+      "zip": null,
+      "lat": 40.258386,
+      "lng": -80.182056,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 2
+    },
+    {
+      "id": "9190",
+      "sourceStoreId": "9190",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 9190",
+      "address": "2504 Snyder Avenue, Philadelphia, PA, 19145-3101",
+      "city": "Philadelphia",
+      "county": null,
+      "zip": null,
+      "lat": 39.926653,
+      "lng": -75.188071,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 3
+    },
+    {
+      "id": "9290",
+      "sourceStoreId": "9290",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 9290",
+      "address": "1601 Liberty Avenue, Pittsburgh, PA, 15222",
+      "city": "Pittsburgh",
+      "county": null,
+      "zip": null,
+      "lat": 40.448938,
+      "lng": -79.985751,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
+      "id": "9291",
+      "sourceStoreId": "9291",
+      "state": "PA",
+      "name": "LICENSEE SERVICE CENTER 9291",
+      "address": "98 Vandadium Road, Building D, Bridgeville, PA, 15017",
+      "city": "Bridgeville",
+      "county": null,
+      "zip": null,
+      "lat": 40.375013,
+      "lng": -80.095506,
+      "source": "FWGS store pickup inventory API browser-assisted collector",
+      "signalCount": 1
+    },
+    {
       "id": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
       "sourceStoreId": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
       "state": "SC",
@@ -34693,7 +34497,7 @@
       "lat": 33.9903416,
       "lng": -81.0300477,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 11
+      "signalCount": 10
     },
     {
       "id": "greens-beverage:61dc583152bc522be69a8b9e",
@@ -34707,7 +34511,7 @@
       "lat": 33.9781297,
       "lng": -80.9567029,
       "source": "Green's Beverage South Carolina CityHive store inventory",
-      "signalCount": 8
+      "signalCount": 9
     },
     {
       "id": "greens-beverage:61dc62fca1d5721d92e837cf",
@@ -34833,7 +34637,7 @@
       "lat": 34.8683482,
       "lng": -82.35776539999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
@@ -34847,7 +34651,7 @@
       "lat": 34.7848814,
       "lng": -82.31420059999999,
       "source": "Wine & Bourbon Barn CityHive store inventory",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
@@ -35043,7 +34847,7 @@
       "lat": 35.1217967,
       "lng": -85.2939899,
       "source": "M&J Liquor Wine Tobacoo Chattanooga TN CityHive store inventory",
-      "signalCount": 15
+      "signalCount": 14
     },
     {
       "id": "moon-wine-spirits:5ec7d3fd3fd3873558e289e0",
@@ -35911,7 +35715,7 @@
       "lat": 36.984139,
       "lng": -76.424785,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "159",
@@ -37857,7 +37661,7 @@
       "lat": 37.537972,
       "lng": -77.525639,
       "source": "Virginia ABC storeNearby inventory API",
-      "signalCount": 45
+      "signalCount": 46
     },
     {
       "id": "349",

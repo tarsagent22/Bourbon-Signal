@@ -344,7 +344,10 @@ const IN_CITYHIVE_SOURCES = [
 
 const TN_CITYHIVE_ARTIFACT_PATH = 'out/browser/TN-cityhive-retailer-inventory.json';
 const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_PAGES || 2);
-const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
+// Tennessee CityHive rows are fast-moving retailer inventory. Keep cache reuse inside the
+// public export freshness window so cached positive rows do not pass verify:tn while being
+// too old to appear as customer-facing drops.
+const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 10 * 60 * 60_000);
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';

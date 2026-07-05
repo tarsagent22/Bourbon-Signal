@@ -19,6 +19,8 @@ assert(state.status === 'useful', `Unexpected TN state status: ${state.status}`)
 assert(!state.stale, `TN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
 
 const signals = state.signals || [];
+const cacheGeneratedAtMs = cache?.generatedAt ? new Date(cache.generatedAt).getTime() : 0;
+const cacheAgeHours = Number.isFinite(cacheGeneratedAtMs) && cacheGeneratedAtMs > 0 ? (Date.now() - cacheGeneratedAtMs) / 3_600_000 : null;
 const cityHiveInventorySignals = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const positiveCityHiveSignals = cityHiveInventorySignals.filter((signal) => Number(signal.quantity || 0) > 0 && signal.storeId && signal.storeAddress && signal.canAlertAsInventory);
 const retailerInventorySignals = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
@@ -62,9 +64,13 @@ assert(inventoryCities.has('Memphis'), `Expected Memphis TN inventory coverage; 
 assert(inventoryCities.has('Knoxville'), `Expected Knoxville TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
 assert(inventoryCities.has('Franklin'), `Expected Franklin TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
 assert(inventoryCities.has('Brentwood'), `Expected Brentwood TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+assert(inventoryCities.has('Chattanooga'), `Expected Chattanooga TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+assert(inventoryCities.has('Johnson City'), `Expected Johnson City TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+assert(inventoryCities.has('Murfreesboro'), `Expected Murfreesboro TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
 assert(inventoryStores.size >= 8, `Expected at least 8 TN inventory stores; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
 assert(cityHiveStoreLocations.length >= cityHiveSources.size, `Expected TN CityHive store-location rows for CityHive inventory stores; locations=${cityHiveStoreLocations.length}, cityHiveSources=${cityHiveSources.size}`);
 assert(unsafeCanonicalMatches.length === 0, `Unsafe TN canonical matches found: ${unsafeCanonicalMatches.map((signal) => `${signal.rawName}=>${signal.canonicalName}`).join(', ')}`);
+assert(cacheAgeHours == null || cacheAgeHours <= 12, `TN CityHive cache is too old for customer-facing fast-inventory export: ${cacheAgeHours?.toFixed(1)}h`);
 
 if ((dropsExport.drops || []).length) {
   const allowedSourceRe = /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside|Gateway|Grabbl/i;
@@ -78,6 +84,7 @@ if ((dropsExport.drops || []).length) {
   assert(retailerAlertableDrops.length <= positiveRetailerSignals.length, `Exported TN retailer drops exceeded source signals (${retailerAlertableDrops.length}/${positiveRetailerSignals.length})`);
   assert(alertableDrops.length === inventoryDrops.length, `Every exported TN inventory drop must be alertable/store-level; got ${alertableDrops.length}/${inventoryDrops.length}`);
   assert(alertableDrops.length >= 8, `Expected at least 8 exported fresh TN inventory drops after public export dedupe; got ${alertableDrops.length}`);
+  assert(cityHiveAlertableDrops.length >= 3, `Expected at least 3 exported fresh TN CityHive inventory drops; got ${cityHiveAlertableDrops.length}`);
   assert(dropSources.size >= 1, `Expected exported TN drops from at least one public retailer source; got ${dropSources.size}: ${[...dropSources].join(', ')}`);
   assert(dropCities.size >= 1, `Expected exported TN drops to preserve city metadata; got ${[...dropCities].join(', ')}`);
   assert(tnStores.length >= 8, `Expected exported TN stores >= 8; got ${tnStores.length}`);
@@ -97,6 +104,7 @@ console.log(JSON.stringify({
   cityHiveStoreLocations: cityHiveStoreLocations.length,
   cache: cache ? {
     generatedAt: cache.generatedAt,
+    ageHours: cacheAgeHours == null ? null : Number(cacheAgeHours.toFixed(2)),
     positiveInventorySignalCount: cache.positiveInventorySignalCount,
     sourceChains: cache.sourceChains || []
   } : null,

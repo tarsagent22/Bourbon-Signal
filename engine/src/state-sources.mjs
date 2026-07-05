@@ -252,8 +252,8 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'TN', label: 'Tennessee ABC', tier: 'C', strategy: 'license_and_policy_watch', cadence: 'weekly-monthly',
-    value: 'Private retail market. Official ABC pages are policy/license context, while selected public retailer e-commerce pages can expose store-level bourbon inventory with verify-before-driving caveats.',
+    id: 'TN', label: 'Tennessee retailer inventory watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
+    value: 'Private retail market. Official ABC pages are policy/license context only; selected public retailer e-commerce pages expose store-level bourbon inventory with verify-before-driving caveats across Nashville, Memphis, Knoxville, Chattanooga, Johnson City, Franklin, Brentwood, and Murfreesboro.',
     sources: [
       { kind: 'html', url: 'https://www.tn.gov/abc.html', label: 'Tennessee ABC homepage' },
       { kind: 'html', url: 'https://www.tn.gov/abc/licensing.html', label: 'Tennessee ABC licensing' },
@@ -262,10 +262,16 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://corkdorkswine.com/shop/?subtype=bourbon', label: 'Corkdorks CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://bustersliquors.com/shop/?subtype=bourbon', label: "Buster's Memphis CityHive bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://kimbroughwines.com/shop/?subtype=bourbon', label: 'Kimbrough Memphis CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://cristysliquorstore.com/shop/?subtype=bourbon', label: "Cristy's Brentwood CityHive bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://shop.reddogwineandspirits.com/shop/?subtype=bourbon', label: 'Red Dog Franklin CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://moonwineandspirits.com/shop/?subtype=bourbon', label: 'Moon Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://westsidewineandspirits.com/shop/?subtype=bourbon', label: 'Westside Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://lakedistrictwineandliquor.com/shop/?subtype=bourbon', label: 'Lake District Wine and Liquor Lakeland CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://liquorvault.com/shop/?subtype=bourbon', label: 'Liquor Vault Knoxville CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://mnjliquor.com/shop/?subtype=bourbon', label: 'M&J Chattanooga CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://redbankliquor.com/shop/?subtype=bourbon', label: 'Red Bank Chattanooga CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://chattliquor.com/shop/?subtype=bourbon', label: 'Discount Liquor Chattanooga CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://northshorews.com/shop/?subtype=bourbon', label: 'Northshore Wine & Spirits Chattanooga CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://onestopwines.net/shop/?subtype=bourbon', label: 'One Stop Johnson City CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://shop.coolspringswine.com/s/1000-1057/c/spirits/bourbon', label: 'Cool Springs Wine & Spirits retailer bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://backend-prod.grabbl.io/api/v1/product/search', label: 'Gateway Wine & Spirits Grabbl public store API', precisionOnly: true }
