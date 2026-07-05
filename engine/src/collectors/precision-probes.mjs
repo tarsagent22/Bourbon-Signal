@@ -1469,6 +1469,10 @@ function cityHiveSafeBottleMatch(rawName, bible) {
   if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return { match, record: null, unsafeReason: 'bourbon_matched_rye' };
   if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return { match, record: null, unsafeReason: 'wheated_matched_non_wheated' };
   if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return { match, record: null, unsafeReason: 'reserve_matched_non_reserve' };
+  const rawSpecificPhrases = ['single barrel', 'full proof', 'barrel proof', 'cask strength', 'limited edition', 'small batch select', 'private selection', 'store pick'];
+  for (const phrase of rawSpecificPhrases) {
+    if (raw.includes(phrase) && !canonical.includes(phrase) && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return { match, record: null, unsafeReason: `specific_raw_modifier_matched_generic:${phrase}` };
+  }
   const requiredPhrases = [
     'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
     'small batch', 'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
