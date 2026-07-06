@@ -47,8 +47,8 @@ const RARE_RE = /blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|bake
 const IOWA_INVENTORY_CSV_URL = 'https://shop.iowaabd.com/snapshot/inventory?download';
 const IOWA_SNAPSHOT_PAGE_URL = 'https://shop.iowaabd.com/snapshot/inventory';
 const IOWA_LOTTERY_ALLOCATIONS_CSV_URL = 'https://shop.iowaabd.com/snapshot/lottery?download=allocations';
-const IOWA_CODE_DELIVERY_FANOUT_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_CODE_DELIVERY_LIMIT || 24);
-const IOWA_STORE_ROW_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_STORE_ROW_LIMIT || 360);
+const IOWA_CODE_DELIVERY_FANOUT_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_CODE_DELIVERY_LIMIT || 80);
+const IOWA_STORE_ROW_LIMIT = Number(process.env.BOURBON_SIGNAL_IOWA_STORE_ROW_LIMIT || 1200);
 const IOWA_STRONG_WATCH_RE = /blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|george t|william larue|thomas h|sazerac|elijah craig[^\n]{0,60}(barrel proof|single barrel|toasted|cask strength)|angels? envy[^\n]{0,60}(cask strength|10yr|10 year)|four roses[^\n]{0,60}(limited|barrel strength|single barrel|small batch select)|old forester[^\n]{0,60}(birthday|single barrel|barrel strength)|1792[^\n]{0,60}(full proof|sweet wheat|12 year|bottled in bond)|knob creek[^\n]{0,60}(12|15|18)|russell'?s[^\n]{0,60}(13|15|single barrel)|parker'?s|little book|blood oath|king of kentucky/i;
 const IOWA_BOURBON_CATEGORY_RE = /bourbon|american whiskey|straight whiskey|blended whiskies/i;
 const IOWA_EXCLUDED_RE = /cream|liqueur|cordial|rum|tequila|mezcal|vodka|gin|wine|beer|cocktail|ready to drink|seltzer|scotch|irish|canadian|john\s+d\s+taylor|falernum/i;
