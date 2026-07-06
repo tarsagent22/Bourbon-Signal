@@ -67,6 +67,9 @@ function runNode(script, args = [], options = {}) {
     const startedAt = new Date().toISOString();
     const timeoutMs = Number(options.timeoutMs || STEP_TIMEOUT_MS);
     const env = { ...process.env };
+    if (env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1' && script.endsWith('run.mjs')) {
+      env.BOURBON_SIGNAL_BROWSER_PREFLIGHT = '0';
+    }
     if (script.includes('export-site-contract') && !String(env.NODE_OPTIONS || '').includes('--max-old-space-size')) {
       env.NODE_OPTIONS = `${env.NODE_OPTIONS || ''} --max-old-space-size=8192`.trim();
     }
@@ -307,11 +310,14 @@ async function ensureHeadlessCdp() {
 }
 
 async function shouldRunBrowserCollectors() {
+  if (process.env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1') return false;
   const last = await readJson(STATUS);
   const candidates = [last?.lastBrowserRefreshAt, last?.lastBrowserAttemptAt]
     .map((value) => value ? new Date(value).getTime() : NaN)
     .filter((value) => Number.isFinite(value));
-  if (!candidates.length) return true;
+  if (!candidates.length) {
+    return BROWSER_REFRESH_MINUTES < 999_000;
+  }
   const lastBrowserActivityMs = Math.max(...candidates);
   const ageMs = Date.now() - lastBrowserActivityMs;
   return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
