@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-06T18:04:42.680Z",
+  "generatedAt": "2026-07-06T18:21:54.223Z",
   "sourceUrl": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
   "pageCount": 8,
   "limit": 40,
@@ -44,14 +44,6 @@
       "isExclusive": false,
       "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Woodinville Straight Bourbon WhiskeyNow $34.99was $39.99750 ML"
-    },
-    {
-      "name": "George T. Stagg",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/george-t-stagg",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "George T. Stagg$149.98750 ML"
     },
     {
       "name": "JEPTHA CREED 6 YEAR WHEATED STRAIGHT BOURBON",
@@ -118,6 +110,14 @@
       "discoveryText": "Fountain Square Reserve Bourbon$39.99750 ML"
     },
     {
+      "name": "CHICKEN COCK OLD GLORY",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/chicken-cock-old-glory",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
+      "discoveryText": "CHICKEN COCK OLD GLORY$64.99750 ML"
+    },
+    {
       "name": "PENELOPE ESTATE COLLECTION PRIVATE SELECT",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/penelope-estate-collection-private-select",
       "sku": null,
@@ -182,14 +182,6 @@
       "discoveryText": "Big House Straight Bourbon Whiskey$19.99750 ML"
     },
     {
-      "name": "1792 EXTENDED CASK PINOT NOIR FINISH",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/1792-extended-cask-pinot-noir-finish",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "1792 EXTENDED CASK PINOT NOIR FINISH$49.99750 ML"
-    },
-    {
       "name": "Adventure Spirits Toasted Bourbon",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/adventure-spirits-toasted-bourbon",
       "sku": null,
@@ -242,7 +234,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/still-austin-blue-corn-bourbon-whiskey-bib",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "STILL AUSTIN BLUE CORN BOURBON WHISKEY BIB$84.99750 ML"
     },
     {
@@ -318,12 +310,20 @@
       "discoveryText": "Iron Vault Double Oaked Bottled In Bond Bourbon$69.99750 ML"
     },
     {
-      "name": "Elmer T. Lee Single Barrel Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/elmer-t-lee-single-barrel-bourbon",
+      "name": "RUBICON CREEK OF LORES & LEGENDS",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/rubicon-creek-of-lores-legends",
       "sku": null,
       "isExclusive": false,
       "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
-      "discoveryText": "Elmer T. Lee Single Barrel Bourbon$89.99750 ML"
+      "discoveryText": "RUBICON CREEK OF LORES & LEGENDS$99.99750 ML"
+    },
+    {
+      "name": "JEPTHA CREED RED WHITE AND BLUE STRAIGHT BOURBON",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/jeptha-creed-red-white-and-blue-straight-bourbon",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "JEPTHA CREED RED WHITE AND BLUE STRAIGHT BOURBONNow $64.99was $69.99750 ML"
     }
   ]
 }

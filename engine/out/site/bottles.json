@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-06T18:11:22.078Z",
+  "generatedAt": "2026-07-06T18:25:40.347Z",
   "count": 161,
   "bottles": [
     {
@@ -255,7 +255,7 @@
         "OH",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -1077,7 +1077,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1140,7 +1140,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1197,7 +1197,7 @@
         "OH",
         "SC"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_b7ca7cc4ab428ba8",
@@ -1285,7 +1285,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_5afa9241206ab963",
@@ -1322,7 +1322,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1385,7 +1385,7 @@
         "OH",
         "SC"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1418,7 +1418,7 @@
         "OH",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1727,7 +1727,7 @@
         "PA",
         "SC"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_71e0a5ef723ea82c",
@@ -2064,10 +2064,10 @@
       ],
       "tier": "limited",
       "producer": "Lux Row",
-      "signalCount": 47,
+      "signalCount": 46,
       "stateCount": 7,
-      "inventorySignalCount": 14,
-      "watchSignalCount": 46,
+      "inventorySignalCount": 13,
+      "watchSignalCount": 45,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -2079,7 +2079,7 @@
         "PA",
         "SC"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_8924180d0cc2d853",
@@ -3307,7 +3307,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-06T18:07:59.789Z"
+      "latestObservedAt": "2026-07-06T18:24:54.098Z"
     },
     {
       "id": "bb_71f028a40975fd30",
@@ -3639,7 +3639,7 @@
         "OH",
         "PA"
       ],
-      "latestObservedAt": "2026-07-06T18:08:02.656Z"
+      "latestObservedAt": "2026-07-06T18:24:56.957Z"
     },
     {
       "id": "bb_fdc2966c6b0d74ea",

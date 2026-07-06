@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-06T18:11:22.078Z",
-  "count": 3364,
+  "generatedAt": "2026-07-06T18:25:40.347Z",
+  "count": 3365,
   "stores": [
     {
       "id": "alabc:001",
@@ -31473,7 +31473,7 @@
       "lat": 39.7938457,
       "lng": -84.1909382,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "10556",
@@ -31613,7 +31613,7 @@
       "lat": 39.7048254,
       "lng": -84.1699296,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "10567",
@@ -31627,7 +31627,7 @@
       "lat": 39.631675,
       "lng": -84.189661,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 11
+      "signalCount": 12
     },
     {
       "id": "10110",
@@ -31781,7 +31781,7 @@
       "lat": 39.7291148,
       "lng": -84.1415419,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "20630",
@@ -32173,7 +32173,7 @@
       "lat": 39.614559,
       "lng": -84.158825,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 9
+      "signalCount": 10
     },
     {
       "id": "10505",
@@ -32608,6 +32608,20 @@
       "lng": -80.858386,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
+    },
+    {
+      "id": "90167",
+      "sourceStoreId": "90167",
+      "state": "OH",
+      "name": "Dayton Barrel Works",
+      "address": "41 Madison St, Dayton, OH, 45402",
+      "city": "Dayton",
+      "county": null,
+      "zip": null,
+      "lat": 39.762,
+      "lng": -84.185,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "10510",
@@ -33713,7 +33727,7 @@
       "lat": 41.4277127,
       "lng": -82.0792277,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "40933",
@@ -34119,7 +34133,7 @@
       "lat": 39.661295,
       "lng": -84.1311605,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "10570",
@@ -34539,7 +34553,7 @@
       "lat": 39.687371,
       "lng": -84.145351,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "40953",
@@ -34693,7 +34707,7 @@
       "lat": 39.2714935,
       "lng": -84.3258674,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 10
+      "signalCount": 11
     },
     {
       "id": "20601",
@@ -36191,7 +36205,7 @@
       "lat": 39.9616438,
       "lng": -84.1861663,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "10595",
@@ -37241,7 +37255,7 @@
       "lat": 41.4827792,
       "lng": -81.8266553,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 7
+      "signalCount": 6
     },
     {
       "id": "10593",
