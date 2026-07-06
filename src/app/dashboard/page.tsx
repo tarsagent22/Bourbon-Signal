@@ -143,11 +143,17 @@ const BADGE_DESCRIPTIONS: Record<string, string> = {
 };
 
 function badgeBaseKey(id: string) {
-  return id.replace(/_(bronze|silver|gold|platinum)$/u, "");
+  const baseKey = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
+  return baseKey === "verified_scout" ? "helpful_neighbor" : baseKey;
 }
 
 function badgeIconFor(id: string) {
   return BADGE_ICON_BY_ID[id] || BADGE_ICON_BY_KEY[badgeBaseKey(id)] || null;
+}
+
+function badgeLabelFor(id: string, label: string) {
+  if (badgeBaseKey(id) === "helpful_neighbor") return "Helpful Neighbor";
+  return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
 }
 
 function badgeDescriptionFor(id: string) {
@@ -3462,7 +3468,7 @@ export default function DashboardPage() {
                     const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
                     return nextBadge ? (
                       <div className="member-points-next-action">
-                        <strong>Next up: {nextBadge.label}{nextBadge.tier ? ` · ${nextBadge.tier}` : ""}</strong>
+                        <strong>Next up: {badgeLabelFor(nextBadge.id, nextBadge.label)}{nextBadge.tier ? ` · ${nextBadge.tier}` : ""}</strong>
                         <span>{badgeDescriptionFor(nextBadge.id)} You’re at {nextBadge.current}/{nextBadge.target}.</span>
                       </div>
                     ) : (
@@ -3474,7 +3480,7 @@ export default function DashboardPage() {
                       <div className="member-badge-progress-row" key={item.id}>
                         {badgeIconFor(item.id) ? <img className="member-badge-icon" src={badgeIconFor(item.id) || undefined} alt="" loading="lazy" /> : <span className="member-badge-fallback">🥃</span>}
                         <div className="member-badge-progress-copy">
-                          <div className="member-badge-progress-title"><span>{item.label}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
+                          <div className="member-badge-progress-title"><span>{badgeLabelFor(item.id, item.label)}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
                           <p>{badgeDescriptionFor(item.id)}</p>
                           <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
                         </div>
