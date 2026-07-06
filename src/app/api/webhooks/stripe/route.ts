@@ -55,11 +55,11 @@ export async function POST(req: NextRequest) {
   const stripe = getStripeClient();
   const webhookSecret = getWebhookSecret();
   const signature = req.headers.get("stripe-signature");
-  if (!stripe || !webhookSecret) {
-    return NextResponse.json({ error: "Stripe webhook is not configured" }, { status: 503 });
-  }
   if (!signature) {
     return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
+  }
+  if (!stripe || !webhookSecret) {
+    return NextResponse.json({ error: "Stripe webhook is not configured" }, { status: 503 });
   }
 
   const body = await req.text();
