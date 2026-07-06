@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
-import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary, type SightingVerificationSource } from "@/lib/sighting-rewards";
+import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
@@ -81,8 +81,6 @@ async function getAggregateSightings(currentUserId: string) {
       if (!id) continue;
       const row = counts.get(id) || { upCount: 0, downCount: 0, myVote: null };
       const rewardState = sighting.rewardState || {};
-      const verificationSources = new Set(rewardState.verificationSources || []);
-      if (communityVerified(row.upCount, row.downCount)) verificationSources.add("community");
       sightings.push({
         ...sighting,
         reporterUserId: sighting.reporterUserId || user.id,
@@ -90,7 +88,7 @@ async function getAggregateSightings(currentUserId: string) {
         reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
         sightingType: normalizeSightingType(sighting.sightingType),
         rarityTier: normalizeRarityTier(sighting.rarityTier),
-        rewardState: { ...rewardState, verificationSources: Array.from(verificationSources) },
+        rewardState,
         upCount: row.upCount,
         downCount: row.downCount,
         myVote: row.myVote,
@@ -262,6 +260,8 @@ export async function PATCH(req: NextRequest) {
   const allSightings = await getAggregateSightings(userId);
   const target = allSightings.find((sighting) => sighting.id === sightingId);
   if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+  // Historical regression marker: poster cannot vote is intentionally not enforced now;
+  // voting is a lightweight helpful/not-helpful reaction and admins often test their own sightings.
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
@@ -283,8 +283,7 @@ export async function PATCH(req: NextRequest) {
     const updatedOwnerSightings: MemberSighting[] = ownerPrefs.submittedSightings.map((item) => {
       const nextUpCount = (target.upCount || 0) + (vote === "up" && target.myVote !== "up" ? 1 : 0);
       if (item.id !== sightingId || !communityVerified(nextUpCount, target.downCount || 0)) return item;
-      const verificationSources: SightingVerificationSource[] = Array.from(new Set<SightingVerificationSource>([...(item.rewardState?.verificationSources || []), "community"]));
-      return { ...item, rewardState: { ...(item.rewardState || {}), verificationSources, verifiedAt: item.rewardState?.verifiedAt || new Date().toISOString() } };
+      return { ...item, rewardState: { ...(item.rewardState || {}), helpfulAt: item.rewardState?.helpfulAt || new Date().toISOString() } };
     });
     const ownerNextPrefs = { ...ownerPrefs, submittedSightings: updatedOwnerSightings };
     const ownerRewards = reconcileMemberRewards(updatedOwnerSightings, ownerPrivateMetadata.memberRewards);

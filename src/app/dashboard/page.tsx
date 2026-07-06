@@ -109,7 +109,8 @@ interface BourbonDnaSummary {
 
 const BADGE_ICON_BY_KEY: Record<string, string | null> = {
   first_sighting: "/badge-icons/first-sighting.png",
-  verified_scout: "/badge-icons/verified-scout.png",
+  helpful_neighbor: null,
+  photo_finish: null,
   spotter: "/badge-icons/spotter.png",
   unicorn_hunter: "/badge-icons/unicorn-hunter.png",
   sharp_eye: "/badge-icons/sharp-eye.png",
@@ -121,10 +122,11 @@ const BADGE_ICON_BY_KEY: Record<string, string | null> = {
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   first_sighting: "Post your first eligible field report.",
-  verified_scout: "Get a report backed by photo or community signal.",
+  helpful_neighbor: "Earn 3 upvotes on a sighting that helped another member.",
+  photo_finish: "Post a sighting with an optional photo attached.",
   spotter: "Build a track record of useful sightings.",
   unicorn_hunter: "Find the rare bottles people chase.",
-  sharp_eye: "Keep reports accurate enough to verify.",
+  sharp_eye: "Post sightings other members find helpful.",
   local_scout: "Become reliable in your home area.",
   weekend_warrior: "Contribute when weekend hunting heats up.",
   clean_signal: "Sustain a high-quality reporting record.",
@@ -3478,7 +3480,8 @@ export default function DashboardPage() {
                   <div className="member-badge-card-grid">
                     {[
                       { id: "first_sighting", label: "First Sighting" },
-                      { id: "verified_scout", label: "Verified Scout" },
+                      { id: "helpful_neighbor", label: "Helpful Neighbor" },
+                      { id: "photo_finish", label: "Photo Finish" },
                       { id: "spotter", label: "Spotter" },
                       { id: "unicorn_hunter", label: "Unicorn Hunter" },
                       { id: "sharp_eye", label: "Sharp Eye" },

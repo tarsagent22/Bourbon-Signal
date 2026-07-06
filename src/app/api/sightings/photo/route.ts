@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
             url: uploaded.url,
             pathname: uploaded.pathname,
             uploadedAt,
-            status: "pending" as const,
-            publicUrl: null,
+            status: "verified_public" as const,
+            publicUrl: uploaded.url,
           },
         },
       }

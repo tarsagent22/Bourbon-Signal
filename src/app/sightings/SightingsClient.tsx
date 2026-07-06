@@ -10,7 +10,7 @@ import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useSightings } from "@/hooks/useSightings";
 import { formatStoreAddress, makeSightingId, normalizeBottleKey, sightingTypeLabel, type MemberSighting, type SightingType } from "@/lib/sightings";
-import { isSightingVerified, publicProofUrl } from "@/lib/sighting-rewards";
+
 
 function norm(value?: string | null) {
   return (value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -499,7 +499,7 @@ export default function SightingsClient() {
               <section className="sighting-step-card" data-complete={Boolean(quantityEstimate || price || notes || proofPhoto)}>
                 <div className="sighting-step-head"><span className="sighting-step-number">03</span><div><strong>Details</strong><span>Add the quick field intel that helps someone decide whether to make the trip.</span></div></div>
                 <span className="sighting-label">Sighting type</span>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online / social" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, marginBottom: 14 }}>{([{ value: "seen_in_store", label: "Seen in store" }, { value: "online_social", label: "Online/Social Media" }] as const).map((option) => <button key={option.value} type="button" className={`sighting-location-button ${sightingType === option.value ? "active" : ""}`} onClick={() => setSightingType(option.value)} disabled={isFreePreview} style={{ width: "100%", justifyContent: "flex-start", borderColor: sightingType === option.value ? "rgba(196,148,58,.36)" : undefined, background: sightingType === option.value ? "rgba(196,148,58,.1)" : undefined }}>{option.label}</button>)}</div>
                 <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" disabled={isFreePreview} /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" disabled={isFreePreview} /></label></div>
                 <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: shelf location, purchase limit, social post context…" rows={4} disabled={isFreePreview} /></label>
                 <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Photo · optional</span><input className="sighting-plain-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e) => setProofPhoto(e.target.files?.[0] || null)} disabled={isFreePreview} /></label>
@@ -531,16 +531,16 @@ export default function SightingsClient() {
             <div className="sighting-card-list">{filteredSightings.map((sighting) => {
               const priceLabel = formatPrice(sighting.price);
               const detailPills = [sighting.quantityEstimate, priceLabel].filter(Boolean);
-              const verified = isSightingVerified(sighting);
-              const proofUrl = publicProofUrl(sighting);
+              const proof = sighting.rewardState?.photoProof;
+              const proofUrl = proof?.status !== "rejected" ? (proof?.publicUrl || proof?.url || null) : null;
               return (
                 <article key={sighting.id} className="sighting-card">
                   <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
                   <h3 className="sighting-title">{sighting.bottleName}</h3>
                   <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>
                   <p className="sighting-address">{sightingLocationLine(sighting)}{sighting.storeAddress ? ` · ${sighting.storeAddress}` : ""}</p>
-                  <div className="sighting-detail-row">{verified ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Verified</span> : null}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">New bottle</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">New store</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
-                  {proofUrl ? <img className="sighting-proof-photo" src={proofUrl} alt={`Proof photo for ${sighting.bottleName}`} loading="lazy" /> : null}
+                  <div className="sighting-detail-row">{proofUrl ? <span className="sighting-detail-pill verified"><BadgeCheck size={12} /> Photo included</span> : null}{sighting.reviewState?.needsBottleReview ? <span className="sighting-detail-pill">New bottle</span> : null}{sighting.reviewState?.needsStoreReview ? <span className="sighting-detail-pill">New store</span> : null}{detailPills.map((pill) => <span key={pill} className="sighting-detail-pill">{pill}</span>)}</div>
+                  {proofUrl ? <img className="sighting-proof-photo" src={proofUrl} alt={`Photo for ${sighting.bottleName} sighting`} loading="lazy" /> : null}
                   {sighting.notes ? <div className="sighting-note">“{sighting.notes}”</div> : null}
                   <div className="sighting-bottom"><span className="sighting-tier-line"><span>Member sighting</span><span>{tierLabel(sighting.rarityTier)}</span>{sighting.reporterDisplayName ? <span>{sighting.reporterDisplayName}</span> : null}</span><div className="sighting-votes"><button type="button" aria-label="Thumbs up this sighting" className={`vote-button ${sighting.myVote === "up" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "up").catch(() => undefined)}><ThumbsUp size={14} /> {sighting.upCount || 0}</button><button type="button" aria-label="Thumbs down this sighting" className={`vote-button ${sighting.myVote === "down" ? "active" : ""}`} onClick={() => voteSighting(sighting.id, "down").catch(() => undefined)}><ThumbsDown size={14} /> {sighting.downCount || 0}</button></div></div>
                 </article>
