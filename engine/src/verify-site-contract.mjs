@@ -97,7 +97,11 @@ const dropStates = new Set((drops.drops || []).map((drop) => drop.state).filter(
 if ((drops.drops || []).length !== stats.dropCount) {
   fail(`stats.dropCount should match drops.json length (${(drops.drops || []).length}), got ${stats.dropCount}.`);
 }
-for (const expected of ['AL', 'IL', 'NC', 'PA', 'TN']) {
+const requiredDropStates = (process.env.BOURBON_SIGNAL_VERIFY_SITE_REQUIRED_DROP_STATES || 'AL,IL,NC,PA,TN')
+  .split(',')
+  .map((state) => state.trim().toUpperCase())
+  .filter(Boolean);
+for (const expected of requiredDropStates) {
   if (!dropStates.has(expected)) fail(`drops.json should still include customer-facing state ${expected}.`);
 }
 const vaCoverage = coverageStates.find((state) => state.state === 'VA');

@@ -1453,7 +1453,7 @@ function isBourbonRelevantProduct(product, option) {
     props: option?.additional_properties,
     display: option?.option_display_data?.basic_category
   });
-  return /bourbon|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell/i.test(text);
+  return /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|single barrel|barrel proof|cask strength|private selection|private barrel|store pick|allocated|limited edition|blanton|eagle rare|weller|stagg|taylor|colonel|van winkle|pappy|buffalo trace|michter|willett|old fitz|fitzgerald|elmer|rock hill|booker|baker|little book|blood oath|four roses|1792|russell|elijah craig|larceny|old forester|birthday bourbon|wild turkey|master'?s? keep|rare breed|rare character|four gate|woodford|batch proof|knob creek|maker|bardstown|green river|heaven hill|henry mckenna|new riff|barrell|yellowstone|smoke wagon|penelope|casey jones|peerless/i.test(text);
 }
 
 function normalizedBottleText(value) {

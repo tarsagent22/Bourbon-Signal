@@ -29,6 +29,7 @@
     "score:in": "node src/score-in-user-reach.mjs",
     "refresh:pa": "node src/refresh-pa.mjs",
     "refresh:oh": "node src/refresh-oh.mjs",
+    "refresh:in": "node src/refresh-in.mjs",
     "ohlq": "node src/ohlq-browser-collector.mjs",
     "ohlq:discover": "node src/ohlq-browser-collector.mjs --discover",
     "fwgs": "node src/fwgs-browser-collector.mjs",
