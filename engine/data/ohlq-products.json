@@ -22,5 +22,101 @@
     "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/weller-special-reserve?sku=9535b",
     "sku": "9535b",
     "isExclusive": false
+  },
+  {
+    "name": "Weller Full Proof",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/weller-full-proof",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Weller Antique 107",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/weller-antique",
+    "sku": "9534b",
+    "isExclusive": false
+  },
+  {
+    "name": "Colonel E.H. Taylor Small Batch",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/colonel-eh-taylor-small-batch?sku=2934b",
+    "sku": "2934b",
+    "isExclusive": false
+  },
+  {
+    "name": "Colonel E.H. Taylor Barrel Proof",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/colonel-eh-taylor-barrel-proof",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Stagg Barrel Select",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/stagg-barrel-select",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Elijah Craig Barrel Proof",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/elijah-craig-barrel-proof?sku=2922b",
+    "sku": "2922b",
+    "isExclusive": false
+  },
+  {
+    "name": "Larceny Barrel Proof",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/larceny-barrel-proof?sku=5552b",
+    "sku": "5552b",
+    "isExclusive": false
+  },
+  {
+    "name": "Elijah Craig Private Barrel Barrel Proof",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/elijah-craig-private-barrel-barrel-proof?sku=2833b",
+    "sku": "2833b",
+    "isExclusive": false
+  },
+  {
+    "name": "Old Fitzgerald Bottled-In-Bond",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/old-fitzgerald-bib-fall-2024-decanter",
+    "sku": "6903b",
+    "isExclusive": false
+  },
+  {
+    "name": "Four Roses Limited Edition Small Batch",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/four-roses-limited-edition-2025",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Booker's Bourbon",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/bookers-bourbon",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Baker's 13 Year",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/bakers-13-yr-kentucky-straight-bourbon-whiskey?sku=0459b",
+    "sku": "0459b",
+    "isExclusive": false
+  },
+  {
+    "name": "Little Book",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/little-book-chapter-10",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Blood Oath Pact",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/blood-oath-pact-12",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Russell's Reserve 13 Year",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/russells-reserve-13-year",
+    "sku": null,
+    "isExclusive": false
+  },
+  {
+    "name": "Old Forester Birthday Bourbon",
+    "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/old-forester-birthday-bourbon",
+    "sku": null,
+    "isExclusive": false
   }
 ]

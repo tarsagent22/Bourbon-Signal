@@ -3,6 +3,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "NC",
     "VA",
     "PA",
+    "OH",
     "IA",
     "ID",
     "AL",
@@ -54,7 +55,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "OH": {
       "customerLabel": "Ohio",
       "sourceLabel": "Ohio OHLQ",
-      "publicStatus": "research_only",
+      "publicStatus": "active",
       "lifecycle": "store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",

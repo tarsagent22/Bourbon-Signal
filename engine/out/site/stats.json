@@ -1,23 +1,23 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-06T16:00:08.593Z",
-  "engineGeneratedAt": "2026-07-06T15:59:31.768Z",
-  "stateCount": 22,
-  "signalCount": 31916,
+  "generatedAt": "2026-07-06T18:11:22.078Z",
+  "engineGeneratedAt": "2026-07-06T18:08:02.956Z",
+  "stateCount": 23,
+  "signalCount": 34447,
   "historicalSignalCount": 230490,
   "historyDays": 30,
-  "snapshotCount": 5,
+  "snapshotCount": 7,
   "bottleCount": 161,
   "bibleRecordCount": 161,
-  "storeCount": 2877,
-  "locationCount": 3179,
+  "storeCount": 3364,
+  "locationCount": 3668,
   "officialLocationCount": 0,
-  "preloadedLocationCount": 168,
-  "dropCount": 6763,
-  "eventCount": 2692,
+  "preloadedLocationCount": 169,
+  "dropCount": 7164,
+  "eventCount": 2733,
   "historicalTrendCount": 100,
   "alertCandidateCount": 200,
-  "roadblockCount": 382,
+  "roadblockCount": 390,
   "refreshHealth": {
     "degradedStateCount": 1,
     "staleStateCount": 1,
@@ -34,11 +34,11 @@
       }
     ]
   },
-  "statesAtTargetPrecision": 22,
+  "statesAtTargetPrecision": 23,
   "rareStatesVerified": 13,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 7,
+      "live_store_inventory": 8,
       "store_delivery_leads": 1,
       "store_availability_status": 1,
       "shipment_drop_intelligence": 1,
@@ -102,6 +102,25 @@
         "customerAreaLabel": null,
         "areaOptions": [],
         "customerSummary": "FWGS pickup/store inventory where public browser extraction confirms current store rows.",
+        "coverageTier": "live_store_inventory"
+      },
+      {
+        "state": "OH",
+        "label": "Ohio",
+        "sourceLabel": "Ohio OHLQ",
+        "tier": "A",
+        "status": "useful",
+        "publicStatus": "active",
+        "lifecycle": "store_inventory",
+        "signalCount": 2531,
+        "roadblockCount": 8,
+        "targetLocationPrecision": "store_level",
+        "bestLocationPrecision": "store_level",
+        "strategy": "inventory_locator",
+        "refinementLevel": "city",
+        "customerAreaLabel": null,
+        "areaOptions": [],
+        "customerSummary": "OHLQ browser-assisted store availability where the public source is reachable.",
         "coverageTier": "live_store_inventory"
       },
       {
@@ -470,7 +489,7 @@
     ]
   },
   "southeastReadiness": {
-    "generatedAt": "2026-07-06T16:00:08.600Z",
+    "generatedAt": "2026-07-06T18:11:22.085Z",
     "focusStates": [
       "NC",
       "VA",

@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { BrowserPage, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp } from './core/browser-session.mjs';
 
-const DEFAULT_CDP = process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
+const DEFAULT_CDP = process.env.OHLQ_CDP_URL || process.env.BROWSER_CDP_URL || 'http://127.0.0.1:18800';
 const PRODUCTS_FILE = process.env.OHLQ_PRODUCTS_FILE || 'data/ohlq-products.json';
 const OUT_FILE = process.env.OHLQ_OUT_FILE || 'out/browser/ohlq-availability.json';
 const PAGE_TIMEOUT_MS = Number(process.env.OHLQ_PAGE_TIMEOUT_MS || 45000);
@@ -14,88 +15,6 @@ const DISCOVERY_FILE = process.env.OHLQ_DISCOVERY_FILE || 'data/browser-discover
 const BOURBON_LISTING_URL = 'https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american';
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
-
-async function cdpFetch(cdpUrl, route, options = {}) {
-  const res = await fetch(`${cdpUrl.replace(/\/$/, '')}${route}`, options);
-  if (!res.ok) throw new Error(`CDP ${route} returned ${res.status}: ${await res.text().catch(() => '')}`);
-  return res.json();
-}
-
-async function getOrCreateTarget(cdpUrl) {
-  const tabs = await cdpFetch(cdpUrl, '/json/list');
-  const existing = tabs.find((t) => t.type === 'page' && t.url !== 'chrome://newtab/');
-  if (existing?.webSocketDebuggerUrl) return existing;
-  try {
-    return await cdpFetch(cdpUrl, `/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
-  } catch {
-    return await cdpFetch(cdpUrl, `/json/new?${encodeURIComponent('about:blank')}`);
-  }
-}
-
-class CdpPage {
-  constructor(wsUrl) {
-    this.wsUrl = wsUrl;
-    this.seq = 0;
-    this.pending = new Map();
-  }
-
-  async connect() {
-    this.ws = new WebSocket(this.wsUrl);
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Timed out connecting to CDP websocket')), 10000);
-      this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
-      this.ws.addEventListener('error', (event) => { clearTimeout(timer); reject(new Error(`CDP websocket error: ${event.message || 'unknown'}`)); }, { once: true });
-    });
-    this.ws.addEventListener('message', (event) => {
-      const msg = JSON.parse(event.data);
-      if (!msg.id) return;
-      const pending = this.pending.get(msg.id);
-      if (!pending) return;
-      this.pending.delete(msg.id);
-      if (msg.error) pending.reject(new Error(`${msg.error.message}${msg.error.data ? `: ${msg.error.data}` : ''}`));
-      else pending.resolve(msg.result);
-    });
-    await this.send('Page.enable');
-    await this.send('Runtime.enable');
-  }
-
-  send(method, params = {}) {
-    const id = ++this.seq;
-    const payload = JSON.stringify({ id, method, params });
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (this.pending.has(id)) {
-          this.pending.delete(id);
-          reject(new Error(`CDP command timed out: ${method}`));
-        }
-      }, 60000);
-      this.pending.set(id, {
-        resolve: (value) => { clearTimeout(timer); resolve(value); },
-        reject: (error) => { clearTimeout(timer); reject(error); }
-      });
-      this.ws.send(payload);
-    });
-  }
-
-  async evaluate(expression, awaitPromise = true) {
-    const result = await this.send('Runtime.evaluate', { expression, awaitPromise, returnByValue: true, timeout: 60000 });
-    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Runtime.evaluate exception');
-    return result.result?.value;
-  }
-
-  async navigate(url) {
-    await this.send('Page.navigate', { url });
-    const started = Date.now();
-    while (Date.now() - started < PAGE_TIMEOUT_MS) {
-      const state = await this.evaluate('document.readyState', false).catch(() => 'loading');
-      if (state === 'complete' || state === 'interactive') return;
-      await sleep(500);
-    }
-    throw new Error(`Timed out loading ${url}`);
-  }
-
-  close() { try { this.ws?.close(); } catch {} }
-}
 
 function normalizeSku(value) {
   return value ? String(value).trim().toLowerCase() : null;
@@ -121,6 +40,18 @@ function normalizeProductUrl(url) {
   }
 }
 
+const OHLQ_DISCOVERY_INCLUDE_RE = /bourbon|american whiskey|american whisky|weller|blanton|eagle rare|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|booker'?s?|baker'?s?|little book|blood oath|four roses|1792|russell|elijah craig|larceny|old forester|woodford|michter|willett|penelope|yellowstone|barrell|redwood empire|joseph magnus|cigar blend|remus|heaven hill|henry mckenna|green river|knob creek|maker'?s/i;
+const OHLQ_DISCOVERY_EXCLUDE_RE = /cocktail|rtp|ready\s*to\s*(pour|drink)|vodka|gin|rum|tequila|mezcal|wine\b|beer|seltzer|liqueur|cream|coffee|cinnamon|peach|apple|honey|peanut\s*butter|chocolate|gift\s*card|event|ticket|shirt|hat|glass|cup/i;
+
+function ohlqDiscoveryProductLooksRelevant(product = {}) {
+  const hay = `${product.name || ''} ${product.discoveryText || ''} ${product.pageUrl || ''}`;
+  if (!OHLQ_DISCOVERY_INCLUDE_RE.test(hay)) return false;
+  if (OHLQ_DISCOVERY_EXCLUDE_RE.test(hay) && !/barrel proof|cask strength|bourbon|whiskey|whisky/i.test(hay)) return false;
+  if (/yellowstone/i.test(hay) && /small batch|select|6yr|6 year/i.test(hay) && !/limited edition/i.test(hay)) return false;
+  if (/bulleit/i.test(hay) && /mesquite/i.test(hay)) return false;
+  return true;
+}
+
 async function discoverBourbonProducts(page, seedProducts) {
   const discovered = [];
   const seen = new Set(seedProducts.map((p) => normalizeProductUrl(p.pageUrl)));
@@ -135,7 +66,9 @@ async function discoverBourbonProducts(page, seedProducts) {
       const normalizedUrl = normalizeProductUrl(link.href);
       if (!normalizedUrl || seen.has(normalizedUrl)) continue;
       seen.add(normalizedUrl);
-      discovered.push({ name: cleanListingName(link.text), pageUrl: normalizedUrl, sku: null, isExclusive: false, discoveredFrom: url, discoveryText: link.text });
+      const candidate = { name: cleanListingName(link.text), pageUrl: normalizedUrl, sku: null, isExclusive: false, discoveredFrom: url, discoveryText: link.text };
+      if (!ohlqDiscoveryProductLooksRelevant(candidate)) continue;
+      discovered.push(candidate);
       if (discovered.length >= DISCOVERY_LIMIT) break;
     }
   }
@@ -155,10 +88,10 @@ async function collectProduct(page, product) {
     const selectedVariant = product?.ProductVariants?.find(v => v.Code === product?.PreferredVariantSku)
       || product?.ProductVariants?.[0]
       || null;
-    const sku = (${JSON.stringify(product.sku || null)})
-      || selectedVariant?.Code
+    const sku = selectedVariant?.Code
       || product?.PreferredVariantSku
       || product?.BaseSku
+      || (${JSON.stringify(product.sku || null)})
       || null;
     const csrf = document.documentElement.dataset.csrfToken || null;
     if (!csrf) return { ok: false, pageUrl, title, productName: product?.ProductName || ${JSON.stringify(product.name)}, sku, status: 0, error: 'No OHLQ csrf token on rendered page' };
@@ -213,25 +146,48 @@ async function collectProduct(page, product) {
   return result;
 }
 
+function expectedProductTokens(name = '') {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token.length >= 4 && !['bourbon', 'whiskey', 'straight', 'kentucky', 'american', 'single', 'barrel'].includes(token))
+    .slice(0, 4);
+}
+
 async function waitForOhlqProductReady(page, product) {
   const started = Date.now();
   let lastState = null;
+  const expectedTokens = expectedProductTokens(product.name);
+  const expectedSku = normalizeSku(product.sku);
   while (Date.now() - started < PRODUCT_READY_TIMEOUT_MS) {
     lastState = await page.evaluate(`(() => {
       const product = window.Ohlq?.renderProductDetail?.Product || null;
       const selectedVariant = product?.ProductVariants?.find(v => v.Code === product?.PreferredVariantSku)
         || product?.ProductVariants?.[0]
         || null;
+      const selectedSku = selectedVariant?.Code || product?.PreferredVariantSku || product?.BaseSku || null;
+      const pageText = [product?.ProductName, document.title, location.pathname].filter(Boolean).join(' ').toLowerCase();
+      const expectedTokens = ${JSON.stringify(expectedTokens)};
+      const expectedSku = ${JSON.stringify(expectedSku)};
+      const skuMatches = !expectedSku || String(selectedSku || '').toLowerCase() === expectedSku;
+      const tokenMatches = !expectedTokens.length || expectedTokens.some((token) => pageText.includes(token));
       return {
         href: location.href,
         title: document.title,
         readyState: document.readyState,
         hasCsrf: Boolean(document.documentElement.dataset.csrfToken),
         productName: product?.ProductName || null,
-        sku: selectedVariant?.Code || product?.PreferredVariantSku || product?.BaseSku || ${JSON.stringify(product.sku || null)} || null
+        selectedSku,
+        skuMatches,
+        tokenMatches,
+        matchesExpected: skuMatches && tokenMatches
       };
     })()`, true).catch((error) => ({ error: error.message }));
-    if (lastState?.hasCsrf && (lastState.productName || lastState.sku) && !/just a moment/i.test(String(lastState.title || ''))) return lastState;
+    if (lastState?.hasCsrf && (lastState.productName || lastState.selectedSku) && lastState.matchesExpected && !/just a moment/i.test(String(lastState.title || ''))) return lastState;
+    if (/404:\s*page not found|page not found/i.test(String(lastState?.title || '')) && lastState?.hasCsrf) {
+      throw new Error(`OHLQ product page not found for ${product.pageUrl}; last state=${JSON.stringify(lastState)}`);
+    }
     if (/access denied|restrict access|forbidden/i.test(String(lastState?.title || ''))) {
       throw new Error(`OHLQ/Cloudflare access denied for ${product.pageUrl}; last state=${JSON.stringify(lastState)}`);
     }
@@ -242,8 +198,9 @@ async function waitForOhlqProductReady(page, product) {
 
 async function main() {
   const seedProducts = JSON.parse(await readFile(PRODUCTS_FILE, 'utf8'));
-  const target = await getOrCreateTarget(DEFAULT_CDP);
-  const page = new CdpPage(target.webSocketDebuggerUrl);
+  const browser = await ensureBrowserCdp(DEFAULT_CDP, { timeoutMs: Number(process.env.OHLQ_CDP_START_TIMEOUT_MS || 45000) });
+  const target = await getOrCreateTarget(DEFAULT_CDP, 'ohlq.com');
+  const page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: PAGE_TIMEOUT_MS });
   await page.connect();
   const results = [];
   let products = seedProducts;
@@ -269,6 +226,7 @@ async function main() {
     }
   } finally {
     page.close();
+    if (process.env.OHLQ_KEEP_BROWSER !== '1') await killBrowserCdp(browser).catch(() => false);
   }
   const payload = {
     generatedAt: new Date().toISOString(),

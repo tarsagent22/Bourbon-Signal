@@ -1116,14 +1116,20 @@ function dropAgeHours(drop) {
   return Number.isFinite(observed) ? Math.max(0, (Date.now() - observed) / (60 * 60 * 1000)) : Infinity;
 }
 
+function dropHasPositiveAlertInventory(drop) {
+  if (Number(drop?.quantity || 0) > 0) return true;
+  return drop?.state === 'OH'
+    && /^browser_assisted_store_inventory_(limited_supply|in_stock)$/i.test(String(drop?.type || drop?.eventType || ''))
+    && ['limited_supply', 'in_stock'].includes(String(drop?.availabilityStatus || '').toLowerCase());
+}
+
 function buildCurrentInventoryAlertsFromDrops(drops) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsInventory && drop.locationPrecision === 'store_level')
     .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
-    .filter((drop) => Number(drop.quantity || 0) > 0)
+    .filter((drop) => dropHasPositiveAlertInventory(drop))
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .sort(alertDropSort)
-    .slice(0, 150)
     .map((drop) => ({
       id: stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
       action: 'inventory_alert_candidate',

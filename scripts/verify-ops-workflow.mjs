@@ -62,7 +62,14 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
   const isCostcoOnlyExpansion = customerStates.has(state)
     && lifecycle?.lifecycle === 'costco_warehouse_inventory_watch'
     && lifecycle?.coverageTier === 'retailer_warehouse_inventory';
-  if (isCostcoOnlyExpansion) continue;
+  const isHardenedOhioLiveInventory = state === 'OH'
+    && customerStates.has('OH')
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.coverageTier === 'live_store_inventory'
+    && enginePackageJson.scripts?.['verify:oh']
+    && enginePackageJson.scripts?.['refresh:oh']
+    && /dropHasPositiveAlertInventory/.test(read('engine/src/export-site-contract.mjs'));
+  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory) continue;
   if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage, unless it is explicitly Costco-only.`);
   if (lifecycle?.publicStatus !== 'research_only') {
     fail(`${state} should have explicit research_only lifecycle status unless it is explicitly Costco-only.`);

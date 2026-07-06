@@ -42,7 +42,7 @@ if (cities.size < 15) fail(`Expected Ohio drops across at least 15 cities, got $
 if (bottles.size < 3) fail(`Expected Ohio drops for at least 3 distinct bottles, got ${bottles.size}.`);
 if (invalidPositiveStatus) fail(`Ohio emitted an invalid positive status: ${invalidPositiveStatus.availabilityStatus}.`);
 if (staleObserved) fail(`Ohio has stale/missing observedAt on ${staleObserved.canonicalName || staleObserved.rawName} at ${staleObserved.storeName || staleObserved.locationName}.`);
-if (ohioAlerts.length < 1 && alertableDrops.length < 100) fail(`Expected Ohio to be alert-ready via drops or candidates; got ${ohioAlerts.length} alert candidates and ${alertableDrops.length} alertable drops.`);
+if (ohioAlerts.length < 10) fail(`Expected Ohio alert candidates to survive alert export caps, got ${ohioAlerts.length}.`);
 if (falseYellowstoneLimited) fail(`Ohio false-positive guard failed: ordinary Yellowstone row was promoted to Yellowstone Limited Edition (${falseYellowstoneLimited.rawName || falseYellowstoneLimited.evidence || 'unknown row'}).`);
 if (unsafeSourceNamedDrop) fail(`Ohio source-named unsafe match leaked into public drops: ${unsafeSourceNamedDrop.rawName || unsafeSourceNamedDrop.canonicalName}.`);
 if (alertWithoutBottle) fail(`Ohio alert candidate is missing a safe bottle match: ${alertWithoutBottle.id || alertWithoutBottle.reason || 'unknown alert'}.`);

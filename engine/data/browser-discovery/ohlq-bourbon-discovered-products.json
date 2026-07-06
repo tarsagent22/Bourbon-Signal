@@ -1,218 +1,10 @@
 {
-  "generatedAt": "2026-06-18T17:53:02.074Z",
+  "generatedAt": "2026-07-06T18:04:42.680Z",
   "sourceUrl": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-  "pageCount": 5,
-  "limit": 60,
-  "discoveredCount": 60,
+  "pageCount": 8,
+  "limit": 40,
+  "discoveredCount": 40,
   "products": [
-    {
-      "name": "Bulleit Mesquite",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/bulleit-mesquite",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Bulleit Mesquite$49.99750 ML"
-    },
-    {
-      "name": "Hayner Hotel Versailles Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/hayner-hotel-versailles-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Hayner Hotel Versailles Bourbon$54.95750 ML1 Other Size"
-    },
-    {
-      "name": "PENELOPE COCKTAILS BLACKBERRY OLD FASHIONED RTP",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/penelope-cocktails-blackberry-old-fashioned-rtp",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "PENELOPE COCKTAILS BLACKBERRY OLD FASHIONED RTP$29.99750 ML"
-    },
-    {
-      "name": "YELLOWSTONE SMALL BATCH 6YR BOURBON",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/yellowstone-small-batch-6yr-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "YELLOWSTONE SMALL BATCH 6YR BOURBON$44.99750 ML"
-    },
-    {
-      "name": "BARRELL BOURBON CASK FINISH SERIES ICE WINE",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/barrell-bourbon-cask-finish-series-ice-wine",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "BARRELL BOURBON CASK FINISH SERIES ICE WINE$84.99750 ML"
-    },
-    {
-      "name": "CANTON DISTILLERY BOURBON",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/canton-distillery-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "CANTON DISTILLERY BOURBON$36.99750 ML"
-    },
-    {
-      "name": "Joseph Magnus Cigar Blend Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/joseph-magnus-cigar-blend-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Joseph Magnus Cigar Blend Bourbon$199.99750 ML"
-    },
-    {
-      "name": "Colonel E.H. Taylor Cured Oak",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/colonel-eh-taylor-cured-oak",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Colonel E.H. Taylor Cured Oak$79.99750 ML"
-    },
-    {
-      "name": "Kentucky Vintage Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/kentucky-vintage-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Kentucky Vintage Bourbon$38.99750 ML"
-    },
-    {
-      "name": "Town Branch Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/town-branch-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Town Branch Bourbon$34.97750 ML"
-    },
-    {
-      "name": "Johnny Drum Private Stock Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/johnny-drum-private-stock-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Johnny Drum Private Stock Bourbon$43.99750 ML"
-    },
-    {
-      "name": "HIGHLINE SPIRITS BOURBON",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/highline-spirits-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "HIGHLINE SPIRITS BOURBON$44.96750 ML"
-    },
-    {
-      "name": "REMUS REPEAL RESERVE TRILOGY PACK",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/remus-repeal-reserve-trilogy-pack",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "REMUS REPEAL RESERVE TRILOGY PACKNow $479.98was $799.972.25 L"
-    },
-    {
-      "name": "Redwood Empire Pipe Dream Cask Strength Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/redwood-empire-pipe-dream-cask-strength-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Redwood Empire Pipe Dream Cask Strength Bourbon$49.99750 ML"
-    },
-    {
-      "name": "Ezra Brooks Stave Dark Chocolate Single Barrel",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/ezra-brooks-stave-dark-chocolate-single-barrel",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Ezra Brooks Stave Dark Chocolate Single Barrel$64.99750 ML"
-    },
-    {
-      "name": "GENTLEMANS CUT BOURBON WHISKEY",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/gentlemans-cut-bourbon-whiskey",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "GENTLEMANS CUT BOURBON WHISKEY$82.99750 ML"
-    },
-    {
-      "name": "Old Route 8 Single Barrel Cask Strength Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/old-route-8-single-barrel-cask-strength-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Old Route 8 Single Barrel Cask Strength Bourbon$99.99750 ML"
-    },
-    {
-      "name": "REDEMPTION BOURBON 92",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/redemption-bourbon-92",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "REDEMPTION BOURBON 92$28.99750 ML"
-    },
-    {
-      "name": "EVAN WILLIAMS GREEN",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/evan-williams-green",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "EVAN WILLIAMS GREENNow $23.99was $27.991.75 L"
-    },
-    {
-      "name": "Willett Noah's Mill Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/willett-noahs-mill-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Willett Noah's Mill Bourbon$67.99750 ML"
-    },
-    {
-      "name": "Minglewood Distilling Company Prohibition Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/minglewood-distilling-company-prohibition-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Minglewood Distilling Company Prohibition Bourbon$44.14750 ML"
-    },
-    {
-      "name": "Yellowstone Special Finishes Collection Toasted",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/yellowstone-special-finishes-collection-toasted",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Yellowstone Special Finishes Collection Toasted$44.99750 ML"
-    },
-    {
-      "name": "Angels Envy Bourbon & Rye Pack",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/angels-envy-bourbon-rye-pack",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Angels Envy Bourbon & Rye Pack$49.99750 ML"
-    },
-    {
-      "name": "HAYNER CORRUGATED CASK BOURBON",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/hayner-corrugated-cask-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "HAYNER CORRUGATED CASK BOURBON$74.95750 ML"
-    },
-    {
-      "name": "Jefferson's Very Small Batch Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/jeffersons-very-small-batch-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "Jefferson's Very Small Batch BourbonNow $29.99was $34.99750 ML1 Other Size"
-    },
-    {
-      "name": "PURSUIT UNITED DOUBLE OAKED BOURBON",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/pursuit-united-double-oaked-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
-      "discoveryText": "PURSUIT UNITED DOUBLE OAKED BOURBON$69.99700 ML"
-    },
     {
       "name": "Heaven Hill Grain To Glass Bourbon Spec Series",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/heaven-hill-grain-to-glass-bourbon-spec-series",
@@ -250,7 +42,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/woodinville-straight-bourbon-whiskey",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Woodinville Straight Bourbon WhiskeyNow $34.99was $39.99750 ML"
     },
     {
@@ -258,7 +50,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/george-t-stagg",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "George T. Stagg$149.98750 ML"
     },
     {
@@ -266,7 +58,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/jeptha-creed-6-year-wheated-straight-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "JEPTHA CREED 6 YEAR WHEATED STRAIGHT BOURBONNow $54.99was $59.97750 ML"
     },
     {
@@ -274,7 +66,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/penelope-project-x-cognac-special-barrel",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "PENELOPE PROJECT X COGNAC SPECIAL BARREL$69.99750 ML"
     },
     {
@@ -282,7 +74,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/cleveland-christmas-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Cleveland Christmas Bourbon$32.99750 ML"
     },
     {
@@ -290,7 +82,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/1792-full-proof-barrel-select",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "1792 Full Proof Barrel Select$49.99750 ML"
     },
     {
@@ -298,31 +90,23 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/heavens-door-10-year-decade-series-03-double-bar",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
-      "discoveryText": "HEAVEN'S DOOR 10 YEAR DECADE SERIES 03 DOUBLE BAR$89.99750 ML"
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
+      "discoveryText": "HEAVEN'S DOOR 10 YEAR DECADE SERIES 03 DOUBLE BARNow $79.99was $89.99750 ML"
     },
     {
       "name": "LAST DROP NO. 37 - 27 YR. BOURBON WHISKEY",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/last-drop-no-37-27-yr-bourbon-whiskey",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "LAST DROP NO. 37 - 27 YR. BOURBON WHISKEY$10,500.00700 ML"
-    },
-    {
-      "name": "Everwild Seekers Wheated Bourbon",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/everwild-seekers-wheated-bourbon",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
-      "discoveryText": "Everwild Seekers Wheated Bourbon$54.98750 ML"
     },
     {
       "name": "Rabbit Hole Founder's Collection Amburana",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/rabbit-hole-founders-collection-amburana",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Rabbit Hole Founder's Collection Amburana$1,099.99750 ML"
     },
     {
@@ -330,7 +114,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/fountain-square-reserve-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Fountain Square Reserve Bourbon$39.99750 ML"
     },
     {
@@ -338,7 +122,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/penelope-estate-collection-private-select",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "PENELOPE ESTATE COLLECTION PRIVATE SELECT$79.99750 ML"
     },
     {
@@ -346,7 +130,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/river-roots-bourbon-french-double-oak",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "RIVER ROOTS BOURBON - FRENCH DOUBLE OAK$197.92750 ML"
     },
     {
@@ -354,7 +138,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/old-soul-tin-type-1",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Old Soul Tin Type 1$134.99750 ML"
     },
     {
@@ -362,7 +146,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/am-scott-barrel-proof-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "A.M. Scott Barrel Proof Bourbon$54.99750 ML1 Other Size"
     },
     {
@@ -370,7 +154,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/ysu-hail-to-thee-oyoungstown",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "YSU HAIL TO THEE O'YOUNGSTOWN$99.99750 ML"
     },
     {
@@ -378,23 +162,15 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/towpath-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Towpath Bourbon$37.99750 ML"
-    },
-    {
-      "name": "Barrell Bourbon Cask Finish Tale of Two Islands",
-      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/barrell-bourbon-cask-finish-tale-of-two-islands",
-      "sku": null,
-      "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
-      "discoveryText": "Barrell Bourbon Cask Finish Tale of Two IslandsNow $50.99was $84.99750 ML"
     },
     {
       "name": "NORTHERN LIBERTIES BOTTLED IN BOND BOURBON",
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/northern-liberties-bottled-in-bond-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "NORTHERN LIBERTIES BOTTLED IN BOND BOURBON$69.99750 ML"
     },
     {
@@ -402,7 +178,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/big-house-straight-bourbon-whiskey",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Big House Straight Bourbon Whiskey$19.99750 ML"
     },
     {
@@ -410,7 +186,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/1792-extended-cask-pinot-noir-finish",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "1792 EXTENDED CASK PINOT NOIR FINISH$49.99750 ML"
     },
     {
@@ -418,7 +194,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/adventure-spirits-toasted-bourbon",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Adventure Spirits Toasted Bourbon$65.00750 ML"
     },
     {
@@ -426,7 +202,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/rabbit-hole-heigold-single-barrel-cask-strength",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "RABBIT HOLE HEIGOLD SINGLE BARREL CASK STRENGTHNow $59.99was $99.99750 ML"
     },
     {
@@ -434,7 +210,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/remus-babe-ruth-reserve",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Remus Babe Ruth Reserve$199.99750 ML"
     },
     {
@@ -442,7 +218,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/whiskey-jypsi-tribute-double-barrel",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "WHISKEY JYPSI TRIBUTE DOUBLE BARREL$39.99750 ML"
     },
     {
@@ -450,7 +226,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/watershed-bourbon-finished-in-nocino-barrels",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "Watershed Bourbon Finished In Nocino Barrels$99.99750 ML"
     },
     {
@@ -458,7 +234,7 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/evan-williams-single-barl-250th-commemorative-ed",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american",
       "discoveryText": "EVAN WILLIAMS SINGLE BARL 250TH COMMEMORATIVE ED.$44.99750 ML"
     },
     {
@@ -482,8 +258,72 @@
       "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/blue-run-ks-bourbon-whiskey-reflection-ii",
       "sku": null,
       "isExclusive": false,
-      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=3",
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
       "discoveryText": "Blue Run Ks Bourbon Whiskey Reflection II$84.99750 ML"
+    },
+    {
+      "name": "OLD SOUTH CAMPUS BOURBON WHISKEY",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/old-south-campus-bourbon-whiskey",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "OLD SOUTH CAMPUS BOURBON WHISKEY$21.99750 ML"
+    },
+    {
+      "name": "Watershed Distillery Uncut Unfiltered Bourbon",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/watershed-distillery-uncut-unfiltered-bourbon",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "Watershed Distillery Uncut Unfiltered Bourbon$69.99750 ML"
+    },
+    {
+      "name": "Jim Beam Apple Bourbon Whiskey",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/jim-beam-apple-bourbon-whiskey",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "Jim Beam Apple Bourbon Whiskey$16.99750 ML3 Other Sizes"
+    },
+    {
+      "name": "BLACK MAPLE HILL BY RARE CHARACTER NAS BOURBON",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/black-maple-hill-by-rare-character-nas-bourbon",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "BLACK MAPLE HILL BY RARE CHARACTER NAS BOURBON$69.99700 ML"
+    },
+    {
+      "name": "SMOKE WAGON CHRISTMAS STRAIGHT BOURBON WHISKEY",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/smoke-wagon-christmas-straight-bourbon-whiskey",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "SMOKE WAGON CHRISTMAS STRAIGHT BOURBON WHISKEY$29.95750 ML"
+    },
+    {
+      "name": "FREY RANCH SINGLE GRAIN SERIES OAT WHISKEY",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/frey-ranch-single-grain-series-oat-whiskey",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "FREY RANCH SINGLE GRAIN SERIES OAT WHISKEY$59.99375 ML"
+    },
+    {
+      "name": "Iron Vault Double Oaked Bottled In Bond Bourbon",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/iron-vault-double-oaked-bottled-in-bond-bourbon",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "Iron Vault Double Oaked Bottled In Bond Bourbon$69.99750 ML"
+    },
+    {
+      "name": "Elmer T. Lee Single Barrel Bourbon",
+      "pageUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/elmer-t-lee-single-barrel-bourbon",
+      "sku": null,
+      "isExclusive": false,
+      "discoveredFrom": "https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american&page=2",
+      "discoveryText": "Elmer T. Lee Single Barrel Bourbon$89.99750 ML"
     }
   ]
 }
