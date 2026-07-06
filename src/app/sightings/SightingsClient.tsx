@@ -183,7 +183,7 @@ export default function SightingsClient() {
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canReadSightings;
   const { bottles } = useBottles(optimisticMemberAccess);
-  const { stores, loading: storesLoading } = useStores(optimisticMemberAccess);
+  const { stores } = useStores(optimisticMemberAccess);
   const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(canEditSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
@@ -483,7 +483,7 @@ export default function SightingsClient() {
                     <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
                   </div>
                 ) : (
-                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storesLoading ? <div className="sighting-empty">Loading stores…</div> : null}{!storesLoading && storeMatches.length === 0 ? <div className="sighting-empty">Search by store name, city, ZIP, or street. Not seeing it? Add the store so the community can reuse it.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
+                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storeMatches.length === 0 ? <div className="sighting-empty">Search by store name, city, ZIP, or street. Not seeing it? Add the store so the community can reuse it.</div> : null}{!isFreePreview && storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
                 )}
               </section>
 
