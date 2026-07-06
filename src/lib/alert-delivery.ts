@@ -1075,7 +1075,23 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               },
             });
           } catch (error) {
-            summary.errors.push({ userId, message: `On-site alert metadata update failed: ${error instanceof Error ? error.message : String(error)}` });
+            const primaryError = error instanceof Error ? error.message : String(error);
+            try {
+              // Clerk rejects oversized/legacy-shaped private metadata with 422s. Do not let a stale
+              // historical inbox block the current alert; retry with a compact inbox containing only
+              // freshly-created records, still deduped by the candidate key.
+              await client.users.updateUserMetadata(userId, {
+                privateMetadata: {
+                  alertInbox: {
+                    recent: newOnSiteAlerts.slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER)),
+                    lastSyncedAt: now,
+                    compactionReason: "onsite_alert_metadata_retry",
+                  },
+                },
+              });
+            } catch (retryError) {
+              summary.errors.push({ userId, message: `On-site alert metadata update failed after compaction retry: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}` });
+            }
           }
         }
       }
