@@ -36,6 +36,8 @@ let summary = summarizeMemberRewards([
 assert.equal(summary.eligibleSightings, 2);
 assert.equal(summary.verifiedSightings, 0);
 assert.equal(summary.photoSightings, 1);
+assert.equal(summary.badgeProgress.some((badge) => badge.id === 'unicorn_hunter_diamond'), true);
+assert.equal(summary.badgeProgress.some((badge) => badge.id === 'spotter_diamond'), true);
 assert.equal(rewards.badges.some((badge) => /verified/i.test(badge.label)), false, 'sighting badge labels must not use verified language');
 const legacySummary = summarizeMemberRewards([], { badges: [{ id: 'verified_scout', label: 'Verified Scout', earnedAt: '2026-07-04T15:00:00Z', pointsAwarded: 1 }], points: 1, ledger: [], currentWeeklyStreak: 0, longestWeeklyStreak: 0 });
 assert.equal(legacySummary.badges[0].id, 'helpful_neighbor');

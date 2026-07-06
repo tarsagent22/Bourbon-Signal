@@ -109,15 +109,24 @@ interface BourbonDnaSummary {
 
 const BADGE_ICON_BY_KEY: Record<string, string | null> = {
   first_sighting: "/badge-icons/first-sighting.png",
-  helpful_neighbor: null,
-  photo_finish: null,
-  spotter: "/badge-icons/spotter.png",
-  unicorn_hunter: "/badge-icons/unicorn-hunter.png",
+  helpful_neighbor: "/badge-icons/helpful-neighbor.png",
+  photo_finish: "/badge-icons/photo-finish.png",
+  spotter: "/badge-icons/spotter-bronze.png",
+  unicorn_hunter: "/badge-icons/unicorn-hunter-bronze.png",
   sharp_eye: "/badge-icons/sharp-eye.png",
   local_scout: "/badge-icons/local-scout.png",
   weekend_warrior: "/badge-icons/weekend-warrior.png",
   clean_signal: "/badge-icons/clean-signal.png",
   streak: "/badge-icons/streak.png",
+};
+
+const BADGE_ICON_BY_ID: Record<string, string> = {
+  spotter_bronze: "/badge-icons/spotter-bronze.png",
+  spotter_silver: "/badge-icons/spotter-silver.png",
+  spotter_diamond: "/badge-icons/spotter-diamond.png",
+  unicorn_hunter_bronze: "/badge-icons/unicorn-hunter-bronze.png",
+  unicorn_hunter_silver: "/badge-icons/unicorn-hunter-silver.png",
+  unicorn_hunter_diamond: "/badge-icons/unicorn-hunter-diamond.png",
 };
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
@@ -138,7 +147,7 @@ function badgeBaseKey(id: string) {
 }
 
 function badgeIconFor(id: string) {
-  return BADGE_ICON_BY_KEY[badgeBaseKey(id)] ?? null;
+  return BADGE_ICON_BY_ID[id] || BADGE_ICON_BY_KEY[badgeBaseKey(id)] || null;
 }
 
 function badgeDescriptionFor(id: string) {

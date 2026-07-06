@@ -2,7 +2,7 @@ import type { MemberSighting } from "@/lib/sightings";
 
 export type SightingVerificationSource = "photo" | "community";
 export type SightingPhotoReviewStatus = "none" | "pending" | "verified_public" | "verified_private" | "rejected";
-export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
+export type BadgeTier = "bronze" | "silver" | "gold" | "platinum" | "diamond";
 
 export interface SightingPhotoProof {
   url: string;
@@ -203,8 +203,8 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
     { id: "first_sighting", label: "First Sighting", current: Math.min(eligible.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "first_sighting") },
     { id: "helpful_neighbor", label: "Helpful Neighbor", current: Math.min(helpful.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "helpful_neighbor") },
     { id: "photo_finish", label: "Photo Finish", current: Math.min(photoSightings.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "photo_finish") },
-    ...tierProgress("spotter", "Spotter", eligible.length, [["bronze", 5], ["silver", 25], ["gold", 50], ["platinum", 100]], rewards.badges),
-    ...tierProgress("unicorn_hunter", "Unicorn Hunter", unicornSightings.length, [["bronze", 1], ["silver", 5], ["gold", 15]], rewards.badges),
+    ...tierProgress("spotter", "Spotter", eligible.length, [["bronze", 5], ["silver", 25], ["diamond", 50]], rewards.badges),
+    ...tierProgress("unicorn_hunter", "Unicorn Hunter", unicornSightings.length, [["bronze", 1], ["silver", 5], ["diamond", 15]], rewards.badges),
     ...tierProgress("sharp_eye", "Sharp Eye", helpful.length, [["bronze", 5], ["silver", 25], ["gold", 75]], rewards.badges),
     ...tierProgress("local_scout", "Local Scout", bestAreaCount, [["bronze", 5], ["silver", 15], ["gold", 40]], rewards.badges),
     ...tierProgress("weekend_warrior", "Weekend Warrior", weekendWeeks.size, [["bronze", 3], ["silver", 8], ["gold", 20], ["platinum", 40]], rewards.badges),
