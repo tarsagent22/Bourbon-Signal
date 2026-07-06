@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { BadgeCheck, Camera, Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -177,23 +176,24 @@ function SightingDropdown({
 }
 
 export default function SightingsClient() {
-  const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
   const { isLoaded: authLoaded, isSignedIn, signIn, entitlements } = useAuth();
-  const { bottles } = useBottles();
-  const { stores, loading: storesLoading } = useStores();
   const canReadSightings = entitlements.canReadSightings;
-  const isFreePreview = isSignedIn && !canReadSightings;
-  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(isSignedIn && canReadSightings);
+  const isFreePreview = authLoaded && isSignedIn && !canReadSightings;
+  const optimisticMemberAccess = !authLoaded || canReadSightings;
+  const canEditSightings = authLoaded && isSignedIn && canReadSightings;
+  const { bottles } = useBottles(optimisticMemberAccess);
+  const { stores, loading: storesLoading } = useStores(optimisticMemberAccess);
+  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading } = useSightings(canEditSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
   const [stateFilter, setStateFilter] = useState("ALL");
-  const [bottleQuery, setBottleQuery] = useState(searchParams.get("bottle") || "");
-  const [selectedBottleId, setSelectedBottleId] = useState(searchParams.get("bottleId") || "");
+  const [bottleQuery, setBottleQuery] = useState("");
+  const [selectedBottleId, setSelectedBottleId] = useState("");
   const [manualBottleConfirmed, setManualBottleConfirmed] = useState(false);
   const [selectedBottleTier, setSelectedBottleTier] = useState<MemberSighting["rarityTier"]>("limited");
-  const [storeQuery, setStoreQuery] = useState(searchParams.get("store") || "");
+  const [storeQuery, setStoreQuery] = useState("");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [manualStoreMode, setManualStoreMode] = useState(false);
   const [manualStoreAddress, setManualStoreAddress] = useState("");
@@ -211,11 +211,14 @@ export default function SightingsClient() {
   const [bottleCheckMatches, setBottleCheckMatches] = useState<Bottle[]>([]);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
     const bottle = searchParams.get("bottle");
     if (bottle) setBottleQuery(bottle);
+    const bottleId = searchParams.get("bottleId");
+    if (bottleId) setSelectedBottleId(bottleId);
     const store = searchParams.get("store");
     if (store) setStoreQuery(store);
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     const query = bottleQuery.trim();
@@ -288,7 +291,7 @@ export default function SightingsClient() {
 
   const submit = async () => {
     setSubmitError(null);
-    if (!isSignedIn) return signIn();
+    if (!authLoaded || !isSignedIn) return signIn();
     if (!canReadSightings) return setSubmitError("Paid members only. Upgrade to submit sightings.");
     const bottleName = bottleQuery.trim();
     if (!bottleName) return setSubmitError("Choose or enter a bottle.");
@@ -345,19 +348,7 @@ export default function SightingsClient() {
     setActiveTab("feed");
   };
 
-  if (!authLoaded) {
-    return (
-      <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", border: "1px solid rgba(196,148,58,0.16)", borderRadius: 28, padding: 28, background: "rgba(245,237,214,0.035)", boxShadow: "0 24px 70px rgba(0,0,0,0.28)" }}>
-          <Lock size={28} color="var(--color-accent-amber)" />
-          <h1 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(40px, 8vw, 68px)", margin: "18px 0 10px" }}>Member Sightings</h1>
-          <p style={{ color: "rgba(245,237,214,0.58)", fontSize: 16, lineHeight: 1.7 }}>Loading member access…</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (!isSignedIn) {
+  if (authLoaded && !isSignedIn) {
     return (
       <main style={{ minHeight: "100vh", padding: "112px 18px 80px", background: "linear-gradient(180deg, #100c08 0%, #1b130c 46%, #100c08 100%)", color: "var(--color-cream)" }}>
         <div style={{ maxWidth: 760, margin: "0 auto", border: "1px solid rgba(196,148,58,0.22)", borderRadius: 28, padding: 28, background: "rgba(245,237,214,0.045)", boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>

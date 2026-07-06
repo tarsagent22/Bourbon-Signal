@@ -9,12 +9,41 @@ export interface Store extends MapStoreRecord {
 
 // In-memory cache
 let cachedStores: Store[] | null = null;
+let storesPromise: Promise<Store[]> | null = null;
 
-export function useStores() {
+function loadStores() {
+  if (cachedStores !== null) return Promise.resolve(cachedStores);
+  if (storesPromise) return storesPromise;
+  storesPromise = fetch("/api/locations")
+    .then((res) => res.json())
+    .then((data) => {
+      // Engine returns { locations: [...] }, { stores: [...] }, or raw array
+      const raw: Record<string, unknown>[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.locations)
+        ? data.locations
+        : Array.isArray(data?.stores)
+        ? data.stores
+        : [];
+      const normalized = raw.map((store) => normalizeMapStore(store));
+      cachedStores = normalized;
+      return normalized;
+    })
+    .finally(() => {
+      storesPromise = null;
+    });
+  return storesPromise;
+}
+
+export function useStores(enabled: boolean = true) {
   const [stores, setStores] = useState<Store[]>(cachedStores ?? []);
-  const [loading, setLoading] = useState(cachedStores === null);
+  const [loading, setLoading] = useState(enabled && cachedStores === null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     if (cachedStores !== null) {
       setStores(cachedStores);
       setLoading(false);
@@ -24,20 +53,9 @@ export function useStores() {
     let cancelled = false;
     setLoading(true);
 
-    fetch("/api/locations")
-      .then((res) => res.json())
-      .then((data) => {
+    loadStores()
+      .then((normalized) => {
         if (cancelled) return;
-        // Engine returns { locations: [...] }, { stores: [...] }, or raw array
-        const raw: Record<string, unknown>[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.locations)
-          ? data.locations
-          : Array.isArray(data?.stores)
-          ? data.stores
-          : [];
-        const normalized = raw.map((store) => normalizeMapStore(store));
-        cachedStores = normalized;
         setStores(normalized);
       })
       .catch(() => {
@@ -50,7 +68,7 @@ export function useStores() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [enabled]);
 
   return { stores, loading };
 }

@@ -66,12 +66,18 @@ function rewardBadgeLabels(privateMetadata: Record<string, unknown>) {
   return badges.slice(0, 2).map((badge) => [memberFacingBadgeLabel(badge.label), badge.tier].filter(Boolean).join(" "));
 }
 
+function metadataChanged(before: unknown, after: unknown) {
+  return JSON.stringify(before || null) !== JSON.stringify(after || null);
+}
+
 async function reconcileUserRewards(client: Awaited<ReturnType<typeof clerkClient>>, user: Record<string, unknown>) {
   const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
   const nextRewards = reconcileMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
-  await client.users.updateUserMetadata(String(user.id), { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  if (metadataChanged(privateMetadata.memberRewards, nextRewards)) {
+    await client.users.updateUserMetadata(String(user.id), { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  }
   return nextRewards;
 }
 
@@ -128,7 +134,9 @@ export async function GET(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
   const nextRewards = reconcileMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
-  await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  if (metadataChanged(privateMetadata.memberRewards, nextRewards)) {
+    await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  }
   const rewards: MemberRewardsSummary = summarizeMemberRewards(prefs.submittedSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
   return NextResponse.json({ sightings, states, rewards });
