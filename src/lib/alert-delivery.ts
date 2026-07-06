@@ -342,8 +342,58 @@ function candidateQuantityLabel(candidate: CandidateAlert) {
   return label || null;
 }
 
+function compactJoin(parts: Array<string | null | undefined>, separator = ", ") {
+  return parts
+    .map((part) => asString(part).trim())
+    .filter(Boolean)
+    .filter((part, index, rows) => rows.findIndex((other) => other.toLowerCase() === part.toLowerCase()) === index)
+    .join(separator);
+}
+
+function candidateLocationPrecision(candidate: CandidateAlert) {
+  return asString(candidate.locationPrecision).toLowerCase();
+}
+
+function candidateIsStoreLevel(candidate: CandidateAlert) {
+  const precision = candidateLocationPrecision(candidate);
+  const actionability = asString(candidate.actionabilityClass).toLowerCase();
+  const eventType = asString(candidate.eventType).toLowerCase();
+  return precision === "store_level" || actionability === "store_inventory" || /store_inventory|store_allocation|store_delivery|in_stock/.test(eventType);
+}
+
+function candidateAddressLabel(candidate: CandidateAlert) {
+  const direct = asString(candidate.storeAddress) || asString(candidate.address) || asString(candidate.locationAddress);
+  if (direct) return direct;
+  const composed = compactJoin([
+    asString(candidate.streetAddress) || asString(candidate.storeStreet) || asString(candidate.address1),
+    asString(candidate.storeCity) || asString(candidate.city),
+    asString(candidate.storeCounty) || asString(candidate.county),
+    asString(candidate.state).toUpperCase()
+  ]);
+  return composed || null;
+}
+
+function candidateSubjectLocationLabel(candidate: CandidateAlert) {
+  return asString(candidate.storeName) || asString(candidate.locationName) || asString(candidate.boardName) || asString(candidate.displayLocation) || stateLabel(asString(candidate.state));
+}
+
+function candidateBoardLevelLabel(candidate: CandidateAlert) {
+  const base = asString(candidate.boardName) || asString(candidate.locationName) || asString(candidate.displayLocation) || stateLabel(asString(candidate.state));
+  const precision = candidateLocationPrecision(candidate);
+  if (precision === "board_warehouse" || /warehouse/.test(asString(candidate.eventType))) {
+    return `${base} — board/warehouse signal, not a specific store address`;
+  }
+  if (precision === "board_county") {
+    return `${base} — board/county signal; check the linked source for receiving stores`;
+  }
+  return base;
+}
+
 function candidateStoreLabel(candidate: CandidateAlert) {
-  return asString(candidate.storeName) || asString(candidate.locationName) || asString(candidate.storeAddress) || stateLabel(asString(candidate.state));
+  if (!candidateIsStoreLevel(candidate)) return candidateBoardLevelLabel(candidate);
+  const store = candidateSubjectLocationLabel(candidate);
+  const address = candidateAddressLabel(candidate);
+  return address && !store.toLowerCase().includes(address.toLowerCase()) ? `${store} — ${address}` : store;
 }
 
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
@@ -549,7 +599,10 @@ function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
   const quantity = candidateQuantityLabel(candidate);
   const timestamp = candidateTimestampLabel(candidate);
   const detail = quantity ? `${quantity} ${timestamp}` : `reported ${timestamp}`;
-  return `Bourbon Signal alert: ${bottleName} at ${storeLabel}${state ? `, ${state}` : ""}. ${detail}. Verify before driving. Reply STOP to unsubscribe.`.slice(0, 320);
+  const sourceCaveat = candidateIsStoreLevel(candidate)
+    ? "Verify before driving."
+    : "Board-level signal; check source before driving.";
+  return `Bourbon Signal alert: ${bottleName} at ${storeLabel}${state ? `, ${state}` : ""}. ${detail}. ${sourceCaveat} Reply STOP to unsubscribe.`.slice(0, 320);
 }
 
 async function sendTwilioSms(to: string, body: string) {
@@ -865,7 +918,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                   from: ALERT_FROM,
                   to: [email],
                   replyTo: ALERT_REPLY_TO,
-                  subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${storeLabel}`,
+                  subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${candidateSubjectLocationLabel(candidate)}`,
                   react: PaidDropAlertEmail({
                     firstName: asString(user.firstName) || null,
                     bottleName,
