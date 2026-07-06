@@ -12,8 +12,8 @@ function statusLabel(sighting: AdminSighting) {
   if (sighting.rewardState?.rejectedAt) return "Rejected";
   if (sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview) return "Catalog review";
   if (!proof) return "No photo";
-  if (proof.status === "verified_public") return "Photo verified · public";
-  if (proof.status === "verified_private") return "Photo verified · private";
+  if (proof.status === "verified_public") return "Photo reviewed · public";
+  if (proof.status === "verified_private") return "Photo reviewed · private";
   if (proof.status === "rejected") return "Photo rejected";
   return "Pending review";
 }
@@ -118,8 +118,8 @@ export default function AdminSightingsClient() {
                     </div>
                   ) : null}
                   <div className="admin-actions">
-                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> Verify + show</button>
-                    <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> Verify private</button>
+                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> Approve + show</button>
+                    <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> Approve private</button>
                     <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "reject_photo")}><X size={14}/> Reject photo</button>
                     {(sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview) ? <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "resolve_manual_review")}><Check size={14}/> Mark catalog added</button> : null}
                     <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "remove_sighting")}><Trash2 size={14}/> Remove</button>

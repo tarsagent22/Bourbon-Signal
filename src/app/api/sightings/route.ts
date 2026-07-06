@@ -55,10 +55,15 @@ function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?
   return typeof primary?.emailAddress === "string" ? primary.emailAddress : "";
 }
 
+function memberFacingBadgeLabel(label: unknown) {
+  if (typeof label !== "string") return "";
+  return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
+}
+
 function rewardBadgeLabels(privateMetadata: Record<string, unknown>) {
   const rewards = privateMetadata.memberRewards && typeof privateMetadata.memberRewards === "object" ? privateMetadata.memberRewards as Record<string, unknown> : {};
   const badges = Array.isArray(rewards.badges) ? rewards.badges as Array<Record<string, unknown>> : [];
-  return badges.slice(0, 2).map((badge) => [badge.label, badge.tier].filter(Boolean).join(" "));
+  return badges.slice(0, 2).map((badge) => [memberFacingBadgeLabel(badge.label), badge.tier].filter(Boolean).join(" "));
 }
 
 async function reconcileUserRewards(client: Awaited<ReturnType<typeof clerkClient>>, user: Record<string, unknown>) {

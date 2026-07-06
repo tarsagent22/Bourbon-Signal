@@ -162,12 +162,18 @@ function tierProgress(id: string, label: string, current: number, thresholds: Ar
   }));
 }
 
+function normalizeBadgeAward(badge: MemberBadgeAward): MemberBadgeAward {
+  if (badge.id === "verified_scout") return { ...badge, id: "helpful_neighbor", label: "Helpful Neighbor" };
+  if (/verified/i.test(badge.label)) return { ...badge, label: badge.label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful") };
+  return badge;
+}
+
 function normalizeRewards(input: unknown): MemberRewardsProfile {
   const source = (input && typeof input === "object" ? input : {}) as Partial<MemberRewardsProfile>;
   return {
     points: typeof source.points === "number" && Number.isFinite(source.points) ? source.points : 0,
     ledger: Array.isArray(source.ledger) ? source.ledger.filter((entry): entry is MemberRewardLedgerEntry => Boolean(entry && typeof entry === "object" && entry.id)).slice(0, 1000) : [],
-    badges: Array.isArray(source.badges) ? source.badges.filter((badge): badge is MemberBadgeAward => Boolean(badge && typeof badge === "object" && badge.id)).slice(0, 200) : [],
+    badges: Array.isArray(source.badges) ? source.badges.filter((badge): badge is MemberBadgeAward => Boolean(badge && typeof badge === "object" && badge.id)).map(normalizeBadgeAward).slice(0, 200) : [],
     currentWeeklyStreak: typeof source.currentWeeklyStreak === "number" ? source.currentWeeklyStreak : 0,
     longestWeeklyStreak: typeof source.longestWeeklyStreak === "number" ? source.longestWeeklyStreak : 0,
     lastStreakWeek: typeof source.lastStreakWeek === "string" ? source.lastStreakWeek : undefined,
