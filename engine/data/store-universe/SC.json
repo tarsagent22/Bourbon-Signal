@@ -1,0 +1,378 @@
+{
+  "generatedAt": "2026-07-06T01:04:56.802Z",
+  "state": "SC",
+  "model": "Bourbon Signal national store universe v0.1",
+  "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates directory-only, platform/probeable, live inventory, and alert-grade semantics.",
+  "summary": {
+    "seedCount": 10,
+    "probedCount": 10,
+    "knownStoreCount": 20,
+    "currentStoreCount": 20,
+    "probeDiscoveredStoreCount": 18,
+    "directorySeedStoreCount": 0,
+    "directoryUrlStoreCount": 0,
+    "byStatus": {
+      "live-inventory": 20
+    },
+    "cityCount": 13,
+    "byCity": {
+      "Columbia": 3,
+      "Greenville": 2,
+      "Hilton Head Island": 2,
+      "Indian Land": 1,
+      "Landrum": 1,
+      "Mauldin": 1,
+      "Mount Pleasant": 1,
+      "Myrtle Beach": 2,
+      "North Charleston": 1,
+      "Rock Hill": 3,
+      "Simpsonville": 1,
+      "Summerville": 1,
+      "Taylors": 1
+    },
+    "promotableCityHiveSourceCount": 8,
+    "newPromotableCityHiveSourceCount": 0
+  },
+  "stores": [
+    {
+      "id": "greens-beverage:61b7517362f55f727e469da5",
+      "name": "Green's Beverage - Assembly Street SC",
+      "address": "400 Assembly St, Columbia, SC 29201, USA",
+      "city": "Columbia",
+      "state": "SC",
+      "zip": "29201",
+      "lat": 33.9903416,
+      "lng": -81.0300477,
+      "sourceLabels": [
+        "Green's Beverage CityHive store locator",
+        "Green's Beverage South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "green-s-beverage-assembly-street-sc-columbia-29201"
+    },
+    {
+      "id": "greens-beverage:61dc583152bc522be69a8b9e",
+      "name": "Green's Beverage - Garners Ferry SC",
+      "address": "6800 Garners Ferry Rd, Columbia, SC 29209, USA",
+      "city": "Columbia",
+      "state": "SC",
+      "zip": "29209",
+      "lat": 33.9781297,
+      "lng": -80.9567029,
+      "sourceLabels": [
+        "Green's Beverage CityHive store locator",
+        "Green's Beverage South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "green-s-beverage-garners-ferry-sc-columbia-29209"
+    },
+    {
+      "id": "greensbeverages.com:61dc4ab6a1d5721307e9c20e",
+      "name": "Green's Beverage - Piney Grove SC",
+      "address": "4012 Fernandina Rd, Columbia, SC 29212, USA",
+      "city": "Columbia",
+      "state": "SC",
+      "zip": "29212",
+      "lat": 34.0687159,
+      "lng": -81.1415335,
+      "sourceLabels": [
+        "Green's Beverage CityHive store locator",
+        "Green's Beverage SC CityHive merchant-id bourbon inventory probe"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "probe",
+      "website": "https://www.greensbeverages.com/shop/?subtype=bourbon",
+      "ecommercePlatform": "cityhive",
+      "key": "green-s-beverage-piney-grove-sc-columbia-29212"
+    },
+    {
+      "id": "greens-beverage:61dc62fca1d5721d92e837cf",
+      "name": "Green's Beverage - Greenville SC",
+      "address": "445 Congaree Rd, Greenville, SC 29607, USA",
+      "city": "Greenville",
+      "state": "SC",
+      "zip": "29607",
+      "lat": 34.8507292,
+      "lng": -82.3292927,
+      "sourceLabels": [
+        "Green's Beverage CityHive store locator",
+        "Green's Beverage South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "green-s-beverage-greenville-sc-greenville-29607"
+    },
+    {
+      "id": "wine-bourbon-barn:69977a118f10a026bd985189",
+      "name": "Wine & Bourbon Barn - GVL",
+      "address": "1050 N Pleasantburg Dr, Greenville, SC 29607, USA",
+      "city": "Greenville",
+      "state": "SC",
+      "zip": "29607",
+      "lat": 34.8683482,
+      "lng": -82.35776539999999,
+      "sourceLabels": [
+        "Wine & Bourbon Barn CityHive store locator",
+        "Wine & Bourbon Barn CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "wine-and-bourbon-barn-gvl-greenville-29607"
+    },
+    {
+      "id": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "name": "Moss Creek Village Spirits & Wine",
+      "address": "1541 Fording Island Rd, Hilton Head Island, SC 29926, USA",
+      "city": "Hilton Head Island",
+      "state": "SC",
+      "zip": "29926",
+      "lat": 32.2369232,
+      "lng": -80.8072285,
+      "sourceLabels": [
+        "Moss Creek Village Spirits & Wine CityHive store locator",
+        "Moss Creek Village Spirits & Wine South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "moss-creek-village-spirits-and-wine-hilton-head-island-29926"
+    },
+    {
+      "id": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "name": "Rollers Wine & Spirits",
+      "address": "9 Palmetto Bay Rd, Hilton Head Island, SC 29928, USA",
+      "city": "Hilton Head Island",
+      "state": "SC",
+      "zip": "29928",
+      "lat": 32.156802,
+      "lng": -80.7642517,
+      "sourceLabels": [
+        "Rollers Wine & Spirits CityHive store locator",
+        "Rollers Wine & Spirits South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "rollers-wine-and-spirits-hilton-head-island-29928"
+    },
+    {
+      "id": "southern-spirits:southern-spirits-indian-land",
+      "name": "Southern Spirits",
+      "address": "9989 Charlotte Hwy, Indian Land, SC 29707",
+      "city": "Indian Land",
+      "state": "SC",
+      "zip": "29707",
+      "lat": null,
+      "lng": null,
+      "sourceLabels": [
+        "Southern Spirits Shopify products feed"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "southern-spirits-indian-land-29707"
+    },
+    {
+      "id": "odarbys-liquor-barn:6060f7262c63853de749dda2",
+      "name": "O'Darby's Landrum",
+      "address": "127 Fairwinds Dr, Landrum, SC 29356, USA",
+      "city": "Landrum",
+      "state": "SC",
+      "zip": "29356",
+      "lat": 35.1802836,
+      "lng": -82.1597412,
+      "sourceLabels": [
+        "O'Darby's Liquor Barn CityHive store locator",
+        "O'Darby's Liquor Barn South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "o-darby-s-landrum-landrum-29356"
+    },
+    {
+      "id": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
+      "name": "Wine & Bourbon Barn - MLD",
+      "address": "437 N Main St, Mauldin, SC 29662, USA",
+      "city": "Mauldin",
+      "state": "SC",
+      "zip": "29662",
+      "lat": 34.7848814,
+      "lng": -82.31420059999999,
+      "sourceLabels": [
+        "Wine & Bourbon Barn CityHive store locator",
+        "Wine & Bourbon Barn CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "wine-and-bourbon-barn-mld-mauldin-29662"
+    },
+    {
+      "id": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "name": "Palmetto Liquor & Wine",
+      "address": "869 Houston Northcutt Blvd, Mt Pleasant, SC 29464, USA",
+      "city": "Mount Pleasant",
+      "state": "SC",
+      "zip": "29464",
+      "lat": 32.8035814,
+      "lng": -79.8883807,
+      "sourceLabels": [
+        "Palmetto Liquor CityHive store locator",
+        "Palmetto Liquor South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "palmetto-liquor-and-wine-mount-pleasant-29464"
+    },
+    {
+      "id": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "name": "Beach Discount Beverage",
+      "address": "2204 N Kings Hwy, Myrtle Beach, SC 29577, USA",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "lat": 33.7031403,
+      "lng": -78.870421,
+      "sourceLabels": [
+        "Beach Discount Beverages CityHive store locator",
+        "Beach Discount Beverages South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "beach-discount-beverage-myrtle-beach-29577"
+    },
+    {
+      "id": "greens-beverage:61e1d04c823936166693c7f3",
+      "name": "Green's Beverage - Myrtle Beach SC",
+      "address": "2850 N Kings Hwy, Myrtle Beach, SC 29577, USA",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "lat": 33.7085751,
+      "lng": -78.863787,
+      "sourceLabels": [
+        "Green's Beverage CityHive store locator",
+        "Green's Beverage South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "green-s-beverage-myrtle-beach-sc-myrtle-beach-29577"
+    },
+    {
+      "id": "da-brown-bag:da-brown-bag-north-charleston",
+      "name": "Da Brown Bag ABC Store",
+      "address": "1709 Remount Road, Suite 107, North Charleston, SC 29406",
+      "city": "North Charleston",
+      "state": "SC",
+      "zip": "29406",
+      "lat": null,
+      "lng": null,
+      "sourceLabels": [
+        "Da Brown Bag Clover public inventory API"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "da-brown-bag-abc-store-north-charleston-29406"
+    },
+    {
+      "id": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "name": "O'Darby's Galleria",
+      "address": "2350 Dave Lyle Blvd, Rock Hill, SC 29730, USA",
+      "city": "Rock Hill",
+      "state": "SC",
+      "zip": "29730",
+      "lat": 34.9408142,
+      "lng": -80.9621524,
+      "sourceLabels": [
+        "O'Darby's Liquor Barn CityHive store locator",
+        "O'Darby's Liquor Barn South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "o-darby-s-galleria-rock-hill-29730"
+    },
+    {
+      "id": "odarbys-liquor-barn:607f9bdbb73eb4091ef976e7",
+      "name": "O'Darby's Heckle",
+      "address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+      "city": "Rock Hill",
+      "state": "SC",
+      "zip": "29732",
+      "lat": 34.9526779,
+      "lng": -81.0626581,
+      "sourceLabels": [
+        "O'Darby's Liquor Barn CityHive store locator",
+        "O'Darby's Liquor Barn South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "o-darby-s-heckle-rock-hill-29732"
+    },
+    {
+      "id": "odarbys-liquor-barn:607f1c35f568f15818499db8",
+      "name": "O'Darby's Riverchase",
+      "address": "1421 Riverchase Blvd, Rock Hill, SC 29732, USA",
+      "city": "Rock Hill",
+      "state": "SC",
+      "zip": "29732",
+      "lat": 34.9773798,
+      "lng": -80.9923089,
+      "sourceLabels": [
+        "O'Darby's Liquor Barn CityHive store locator",
+        "O'Darby's Liquor Barn South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "o-darby-s-riverchase-rock-hill-29732"
+    },
+    {
+      "id": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
+      "name": "Wine & Bourbon Barn - SVL",
+      "address": "30 Ray E Talley Ct, Simpsonville, SC 29680, USA",
+      "city": "Simpsonville",
+      "state": "SC",
+      "zip": "29680",
+      "lat": 34.7131362,
+      "lng": -82.254555,
+      "sourceLabels": [
+        "Wine & Bourbon Barn CityHive store locator",
+        "Wine & Bourbon Barn CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "wine-and-bourbon-barn-svl-simpsonville-29680"
+    },
+    {
+      "id": "dev-liquors:620164924a3ea84d57c21d6f",
+      "name": "DEV Liquors - Summerville",
+      "address": "9730 Dorchester Rd 202 a, Summerville, SC 29485, USA",
+      "city": "Summerville",
+      "state": "SC",
+      "zip": "29485",
+      "lat": 32.9484743,
+      "lng": -80.15372669999999,
+      "sourceLabels": [
+        "DEV Liquors CityHive store locator",
+        "DEV Liquors South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "dev-liquors-summerville-summerville-29485"
+    },
+    {
+      "id": "odarbys-liquor-barn:607af19a07c9e57bbd8de002",
+      "name": "O'Darby's Taylors",
+      "address": "5115 Wade Hampton Blvd, Taylors, SC 29687, USA",
+      "city": "Taylors",
+      "state": "SC",
+      "zip": "29687",
+      "lat": 34.932949,
+      "lng": -82.2865447,
+      "sourceLabels": [
+        "O'Darby's Liquor Barn CityHive store locator",
+        "O'Darby's Liquor Barn South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "state-output",
+      "key": "o-darby-s-taylors-taylors-29687"
+    }
+  ]
+}

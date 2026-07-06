@@ -43,6 +43,23 @@ function canonicalCity(value) {
   return aliases[city] || city || null;
 }
 
+const STATE_NAMES = {
+  SC: 'South Carolina',
+  TN: 'Tennessee'
+};
+
+function stateName(stateId) {
+  return STATE_NAMES[stateId] || stateId;
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+function stateAddressPattern(stateId) {
+  return new RegExp(`\\b(?:${escapeRegExp(stateId)}|${escapeRegExp(stateName(stateId))})\\b`, 'i');
+}
+
 function uniqueBy(values, keyFn) {
   const seen = new Set();
   const out = [];
@@ -161,17 +178,17 @@ function cityHiveAddressParts(address = {}) {
 }
 
 function addressFromText(text, state) {
-  const re = /(?:located in|shopping from)\s+([^\.\n]+?\b(?:TN|Tennessee)\b\s*\d{5}(?:-\d{4})?)/i;
+  const re = new RegExp(`(?:located in|shopping from)\\s+([^\\.\\n]+?\\b(?:${escapeRegExp(state)}|${escapeRegExp(stateName(state))})\\b\\s*\\d{5}(?:-\\d{4})?)`, 'i');
   const match = String(text || '').match(re);
   if (!match) return null;
   const value = match[1].replace(/^at\s+/i, '').trim();
-  if (state === 'TN' && !/\b(TN|Tennessee)\b/i.test(value)) return null;
+  if (!stateAddressPattern(state).test(value)) return null;
   return value;
 }
 
 function cityFromAddress(address, state) {
   const text = String(address || '');
-  const m = text.match(/,\s*([^,]+),\s*(?:TN|Tennessee)\b/i);
+  const m = text.match(new RegExp(`,\\s*([^,]+),\\s*(?:${escapeRegExp(state)}|${escapeRegExp(stateName(state))})\\b`, 'i'));
   if (m) return canonicalCity(m[1]);
   return null;
 }
@@ -211,23 +228,23 @@ function registeredSourceDomains(stateId) {
 }
 
 function inventoryStatusForProbe(probe) {
-  if (probe.positiveProductOptions > 0 && probe.tnMerchantCount > 0) return 'live-inventory';
-  if (probe.productCount > 0 && probe.tnMerchantCount > 0) return 'catalog-or-inventory';
-  if (probe.tnMerchantCount > 0 || probe.address) return 'storefront-probeable';
+  if (probe.positiveProductOptions > 0 && probe.inStateMerchantCount > 0) return 'live-inventory';
+  if (probe.productCount > 0 && probe.inStateMerchantCount > 0) return 'catalog-or-inventory';
+  if (probe.inStateMerchantCount > 0 || probe.address) return 'storefront-probeable';
   if (probe.platforms.includes('cityhive')) return 'platform-detected';
   return 'directory-only';
 }
 
 function scoreProbe(probe) {
   let score = 0;
-  if (probe.address && /\bTN\b|Tennessee/i.test(probe.address)) score += 3;
-  if (probe.tnMerchantCount > 0) score += 4;
+  if (probe.address && stateAddressPattern(probe.state).test(probe.address)) score += 3;
+  if (probe.inStateMerchantCount > 0) score += 4;
   if (probe.platforms.includes('cityhive')) score += 3;
   if (probe.platforms.includes('shopify')) score += 3;
   if (probe.productCount > 0) score += 3;
   if (probe.positiveProductOptions > 0) score += 5;
   if (probe.fetchOkCount > 0) score += 1;
-  if (probe.outOfStateMerchantCount > 0 && probe.tnMerchantCount === 0) score -= 5;
+  if (probe.outOfStateMerchantCount > 0 && probe.inStateMerchantCount === 0) score -= 5;
   return score;
 }
 
@@ -272,7 +289,7 @@ async function probeStore(seed, stateId) {
       name: merchant.display_name || merchant.name || seed.name || null,
       address: address || null,
       city: canonicalCity(a.city || cityFromAddress(address, stateId) || seed.city),
-      state: String(a.state || '').toUpperCase() || (address && /\bTN\b|Tennessee/i.test(address) ? 'TN' : null),
+      state: String(a.state || '').toUpperCase() || (address && stateAddressPattern(stateId).test(address) ? stateId : null),
       zip: a.zip || null,
       lat: a.lat,
       lng: a.lng
@@ -290,8 +307,8 @@ async function probeStore(seed, stateId) {
       }
     }
   }
-  const tnMerchants = merchantRows.filter((row) => row.state === stateId || /\bTN\b|Tennessee/i.test(row.address || ''));
-  const outOfStateMerchants = merchantRows.filter((row) => row.state && row.state !== stateId && !/\bTN\b|Tennessee/i.test(row.address || ''));
+  const inStateMerchants = merchantRows.filter((row) => row.state === stateId || stateAddressPattern(stateId).test(row.address || ''));
+  const outOfStateMerchants = merchantRows.filter((row) => row.state && row.state !== stateId && !stateAddressPattern(stateId).test(row.address || ''));
   const platforms = [];
   if (/cityhive|assets\.cityhive|widget\.cityhive|sites\.cityhive\.app|Powered\s+By\s+City\s*Hive/i.test(combined)) platforms.push('cityhive');
   if (shopifyStats.ok) platforms.push('shopify');
@@ -311,18 +328,20 @@ async function probeStore(seed, stateId) {
     positiveProductOptions: optionStats.positiveOptionCount + shopifyStats.availableCount,
     shopifyAvailableVariants: shopifyStats.availableCount,
     merchantCount: merchantRows.length,
-    tnMerchantCount: tnMerchants.length,
+    inStateMerchantCount: inStateMerchants.length,
+    tnMerchantCount: stateId === 'TN' ? inStateMerchants.length : 0,
     outOfStateMerchantCount: outOfStateMerchants.length,
-    merchants: tnMerchants.length ? tnMerchants : (merchantRows.length ? merchantRows : (address ? [{ id: null, name: seed.name, address, city: textCity, state: stateId }] : [])),
+    merchants: inStateMerchants.length ? inStateMerchants : (merchantRows.length ? merchantRows : (address ? [{ id: null, name: seed.name, address, city: textCity, state: stateId }] : [])),
     errors: errors.slice(0, 3)
   };
   if (!probe.merchants.length && shopifyStats.ok && seed.city) {
     probe.merchants = [{ id: null, name: seed.name, address: seed.address || null, city: canonicalCity(seed.city), state: stateId }];
-    probe.tnMerchantCount = 1;
+    probe.inStateMerchantCount = 1;
+    probe.tnMerchantCount = stateId === 'TN' ? 1 : 0;
   }
   probe.inventoryStatus = seed.inventoryStatus && seed.inventoryStatus !== 'source-registry' ? seed.inventoryStatus : inventoryStatusForProbe(probe);
   probe.score = scoreProbe(probe);
-  probe.promotable = probe.inventoryStatus === 'live-inventory' && probe.tnMerchantCount > 0 && probe.platforms.includes('cityhive');
+  probe.promotable = probe.inventoryStatus === 'live-inventory' && probe.inStateMerchantCount > 0 && probe.platforms.includes('cityhive');
   return probe;
 }
 
@@ -354,7 +373,7 @@ function storesFromStateOutput(stateReport, stateId) {
 }
 
 function storesFromProbe(probe, stateId) {
-  return uniqueBy((probe.merchants || []).filter((merchant) => merchant.state === stateId || /\bTN\b|Tennessee/i.test(merchant.address || '')).map((merchant) => ({
+  return uniqueBy((probe.merchants || []).filter((merchant) => merchant.state === stateId || stateAddressPattern(stateId).test(merchant.address || '')).map((merchant) => ({
     id: merchant.id ? `${probe.domain}:${merchant.id}` : null,
     name: merchant.name || probe.seedName,
     address: merchant.address || probe.address || null,
@@ -391,7 +410,7 @@ function storesFromLiquorFindHtml(html, sourceUrl, stateId, limit = DEFAULT_DIRE
       ecommercePlatform: null,
       inventoryStatus: 'directory-only',
       discoverySource: `directory-url:${sourceUrl}`,
-      sourceLabels: ['LiquorFind Tennessee directory']
+      sourceLabels: [`LiquorFind ${stateName(stateId)} directory`]
     });
     if (rows.length >= limit) break;
   }

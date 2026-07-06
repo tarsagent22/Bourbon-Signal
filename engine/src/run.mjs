@@ -4,7 +4,7 @@ import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
-import { ensureBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
+import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 
 const OUT = path.resolve('out');
@@ -38,6 +38,10 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
 };
 const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0' && !process.argv.includes('--skip-browser-preflight');
+const REQUESTED_STATE_IDS = new Set((process.env.BOURBON_SIGNAL_RUN_STATES || process.argv.find((arg) => arg.startsWith('--states='))?.split('=')[1] || '')
+  .split(',')
+  .map((value) => value.trim().toUpperCase())
+  .filter(Boolean));
 
 const BROWSER_PREFLIGHT_JOBS = [
   {
@@ -412,7 +416,16 @@ async function main() {
   const allSignals = [];
   const allRoadblocks = [];
 
-  for (const config of STATE_SOURCES) {
+  const selectedStateSources = REQUESTED_STATE_IDS.size
+    ? STATE_SOURCES.filter((config) => REQUESTED_STATE_IDS.has(config.id))
+    : STATE_SOURCES;
+  if (REQUESTED_STATE_IDS.size && selectedStateSources.length !== REQUESTED_STATE_IDS.size) {
+    const known = new Set(STATE_SOURCES.map((config) => config.id));
+    const missing = [...REQUESTED_STATE_IDS].filter((id) => !known.has(id));
+    throw new Error(`Unknown requested state id(s): ${missing.join(', ')}`);
+  }
+
+  for (const config of selectedStateSources) {
     console.log(`Collecting ${config.id} — ${config.label}`);
     const report = await collectStateResilient(config);
     allReports.push(report);

@@ -726,7 +726,13 @@ const SC_CITYHIVE_SOURCES = [
       'https://odarbysliquorbarn.com/shop/?subtype=bourbon',
       'https://odarbysliquorbarn.com/shop/?subtype=whiskey'
     ],
-    merchantIds: ['607f9d38b73eb4091ef97ff7']
+    merchantIds: [
+      '607f9d38b73eb4091ef97ff7',
+      '607f9bdbb73eb4091ef976e7',
+      '607f1c35f568f15818499db8',
+      '607af19a07c9e57bbd8de002',
+      '6060f7262c63853de749dda2'
+    ]
   },
   {
     id: 'beach-discount-beverages',

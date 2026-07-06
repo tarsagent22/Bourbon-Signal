@@ -464,11 +464,21 @@ Current export reports 22 active states/lanes. Only states with current alert ca
 **Coverage tier:** live store inventory  
 **Lifecycle:** retailer store inventory  
 **Best precision:** store level  
-**Current candidates:** 5 unicorn store-level retailer rows
+**Current candidates:** 198 fresh alertable retailer inventory rows in scoring (471 normalized/verifier rows across current state + operational/export surfaces), 69 exported SC drops, 10 whitelisted sources, 19 stores, 13 cities.
+
+**Current source mesh:**
+
+- Green's Beverage CityHive merchant-id pages: Columbia, Myrtle Beach, Greenville.
+- Wine & Bourbon Barn CityHive merchant-id pages: Simpsonville, Mauldin, Greenville.
+- O'Darby's Liquor Barn CityHive merchant-id pages: Rock Hill Galleria, Rock Hill Heckle, Rock Hill Riverchase, Taylors, and Landrum.
+- Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, and Rollers CityHive merchant-id pages.
+- Da Brown Bag Clover public stockCount API.
+- Southern Spirits Shopify products feed.
+- Costco warehouse observations remain wired but require a verified observation feed before publishing.
 
 **Alert semantics:**
 
-- Retailer inventory rows are useful when whitelisted.
+- Retailer inventory rows are useful only when whitelisted, store-level, positive-quantity/listed-available, and bourbon/whiskey filtered.
 - DOR/ABL pages are regulatory context only.
 
 **Allowed channels:**
