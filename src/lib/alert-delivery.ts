@@ -350,6 +350,71 @@ function compactJoin(parts: Array<string | null | undefined>, separator = ", ") 
     .join(separator);
 }
 
+function normalizeLocationLookupKey(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+type LocationLookupRecord = {
+  state: string;
+  name: string;
+  address: string;
+  city: string;
+  county: string;
+  zip: string;
+  sourceStoreId: string;
+  id: string;
+};
+
+let locationLookupCache: LocationLookupRecord[] | null = null;
+
+function siteLocationLookupRecords() {
+  if (locationLookupCache) return locationLookupCache;
+  const records: LocationLookupRecord[] = [];
+  for (const exportName of ["stores", "locations"] as const) {
+    try {
+      const payload = readSiteExport(exportName);
+      const rows = Array.isArray(payload?.[exportName]) ? payload[exportName] as Array<Record<string, unknown>> : [];
+      for (const row of rows) {
+        records.push({
+          state: asString(row.state).toUpperCase(),
+          name: asString(row.name),
+          address: asString(row.address),
+          city: asString(row.city),
+          county: asString(row.county),
+          zip: asString(row.zip),
+          sourceStoreId: asString(row.sourceStoreId),
+          id: asString(row.id),
+        });
+      }
+    } catch {
+      // Alert delivery must remain resilient if optional lookup exports are unavailable.
+    }
+  }
+  locationLookupCache = records.filter((row) => row.state && row.name && row.address);
+  return locationLookupCache;
+}
+
+function candidateLocationLookupRecord(candidate: CandidateAlert) {
+  const state = asString(candidate.state).toUpperCase();
+  const names = [
+    asString(candidate.storeName),
+    asString(candidate.locationName),
+    asString(candidate.displayLocation),
+    asString(candidate.boardName),
+  ].map(normalizeLocationLookupKey).filter(Boolean);
+  const ids = [asString(candidate.storeId), asString(candidate.store_id), asString(candidate.locationId), asString(candidate.id)]
+    .map(normalizeLocationLookupKey)
+    .filter(Boolean);
+  if (!state || (!names.length && !ids.length)) return null;
+  return siteLocationLookupRecords().find((row) => {
+    if (row.state !== state) return false;
+    const rowName = normalizeLocationLookupKey(row.name);
+    const rowIds = [row.id, row.sourceStoreId].map(normalizeLocationLookupKey).filter(Boolean);
+    return names.some((name) => rowName === name || rowName.includes(name) || name.includes(rowName))
+      || ids.some((id) => rowIds.includes(id));
+  }) || null;
+}
+
 function candidateLocationPrecision(candidate: CandidateAlert) {
   return asString(candidate.locationPrecision).toLowerCase();
 }
@@ -364,6 +429,8 @@ function candidateIsStoreLevel(candidate: CandidateAlert) {
 function candidateAddressLabel(candidate: CandidateAlert) {
   const direct = asString(candidate.storeAddress) || asString(candidate.address) || asString(candidate.locationAddress);
   if (direct) return direct;
+  const lookup = candidateLocationLookupRecord(candidate);
+  if (lookup?.address) return lookup.address;
   const composed = compactJoin([
     asString(candidate.streetAddress) || asString(candidate.storeStreet) || asString(candidate.address1),
     asString(candidate.storeCity) || asString(candidate.city),
@@ -393,7 +460,9 @@ function candidateStoreLabel(candidate: CandidateAlert) {
   if (!candidateIsStoreLevel(candidate)) return candidateBoardLevelLabel(candidate);
   const store = candidateSubjectLocationLabel(candidate);
   const address = candidateAddressLabel(candidate);
-  return address && !store.toLowerCase().includes(address.toLowerCase()) ? `${store} — ${address}` : store;
+  if (address && !store.toLowerCase().includes(address.toLowerCase())) return `${store} — ${address}`;
+  if (address) return store;
+  return `${store} — address unavailable; check source before driving`;
 }
 
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
@@ -602,7 +671,8 @@ function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
   const sourceCaveat = candidateIsStoreLevel(candidate)
     ? "Verify before driving."
     : "Board-level signal; check source before driving.";
-  return `Bourbon Signal alert: ${bottleName} at ${storeLabel}${state ? `, ${state}` : ""}. ${detail}. ${sourceCaveat} Reply STOP to unsubscribe.`.slice(0, 320);
+  const stateSuffix = state && !new RegExp(`\\b${state.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(storeLabel) ? `, ${state}` : "";
+  return `Bourbon Signal alert: ${bottleName} at ${storeLabel}${stateSuffix}. ${detail}. ${sourceCaveat} Reply STOP to unsubscribe.`.slice(0, 320);
 }
 
 async function sendTwilioSms(to: string, body: string) {
