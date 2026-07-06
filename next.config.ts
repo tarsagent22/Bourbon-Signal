@@ -19,6 +19,28 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/dashboard",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, max-age=0",
+          },
+          {
+            key: "Clear-Site-Data",
+            value: '"cache"',
+          },
+        ],
+      },
+      {
+        source: "/api/sightings/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, max-age=0",
+          },
+        ],
+      },
+      {
         source: "/_next/static/:path*",
         headers: [
           {
