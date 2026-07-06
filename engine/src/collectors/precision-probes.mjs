@@ -18,7 +18,7 @@ const TRACKED_TERMS = {
   NC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Willett'],
   IL: ['Blanton', 'Eagle Rare', 'Weller', 'Stagg', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker'],
   VA: ['Blanton', 'Eagle Rare', 'Buffalo Trace', 'Taylor', 'Old Fitzgerald', '1792 Small Batch'],
-  PA: ['Buffalo Trace', 'Weller', 'Blanton', 'Eagle Rare', 'Stagg', 'Old Fitzgerald'],
+  PA: ['Buffalo Trace', 'Weller', 'Blanton', 'Eagle Rare', 'Stagg', 'Old Fitzgerald', "Booker's", "Baker's", 'Elijah Craig Barrel Proof', 'Larceny Barrel Proof', 'Four Roses Limited Edition', 'Russell', 'Old Forester Birthday', 'Blood Oath', 'Little Book', '1792 Full Proof'],
   SC: ['Blanton', 'Eagle Rare', 'Weller', 'Taylor', 'Buffalo Trace', 'Old Fitzgerald', 'Michter', 'Willett', 'Stagg', '1792'],
   'MD-MONTGOMERY': ['Blanton', 'Eagle Rare', 'Weller', 'Buffalo Trace', 'Taylor', 'Stagg', 'Old Fitzgerald', 'Michter', 'Willett', 'Baker']
 };
@@ -6106,11 +6106,19 @@ async function collectVirginia(config, bible) {
 const PA_SEARCH_TERMS = [
   'buffalo trace bourbon', 'weller bourbon', 'blanton bourbon', 'eagle rare bourbon', 'stagg bourbon',
   'old fitzgerald bourbon', 'old fitzgerald bottled in bond', 'willett bourbon', 'michter bourbon',
-  'eh taylor bourbon', 'elmer t lee bourbon'
+  'eh taylor bourbon', 'elmer t lee bourbon', 'bookers bourbon', 'bakers bourbon', 'elijah craig barrel proof',
+  'larceny barrel proof', 'heaven hill bottled in bond', 'four roses limited edition bourbon',
+  'four roses single barrel barrel strength', 'russells reserve bourbon', 'makers mark cellar aged',
+  'makers mark wood finishing', 'old forester birthday bourbon', 'old forester single barrel barrel strength',
+  'blood oath bourbon', 'old carter bourbon', 'rock hill farms bourbon', 'george t stagg bourbon',
+  'william larue weller bourbon', 'thomas handy rye', 'parker heritage bourbon', 'little book whiskey',
+  '1792 full proof bourbon', '1792 sweet wheat bourbon', 'knob creek 12 bourbon', 'knob creek 18 bourbon',
+  'wild turkey masters keep bourbon', 'russells reserve 13 bourbon'
 ];
 
-const PA_BOURBON_RE = /bourbon|straight rye|american whiskey|michter|willett|buffalo trace|eagle rare|weller|blanton|stagg|old fitz|fitzgerald|e\.?h\.?\s*taylor|elmer t|colonel\s*taylor/i;
+const PA_BOURBON_RE = /bourbon|straight rye|american whiskey|michter|willett|buffalo trace|eagle rare|weller|blanton|stagg|old fitz|fitzgerald|e\.?h\.?\s*taylor|elmer t|colonel\s*taylor|booker|baker|elijah craig|larceny|heaven hill|four roses|russell|maker'?s|old forester|blood oath|old carter|rock hill|george t|william larue|thomas handy|parker|little book|1792|knob creek|wild turkey/i;
 const PA_EXCLUDE_RE = /cream|cocktail|wine|cabernet|chardonnay|sauvignon|cava|grenache|merlot|vodka|gin|rum|tequila|liqueur|ready to drink|flavored whiskey|black cherry/i;
+const PA_LICENSEE_SERVICE_CENTER_RE = /LICENSEE SERVICE CENTER/i;
 
 function paDecodePage(text) {
   return htmlAttrDecode(safePercentDecode(text));
@@ -6180,15 +6188,17 @@ async function collectPennsylvania(config, bible) {
       const store = row.location || {};
       const quantity = Number(row.quantity || 0) || 0;
       if (!product.sku || !product.name || !store.locationId || quantity <= 0) continue;
+      const locationName = store.name || `Fine Wine & Good Spirits #${store.locationId}`;
+      const isLicenseeServiceCenter = PA_LICENSEE_SERVICE_CENTER_RE.test(locationName);
       const { base } = signalBase(config.id, 'FWGS store pickup inventory API browser-assisted collector', product.route ? `https://www.finewineandgoodspirits.com${product.route}` : 'out/browser/fwgs-store-inventory.json', product.name, bible);
       signals.push({
-        id: stableId([config.id, 'fwgs-store-pickup-inventory', product.sku, store.locationId, quantity]),
+        id: stableId([config.id, isLicenseeServiceCenter ? 'fwgs-licensee-service-center-inventory' : 'fwgs-store-pickup-inventory', product.sku, store.locationId, quantity]),
         ...base,
-        confidence: Math.max(0.78, base.confidence),
-        eventType: 'store_inventory_result',
+        confidence: Math.max(isLicenseeServiceCenter ? 0.58 : 0.78, base.confidence),
+        eventType: isLicenseeServiceCenter ? 'licensee_service_center_inventory_observation' : 'store_inventory_result',
         locationPrecision: 'store_level',
-        locationName: store.name || `Fine Wine & Good Spirits #${store.locationId}`,
-        storeName: store.name || `Fine Wine & Good Spirits #${store.locationId}`,
+        locationName,
+        storeName: locationName,
         storeId: String(store.locationId),
         storeAddress: [store.address1, store.address2, store.city, store.stateAddress || 'PA', store.postalCode].filter(Boolean).join(', ') || null,
         city: store.city || null,
@@ -6202,8 +6212,8 @@ async function collectPennsylvania(config, bible) {
         observedAt: browserRun.generatedAt || base.fetchedAt,
         availabilityStatus: 'IN_STOCK',
         availabilityLabel: 'Available for pickup',
-        evidence: `FWGS pickup inventory API reported ${quantity} unit(s) of ${product.name} (${product.sku}) at ${store.name || `store ${store.locationId}`}${store.city ? ` in ${store.city}` : ''}${store.county ? `, ${store.county} County` : ''}. Source route: /ccstorex/custom/v1/b2b/get-inventory with method=pickup, location=${store.locationId}.`,
-        raw: { product, store, quantity, generatedAt: browserRun.generatedAt, inventoryEndpoint: browserRun.inventoryEndpoint, browserAssisted: true }
+        evidence: `FWGS pickup inventory API reported ${quantity} unit(s) of ${product.name} (${product.sku}) at ${store.name || `store ${store.locationId}`}${store.city ? ` in ${store.city}` : ''}${store.county ? `, ${store.county} County` : ''}. Source route: /ccstorex/custom/v1/b2b/get-inventory with method=pickup, location=${store.locationId}.${isLicenseeServiceCenter ? ' Licensee Service Center rows are kept for source diagnostics but are not treated as consumer retail pickup alerts.' : ''}`,
+        raw: { product, store, quantity, generatedAt: browserRun.generatedAt, inventoryEndpoint: browserRun.inventoryEndpoint, browserAssisted: true, locationKind: isLicenseeServiceCenter ? 'licensee_service_center' : 'fwgs_retail_store', sampleOnly: isLicenseeServiceCenter }
       });
       seen.add(product.sku);
     }
@@ -6214,7 +6224,7 @@ async function collectPennsylvania(config, bible) {
         url: 'https://www.finewineandgoodspirits.com/ccstorex/custom/v1/b2b/get-inventory',
         status: 403,
         error: 'Store-level PA inventory was collected through browser/CDP because raw Node fetches are Akamai/session gated.',
-        nextRoute: 'Run npm run fwgs before npm run run, or promote the FWGS browser bootstrap into the scheduled engine runner.'
+        nextRoute: 'Browser/CDP FWGS collection is the production path; inspect CDP/session startup, full-chunk status, or FWGS endpoint shape drift if this artifact fails validation.'
       });
     }
   } catch {

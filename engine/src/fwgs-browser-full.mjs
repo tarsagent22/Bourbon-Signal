@@ -125,9 +125,14 @@ async function main() {
     failures,
     summary: {
       productCount: first.products?.length || 0,
+      searchTermCount: first.summary?.searchTermCount || first.searchTerms?.length || 0,
       locationCount: locationsById.size,
       positiveInventoryRowCount: rows.length,
-      failureCount: failures.length
+      failureCount: failures.length,
+      swappedCoordinateCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.swappedCoordinateCount || 0), 0),
+      suppressedCoordinateCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.suppressedCoordinateCount || 0), 0),
+      invalidCoordinateCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.invalidCoordinateCount || 0), 0),
+      positiveInventoryProductCount: new Set(rows.map((row) => row.product?.sku).filter(Boolean)).size
     }
   };
   await writeFile(OUT_FILE, JSON.stringify(merged, null, 2));

@@ -41,8 +41,22 @@ async function main() {
   const missingStoreIds = exactDrops.filter((drop) => !drop.storeId);
   const storeIds = new Set(stores.map((store) => String(store.id)).filter(Boolean));
   const unmatchedDropStores = exactDrops.filter((drop) => drop.storeId && !storeIds.has(String(drop.storeId)));
+  const coordinateInPennsylvania = (lat, lng) => {
+    if (lat == null || lng == null) return true;
+    const numericLat = Number(lat);
+    const numericLng = Number(lng);
+    if (!Number.isFinite(numericLat) || !Number.isFinite(numericLng)) return false;
+    return numericLat >= 39 && numericLat <= 43 && numericLng >= -81 && numericLng <= -74;
+  };
+  const badStoreCoordinates = stores.filter((store) => !coordinateInPennsylvania(store.lat, store.lng));
+  const badDropCoordinates = exactDrops.filter((drop) => !coordinateInPennsylvania(drop.lat, drop.lng));
+  const licenseeServiceCenterDrops = exactDrops.filter((drop) => /LICENSEE SERVICE CENTER/i.test(`${drop.storeName || ''} ${drop.locationName || ''}`));
+  const licenseeServiceCenterAlerts = inventorySignals.filter((signal) => /LICENSEE SERVICE CENTER/i.test(`${signal.storeName || ''} ${signal.locationName || ''}`) && signal.canAlertAsInventory);
 
   assert(fwgs.summary?.positiveInventoryRowCount >= 1000, 'FWGS browser artifact has too few positive PA inventory rows.', fwgs.summary);
+  assert((fwgs.summary?.searchTermCount || fwgs.searchTerms?.length || 0) >= 30, 'FWGS PA search term mesh is too narrow for shipment-week unicorn/allocated discovery.', fwgs.summary);
+  assert((fwgs.summary?.positiveInventoryProductCount || new Set((fwgs.inventoryRows || []).map((row) => row.product?.sku).filter(Boolean)).size) >= 10, 'FWGS PA positive inventory product coverage is too narrow.', fwgs.summary);
+  assert(Number(fwgs.summary?.invalidCoordinateCount || 0) === 0, 'FWGS browser artifact has invalid PA coordinates after normalization.', fwgs.summary);
   assert(ageHours(fwgs.generatedAt) <= MAX_AGE_HOURS, 'FWGS browser artifact is stale.', { generatedAt: fwgs.generatedAt, maxAgeHours: MAX_AGE_HOURS });
   const paRefresh = (browserRefreshStatus?.results || []).find((result) => result.id === 'pa-fwgs');
   assert(!paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact), 'PA browser refresh status indicates a failed/preserved FWGS artifact.', paRefresh);
@@ -55,8 +69,12 @@ async function main() {
   assert(!falseFreshExactDrops.length, 'PA exact-store drops must not re-report unchanged inventory as fresh.', falseFreshExactDrops.slice(0, 10));
   assert(!missingStoreIds.length, 'PA exact-store drops are missing storeId needed for dashboard store targeting.', missingStoreIds.slice(0, 10));
   assert(!unmatchedDropStores.length, 'PA exact-store drops reference store ids not present in stores export.', unmatchedDropStores.slice(0, 10));
+  assert(!badStoreCoordinates.length, 'PA stores include coordinates outside Pennsylvania bounds, often caused by swapped FWGS lat/lng fields.', badStoreCoordinates.slice(0, 10));
+  assert(!badDropCoordinates.length, 'PA exact-store drops include coordinates outside Pennsylvania bounds, often caused by swapped FWGS lat/lng fields.', badDropCoordinates.slice(0, 10));
+  assert(!licenseeServiceCenterDrops.some((drop) => drop.canAlertAsInventory), 'PA Licensee Service Center rows must not be consumer inventory-alertable.', licenseeServiceCenterDrops.slice(0, 10));
+  assert(!licenseeServiceCenterAlerts.length, 'PA Licensee Service Center signals must not be inventory-alertable.', licenseeServiceCenterAlerts.slice(0, 10));
 
-  console.log(`PA verification passed: ${inventorySignals.length} alertable store signals, ${exactDrops.length} exact-store drops, ${stores.length} stores, FWGS artifact ${fwgs.generatedAt}.`);
+  console.log(`PA verification passed: ${inventorySignals.length} alertable store signals, ${exactDrops.length} exact-store drops, ${stores.length} stores, FWGS artifact ${fwgs.generatedAt}, coordinate swaps ${fwgs.summary?.swappedCoordinateCount || 0}.`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });

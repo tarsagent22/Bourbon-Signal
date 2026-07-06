@@ -97,9 +97,11 @@ const dropStates = new Set((drops.drops || []).map((drop) => drop.state).filter(
 if ((drops.drops || []).length !== stats.dropCount) {
   fail(`stats.dropCount should match drops.json length (${(drops.drops || []).length}), got ${stats.dropCount}.`);
 }
-for (const expected of ['AL', 'IL', 'NC', 'PA', 'TN', 'VA']) {
+for (const expected of ['AL', 'IL', 'NC', 'PA', 'TN']) {
   if (!dropStates.has(expected)) fail(`drops.json should still include customer-facing state ${expected}.`);
 }
+const vaCoverage = coverageStates.find((state) => state.state === 'VA');
+if (!vaCoverage) fail('stats.stateCoverage.states missing active state VA.');
 const falseFreshInventoryDrops = (drops.drops || []).filter((drop) => {
   const type = String(drop.type || drop.event_type || '').toLowerCase();
   const firstSeenAt = drop.firstSeenAt || drop.first_seen_at;

@@ -8,8 +8,48 @@ const PAGE_TIMEOUT_MS = Number(process.env.FWGS_PAGE_TIMEOUT_MS || 45000);
 const LOCATION_LIMIT = Number(process.env.FWGS_LOCATION_LIMIT || 100);
 const LOCATION_OFFSET = Number(process.env.FWGS_LOCATION_OFFSET || 0);
 const INVENTORY_CONCURRENCY = Number(process.env.FWGS_INVENTORY_CONCURRENCY || 4);
+const INVENTORY_SKU_BATCH_SIZE = Number(process.env.FWGS_INVENTORY_SKU_BATCH_SIZE || 24);
 const PRODUCT_LIMIT = Number(process.env.FWGS_PRODUCT_LIMIT || 0);
-const SEARCH_TERMS = (process.env.FWGS_SEARCH_TERMS || 'buffalo trace bourbon,weller bourbon,blanton bourbon,eagle rare bourbon,stagg bourbon,old fitzgerald bourbon,old fitzgerald bottled in bond,willett bourbon,michter bourbon,eh taylor bourbon,elmer t lee bourbon')
+const DEFAULT_SEARCH_TERMS = [
+  'buffalo trace bourbon',
+  'weller bourbon',
+  'blanton bourbon',
+  'eagle rare bourbon',
+  'stagg bourbon',
+  'old fitzgerald bourbon',
+  'old fitzgerald bottled in bond',
+  'willett bourbon',
+  'michter bourbon',
+  'eh taylor bourbon',
+  'elmer t lee bourbon',
+  'bookers bourbon',
+  'bakers bourbon',
+  'elijah craig barrel proof',
+  'larceny barrel proof',
+  'heaven hill bottled in bond',
+  'four roses limited edition bourbon',
+  'four roses single barrel barrel strength',
+  'russells reserve bourbon',
+  'makers mark cellar aged',
+  'makers mark wood finishing',
+  'old forester birthday bourbon',
+  'old forester single barrel barrel strength',
+  'blood oath bourbon',
+  'old carter bourbon',
+  'rock hill farms bourbon',
+  'george t stagg bourbon',
+  'william larue weller bourbon',
+  'thomas handy rye',
+  'parker heritage bourbon',
+  'little book whiskey',
+  '1792 full proof bourbon',
+  '1792 sweet wheat bourbon',
+  'knob creek 12 bourbon',
+  'knob creek 18 bourbon',
+  'wild turkey masters keep bourbon',
+  'russells reserve 13 bourbon'
+];
+const SEARCH_TERMS = (process.env.FWGS_SEARCH_TERMS || DEFAULT_SEARCH_TERMS.join(','))
   .split(',')
   .map((term) => term.trim())
   .filter(Boolean);
@@ -103,6 +143,31 @@ class CdpPage {
 
 function pageEval(page, fn, arg = {}, timeout = 120000) {
   return page.evaluate(`(${fn.toString()})(JSON.parse(${JSON.stringify(JSON.stringify(arg))}))`, true, timeout);
+}
+
+function paCoordinateStatus(location) {
+  const lat = Number(location?.latitude);
+  const lng = Number(location?.longitude);
+  const latInPa = Number.isFinite(lat) && lat >= 39 && lat <= 43;
+  const lngInPa = Number.isFinite(lng) && lng >= -81 && lng <= -74;
+  const swappedLatInPaLngRange = Number.isFinite(lat) && lat >= -81 && lat <= -74;
+  const swappedLngInPaLatRange = Number.isFinite(lng) && lng >= 39 && lng <= 43;
+  if (latInPa && lngInPa) return { ok: true, swapped: false, invalid: false, lat, lng };
+  if (swappedLatInPaLngRange && swappedLngInPaLatRange) return { ok: true, swapped: true, invalid: false, lat: lng, lng: lat };
+  if (!Number.isFinite(lat) && !Number.isFinite(lng)) return { ok: true, swapped: false, invalid: false, suppressed: false, lat: null, lng: null };
+  return { ok: true, swapped: false, invalid: false, suppressed: true, lat: null, lng: null };
+}
+
+function normalizePaLocation(location) {
+  const coordinates = paCoordinateStatus(location);
+  return {
+    ...location,
+    latitude: coordinates.lat,
+    longitude: coordinates.lng,
+    coordinateSwapped: coordinates.swapped || undefined,
+    coordinateSuppressed: coordinates.suppressed || undefined,
+    coordinateInvalid: coordinates.invalid || undefined
+  };
 }
 
 async function collectFwgs(page) {
@@ -218,8 +283,11 @@ async function collectFwgs(page) {
     }
     return { total: locationTotal, locations: allLocations.filter((loc) => loc.locationId && loc.inventory !== false && loc.pickUp !== false) };
   }, { locationLimit: LOCATION_LIMIT, locationOffset: LOCATION_OFFSET }, 120000);
-  const locations = locationResult.locations || [];
-  console.log(`  FWGS locations parsed: ${locations.length}/${locationResult.total || 'unknown'}`);
+  const locations = (locationResult.locations || []).map(normalizePaLocation);
+  const swappedCoordinateCount = locations.filter((location) => location.coordinateSwapped).length;
+  const suppressedCoordinateCount = locations.filter((location) => location.coordinateSuppressed).length;
+  const invalidCoordinateCount = locations.filter((location) => location.coordinateInvalid).length;
+  console.log(`  FWGS locations parsed: ${locations.length}/${locationResult.total || 'unknown'} (${swappedCoordinateCount} coordinate swaps, ${suppressedCoordinateCount} source-invalid coordinates suppressed, ${invalidCoordinateCount} invalid coordinates)`);
 
   const skus = products.map((product) => product.sku);
   const inventoryRows = [];
@@ -227,48 +295,58 @@ async function collectFwgs(page) {
   const batchSize = Number(process.env.FWGS_BATCH_SIZE || 25);
   for (let i = 0; i < locations.length; i += batchSize) {
     const batch = locations.slice(i, i + batchSize);
-    const result = await pageEval(page, async ({ batch, products, skus, inventoryConcurrency }) => {
+    const result = await pageEval(page, async ({ batch, products, skus, inventoryConcurrency, inventorySkuBatchSize }) => {
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const fetchWithTimeout = async (url, options = {}, timeoutMs = 10000) => {
+      const fetchWithTimeout = async (url, options = {}, timeoutMs = 18000) => {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        const timer = setTimeout(() => controller.abort('inventory_request_timeout'), timeoutMs);
         try { return await fetch(url, { ...options, signal: controller.signal }); }
         finally { clearTimeout(timer); }
       };
+      const chunk = (items, size) => {
+        const chunks = [];
+        for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+        return chunks;
+      };
+      const productsBySku = new Map(products.map((product) => [product.sku, product]));
+      const skuChunks = chunk(skus, Math.max(1, Number(inventorySkuBatchSize || 24)));
       const inventoryRows = [];
       const failures = [];
       let cursor = 0;
       async function worker() {
         while (cursor < batch.length) {
           const location = batch[cursor++];
-          try {
-            const response = await fetchWithTimeout('/ccstorex/custom/v1/b2b/get-inventory', {
-              method: 'POST',
-              credentials: 'include',
-              headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
-                'X-CCProfileType': 'storefrontUI',
-                'X-CC-MeteringMode': 'CC-NonMetered',
-                'X-CC-Frontend-Forwarded-Url': window.location.host + window.location.pathname + window.location.search
-              },
-              body: JSON.stringify({ method: 'pickup', location: location.locationId, items: skus })
-            }, 10000);
-            const json = await response.json().catch(async () => ({ parseError: await response.text().catch(() => '') }));
-            if (!response.ok || json.parseError) failures.push({ locationId: location.locationId, status: response.status, error: json.parseError || json });
-            for (const product of products) {
-              const quantity = Number(json[product.sku] || 0) || 0;
-              if (quantity > 0) inventoryRows.push({ product, location, quantity, status: 'IN_STOCK' });
+          for (const skuChunk of skuChunks) {
+            try {
+              const response = await fetchWithTimeout('/ccstorex/custom/v1/b2b/get-inventory', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                  accept: 'application/json',
+                  'content-type': 'application/json',
+                  'X-CCProfileType': 'storefrontUI',
+                  'X-CC-MeteringMode': 'CC-NonMetered',
+                  'X-CC-Frontend-Forwarded-Url': window.location.host + window.location.pathname + window.location.search
+                },
+                body: JSON.stringify({ method: 'pickup', location: location.locationId, items: skuChunk })
+              }, 18000);
+              const json = await response.json().catch(async () => ({ parseError: await response.text().catch(() => '') }));
+              if (!response.ok || json.parseError) failures.push({ locationId: location.locationId, skuCount: skuChunk.length, status: response.status, error: json.parseError || json });
+              for (const sku of skuChunk) {
+                const quantity = Number(json[sku] || 0) || 0;
+                if (quantity > 0) inventoryRows.push({ product: productsBySku.get(sku), location, quantity, status: 'IN_STOCK' });
+              }
+            } catch (error) {
+              failures.push({ locationId: location.locationId, skuCount: skuChunk.length, status: 0, error: error.message || String(error) });
             }
-          } catch (error) {
-            failures.push({ locationId: location.locationId, status: 0, error: error.message || String(error) });
+            await sleep(35);
           }
           await sleep(60);
         }
       }
       await Promise.all(Array.from({ length: Math.max(1, inventoryConcurrency) }, () => worker()));
       return { inventoryRows, failures };
-    }, { batch, products, skus, inventoryConcurrency: INVENTORY_CONCURRENCY }, Math.max(45000, batch.length * 12000));
+    }, { batch, products, skus, inventoryConcurrency: INVENTORY_CONCURRENCY, inventorySkuBatchSize: INVENTORY_SKU_BATCH_SIZE }, Math.max(90000, batch.length * Math.ceil(skus.length / Math.max(1, INVENTORY_SKU_BATCH_SIZE)) * 8000));
     inventoryRows.push(...(result.inventoryRows || []));
     failures.push(...(result.failures || []));
     console.log(`  FWGS inventory ${Math.min(i + batch.length, locations.length)}/${locations.length}: +${result.inventoryRows?.length || 0} rows, failures ${failures.length}`);
@@ -287,9 +365,14 @@ async function collectFwgs(page) {
     failures,
     summary: {
       productCount: products.length,
+      searchTermCount: SEARCH_TERMS.length,
       locationCount: locations.length,
       positiveInventoryRowCount: inventoryRows.length,
-      failureCount: failures.length
+      failureCount: failures.length,
+      swappedCoordinateCount,
+      suppressedCoordinateCount,
+      invalidCoordinateCount,
+      positiveInventoryProductCount: new Set(inventoryRows.map((row) => row.product?.sku).filter(Boolean)).size
     }
   };
 }
