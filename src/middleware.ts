@@ -24,15 +24,23 @@ const isProtectedRoute = createRouteMatcher([
   "/api/user/preferences(.*)",
 ]);
 
+function withDashboardCacheBust(response: NextResponse, pathname: string) {
+  if (pathname === "/dashboard") {
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+    response.headers.set("Clear-Site-Data", '"cache"');
+  }
+  return response;
+}
+
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
-  if (!isProtectedRoute(request)) return NextResponse.next();
+  if (!isProtectedRoute(request)) return withDashboardCacheBust(NextResponse.next(), url.pathname);
 
   const { userId } = await auth();
-  if (userId) return NextResponse.next();
+  if (userId) return withDashboardCacheBust(NextResponse.next(), url.pathname);
 
   if (url.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Account required" }, { status: 401 });
@@ -41,7 +49,7 @@ export default clerkMiddleware(async (auth, request) => {
   const signUpUrl = new URL("/sign-up", request.url);
   const redirectAfterAccount = url.pathname.startsWith("/sightings") ? "/pricing" : `${url.pathname}${url.search}`;
   signUpUrl.searchParams.set("redirect_url", redirectAfterAccount);
-  return NextResponse.redirect(signUpUrl);
+  return withDashboardCacheBust(NextResponse.redirect(signUpUrl), url.pathname);
 });
 
 export const config = {
