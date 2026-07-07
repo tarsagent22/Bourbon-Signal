@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Virginia ABC opens July 13–16 whiskey lottery",
+    summary: "Virginia ABC's next online lottery gives hunters a short entry window for limited bourbon and rye bottles, including Black Maple Hill 16 Year Bourbon, Rare Character, Pride of Anderson County, and Hurst Knoll rye.",
+    note: "Actionable control-state signal: clear dates and bottle names are more useful to Virginia hunters than waiting for shelf-level sightings to appear.",
+    href: "https://www.abc.virginia.gov/products/limited-availability/lottery",
+    source: "Virginia ABC",
+  },
+  {
     title: "NC ABC opens comment window on statewide liquor pricing",
     summary: "North Carolina's ABC Commission is studying baseline pricing for spirituous liquor and taking public comments through July 29, a policy lane that could affect how bottles are priced across every ABC store in the state.",
     note: "This is not a drop, but it is source-level NC intelligence: statewide pricing rules can shape member expectations before any board-level shelf signal appears.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://horsesoldierbourbon.com/blogs/news/horse-solider-farms-announces-performers-and-pbr-for-grand-opening-fourth-of-july-celebration",
     source: "Horse Soldier Bourbon",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Buffalo Trace brings back its Prohibition Collection",
     summary: "Buffalo Trace's third Prohibition Collection is a five-bottle limited set tied to the distillery's medicinal-whiskey era, now moving into select retailer, bar, and restaurant distribution.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
     source: "Buffalo Trace Distillery",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Frey Ranch 10-Year enters the collector watchlist",
     summary: "Frey Ranch's 10-Year-Old Bourbon Batch #1, its oldest standalone whiskey, launched by lottery and is now moving into the shipment/watch-list window.",

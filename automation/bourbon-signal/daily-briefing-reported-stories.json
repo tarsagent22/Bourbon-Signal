@@ -1,7 +1,14 @@
 {
-  "updatedAt": "2026-07-05T15:14:23-04:00",
+  "updatedAt": "2026-07-07T09:00:00-05:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "Virginia ABC opens July 13–16 whiskey lottery",
+      "source": "Virginia ABC",
+      "url": "https://www.abc.virginia.gov/products/limited-availability/lottery",
+      "firstReportedAt": "2026-07-07",
+      "status": "homepage-visible"
+    },
     {
       "title": "NC ABC opens comment window on statewide liquor pricing",
       "source": "NC ABCC",
@@ -14,7 +21,7 @@
       "source": "Buffalo Trace Distillery / Breaking Bourbon",
       "url": "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/buffalo-trace-distillery-releases-third-edition-of-its-prohibition-collection",
       "firstReportedAt": "2026-07-02",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Elijah Craig 21 Year returns as a true trophy bottle",
