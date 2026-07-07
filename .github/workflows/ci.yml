@@ -33,5 +33,8 @@ jobs:
       - name: Verify PA engine automation guardrails
         run: npm --prefix engine run verify:pa:automation
 
+      - name: Verify alert copy contract
+        run: npm run test:alert-copy-contract
+
       - name: Build site
         run: npm run build

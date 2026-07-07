@@ -48,7 +48,8 @@
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
     "verify:site": "node src/verify-site-contract.mjs",
-    "verify:pa:automation": "node src/verify-pa-automation.mjs"
+    "verify:pa:automation": "node src/verify-pa-automation.mjs",
+    "store:identity": "node src/build-store-identity.mjs"
   },
   "dependencies": {
     "pdf-parse": "^2.4.5"

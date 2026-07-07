@@ -37,10 +37,16 @@ if (packageJson.name !== 'bourbon-signal') {
 if (!packageJson.scripts?.['test:ops']) {
   fail('package.json should expose test:ops for workflow guardrails.');
 }
+for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue']) {
+  if (!packageJson.scripts?.[scriptName]) fail(`package.json should expose ${scriptName} for Bourbon Signal self-improvement loops.`);
+}
 
 const enginePackageJson = JSON.parse(read('engine/package.json'));
 if (!enginePackageJson.scripts?.['verify:site']) {
   fail('engine/package.json should expose verify:site for lightweight CI checks against checked-in site exports.');
+}
+if (!enginePackageJson.scripts?.['store:identity']) {
+  fail('engine/package.json should expose store:identity so refresh/deploy loops can build the store identity graph.');
 }
 
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
@@ -130,6 +136,25 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
+for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
+  expectFile(requiredFile);
+}
+const alertCopyContract = read('scripts/verify-alert-copy-contract.mjs');
+for (const phrase of ['address unavailable; check source before driving', 'Board-level signal; check source before driving', 'Reply STOP to unsubscribe']) {
+  if (!alertCopyContract.includes(phrase)) fail(`Alert copy contract should enforce: ${phrase}`);
+}
+const alertWatchdog = read('scripts/bourbon-signal-alert-watchdog.mjs');
+for (const phrase of ['/api/alerts/deliver?dryRun=1', 'No alert delivery secret provided', 'On-site alert delivery is disabled', 'Email client is not configured']) {
+  if (!alertWatchdog.includes(phrase)) fail(`Alert watchdog should check: ${phrase}`);
+}
+const regressionGuard = read('scripts/verify-production-engine-regression.mjs');
+for (const phrase of ['activeStates', '/api/drops?state=', 'live drops collapsed to 0']) {
+  if (!regressionGuard.includes(phrase)) fail(`Production regression guard should check: ${phrase}`);
+}
+const storeIdentity = read('engine/src/build-store-identity.mjs');
+for (const phrase of ['store-identity.json', 'addressResolvedCount', 'store-level alert candidate(s) still lack resolvable addresses']) {
+  if (!storeIdentity.includes(phrase)) fail(`Store identity graph should include: ${phrase}`);
+}
 for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_ALLOWED_RECIPIENTS', 'onSiteBaselineDedupeKeys', 'emailBaselineDedupeKeys', 'baselineEmail', 'baselineOnSiteOnly', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend', 'isPaidTier(publicMetadata)', 'hasSavedAreaPreferences(areaPrefs)', 'skippedFreeUsers', 'skippedNoAreaPreferences', 'sortCandidatesForMember']) {
   if (!alertDelivery.includes(phrase)) {
     fail(`Alert delivery guardrails should include: ${phrase}`);

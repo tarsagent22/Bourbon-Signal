@@ -21,7 +21,13 @@
     "test:sighting-votes": "node scripts/test-sighting-votes.mjs",
     "test:costco-source": "node scripts/test-costco-source.mjs",
     "verify:production-live": "node scripts/verify-production-live.mjs",
-    "costco:probe": "node scripts/probe-costco-sameday.mjs"
+    "costco:probe": "node scripts/probe-costco-sameday.mjs",
+    "ops:source-roi": "node automation/bourbon-signal/source-roi-ranker.mjs",
+    "ops:signal-calendar": "node automation/bourbon-signal/signal-calendar-prototype.mjs",
+    "ops:bottle-queue": "node automation/bourbon-signal/bottle-queue-autoprocess.mjs",
+    "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
+    "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
+    "verify:production-engine": "node scripts/verify-production-engine-regression.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",

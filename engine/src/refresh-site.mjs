@@ -376,6 +376,7 @@ async function main() {
     steps.push(await runNode('src/location-report.mjs'));
     steps.push(await runNode('src/operational-report.mjs'));
     steps.push(await runNode('src/export-site-contract.mjs'));
+    steps.push(await runNode('src/build-store-identity.mjs'));
 
     try {
       publish = await maybeDeploySite();
