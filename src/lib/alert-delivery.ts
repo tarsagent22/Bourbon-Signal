@@ -1118,20 +1118,44 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
           const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
             .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
             .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
-          await client.users.updateUserMetadata(userId, {
-            privateMetadata: {
-              alertDelivery: {
-                recent: nextRecent,
-                onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-                emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
-                smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
-                lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
-                lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
-                lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
-                lastRunAt: now,
+          const nextAlertDelivery = {
+            recent: nextRecent,
+            onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
+            emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
+            smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
+            lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
+            lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
+            lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
+            lastRunAt: now,
+          };
+          try {
+            await client.users.updateUserMetadata(userId, {
+              privateMetadata: {
+                alertDelivery: nextAlertDelivery,
               },
-            },
-          });
+            });
+          } catch (error) {
+            const primaryError = error instanceof Error ? error.message : String(error);
+            try {
+              // If a long-lived member accumulated oversized legacy private metadata, do not let
+              // that block current delivery bookkeeping. Retain the freshly-sent records plus a
+              // compact tail so dedupe still protects the member from immediate duplicate sends.
+              await client.users.updateUserMetadata(userId, {
+                privateMetadata: {
+                  alertDelivery: {
+                    ...nextAlertDelivery,
+                    recent: nextRecent.slice(0, Math.max(newRecords.length, 50)),
+                  },
+                },
+              });
+            } catch (retryError) {
+              summary.errors.push({
+                userId,
+                email: primaryEmailForUser(user),
+                message: `alertDelivery metadata update failed after send: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`,
+              });
+            }
+          }
         }
 
         if (newOnSiteAlerts.length) {
