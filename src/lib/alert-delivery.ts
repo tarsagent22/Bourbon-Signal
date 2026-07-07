@@ -65,8 +65,9 @@ const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
 const ALERT_SMS_DELIVERY_ENABLED = process.env.ALERT_SMS_DELIVERY_ENABLED === "1";
-const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || 24);
-const ALERT_SMS_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_SMS_MAX_FRESHNESS_HOURS || ALERT_EMAIL_MAX_FRESHNESS_HOURS);
+const ALERT_REALTIME_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS || 2);
+const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS);
+const ALERT_SMS_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_SMS_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS);
 const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
 const ALERT_SMS_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_SMS_ALLOWED_RECIPIENTS?.split(",")).map(normalizePhoneNumber).filter(Boolean);
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
@@ -279,7 +280,8 @@ function candidateCanSendSms(candidate: CandidateAlert) {
 function freshnessPolicyHours(candidate: CandidateAlert, channel: "onSite" | "email" | "sms", fallback: number) {
   const policy = candidate.freshnessPolicyHours && typeof candidate.freshnessPolicyHours === "object" ? candidate.freshnessPolicyHours as Record<string, unknown> : null;
   const value = asNumber(policy?.[channel], Number.NaN);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
+  const candidateLimit = Number.isFinite(value) && value > 0 ? value : fallback;
+  return Math.min(candidateLimit, ALERT_REALTIME_MAX_FRESHNESS_HOURS);
 }
 
 function candidateDeliveryBlockers(candidate: CandidateAlert) {

@@ -155,7 +155,7 @@ const storeIdentity = read('engine/src/build-store-identity.mjs');
 for (const phrase of ['store-identity.json', 'addressResolvedCount', 'store-level alert candidate(s) still lack resolvable addresses']) {
   if (!storeIdentity.includes(phrase)) fail(`Store identity graph should include: ${phrase}`);
 }
-for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_ALLOWED_RECIPIENTS', 'onSiteBaselineDedupeKeys', 'emailBaselineDedupeKeys', 'baselineEmail', 'baselineOnSiteOnly', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend', 'isPaidTier(publicMetadata)', 'hasSavedAreaPreferences(areaPrefs)', 'skippedFreeUsers', 'skippedNoAreaPreferences', 'sortCandidatesForMember']) {
+for (const phrase of ['ALERT_DELIVERY_ENABLED', 'ALERT_ONSITE_DELIVERY_ENABLED', 'ALERT_EMAIL_DELIVERY_ENABLED', 'ALERT_EMAIL_ALLOWED_RECIPIENTS', 'onSiteBaselineDedupeKeys', 'emailBaselineDedupeKeys', 'baselineEmail', 'baselineOnSiteOnly', 'ALERT_EMAIL_MAX_FRESHNESS_HOURS', 'ALERT_REALTIME_MAX_FRESHNESS_HOURS', 'fresh signal detected', 'manual_refresh_quarantine', 'bootstrap', 'unknown_freshness', 'emailsWouldSend', 'isPaidTier(publicMetadata)', 'hasSavedAreaPreferences(areaPrefs)', 'skippedFreeUsers', 'skippedNoAreaPreferences', 'sortCandidatesForMember']) {
   if (!alertDelivery.includes(phrase)) {
     fail(`Alert delivery guardrails should include: ${phrase}`);
   }

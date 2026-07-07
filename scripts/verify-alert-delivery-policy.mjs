@@ -38,6 +38,8 @@ for (const phrase of [
   'eligibleForEmail === true',
   'eligibleForSms === true',
   'freshnessPolicyHours',
+  'ALERT_REALTIME_MAX_FRESHNESS_HOURS',
+  'Math.min(candidateLimit, ALERT_REALTIME_MAX_FRESHNESS_HOURS)',
 ]) {
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }
@@ -62,8 +64,8 @@ if (!route.includes('Bourbon Signal alert delivery summary')) {
   fail('Cron route should emit a visible ops summary for every run.');
 }
 
-if (!/"path"\s*:\s*"\/api\/alerts\/deliver"/.test(vercel) || !/"schedule"\s*:\s*"\*\/30 \* \* \* \*"/.test(vercel)) {
-  fail('Vercel cron must invoke /api/alerts/deliver every 30 minutes.');
+if (!/"path"\s*:\s*"\/api\/alerts\/deliver"/.test(vercel) || !/"schedule"\s*:\s*"\*\/5 \* \* \* \*"/.test(vercel)) {
+  fail('Vercel cron must invoke /api/alerts/deliver every 5 minutes for near-real-time alert delivery.');
 }
 
 if (process.exitCode) {

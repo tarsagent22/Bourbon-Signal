@@ -935,11 +935,11 @@ function alertActionabilityClass(candidate) {
 
 function maxFreshnessForActionability(actionabilityClass, channel) {
   const table = {
-    store_inventory: { onSite: 24, email: 24, sms: 12 },
-    store_delivery_lead: { onSite: 36, email: 24, sms: 12 },
-    board_or_county_lead: { onSite: 36, email: 24, sms: 12 },
-    distillery_release_watch: { onSite: 168, email: 168, sms: 24 },
-    retailer_warehouse_watch: { onSite: 12, email: 12, sms: 6 },
+    store_inventory: { onSite: 2, email: 2, sms: 2 },
+    store_delivery_lead: { onSite: 2, email: 2, sms: 2 },
+    board_or_county_lead: { onSite: 2, email: 2, sms: 2 },
+    distillery_release_watch: { onSite: 24, email: 24, sms: 4 },
+    retailer_warehouse_watch: { onSite: 2, email: 2, sms: 2 },
     aggregate_watch: { onSite: 24, email: 0, sms: 0 },
     context_only: { onSite: 0, email: 0, sms: 0 }
   };
