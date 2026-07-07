@@ -5,8 +5,8 @@ import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-norm
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
-export const ALERT_FROM = "Bourbon Signal <alerts@alerts.bourbonsignal.com>";
-export const ALERT_REPLY_TO = "support@bourbonsignal.com";
+export const ALERT_FROM = "Bourbon Signal Alerts <alerts@bourbonsignal.com>";
+export const ALERT_REPLY_TO = "chandler@bourbonsignal.com";
 export const ALERT_DUPLICATE_WINDOW_HOURS = 24;
 
 export interface AlertCandidate {
