@@ -33,6 +33,13 @@ function checkoutEmail(session: Stripe.Checkout.Session) {
   return (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
 }
 
+function hasCanceledFreeMembershipHold(publicMetadata: Record<string, unknown> | null | undefined) {
+  const tier = stringValue(publicMetadata?.tier) || stringValue(publicMetadata?.membershipTier);
+  const plan = stringValue(publicMetadata?.plan) || stringValue(publicMetadata?.billingPlan);
+  const status = stringValue(publicMetadata?.membershipStatus);
+  return status === "canceled" && (tier === "free" || plan === "free");
+}
+
 export async function POST() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Account required" }, { status: 401 });
@@ -42,6 +49,9 @@ export async function POST() {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  if (hasCanceledFreeMembershipHold(user.publicMetadata)) {
+    return NextResponse.json({ ok: true, activated: false, reason: "membership_canceled" });
+  }
   const email = (user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress || "").trim().toLowerCase();
   if (!email) return NextResponse.json({ ok: true, activated: false, reason: "missing_email" });
 

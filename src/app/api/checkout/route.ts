@@ -40,6 +40,13 @@ function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
 }
 
+function hasCanceledFreeMembershipHold(publicMetadata: Record<string, unknown> | null | undefined) {
+  const tier = stringValue(publicMetadata?.tier) || stringValue(publicMetadata?.membershipTier);
+  const plan = stringValue(publicMetadata?.plan) || stringValue(publicMetadata?.billingPlan);
+  const status = stringValue(publicMetadata?.membershipStatus);
+  return status === "canceled" && (tier === "free" || plan === "free");
+}
+
 async function checkoutSessionMatchesPlan(stripe: Stripe, session: Stripe.Checkout.Session, planId: BillingPlanId, priceId: string) {
   if (session.metadata?.plan === planId) return true;
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
@@ -109,8 +116,10 @@ export async function POST(req: NextRequest) {
   }
 
   const reusableSession = await findReusableCheckoutSession(stripe, userId, planId, priceId);
+  const skipCompletedRecovery = hasCanceledFreeMembershipHold(user.publicMetadata);
   if (reusableSession) {
-    if (reusableSession.status === "complete" && (reusableSession.payment_status === "paid" || reusableSession.payment_status === "no_payment_required")) {
+    const completedPaidSession = reusableSession.status === "complete" && (reusableSession.payment_status === "paid" || reusableSession.payment_status === "no_payment_required");
+    if (completedPaidSession && !skipCompletedRecovery) {
       let membershipStatus = "active";
       const subscriptionId = stringValue(reusableSession.subscription);
       if (planId !== "bib_lifetime" && subscriptionId) {
@@ -127,7 +136,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: `${appUrl(req)}/success?session_id=${reusableSession.id}`, recovered: true });
     }
 
-    if (reusableSession.url) {
+    // A canceled/free hold means access was intentionally revoked (for example, during a
+    // refund-and-repay card switch). Do not resurrect access from an old paid Checkout Session;
+    // let the user create a fresh Checkout Session below.
+    if (!completedPaidSession && reusableSession.url) {
       return NextResponse.json({ url: reusableSession.url, reused: true });
     }
   }
