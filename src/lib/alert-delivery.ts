@@ -60,6 +60,7 @@ const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USE
 const MAX_SMS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_RUN || 25);
 const MAX_SMS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_USER || 1);
 const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_ALERTS_PER_USER || 1);
+const CANDIDATE_POOL_PER_USER = Number(process.env.ALERT_DELIVERY_CANDIDATE_POOL_PER_USER || 25);
 const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
@@ -269,7 +270,9 @@ function candidateCanSendSms(candidate: CandidateAlert) {
   if (candidate.eligibleForSms === false) return false;
   const actionabilityClass = asString(candidate.actionabilityClass).toLowerCase();
   const tier = asString(candidate.tier).toLowerCase();
-  if (["board_or_county_lead", "retailer_warehouse_watch", "store_delivery_lead", "distillery_release_watch"].includes(actionabilityClass)) return tier === "unicorn";
+  const priorityClass = asString(candidate.priorityClass).toLowerCase();
+  if (actionabilityClass === "board_or_county_lead") return priorityClass === "major" || tier === "unicorn" || tier === "allocated";
+  if (["retailer_warehouse_watch", "store_delivery_lead", "distillery_release_watch"].includes(actionabilityClass)) return tier === "unicorn";
   return candidateCanSendEmail(candidate);
 }
 
@@ -867,7 +870,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
           return matches;
         })
         .sort(sortCandidatesForMember)
-        .slice(0, 1);
+        .slice(0, Math.max(1, CANDIDATE_POOL_PER_USER));
 
       if (matchingPreferenceCandidates.length) {
         summary.usersMatched += 1;

@@ -980,7 +980,7 @@ function alertChannelPolicy(candidate) {
   const eligibleForSms = eligibleForEmail && within('sms') && (
     (actionabilityClass === 'store_inventory' && (major || unicorn)) ||
     (actionabilityClass === 'store_delivery_lead' && unicorn) ||
-    (actionabilityClass === 'board_or_county_lead' && unicorn) ||
+    (actionabilityClass === 'board_or_county_lead' && major) ||
     (actionabilityClass === 'retailer_warehouse_watch' && unicorn) ||
     (actionabilityClass === 'distillery_release_watch' && unicorn)
   );
@@ -1183,7 +1183,6 @@ function buildRegionalWatchAlertsFromDrops(drops) {
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .filter((drop) => /shipment|warehouse|limited_release_store_drop/i.test(String(drop.type || drop.eventType || '')))
     .sort(alertDropSort)
-    .slice(0, 100)
     .map((drop) => ({
       id: stableId(['regional_watch_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
       action: 'watch_alert_candidate',
@@ -1424,7 +1423,7 @@ async function main() {
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
     .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);
-  const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 200, 50);
+  const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 1000, 200);
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});

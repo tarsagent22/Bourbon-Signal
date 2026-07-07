@@ -99,8 +99,7 @@ export async function POST(req: NextRequest) {
     .filter(candidatePassesFreshOnSiteGuardrails)
     .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
     .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
-    .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore))
-    .slice(0, Math.max(1, Math.min(25, asNumber(body.limit, 10))));
+    .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
   const inbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
   const alerts = inbox.recent;
@@ -108,6 +107,7 @@ export async function POST(req: NextRequest) {
   const createdAt = new Date().toISOString();
   const created = candidates
     .filter((candidate) => !existingDedupe.has(asString(candidate.dedupeKey, asString(candidate.id))))
+    .slice(0, Math.max(1, Math.min(25, asNumber(body.limit, 10))))
     .map((candidate) => candidateToMemberAlert(userId, candidate, createdAt, areaPrefs));
 
   if (created.length) {

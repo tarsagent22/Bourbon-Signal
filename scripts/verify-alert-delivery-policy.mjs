@@ -20,7 +20,8 @@ for (const phrase of [
   'hasSavedAreaPreferences(areaPrefs)',
   'skippedNoAreaPreferences',
   '.sort(sortCandidatesForMember)',
-  '.slice(0, 1)',
+  'CANDIDATE_POOL_PER_USER',
+  '.slice(0, Math.max(1, CANDIDATE_POOL_PER_USER))',
   'candidateAlertRank',
   'deliveryChannel === "watch_candidate"',
   'isActionableWatch',
@@ -49,8 +50,8 @@ if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(del
   fail('Users without saved area preferences must be skipped before alert matching or channel delivery.');
 }
 
-if (!/const matchingPreferenceCandidates = candidates[\s\S]*?\.sort\(sortCandidatesForMember\)[\s\S]*?\.slice\(0, 1\);/.test(delivery)) {
-  fail('Delivery must select exactly one best candidate per user after preference matching.');
+if (!/const matchingPreferenceCandidates = candidates[\s\S]*?\.sort\(sortCandidatesForMember\)[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
+  fail('Delivery must keep a ranked candidate pool per user so deduped top candidates do not block lower matching alerts.');
 }
 
 if (!/usersMatched \+= 1/.test(delivery) || /emails?\S*Matched[\s\S]*?usersMatched \+= 1/.test(delivery)) {
