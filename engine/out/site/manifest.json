@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-06T19:55:11.065Z",
+  "generatedAt": "2026-07-07T06:38:51.020Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -13,7 +13,7 @@
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
-  "snapshotCount": 11,
+  "snapshotCount": 17,
   "schemas": {
     "bottle": [
       "id",

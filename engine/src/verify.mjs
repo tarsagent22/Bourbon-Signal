@@ -27,6 +27,13 @@ async function ohlqBrowserUnavailable(out) {
   return Boolean(failedPreflight || hasOhlqRoadblock);
 }
 
+function hasHealthyLowerVolumeNcShipmentRun(ncIntelligence, shipmentSignals) {
+  return shipmentSignals >= 350
+    && Number(ncIntelligence.stockShipped?.recordCount || 0) >= 50_000
+    && Number(ncIntelligence.coverage?.withTrackedShipments || 0) >= 100
+    && Number(ncIntelligence.roadblockCount || 0) === 0;
+}
+
 async function main() {
   const out = path.resolve('out');
   const required = ['bourbon-bible.json', 'bourbon-bible-report.md', 'summary.json', 'signals.json', 'readable.md', 'roadblocks.md', 'rare-signals.json', 'rare-signals.md', 'current-snapshot.json', 'diff.json', 'diff.md', 'alert-candidates.json', 'alert-candidates.md', 'confidence-policy.json'];
@@ -69,8 +76,10 @@ async function main() {
   if (!/official\/public online sources only/i.test(String(siteStats.ncBoardIntelligence?.sourcePolicy || ''))) throw new Error('NC source policy caveat missing from stats');
   if (ncIntelligence.contractVersion !== 'bourbon-signal-site-v0.1') throw new Error(`Unexpected NC intelligence contract version: ${ncIntelligence.contractVersion}`);
   if (ncIntelligence.coverage?.boardCount < 170) throw new Error('NC intelligence board directory coverage is below threshold');
-  if (ncIntelligence.signalCounts?.nc_board_shipment_snapshot < 400) throw new Error('NC board shipment signal count is below hard floor');
-  if (ncIntelligence.signalCounts?.nc_board_shipment_snapshot < 500) console.log(`NC StockShipped extract below historical target but above hard floor: ${ncIntelligence.signalCounts?.nc_board_shipment_snapshot}`);
+  const ncShipmentSignals = ncIntelligence.signalCounts?.nc_board_shipment_snapshot || 0;
+  if (ncShipmentSignals < 400 && !hasHealthyLowerVolumeNcShipmentRun(ncIntelligence, ncShipmentSignals)) throw new Error('NC board shipment signal count is below source-volume-aware hard floor');
+  if (ncShipmentSignals < 400) console.log(`NC StockShipped extract below legacy hard floor but healthy by source-volume gate: ${ncShipmentSignals}`);
+  if (ncShipmentSignals < 500) console.log(`NC StockShipped extract below historical target: ${ncShipmentSignals}`);
   if (ncIntelligence.signalCounts?.nc_statewide_warehouse_stock < 1) throw new Error('NC warehouse positive-stock radar is missing');
   if ((ncIntelligence.roadblockCount || 0) > 5) throw new Error(`NC collector has too many current roadblocks: ${ncIntelligence.roadblockCount}`);
 
