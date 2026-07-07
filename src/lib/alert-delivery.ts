@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
@@ -53,7 +54,6 @@ type AlertInboxMetadata = {
 
 const MAX_RECENT_DELIVERIES_PER_USER = 250;
 const MAX_RECENT_ONSITE_ALERTS_PER_USER = 100;
-const DELIVERY_DEDUPE_WINDOW_HOURS = 24;
 const MAX_DELIVERY_USERS = Number(process.env.ALERT_DELIVERY_MAX_USERS || 500);
 const MAX_EMAILS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_RUN || 250);
 const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 1);
@@ -113,6 +113,10 @@ export function normalizeBottleAlertPreferences(input: unknown): BottleAlertPref
 
 function uniqueStrings(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+function stableHash(value: string) {
+  return createHash("sha256").update(value).digest("hex").slice(0, 24);
 }
 
 function normalizePhoneNumber(value: string) {
@@ -470,6 +474,51 @@ function candidateStoreLabel(candidate: CandidateAlert) {
   return `${store} — address unavailable; check source before driving`;
 }
 
+function candidateBottleNames(candidate: CandidateAlert) {
+  const grouped = Array.isArray(candidate.__groupCandidates) ? candidate.__groupCandidates as CandidateAlert[] : [candidate];
+  return uniqueStrings(grouped.map((item) => asString(item.bottle, "Bottle signal")));
+}
+
+function candidateBottleSummary(candidate: CandidateAlert) {
+  const bottles = candidateBottleNames(candidate);
+  if (bottles.length <= 2) return bottles.join(" and ");
+  return `${bottles.slice(0, -1).join(", ")}, and ${bottles[bottles.length - 1]}`;
+}
+
+function candidateLocationGroupKey(candidate: CandidateAlert) {
+  const state = asString(candidate.state).toUpperCase();
+  const precision = candidateLocationPrecision(candidate);
+  const locationId = asString(candidate.storeId) || asString(candidate.store_id) || asString(candidate.locationId) || asString(candidate.boardId);
+  const locationLabel = candidateStoreLabel(candidate);
+  return [state, precision, locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
+}
+
+function groupCandidatesByLocation(candidates: CandidateAlert[]) {
+  const groups = new Map<string, CandidateAlert[]>();
+  for (const candidate of candidates) {
+    const key = candidateLocationGroupKey(candidate);
+    groups.set(key, [...(groups.get(key) || []), candidate]);
+  }
+
+  return Array.from(groups.entries()).map(([locationKey, rows]) => {
+    const sorted = [...rows].sort(sortCandidatesForMember);
+    const primary = sorted[0] || rows[0];
+    const dedupeKeys = uniqueStrings(sorted.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean)).sort();
+    const freshnessHours = Math.min(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.POSITIVE_INFINITY)).filter(Number.isFinite));
+    const quantity = sorted.reduce((sum, candidate) => sum + (asNumber(candidate.quantity) || asNumber(candidate.warehouseQty)), 0);
+    const groupDedupeKey = `location-group:${stableHash([locationKey, ...dedupeKeys].join("|"))}`;
+    return {
+      ...primary,
+      __groupCandidates: sorted,
+      bottle: candidateBottleSummary({ __groupCandidates: sorted }),
+      quantity,
+      freshnessHours: Number.isFinite(freshnessHours) ? freshnessHours : primary.freshnessHours,
+      dedupeKey: groupDedupeKey,
+      matchKey: `location-group:${stableHash(locationKey)}`,
+    } as CandidateAlert;
+  }).sort(sortCandidatesForMember);
+}
+
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
   const values = [
     asString(candidate.locationName),
@@ -537,12 +586,7 @@ function deliveryDedupeToken(dedupeKey: string, channel: "email" | "sms") {
 }
 
 function recentDeliverySet(metadata: AlertDeliveryMetadata, channel: "email" | "sms") {
-  const cutoff = Date.now() - DELIVERY_DEDUPE_WINDOW_HOURS * 60 * 60_000;
   return new Set((metadata.recent || [])
-    .filter((record) => {
-      const deliveredAt = new Date(record.deliveredAt).getTime();
-      return Number.isFinite(deliveredAt) && deliveredAt >= cutoff;
-    })
     .filter((record) => (record.channel || "email") === channel)
     .map((record) => deliveryDedupeToken(record.dedupeKey, channel)));
 }
@@ -864,14 +908,14 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
-      const matchingPreferenceCandidates = candidates
+      const matchingPreferenceCandidates = groupCandidatesByLocation(candidates
         .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
         .filter((candidate) => {
           const matches = candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs);
           if (!matches && alertMode === "specific_bottles") summary.skippedSpecificBottlePrefs += 1;
           return matches;
         })
-        .sort(sortCandidatesForMember)
+        .sort(sortCandidatesForMember))
         .slice(0, Math.max(1, CANDIDATE_POOL_PER_USER));
 
       if (matchingPreferenceCandidates.length) {
@@ -1116,47 +1160,48 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       }
 
       if ((newRecords.length || newOnSiteAlerts.length) && !dryRun) {
-        if (newRecords.length) {
-          const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
-            .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
-            .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
-          const nextAlertDelivery = {
-            recent: nextRecent,
-            onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-            emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
-            smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
-            lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
-            lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
-            lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
-            lastRunAt: now,
-          };
+        const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
+          .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
+          .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
+        const newOnSiteDedupeKeys = newOnSiteAlerts.map((alert) => alert.dedupeKey).filter(Boolean);
+        const newEmailDedupeKeys = newRecords.filter((record) => (record.channel || "email") === "email").map((record) => record.dedupeKey);
+        const newSmsDedupeKeys = newRecords.filter((record) => record.channel === "sms").map((record) => record.dedupeKey);
+        const nextAlertDelivery = {
+          recent: nextRecent,
+          onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
+          emailBaselineDedupeKeys: uniqueStrings([...newEmailDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]).slice(0, 1000),
+          smsBaselineDedupeKeys: uniqueStrings([...newSmsDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]).slice(0, 1000),
+          lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
+          lastEmailBaselineAt: newEmailDedupeKeys.length ? now : deliveryMetadata.lastEmailBaselineAt,
+          lastSmsBaselineAt: newSmsDedupeKeys.length ? now : deliveryMetadata.lastSmsBaselineAt,
+          lastRunAt: now,
+        };
+        try {
+          await client.users.updateUserMetadata(userId, {
+            privateMetadata: {
+              alertDelivery: nextAlertDelivery,
+            },
+          });
+        } catch (error) {
+          const primaryError = error instanceof Error ? error.message : String(error);
           try {
+            // If a long-lived member accumulated oversized legacy private metadata, do not let
+            // that block current delivery bookkeeping. Retain fresh records plus durable baseline
+            // keys so dedupe still protects the member from duplicate sends after compaction.
             await client.users.updateUserMetadata(userId, {
               privateMetadata: {
-                alertDelivery: nextAlertDelivery,
+                alertDelivery: {
+                  ...nextAlertDelivery,
+                  recent: nextRecent.slice(0, Math.max(newRecords.length, 50)),
+                },
               },
             });
-          } catch (error) {
-            const primaryError = error instanceof Error ? error.message : String(error);
-            try {
-              // If a long-lived member accumulated oversized legacy private metadata, do not let
-              // that block current delivery bookkeeping. Retain the freshly-sent records plus a
-              // compact tail so dedupe still protects the member from immediate duplicate sends.
-              await client.users.updateUserMetadata(userId, {
-                privateMetadata: {
-                  alertDelivery: {
-                    ...nextAlertDelivery,
-                    recent: nextRecent.slice(0, Math.max(newRecords.length, 50)),
-                  },
-                },
-              });
-            } catch (retryError) {
-              summary.errors.push({
-                userId,
-                email: primaryEmailForUser(user),
-                message: `alertDelivery metadata update failed after send: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`,
-              });
-            }
+          } catch (retryError) {
+            summary.errors.push({
+              userId,
+              email: primaryEmailForUser(user),
+              message: `alertDelivery metadata update failed after send: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`,
+            });
           }
         }
 

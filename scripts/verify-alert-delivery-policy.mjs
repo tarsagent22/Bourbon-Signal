@@ -20,9 +20,11 @@ for (const phrase of [
   'hasSavedAreaPreferences(areaPrefs)',
   'skippedNoAreaPreferences',
   '.sort(sortCandidatesForMember)',
+  'groupCandidatesByLocation',
   'CANDIDATE_POOL_PER_USER',
   '.slice(0, Math.max(1, CANDIDATE_POOL_PER_USER))',
-  'candidateAlertRank',
+  'location-group:',
+  'recentDeliverySet',
   'deliveryChannel === "watch_candidate"',
   'isActionableWatch',
   'recentDeliverySet',
@@ -52,8 +54,12 @@ if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(del
   fail('Users without saved area preferences must be skipped before alert matching or channel delivery.');
 }
 
-if (!/const matchingPreferenceCandidates = candidates[\s\S]*?\.sort\(sortCandidatesForMember\)[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
-  fail('Delivery must keep a ranked candidate pool per user so deduped top candidates do not block lower matching alerts.');
+if (!/const matchingPreferenceCandidates = groupCandidatesByLocation\(candidates[\s\S]*?\.sort\(sortCandidatesForMember\)\)[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
+  fail('Delivery must group a ranked candidate pool by location so members get one alert per store/board/location burst.');
+}
+
+if (!/function recentDeliverySet[\s\S]*?return new Set[\s\S]*?\.filter\(\(record\) => \(record\.channel \|\| "email"\) === channel\)[\s\S]*?deliveryDedupeToken/.test(delivery) || /const cutoff = Date\.now\(\) - DELIVERY_DEDUPE_WINDOW_HOURS/.test(delivery)) {
+  fail('Delivery dedupe must not expire after 24 hours; duplicate sends should stay suppressed while metadata is retained.');
 }
 
 if (!/usersMatched \+= 1/.test(delivery) || /emails?\S*Matched[\s\S]*?usersMatched \+= 1/.test(delivery)) {
