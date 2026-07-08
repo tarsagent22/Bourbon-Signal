@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-08T02:58:16.719Z",
+  "generatedAt": "2026-07-08T06:30:15.608Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -13,7 +13,7 @@
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
-  "snapshotCount": 40,
+  "snapshotCount": 21,
   "schemas": {
     "bottle": [
       "id",
@@ -195,6 +195,8 @@
       "eligibleForEmail",
       "eligibleForSms",
       "actionabilityClass",
+      "freshnessPolicyHours",
+      "deliveryCaveat",
       "priorityClass",
       "deliveryChannel",
       "sendRecommendation",
@@ -225,9 +227,7 @@
       "policyMode",
       "inventorySemantics",
       "reason",
-      "evidence",
-      "freshnessPolicyHours",
-      "deliveryCaveat"
+      "evidence"
     ],
     "historicalTrend": [
       "state",
