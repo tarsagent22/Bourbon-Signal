@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-08T02:19:43.175Z",
-  "count": 3525,
+  "generatedAt": "2026-07-08T02:58:16.719Z",
+  "count": 3520,
   "stores": [
     {
       "id": "alabc:001",
@@ -11330,20 +11330,6 @@
       "signalCount": 1
     },
     {
-      "id": "21e4c2a22305800e",
-      "sourceStoreId": "21e4c2a22305800e",
-      "state": "IA",
-      "name": "Mega Saver / Urbandale",
-      "address": "4860 NW Urbandale Dr, Urbandale, IA, 50322",
-      "city": "Urbandale",
-      "county": null,
-      "zip": "50322",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "5d109e00124505ca",
       "sourceStoreId": "5d109e00124505ca",
       "state": "IA",
@@ -11352,6 +11338,20 @@
       "city": "Urbandale",
       "county": null,
       "zip": "50323",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "21e4c2a22305800e",
+      "sourceStoreId": "21e4c2a22305800e",
+      "state": "IA",
+      "name": "Mega Saver / Urbandale",
+      "address": "4860 NW Urbandale Dr, Urbandale, IA, 50322",
+      "city": "Urbandale",
+      "county": null,
+      "zip": "50322",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -11666,20 +11666,6 @@
       "signalCount": 1
     },
     {
-      "id": "85846c47f63d1d49",
-      "sourceStoreId": "85846c47f63d1d49",
-      "state": "IA",
-      "name": "Oasis",
-      "address": "630 SW  9TH ST, Des Moines, IA, 50309",
-      "city": "Des Moines",
-      "county": null,
-      "zip": "50309",
-      "lat": null,
-      "lng": null,
-      "source": "Iowa ABD 14-day store delivery snapshot",
-      "signalCount": 1
-    },
-    {
       "id": "85df4e6c1201a492",
       "sourceStoreId": "85df4e6c1201a492",
       "state": "IA",
@@ -11688,6 +11674,20 @@
       "city": "Des Moines",
       "county": null,
       "zip": "50316",
+      "lat": null,
+      "lng": null,
+      "source": "Iowa ABD 14-day store delivery snapshot",
+      "signalCount": 1
+    },
+    {
+      "id": "85846c47f63d1d49",
+      "sourceStoreId": "85846c47f63d1d49",
+      "state": "IA",
+      "name": "Oasis",
+      "address": "630 SW  9TH ST, Des Moines, IA, 50309",
+      "city": "Des Moines",
+      "county": null,
+      "zip": "50309",
       "lat": null,
       "lng": null,
       "source": "Iowa ABD 14-day store delivery snapshot",
@@ -31613,7 +31613,7 @@
       "lat": 40.0866611,
       "lng": -82.9766479,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40815",
@@ -31628,6 +31628,20 @@
       "lng": -81.640915,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "40870",
+      "sourceStoreId": "40870",
+      "state": "OH",
+      "name": "ACME",
+      "address": "116 W Streetsboro St, Unit 5, Hudson, OH, 44236",
+      "city": "Hudson",
+      "county": null,
+      "zip": null,
+      "lat": 41.2381369,
+      "lng": -81.4475853,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "40879",
@@ -31668,20 +31682,6 @@
       "zip": null,
       "lat": 40.8930003,
       "lng": -81.4047922,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "40870",
-      "sourceStoreId": "40870",
-      "state": "OH",
-      "name": "ACME",
-      "address": "116 W Streetsboro St, Unit 5, Hudson, OH, 44236",
-      "city": "Hudson",
-      "county": null,
-      "zip": null,
-      "lat": 41.2381369,
-      "lng": -81.4475853,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -32075,7 +32075,7 @@
       "lat": 39.9478906,
       "lng": -82.938985,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "30218",
@@ -32159,7 +32159,7 @@
       "lat": 40.0186421,
       "lng": -83.0263543,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "30810",
@@ -32481,7 +32481,7 @@
       "lat": 41.557357,
       "lng": -84.1336819,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "20644",
@@ -32565,7 +32565,7 @@
       "lat": 41.0905542,
       "lng": -81.5286771,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40873",
@@ -32817,7 +32817,7 @@
       "lat": 40.549116,
       "lng": -82.8482287,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10560",
@@ -32859,7 +32859,7 @@
       "lat": 40.8285672,
       "lng": -83.2804522,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
+      "signalCount": 2
     },
     {
       "id": "40405",
@@ -32887,7 +32887,7 @@
       "lat": 39.216135,
       "lng": -84.692641,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30757",
@@ -33002,20 +33002,6 @@
       "signalCount": 1
     },
     {
-      "id": "30202",
-      "sourceStoreId": "30202",
-      "state": "OH",
-      "name": "Giant Eagle",
-      "address": "6700 Hayden Run Blvd, Hilliard, OH, 43026",
-      "city": "Hilliard",
-      "county": null,
-      "zip": null,
-      "lat": 40.0604426,
-      "lng": -83.1801926,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
-    },
-    {
       "id": "30773",
       "sourceStoreId": "30773",
       "state": "OH",
@@ -33042,20 +33028,6 @@
       "lng": -81.4351639,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 3
-    },
-    {
-      "id": "40400",
-      "sourceStoreId": "40400",
-      "state": "OH",
-      "name": "Giant Eagle",
-      "address": "7400 Broadview Rd, Parma, OH, 44134",
-      "city": "Parma",
-      "county": null,
-      "zip": null,
-      "lat": 41.3647222,
-      "lng": -81.6880122,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
     },
     {
       "id": "40968",
@@ -33098,20 +33070,6 @@
       "lng": -81.8646783,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 3
-    },
-    {
-      "id": "30789",
-      "sourceStoreId": "30789",
-      "state": "OH",
-      "name": "Giant Eagle",
-      "address": "553 Hebron Rd, Unit 35, Heath, OH, 43056",
-      "city": "Heath",
-      "county": null,
-      "zip": null,
-      "lat": 40.0376656,
-      "lng": -82.4317308,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
     },
     {
       "id": "40900",
@@ -33408,6 +33366,20 @@
       "signalCount": 2
     },
     {
+      "id": "30202",
+      "sourceStoreId": "30202",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "6700 Hayden Run Blvd, Hilliard, OH, 43026",
+      "city": "Hilliard",
+      "county": null,
+      "zip": null,
+      "lat": 40.0604426,
+      "lng": -83.1801926,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "30704",
       "sourceStoreId": "30704",
       "state": "OH",
@@ -33447,7 +33419,7 @@
       "lat": 39.8766,
       "lng": -83.0614986,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "30769",
@@ -33460,6 +33432,20 @@
       "zip": null,
       "lat": 40.0931598,
       "lng": -82.8255848,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30789",
+      "sourceStoreId": "30789",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "553 Hebron Rd, Unit 35, Heath, OH, 43056",
+      "city": "Heath",
+      "county": null,
+      "zip": null,
+      "lat": 40.0376656,
+      "lng": -82.4317308,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -33488,6 +33474,20 @@
       "zip": null,
       "lat": 41.1664805,
       "lng": -80.666851,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "40400",
+      "sourceStoreId": "40400",
+      "state": "OH",
+      "name": "Giant Eagle",
+      "address": "7400 Broadview Rd, Parma, OH, 44134",
+      "city": "Parma",
+      "county": null,
+      "zip": null,
+      "lat": 41.3647222,
+      "lng": -81.6880122,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -33828,20 +33828,6 @@
       "signalCount": 1
     },
     {
-      "id": "30210",
-      "sourceStoreId": "30210",
-      "state": "OH",
-      "name": "Giant Eagle Market District",
-      "address": "3061 Kingsdale Center, Upper Arlington, OH, 43221",
-      "city": "Upper Arlington",
-      "county": null,
-      "zip": null,
-      "lat": 40.0200612,
-      "lng": -83.0585093,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
-    },
-    {
       "id": "30220",
       "sourceStoreId": "30220",
       "state": "OH",
@@ -33979,7 +33965,21 @@
       "lat": 41.3819565,
       "lng": -81.4365421,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
+    },
+    {
+      "id": "30210",
+      "sourceStoreId": "30210",
+      "state": "OH",
+      "name": "Giant Eagle Market District",
+      "address": "3061 Kingsdale Center, Upper Arlington, OH, 43221",
+      "city": "Upper Arlington",
+      "county": null,
+      "zip": null,
+      "lat": 40.0200612,
+      "lng": -83.0585093,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "10518",
@@ -34133,7 +34133,7 @@
       "lat": 41.8759058,
       "lng": -80.7719832,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40403",
@@ -34301,7 +34301,7 @@
       "lat": 41.6939898,
       "lng": -83.6457758,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "10100",
@@ -34458,34 +34458,6 @@
       "signalCount": 2
     },
     {
-      "id": "10508",
-      "sourceStoreId": "10508",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "4100 Hunt Rd, Blue Ash, OH, 45236",
-      "city": "Blue Ash",
-      "county": null,
-      "zip": null,
-      "lat": 39.2272715,
-      "lng": -84.3978397,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
-    },
-    {
-      "id": "10516",
-      "sourceStoreId": "10516",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "3033 Heritage Green Dr, Monroe, OH, 45050",
-      "city": "Monroe",
-      "county": null,
-      "zip": null,
-      "lat": 39.4423634,
-      "lng": -84.378075,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
-    },
-    {
       "id": "10519",
       "sourceStoreId": "10519",
       "state": "OH",
@@ -34497,7 +34469,7 @@
       "lat": 39.2714935,
       "lng": -84.3258674,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "20601",
@@ -34512,20 +34484,6 @@
       "lng": -83.6064081,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "20633",
-      "sourceStoreId": "20633",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "1094 N Main St, Bowling Green, OH, 43402",
-      "city": "Bowling Green",
-      "county": null,
-      "zip": null,
-      "lat": 41.3912668,
-      "lng": -83.6486121,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
     },
     {
       "id": "20638",
@@ -34566,62 +34524,6 @@
       "zip": null,
       "lat": 40.079936,
       "lng": -82.4294513,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
-    },
-    {
-      "id": "30720",
-      "sourceStoreId": "30720",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "1375 Chambers Rd, Columbus, OH, 43212",
-      "city": "Columbus",
-      "county": null,
-      "zip": null,
-      "lat": 39.9926506,
-      "lng": -83.0434669,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
-    },
-    {
-      "id": "30724",
-      "sourceStoreId": "30724",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "1441 Parsons Ave, Columbus, OH, 43207",
-      "city": "Columbus",
-      "county": null,
-      "zip": null,
-      "lat": 39.9343323,
-      "lng": -82.9838752,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "30727",
-      "sourceStoreId": "30727",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "55 W Schrock Rd, Westerville, OH, 43081",
-      "city": "Westerville",
-      "county": null,
-      "zip": null,
-      "lat": 40.1082449,
-      "lng": -82.9273308,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
-    },
-    {
-      "id": "30733",
-      "sourceStoreId": "30733",
-      "state": "OH",
-      "name": "Kroger",
-      "address": "7625 Sawmill Rd, Dublin, OH, 43016",
-      "city": "Dublin",
-      "county": null,
-      "zip": null,
-      "lat": 40.1216289,
-      "lng": -83.0927068,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
     },
@@ -34706,6 +34608,34 @@
       "zip": null,
       "lat": 39.3362321,
       "lng": -84.5625889,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10508",
+      "sourceStoreId": "10508",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "4100 Hunt Rd, Blue Ash, OH, 45236",
+      "city": "Blue Ash",
+      "county": null,
+      "zip": null,
+      "lat": 39.2272715,
+      "lng": -84.3978397,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "10516",
+      "sourceStoreId": "10516",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "3033 Heritage Green Dr, Monroe, OH, 45050",
+      "city": "Monroe",
+      "county": null,
+      "zip": null,
+      "lat": 39.4423634,
+      "lng": -84.378075,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
     },
@@ -34848,6 +34778,20 @@
       "lng": -83.4155146,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
+    },
+    {
+      "id": "20633",
+      "sourceStoreId": "20633",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1094 N Main St, Bowling Green, OH, 43402",
+      "city": "Bowling Green",
+      "county": null,
+      "zip": null,
+      "lat": 41.3912668,
+      "lng": -83.6486121,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
     },
     {
       "id": "20641",
@@ -35000,6 +34944,20 @@
       "zip": null,
       "lat": 40.1569407,
       "lng": -83.0954214,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 2
+    },
+    {
+      "id": "30727",
+      "sourceStoreId": "30727",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "55 W Schrock Rd, Westerville, OH, 43081",
+      "city": "Westerville",
+      "county": null,
+      "zip": null,
+      "lat": 40.1082449,
+      "lng": -82.9273308,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
     },
@@ -35270,6 +35228,20 @@
       "signalCount": 1
     },
     {
+      "id": "30720",
+      "sourceStoreId": "30720",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "1375 Chambers Rd, Columbus, OH, 43212",
+      "city": "Columbus",
+      "county": null,
+      "zip": null,
+      "lat": 39.9926506,
+      "lng": -83.0434669,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
       "id": "30721",
       "sourceStoreId": "30721",
       "state": "OH",
@@ -35308,6 +35280,20 @@
       "zip": null,
       "lat": 39.988877,
       "lng": -83.0058436,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
+    },
+    {
+      "id": "30733",
+      "sourceStoreId": "30733",
+      "state": "OH",
+      "name": "Kroger",
+      "address": "7625 Sawmill Rd, Dublin, OH, 43016",
+      "city": "Dublin",
+      "county": null,
+      "zip": null,
+      "lat": 40.1216289,
+      "lng": -83.0927068,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -35491,7 +35477,7 @@
       "lat": 39.7966097,
       "lng": -84.2926892,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 4
     },
     {
       "id": "40960",
@@ -35620,20 +35606,6 @@
       "signalCount": 1
     },
     {
-      "id": "10500",
-      "sourceStoreId": "10500",
-      "state": "OH",
-      "name": "Liquor and Wine Warehouse",
-      "address": "3440 York Commons Blvd, Dayton, OH, 45414",
-      "city": "Dayton",
-      "county": null,
-      "zip": null,
-      "lat": 39.8440731,
-      "lng": -84.1968679,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "30222",
       "sourceStoreId": "30222",
       "state": "OH",
@@ -35743,7 +35715,21 @@
       "lat": 41.7111065,
       "lng": -83.6811613,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 5
+      "signalCount": 4
+    },
+    {
+      "id": "30717",
+      "sourceStoreId": "30717",
+      "state": "OH",
+      "name": "Mark's Drive Thru",
+      "address": "6240 E Livingston Ave, Reynoldsburg, OH, 43068",
+      "city": "Reynoldsburg",
+      "county": null,
+      "zip": null,
+      "lat": 39.9424198,
+      "lng": -82.8284573,
+      "source": "OHLQ browser-assisted product availability API",
+      "signalCount": 1
     },
     {
       "id": "10513",
@@ -35872,20 +35858,6 @@
       "signalCount": 4
     },
     {
-      "id": "20636",
-      "sourceStoreId": "20636",
-      "state": "OH",
-      "name": "Miller Brother's Supervalue",
-      "address": "166 W Main St, New London, OH, 44851",
-      "city": "New London",
-      "county": null,
-      "zip": null,
-      "lat": 41.0860948,
-      "lng": -82.4058142,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "20607",
       "sourceStoreId": "20607",
       "state": "OH",
@@ -35910,20 +35882,6 @@
       "zip": null,
       "lat": 40.553925,
       "lng": -81.9204162,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
-      "id": "40864",
-      "sourceStoreId": "40864",
-      "state": "OH",
-      "name": "Mini Mart Foods",
-      "address": "2085 Locust St, Canal Fulton, OH, 44614",
-      "city": "Canal Fulton",
-      "county": null,
-      "zip": null,
-      "lat": 40.882423,
-      "lng": -81.573743,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 1
     },
@@ -35995,7 +35953,7 @@
       "lat": 39.7593764,
       "lng": -84.2273478,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10554",
@@ -36135,7 +36093,7 @@
       "lat": 40.0607927,
       "lng": -83.0421624,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10531",
@@ -36164,20 +36122,6 @@
       "lng": -81.498989,
       "source": "OHLQ browser-assisted product availability API",
       "signalCount": 2
-    },
-    {
-      "id": "30707",
-      "sourceStoreId": "30707",
-      "state": "OH",
-      "name": "Oasis Drive Thru",
-      "address": "136 S Main St, P.O. Box 202, Lakeview, OH, 43331",
-      "city": "Lakeview",
-      "county": null,
-      "zip": null,
-      "lat": 40.483624,
-      "lng": -83.9244457,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
     },
     {
       "id": "10109",
@@ -36219,7 +36163,7 @@
       "lat": 41.3872697,
       "lng": -81.9038848,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40949",
@@ -36247,7 +36191,7 @@
       "lat": 41.0334938,
       "lng": -81.4932991,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40934",
@@ -36401,7 +36345,7 @@
       "lat": 41.4026664,
       "lng": -81.803696,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 5
     },
     {
       "id": "40907",
@@ -36429,7 +36373,7 @@
       "lat": 41.4266053,
       "lng": -82.1850701,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "10111",
@@ -36443,7 +36387,7 @@
       "lat": 39.1463963,
       "lng": -84.4042877,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 3
     },
     {
       "id": "40402",
@@ -36695,7 +36639,7 @@
       "lat": 40.3915849,
       "lng": -81.3441979,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "10524",
@@ -36877,7 +36821,7 @@
       "lat": 39.2187008,
       "lng": -84.5575363,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 3
     },
     {
       "id": "40867",
@@ -37020,20 +36964,6 @@
       "signalCount": 1
     },
     {
-      "id": "10504",
-      "sourceStoreId": "10504",
-      "state": "OH",
-      "name": "Wagner's IGA Market",
-      "address": "257 E 4th St, Minster, OH, 45865",
-      "city": "Minster",
-      "county": null,
-      "zip": null,
-      "lat": 40.3927539,
-      "lng": -84.3754869,
-      "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 1
-    },
-    {
       "id": "20622",
       "sourceStoreId": "20622",
       "state": "OH",
@@ -37101,7 +37031,7 @@
       "lat": 39.1284368,
       "lng": -84.6014742,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 4
+      "signalCount": 2
     },
     {
       "id": "30783",
@@ -37115,7 +37045,7 @@
       "lat": 40.1553396,
       "lng": -82.6831904,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 3
+      "signalCount": 2
     },
     {
       "id": "40829",
@@ -37213,7 +37143,7 @@
       "lat": 41.6718229,
       "lng": -81.326429,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "40858",
@@ -37241,7 +37171,7 @@
       "lat": 39.686176,
       "lng": -83.9414551,
       "source": "OHLQ browser-assisted product availability API",
-      "signalCount": 2
+      "signalCount": 1
     },
     {
       "id": "101",

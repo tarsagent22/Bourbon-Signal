@@ -5,10 +5,16 @@ const steps = [
     label: 'OHLQ browser product discovery and availability refresh',
     command: ['src/ohlq-browser-collector.mjs', '--discover'],
     env: {
+      // OHLQ is Cloudflare-protected. Headless Chrome reliably gets stuck on
+      // "Just a moment..."; a persistent headful profile can complete the
+      // managed challenge and reuse the browser session for future refreshes.
+      OHLQ_CDP_URL: process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18801',
+      BROWSER_HEADLESS: process.env.BROWSER_HEADLESS || '0',
+      BROWSER_PROFILE_DIR: process.env.BROWSER_PROFILE_DIR || 'out/browser-profile/ohlq-live',
       OHLQ_DISCOVERY_PAGES: process.env.OHLQ_DISCOVERY_PAGES || '8',
       OHLQ_DISCOVERY_LIMIT: process.env.OHLQ_DISCOVERY_LIMIT || '40',
       OHLQ_PRODUCT_DELAY_MS: process.env.OHLQ_PRODUCT_DELAY_MS || '900',
-      OHLQ_PRODUCT_READY_TIMEOUT_MS: process.env.OHLQ_PRODUCT_READY_TIMEOUT_MS || '70000',
+      OHLQ_PRODUCT_READY_TIMEOUT_MS: process.env.OHLQ_PRODUCT_READY_TIMEOUT_MS || '90000',
       OHLQ_KEEP_BROWSER: process.env.OHLQ_KEEP_BROWSER || '1'
     }
   },

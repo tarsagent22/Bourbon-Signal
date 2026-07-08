@@ -55,6 +55,8 @@ function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-background-networking',
+    '--disable-blink-features=AutomationControlled',
+    '--lang=en-US,en',
     'about:blank'
   ];
   const child = spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true });

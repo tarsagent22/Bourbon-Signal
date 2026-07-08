@@ -199,6 +199,7 @@ async function waitForOhlqProductReady(page, product) {
 async function main() {
   const seedProducts = JSON.parse(await readFile(PRODUCTS_FILE, 'utf8'));
   const browser = await ensureBrowserCdp(DEFAULT_CDP, { timeoutMs: Number(process.env.OHLQ_CDP_START_TIMEOUT_MS || 45000) });
+  console.log(`OHLQ CDP ${DEFAULT_CDP}; browser ${browser.started ? `started ${browser.executable} profile=${browser.profileDir}` : 'already running'}; headless=${process.env.BROWSER_HEADLESS === '0' ? 'false' : 'true'}`);
   const target = await getOrCreateTarget(DEFAULT_CDP, 'ohlq.com');
   const page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: PAGE_TIMEOUT_MS });
   await page.connect();

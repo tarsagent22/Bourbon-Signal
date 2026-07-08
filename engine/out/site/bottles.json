@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-08T02:19:43.175Z",
+  "generatedAt": "2026-07-08T02:58:16.719Z",
   "count": 161,
   "bottles": [
     {
@@ -30,7 +30,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_a85df59577c72709",
@@ -89,7 +89,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_1fd1f694742e0a1e",
@@ -117,7 +117,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_770b95a65307bba6",
@@ -144,7 +144,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_ea6984efad655e2d",
@@ -175,7 +175,7 @@
         "SC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_2f0353b913a15f02",
@@ -207,7 +207,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_cca84bbe5368acac",
@@ -235,7 +235,7 @@
         "SC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_25051cdc130afc7e",
@@ -262,7 +262,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_a66a1b8df27382e5",
@@ -289,36 +289,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
-    },
-    {
-      "id": "bb_a3c16eb6f814785b",
-      "canonical_id": "bb_a3c16eb6f814785b",
-      "canonical_name": "Weller Full Proof",
-      "canonical_key": "weller full proof",
-      "name": "Weller Full Proof",
-      "aliases": [
-        "W.L. Weller Full Proof",
-        "Weller FP",
-        "Weller Full Proof"
-      ],
-      "tier": "unicorn",
-      "producer": "Buffalo Trace",
-      "signalCount": 425,
-      "stateCount": 6,
-      "inventorySignalCount": 1,
-      "watchSignalCount": 421,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.9,
-      "states": [
-        "AL",
-        "MD-MONTGOMERY",
-        "NC",
-        "OH",
-        "TN",
-        "VA"
-      ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_91612a754818001d",
@@ -345,7 +316,7 @@
         "SC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_67bcd6d3c76d2c50",
@@ -370,7 +341,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_18013da36d2e4da4",
@@ -398,7 +369,7 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_3566c2a0088ec99a",
@@ -424,7 +395,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:35.571Z"
+      "latestObservedAt": "2026-07-08T02:28:27.207Z"
     },
     {
       "id": "bb_8ab6c80727eefe77",
@@ -449,7 +420,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_216abc00853a667f",
@@ -475,7 +446,7 @@
         "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_78043ec3da926c43",
@@ -500,7 +471,7 @@
         "KY",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_4c7a7e87b31d67fc",
@@ -524,7 +495,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:26.189Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_3f2ea94bd1b6a610",
@@ -549,7 +520,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_e7aec760851dce2e",
@@ -573,7 +544,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_7f15783e8c144664",
@@ -600,7 +571,35 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
+    },
+    {
+      "id": "bb_a3c16eb6f814785b",
+      "canonical_id": "bb_a3c16eb6f814785b",
+      "canonical_name": "Weller Full Proof",
+      "canonical_key": "weller full proof",
+      "name": "Weller Full Proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP",
+        "Weller Full Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "signalCount": 424,
+      "stateCount": 5,
+      "inventorySignalCount": 0,
+      "watchSignalCount": 420,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.9,
+      "states": [
+        "AL",
+        "MD-MONTGOMERY",
+        "NC",
+        "TN",
+        "VA"
+      ],
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_7027ba16ae56677c",
@@ -625,7 +624,7 @@
         "KY",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_ac855cd46254e92a",
@@ -652,7 +651,7 @@
         "MD-MONTGOMERY",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:00.510Z"
+      "latestObservedAt": "2026-07-08T02:38:41.780Z"
     },
     {
       "id": "bb_3e51382764120baa",
@@ -677,7 +676,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_d2b7ab7e2ebc1404",
@@ -702,7 +701,7 @@
         "AL",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_fbfbe48f81bb0ced",
@@ -727,7 +726,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_bc919d672d92e1fe",
@@ -751,7 +750,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_1ac52cea6f3d0115",
@@ -775,7 +774,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_89f4f171664009c0",
@@ -799,7 +798,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_251412a45d0064c1",
@@ -823,7 +822,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_e7885596cd0952b8",
@@ -848,7 +847,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_064157246d06e7cd",
@@ -874,7 +873,7 @@
         "AL",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_40a01e5c27a36a6d",
@@ -1072,10 +1071,10 @@
       ],
       "tier": "allocated",
       "producer": "Heaven Hill",
-      "signalCount": 587,
+      "signalCount": 585,
       "stateCount": 9,
-      "inventorySignalCount": 417,
-      "watchSignalCount": 581,
+      "inventorySignalCount": 415,
+      "watchSignalCount": 579,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1089,7 +1088,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_ee4b5c90535d24d7",
@@ -1120,7 +1119,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_39c32498665b2f97",
@@ -1148,7 +1147,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:28.156Z"
+      "latestObservedAt": "2026-07-08T02:31:19.704Z"
     },
     {
       "id": "bb_317836b9e64a7620",
@@ -1167,10 +1166,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 1334,
+      "signalCount": 1322,
       "stateCount": 10,
-      "inventorySignalCount": 147,
-      "watchSignalCount": 1329,
+      "inventorySignalCount": 135,
+      "watchSignalCount": 1317,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1185,7 +1184,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_efc4285973b6c02f",
@@ -1213,7 +1212,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_54f5df2f8ee5d7c9",
@@ -1229,10 +1228,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 506,
+      "signalCount": 503,
       "stateCount": 6,
-      "inventorySignalCount": 81,
-      "watchSignalCount": 506,
+      "inventorySignalCount": 78,
+      "watchSignalCount": 503,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -1243,40 +1242,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
-    },
-    {
-      "id": "bb_7991fa37cd881dba",
-      "canonical_id": "bb_7991fa37cd881dba",
-      "canonical_name": "Weller Antique 107",
-      "canonical_key": "weller antique 107",
-      "name": "Weller Antique 107",
-      "aliases": [
-        "OWA",
-        "Old Weller Antique",
-        "W.L. Weller Antique 107",
-        "Weller 107",
-        "Weller Antique 107"
-      ],
-      "tier": "allocated",
-      "producer": "Buffalo Trace",
-      "signalCount": 596,
-      "stateCount": 8,
-      "inventorySignalCount": 51,
-      "watchSignalCount": 592,
-      "bestLocationPrecision": "store_level",
-      "bestConfidence": 0.92,
-      "states": [
-        "AL",
-        "IA",
-        "MD-MONTGOMERY",
-        "NC",
-        "OH",
-        "SC",
-        "TN",
-        "VA"
-      ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_5afa9241206ab963",
@@ -1296,10 +1262,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 643,
+      "signalCount": 642,
       "stateCount": 9,
-      "inventorySignalCount": 49,
-      "watchSignalCount": 639,
+      "inventorySignalCount": 48,
+      "watchSignalCount": 638,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1313,7 +1279,40 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
+    },
+    {
+      "id": "bb_7991fa37cd881dba",
+      "canonical_id": "bb_7991fa37cd881dba",
+      "canonical_name": "Weller Antique 107",
+      "canonical_key": "weller antique 107",
+      "name": "Weller Antique 107",
+      "aliases": [
+        "OWA",
+        "Old Weller Antique",
+        "W.L. Weller Antique 107",
+        "Weller 107",
+        "Weller Antique 107"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "signalCount": 593,
+      "stateCount": 8,
+      "inventorySignalCount": 48,
+      "watchSignalCount": 589,
+      "bestLocationPrecision": "store_level",
+      "bestConfidence": 0.92,
+      "states": [
+        "AL",
+        "IA",
+        "MD-MONTGOMERY",
+        "NC",
+        "OH",
+        "SC",
+        "TN",
+        "VA"
+      ],
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_152c90f782b801f5",
@@ -1333,10 +1332,10 @@
       ],
       "tier": "allocated",
       "producer": "Buffalo Trace",
-      "signalCount": 953,
+      "signalCount": 952,
       "stateCount": 8,
-      "inventorySignalCount": 33,
-      "watchSignalCount": 953,
+      "inventorySignalCount": 32,
+      "watchSignalCount": 952,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1349,7 +1348,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_d0fe561ac45db2d5",
@@ -1383,7 +1382,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_257576efcd142ce7",
@@ -1411,7 +1410,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_b575401320b1c321",
@@ -1437,7 +1436,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_b7ca7cc4ab428ba8",
@@ -1469,7 +1468,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_845fea76319ddc88",
@@ -1493,7 +1492,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_7a177344b1290314",
@@ -1517,7 +1516,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_85305a6b410701da",
@@ -1542,7 +1541,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_eb5da0badfc03902",
@@ -1567,7 +1566,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:39.853Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_fd202575957d3cea",
@@ -1595,7 +1594,7 @@
         "NC",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:25.534Z"
     },
     {
       "id": "bb_ab29607e7117c93f",
@@ -1619,7 +1618,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_15b34a1a107fafe0",
@@ -1645,7 +1644,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:21.864Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_908a09ce88994089",
@@ -1671,7 +1670,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_d804fd15377958b6",
@@ -1695,7 +1694,7 @@
       "states": [
         "AL"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:28:13.242Z"
     },
     {
       "id": "bb_bb97e76c263976a8",
@@ -1753,7 +1752,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_8b9546b93a7fbe72",
@@ -1768,10 +1767,10 @@
       ],
       "tier": "limited",
       "producer": "Jim Beam",
-      "signalCount": 810,
+      "signalCount": 808,
       "stateCount": 9,
-      "inventorySignalCount": 651,
-      "watchSignalCount": 810,
+      "inventorySignalCount": 649,
+      "watchSignalCount": 808,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.92,
       "states": [
@@ -1785,7 +1784,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_ef203a18f5f98f23",
@@ -1813,7 +1812,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:09:22.319Z"
+      "latestObservedAt": "2026-07-08T02:38:02.617Z"
     },
     {
       "id": "bb_2435a31e97c20ce7",
@@ -1839,7 +1838,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:24.471Z"
+      "latestObservedAt": "2026-07-08T02:31:17.564Z"
     },
     {
       "id": "bb_22604f9ddde2b6ba",
@@ -1865,7 +1864,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_d99031402ce45359",
@@ -1894,7 +1893,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_2b24796e5c750106",
@@ -1919,7 +1918,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_f1bb80f4dc160729",
@@ -1946,7 +1945,7 @@
         "IA",
         "IL"
       ],
-      "latestObservedAt": "2026-07-08T02:09:22.319Z"
+      "latestObservedAt": "2026-07-08T02:38:02.617Z"
     },
     {
       "id": "bb_1f0975f2e3cbd2d5",
@@ -1976,7 +1975,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_a3b1732edd18ac89",
@@ -2005,7 +2004,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_8924180d0cc2d853",
@@ -2034,7 +2033,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_6638917074080bcb",
@@ -2050,10 +2049,10 @@
       ],
       "tier": "limited",
       "producer": "Lux Row",
-      "signalCount": 51,
+      "signalCount": 45,
       "stateCount": 7,
-      "inventorySignalCount": 18,
-      "watchSignalCount": 50,
+      "inventorySignalCount": 12,
+      "watchSignalCount": 44,
       "bestLocationPrecision": "store_level",
       "bestConfidence": 0.9,
       "states": [
@@ -2065,7 +2064,7 @@
         "PA",
         "SC"
       ],
-      "latestObservedAt": "2026-07-08T01:58:48.617Z"
+      "latestObservedAt": "2026-07-08T02:57:38.743Z"
     },
     {
       "id": "bb_c1b9f5325e7c08a4",
@@ -2095,7 +2094,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_bf904ca5ccbb690d",
@@ -2123,7 +2122,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_ea538792278ccca7",
@@ -2151,7 +2150,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_24c7e1719e8ded79",
@@ -2177,7 +2176,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_b029b9fb7d0f5783",
@@ -2205,7 +2204,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_80e1a23c773972ad",
@@ -2231,7 +2230,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_21f337f08eaf6bdd",
@@ -2256,7 +2255,7 @@
         "IN",
         "SC"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_70221e1cdb151a04",
@@ -2281,7 +2280,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_36be0a66004a60ba",
@@ -2306,7 +2305,7 @@
         "IN",
         "MD-MONTGOMERY"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_c57c8f61c0075ec5",
@@ -2338,7 +2337,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_ac2c01f1faac17fb",
@@ -2363,7 +2362,7 @@
         "IA",
         "IN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_6885046e5aeac722",
@@ -2389,7 +2388,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_0276bacbf4621773",
@@ -2414,7 +2413,7 @@
       "states": [
         "SC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_fee8a1d8ff9ca239",
@@ -2439,7 +2438,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_311d7401141a8587",
@@ -2464,7 +2463,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_7668274bf55e7f42",
@@ -2489,7 +2488,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_473aba10a697b5fc",
@@ -2516,7 +2515,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_81c5c5c4b7d8a7b6",
@@ -2541,7 +2540,7 @@
       "states": [
         "IA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_71c68398a83ef404",
@@ -2567,7 +2566,7 @@
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:07.488Z"
+      "latestObservedAt": "2026-07-08T02:28:08.450Z"
     },
     {
       "id": "bb_2c6200b256620774",
@@ -2591,7 +2590,7 @@
       "states": [
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:37.227Z"
+      "latestObservedAt": "2026-07-08T02:28:28.559Z"
     },
     {
       "id": "bb_dcbadbe1cd262fe4",
@@ -2618,7 +2617,7 @@
         "NC",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:13.094Z"
+      "latestObservedAt": "2026-07-08T02:38:54.129Z"
     },
     {
       "id": "bb_4e7a2ea067e741fd",
@@ -2642,7 +2641,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_4e73160e46030f61",
@@ -2665,7 +2664,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_7b70730d97fb4243",
@@ -2689,7 +2688,7 @@
       "states": [
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T00:00:24.406Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_09f828e85cf5a103",
@@ -2716,7 +2715,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_63d8202a47b5f253",
@@ -2740,7 +2739,7 @@
         "AL",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:35.571Z"
+      "latestObservedAt": "2026-07-08T02:28:27.207Z"
     },
     {
       "id": "bb_fbdffd15c5c5d159",
@@ -2764,7 +2763,7 @@
         "AL",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_9b186a3bfc444786",
@@ -2790,7 +2789,7 @@
         "MD-MONTGOMERY",
         "MI"
       ],
-      "latestObservedAt": "2026-07-08T02:11:08.193Z"
+      "latestObservedAt": "2026-07-08T02:39:50.120Z"
     },
     {
       "id": "bb_78ae1c4d3ca52afc",
@@ -3127,7 +3126,7 @@
         "TN",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_13fcb09e58792e06",
@@ -3155,7 +3154,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_cd5d49e4d71817d0",
@@ -3178,7 +3177,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:31.579Z"
+      "latestObservedAt": "2026-07-08T02:28:25.787Z"
     },
     {
       "id": "bb_990508df5d5a7802",
@@ -3228,7 +3227,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_bc740ceed124f31d",
@@ -3258,7 +3257,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_71f028a40975fd30",
@@ -3285,7 +3284,7 @@
         "NC",
         "SC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_107ecc731f4ce2da",
@@ -3310,7 +3309,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_8b27dd3856554ada",
@@ -3337,7 +3336,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_c782a4dd71e5ef89",
@@ -3361,7 +3360,7 @@
         "PA",
         "VA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:42.653Z"
+      "latestObservedAt": "2026-07-08T02:31:19.704Z"
     },
     {
       "id": "bb_dfd57a8fdc086894",
@@ -3389,7 +3388,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_30452cb85b45d0f9",
@@ -3414,7 +3413,7 @@
         "SC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_0ac8fe664f553b86",
@@ -3442,7 +3441,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_24a388c391f6626f",
@@ -3473,7 +3472,7 @@
         "NC",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_190faabf7deb067c",
@@ -3499,7 +3498,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_77cb8856036aec56",
@@ -3524,7 +3523,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_c446121e6e477c0b",
@@ -3550,7 +3549,7 @@
         "IN",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_2a3a72be37e1c233",
@@ -3574,7 +3573,7 @@
         "PA",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_768476e649819a93",
@@ -3598,7 +3597,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_03a02fbf93f04058",
@@ -3622,7 +3621,7 @@
       "states": [
         "SC"
       ],
-      "latestObservedAt": "2026-07-08T02:10:27.474Z"
+      "latestObservedAt": "2026-07-08T02:39:09.654Z"
     },
     {
       "id": "bb_6d2085e9bbe873b7",
@@ -3646,7 +3645,7 @@
       "states": [
         "IN"
       ],
-      "latestObservedAt": "2026-07-08T02:01:00.648Z"
+      "latestObservedAt": "2026-07-08T02:31:22.335Z"
     },
     {
       "id": "bb_00de3ec6e1619105",
@@ -3670,7 +3669,7 @@
         "OH",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:17.549Z"
+      "latestObservedAt": "2026-07-08T02:57:41.544Z"
     },
     {
       "id": "bb_fdc2966c6b0d74ea",
@@ -3697,7 +3696,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_dab3d03d7632a821",
@@ -3721,7 +3720,7 @@
         "IA",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T01:58:42.103Z"
+      "latestObservedAt": "2026-07-08T02:28:33.171Z"
     },
     {
       "id": "bb_4b57850b8b8f77fd",
@@ -3744,7 +3743,7 @@
         "MD-MONTGOMERY",
         "PA"
       ],
-      "latestObservedAt": "2026-07-08T02:09:32.346Z"
+      "latestObservedAt": "2026-07-08T02:38:12.512Z"
     },
     {
       "id": "bb_8c124ba38652152c",
@@ -3767,7 +3766,7 @@
         "AL",
         "NC"
       ],
-      "latestObservedAt": "2026-07-08T01:58:11.435Z"
+      "latestObservedAt": "2026-07-08T02:30:23.904Z"
     },
     {
       "id": "bb_542df7266c14aedc",
@@ -3791,7 +3790,7 @@
         "MD-MONTGOMERY",
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_293868597de2601b",
@@ -3815,7 +3814,7 @@
       "states": [
         "TN"
       ],
-      "latestObservedAt": "2026-07-08T02:10:18.617Z"
+      "latestObservedAt": "2026-07-08T02:39:00.372Z"
     },
     {
       "id": "bb_2756c209b14f10ab",
