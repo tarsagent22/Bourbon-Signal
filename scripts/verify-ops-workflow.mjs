@@ -266,9 +266,13 @@ for (const phrase of ['GitHub is the source of truth', 'Do not deploy from a dir
 }
 
 const workflow = expectFile('.github/workflows/ci.yml');
-for (const phrase of ['npm ci', 'npm run build', 'npm run test:ops', 'npm --prefix engine run verify:site']) {
-  if (workflow && !workflow.includes(phrase)) {
-    fail(`CI workflow should include: ${phrase}`);
+const rootPackageJson = JSON.parse(read('package.json'));
+const verifyCi = String(rootPackageJson.scripts?.['verify:ci'] || '');
+if (workflow && !workflow.includes('npm ci')) fail('CI workflow should install dependencies with npm ci.');
+if (workflow && !workflow.includes('npm run verify:ci')) fail('CI workflow should run the shared verify:ci script.');
+for (const phrase of ['npm run build', 'npm run test:ops', 'npm --prefix engine run verify:site']) {
+  if (!verifyCi.includes(phrase)) {
+    fail(`verify:ci script should include: ${phrase}`);
   }
 }
 

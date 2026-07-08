@@ -16,11 +16,13 @@ const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHO
 const PA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const FAST_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.FAST_STORE_INVENTORY_MAX_AGE_HOURS || 12);
 // VA uses the official Virginia ABC storeNearby cache during launch because the
-// live broad store scan is expensive and rate-limit sensitive. Keep a slightly
-// longer public feed window for VA cache fallbacks, but do not let older cached
-// rows become outbound/current-inventory alert candidates.
+// live broad store scan is expensive and rate-limit sensitive. Ohio's OHLQ site
+// can intermittently block browser collection behind Cloudflare; keep older OHLQ
+// store-status rows visible in the feed with an explicit stale-source caveat,
+// while alert export still uses CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS below.
 const VA_STORE_INVENTORY_MAX_AGE_HOURS = Number(process.env.VA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
-const CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 24);
+const OH_STORE_INVENTORY_FEED_MAX_AGE_HOURS = Number(process.env.OH_STORE_INVENTORY_FEED_MAX_AGE_HOURS || 336);
+const CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
 const NC_STRICT_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition)|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)/i;
 const NC_STRICT_SIGNAL_EXCLUDE_RE = /cream|liqueur|cordial|cocktail|ready[ -]?to[ -]?drink|rtd|vodka|gin|rum|tequila|mezcal|cognac|brandy|wine|beer|seltzer/i;
 const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|stagg|old fitz|fitzgerald|willett|pappy|van winkle|baker'?s?|e\.?h\.?\s*taylor|colonel\s+taylor|elijah craig[^\n]{0,40}barrel proof|michter'?s[^\n]{0,40}(bourbon|10\s*year)/i;
@@ -282,6 +284,8 @@ function publicSignal(signal, bible, freshness = null) {
     policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
+    sourceStale: ohioFeedStaleCaveat(signal),
+    staleSourceCaveat: ohioFeedStaleCaveat(signal) ? 'OHLQ collection is currently stale/blocked. This is the latest cached OHLQ status we have; verify on OHLQ or call the store before driving.' : null,
     dataLane,
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: isCostcoWarehouseInventory
@@ -290,7 +294,9 @@ function publicSignal(signal, bible, freshness = null) {
         ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
       : isKyOfficialDistillery
         ? 'Official distillery release-watch intelligence only; not retailer store inventory or a store shipment alert.'
-      : canAlertAsInventory && signal.locationPrecision === 'store_level'
+      : ohioFeedStaleCaveat(signal)
+        ? 'Stale OHLQ store-status signal. OHLQ collection is currently blocked/stale, so this is the latest cached status; verify on OHLQ or call the store before driving.'
+        : canAlertAsInventory && signal.locationPrecision === 'store_level'
         ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
         : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
           ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
@@ -319,11 +325,13 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
   if (!currentKeys.has(signalFreshnessKey(signal))) return false;
   const observedAt = asTime(signal.observedAt || signal.fetchedAt);
   if (!observedAt) return false;
-  const maxAgeHours = signal.state === 'PA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
-    ? PA_STORE_INVENTORY_MAX_AGE_HOURS
-    : signal.state === 'VA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
-      ? VA_STORE_INVENTORY_MAX_AGE_HOURS
-      : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
+  const maxAgeHours = signal.state === 'OH' && isOhioOhlqStoreInventorySignal(signal)
+    ? OH_STORE_INVENTORY_FEED_MAX_AGE_HOURS
+    : signal.state === 'PA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
+      ? PA_STORE_INVENTORY_MAX_AGE_HOURS
+      : signal.state === 'VA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
+        ? VA_STORE_INVENTORY_MAX_AGE_HOURS
+        : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
   return Date.now() - observedAt <= maxAgeHours * 60 * 60 * 1000;
 }
 
@@ -1114,6 +1122,21 @@ function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
 function dropAgeHours(drop) {
   const observed = Date.parse(drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || 0);
   return Number.isFinite(observed) ? Math.max(0, (Date.now() - observed) / (60 * 60 * 1000)) : Infinity;
+}
+
+function signalAgeHours(signal) {
+  const observedAt = asTime(signal?.observedAt || signal?.fetchedAt);
+  return observedAt ? Math.max(0, (Date.now() - observedAt) / (60 * 60 * 1000)) : Infinity;
+}
+
+function isOhioOhlqStoreInventorySignal(signal) {
+  return signal?.state === 'OH'
+    && /^browser_assisted_store_inventory_(limited_supply|in_stock)$/i.test(String(signal?.eventType || signal?.type || ''))
+    && String(signal?.locationPrecision || '').toLowerCase() === 'store_level';
+}
+
+function ohioFeedStaleCaveat(signal) {
+  return isOhioOhlqStoreInventorySignal(signal) && signalAgeHours(signal) > FAST_STORE_INVENTORY_MAX_AGE_HOURS;
 }
 
 function dropHasPositiveAlertInventory(drop) {

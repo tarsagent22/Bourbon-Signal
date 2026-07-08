@@ -33,6 +33,11 @@ const falseYellowstoneLimited = [...signals, ...ohioDrops].find((row) => /yellow
 const unsafeSourceNamedDrop = ohioDrops.find((drop) => String(drop.raw?.sourceMatchStatus || drop.sourceMatchStatus || '').startsWith('source_name_kept:'));
 const alertWithoutBottle = ohioAlerts.find((alert) => !alert.bottle && !alert.bottleId && !alert.canonicalName);
 
+const newestOhlqObservedAt = Math.max(...ohlqSignals.map((signal) => Date.parse(signal.observedAt || signal.raw?.product?.generatedAt || '')).filter(Number.isFinite));
+const ohlqSignalAgeHours = Number.isFinite(newestOhlqObservedAt) ? (Date.now() - newestOhlqObservedAt) / (1000 * 60 * 60) : Infinity;
+const currentAlertMaxAgeHours = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
+const ohlqFreshEnoughForAlerts = ohlqSignalAgeHours <= currentAlertMaxAgeHours;
+
 if (state.status !== 'useful') fail(`Ohio state artifact should be useful, got ${state.status}.`);
 if (discoverySamples.length) fail(`Ohio should not publish stale browser discovery sample rows once hardened; got ${discoverySamples.length}.`);
 if (ohlqSignals.length < 100) fail(`Expected at least 100 fresh decoded OHLQ positive store availability signals, got ${ohlqSignals.length}.`);
@@ -42,7 +47,8 @@ if (cities.size < 15) fail(`Expected Ohio drops across at least 15 cities, got $
 if (bottles.size < 3) fail(`Expected Ohio drops for at least 3 distinct bottles, got ${bottles.size}.`);
 if (invalidPositiveStatus) fail(`Ohio emitted an invalid positive status: ${invalidPositiveStatus.availabilityStatus}.`);
 if (staleObserved) fail(`Ohio has stale/missing observedAt on ${staleObserved.canonicalName || staleObserved.rawName} at ${staleObserved.storeName || staleObserved.locationName}.`);
-if (ohioAlerts.length < 10) fail(`Expected Ohio alert candidates to survive alert export caps, got ${ohioAlerts.length}.`);
+if (ohlqFreshEnoughForAlerts && ohioAlerts.length < 10) fail(`Expected Ohio alert candidates to survive alert export caps while OHLQ data is fresh, got ${ohioAlerts.length}.`);
+if (!ohlqFreshEnoughForAlerts && ohioAlerts.length > 0) fail(`Stale Ohio OHLQ rows should remain feed-visible but not alertable; got ${ohioAlerts.length} alert candidates.`);
 if (falseYellowstoneLimited) fail(`Ohio false-positive guard failed: ordinary Yellowstone row was promoted to Yellowstone Limited Edition (${falseYellowstoneLimited.rawName || falseYellowstoneLimited.evidence || 'unknown row'}).`);
 if (unsafeSourceNamedDrop) fail(`Ohio source-named unsafe match leaked into public drops: ${unsafeSourceNamedDrop.rawName || unsafeSourceNamedDrop.canonicalName}.`);
 if (alertWithoutBottle) fail(`Ohio alert candidate is missing a safe bottle match: ${alertWithoutBottle.id || alertWithoutBottle.reason || 'unknown alert'}.`);

@@ -27,7 +27,8 @@
     "ops:bottle-queue": "node automation/bourbon-signal/bottle-queue-autoprocess.mjs",
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
-    "verify:production-engine": "node scripts/verify-production-engine-regression.mjs"
+    "verify:production-engine": "node scripts/verify-production-engine-regression.mjs",
+    "verify:ci": "npm run test:ops && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
