@@ -15,6 +15,8 @@ interface SightingsFeedResponse {
   sightings?: MemberSighting[];
   states?: string[];
   rewards?: MemberRewardsSummary;
+  previewLimit?: number | null;
+  totalSightings?: number;
 }
 
 export function useSightings(enabled: boolean = true) {
@@ -23,6 +25,8 @@ export function useSightings(enabled: boolean = true) {
   const [sightings, setSightings] = useState<MemberSighting[]>([]);
   const [states, setStates] = useState<string[]>([]);
   const [rewards, setRewards] = useState<MemberRewardsSummary | null>(null);
+  const [previewLimit, setPreviewLimit] = useState<number | null>(null);
+  const [totalSightings, setTotalSightings] = useState(0);
   const [loading, setLoading] = useState(enabled);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +48,8 @@ export function useSightings(enabled: boolean = true) {
     setSightings(data.sightings || []);
     setStates(data.states || []);
     setRewards(data.rewards || null);
+    setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
+    setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
     return data;
   }, []);
 
@@ -51,6 +57,8 @@ export function useSightings(enabled: boolean = true) {
     if (!enabled) {
       setLoading(false);
       setSightings([]);
+      setPreviewLimit(null);
+      setTotalSightings(0);
       return null;
     }
     setLoading(true);
@@ -109,6 +117,8 @@ export function useSightings(enabled: boolean = true) {
       const data = (await res.json()) as SightingsFeedResponse & { sighting?: MemberSighting };
       setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
+      setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
+      setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
       await refreshPreferences().catch(() => undefined);
       return data.sighting || sighting;
     } catch (err) {
@@ -133,6 +143,8 @@ export function useSightings(enabled: boolean = true) {
       const data = (await res.json()) as SightingsFeedResponse;
       setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
+      setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
+      setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
       await refreshPreferences().catch(() => undefined);
     } catch (err) {
       console.error("Failed to save sighting vote", err);
@@ -184,6 +196,8 @@ export function useSightings(enabled: boolean = true) {
     sightings,
     states,
     rewards,
+    previewLimit,
+    totalSightings,
     reports: preferences.signalReports,
     reportsBySignalId,
     loading,

@@ -127,7 +127,9 @@ export async function GET(req: NextRequest) {
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
-  const sightings = await getAggregateSightings(userId);
+  const allSightings = await getAggregateSightings(userId);
+  const previewLimit = entitlements.tier === "free" ? entitlements.feedPreviewLimit : null;
+  const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
@@ -139,7 +141,7 @@ export async function GET(req: NextRequest) {
   }
   const rewards: MemberRewardsSummary = summarizeMemberRewards(prefs.submittedSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
-  return NextResponse.json({ sightings, states, rewards });
+  return NextResponse.json({ sightings, states, rewards, previewLimit, totalSightings: allSightings.length });
 }
 
 export async function POST(req: NextRequest) {
@@ -231,9 +233,11 @@ export async function POST(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const duplicate = prefs.submittedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
   if (duplicate) {
-    const sightings = await getAggregateSightings(userId);
+    const allSightings = await getAggregateSightings(userId);
+    const previewLimit = entitlements.tier === "free" ? entitlements.feedPreviewLimit : null;
+    const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
     const rewards: MemberRewardsSummary = summarizeMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
-    return NextResponse.json({ ok: true, duplicate: true, sighting: duplicate, sightings, rewards });
+    return NextResponse.json({ ok: true, duplicate: true, sighting: duplicate, sightings, rewards, previewLimit, totalSightings: allSightings.length });
   }
 
   const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
@@ -248,9 +252,11 @@ export async function POST(req: NextRequest) {
       context: { sightingId: sighting.id, storeName, storeCity: sighting.storeCity, storeState: sighting.storeState, rarityTier: sighting.rarityTier },
     }).catch((error) => console.error("bottle contribution from sighting failed", error));
   }
-  const sightings = await getAggregateSightings(userId);
+  const allSightings = await getAggregateSightings(userId);
+  const previewLimit = entitlements.tier === "free" ? entitlements.feedPreviewLimit : null;
+  const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
   const rewards: MemberRewardsSummary = summarizeMemberRewards(next.submittedSightings, nextRewards);
-  return NextResponse.json({ ok: true, sighting, sightings, rewards });
+  return NextResponse.json({ ok: true, sighting, sightings, rewards, previewLimit, totalSightings: allSightings.length });
 }
 
 export async function PATCH(req: NextRequest) {
