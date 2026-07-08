@@ -1,14 +1,12 @@
-import crypto from "crypto";
+import * as crypto from "crypto";
 import Link from "next/link";
-import { getResendClient } from "@/lib/email-alerts";
+import { isValidNewsletterEmail, newsletterSignatureFor, unsubscribeNewsletterContact } from "@/lib/newsletter";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type SubscriptionState = "unsubscribed" | "resubscribed" | "invalid" | "error";
-
-const AUDIENCE_ID = process.env.RESEND_DIGEST_AUDIENCE_ID;
 
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -18,14 +16,8 @@ function normalizeEmail(value: string | undefined) {
   return (value || "").trim().toLowerCase();
 }
 
-function signingSecret() {
-  return process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || process.env.RESEND_API_KEY || "";
-}
-
 function signatureFor(email: string) {
-  const secret = signingSecret();
-  if (!secret) return "";
-  return crypto.createHmac("sha256", secret).update(email).digest("hex");
+  return newsletterSignatureFor(email);
 }
 
 function safeEqual(a: string, b: string) {
@@ -34,32 +26,13 @@ function safeEqual(a: string, b: string) {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-function validEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 async function updateSubscription(email: string, unsubscribed: boolean) {
-  if (!AUDIENCE_ID) throw new Error("RESEND_DIGEST_AUDIENCE_ID is not configured");
-  const resend = getResendClient();
-  const updated = await resend.contacts.update({
-    audienceId: AUDIENCE_ID,
-    email,
-    unsubscribed,
-  });
-
-  if (!updated.error) return;
-
   if (!unsubscribed) {
-    const created = await resend.contacts.create({
-      audienceId: AUDIENCE_ID,
-      email,
-      unsubscribed: false,
-    });
-    if (!created.error) return;
-    throw new Error(created.error.message || "Could not resubscribe contact");
+    const { subscribeNewsletterContact } = await import("@/lib/newsletter");
+    await subscribeNewsletterContact(email);
+    return;
   }
-
-  throw new Error(updated.error.message || "Could not update contact");
+  await unsubscribeNewsletterContact(email);
 }
 
 function resubscribeHref(email: string) {
@@ -79,7 +52,7 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
   const expected = signatureFor(email);
   let state: SubscriptionState = "invalid";
 
-  if (validEmail(email) && expected && sig && safeEqual(sig, expected)) {
+  if (isValidNewsletterEmail(email) && expected && sig && safeEqual(sig, expected)) {
     try {
       await updateSubscription(email, action !== "resubscribe");
       state = action === "resubscribe" ? "resubscribed" : "unsubscribed";
