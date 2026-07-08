@@ -1204,91 +1204,104 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                   color: "rgba(245,237,214,0.5)",
                 }}
               >
-                {drop.locations.length > 0 && (
-                  <div style={{ marginBottom: details.length > 0 ? "10px" : 0 }}>
+                {isFreeUser ? (
+                  <div
+                    style={{
+                      borderRadius: "16px",
+                      border: "1px solid rgba(196,148,58,0.22)",
+                      background: "linear-gradient(135deg, rgba(196,148,58,0.10), rgba(245,237,214,0.035))",
+                      padding: "16px 18px",
+                      color: "rgba(245,237,214,0.74)",
+                    }}
+                  >
                     <div
                       style={{
-                        color: "rgba(245,237,214,0.35)",
-                        marginBottom: "8px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        fontSize: "10px",
-                        fontFamily: "var(--font-jetbrains)",
+                        fontFamily: "var(--font-playfair)",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        color: "var(--color-cream)",
+                        marginBottom: "6px",
                       }}
                     >
-                      {distilleryMeta ? distilleryMeta.detailHeading : stateLabel ? `${stateLabel} drop/shipment` : "Drop/shipment"}
+                      Want to see the signal details?
                     </div>
-                    <div style={{ display: "grid", gap: "8px" }}>
-                      {visibleLocations.map((location: DropLocation) => {
-                        const destinationLabel = distilleryMeta ? "Official pickup location" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
-                        const sourceLocationLabel = distilleryMeta?.primaryLine || location.label;
-                        const rawSecondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
-                        const secondaryLine = rawSecondaryLine && !locationLabelsMatch(rawSecondaryLine, sourceLocationLabel) ? rawSecondaryLine : "";
-                        return (
-                          <div
-                            key={`${location.label}-${location.address ?? ""}`}
-                            style={{
-                              padding: "10px 12px",
-                              borderRadius: "12px",
-                              border: "1px solid rgba(245,237,214,0.08)",
-                              background: "rgba(245,237,214,0.03)",
-                            }}
-                          >
-                            <div style={{ color: "rgba(245,237,214,0.35)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "10px", fontFamily: "var(--font-jetbrains)" }}>
-                              {destinationLabel}
-                            </div>
-                            <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
-                              {distilleryMeta ? sourceLocationLabel : <CountyLink county={location.label}>{location.label}</CountyLink>}
-                            </div>
-                            {secondaryLine && (
-                              <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>
-                                {secondaryLine}
-                              </div>
-                            )}
-                            {location.quantity && !distilleryMeta && (
-                              <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
-                                {drop.event_type === "new_shipment"
-                                  ? `${location.quantity} case${location.quantity === 1 ? "" : "s"} shipped`
-                                  : drop.event_type === "nc_board_shipment_snapshot"
-                                    ? `${location.quantity} unit${location.quantity === 1 ? "" : "s"} reported to board`
-                                    : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} reported`}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {isFreeUser && hiddenLocationCount > 0 && (
+                    <div style={{ fontSize: "13px", lineHeight: 1.55 }}>
+                      <a
+                        href="/pricing"
+                        style={{ color: "var(--color-accent-amber)", fontWeight: 800, textDecoration: "none" }}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Upgrade your membership
+                      </a>{" "}
+                      to unlock store-level details, timing notes, source context, and full locations.
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {drop.locations.length > 0 && (
+                      <div style={{ marginBottom: details.length > 0 ? "10px" : 0 }}>
                         <div
                           style={{
-                            padding: "10px 12px",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(212,146,11,0.18)",
-                            background: "rgba(212,146,11,0.06)",
+                            color: "rgba(245,237,214,0.35)",
+                            marginBottom: "8px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.08em",
+                            fontSize: "10px",
+                            fontFamily: "var(--font-jetbrains)",
                           }}
                         >
-                          <div
-                            style={{
-                              userSelect: "none",
-                              color: "rgba(245,237,214,0.45)",
-                              marginBottom: "8px",
-                            }}
-                          >
-                            Additional member locations
-                          </div>
-                          <div style={{ color: "var(--color-accent-amber)", fontWeight: 600 }}>
-                            Become a member to see {hiddenLocationCount === 1 ? "the other location" : `the other ${hiddenLocationCount} locations`}
-                          </div>
+                          {distilleryMeta ? distilleryMeta.detailHeading : stateLabel ? `${stateLabel} drop/shipment` : "Drop/shipment"}
                         </div>
-                      )}
-                    </div>
-                  </div>
+                        <div style={{ display: "grid", gap: "8px" }}>
+                          {visibleLocations.map((location: DropLocation) => {
+                            const destinationLabel = distilleryMeta ? "Official pickup location" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
+                            const sourceLocationLabel = distilleryMeta?.primaryLine || location.label;
+                            const rawSecondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
+                            const secondaryLine = rawSecondaryLine && !locationLabelsMatch(rawSecondaryLine, sourceLocationLabel) ? rawSecondaryLine : "";
+                            return (
+                              <div
+                                key={`${location.label}-${location.address ?? ""}`}
+                                style={{
+                                  padding: "10px 12px",
+                                  borderRadius: "12px",
+                                  border: "1px solid rgba(245,237,214,0.08)",
+                                  background: "rgba(245,237,214,0.03)",
+                                }}
+                              >
+                                <div style={{ color: "rgba(245,237,214,0.35)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "10px", fontFamily: "var(--font-jetbrains)" }}>
+                                  {destinationLabel}
+                                </div>
+                                <div style={{ color: "var(--color-cream)", fontWeight: 600 }}>
+                                  {distilleryMeta ? sourceLocationLabel : <CountyLink county={location.label}>{location.label}</CountyLink>}
+                                </div>
+                                {secondaryLine && (
+                                  <div style={{ marginTop: "3px", color: "rgba(245,237,214,0.45)" }}>
+                                    {secondaryLine}
+                                  </div>
+                                )}
+                                {location.quantity && !distilleryMeta && (
+                                  <div style={{ marginTop: "4px", color: "var(--color-accent-amber)" }}>
+                                    {drop.event_type === "new_shipment"
+                                      ? `${location.quantity} case${location.quantity === 1 ? "" : "s"} shipped`
+                                      : drop.event_type === "nc_board_shipment_snapshot"
+                                        ? `${location.quantity} unit${location.quantity === 1 ? "" : "s"} reported to board`
+                                        : `${location.quantity} bottle${location.quantity === 1 ? "" : "s"} reported`}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {details.map((detail, i) => (
+                      <div key={detail.label} style={{ marginBottom: i < details.length - 1 ? "4px" : 0 }}>
+                        <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>{detail.label}:</span>
+                        <span>{detail.value}</span>
+                      </div>
+                    ))}
+                  </>
                 )}
-                {details.map((detail, i) => (
-                  <div key={detail.label} style={{ marginBottom: i < details.length - 1 ? "4px" : 0 }}>
-                    <span style={{ color: "rgba(245,237,214,0.35)", marginRight: "8px" }}>{detail.label}:</span>
-                    <span>{detail.value}</span>
-                  </div>
-                ))}
               </div>
             </motion.div>
           )}
