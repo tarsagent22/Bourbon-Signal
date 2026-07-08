@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "1792 adds its first rye and oldest bourbon yet",
+    summary: "Barton 1792 is expanding the lineup with Kentucky Straight Rye plus 1792 XV, a 15-year cask-strength bourbon positioned as the oldest expression in the collection.",
+    note: "High-attention 1792 news: one bottle broadens the permanent rye lane while XV gives hunters a scarce release-watch target.",
+    href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/barton-1792-distillery-adds-two-landmark-expressions-to-its-whiskey-lineup-1792-kentucky-straight-rye-whiskey-and-1792-xv",
+    source: "Barton 1792 Distillery",
+  },
+  {
     title: "Virginia ABC opens July 13–16 whiskey lottery",
     summary: "Virginia ABC's next online lottery gives hunters a short entry window for limited bourbon and rye bottles, including Black Maple Hill 16 Year Bourbon, Rare Character, Pride of Anderson County, and Hurst Knoll rye.",
     note: "Actionable control-state signal: clear dates and bottle names are more useful to Virginia hunters than waiting for shelf-level sightings to appear.",
@@ -326,7 +333,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated July 5, 2026</span>
+            <span className="daily-briefing-updated">Updated July 8, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>
