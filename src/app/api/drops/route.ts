@@ -10,6 +10,7 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_ENGINE_AGE_MS = 24 * HOUR_MS;
 const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
+const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
@@ -114,6 +115,9 @@ function maxAgeForDrop(drop: Record<string, unknown>) {
   const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
   const canAlert = drop.can_alert_as_inventory === true || drop.canAlertAsInventory === true;
 
+  if (String(drop.state ?? "").toUpperCase() === "OH" && drop.sourceStale === true) {
+    return MAX_OH_STALE_FEED_AGE_MS;
+  }
   if (canAlert || category === "inventory" || scope === "store_reported" || precision === "store_level" || type.includes("in_stock") || type.includes("inventory_result")) {
     return MAX_INVENTORY_DROP_AGE_MS;
   }
