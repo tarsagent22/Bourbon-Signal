@@ -116,10 +116,10 @@ const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Daily Briefing", "Limited", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
+  ["Member Sightings", "Limited", "✓", "✓", "✓"],
   ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
   ["Signal Strength meter", "—", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
-  ["Member Sightings", "—", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],
   ["My Collection", "—", "—", "✓", "✓"],
   ["Recommended Bottles", "—", "—", "✓", "✓"],
@@ -246,7 +246,7 @@ function PricingPageContent() {
             <ul>
               <li>Limited Drop Feed access</li>
               <li>3 Bottle Checks</li>
-              <li>Demo access to member tools</li>
+              <li>Limited member sightings access</li>
             </ul>
             <button type="button" onClick={() => router.push("/sign-up?redirect_url=/pricing")}>Start free access</button>
           </section>

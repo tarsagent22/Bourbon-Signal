@@ -4,6 +4,14 @@ import { ExternalLink } from "lucide-react";
 
 const visibleStories = [
   {
+    source: "Barton 1792 Distillery",
+    title: "1792 adds its first rye and oldest bourbon yet",
+    summary:
+      "Barton 1792 is expanding the chase board with Kentucky Straight Rye plus 1792 XV, a 15-year cask-strength bourbon aimed at high-attention release windows.",
+    href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/barton-1792-distillery-adds-two-landmark-expressions-to-its-whiskey-lineup-1792-kentucky-straight-rye-whiskey-and-1792-xv",
+    tag: "Today · Release watch",
+  },
+  {
     source: "Lost Lantern Whiskey",
     title: "Lost Lantern turns all 50 states into one bourbon story",
     summary:
@@ -85,12 +93,12 @@ export default function DailyBriefing() {
         <div className="briefing-kicker">Daily Briefing</div>
         <div className="briefing-heading-row">
           <div>
-            <h2 id="daily-briefing-title">Three signals worth checking before the weekend.</h2>
+            <h2 id="daily-briefing-title">Four signals worth checking before the weekend.</h2>
             <p>
               Compact bourbon intel from official sources and engine context. New stories stay visible; older briefing notes stay tucked behind the archive.
             </p>
           </div>
-          <div className="briefing-date">Jun 26</div>
+          <div className="briefing-date">Jul 8</div>
         </div>
 
         <div className="briefing-story-grid">
