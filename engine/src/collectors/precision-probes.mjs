@@ -809,6 +809,40 @@ const SC_SOUTHERN_SPIRITS_STORE = {
 };
 const SC_SOUTHERN_SPIRITS_PRODUCTS_URL = 'https://southernspirits.com/products.json?limit=250';
 const SC_SOUTHERN_SPIRITS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_SOUTHERN_SPIRITS_MAX_PAGES || 2);
+const SC_PHASE1_ARTIFACT_PATH = 'out/browser/SC-phase1-myrtle-watch.json';
+const SC_PHASE1_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_PHASE1_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
+const SC_PHASE1_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_PHASE1_DELAY_MS || 900);
+const SC_OWENS_COOLDOWN_FILE = 'out/browser/SC-owens-cooldown.json';
+const SC_OWENS_BLOCKED_BACKOFF_MS = Number(process.env.BOURBON_SIGNAL_SC_OWENS_BLOCKED_BACKOFF_MS || 7 * 24 * 60 * 60_000);
+const SC_LIQUOR_STORE_NEAR_ME_BASE_URL = 'https://liquorstorenearmemyrtlebeach.com';
+const SC_LIQUOR_STORE_NEAR_ME_STORE = {
+  id: 'liquor-store-near-me-myrtle-beach',
+  name: 'Liquor Store Near Me Myrtle Beach',
+  address: '4032 River Oaks Dr Ste 5, Myrtle Beach, SC 29579',
+  city: 'Myrtle Beach',
+  zip: '29579'
+};
+const SC_LIQUOR_STORE_NEAR_ME_TERMS = ['bourbon', 'blanton', 'weller', 'pappy', 'michter', 'birthday bourbon'];
+const SC_BURNT_BARREL_BASE_URL = 'https://burntbarrelwineandspirits.com';
+const SC_BURNT_BARREL_STORE = {
+  id: 'burnt-barrel-wine-and-spirits',
+  name: 'Burnt Barrel Wine & Spirits',
+  address: '235 Village Center Blvd Unit 5, Myrtle Beach, SC 29579',
+  city: 'Myrtle Beach',
+  zip: '29579'
+};
+const SC_OWENS_BASE_URL = 'https://www.owensliquors.com';
+const SC_OWENS_STORE = {
+  id: 'owens-liquors-myrtle-beach',
+  name: 'Owens Liquors',
+  address: '8000 N Kings Hwy, Myrtle Beach, SC 29572',
+  city: 'Myrtle Beach',
+  zip: '29572'
+};
+const SC_OWENS_SEED_URLS = [
+  'https://www.owensliquors.com/shop/product/1792-small-batch-bourbon/573141c869702d067c152900?option-id=b13e0e8769f8bc6d7a03a7aa345223fb3c94300f47ff54f1945b2fe002759cfd',
+  'https://www.owensliquors.com/shop/product/larceny-small-batch-bourbon/5521cef465613100039e0100?option-id=a713f0543e1425cfdaa2a9e40f0ee444062ac1160c8dcd84bff1acb031f06c10'
+];
 const SC_RETAILER_WATCH_RE = /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|pappy|van winkle|elmer|rock hill|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|green river|bardstown|knob creek|bulleit|maker'?s|yellowstone|penelope|jack daniel/i;
 const SC_RETAILER_EXCLUDE_RE = /gift\s*card|bundle|curated\s*bundle|wine\s*bundle|event|ticket|shirt|hat|glass|cup|stout|beer|wine|vodka|gin|rum|tequila|mezcal|brandy|cognac|liqueur|cordial|cocktail|ready\s*to\s*drink|seltzer|cream|coffee|cinnamon|peach|apple|honey|vanilla|peanut\s*butter|chocolate/i;
 
@@ -3319,14 +3353,233 @@ async function collectSouthCarolinaSouthernSpirits(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+async function readSouthCarolinaPhase1Cache() {
+  try {
+    const cache = JSON.parse(await readFile(SC_PHASE1_ARTIFACT_PATH, 'utf8'));
+    const generatedMs = new Date(cache.generatedAt || 0).getTime();
+    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= SC_PHASE1_CACHE_MAX_AGE_MS;
+    return fresh ? { ...cache, signals: cache.signals || [], roadblocks: cache.roadblocks || [] } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSouthCarolinaPhase1Cache(signals, roadblocks) {
+  await mkdir(path.dirname(SC_PHASE1_ARTIFACT_PATH), { recursive: true });
+  await writeFile(SC_PHASE1_ARTIFACT_PATH, JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    source: 'South Carolina Phase 1 Myrtle Beach watch-source cache',
+    cacheMaxAgeMs: SC_PHASE1_CACHE_MAX_AGE_MS,
+    signalCount: signals.length,
+    roadblockCount: roadblocks.length,
+    signals,
+    roadblocks
+  }, null, 2));
+}
+
+async function readCooldown(file) {
+  try {
+    const payload = JSON.parse(await readFile(file, 'utf8'));
+    const until = Date.parse(payload?.cooldownUntil || '');
+    return Number.isFinite(until) && until > Date.now() ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeCooldown(file, reason, backoffMs, sample = {}) {
+  const now = new Date();
+  const payload = {
+    generatedAt: now.toISOString(),
+    cooldownUntil: new Date(now.getTime() + backoffMs).toISOString(),
+    reason: String(reason || 'source blocked or anti-bot challenge detected').slice(0, 500),
+    sample
+  };
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, JSON.stringify(payload, null, 2));
+  return payload;
+}
+
+function antiBotText(text = '') {
+  return /datadome|captcha|cloudflare|access denied|forbidden|rate limit|bot protection|please verify|error 1015/i.test(String(text));
+}
+
+function htmlToText(value = '') {
+  return decodeHtml(String(value).replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' '));
+}
+
+function wcStoreApiPrice(prices) {
+  const raw = Number(prices?.price || 0);
+  const minor = Number(prices?.currency_minor_unit ?? 2);
+  if (!raw) return null;
+  return raw / Math.pow(10, Number.isFinite(minor) ? minor : 2);
+}
+
+function phase1CatalogSignal(config, sourceLabel, sourceUrl, store, rawName, bible, observedAt, extra = {}) {
+  const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+  const sourceMatchStatus = record ? 'bottle_bible_match' : unsafeReason ? `source_name_kept:${unsafeReason}` : 'source_name_kept:no_safe_bible_match';
+  return {
+    id: stableId([config.id, extra.eventType || 'retailer-product-catalog', sourceUrl, rawName]),
+    state: config.id,
+    sourceLabel,
+    sourceUrl,
+    rawName,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || titleCase(rawName),
+    confidence: record ? Math.max(0.58, match?.confidence || 0.45) : 0.35,
+    eventType: extra.eventType || 'retailer_product_catalog_signal',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: store.id,
+    storeAddress: store.address,
+    city: store.city,
+    stateCode: 'SC',
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: Boolean(extra.canAlertAsWatch),
+    inventorySemantics: extra.inventorySemantics || 'Retailer public catalog/watch page only. This is not live shelf inventory and should not trigger inventory alerts without a verified stock/count source.',
+    evidence: extra.evidence || `${sourceLabel} publicly lists ${rawName}. Treat as Myrtle Beach retailer watch/catalog intelligence, not verified store inventory.`,
+    raw: { sourceMatchStatus, unsafeReason: unsafeReason || null, ...(extra.raw || {}) }
+  };
+}
+
+async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) {
+  const signals = [southCarolinaStoreLocationSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', SC_LIQUOR_STORE_NEAR_ME_BASE_URL, SC_LIQUOR_STORE_NEAR_ME_STORE, observedAt, 'liquor-store-near-me-myrtle-beach')];
+  const roadblocks = [];
+  const seen = new Set();
+  let returnedRows = 0;
+  for (const term of SC_LIQUOR_STORE_NEAR_ME_TERMS) {
+    const url = `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products?search=${encodeURIComponent(term)}&per_page=20`;
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 18_000 });
+    if (!res.ok) {
+      roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API slowly; do not promote to inventory alerts without stock/price validation.' });
+      await sleep(SC_PHASE1_DELAY_MS);
+      continue;
+    }
+    let products = [];
+    try { products = JSON.parse(res.text); } catch (error) {
+      roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect WooCommerce Store API response shape.' });
+      continue;
+    }
+    if (!Array.isArray(products)) continue;
+    returnedRows += products.length;
+    for (const product of products) {
+      const rawName = htmlToText(product?.name || '');
+      if (!rawName || seen.has(product.id || rawName)) continue;
+      if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+      seen.add(product.id || rawName);
+      const price = wcStoreApiPrice(product?.prices);
+      signals.push(phase1CatalogSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', product?.permalink || url, SC_LIQUOR_STORE_NEAR_ME_STORE, rawName, bible, observedAt, {
+        evidence: `Liquor Store Near Me Myrtle Beach WooCommerce Store API lists ${rawName}${product?.is_in_stock ? ' with an in-stock catalog flag' : ''}${price ? ` at $${price.toFixed(2)}` : ''}. Price/count are not reliable enough for inventory alerts yet.`,
+        raw: { chain: 'liquor-store-near-me-myrtle-beach', term, product: { id: product?.id, is_in_stock: product?.is_in_stock, low_stock_remaining: product?.low_stock_remaining, prices: product?.prices, add_to_cart: product?.add_to_cart } }
+      }));
+    }
+    await sleep(SC_PHASE1_DELAY_MS);
+  }
+  if (signals.length <= 1) roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url: `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products`, status: 'reachable_no_safe_catalog_rows', error: `WooCommerce product searches returned ${returnedRows} rows but no safe Bourbon Signal catalog matches.`, nextRoute: 'Inspect product names and keep this source watch-only until inventory semantics are verified.' });
+  return { signals, roadblocks };
+}
+
+async function collectSouthCarolinaBurntBarrel(config, bible, observedAt) {
+  const signals = [southCarolinaStoreLocationSignal(config, 'Burnt Barrel Wine & Spirits event/watch pages', SC_BURNT_BARREL_BASE_URL, SC_BURNT_BARREL_STORE, observedAt, 'burnt-barrel-wine-and-spirits')];
+  const roadblocks = [];
+  const urls = [
+    `${SC_BURNT_BARREL_BASE_URL}/wp-json/tribe/events/v1/events?search=bourbon&per_page=5`,
+    `${SC_BURNT_BARREL_BASE_URL}/wp-json/wp/v2/posts?search=bourbon&per_page=5`
+  ];
+  for (const url of urls) {
+    const res = await textFetch(url, { headers: { accept: 'application/json,text/html,*/*' }, timeoutMs: 18_000 });
+    if (!res.ok || antiBotText(res.text)) {
+      roadblocks.push({ state: config.id, source: 'Burnt Barrel Wine & Spirits event/watch pages', url, status: res.status || 0, error: antiBotText(res.text) ? 'Anti-bot/challenge or non-JSON response; source kept in low-cadence watch mode.' : (res.error || `HTTP ${res.status}`), nextRoute: 'Retry public WordPress/Event Calendar endpoints slowly; browser discovery only during maintenance window.' });
+      await sleep(SC_PHASE1_DELAY_MS);
+      continue;
+    }
+    let payload = null;
+    try { payload = JSON.parse(res.text); } catch (error) {
+      roadblocks.push({ state: config.id, source: 'Burnt Barrel Wine & Spirits event/watch pages', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect endpoint response; keep source watch-only.' });
+      continue;
+    }
+    const rows = Array.isArray(payload) ? payload : Array.isArray(payload?.events) ? payload.events : [];
+    for (const row of rows) {
+      const title = htmlToText(row?.title?.rendered || row?.title || row?.name || '');
+      const text = htmlToText(`${title} ${row?.description || row?.excerpt?.rendered || ''}`);
+      if (!/bourbon|whiskey|tasting|barrel|allocated|release/i.test(text)) continue;
+      const matches = bible.scanText(text);
+      signals.push(phase1CatalogSignal(config, 'Burnt Barrel Wine & Spirits event/watch pages', row?.url || row?.link || url, SC_BURNT_BARREL_STORE, title || 'Burnt Barrel bourbon event', bible, observedAt, {
+        eventType: 'retailer_event_watch_signal',
+        canAlertAsWatch: matches.length > 0 || /bourbon|tasting|barrel|allocated|release/i.test(text),
+        inventorySemantics: 'Retailer event/post watch signal only. This is not store inventory and should not trigger inventory alerts.',
+        evidence: `Burnt Barrel public ${url.includes('/events/') ? 'event' : 'post'} endpoint mentions ${title || 'a bourbon/whiskey event or watch item'}.`,
+        raw: { chain: 'burnt-barrel-wine-and-spirits', matchedBottles: matches.slice(0, 10).map((m) => ({ id: m.id, name: m.canonical, tier: m.tier })), row: { id: row?.id, title, start_date: row?.start_date, link: row?.url || row?.link } }
+      }));
+    }
+    await sleep(SC_PHASE1_DELAY_MS);
+  }
+  return { signals, roadblocks };
+}
+
+async function collectSouthCarolinaOwensTether(config, bible, observedAt) {
+  const signals = [southCarolinaStoreLocationSignal(config, 'Owens Liquors guarded CityHive discovery', SC_OWENS_BASE_URL, SC_OWENS_STORE, observedAt, 'owens-liquors')];
+  const roadblocks = [];
+  const cooldown = await readCooldown(SC_OWENS_COOLDOWN_FILE);
+  if (cooldown && process.env.BOURBON_SIGNAL_SC_FORCE_OWENS_LIVE !== '1') {
+    roadblocks.push({ state: config.id, source: 'Owens Liquors guarded CityHive discovery', url: SC_OWENS_COOLDOWN_FILE, status: 'cooldown_previous_state_reused', error: `Owens appears protected; cooldown active until ${cooldown.cooldownUntil}.`, nextRoute: 'Use browser/CDP or maintenance-window discovery only after cooldown; do not repeatedly fetch DataDome-protected pages.' });
+    return { signals, roadblocks };
+  }
+  const url = SC_OWENS_SEED_URLS[0];
+  const res = await curlTextFetch(url, { timeoutMs: 12_000, maxBuffer: 1024 * 1024 });
+  if (!res.ok || antiBotText(res.text)) {
+    const reason = antiBotText(res.text) ? 'Owens returned DataDome/CAPTCHA/anti-bot challenge' : (res.error || `HTTP ${res.status}`);
+    const nextCooldown = await writeCooldown(SC_OWENS_COOLDOWN_FILE, reason, SC_OWENS_BLOCKED_BACKOFF_MS, { url, status: res.status });
+    roadblocks.push({ state: config.id, source: 'Owens Liquors guarded CityHive discovery', url, status: res.status || 0, error: `${reason}; cooldown until ${nextCooldown.cooldownUntil}.`, nextRoute: 'Do not hammer Owens. Use a single browser/CDP discovery pass in a maintenance window to extract CityHive merchant IDs, then rely on cached low-cadence inventory.' });
+    return { signals, roadblocks };
+  }
+  const blobs = cityHiveJsonBlobs(res.text);
+  const products = cityHiveProducts(blobs);
+  let parsed = 0;
+  for (const product of products.slice(0, 20)) {
+    const rawName = product.name || '';
+    if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+    parsed += 1;
+    signals.push(phase1CatalogSignal(config, 'Owens Liquors guarded CityHive discovery', product.url || url, SC_OWENS_STORE, rawName, bible, observedAt, { raw: { chain: 'owens-liquors', product: { id: product.id, name: product.name } } }));
+  }
+  if (!parsed) roadblocks.push({ state: config.id, source: 'Owens Liquors guarded CityHive discovery', url, status: res.status || 200, error: 'Owens seed page was reachable but did not expose parseable CityHive product inventory in the expected shape.', nextRoute: 'Inspect rendered/browser network once, then add merchant IDs only if public CityHive JSON is stable.' });
+  return { signals, roadblocks };
+}
+
+async function collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) {
+  const cache = await readSouthCarolinaPhase1Cache();
+  if (cache && process.env.BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE !== '1') {
+    return {
+      signals: cache.signals.map((signal) => ({ ...signal, observedAt: cache.generatedAt || signal.observedAt || observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_PHASE1_ARTIFACT_PATH } })),
+      roadblocks: [
+        ...(cache.roadblocks || []),
+        { state: config.id, source: 'South Carolina Phase 1 Myrtle Beach watch cache reuse', url: SC_PHASE1_ARTIFACT_PATH, status: 200, error: `Using ${cache.signals.length} cached Myrtle Beach Phase 1 watch rows from ${cache.generatedAt}; low-cadence cache avoids repeated retailer traffic.`, nextRoute: 'Force only during maintenance with BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE=1.' }
+      ]
+    };
+  }
+  const liquorStoreNearMe = await collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt);
+  const burntBarrel = await collectSouthCarolinaBurntBarrel(config, bible, observedAt);
+  const owens = await collectSouthCarolinaOwensTether(config, bible, observedAt);
+  const signals = [...liquorStoreNearMe.signals, ...burntBarrel.signals, ...owens.signals];
+  const roadblocks = [...liquorStoreNearMe.roadblocks, ...burntBarrel.roadblocks, ...owens.roadblocks];
+  await writeSouthCarolinaPhase1Cache(signals, roadblocks);
+  return { signals, roadblocks };
+}
+
 async function collectSouthCarolina(config, bible) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectSouthCarolinaCityHive(config, bible, observedAt);
   const daBrownBag = await collectSouthCarolinaDaBrownBag(config, bible, observedAt);
   const southernSpirits = await collectSouthCarolinaSouthernSpirits(config, bible, observedAt);
+  const phase1Myrtle = await collectSouthCarolinaPhase1Myrtle(config, bible, observedAt);
   return {
-    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals],
-    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks]
+    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals, ...phase1Myrtle.signals],
+    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks, ...phase1Myrtle.roadblocks]
   };
 }
 

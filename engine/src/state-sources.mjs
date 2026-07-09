@@ -319,7 +319,10 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon', label: 'Moss Creek Village Spirits & Wine CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://rollerswineandspirits.com/shop/?subtype=bourbon', label: 'Rollers Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://dabrownbag.com/wp-json/moo-clover/v1/search/bourbon', label: 'Da Brown Bag Clover bourbon stockCount API', precisionOnly: true },
-      { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true }
+      { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true },
+      { kind: 'api', url: 'https://liquorstorenearmemyrtlebeach.com/wp-json/wc/store/products?search=bourbon&per_page=20', label: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', precisionOnly: true },
+      { kind: 'api', url: 'https://burntbarrelwineandspirits.com/wp-json/tribe/events/v1/events?search=bourbon&per_page=5', label: 'Burnt Barrel Wine & Spirits events watch', precisionOnly: true },
+      { kind: 'html', url: 'https://www.owensliquors.com/shop/product/1792-small-batch-bourbon/573141c869702d067c152900', label: 'Owens Liquors guarded CityHive discovery', precisionOnly: true }
     ],
     apiCandidates: []
   },
