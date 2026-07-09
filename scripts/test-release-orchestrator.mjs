@@ -6,6 +6,7 @@ import {
   evaluateLiveHealth,
   hashEntries,
   parseDeploymentUrl,
+  parsePorcelainPaths,
 } from './lib/release-orchestrator-core.mjs';
 
 const digestA = hashEntries([
@@ -44,6 +45,11 @@ assert.equal(healthy.ok, true);
 assert.equal(evaluateLiveHealth({ ok: false, cron: { status: 'stale', expectedSchedule: '*/5 * * * *' }, engine: { status: 'healthy' } }, { expectedCronSchedule: '*/5 * * * *' }).ok, false);
 
 assert.equal(parseDeploymentUrl('Production: https://bourbon-signal-abc.vercel.app [1m]'), 'https://bourbon-signal-abc.vercel.app');
+assert.deepEqual(
+  parsePorcelainPaths(' M engine/out/site/alerts.json\n?? engine/out/site/state-quality.json\n'),
+  ['engine/out/site/alerts.json', 'engine/out/site/state-quality.json'],
+  'porcelain parsing must preserve the first path when its status begins with a space',
+);
 
 const manifest = buildReleaseManifest({
   commit: 'abc123',

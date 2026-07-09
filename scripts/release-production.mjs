@@ -11,6 +11,7 @@ import {
   evaluateLiveHealth,
   hashEntries,
   parseDeploymentUrl,
+  parsePorcelainPaths,
 } from './lib/release-orchestrator-core.mjs';
 
 const SOURCE_ROOT = process.cwd();
@@ -112,9 +113,9 @@ async function cleanCheckoutAtOriginMain(tempRoot) {
 async function stageExports(tempRoot, sourceDir) {
   const copied = await copySiteExports(sourceDir, tempRoot);
   await run('npm', ['--prefix', 'engine', 'run', 'quality:states'], { cwd: tempRoot });
-  const status = (await git(tempRoot, ['status', '--porcelain'])).stdout.trim();
-  if (!status) return { changed: false, files: copied.files };
-  const changedPaths = status.split(/\r?\n/u).map((line) => line.slice(3).replace(/\\/gu, '/'));
+  const status = (await git(tempRoot, ['status', '--porcelain'])).stdout.trimEnd();
+  if (!status.trim()) return { changed: false, files: copied.files };
+  const changedPaths = parsePorcelainPaths(status);
   const unsafe = changedPaths.filter((file) => !file.startsWith('engine/out/site/') || !file.endsWith('.json'));
   if (unsafe.length) throw new Error(`Generated export staging touched non-allowlisted paths: ${unsafe.join(', ')}`);
 

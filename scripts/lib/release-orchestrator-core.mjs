@@ -25,6 +25,12 @@ export function parseDeploymentUrl(output) {
   return String(output || '').match(/https:\/\/[^\s]+\.vercel\.app/iu)?.[0] || null;
 }
 
+export function parsePorcelainPaths(status) {
+  const source = String(status || '').trimEnd();
+  if (!source.trim()) return [];
+  return source.split(/\r?\n/u).map((line) => line.slice(3).replace(/\\/gu, '/'));
+}
+
 export function evaluateCronRegistration(payload, expected) {
   const crons = Array.isArray(payload?.crons) ? payload.crons : [];
   const matching = crons.find((cron) => cron.path === expected.path);
