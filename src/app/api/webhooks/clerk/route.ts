@@ -39,6 +39,10 @@ function verifyClerkSignature(payload: string, req: NextRequest) {
   const svixSignature = req.headers.get("svix-signature");
   if (!svixId || !svixTimestamp || !svixSignature) return false;
 
+  const timestampSeconds = Number(svixTimestamp);
+  const ageSeconds = Math.abs(Date.now() / 1000 - timestampSeconds);
+  if (!Number.isFinite(timestampSeconds) || ageSeconds > 300) return false;
+
   const signedContent = `${svixId}.${svixTimestamp}.${payload}`;
   const expected = crypto.createHmac("sha256", decodeWebhookSecret(secret)).update(signedContent).digest("base64");
   return svixSignature

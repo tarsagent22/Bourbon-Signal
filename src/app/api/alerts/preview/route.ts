@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const resend = getResendClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
   const payload = await req.json().catch(() => ({}));
 
   const bottleName = typeof payload.bottleName === "string" ? payload.bottleName : "Blanton's Original Single Barrel";

@@ -24,7 +24,9 @@ Do not treat a Vercel deployment as a replacement for committed code. Production
 3. Keep generated engine export changes separate from unrelated UI/code work unless the task explicitly needs both.
 4. Run verification locally before push.
 5. Open a PR and let CI pass before merge.
-6. Merge to `main`; Vercel handles the production build from GitHub.
+6. Merge to `main`; the release orchestrator builds and promotes that exact Git revision.
+
+The only unattended direct-to-`main` write is an export-only engine commit created by `scripts/release-production.mjs`. It is allowlisted to `engine/out/site/*.json`, verifies the site contract first, and aborts if `origin/main` moves concurrently. Code changes still use PR review.
 
 ## Dirty tree rule
 
@@ -48,13 +50,13 @@ Current local Windows Task Scheduler task:
 - PowerShell wrapper: `engine/bourbon-signal-engine-refresh.ps1`
 - Engine command: `node src/refresh-site.mjs`
 
-The scheduled refresh runs from the canonical `tarsagent22/Bourbon-Signal` worktree and auto-deploys every successful changed site export so the public API does not lag behind fresh local engine data. Deploy eligibility hashes the whole `engine/out/site/*.json` export, not just alert rows, so a fresh successful engine export can promote even when the bottle/inventory row set is unchanged. Heavy browser-assisted FWGS refreshes run on a slower 240-minute cadence and are all-or-nothing by default: if a chunk fails, the previous complete artifact stays in use instead of publishing partial store coverage. Disable auto-deploy explicitly when doing local/debug work:
+The scheduled worktree gathers signals, but it never deploys its dirty source tree directly. On a changed successful export, `refresh-site.mjs` hands `engine/out/site/*.json` to `scripts/release-production.mjs`. The orchestrator creates a detached clean `origin/main` worktree, overlays only allowlisted generated JSON as a separately hashed build artifact, regenerates and verifies the state-quality contract, then verifies and builds that pinned source-plus-artifact combination. Generated data is not committed every 30 minutes; the immutable release manifest records both the exact source commit and the complete site-export SHA-256. Heavy browser-assisted FWGS refreshes run on a slower 240-minute cadence and are all-or-nothing by default: if a chunk fails, the previous complete artifact stays in use instead of publishing partial store coverage. Disable auto-deploy explicitly when doing local/debug work:
 
 ```powershell
 $env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'
 ```
 
-The wrapper also sets `BOURBON_SIGNAL_BROWSER_PREFLIGHT=0` because `refresh-site.mjs` already owns browser-assisted collector cadence; this avoids duplicate CDP preflight noise during scheduled runs. When auto-deploy is enabled, `refresh-site.mjs` also moves `bourbonsignal.com` and `www.bourbonsignal.com` aliases to the newly deployed Vercel production URL so custom domains cannot remain pinned to stale exports.
+The wrapper also sets `BOURBON_SIGNAL_BROWSER_PREFLIGHT=0` because `refresh-site.mjs` already owns browser-assisted collector cadence; this avoids duplicate CDP preflight noise during scheduled runs. The release orchestrator owns all production actions: pinned-source deployment, both custom-domain aliases, the Vercel cron registration assertion, immutable `/release-manifest.json`, and live SLO checks. No other script should call `vercel --prod` or move production aliases.
 
 ## Manual engine verification loop
 
@@ -81,7 +83,7 @@ Key gates:
 
 ## Production deploy
 
-Production deploy should normally be GitHub-driven through Vercel after merge to `main`.
+Production deploys are driven by `scripts/release-production.mjs` after changes reach `main`.
 
 Before production deploy or merge:
 
@@ -91,6 +93,29 @@ npm run test:ops
 npm run build
 npm --prefix engine run verify:site
 ```
+
+Dry-run the clean checkout, verification, and production-environment linkage without deploying:
+
+```bash
+node scripts/release-production.mjs
+```
+
+Apply a verified production release:
+
+```bash
+npm run release:production
+```
+
+Every applied release must prove:
+
+- clean `HEAD === origin/main`
+- immutable manifest commit/tree/lockfile/export hashes
+- a local verified production build followed by a Vercel remote build from the same pinned clean commit plus the generated immutable manifest
+- both custom domains point at the deployed artifact
+- `/api/alerts/deliver` is registered at `*/5 * * * *` with no pending Vercel cron drift
+- `/release-manifest.json` matches the verified artifact
+- production live and engine regression checks pass
+- `/api/ops/health` reports a fresh successful alert heartbeat and healthy engine export
 
 For engine-heavy changes, also run from `engine/`:
 

@@ -1,5 +1,10 @@
 # Generated engine outputs
 out/
+!out/
+out/*
+!out/site/
+out/site/*
+!out/site/state-quality.json
 
 # Local browser/session scratch and reverse-engineering captures
 research/scratch/

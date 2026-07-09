@@ -11,6 +11,8 @@
     "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs",
     "ops:searches": "node automation/bourbon-signal/search-events-report.mjs",
     "test:ops": "node scripts/verify-ops-workflow.mjs",
+    "test:release": "node scripts/test-release-orchestrator.mjs && node --experimental-strip-types scripts/test-notification-preferences.mjs && node --experimental-strip-types scripts/test-ops-health.mjs && node scripts/verify-web-release-contract.mjs",
+    "release:production": "node scripts/release-production.mjs --apply",
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
@@ -28,7 +30,7 @@
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
     "verify:production-engine": "node scripts/verify-production-engine-regression.mjs",
-    "verify:ci": "npm run test:ops && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
+    "verify:ci": "npm run test:ops && npm run test:release && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",

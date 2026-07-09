@@ -16,7 +16,7 @@ export default function Footer() {
         backgroundColor: "var(--color-bg-primary)",
       }}
     >
-      {/* EmailCapture (secondary) → Footer (primary) transition */}
+      {/* Secondary surface → footer transition */}
       <div style={{ height: 32, background: "linear-gradient(to bottom, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)" }} />
       <div className="py-6" style={{ paddingLeft: "clamp(30px, 4vw, 60px)", paddingRight: "clamp(30px, 4vw, 60px)" }}>
         {/* Top row: logo left (matching nav), links + copyright centered */}

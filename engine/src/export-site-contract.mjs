@@ -6,6 +6,7 @@ import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1450,6 +1451,7 @@ async function main() {
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
+  const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const summaryStatesById = new Map((summary.states || []).filter((state) => activeStateIds.has(state.state)).map((state) => [state.state, state]));
   const activeSummaryStates = [...activeStateIds].map((stateId) => summaryStatesById.get(stateId) || {
     state: stateId,
@@ -1473,6 +1475,17 @@ async function main() {
   });
   const stateCoverage = buildStateCoverage({ ...summary, states: activeSummaryStates }, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness({ ...summary, states: activeSummaryStates }, signals);
+  const stateQuality = buildStateQualityScorecard(
+    buildStateQualityInputs({ stateCoverage, drops, alerts: cappedAlertCandidates }),
+    { generatedAt },
+  );
+  const stateQualityRegression = previousStateQuality
+    ? compareStateQuality(previousStateQuality, stateQuality)
+    : { ok: true, failures: [], warnings: ['No previous state-quality scorecard; recording baseline.'] };
+  stateQuality.regression = stateQualityRegression;
+  if (!stateQualityRegression.ok && process.env.BOURBON_SIGNAL_ALLOW_STATE_QUALITY_REGRESSION !== '1') {
+    throw new Error(`State quality regression blocked site export: ${stateQualityRegression.failures.join(' ')}`);
+  }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const stats = {
     contractVersion: CONTRACT_VERSION,
@@ -1513,6 +1526,7 @@ async function main() {
     statesAtTargetPrecision: activeSummaryStates.filter((state) => precisionRank(state.bestLocationPrecision || 'blocked') >= precisionRank(state.targetLocationPrecision || 'blocked')).length,
     rareStatesVerified: Array.isArray(rare.states) ? rare.states.filter((s) => s.status === 'verified_3_rare_signals').length : null,
     stateCoverage,
+    stateQuality: stateQuality.summary,
     southeastReadiness,
     ncBoardIntelligence: ncIntelligenceRaw ? {
       boardCount: ncIntelligenceRaw.coverage?.boardCount || 0,
@@ -1538,6 +1552,7 @@ async function main() {
       drops: 'drops.json',
       events: 'events.json',
       alerts: 'alerts.json',
+      stateQuality: 'state-quality.json',
       historicalTrends: 'historical-trends.json',
       ncIntelligence: 'nc-intelligence.json'
     },
@@ -1562,6 +1577,7 @@ async function main() {
   await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: drops.length, drops }, null, 2));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: events.length, events }, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: cappedAlertCandidates.length, alerts: cappedAlertCandidates }, null, 2));
+  await writeFile(path.join(SITE_OUT, 'state-quality.json'), JSON.stringify(stateQuality, null, 2));
   await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, null, 2));
   if (ncIntelligenceRaw) {
     await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, ...ncIntelligenceRaw }, null, 2));

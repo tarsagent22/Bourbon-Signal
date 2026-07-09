@@ -10,7 +10,8 @@
     "events": "events.json",
     "alerts": "alerts.json",
     "historicalTrends": "historical-trends.json",
-    "ncIntelligence": "nc-intelligence.json"
+    "ncIntelligence": "nc-intelligence.json",
+    "stateQuality": "state-quality.json"
   },
   "historyDays": 30,
   "snapshotCount": 24,

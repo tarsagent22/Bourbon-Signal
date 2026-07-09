@@ -18,13 +18,8 @@ const STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_M
 const RUN_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS || 35 * 60_000);
 const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_TIMEOUT_MS || 3 * 60_000);
 const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 22 * 60_000);
-const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 8 * 60_000);
+const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 45 * 60_000);
 const DEPLOY_RETRIES = Number(process.env.BOURBON_SIGNAL_DEPLOY_RETRIES || 3);
-const VERCEL_SCOPE = process.env.VERCEL_SCOPE || 'tarsagent22s-projects';
-const PRODUCTION_CUSTOM_DOMAINS = (process.env.BOURBON_SIGNAL_PRODUCTION_DOMAINS || 'bourbonsignal.com,www.bourbonsignal.com')
-  .split(',')
-  .map((domain) => domain.trim())
-  .filter(Boolean);
 const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
 const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -228,12 +223,16 @@ async function maybeDeploySite() {
     return { ...base, skipped: true, skippedReason };
   }
 
-  const vercel = process.platform === 'win32' ? 'vercel.cmd' : 'vercel';
   let result = null;
   const deployErrors = [];
   for (let attempt = 1; attempt <= DEPLOY_RETRIES; attempt += 1) {
     try {
-      result = await runCommand(vercel, ['--prod', '--yes'], { cwd: PROJECT_ROOT, timeoutMs: DEPLOY_TIMEOUT_MS });
+      result = await runCommand(process.execPath, [
+        path.join(PROJECT_ROOT, 'scripts', 'release-production.mjs'),
+        '--apply',
+        '--publish-site-exports',
+        path.join(ROOT, 'out', 'site'),
+      ], { cwd: PROJECT_ROOT, timeoutMs: DEPLOY_TIMEOUT_MS });
       break;
     } catch (error) {
       deployErrors.push({ attempt, message: error.message, result: error.result || null });
@@ -245,18 +244,6 @@ async function maybeDeploySite() {
   }
   const output = `${result.stdout}\n${result.stderr}`;
   const deploymentUrl = output.match(/https:\/\/[^\s]+\.vercel\.app/)?.[0] || previous.lastDeploymentUrl || null;
-  const aliasResults = [];
-  if (deploymentUrl) {
-    for (const domain of PRODUCTION_CUSTOM_DOMAINS) {
-      try {
-        const aliasResult = await runCommand(vercel, ['alias', 'set', deploymentUrl, domain, '--scope', VERCEL_SCOPE], { cwd: PROJECT_ROOT, timeoutMs: 2 * 60_000 });
-        aliasResults.push({ domain, ok: true, result: { code: aliasResult.code, startedAt: aliasResult.startedAt, finishedAt: aliasResult.finishedAt, stdout: aliasResult.stdout.slice(-1000), stderr: aliasResult.stderr.slice(-1000) } });
-      } catch (error) {
-        aliasResults.push({ domain, ok: false, error: error.message, result: error.result || null });
-        throw Object.assign(new Error(`custom-domain alias failed for ${domain}: ${error.message}`), { result: error.result || null, aliasResults });
-      }
-    }
-  }
   const deployed = {
     ...base,
     skipped: false,
@@ -264,8 +251,8 @@ async function maybeDeploySite() {
     lastDeployAt: new Date().toISOString(),
     lastDeploymentUrl: deploymentUrl,
     deploymentAttempts: deployErrors,
-    aliasResults,
-    deploymentResult: { code: result.code, startedAt: result.startedAt, finishedAt: result.finishedAt, stdout: result.stdout.slice(-2000), stderr: result.stderr.slice(-2000) }
+    releaseOrchestrator: 'scripts/release-production.mjs',
+    deploymentResult: { code: result.code, startedAt: result.startedAt, finishedAt: result.finishedAt, stdout: result.stdout.slice(-4000), stderr: result.stderr.slice(-4000) }
   };
   await writeFile(DEPLOY_STATUS, JSON.stringify(deployed, null, 2));
   return deployed;

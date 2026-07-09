@@ -3,40 +3,39 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://bourbonsignal.com",
-      lastModified: new Date(),
+      url: "https://www.bourbonsignal.com",
       changeFrequency: "daily",
       priority: 1,
     },
     {
-      url: "https://bourbonsignal.com/sightings",
-      lastModified: new Date(),
+      url: "https://www.bourbonsignal.com/sightings",
       changeFrequency: "daily",
       priority: 0.75,
     },
     {
-      url: "https://bourbonsignal.com/bottle-check",
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-    {
-      url: "https://bourbonsignal.com/pricing",
-      lastModified: new Date(),
+      url: "https://www.bourbonsignal.com/pricing",
       changeFrequency: "weekly",
       priority: 0.85,
     },
     {
-      url: "https://bourbonsignal.com/legal/privacy",
-      lastModified: new Date(),
+      url: "https://www.bourbonsignal.com/legal/privacy",
       changeFrequency: "monthly",
       priority: 0.35,
     },
     {
-      url: "https://bourbonsignal.com/legal/terms",
-      lastModified: new Date(),
+      url: "https://www.bourbonsignal.com/legal/terms",
       changeFrequency: "monthly",
       priority: 0.35,
+    },
+    {
+      url: "https://www.bourbonsignal.com/legal/refunds",
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: "https://www.bourbonsignal.com/legal/disclaimer",
+      changeFrequency: "monthly",
+      priority: 0.3,
     },
   ];
 }

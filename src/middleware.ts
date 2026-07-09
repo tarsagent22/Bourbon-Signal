@@ -34,6 +34,12 @@ function withDashboardCacheBust(response: NextResponse, pathname: string) {
 
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
+  const hostname = (request.headers.get("host") || "").split(":")[0].toLowerCase();
+  if (hostname === "bourbonsignal.com") {
+    url.hostname = "www.bourbonsignal.com";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();

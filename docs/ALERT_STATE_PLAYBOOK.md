@@ -122,7 +122,7 @@ Required checks:
   - `anything_notable`: allowed for rare/allocated/limited
   - `specific_bottles`: candidate must match saved bottle aliases/keys
 - user-specific channel mode:
-  - email all vs major-only vs daily roundup
+  - email all eligible signals vs major-only
   - SMS major-only vs specific bottle
 
 No saved area prefs = no personalized alerts. The dashboard/onboarding should treat this as an activation gap.

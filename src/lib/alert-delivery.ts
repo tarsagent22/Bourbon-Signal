@@ -567,7 +567,7 @@ function normalizeDeliveryMetadata(input: unknown): AlertDeliveryMetadata {
           dedupeKey: asString(item.dedupeKey),
           deliveredAt: asString(item.deliveredAt),
           channel: (item.channel === "sms" ? "sms" : "email") as "email" | "sms",
-          emailMode: (item.emailMode === "all" || item.emailMode === "daily_roundup" ? item.emailMode : "major_only") as EmailAlertMode,
+          emailMode: (item.emailMode === "all" ? "all" : "major_only") as EmailAlertMode,
           smsMode: (item.smsMode === "specific_bottles" ? "specific_bottles" : "major_only") as SmsAlertMode,
           messageId: asString(item.messageId) || null,
           status: asString(item.status) || null,
@@ -622,7 +622,7 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     readAt: asString(source.readAt) || null,
     archivedAt: asString(source.archivedAt) || null,
     emailDeliveredAt: asString(source.emailDeliveredAt) || null,
-    emailModeAtSend: source.emailModeAtSend === "all" || source.emailModeAtSend === "major_only" || source.emailModeAtSend === "daily_roundup" ? source.emailModeAtSend : null,
+    emailModeAtSend: source.emailModeAtSend === "all" || source.emailModeAtSend === "major_only" ? source.emailModeAtSend : null,
   };
 }
 
@@ -776,7 +776,7 @@ export async function sendOperationalTestAlertEmail(req: Request) {
   }
 
   const resend = getResendClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
   const sentAt = new Date().toISOString();
   const result = await resend.emails.send({
     from: ALERT_FROM,
@@ -819,7 +819,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
   const baselineOnSiteOnly = options.baselineOnSiteOnly === true;
   const baselineEmailOnly = options.baselineEmailOnly === true;
   const baselineSmsOnly = options.baselineSmsOnly === true;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bourbonsignal.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
   const rawEligibleCandidateCount = readAlertCandidates()
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite).length;
@@ -864,7 +864,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     onSiteBaselinesCreated: 0,
     emailBaselinesCreated: 0,
     smsBaselinesCreated: 0,
-    skippedDailyRoundup: 0,
+
     skippedNoEmail: 0,
     skippedDedupe: 0,
     skippedOnSiteDedupe: 0,
@@ -976,9 +976,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         summary.usersWithEmailEnabled += 1;
       }
 
-      if (notificationPrefs.email.enabled && notificationPrefs.email.mode === "daily_roundup") {
-        summary.skippedDailyRoundup += 1;
-      } else if (notificationPrefs.email.enabled && !baselineEmailOnly && !dryRun && !ALERT_EMAIL_DELIVERY_ENABLED) {
+      if (notificationPrefs.email.enabled && !baselineEmailOnly && !dryRun && !ALERT_EMAIL_DELIVERY_ENABLED) {
         summary.skippedEmailDeliveryDisabled += matchingPreferenceCandidates.length;
       } else if (notificationPrefs.email.enabled) {
         const email = primaryEmailForUser(user);
