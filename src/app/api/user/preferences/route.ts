@@ -17,6 +17,7 @@ export interface AreaPreferences {
   ohCities: string[];
   iaCities: string[];
   idCities: string[];
+  scAreas: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -58,6 +59,7 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   ohCities: [],
   iaCities: [],
   idCities: [],
+  scAreas: [],
   paCounties: [],
   paStores: [],
 };
@@ -96,6 +98,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     ohCities: toStringArray(source.ohCities),
     iaCities: toStringArray(source.iaCities),
     idCities: toStringArray(source.idCities),
+    scAreas: toStringArray(source.scAreas),
     paCounties: toStringArray(source.paCounties),
     paStores: toStringArray(source.paStores),
   };
@@ -104,7 +107,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
 function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
   if (limit === null) return areaPreferences;
-  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], paCounties: [], paStores: [] };
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], paCounties: [], paStores: [] };
 
   let remaining = limit;
   const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
@@ -122,6 +125,7 @@ function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: num
     else if (state === "OH") next.ohCities = takeDetails(areaPreferences.ohCities);
     else if (state === "IA") next.iaCities = takeDetails(areaPreferences.iaCities);
     else if (state === "ID") next.idCities = takeDetails(areaPreferences.idCities);
+    else if (state === "SC") next.scAreas = takeDetails(areaPreferences.scAreas);
     else if (state === "PA") {
       const paDetails = [...areaPreferences.paCounties, ...areaPreferences.paStores].slice(0, remaining);
       next.paCounties = areaPreferences.paCounties.filter((value) => paDetails.includes(value));

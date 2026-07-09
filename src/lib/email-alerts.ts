@@ -85,9 +85,9 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
       : { matched: false };
   }
 
-  if (state === "VA" || state === "OH" || state === "IA" || state === "ID") {
-    const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : state === "IA" ? prefs.iaCities : prefs.idCities;
-    const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : state === "IA" ? "Iowa" : "Idaho";
+  if (state === "VA" || state === "OH" || state === "IA" || state === "ID" || state === "SC") {
+    const cityPrefs = state === "VA" ? prefs.vaCities : state === "OH" ? prefs.ohCities : state === "IA" ? prefs.iaCities : state === "ID" ? prefs.idCities : prefs.scAreas;
+    const fallbackLabel = state === "VA" ? "Virginia" : state === "OH" ? "Ohio" : state === "IA" ? "Iowa" : state === "ID" ? "Idaho" : "South Carolina";
     const city = (drop.store_city || drop.store_county || drop.display_location || drop.board_name || "").trim();
     if (cityPrefs.length === 0) return { matched: true, matchedState: state, matchedArea: city || fallbackLabel };
     const matchedCity = cityPrefs.find((candidate) => locationMatchesAny([

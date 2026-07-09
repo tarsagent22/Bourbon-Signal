@@ -32,13 +32,31 @@ const EMPTY_PREFS: AreaPreferences = {
   ohCities: [],
   iaCities: [],
   idCities: [],
+  scAreas: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
+const SC_ALERT_AREA_SEEDS = [
+  "Myrtle Beach",
+  "North Myrtle Beach",
+  "Conway",
+  "Carolina Forest",
+  "Surfside Beach",
+  "Murrells Inlet",
+  "Columbia",
+  "Greenville",
+  "Charleston",
+  "Mount Pleasant",
+  "North Charleston",
+  "Hilton Head Island",
+  "Bluffton",
+  "Rock Hill",
+  "Spartanburg",
+] as const;
 
 interface BottleOption {
   canonicalKey: string;
@@ -198,9 +216,11 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
             ? areaPrefs.iaCities.length
             : state === "ID"
               ? areaPrefs.idCities.length
-              : state === "PA"
-                ? areaPrefs.paCounties.length + areaPrefs.paStores.length
-                : 0;
+              : state === "SC"
+                ? areaPrefs.scAreas.length
+                : state === "PA"
+                  ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                  : 0;
     return count + Math.max(1, detailCount);
   }, 0);
 }
@@ -558,6 +578,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
+  if (state === "SC" && areaPrefs.scAreas.length) return areaPrefs.scAreas.some((area) => location.includes(normalizeLocationText(area)));
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -1202,15 +1223,12 @@ export default function DashboardPage() {
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};
-    for (const state of ["IA", "ID", "VA", "OH", "PA"] as const) {
-      grouped[state] = Array.from(
-        new Set(
-          stores.flatMap((store) => {
-            if (store.state !== state || !store.city || !isSelectableStoreLocation(store)) return [];
-            return [titleCase(store.city)];
-          })
-        )
-      ).sort();
+    for (const state of ["IA", "ID", "VA", "OH", "PA", "SC"] as const) {
+      const cityNames = stores.flatMap((store) => {
+        if (store.state !== state || !store.city || !isSelectableStoreLocation(store)) return [];
+        return [titleCase(store.city)];
+      });
+      grouped[state] = Array.from(new Set(state === "SC" ? [...SC_ALERT_AREA_SEEDS, ...cityNames] : cityNames)).sort();
     }
     return grouped;
   }, [stores]);
@@ -1326,7 +1344,15 @@ export default function DashboardPage() {
       selectedCount: localPrefs.paCounties.length,
       totalCount: citiesByState.PA?.length ?? 0,
     },
-  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.vaCities.length, ncBoards.length]);
+    {
+      stateCode: "SC",
+      label: "South Carolina",
+      detailLabel: "areas",
+      summary: "South Carolina retailer coverage can be refined by city or Grand Strand area.",
+      selectedCount: localPrefs.scAreas.length,
+      totalCount: citiesByState.SC?.length ?? 0,
+    },
+  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1567,6 +1593,7 @@ export default function DashboardPage() {
           ohCities: state === "OH" ? prev.ohCities : [],
           iaCities: state === "IA" ? prev.iaCities : [],
           idCities: state === "ID" ? prev.idCities : [],
+          scAreas: state === "SC" ? prev.scAreas : [],
           paCounties: state === "PA" ? prev.paCounties : [],
           paStores: state === "PA" ? prev.paStores : [],
         };
@@ -1579,6 +1606,7 @@ export default function DashboardPage() {
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
         iaCities: state === "IA" && removing ? [] : prev.iaCities,
         idCities: state === "ID" && removing ? [] : prev.idCities,
+        scAreas: state === "SC" && removing ? [] : prev.scAreas,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1625,6 +1653,14 @@ export default function DashboardPage() {
         return {
           ...prev,
           idCities: has ? prev.idCities.filter((item) => item !== value) : [...prev.idCities, value],
+        };
+      }
+      if (state === "SC") {
+        const has = prev.scAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          scAreas: has ? prev.scAreas.filter((item) => item !== value) : [...prev.scAreas, value],
         };
       }
       if (state === "PA") {
@@ -2475,16 +2511,18 @@ export default function DashboardPage() {
                     ? localPrefs.vaCities
                     : activeState === "OH"
                       ? localPrefs.ohCities
-                      : activeState === "PA"
-                        ? localPrefs.paCounties
-                        : customerAreaLabel
-                          ? [customerAreaLabel]
-                          : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+                      : activeState === "SC"
+                        ? localPrefs.scAreas
+                        : activeState === "PA"
+                          ? localPrefs.paCounties
+                          : customerAreaLabel
+                            ? [customerAreaLabel]
+                            : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
               const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 

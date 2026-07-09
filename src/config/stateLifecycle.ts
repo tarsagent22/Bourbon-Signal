@@ -194,7 +194,25 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
-      "refinementLevel": "statewide",
+      "refinementLevel": "area",
+      "customerAreaLabel": "South Carolina retailer areas",
+      "areaOptions": [
+        "Myrtle Beach",
+        "North Myrtle Beach",
+        "Conway",
+        "Carolina Forest",
+        "Surfside Beach",
+        "Murrells Inlet",
+        "Columbia",
+        "Greenville",
+        "Charleston",
+        "Mount Pleasant",
+        "North Charleston",
+        "Hilton Head Island",
+        "Bluffton",
+        "Rock Hill",
+        "Spartanburg"
+      ],
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
     },
     "AZ": {

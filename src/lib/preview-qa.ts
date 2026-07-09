@@ -14,6 +14,7 @@ export const QA_PREVIEW_PREFERENCES = {
     ohCities: [],
     iaCities: [],
     idCities: [],
+    scAreas: [],
     paCounties: [],
     paStores: [],
   },
