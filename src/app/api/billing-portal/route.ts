@@ -10,7 +10,7 @@ function getStripeClient() {
 }
 
 function appUrl(req: NextRequest) {
-  return process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin || "https://bourbonsignal.com";
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin || "https://www.bourbonsignal.com";
 }
 
 function stringValue(value: unknown) {

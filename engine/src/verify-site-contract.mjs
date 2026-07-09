@@ -26,7 +26,7 @@ function walkValues(value, visitor, pathParts = []) {
   for (const [key, child] of Object.entries(value)) walkValues(child, visitor, [...pathParts, key]);
 }
 
-const required = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'events.json', 'alerts.json'];
+const required = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'events.json', 'alerts.json', 'state-quality.json'];
 for (const file of required) {
   try {
     const full = path.join(siteDir, file);
@@ -54,6 +54,7 @@ for (const file of readdirSync(siteDir).filter((name) => name.endsWith('.json'))
 }
 
 const stats = readJson('stats.json');
+const stateQuality = readJson('state-quality.json');
 if (stats.stateCount !== activeStates.size) {
   fail(`stats.stateCount should be ${activeStates.size}, got ${stats.stateCount}`);
 }
@@ -65,6 +66,20 @@ for (const expected of activeStates) {
 for (const state of coverageStates) {
   const code = String(state.state).toUpperCase();
   if (!activeStates.has(code)) fail(`stats.stateCoverage.states contains non-active state ${code}.`);
+}
+const qualityStateIds = new Set((stateQuality.states || []).map((state) => String(state.state).toUpperCase()));
+for (const expected of activeStates) {
+  if (!qualityStateIds.has(expected)) fail(`state-quality.json missing active state ${expected}.`);
+}
+if (stateQuality.summary?.stateCount !== activeStates.size) {
+  fail(`state-quality.json summary should contain ${activeStates.size} states, got ${stateQuality.summary?.stateCount}.`);
+}
+if (stateQuality.regression?.ok !== true) {
+  fail(`state-quality.json contains blocked regressions: ${(stateQuality.regression?.failures || []).join(' ')}`);
+}
+for (const state of stateQuality.states || []) {
+  if (!Number.isFinite(state.score) || state.score < 0 || state.score > 100) fail(`${state.state} has invalid quality score ${state.score}.`);
+  if (!Array.isArray(state.weaknesses)) fail(`${state.state} quality weaknesses must be an array.`);
 }
 if (coverageStates.some((state) => String(state.state).toUpperCase() === 'TX')) {
   fail('stats.stateCoverage.states should not include TX.');

@@ -1,0 +1,774 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-09T23:12:49.212Z",
+  "summary": {
+    "stateCount": 23,
+    "releaseEligibleStates": 11,
+    "releaseBlockedStates": 12,
+    "averageScore": 45,
+    "weakestStates": [
+      "KY",
+      "AZ",
+      "CA",
+      "FL",
+      "GA"
+    ]
+  },
+  "states": [
+    {
+      "state": "IL",
+      "coverageTier": "live_store_inventory",
+      "score": 99,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 0.1,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 20,
+        "alerts": 15,
+        "sourceDiversity": 15,
+        "reliability": 9
+      },
+      "weaknesses": [],
+      "input": {
+        "state": "IL",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 370,
+        "dropCount": 182,
+        "storeLevelDropCount": 182,
+        "alertCandidateCount": 184,
+        "sourceCount": 5,
+        "roadblockCount": 1,
+        "freshestObservedAt": "2026-07-09T23:08:45.440Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "TN",
+      "coverageTier": "live_store_inventory",
+      "score": 91,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 0,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 19,
+        "precision": 20,
+        "alerts": 15,
+        "sourceDiversity": 15,
+        "reliability": 3
+      },
+      "weaknesses": [
+        "high_roadblock_load"
+      ],
+      "input": {
+        "state": "TN",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 345,
+        "dropCount": 93,
+        "storeLevelDropCount": 93,
+        "alertCandidateCount": 90,
+        "sourceCount": 93,
+        "roadblockCount": 5,
+        "freshestObservedAt": "2026-07-09T23:11:19.729Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "NC",
+      "coverageTier": "live_store_inventory",
+      "score": 86,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 6,
+        "alerts": 15,
+        "sourceDiversity": 15,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "low_store_precision_ratio"
+      ],
+      "input": {
+        "state": "NC",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1625,
+        "dropCount": 506,
+        "storeLevelDropCount": 153,
+        "alertCandidateCount": 164,
+        "sourceCount": 28,
+        "roadblockCount": 0,
+        "freshestObservedAt": "2026-07-09T23:01:10.582Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "IN",
+      "coverageTier": "live_store_inventory",
+      "score": 84,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 13,
+        "precision": 20,
+        "alerts": 15,
+        "sourceDiversity": 15,
+        "reliability": 1
+      },
+      "weaknesses": [
+        "high_roadblock_load"
+      ],
+      "input": {
+        "state": "IN",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1576,
+        "dropCount": 66,
+        "storeLevelDropCount": 66,
+        "alertCandidateCount": 66,
+        "sourceCount": 39,
+        "roadblockCount": 6,
+        "freshestObservedAt": "2026-07-09T23:01:18.734Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "ID",
+      "coverageTier": "store_availability_status",
+      "score": 81,
+      "threshold": 50,
+      "releaseEligible": true,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 16,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "no_alert_candidates"
+      ],
+      "input": {
+        "state": "ID",
+        "coverageTier": "store_availability_status",
+        "signalCount": 360,
+        "dropCount": 141,
+        "storeLevelDropCount": 141,
+        "alertCandidateCount": 0,
+        "sourceCount": 4,
+        "roadblockCount": 0,
+        "freshestObservedAt": "2026-07-09T22:58:33.174Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "AL",
+      "coverageTier": "shipment_drop_intelligence",
+      "score": 80,
+      "threshold": 50,
+      "releaseEligible": true,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 16,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "no_alert_candidates"
+      ],
+      "input": {
+        "state": "AL",
+        "coverageTier": "shipment_drop_intelligence",
+        "signalCount": 1349,
+        "dropCount": 1184,
+        "storeLevelDropCount": 1184,
+        "alertCandidateCount": 0,
+        "sourceCount": 4,
+        "roadblockCount": 1,
+        "freshestObservedAt": "2026-07-09T22:58:11.252Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "IA",
+      "coverageTier": "store_delivery_leads",
+      "score": 80,
+      "threshold": 50,
+      "releaseEligible": true,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 16,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "no_alert_candidates"
+      ],
+      "input": {
+        "state": "IA",
+        "coverageTier": "store_delivery_leads",
+        "signalCount": 1381,
+        "dropCount": 1303,
+        "storeLevelDropCount": 1303,
+        "alertCandidateCount": 0,
+        "sourceCount": 5,
+        "roadblockCount": 1,
+        "freshestObservedAt": "2026-07-09T22:58:07.074Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "VA",
+      "coverageTier": "live_store_inventory",
+      "score": 80,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 18.6,
+      "dimensions": {
+        "freshness": 16,
+        "volume": 20,
+        "precision": 20,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "no_alert_candidates"
+      ],
+      "input": {
+        "state": "VA",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 18081,
+        "dropCount": 2307,
+        "storeLevelDropCount": 2307,
+        "alertCandidateCount": 0,
+        "sourceCount": 728,
+        "roadblockCount": 1,
+        "freshestObservedAt": "2026-07-09T04:35:39.152Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "SC",
+      "coverageTier": "live_store_inventory",
+      "score": 77,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 0,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 5,
+        "precision": 20,
+        "alerts": 15,
+        "sourceDiversity": 15,
+        "reliability": 3
+      },
+      "weaknesses": [
+        "high_roadblock_load"
+      ],
+      "input": {
+        "state": "SC",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 269,
+        "dropCount": 24,
+        "storeLevelDropCount": 24,
+        "alertCandidateCount": 14,
+        "sourceCount": 13,
+        "roadblockCount": 5,
+        "freshestObservedAt": "2026-07-09T23:11:28.619Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "MD-MONTGOMERY",
+      "coverageTier": "aggregate_inventory_watch",
+      "score": 74,
+      "threshold": 50,
+      "releaseEligible": true,
+      "freshnessHours": 0.1,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 16,
+        "alerts": 0,
+        "sourceDiversity": 8,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "MD-MONTGOMERY",
+        "coverageTier": "aggregate_inventory_watch",
+        "signalCount": 503,
+        "dropCount": 9,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 1,
+        "roadblockCount": 0,
+        "freshestObservedAt": "2026-07-09T23:09:03.343Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "OH",
+      "coverageTier": "live_store_inventory",
+      "score": 65,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 44.3,
+      "dimensions": {
+        "freshness": 10,
+        "volume": 20,
+        "precision": 20,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 0
+      },
+      "weaknesses": [
+        "no_alert_candidates",
+        "high_roadblock_load",
+        "degraded_state_status"
+      ],
+      "input": {
+        "state": "OH",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 703,
+        "dropCount": 379,
+        "storeLevelDropCount": 379,
+        "alertCandidateCount": 0,
+        "sourceCount": 9,
+        "roadblockCount": 9,
+        "freshestObservedAt": "2026-07-08T02:57:38.743Z",
+        "status": "stale_useful"
+      }
+    },
+    {
+      "state": "PA",
+      "coverageTier": "live_store_inventory",
+      "score": 41,
+      "threshold": 65,
+      "releaseEligible": false,
+      "freshnessHours": 0.2,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 2,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 4
+      },
+      "weaknesses": [
+        "no_store_level_drops",
+        "no_alert_candidates"
+      ],
+      "input": {
+        "state": "PA",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1588,
+        "dropCount": 10,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 10,
+        "roadblockCount": 4,
+        "freshestObservedAt": "2026-07-09T22:58:26.868Z",
+        "status": "useful"
+      }
+    },
+    {
+      "state": "AZ",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "AZ",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "CA",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "CA",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "FL",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "FL",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 1,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "GA",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "GA",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 2,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "MI",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "MI",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 2,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "MN",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "MN",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "MO",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "MO",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "NV",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "NV",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "WA",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "WA",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "WI",
+      "coverageTier": "retailer_warehouse_inventory",
+      "score": 9,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 9
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "WI",
+        "coverageTier": "retailer_warehouse_inventory",
+        "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 1,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "KY",
+      "coverageTier": "distillery_release_watch",
+      "score": 7,
+      "threshold": 50,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 7
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "KY",
+        "coverageTier": "distillery_release_watch",
+        "signalCount": 13,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 2,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    }
+  ],
+  "regression": {
+    "ok": true,
+    "failures": [],
+    "warnings": [
+      "No previous state-quality scorecard; recording baseline."
+    ]
+  }
+}

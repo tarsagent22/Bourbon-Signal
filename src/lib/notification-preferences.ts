@@ -1,4 +1,4 @@
-export type EmailAlertMode = "all" | "major_only" | "daily_roundup";
+export type EmailAlertMode = "all" | "major_only";
 export type SmsAlertMode = "major_only" | "specific_bottles";
 
 export interface NotificationPreferences {
@@ -59,7 +59,8 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const sms = (source.sms && typeof source.sms === "object" ? source.sms : {}) as Record<string, unknown>;
   const sightings = (source.sightings && typeof source.sightings === "object" ? source.sightings : {}) as Record<string, unknown>;
 
-  const mode = email.mode === "all" || email.mode === "major_only" || email.mode === "daily_roundup"
+  const legacyDailyRoundup = email.mode === "daily_roundup";
+  const mode = email.mode === "all" || email.mode === "major_only"
     ? email.mode
     : DEFAULT_NOTIFICATION_PREFERENCES.email.mode;
 
@@ -68,7 +69,9 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
       enabled: typeof onSite.enabled === "boolean" ? onSite.enabled : DEFAULT_NOTIFICATION_PREFERENCES.onSite.enabled,
     },
     email: {
-      enabled: typeof email.enabled === "boolean" ? email.enabled : DEFAULT_NOTIFICATION_PREFERENCES.email.enabled,
+      // Daily roundup was never shipped. Disable legacy selections rather than
+      // silently converting them into real-time emails.
+      enabled: legacyDailyRoundup ? false : (typeof email.enabled === "boolean" ? email.enabled : DEFAULT_NOTIFICATION_PREFERENCES.email.enabled),
       mode,
     },
     sms: {

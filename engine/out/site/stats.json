@@ -18,6 +18,19 @@
   "historicalTrendCount": 100,
   "alertCandidateCount": 284,
   "roadblockCount": 230,
+  "stateQuality": {
+    "stateCount": 23,
+    "releaseEligibleStates": 11,
+    "releaseBlockedStates": 12,
+    "averageScore": 45,
+    "weakestStates": [
+      "KY",
+      "AZ",
+      "CA",
+      "FL",
+      "GA"
+    ]
+  },
   "refreshHealth": {
     "degradedStateCount": 0,
     "staleStateCount": 0,

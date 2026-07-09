@@ -230,8 +230,24 @@ if (!/BOURBON_SIGNAL_BROWSER_PREFLIGHT\) \{ \$env:BOURBON_SIGNAL_BROWSER_PREFLIG
 }
 
 const refreshSite = read('engine/src/refresh-site.mjs');
-if (!/PRODUCTION_CUSTOM_DOMAINS/.test(refreshSite) || !/alias', 'set'/.test(refreshSite)) {
-  fail('engine/src/refresh-site.mjs should move production custom-domain aliases after local auto-deploy.');
+if (!/scripts', 'release-production\.mjs/.test(refreshSite) || !/--publish-site-exports/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should hand changed exports to the single release orchestrator.');
+}
+if (/runCommand\(vercel, \['--prod'/.test(refreshSite) || /alias', 'set'/.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs must not deploy or move aliases outside the release orchestrator.');
+}
+const releaseOrchestrator = read('scripts/release-production.mjs');
+for (const contract of [
+  "worktree', 'add', '--detach'",
+  'assertCleanOriginMain',
+  'writeBuildManifest',
+  "'deploy', '--prod'",
+  "'alias', 'set'",
+  "'crons', 'ls', '--format', 'json'",
+  'release-manifest.json',
+  '/api/ops/health',
+]) {
+  if (!releaseOrchestrator.includes(contract)) fail(`Release orchestrator is missing contract: ${contract}`);
 }
 if (!/readdir\(siteDir\)/.test(refreshSite) || !/siteExportFileCount/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should hash the whole checked-in site export, not only alert rows, so production freshness is deployed even when inventory rows are unchanged.');

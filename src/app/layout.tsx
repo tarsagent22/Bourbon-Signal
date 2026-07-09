@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   creator: "Bourbon Signal",
   publisher: "Bourbon Signal",
   keywords: ["bourbon alerts", "allocated bourbon", "bourbon drops", "ABC store inventory", "bourbon hunting", "Bottle Check", "Daily Briefing"],
-  metadataBase: new URL("https://bourbonsignal.com"),
-  alternates: { canonical: "https://bourbonsignal.com" },
+  metadataBase: new URL("https://www.bourbonsignal.com"),
+  alternates: { canonical: "https://www.bourbonsignal.com" },
   category: "technology",
   appleWebApp: {
     capable: true,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: siteTitle,
     description: siteDescription,
-    url: "https://bourbonsignal.com",
+    url: "https://www.bourbonsignal.com",
     siteName: "Bourbon Signal",
     type: "website",
     locale: "en_US",

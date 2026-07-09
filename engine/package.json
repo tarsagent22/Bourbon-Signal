@@ -16,6 +16,8 @@
     "export:site": "node --max-old-space-size=16384 src/export-site-contract.mjs",
     "repeatability": "node src/repeatability-check.mjs",
     "quality": "node src/quality-audit.mjs",
+    "quality:states": "node src/build-state-quality-from-site.mjs",
+    "test:quality-states": "node src/test-state-quality-scorecard.mjs",
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
     "verify:pa": "node src/verify-pa.mjs",
     "verify:al": "node src/verify-al.mjs",
@@ -47,7 +49,7 @@
     "score:tn": "node src/score-tn-user-reach.mjs",
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
-    "verify:site": "node src/verify-site-contract.mjs",
+    "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states",
     "verify:pa:automation": "node src/verify-pa-automation.mjs",
     "store:identity": "node src/build-store-identity.mjs"
   },

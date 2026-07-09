@@ -19,6 +19,7 @@ import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
+import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
@@ -2916,121 +2917,29 @@ export default function DashboardPage() {
 
                   return (
                     <>
-                      <button
-                        onClick={() =>
+                      <NotificationChannelCard
+                        title="On-site alerts"
+                        description="See matching alerts in your Bourbon Signal inbox from anywhere on the site."
+                        checked={onSiteActive}
+                        onCheckedChange={(checked) =>
                           setNotificationPrefs((prev) => ({
                             ...prev,
-                            onSite: { enabled: !prev.onSite.enabled },
+                            onSite: { enabled: checked },
                           }))
                         }
-                        style={{
-                          width: "100%",
-                          borderRadius: "18px",
-                          border: onSiteActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
-                          background: onSiteActive
-                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
-                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
-                          boxShadow: onSiteActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
-                          padding: "18px",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "14px",
-                          alignItems: "center",
-                          minHeight: "120px",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: onSiteActive
-                              ? "radial-gradient(circle at top right, rgba(212,146,11,0.18), transparent 34%)"
-                              : "none",
-                            pointerEvents: "none",
-                          }}
-                        />
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
-                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
-                            On-site alerts
-                          </span>
-                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
-                            See matching alerts in your Bourbon Signal inbox from anywhere on the site.
-                          </span>
-                        </div>
-                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
-                          <LiquidToggle
-                            checked={onSiteActive}
-                            onCheckedChange={(checked) =>
-                              setNotificationPrefs((prev) => ({
-                                ...prev,
-                                onSite: { enabled: checked },
-                              }))
-                            }
-                          />
-                        </div>
-                      </button>
+                      />
 
-                      <button
-                        onClick={() =>
+                      <NotificationChannelCard
+                        title="Email alerts"
+                        description="Get email alerts when a signal matches your watchlist."
+                        checked={emailActive}
+                        onCheckedChange={(checked) =>
                           setNotificationPrefs((prev) => ({
                             ...prev,
-                            email: { ...prev.email, enabled: !prev.email.enabled },
+                            email: { ...prev.email, enabled: checked },
                           }))
                         }
-                        style={{
-                          width: "100%",
-                          borderRadius: "18px",
-                          border: emailActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
-                          background: emailActive
-                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
-                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
-                          boxShadow: emailActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
-                          padding: "18px",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "14px",
-                          alignItems: "center",
-                          minHeight: "120px",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: emailActive
-                              ? "radial-gradient(circle at top right, rgba(212,146,11,0.18), transparent 34%)"
-                              : "none",
-                            pointerEvents: "none",
-                          }}
-                        />
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
-                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
-                            Email alerts
-                          </span>
-                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
-                            Get email alerts when a signal matches your watchlist.
-                          </span>
-                        </div>
-                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
-                          <LiquidToggle
-                            checked={emailActive}
-                            onCheckedChange={(checked) =>
-                              setNotificationPrefs((prev) => ({
-                                ...prev,
-                                email: { ...prev.email, enabled: checked },
-                              }))
-                            }
-                          />
-                        </div>
-                      </button>
+                      />
 
                       <div style={{ width: "100%", borderRadius: "18px", border: smsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)", background: smsActive ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)" : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)", boxShadow: smsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)", padding: "18px", display: "grid", gap: "12px", position: "relative", overflow: "hidden" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "center" }}>
@@ -3066,53 +2975,17 @@ export default function DashboardPage() {
                       </div>
 
                       {canReceiveSightingsAlerts ? (
-                      <button
-                        onClick={() =>
-                          setNotificationPrefs((prev) => ({
-                            ...prev,
-                            sightings: { enabled: !(prev.sightings?.enabled === true) },
-                          }))
-                        }
-                        style={{
-                          width: "100%",
-                          borderRadius: "18px",
-                          border: sightingsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)",
-                          background: sightingsActive
-                            ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)"
-                            : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)",
-                          boxShadow: sightingsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)",
-                          padding: "18px",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "14px",
-                          alignItems: "center",
-                          minHeight: "120px",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1, position: "relative" }}>
-                          <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>
-                            Member Sighting alerts
-                          </span>
-                          <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "34ch" }}>
-                            Get notified when member-submitted sightings match your watchlist and markets. Included with Barrel Proof and Bottled in Bond.
-                          </span>
-                        </div>
-                        <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
-                          <LiquidToggle
-                            checked={sightingsActive}
-                            onCheckedChange={(checked) =>
-                              setNotificationPrefs((prev) => ({
-                                ...prev,
-                                sightings: { enabled: checked },
-                              }))
-                            }
-                          />
-                        </div>
-                      </button>
+                        <NotificationChannelCard
+                          title="Member Sighting alerts"
+                          description="Get notified when member-submitted sightings match your watchlist and markets. Included with Barrel Proof and Bottled in Bond."
+                          checked={sightingsActive}
+                          onCheckedChange={(checked) =>
+                            setNotificationPrefs((prev) => ({
+                              ...prev,
+                              sightings: { enabled: checked },
+                            }))
+                          }
+                        />
                       ) : null}
 
 

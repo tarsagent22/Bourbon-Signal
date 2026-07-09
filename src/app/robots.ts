@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/api/",
     },
-    sitemap: "https://bourbonsignal.com/sitemap.xml",
+    sitemap: "https://www.bourbonsignal.com/sitemap.xml",
   };
 }
