@@ -70,8 +70,8 @@ if (!route.includes('Bourbon Signal alert delivery summary')) {
   fail('Cron route should emit a visible ops summary for every run.');
 }
 
-if (!/"path"\s*:\s*"\/api\/alerts\/deliver"/.test(vercel) || !/"schedule"\s*:\s*"\*\/5 \* \* \* \*"/.test(vercel)) {
-  fail('Vercel cron must invoke /api/alerts/deliver every 5 minutes for near-real-time alert delivery.');
+if (!/"path"\s*:\s*"\/api\/alerts\/deliver\?cron=v2"/.test(vercel) || !/"schedule"\s*:\s*"\*\/5 \* \* \* \*"/.test(vercel)) {
+  fail('Vercel cron must invoke /api/alerts/deliver?cron=v2 every 5 minutes for near-real-time alert delivery.');
 }
 
 if (process.exitCode) {

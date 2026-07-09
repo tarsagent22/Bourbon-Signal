@@ -4,7 +4,7 @@
   },
   "crons": [
     {
-      "path": "/api/alerts/deliver",
+      "path": "/api/alerts/deliver?cron=v2",
       "schedule": "*/5 * * * *"
     }
   ]
