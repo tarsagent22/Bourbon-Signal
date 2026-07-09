@@ -50,7 +50,9 @@ const BROWSER_PREFLIGHT_JOBS = [
     artifact: path.join(OUT, 'browser', 'ohlq-availability.json'),
     command: ['src/ohlq-browser-collector.mjs'],
     outEnv: 'OHLQ_OUT_FILE',
-    validateArtifact: validateOhlqArtifact
+    validateArtifact: validateOhlqArtifact,
+    cooldownFile: path.join(OUT, 'browser', 'ohlq-cooldown.json'),
+    maxAgeMs: Number(process.env.BOURBON_SIGNAL_OHLQ_PREFLIGHT_MAX_AGE_MS || 24 * 60 * 60_000)
   },
   {
     id: 'pa-fwgs',
@@ -88,6 +90,13 @@ async function fileFreshEnough(file, maxAgeMs) {
   } catch {
     return false;
   }
+}
+
+async function activeCooldown(file) {
+  if (!file || process.env.BOURBON_SIGNAL_IGNORE_SOURCE_COOLDOWNS === '1') return null;
+  const payload = await readJson(file, null);
+  const until = Date.parse(payload?.cooldownUntil || '');
+  return Number.isFinite(until) && until > Date.now() ? payload : null;
 }
 
 function validateFwgsArtifact(payload) {
@@ -201,7 +210,19 @@ async function runBrowserPreflight() {
   }
   await mkdir(path.join(OUT, 'browser'), { recursive: true });
   for (const job of BROWSER_PREFLIGHT_JOBS) {
-    const fresh = await fileFreshEnough(job.artifact, BROWSER_PREFLIGHT_MAX_AGE_MS);
+    const cooldown = await activeCooldown(job.cooldownFile);
+    if (cooldown) {
+      results.push({
+        id: job.id,
+        label: job.label,
+        artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'),
+        status: 'cooldown_previous_artifact_reused',
+        cooldownUntil: cooldown.cooldownUntil,
+        reason: cooldown.reason || null
+      });
+      continue;
+    }
+    const fresh = await fileFreshEnough(job.artifact, job.maxAgeMs || BROWSER_PREFLIGHT_MAX_AGE_MS);
     if (fresh && process.env.BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT !== '1') {
       results.push({ id: job.id, label: job.label, artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'), status: 'fresh_artifact_reused' });
       continue;

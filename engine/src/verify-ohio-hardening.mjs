@@ -38,7 +38,7 @@ const ohlqSignalAgeHours = Number.isFinite(newestOhlqObservedAt) ? (Date.now() -
 const currentAlertMaxAgeHours = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
 const ohlqFreshEnoughForAlerts = ohlqSignalAgeHours <= currentAlertMaxAgeHours;
 
-if (state.status !== 'useful') fail(`Ohio state artifact should be useful, got ${state.status}.`);
+if (state.status !== 'useful' && state.status !== 'stale_useful') fail(`Ohio state artifact should be useful or stale_useful, got ${state.status}.`);
 if (discoverySamples.length) fail(`Ohio should not publish stale browser discovery sample rows once hardened; got ${discoverySamples.length}.`);
 if (ohlqSignals.length < 100) fail(`Expected at least 100 fresh decoded OHLQ positive store availability signals, got ${ohlqSignals.length}.`);
 if (storeDrops.length < 100) fail(`Expected at least 100 customer-visible Ohio store availability drops, got ${storeDrops.length}.`);

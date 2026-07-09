@@ -4772,9 +4772,28 @@ function ohlqSignalBase(state, sourceLabel, sourceUrl, rawName, bible) {
 async function collectOhio(config, bible) {
   const signals = [], roadblocks = [];
   const browserOutPath = 'out/browser/ohlq-availability.json';
+  const cooldownPath = 'out/browser/ohlq-cooldown.json';
   const discoveryPath = 'data/browser-discovery/ohlq-product-availability-discovery.json';
+  const staleAfterMs = Number(process.env.BOURBON_SIGNAL_OHLQ_STALE_AFTER_MS || 12 * 60 * 60_000);
+  let stale = false;
+  let staleReason = null;
+  let previousFinishedAt = null;
+  try {
+    const cooldown = JSON.parse(await readFile(cooldownPath, 'utf8'));
+    const until = Date.parse(cooldown?.cooldownUntil || '');
+    if (Number.isFinite(until) && until > Date.now()) {
+      stale = true;
+      staleReason = `OHLQ cooldown active until ${cooldown.cooldownUntil}`;
+    }
+  } catch {}
   try {
     const browserRun = JSON.parse(await readFile(browserOutPath, 'utf8'));
+    previousFinishedAt = browserRun.generatedAt || null;
+    const generatedAtMs = Date.parse(browserRun.generatedAt || '');
+    if (Number.isFinite(generatedAtMs) && Date.now() - generatedAtMs > staleAfterMs) {
+      stale = true;
+      staleReason = staleReason || `OHLQ browser artifact older than ${Math.round(staleAfterMs / 3600000)}h`;
+    }
     for (const product of browserRun.products || []) {
       if (!product.ok || !Array.isArray(product.inventories)) continue;
       const productSku = String(product.sku || '').toLowerCase();
@@ -4830,7 +4849,7 @@ async function collectOhio(config, bible) {
         error: 'OHLQ live rows were collected through browser/CDP. Direct Node fetch remains Cloudflare-gated, so scheduled production collection needs a browser-assisted or token/cookie bootstrap runtime.',
         nextRoute: 'Run npm run ohlq before npm run run, or promote the browser bootstrap into the future scheduled engine runner.'
       });
-      return { signals, roadblocks };
+      return { signals, roadblocks, stale, staleReason, previousFinishedAt };
     }
   } catch {
     // Fall through to static discovery evidence below; the browser collector is optional for normal raw-fetch runs.
@@ -4869,7 +4888,7 @@ async function collectOhio(config, bible) {
     }
     if (signals.length) {
       roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: 'Current OHLQ browser artifact did not contain positive decoded rows; retained prior positive-status snapshot rows to avoid dropping known live site coverage.', nextRoute: 'Refresh OHLQ from an already-warmed interactive browser session or improve non-headless Cloudflare handling.' });
-      return { signals, roadblocks };
+      return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ browser artifact did not contain positive decoded rows; retained prior snapshot rows', previousFinishedAt };
     }
   } catch {
     // No prior operational OHLQ snapshot is available; fall through to static discovery evidence.
@@ -4911,7 +4930,7 @@ async function collectOhio(config, bible) {
   } catch (error) {
     roadblocks.push({ state: config.id, source: 'OHLQ browser discovery fixture', url: discoveryPath, status: 0, error: error.message, nextRoute: 'Re-run browser/CDP discovery on an OHLQ product page and save endpoint evidence.' });
   }
-  return { signals, roadblocks };
+  return { signals, roadblocks, stale, staleReason, previousFinishedAt };
 }
 
 function safePercentDecode(text) {

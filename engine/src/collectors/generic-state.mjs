@@ -462,6 +462,11 @@ export async function collectState(config, bible) {
     sources: sourceReports,
     signals: dedupedSignals,
     roadblocks,
-    status: sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
+    stale: Boolean(precisionProbe.stale),
+    staleReason: precisionProbe.staleReason || null,
+    previousFinishedAt: precisionProbe.previousFinishedAt || null,
+    status: precisionProbe.stale
+      ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
+      : sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
   };
 }

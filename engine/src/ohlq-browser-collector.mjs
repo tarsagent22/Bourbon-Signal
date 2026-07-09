@@ -5,16 +5,51 @@ import { BrowserPage, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp } from
 const DEFAULT_CDP = process.env.OHLQ_CDP_URL || process.env.BROWSER_CDP_URL || 'http://127.0.0.1:18800';
 const PRODUCTS_FILE = process.env.OHLQ_PRODUCTS_FILE || 'data/ohlq-products.json';
 const OUT_FILE = process.env.OHLQ_OUT_FILE || 'out/browser/ohlq-availability.json';
+const COOLDOWN_FILE = process.env.OHLQ_COOLDOWN_FILE || 'out/browser/ohlq-cooldown.json';
 const PAGE_TIMEOUT_MS = Number(process.env.OHLQ_PAGE_TIMEOUT_MS || 45000);
 const DISCOVER = process.argv.includes('--discover') || process.env.OHLQ_DISCOVER === '1';
-const DISCOVERY_PAGES = Number(process.env.OHLQ_DISCOVERY_PAGES || 5);
-const DISCOVERY_LIMIT = Number(process.env.OHLQ_DISCOVERY_LIMIT || 60);
+const DISCOVERY_PAGES = Number(process.env.OHLQ_DISCOVERY_PAGES || 2);
+const DISCOVERY_LIMIT = Number(process.env.OHLQ_DISCOVERY_LIMIT || 10);
 const PRODUCT_READY_TIMEOUT_MS = Number(process.env.OHLQ_PRODUCT_READY_TIMEOUT_MS || 60000);
-const PRODUCT_DELAY_MS = Number(process.env.OHLQ_PRODUCT_DELAY_MS || 1500);
+const PRODUCT_DELAY_MS = Number(process.env.OHLQ_PRODUCT_DELAY_MS || 3500);
+const BLOCKED_BACKOFF_HOURS = Number(process.env.OHLQ_BLOCKED_BACKOFF_HOURS || 24);
+const JITTER_MS = Number(process.env.OHLQ_PRODUCT_JITTER_MS || 2500);
 const DISCOVERY_FILE = process.env.OHLQ_DISCOVERY_FILE || 'data/browser-discovery/ohlq-bourbon-discovered-products.json';
 const BOURBON_LISTING_URL = 'https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american';
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+function jitteredDelay() { return PRODUCT_DELAY_MS + Math.floor(Math.random() * Math.max(0, JITTER_MS)); }
+
+async function readJson(file, fallback = null) {
+  try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
+
+function blockedReason(value = '') {
+  const text = String(value || '').toLowerCase();
+  return /cloudflare|access denied|restrict access|forbidden|rate limit|error 1015|temporarily banned|\b403\b|\b429\b/.test(text);
+}
+
+async function activeCooldown() {
+  if (process.env.OHLQ_IGNORE_COOLDOWN === '1') return null;
+  const payload = await readJson(COOLDOWN_FILE, null);
+  const until = Date.parse(payload?.cooldownUntil || '');
+  return Number.isFinite(until) && until > Date.now() ? payload : null;
+}
+
+async function writeCooldown(reason, sample = {}) {
+  const now = new Date();
+  const cooldownUntil = new Date(now.getTime() + Math.max(1, BLOCKED_BACKOFF_HOURS) * 60 * 60 * 1000).toISOString();
+  const payload = {
+    generatedAt: now.toISOString(),
+    cooldownUntil,
+    backoffHours: BLOCKED_BACKOFF_HOURS,
+    reason: String(reason || 'OHLQ access blocked/rate-limited').slice(0, 500),
+    sample
+  };
+  await mkdir(path.dirname(COOLDOWN_FILE), { recursive: true });
+  await writeFile(COOLDOWN_FILE, JSON.stringify(payload, null, 2));
+  return payload;
+}
 
 function normalizeSku(value) {
   return value ? String(value).trim().toLowerCase() : null;
@@ -197,6 +232,11 @@ async function waitForOhlqProductReady(page, product) {
 }
 
 async function main() {
+  const cooldown = await activeCooldown();
+  if (cooldown) {
+    throw new Error(`OHLQ collector cooldown active until ${cooldown.cooldownUntil}: ${cooldown.reason || 'access blocked/rate-limited'}`);
+  }
+
   const seedProducts = JSON.parse(await readFile(PRODUCTS_FILE, 'utf8'));
   const browser = await ensureBrowserCdp(DEFAULT_CDP, { timeoutMs: Number(process.env.OHLQ_CDP_START_TIMEOUT_MS || 45000) });
   console.log(`OHLQ CDP ${DEFAULT_CDP}; browser ${browser.started ? `started ${browser.executable} profile=${browser.profileDir}` : 'already running'}; headless=${process.env.BROWSER_HEADLESS === '0' ? 'false' : 'true'}`);
@@ -204,6 +244,7 @@ async function main() {
   const page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: PAGE_TIMEOUT_MS });
   await page.connect();
   const results = [];
+  const blockSignals = [];
   let products = seedProducts;
   let discoveredProducts = [];
   try {
@@ -218,12 +259,18 @@ async function main() {
       try {
         const result = await collectProduct(page, product);
         results.push(result);
+        if (!result.ok && (result.status === 403 || result.status === 429 || blockedReason(result.error) || blockedReason(result.title))) {
+          blockSignals.push({ productName: result.productName, pageUrl: result.pageUrl, status: result.status, error: result.error || result.title || 'blocked' });
+        }
         console.log(`  ${result.ok ? 'ok' : 'blocked'}: sku=${normalizeSku(result.sku) || 'none'}, stores=${result.inventoryCount || 0}, status=${result.status}`);
       } catch (error) {
-        results.push({ ok: false, productName: product.name, pageUrl: product.pageUrl, sku: product.sku || null, status: 0, error: error.message, inventories: [] });
+        const blocked = blockedReason(error.message);
+        const failed = { ok: false, productName: product.name, pageUrl: product.pageUrl, sku: product.sku || null, status: 0, error: error.message, inventories: [] };
+        results.push(failed);
+        if (blocked) blockSignals.push({ productName: product.name, pageUrl: product.pageUrl, status: 0, error: error.message });
         console.log(`  error: ${error.message}`);
       }
-      await sleep(PRODUCT_DELAY_MS);
+      await sleep(jitteredDelay());
     }
   } finally {
     page.close();
@@ -240,9 +287,14 @@ async function main() {
       inventoryRowCount: results.reduce((sum, r) => sum + (r.inventories?.length || 0), 0)
     }
   };
+  if (blockSignals.length > 0 || payload.summary.okProductCount === 0) {
+    const reason = blockSignals[0]?.error || 'OHLQ returned no successful product availability results';
+    const cooldown = await writeCooldown(reason, { blockedCount: blockSignals.length, productCount: results.length, firstBlocked: blockSignals[0] || null });
+    payload.cooldown = { cooldownUntil: cooldown.cooldownUntil, reason: cooldown.reason };
+  }
   await mkdir(path.dirname(OUT_FILE), { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
-  console.log(`Wrote ${OUT_FILE}: ${payload.summary.okProductCount}/${payload.summary.productCount} products, ${payload.summary.inventoryRowCount} store rows.`);
+  console.log(`Wrote ${OUT_FILE}: ${payload.summary.okProductCount}/${payload.summary.productCount} products, ${payload.summary.inventoryRowCount} store rows${payload.cooldown ? `; cooldown until ${payload.cooldown.cooldownUntil}` : ''}.`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });
