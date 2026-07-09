@@ -112,7 +112,7 @@ Every applied release must prove:
 - immutable manifest commit/tree/lockfile/export hashes
 - a local verified production build followed by a Vercel remote build from the same pinned clean commit plus the generated immutable manifest
 - both custom domains point at the deployed artifact
-- `/api/alerts/deliver` is registered at `*/5 * * * *` with no pending Vercel cron drift
+- `/api/alerts/deliver?cron=v2` is registered at `*/5 * * * *` with no pending Vercel cron drift
 - `/release-manifest.json` matches the verified artifact
 - production live and engine regression checks pass
 - `/api/ops/health` reports a fresh successful alert heartbeat and healthy engine export

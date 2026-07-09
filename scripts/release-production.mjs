@@ -15,7 +15,7 @@ import {
 } from './lib/release-orchestrator-core.mjs';
 
 const SOURCE_ROOT = process.cwd();
-const EXPECTED_CRON = { path: '/api/alerts/deliver', schedule: '*/5 * * * *' };
+const EXPECTED_CRON = { path: '/api/alerts/deliver?cron=v2', schedule: '*/5 * * * *' };
 const DEFAULT_DOMAINS = ['bourbonsignal.com', 'www.bourbonsignal.com'];
 const RELEASE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_RELEASE_TIMEOUT_MS || 30 * 60_000);
 const HEALTH_WAIT_MS = Number(process.env.BOURBON_SIGNAL_RELEASE_HEALTH_WAIT_MS || 8 * 60_000);

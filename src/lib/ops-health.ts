@@ -117,7 +117,7 @@ export function buildOpsHealth(input: {
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || null,
     },
     cron: {
-      path: "/api/alerts/deliver",
+      path: "/api/alerts/deliver?cron=v2",
       expectedSchedule: EXPECTED_ALERT_CRON_SCHEDULE,
       expectedCadenceMinutes: EXPECTED_ALERT_CRON_CADENCE_MINUTES,
       staleAfterMinutes: CRON_STALE_AFTER_MINUTES,
