@@ -1275,6 +1275,21 @@
       "sourceStates": [
         "TN"
       ]
+    },
+    {
+      "canonical": "Buffalo Trace Single Oak Rye Bourbon",
+      "aliases": [
+        "Single Oak Rye Bourbon",
+        "Single Oak Rye",
+        "Buffalo Trace Single Oak Rye",
+        "Single Oak Project Rye Bourbon",
+        "Single Oak Rye Bourbon 375mL"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sourceStates": [
+        "KY"
+      ]
     }
   ],
   "verifiedAliasNotes": [

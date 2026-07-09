@@ -4293,11 +4293,13 @@ function kyDateWithinDropWindow(isoDate) {
 }
 
 function kyNormalizeBuffaloTraceBottleName(rawName) {
-  const name = decodeHtml(String(rawName || '').replace(/\s+/g, ' ').trim());
-  if (/^blanton'?s?\s+375\s*m?l?\b/i.test(name)) return "Blanton's Single Barrel Bourbon 375mL";
-  if (/^blanton'?s?\b/i.test(name)) return "Blanton's Single Barrel Bourbon";
-  if (/^weller\s+c\.?y\.?p\.?b\.?$/i.test(name)) return 'Weller C.Y.P.B.';
-  if (/^e\.?\s*h\.?\s*taylor.*small batch/i.test(name)) return 'E.H. Taylor Small Batch';
+  const name = decodeHtml(String(rawName || '').replace(/\\s+/g, ' ').trim());
+  if (/^blanton'?s?\\s+375\\s*m?l?\\b/i.test(name)) return "Blanton's Single Barrel Bourbon 375mL";
+  if (/^blanton'?s?\\b/i.test(name)) return "Blanton's Single Barrel Bourbon";
+  if (/^weller\\s+c\\.?y\\.?p\\.?b\\.?$/i.test(name)) return 'Weller C.Y.P.B.';
+  if (/^e\\.?\\s*h\\.?\\s*taylor.*small batch/i.test(name)) return 'E.H. Taylor Small Batch';
+  if (/single oak.*rye/i.test(name)) return 'Buffalo Trace Single Oak Rye Bourbon';
+  if (/single oak/i.test(name)) return 'Buffalo Trace Single Oak Rye Bourbon';
   return name;
 }
 
