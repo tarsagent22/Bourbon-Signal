@@ -6,7 +6,8 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state")?.toUpperCase();
 
   try {
-    const exportPayload = readSiteExport("stores") ?? readSiteExport("locations");
+    const storesPayload = await readSiteExport("stores");
+    const exportPayload = storesPayload ?? await readSiteExport("locations");
     const rawStores = Array.isArray(exportPayload?.stores)
       ? exportPayload.stores
       : Array.isArray(exportPayload?.locations)

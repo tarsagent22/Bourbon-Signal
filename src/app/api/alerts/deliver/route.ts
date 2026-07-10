@@ -31,12 +31,16 @@ async function runDelivery(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Select exactly one baseline mode per request" }, { status: 400 });
   }
   const monitorOnly = process.env.ALERT_MONITOR_ONLY === "1";
+  const configuredQueueMode = process.env.ALERT_QUEUE_MODE;
+  const queueMode = scheduledRun && (configuredQueueMode === "shadow" || configuredQueueMode === "active")
+    ? configuredQueueMode
+    : "off";
   const dryRun = requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0);
   const heartbeatEligible = scheduledRun && !testEmail && baselineModeCount === 0;
   try {
     const deliveryResult = testEmail
       ? await sendOperationalTestAlertEmail(req)
-      : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly });
+      : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly, queueMode });
     const result = { ...deliveryResult, monitorOnly };
     if (heartbeatEligible) {
       await writeAlertDeliveryHeartbeat({ startedAt, result: result as unknown as Record<string, unknown> })

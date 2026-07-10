@@ -3,10 +3,12 @@ import { normalizeStatsForSite, readSiteExport, siteExportHeaders } from "@/lib/
 
 export async function GET() {
   try {
-    const statsPayload = readSiteExport("stats");
-    const bottlesPayload = readSiteExport("bottles");
-    const storesPayload = readSiteExport("stores");
-    const dropsPayload = readSiteExport("drops");
+    const [statsPayload, bottlesPayload, storesPayload, dropsPayload] = await Promise.all([
+      readSiteExport("stats"),
+      readSiteExport("bottles"),
+      readSiteExport("stores"),
+      readSiteExport("drops"),
+    ]);
 
     const bottles = Array.isArray(bottlesPayload?.bottles) ? (bottlesPayload.bottles as Record<string, unknown>[]) : [];
     const stores = Array.isArray(storesPayload?.stores) ? (storesPayload.stores as Record<string, unknown>[]) : [];

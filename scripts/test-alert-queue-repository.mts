@@ -30,4 +30,17 @@ assert.equal(delivered?.status, "delivered");
 assert.equal(delivered?.providerMessageId, "provider-message-1");
 assert.equal((await repository.listPending()).length, 0);
 
+const retryable = await repository.enqueue({ ...candidate, stableMatchKey: "retryable|store-44|inventory" });
+await repository.claim(retryable.id, "worker-a", "2026-07-10T03:03:00.000Z");
+await repository.markFailed(retryable.id, "provider_timeout", "2026-07-10T03:04:00.000Z", "2026-07-10T03:05:00.000Z");
+assert.equal((await repository.get(retryable.id))?.status, "pending", "retryable failures return to the durable queue");
+
+const staleClaim = await repository.enqueue({ ...candidate, channel: "email", stableMatchKey: "stale-claim|store-44|inventory" });
+await repository.claim(staleClaim.id, "dead-worker", "2026-07-10T02:00:00.000Z");
+const staleSmsClaim = await repository.enqueue({ ...candidate, stableMatchKey: "stale-sms-claim|store-44|inventory" });
+await repository.claim(staleSmsClaim.id, "dead-sms-worker", "2026-07-10T02:00:00.000Z");
+assert.equal(await repository.recoverStaleClaims("2026-07-10T02:30:00.000Z"), 1);
+assert.equal((await repository.get(staleClaim.id))?.status, "pending");
+assert.equal((await repository.get(staleSmsClaim.id))?.status, "claimed", "ambiguous SMS claims must never be auto-retried into duplicate texts");
+
 console.log("Alert queue repository contract tests passed.");

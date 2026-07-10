@@ -3,7 +3,7 @@ import { readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 
 export async function GET() {
   try {
-    const exportPayload = readSiteExport("nc-intelligence");
+    const exportPayload = await readSiteExport("nc-intelligence");
     return NextResponse.json(exportPayload ?? { boards: [], coverage: null }, {
       headers: {
         ...siteExportHeaders("local-export"),

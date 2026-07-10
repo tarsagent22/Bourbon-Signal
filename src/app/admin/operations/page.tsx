@@ -25,7 +25,7 @@ export default async function OperationsPage() {
   const user = await (await clerkClient()).users.getUser(userId);
   if (!isRewardsAdminEmail(primaryEmail(user))) notFound();
 
-  const stats = readSiteExport("stats") as Record<string, unknown> | null;
+  const stats = await readSiteExport("stats") as Record<string, unknown> | null;
   const heartbeat = await readAlertDeliveryHeartbeat();
   const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
     ? stats.refreshHealth as Record<string, unknown>

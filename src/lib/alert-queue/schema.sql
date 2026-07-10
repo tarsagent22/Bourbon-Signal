@@ -24,6 +24,10 @@ create table if not exists alert_candidates (
   claimed_by text,
   claimed_at timestamptz,
   delivered_at timestamptz,
+  provider_message_id text,
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  next_attempt_at timestamptz,
+  last_error_code text,
   failure_code text,
   unique (user_id, channel, stable_match_key, alert_window)
 );
@@ -51,7 +55,22 @@ create table if not exists alert_baselines (
   stable_match_key text not null,
   created_at timestamptz not null,
   reason text not null default 'migration_baseline',
+  migration_id text,
   unique (user_id, channel, stable_match_key)
 );
+
+alter table alert_baselines add column if not exists migration_id text;
+
+create table if not exists clerk_alert_metadata_backups (
+  migration_id text not null,
+  user_id text not null,
+  alert_delivery jsonb not null default '{}'::jsonb,
+  alert_inbox jsonb not null default '{}'::jsonb,
+  backed_up_at timestamptz not null default now(),
+  primary key (migration_id, user_id)
+);
+
+create index if not exists clerk_alert_metadata_backups_user_idx
+  on clerk_alert_metadata_backups (user_id, backed_up_at desc);
 
 commit;

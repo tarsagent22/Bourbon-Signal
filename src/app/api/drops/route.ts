@@ -1,7 +1,7 @@
 import { getEntitlements } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResult, siteExportHeaders } from "@/lib/site-engine-contract";
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
@@ -94,8 +94,7 @@ function isBoardQuery(value: string) {
   return /\b(board|abc)\b/i.test(value);
 }
 
-function engineRunTimestamp(exportGeneratedAt?: unknown) {
-  const statsPayload = readSiteExport("stats");
+function engineRunTimestamp(statsPayload: Record<string, unknown> | null | undefined, exportGeneratedAt?: unknown) {
   const candidates = [statsPayload?.engineGeneratedAt, statsPayload?.generatedAt, exportGeneratedAt];
   const timestamp = candidates.find((value) => typeof value === "string" && value.trim());
   return typeof timestamp === "string" ? timestamp : "";
@@ -234,8 +233,12 @@ export async function GET(request: Request) {
   const tierFilter = parseTierFilter(url);
 
   try {
-    const exportPayload = readSiteExport("drops");
-    const statsPayload = readSiteExport("stats") as Record<string, unknown> | null | undefined;
+    const [dropResult, statsResult] = await Promise.all([
+      readSiteExportResult("drops"),
+      readSiteExportResult("stats"),
+    ]);
+    const exportPayload = dropResult.payload;
+    const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
     const normalizedDrops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
     let drops = [...normalizedDrops];
@@ -329,7 +332,7 @@ export async function GET(request: Request) {
     const total = drops.length;
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
-    const snapshot = String(exportPayload?.generatedAt || engineRunTimestamp(exportPayload?.generatedAt));
+    const snapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
     const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 
@@ -346,16 +349,16 @@ export async function GET(request: Request) {
         hasMore: !isFreeAccess && page.hasMore,
         previewLocked: isFreeAccess && total > pagedDrops.length,
         requiresAccountForFullFeed: isFreeAccess,
-        lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
+        lastUpdated: engineRunTimestamp(statsPayload, exportPayload?.generatedAt),
         engineFresh,
         degradedStatesFiltered: Array.from(degradedStates),
         degradedStateFallback,
       },
       {
         headers: {
-          ...siteExportHeaders("local-export"),
+          ...siteExportHeaders(dropResult.source, dropResult.snapshotId),
           ...dropFeedCacheHeaders(isSignedIn),
-          "X-Drops-Source": "local-export",
+          "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
         },
       }

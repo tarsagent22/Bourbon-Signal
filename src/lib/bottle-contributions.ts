@@ -74,8 +74,8 @@ export async function writeBottleContributionQueue(queue: BottleContributionQueu
   return next;
 }
 
-export function candidateMatchForBottle(rawName: string) {
-  const match = searchBourbonBible(rawName, 1)[0];
+export async function candidateMatchForBottle(rawName: string) {
+  const match = (await searchBourbonBible(rawName, 1))[0];
   if (!match) return null;
   const confidence: BottleContribution["confidence"] = match.matchScore >= 108 ? "high" : match.matchScore >= 82 ? "medium" : "low";
   return {
@@ -99,7 +99,7 @@ export async function addBottleContribution(input: {
 
   const queue = await readBottleContributionQueue();
   const existing = queue.contributions.find((item) => item.normalizedName === normalizedName && ["new", "needs_human", "matched_existing"].includes(item.status));
-  const candidate = candidateMatchForBottle(rawName);
+  const candidate = await candidateMatchForBottle(rawName);
   const now = nowIso();
 
   if (existing) {

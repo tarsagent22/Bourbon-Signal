@@ -207,8 +207,8 @@ if (!/sourceEventAt:\s*signal\.sourceEventAt/.test(operationalReport)) {
 }
 
 const refreshScript = read('engine/bourbon-signal-engine-refresh.ps1');
-if (!refreshScript.includes('Bourbon-Signal-inspect\\engine')) {
-  fail('Scheduled engine refresh should run from the canonical Bourbon-Signal worktree, not the legacy Proof worktree.');
+if (!/\$ProjectRoot\s*=\s*Split-Path -Parent \$EngineDir/.test(refreshScript) || /Proof-worktrees|Proof\\engine/.test(refreshScript)) {
+  fail('Scheduled engine refresh should derive the canonical Bourbon Signal worktree from its own script path, never a legacy Proof worktree.');
 }
 if (!/\$env:BOURBON_SIGNAL_AUTO_DEPLOY\s*=\s*'0'/.test(refreshScript)) {
   fail('Scheduled engine refresh must remain collection-only and leave production releases to the guarded GitHub/Vercel workflow.');

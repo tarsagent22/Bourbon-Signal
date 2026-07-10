@@ -3,7 +3,7 @@ import { getBourbonBible } from "@/lib/bourbonBible";
 import { siteExportHeaders } from "@/lib/site-engine-contract";
 
 export async function GET() {
-  const bottles = getBourbonBible().map((bottle) => ({
+  const bottles = (await getBourbonBible()).map((bottle) => ({
     id: bottle.id,
     canonicalName: bottle.canonicalName,
     brand: bottle.brand,

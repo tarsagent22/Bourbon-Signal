@@ -36,6 +36,8 @@
     "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
     "test:alert-queue-repository": "node --experimental-strip-types scripts/test-alert-queue-repository.mts",
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
+    "backup:alert-queue": "node scripts/alert-queue-backup.mjs backup",
+    "verify:alert-queue-backup": "node scripts/alert-queue-backup.mjs verify",
     "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
     "verify:ci": "npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
@@ -43,6 +45,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
     "@clerk/themes": "^2.4.57",
+    "@neondatabase/serverless": "^1.1.0",
     "@react-email/components": "^1.0.12",
     "@stripe/stripe-js": "^9.0.0",
     "@types/three": "^0.183.1",

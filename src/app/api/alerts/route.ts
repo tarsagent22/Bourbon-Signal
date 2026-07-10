@@ -18,8 +18,8 @@ function asBoolean(value: unknown) {
   return value === true;
 }
 
-function readCandidates() {
-  const engineAlertsPayload = readSiteExport("alerts");
+async function readCandidates() {
+  const engineAlertsPayload = await readSiteExport("alerts");
   return Array.isArray(engineAlertsPayload?.alerts) ? (engineAlertsPayload.alerts as CandidateAlert[]) : [];
 }
 
@@ -58,7 +58,7 @@ export async function GET() {
 
   let candidateAlerts: CandidateAlert[] = [];
   try {
-    candidateAlerts = readCandidates();
+    candidateAlerts = await readCandidates();
   } catch (err) {
     console.error("[api/alerts] Error reading engine alert candidates:", err);
   }
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   const alertMode = user.publicMetadata?.alertMode;
   if (!notificationPrefs.onSite.enabled) return NextResponse.json({ ok: true, created: 0, skipped: "on_site_disabled" });
 
-  const candidates = readCandidates()
+  const candidates = (await readCandidates())
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
     .filter(candidatePassesFreshOnSiteGuardrails)

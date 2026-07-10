@@ -81,4 +81,43 @@ const degradedEngine = buildOpsHealth({
 assert.equal(degradedEngine.ok, true, 'labeled stale/degraded fallback data remains serviceable');
 assert.equal(degradedEngine.engine.status, 'degraded');
 
+const healthyPipeline = buildOpsHealth({
+  heartbeat,
+  engineGeneratedAt: recent,
+  refreshHealth: { failedStateCount: 0, degradedStateCount: 0, staleStateCount: 0 },
+  currentDeploymentId: 'dpl_current',
+  snapshot: {
+    snapshotId: 'snapshot-123',
+    dataSource: 'remote-snapshot',
+    exportGeneratedAt: recent,
+    snapshotUploadedAt: recent,
+    snapshotActivatedAt: recent,
+    productionObservedAt: recent,
+    appCommit: 'app123',
+    engineCommit: 'engine123',
+    collectionRunId: 'run123',
+  },
+});
+assert.equal(healthyPipeline.engine.freshnessStage, 'healthy');
+assert.equal(healthyPipeline.engine.snapshotId, 'snapshot-123');
+assert.equal(healthyPipeline.engine.provenance.engineCommit, 'engine123');
+
+const publisherDelay = buildOpsHealth({
+  heartbeat,
+  engineGeneratedAt: recent,
+  refreshHealth: { failedStateCount: 0, degradedStateCount: 0, staleStateCount: 0 },
+  currentDeploymentId: 'dpl_current',
+  snapshot: {
+    snapshotId: 'snapshot-old',
+    dataSource: 'cache-fallback',
+    exportGeneratedAt: recent,
+    snapshotUploadedAt: new Date(now.getTime() - 180 * 60_000).toISOString(),
+    snapshotActivatedAt: new Date(now.getTime() - 179 * 60_000).toISOString(),
+    productionObservedAt: null,
+  },
+});
+assert.equal(publisherDelay.ok, false);
+assert.equal(publisherDelay.engine.freshnessStage, 'publisher_delay');
+assert.equal(publisherDelay.engine.recoveryAction, 'publish_and_activate_existing_export');
+
 console.log('Ops health tests passed.');

@@ -1,30 +1,117 @@
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { unstable_cache } from "next/cache";
 import { getActiveEngineStateName } from "@/lib/activeStates";
+import { createRemoteSiteSnapshotReader } from "@/lib/remote-site-snapshot";
+import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
 
+export type SiteExportName = "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "stats" | "stores";
 type JsonRecord = Record<string, unknown>;
+export type SiteExportSource = "remote-snapshot" | "local-export" | "cache-fallback" | "empty-fallback";
 
-export function readSiteExport(name: "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "stats" | "stores") {
-  const filePath = join(SITE_EXPORT_DIR, `${name}.json`);
-  if (!existsSync(filePath)) {
-    return null;
-  }
+export interface SiteExportResult {
+  payload: JsonRecord | null;
+  source: SiteExportSource;
+  snapshotId: string | null;
+  generatedAt: string | null;
+  snapshotUploadedAt?: string | null;
+  snapshotActivatedAt?: string | null;
+  appCommit?: string | null;
+  engineCommit?: string | null;
+  collectionRunId?: string | null;
+  shadowMatch?: boolean;
+  fallbackReason?: string;
+}
 
-  const payload = JSON.parse(readFileSync(filePath, "utf-8")) as JsonRecord;
-  if (payload.contractVersion !== CONTRACT_VERSION) {
+function validatePayload(name: SiteExportName, payload: JsonRecord | null) {
+  if (payload && payload.contractVersion !== CONTRACT_VERSION) {
     throw new Error(`Unsupported ${name} contract version: ${String(payload.contractVersion ?? "missing")}`);
   }
   return payload;
 }
 
-export function siteExportHeaders(source: "local-export" | "cache-fallback" | "empty-fallback" = "local-export") {
+export function readBundledSiteExport(name: SiteExportName) {
+  const filePath = join(SITE_EXPORT_DIR, `${name}.json`);
+  if (!existsSync(filePath)) return null;
+  return validatePayload(name, JSON.parse(readFileSync(filePath, "utf-8")) as JsonRecord);
+}
+
+const blobStorage = new VercelBlobSnapshotStorage();
+const readActivePointer = unstable_cache(
+  async () => blobStorage.readPointer(),
+  ["engine-active-snapshot-pointer-v1"],
+  { revalidate: 45 },
+);
+const readImmutableObject = unstable_cache(
+  async (key: string) => blobStorage.readObject(key),
+  ["engine-immutable-snapshot-object-v1"],
+  { revalidate: 31_536_000 },
+);
+const remoteReader = createRemoteSiteSnapshotReader({
+  encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "",
+  storage: { readPointer: readActivePointer, readObject: readImmutableObject },
+});
+
+function payloadHash(payload: JsonRecord | null) {
+  return payload ? createHash("sha256").update(JSON.stringify(payload)).digest("hex") : null;
+}
+
+export async function readSiteExportResult(name: SiteExportName): Promise<SiteExportResult> {
+  const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
+  const bundled = readBundledSiteExport(name);
+  if (mode === "off") {
+    return { payload: bundled, source: "local-export", snapshotId: null, generatedAt: typeof bundled?.generatedAt === "string" ? bundled.generatedAt : null };
+  }
+
+  try {
+    const remote = await remoteReader.read(name);
+    const payload = validatePayload(name, remote.payload);
+    if (mode === "shadow") {
+      return {
+        payload: bundled,
+        source: "local-export",
+        snapshotId: remote.snapshotId,
+        generatedAt: typeof bundled?.generatedAt === "string" ? bundled.generatedAt : null,
+        shadowMatch: payloadHash(payload) === payloadHash(bundled),
+      };
+    }
+    return {
+      payload,
+      source: "remote-snapshot",
+      snapshotId: remote.snapshotId,
+      generatedAt: remote.generatedAt,
+      snapshotUploadedAt: remote.snapshotUploadedAt,
+      snapshotActivatedAt: remote.snapshotActivatedAt,
+      appCommit: remote.appCommit,
+      engineCommit: remote.engineCommit,
+      collectionRunId: remote.collectionRunId,
+    };
+  } catch (error) {
+    if (!bundled) throw error;
+    return {
+      payload: bundled,
+      source: "cache-fallback",
+      snapshotId: null,
+      generatedAt: typeof bundled.generatedAt === "string" ? bundled.generatedAt : null,
+      fallbackReason: error instanceof Error ? error.message : "remote_snapshot_unavailable",
+    };
+  }
+}
+
+export async function readSiteExport(name: SiteExportName) {
+  return (await readSiteExportResult(name)).payload;
+}
+
+export function siteExportHeaders(source: SiteExportSource = "local-export", snapshotId?: string | null) {
   return {
     "Cache-Control": "s-maxage=60, stale-while-revalidate=300",
     "X-Api-Source": source,
     "X-Engine-Contract": CONTRACT_VERSION,
+    ...(snapshotId ? { "X-Engine-Snapshot": snapshotId } : {}),
   };
 }
 

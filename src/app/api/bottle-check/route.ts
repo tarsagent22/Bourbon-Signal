@@ -68,9 +68,9 @@ function dropMatchesBottle(drop: Record<string, unknown>, bottle: BibleBottle) {
   return names.some((name) => keys.some((key) => name === key || (key.length >= 12 && name.includes(key)) || (name.length >= 12 && key.includes(name))));
 }
 
-function getDropsForBottle(bottle: BibleBottle, state?: string) {
+async function getDropsForBottle(bottle: BibleBottle, state?: string) {
   try {
-    const exportPayload = readSiteExport("drops");
+    const exportPayload = await readSiteExport("drops");
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
     const normalized = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
     return normalized
@@ -221,8 +221,8 @@ function dedupeBottleSuggestions(suggestions: BibleBottle[]) {
   return Array.from(byKey.values());
 }
 
-function getLocalSignal(bottle: BibleBottle, state: string): LocalSignal {
-  const drops = getDropsForBottle(bottle, state);
+async function getLocalSignal(bottle: BibleBottle, state: string): Promise<LocalSignal> {
+  const drops = await getDropsForBottle(bottle, state);
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
   const recent90 = drops.filter((drop) => now - asTime(drop.timestamp) <= 90 * day);
@@ -302,8 +302,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
   }
 
-  const bottle = id ? getBottleById(id) : searchBourbonBible(query, 1)[0] || null;
-  const suggestions = query ? dedupeBottleSuggestions(searchBourbonBible(query, 16)).slice(0, 8) : [];
+  const [bottle, suggestionRows] = await Promise.all([
+    id ? getBottleById(id) : searchBourbonBible(query, 1).then((rows) => rows[0] || null),
+    query ? searchBourbonBible(query, 16) : Promise.resolve([]),
+  ]);
+  const suggestions = dedupeBottleSuggestions(suggestionRows).slice(0, 8);
 
   if (!bottle) {
     captureSearchEvent({
@@ -329,7 +332,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const localSignal = getLocalSignal(bottle, state);
+  const localSignal = await getLocalSignal(bottle, state);
   const memberTasteScore = await getMemberTasteScore(bottle);
   const matchedBottle = bottle as BibleBottle & { matchScore?: number };
   const matchScore = typeof matchedBottle.matchScore === "number" ? matchedBottle.matchScore : 120;

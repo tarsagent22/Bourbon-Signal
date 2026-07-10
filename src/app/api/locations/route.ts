@@ -91,8 +91,11 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state")?.toUpperCase();
 
   try {
-    const locationsPayload = readSiteExport("locations");
-    const storesPayload = readSiteExport("stores");
+    const [locationsPayload, storesPayload, dropsPayload] = await Promise.all([
+      readSiteExport("locations"),
+      readSiteExport("stores"),
+      readSiteExport("drops"),
+    ]);
     const exportPayload = locationsPayload ?? storesPayload;
     const rawLocations = Array.isArray(locationsPayload?.locations)
       ? locationsPayload.locations
@@ -109,7 +112,6 @@ export async function GET(request: Request) {
       seenLocationKeys.add(key);
       combinedRawLocations.push(record);
     }
-    const dropsPayload = readSiteExport("drops");
     const dropsByState = new Map<string, ActionableDropLocation[]>();
     (Array.isArray(dropsPayload?.drops) ? dropsPayload.drops : [])
       .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))

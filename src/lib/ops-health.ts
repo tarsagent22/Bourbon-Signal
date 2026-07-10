@@ -89,11 +89,44 @@ function ageMinutes(value: string | null | undefined) {
   return Math.max(0, Math.round(((Date.now() - parsed) / 60_000) * 10) / 10);
 }
 
+function classifyFreshnessPipeline(input: {
+  collectionFinishedAt: string | null;
+  exportGeneratedAt: string | null;
+  snapshotUploadedAt: string | null;
+  snapshotActivatedAt: string | null;
+  productionObservedAt: string | null;
+}) {
+  const collectionAge = ageMinutes(input.collectionFinishedAt);
+  const exportAge = ageMinutes(input.exportGeneratedAt);
+  const uploadAge = ageMinutes(input.snapshotUploadedAt);
+  const activationAge = ageMinutes(input.snapshotActivatedAt);
+  const observationAge = ageMinutes(input.productionObservedAt);
+  const time = (value: string | null) => value ? Date.parse(value) : Number.NaN;
+  const tolerance = 2 * 60_000;
+  if (collectionAge === null || collectionAge > ENGINE_STALE_AFTER_MINUTES) return { freshnessStage: "collector_delay", recoveryAction: "trigger_guarded_refresh" };
+  if (exportAge === null || exportAge > ENGINE_STALE_AFTER_MINUTES || time(input.exportGeneratedAt) + tolerance < time(input.collectionFinishedAt)) return { freshnessStage: "exporter_delay", recoveryAction: "rerun_export_only" };
+  if (uploadAge === null || uploadAge > ENGINE_STALE_AFTER_MINUTES || time(input.snapshotUploadedAt) + tolerance < time(input.exportGeneratedAt)) return { freshnessStage: "publisher_delay", recoveryAction: "publish_and_activate_existing_export" };
+  if (activationAge === null || activationAge > ENGINE_STALE_AFTER_MINUTES || time(input.snapshotActivatedAt) + tolerance < time(input.snapshotUploadedAt)) return { freshnessStage: "activation_delay", recoveryAction: "retry_snapshot_activation" };
+  if (observationAge === null || observationAge > CRON_STALE_AFTER_MINUTES || time(input.productionObservedAt) + tolerance < time(input.snapshotActivatedAt)) return { freshnessStage: "production_reader_delay", recoveryAction: "verify_production_reader" };
+  return { freshnessStage: "healthy", recoveryAction: "none" };
+}
+
 export function buildOpsHealth(input: {
   heartbeat: AlertDeliveryHeartbeat | null;
   engineGeneratedAt: string | null;
   refreshHealth?: Record<string, unknown> | null;
   currentDeploymentId?: string | null;
+  snapshot?: {
+    snapshotId: string | null;
+    dataSource: string;
+    exportGeneratedAt: string | null;
+    snapshotUploadedAt: string | null;
+    snapshotActivatedAt: string | null;
+    productionObservedAt: string | null;
+    appCommit?: string | null;
+    engineCommit?: string | null;
+    collectionRunId?: string | null;
+  };
 }) {
   const cronAgeMinutes = ageMinutes(input.heartbeat?.completedAt);
   const engineAgeMinutes = ageMinutes(input.engineGeneratedAt);
@@ -117,10 +150,19 @@ export function buildOpsHealth(input: {
       : cronAgeMinutes !== null && cronAgeMinutes <= CRON_STALE_AFTER_MINUTES
         ? "healthy"
         : "stale";
+  const pipeline = input.snapshot ? classifyFreshnessPipeline({
+    collectionFinishedAt: input.engineGeneratedAt,
+    exportGeneratedAt: input.snapshot.exportGeneratedAt,
+    snapshotUploadedAt: input.snapshot.snapshotUploadedAt,
+    snapshotActivatedAt: input.snapshot.snapshotActivatedAt,
+    productionObservedAt: input.snapshot.productionObservedAt,
+  }) : null;
   const engineStatus = failedStateCount > 0
     ? "failed"
     : degradedStateCount > 0 || staleStateCount > 0
       ? "degraded"
+      : pipeline && pipeline.freshnessStage !== "healthy"
+        ? "stale"
       : engineAgeMinutes !== null && engineAgeMinutes <= ENGINE_STALE_AFTER_MINUTES
       ? "healthy"
       : engineAgeMinutes === null ? "unknown" : "stale";
@@ -154,6 +196,19 @@ export function buildOpsHealth(input: {
       failedStateCount,
       degradedStateCount,
       staleStateCount,
+      freshnessStage: pipeline?.freshnessStage ?? (engineStatus === "healthy" ? "legacy_bundled" : engineStatus),
+      recoveryAction: pipeline?.recoveryAction ?? null,
+      snapshotId: input.snapshot?.snapshotId ?? null,
+      dataSource: input.snapshot?.dataSource ?? "bundled",
+      exportGeneratedAt: input.snapshot?.exportGeneratedAt ?? null,
+      snapshotUploadedAt: input.snapshot?.snapshotUploadedAt ?? null,
+      snapshotActivatedAt: input.snapshot?.snapshotActivatedAt ?? null,
+      productionObservedAt: input.snapshot?.productionObservedAt ?? null,
+      provenance: {
+        appCommit: input.snapshot?.appCommit ?? null,
+        engineCommit: input.snapshot?.engineCommit ?? null,
+        collectionRunId: input.snapshot?.collectionRunId ?? null,
+      },
     },
     delivery: {
       cronSecretConfigured: Boolean(process.env.CRON_SECRET || process.env.ALERT_DELIVERY_SECRET),

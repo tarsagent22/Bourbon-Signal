@@ -82,6 +82,10 @@ if (!route.includes('ALERT_MONITOR_ONLY') || !route.includes('monitorOnly')) {
   fail('Scheduled alert delivery must support an explicit monitor-only mode that forces dry-run execution.');
 }
 
+if (!/const dryRun = options\.dryRun === true \|\| requestedQueueMode === "shadow"/.test(delivery)) {
+  fail('Queue shadow mode must force dry-run behavior even if an environment toggle is misconfigured.');
+}
+
 if (process.exitCode) {
   console.error('Alert delivery policy verification failed.');
   process.exit(process.exitCode);

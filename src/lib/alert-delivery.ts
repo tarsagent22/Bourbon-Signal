@@ -1,14 +1,18 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { isPaidTier } from "@/lib/entitlements";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
-import { readSiteExport } from "@/lib/site-engine-contract";
+import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
+import { evaluateAlertSnapshotSafety } from "@/lib/alert-run-safety";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert } from "@/lib/sms-alert-copy";
 import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
+import { createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
+import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
+import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 
 export interface AreaPreferences {
   states: string[];
@@ -141,9 +145,16 @@ function stateLabel(state: string) {
   return getActiveEngineStateName(state) || state || "your area";
 }
 
-export function readAlertCandidates() {
-  const engineAlertsPayload = readSiteExport("alerts");
-  return Array.isArray(engineAlertsPayload?.alerts) ? (engineAlertsPayload.alerts as CandidateAlert[]) : [];
+export async function readAlertCandidates() {
+  return (await readAlertCandidateBatch()).candidates;
+}
+
+async function readAlertCandidateBatch() {
+  const result = await readSiteExportResult("alerts");
+  return {
+    candidates: Array.isArray(result.payload?.alerts) ? result.payload.alerts as CandidateAlert[] : [],
+    snapshot: result,
+  };
 }
 
 export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
@@ -382,12 +393,12 @@ type LocationLookupRecord = {
 
 let locationLookupCache: LocationLookupRecord[] | null = null;
 
-function siteLocationLookupRecords() {
+async function loadSiteLocationLookupRecords() {
   if (locationLookupCache) return locationLookupCache;
   const records: LocationLookupRecord[] = [];
   for (const exportName of ["stores", "locations"] as const) {
     try {
-      const payload = readSiteExport(exportName);
+      const payload = await readSiteExport(exportName);
       const rows = Array.isArray(payload?.[exportName]) ? payload[exportName] as Array<Record<string, unknown>> : [];
       for (const row of rows) {
         records.push({
@@ -407,6 +418,10 @@ function siteLocationLookupRecords() {
   }
   locationLookupCache = records.filter((row) => row.state && row.name && row.address);
   return locationLookupCache;
+}
+
+function siteLocationLookupRecords() {
+  return locationLookupCache || [];
 }
 
 function candidateLocationLookupRecord(candidate: CandidateAlert) {
@@ -816,24 +831,42 @@ export async function sendOperationalTestAlertEmail(req: Request) {
   };
 }
 
-export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: boolean; baselineOnSiteOnly?: boolean; baselineEmailOnly?: boolean; baselineSmsOnly?: boolean } = {}) {
+export async function deliverPreferenceAlerts(req: Request, options: {
+  dryRun?: boolean;
+  baselineOnSiteOnly?: boolean;
+  baselineEmailOnly?: boolean;
+  baselineSmsOnly?: boolean;
+  queueMode?: "off" | AlertQueueMode;
+} = {}) {
   assertAlertDeliveryAuthorized(req);
 
-  const dryRun = options.dryRun === true;
+  const requestedQueueMode = options.queueMode || "off";
+  // Shadow mode is observational by definition. Force the entire delivery path into dry-run
+  // even if an environment toggle is accidentally changed, so it can only persist queue intents.
+  const dryRun = options.dryRun === true || requestedQueueMode === "shadow";
+  const queueMode = dryRun && requestedQueueMode === "active" ? "shadow" : requestedQueueMode;
   const baselineOnSiteOnly = options.baselineOnSiteOnly === true;
   const baselineEmailOnly = options.baselineEmailOnly === true;
   const baselineSmsOnly = options.baselineSmsOnly === true;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
-  const rawEligibleCandidateCount = readAlertCandidates()
+  const now = new Date().toISOString();
+  const batch = await readAlertCandidateBatch();
+  const allCandidates = batch.candidates;
+  const snapshotSafety = evaluateAlertSnapshotSafety({
+    generatedAt: batch.snapshot.generatedAt,
+    now,
+    maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45),
+  });
+  await loadSiteLocationLookupRecords();
+  const rawEligibleCandidateCount = allCandidates
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite).length;
-  const candidates = readAlertCandidates()
+  const candidates = (snapshotSafety.safe ? allCandidates : [])
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
     .filter(candidatePassesFreshOnSiteGuardrails)
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
-  const now = new Date().toISOString();
   const summary = {
     ok: true,
     dryRun,
@@ -843,6 +876,12 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     smsDeliveryEnabled: ALERT_SMS_DELIVERY_ENABLED,
     emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
     smsClientConfigured: Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && (process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.TWILIO_FROM_NUMBER)),
+    snapshotId: batch.snapshot.snapshotId,
+    snapshotSource: batch.snapshot.source,
+    snapshotGeneratedAt: batch.snapshot.generatedAt,
+    snapshotFresh: snapshotSafety.safe,
+    snapshotAgeMinutes: snapshotSafety.ageMinutes,
+    snapshotFreshnessReason: snapshotSafety.reason,
     rawEligibleCandidateCount,
     candidateCount: candidates.length,
     skippedSafetyGuardrail: rawEligibleCandidateCount - candidates.length,
@@ -873,10 +912,79 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     skippedDedupe: 0,
     skippedOnSiteDedupe: 0,
     skippedSpecificBottlePrefs: 0,
+    queueMode,
+    queueIntentsObserved: 0,
+    queueClaimsGranted: 0,
+    queueSuppressed: 0,
+    queueDuplicatesSkipped: 0,
+    queueFailures: 0,
+    queueStaleClaimsRecovered: 0,
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
 
-  if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
+  const queueRepository = queueMode === "off" ? null : createProductionAlertQueueRepository();
+  const queueSnapshotId = batch.snapshot.snapshotId || `bundled-${createHash("sha256")
+    .update(`${batch.snapshot.generatedAt || "unknown"}:${batch.snapshot.source}`)
+    .digest("hex")
+    .slice(0, 24)}`;
+  const queueWorkerId = `${process.env.VERCEL_DEPLOYMENT_ID || "local"}:${randomUUID()}`;
+  if (queueRepository) {
+    await queueRepository.registerSnapshot({
+      snapshotId: queueSnapshotId,
+      appCommit: batch.snapshot.appCommit || process.env.VERCEL_GIT_COMMIT_SHA || "bundled",
+      engineCommit: batch.snapshot.engineCommit || "bundled",
+      collectionRunId: batch.snapshot.collectionRunId || batch.snapshot.generatedAt || "unknown",
+      generatedAt: batch.snapshot.generatedAt || now,
+      activatedAt: batch.snapshot.snapshotActivatedAt || undefined,
+      manifest: {
+        source: batch.snapshot.source,
+        snapshotUploadedAt: batch.snapshot.snapshotUploadedAt || null,
+        snapshotActivatedAt: batch.snapshot.snapshotActivatedAt || null,
+      },
+    });
+    if (queueMode === "active") {
+      const staleBefore = new Date(Date.parse(now) - 10 * 60_000).toISOString();
+      summary.queueStaleClaimsRecovered = await queueRepository.recoverStaleClaims(staleBefore);
+    }
+  }
+
+  async function reserveQueuedIntent(
+    userId: string,
+    channel: AlertChannel,
+    stableMatchKey: string,
+    payload: Record<string, unknown>,
+  ) {
+    if (!queueRepository) return null;
+    const reservation = await reserveAlertDelivery(queueRepository, {
+      snapshotId: queueSnapshotId,
+      userId,
+      channel,
+      stableMatchKey,
+      alertWindow: "stable-v1",
+      createdAt: now,
+      payload,
+    }, { mode: queueMode as AlertQueueMode, workerId: queueWorkerId, now });
+    summary.queueIntentsObserved += 1;
+    if (reservation.claimed) summary.queueClaimsGranted += 1;
+    else if (reservation.reason === "suppressed") summary.queueSuppressed += 1;
+    else if (queueMode === "active") summary.queueDuplicatesSkipped += 1;
+    return reservation;
+  }
+
+  async function failQueuedIntent(candidate: AlertCandidateRecord | null, error: unknown) {
+    if (!queueRepository || !candidate || queueMode !== "active") return;
+    const attemptCount = candidate.attemptCount || 0;
+    const retryAt = attemptCount < 2 ? new Date(Date.parse(now) + (attemptCount + 1) * 5 * 60_000).toISOString() : undefined;
+    await queueRepository.markFailed(
+      candidate.id,
+      createHash("sha256").update(error instanceof Error ? error.message : String(error)).digest("hex").slice(0, 16),
+      now,
+      retryAt,
+    );
+    summary.queueFailures += 1;
+  }
+
+  if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && queueMode === "off" && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
     return {
       ...summary,
       deliveryDisabled: true,
@@ -932,6 +1040,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       }
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
+      let onSiteQueueCandidates: AlertCandidateRecord[] = [];
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
       if (baselineOnSiteOnly) {
         const baselineDedupeKeys = uniqueStrings(matchingPreferenceCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
@@ -962,7 +1071,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
       if (notificationPrefs.onSite.enabled && !baselineEmailOnly && !baselineSmsOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
         const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
-        newOnSiteAlerts = matchingPreferenceCandidates
+        const draftOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => {
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const duplicate = existingOnSiteDedupe.has(dedupeKey) || onSiteBaseline.has(dedupeKey);
@@ -971,6 +1080,19 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
           })
           .slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER))
           .map((candidate) => candidateToMemberAlert(userId, candidate, now, areaPrefs));
+
+        for (const alert of draftOnSiteAlerts) {
+          const reservation = await reserveQueuedIntent(userId, "onSite", alert.dedupeKey, {
+            alertId: alert.id,
+            bottle: alert.bottleName,
+            state: alert.state,
+            location: alert.storeLabel,
+            eventType: alert.eventType,
+          });
+          if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
+          newOnSiteAlerts.push(alert);
+          if (reservation?.claimed) onSiteQueueCandidates.push(reservation.candidate);
+        }
 
         if (newOnSiteAlerts.length) summary.onSiteAlertsCreated += newOnSiteAlerts.length;
       }
@@ -1036,6 +1158,15 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
             const storeLabel = candidateStoreLabel(candidate);
             const matchedArea = candidateMatchedArea(candidate, areaPrefs);
             const state = asString(candidate.state).toUpperCase();
+            const reservation = await reserveQueuedIntent(userId, "email", dedupeKey, {
+              bottle: bottleName,
+              state,
+              location: storeLabel,
+              emailMode: notificationPrefs.email.mode,
+              source: candidateSourceLabel(candidate),
+            });
+            if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
+            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
 
             try {
               let messageId: string | null = null;
@@ -1061,6 +1192,8 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                   headers: {
                     "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
                   },
+                }, {
+                  idempotencyKey: queuedCandidate?.id || `alert-${createHash("sha256").update(`${userId}:${dedupeKey}`).digest("hex")}`,
                 });
                 if (result.error) throw new Error(result.error.message);
                 messageId = result.data?.id || null;
@@ -1069,6 +1202,9 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               if (dryRun) {
                 summary.emailsWouldSend += 1;
               } else {
+                if (queuedCandidate && queueRepository) {
+                  await queueRepository.markDelivered(queuedCandidate.id, messageId || `resend:${queuedCandidate.id}`, now);
+                }
                 newRecords.push({ dedupeKey, deliveredAt: now, channel: "email", emailMode: notificationPrefs.email.mode, messageId });
                 newOnSiteAlerts = newOnSiteAlerts.map((alert) => alert.dedupeKey === dedupeKey
                   ? { ...alert, emailDeliveredAt: now, emailModeAtSend: notificationPrefs.email.mode }
@@ -1077,6 +1213,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               }
               globalEmailCount += 1;
             } catch (error) {
+              await failQueuedIntent(queuedCandidate, error);
               summary.errors.push({ userId, email, message: error instanceof Error ? error.message : String(error) });
             }
           }
@@ -1145,6 +1282,15 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
             if (summary.smsSent + summary.smsWouldSend >= MAX_SMS_PER_RUN) break;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const storeLabel = candidateStoreLabel(candidate);
+            const reservation = await reserveQueuedIntent(userId, "sms", dedupeKey, {
+              bottle: asString(candidate.bottle, "Bottle signal"),
+              state: asString(candidate.state).toUpperCase(),
+              location: storeLabel,
+              smsMode: notificationPrefs.sms.mode,
+              source: candidateSourceLabel(candidate),
+            });
+            if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
+            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
             try {
               let messageId: string | null = null;
               let status: string | null = null;
@@ -1156,10 +1302,14 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
               if (dryRun) {
                 summary.smsWouldSend += 1;
               } else {
+                if (queuedCandidate && queueRepository) {
+                  await queueRepository.markDelivered(queuedCandidate.id, messageId || `twilio:${queuedCandidate.id}`, now);
+                }
                 newRecords.push({ dedupeKey, deliveredAt: now, channel: "sms", smsMode: notificationPrefs.sms.mode, messageId, status });
                 summary.smsSent += 1;
               }
             } catch (error) {
+              await failQueuedIntent(queuedCandidate, error);
               summary.errors.push({ userId, email: maskPhone(phone), message: error instanceof Error ? error.message : String(error) });
             }
           }
@@ -1213,6 +1363,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
         }
 
         if (newOnSiteAlerts.length) {
+          let onSiteInboxWritten = false;
           const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
             .filter((alert, index, rows) => rows.findIndex((item) => item.dedupeKey === alert.dedupeKey) === index)
             .slice(0, MAX_RECENT_ONSITE_ALERTS_PER_USER);
@@ -1225,6 +1376,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                 },
               },
             });
+            onSiteInboxWritten = true;
           } catch (error) {
             const primaryError = error instanceof Error ? error.message : String(error);
             try {
@@ -1240,8 +1392,16 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
                   },
                 },
               });
+              onSiteInboxWritten = true;
             } catch (retryError) {
               summary.errors.push({ userId, message: `On-site alert metadata update failed after compaction retry: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}` });
+            }
+          }
+          for (const queuedCandidate of onSiteQueueCandidates) {
+            if (onSiteInboxWritten && queueRepository) {
+              await queueRepository.markDelivered(queuedCandidate.id, `clerk:${userId}:${queuedCandidate.id}`, now);
+            } else {
+              await failQueuedIntent(queuedCandidate, new Error("Clerk on-site inbox write failed"));
             }
           }
         }

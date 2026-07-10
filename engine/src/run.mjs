@@ -1,11 +1,14 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
+import { runBoundedPool } from './optimization/worker-pool.mjs';
+import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -38,6 +41,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
 };
 const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0' && !process.argv.includes('--skip-browser-preflight');
+const STATE_SCHEDULER_ENABLED = process.env.BOURBON_SIGNAL_STATE_SCHEDULER !== '0';
+const STATE_WORKER_CONCURRENCY = Math.max(1, Number(process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY || 4));
+const STATE_RUN_METRICS = path.join(OUT, 'optimization', 'state-run-metrics.json');
 const REQUESTED_STATE_IDS = new Set((process.env.BOURBON_SIGNAL_RUN_STATES || process.argv.find((arg) => arg.startsWith('--states='))?.split('=')[1] || '')
   .split(',')
   .map((value) => value.trim().toUpperCase())
@@ -365,6 +371,23 @@ function signalScore(report) {
   return 'blocked by fetch/API access';
 }
 
+function stableReportHash(report) {
+  const stable = {
+    state: report.state,
+    status: String(report.status || '').replace(/^stale_/, ''),
+    signals: (report.signals || []).map((signal) => ({
+      id: signal.id || signal.dedupeKey || null,
+      eventType: signal.eventType || null,
+      bottle: signal.canonicalId || signal.canonicalName || null,
+      location: signal.storeId || signal.locationId || signal.locationName || null,
+      quantity: signal.quantity ?? null,
+      price: signal.price ?? null,
+      sourceUrl: signal.sourceUrl || null,
+    })).sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right))),
+  };
+  return createHash('sha256').update(JSON.stringify(stable)).digest('hex');
+}
+
 function stateMarkdown(report) {
   const sourceLines = report.sources.map((s) => {
     const bits = [`${s.ok ? '✅' : '⚠️'} ${s.label}`, `${s.status}`, `${s.bytes} bytes`];
@@ -446,14 +469,55 @@ async function main() {
     throw new Error(`Unknown requested state id(s): ${missing.join(', ')}`);
   }
 
-  for (const config of selectedStateSources) {
+  const previousMetrics = await readJson(STATE_RUN_METRICS, {});
+  const scheduleOptions = {
+    requestedIds: REQUESTED_STATE_IDS,
+    now: new Date().toISOString(),
+    baseCadenceMs: Number(process.env.BOURBON_SIGNAL_STATE_BASE_CADENCE_MS || 30 * 60_000),
+    maxCadenceMs: Number(process.env.BOURBON_SIGNAL_STATE_MAX_CADENCE_MS || 24 * 60 * 60_000),
+  };
+  const schedule = STATE_SCHEDULER_ENABLED
+    ? selectScheduledStates(selectedStateSources, previousMetrics, scheduleOptions)
+    : selectedStateSources.map((config) => ({ id: config.id, config, run: true, decision: 'scheduler_disabled' }));
+  for (const entry of schedule) {
+    if (!entry.run && !(await readJson(path.join(STATES_OUT, `${entry.id}.json`), null))) {
+      entry.run = true;
+      entry.decision = 'missing_previous_report';
+    }
+  }
+  const runnable = schedule.filter((entry) => entry.run).map((entry) => entry.config);
+  console.log(`State scheduler selected ${runnable.length}/${selectedStateSources.length} states; worker concurrency=${STATE_WORKER_CONCURRENCY}.`);
+  const poolResults = await runBoundedPool(runnable, async (config) => {
     console.log(`Collecting ${config.id} — ${config.label}`);
     const report = await collectStateResilient(config);
+    console.log(`  ${report.status}: ${report.signals.length} signals, ${report.roadblocks.length} roadblocks${report.stale ? ' (stale fallback)' : ''}`);
+    return report;
+  }, {
+    concurrency: STATE_WORKER_CONCURRENCY,
+    perDomain: 1,
+    timeoutMs: Math.max(...runnable.map(stateTimeoutMs), STATE_TIMEOUT_MS) + 60_000,
+    domainFor: (config) => config.id,
+  });
+  const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));
+  let nextMetrics = previousMetrics;
+  for (const config of selectedStateSources) {
+    const wasRun = collected.has(config.id);
+    const report = collected.get(config.id) || await readJson(path.join(STATES_OUT, `${config.id}.json`), null);
+    if (!report) throw new Error(`No current or previous state report available for ${config.id}`);
+    if (wasRun) {
+      nextMetrics = updateStateRunMetric(nextMetrics, {
+        id: config.id,
+        ok: !report.stale && !/^failed_/.test(String(report.status || '')),
+        contentHash: stableReportHash(report),
+        finishedAt: report.finishedAt || new Date().toISOString(),
+      });
+    }
     allReports.push(report);
     allSignals.push(...report.signals);
     allRoadblocks.push(...report.roadblocks);
-    console.log(`  ${report.status}: ${report.signals.length} signals, ${report.roadblocks.length} roadblocks${report.stale ? ' (stale fallback)' : ''}`);
   }
+  await mkdir(path.dirname(STATE_RUN_METRICS), { recursive: true });
+  await writeFile(STATE_RUN_METRICS, JSON.stringify({ ...nextMetrics, _schedule: schedule.map(({ config: _config, ...entry }) => entry), _updatedAt: new Date().toISOString() }, null, 2));
 
   const summary = {
     generatedAt: new Date().toISOString(),

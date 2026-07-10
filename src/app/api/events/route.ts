@@ -88,7 +88,7 @@ export async function GET(request: Request) {
   const offset = Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
 
   try {
-    const exportPayload = readSiteExport("events");
+    const exportPayload = await readSiteExport("events");
     const rawEvents = Array.isArray(exportPayload?.events) ? exportPayload.events : [];
     let events = rawEvents.map((event) => normalizeEvent(event as JsonRecord));
     events = events.filter(isUpcomingActionableEvent);

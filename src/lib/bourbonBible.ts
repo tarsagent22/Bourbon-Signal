@@ -204,9 +204,9 @@ function tierFromEngine(value: unknown): AvailabilityTier {
   return "limited";
 }
 
-function readEngineBibleBottles(): BibleBottle[] {
+async function readEngineBibleBottles(): Promise<BibleBottle[]> {
   try {
-    const payload = readSiteExport("bottles");
+    const payload = await readSiteExport("bottles");
     const raw = Array.isArray(payload?.bottles) ? payload.bottles : [];
     return raw
       .map((item) => item && typeof item === "object" ? item as Record<string, unknown> : null)
@@ -248,14 +248,14 @@ function readInventoryBibleBottles(): BibleBottle[] {
   }));
 }
 
-export function getBourbonBible() {
+export async function getBourbonBible() {
   // Inventory bottles are broad lookup context. Curated seed + engine records come after
   // so allocated/drop-aware metadata wins when the same canonical id appears twice.
-  return dedupeBottles([...readInventoryBibleBottles(), ...SEED_BOTTLES, ...readEngineBibleBottles()]);
+  return dedupeBottles([...readInventoryBibleBottles(), ...SEED_BOTTLES, ...await readEngineBibleBottles()]);
 }
 
-export function searchBourbonBible(query: string, limit = 8): BibleSearchResult[] {
-  return getBourbonBible()
+export async function searchBourbonBible(query: string, limit = 8): Promise<BibleSearchResult[]> {
+  return (await getBourbonBible())
     .map((bottle) => {
       const match = scoreBottleMatch(bottle, query);
       return { ...bottle, matchScore: match.score, matchReason: match.reason };
@@ -265,6 +265,6 @@ export function searchBourbonBible(query: string, limit = 8): BibleSearchResult[
     .slice(0, limit);
 }
 
-export function getBottleById(id: string) {
-  return getBourbonBible().find((bottle) => bottle.id === id) || null;
+export async function getBottleById(id: string) {
+  return (await getBourbonBible()).find((bottle) => bottle.id === id) || null;
 }

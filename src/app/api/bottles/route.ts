@@ -3,7 +3,7 @@ import { readSiteExport, siteExportHeaders, listStates, normalizeBottleForSite }
 
 export async function GET() {
   try {
-    const exportPayload = readSiteExport("bottles");
+    const exportPayload = await readSiteExport("bottles");
     const rawBottles = Array.isArray(exportPayload?.bottles) ? exportPayload.bottles : [];
     const bottles = rawBottles.map((bottle) => normalizeBottleForSite(bottle as Record<string, unknown>));
 

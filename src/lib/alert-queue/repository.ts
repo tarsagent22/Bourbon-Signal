@@ -8,6 +8,7 @@ export interface AlertCandidateInput {
   stableMatchKey: string;
   alertWindow: string;
   createdAt: string;
+  payload?: Record<string, unknown>;
 }
 
 export interface AlertCandidateRecord extends AlertCandidateInput {
@@ -17,6 +18,9 @@ export interface AlertCandidateRecord extends AlertCandidateInput {
   claimedAt?: string;
   deliveredAt?: string;
   providerMessageId?: string;
+  attemptCount?: number;
+  nextAttemptAt?: string;
+  lastErrorCode?: string;
 }
 
 export interface AlertBaselineInput {
@@ -26,11 +30,24 @@ export interface AlertBaselineInput {
   createdAt: string;
 }
 
+export interface EngineSnapshotInput {
+  snapshotId: string;
+  appCommit: string;
+  engineCommit: string;
+  collectionRunId: string;
+  generatedAt: string;
+  activatedAt?: string;
+  manifest: Record<string, unknown>;
+}
+
 export interface AlertQueueRepository {
+  registerSnapshot(input: EngineSnapshotInput): Promise<void>;
   enqueue(input: AlertCandidateInput): Promise<AlertCandidateRecord>;
   baseline(input: AlertBaselineInput): Promise<void>;
   claim(id: string, workerId: string, claimedAt: string): Promise<AlertCandidateRecord | null>;
   markDelivered(id: string, providerMessageId: string, deliveredAt: string): Promise<void>;
+  markFailed(id: string, errorCode: string, failedAt: string, retryAt?: string): Promise<void>;
+  recoverStaleClaims(claimedBefore: string): Promise<number>;
   get(id: string): Promise<AlertCandidateRecord | null>;
   listPending(limit?: number): Promise<AlertCandidateRecord[]>;
 }
@@ -56,6 +73,8 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
   private readonly idsByUniqueKey = new Map<string, string>();
   private readonly baselines = new Set<string>();
   private nextId = 1;
+
+  async registerSnapshot(_input: EngineSnapshotInput) {}
 
   async enqueue(input: AlertCandidateInput) {
     const uniqueKey = candidateUniqueKey(input);
@@ -87,6 +106,7 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
   async claim(id: string, workerId: string, claimedAt: string) {
     const record = this.candidates.get(id);
     if (!record || record.status !== "pending") return null;
+    if (record.nextAttemptAt && record.nextAttemptAt > claimedAt) return null;
     record.status = "claimed";
     record.claimedBy = workerId;
     record.claimedAt = claimedAt;
@@ -101,6 +121,30 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
     record.status = "delivered";
     record.providerMessageId = providerMessageId;
     record.deliveredAt = deliveredAt;
+  }
+
+  async markFailed(id: string, errorCode: string, _failedAt: string, retryAt?: string) {
+    const record = this.candidates.get(id);
+    if (!record || record.status !== "claimed") throw new Error(`Cannot fail unclaimed alert candidate ${id}`);
+    record.status = retryAt ? "pending" : "failed";
+    record.lastErrorCode = errorCode;
+    record.attemptCount = (record.attemptCount || 0) + 1;
+    record.nextAttemptAt = retryAt;
+    delete record.claimedBy;
+    delete record.claimedAt;
+  }
+
+  async recoverStaleClaims(claimedBefore: string) {
+    let recovered = 0;
+    for (const record of this.candidates.values()) {
+      if (record.status === "claimed" && record.channel !== "sms" && record.claimedAt && record.claimedAt < claimedBefore) {
+        record.status = "pending";
+        delete record.claimedBy;
+        delete record.claimedAt;
+        recovered += 1;
+      }
+    }
+    return recovered;
   }
 
   async get(id: string) {
