@@ -85,6 +85,7 @@ for (const required of [
 
 const releaseOrchestrator = read('scripts/release-production.mjs');
 const deliveryRoute = read('src/app/api/alerts/deliver/route.ts');
+const opsHealth = read('src/lib/ops-health.ts');
 if (releaseOrchestrator.includes("git(tempRoot, ['push', 'origin', 'HEAD:main'])")) {
   failures.push('Release orchestrator must not mutate origin/main to stage generated exports.');
 }
@@ -93,6 +94,12 @@ if (deliveryRoute.indexOf('assertAlertDeliveryAuthorized(req)') > deliveryRoute.
 }
 if (!deliveryRoute.includes('scheduledRun && !dryRun && !testEmail')) {
   failures.push('Only authenticated, non-dry-run scheduler executions may write the delivery heartbeat.');
+}
+if ((deliveryRoute.match(/if \(heartbeatEligible\)/gu) || []).length !== 2) {
+  failures.push('Both successful and failed heartbeat writes must use the same strict eligibility predicate.');
+}
+if (!opsHealth.includes('access: "private"') || !opsHealth.includes('get(HEARTBEAT_PATH')) {
+  failures.push('The operational heartbeat must use authenticated private Blob storage.');
 }
 for (const invariant of ['quality:states', 'siteExportSha256', 'assertCleanOriginMain', 'verify:production-live']) {
   if (!releaseOrchestrator.includes(invariant)) failures.push(`Release orchestrator is missing provenance invariant ${invariant}.`);

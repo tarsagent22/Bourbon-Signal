@@ -6,6 +6,7 @@ import {
   evaluateLiveHealth,
   hashEntries,
   assertExportFileSet,
+  assertChangedExportPaths,
   parseDeploymentId,
   parseDeploymentUrl,
   parsePorcelainPaths,
@@ -54,6 +55,8 @@ const exportFiles = ['alerts.json', 'bottles.json', 'drops.json', 'events.json',
 assert.doesNotThrow(() => assertExportFileSet(exportFiles));
 assert.throws(() => assertExportFileSet([...exportFiles, 'debug.json']), /Unexpected site export files/);
 assert.throws(() => assertExportFileSet(exportFiles.filter((file) => file !== 'alerts.json')), /Missing site export files/);
+assert.doesNotThrow(() => assertChangedExportPaths(['engine/out/site/alerts.json', 'engine/out/site/state-quality.json']));
+assert.throws(() => assertChangedExportPaths(['engine/out/site/nested/debug.json']), /non-allowlisted paths/);
 assert.deepEqual(
   parsePorcelainPaths(' M engine/out/site/alerts.json\n?? engine/out/site/state-quality.json\n'),
   ['engine/out/site/alerts.json', 'engine/out/site/state-quality.json'],

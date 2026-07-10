@@ -14,6 +14,9 @@ export const REQUIRED_SITE_EXPORT_FILES = [
   'stores.json',
 ];
 export const OPTIONAL_SITE_EXPORT_FILES = ['state-quality.json'];
+const ALLOWED_SITE_EXPORT_PATHS = new Set(
+  [...REQUIRED_SITE_EXPORT_FILES, ...OPTIONAL_SITE_EXPORT_FILES].map((file) => `engine/out/site/${file}`),
+);
 
 export function assertExportFileSet(files) {
   const actual = new Set(files);
@@ -22,6 +25,11 @@ export function assertExportFileSet(files) {
   const unexpected = files.filter((file) => !allowed.has(file));
   if (missing.length) throw new Error(`Missing site export files: ${missing.join(', ')}`);
   if (unexpected.length) throw new Error(`Unexpected site export files: ${unexpected.join(', ')}`);
+}
+
+export function assertChangedExportPaths(paths) {
+  const unsafe = paths.filter((file) => !ALLOWED_SITE_EXPORT_PATHS.has(file));
+  if (unsafe.length) throw new Error(`Generated export staging touched non-allowlisted paths: ${unsafe.join(', ')}`);
 }
 
 export function hashEntries(entries) {
