@@ -90,6 +90,11 @@ if (releaseOrchestrator.includes("['push', 'origin', 'HEAD:main']")) {
 for (const invariant of ['quality:states', 'siteExportSha256', 'assertCleanOriginMain', 'verify:production-live']) {
   if (!releaseOrchestrator.includes(invariant)) failures.push(`Release orchestrator is missing provenance invariant ${invariant}.`);
 }
+const promoteIndex = releaseOrchestrator.indexOf("['promote', deploymentUrl");
+const aliasIndex = releaseOrchestrator.indexOf("['alias', 'set', deploymentUrl");
+if (promoteIndex < 0 || aliasIndex < 0 || promoteIndex > aliasIndex) {
+  failures.push('Release orchestrator must promote the verified deployment before assigning custom-domain aliases.');
+}
 
 if (failures.length) {
   console.error('Web/release contract verification failed:');

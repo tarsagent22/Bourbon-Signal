@@ -111,7 +111,7 @@ Every applied release must prove:
 - clean `HEAD === origin/main`
 - immutable manifest commit/tree/lockfile/export hashes
 - a local verified production build followed by a Vercel remote build from the same pinned clean commit plus the generated immutable manifest
-- both custom domains point at the deployed artifact
+- the verified deployment is promoted to the current Vercel production target before both custom domains are assigned
 - `/api/alerts/deliver?cron=v2` is registered at `*/5 * * * *` with no pending Vercel cron drift
 - `/release-manifest.json` matches the verified artifact
 - production live and engine regression checks pass
