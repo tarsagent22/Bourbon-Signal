@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
+import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { isRewardsAdminEmail, reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
 import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
 
@@ -34,19 +35,27 @@ export async function GET() {
   if (admin.error) return admin.error;
   const result = await admin.client.users.getUserList({ limit: 100 });
   const users = Array.isArray(result) ? result : result.data;
-  const sightings = users.flatMap((user) => {
+  const usersById = new Map(users.map((user) => [user.id, user]));
+  const legacySightings = users.flatMap((user) => {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-    return prefs.submittedSightings
-      .filter((sighting) => needsSightingReview(sighting))
-      .map((sighting) => ({
+    return prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: sighting.reporterUserId || user.id }));
+  });
+  const durableSightings = await createCommunitySightingsRepository().listSightings();
+  const sightingsById = new Map<string, MemberSighting>(legacySightings.map((sighting) => [sighting.id, sighting]));
+  for (const sighting of durableSightings) sightingsById.set(sighting.id, sighting);
+  const sightings = [...sightingsById.values()]
+    .filter((sighting) => needsSightingReview(sighting))
+    .map((sighting) => {
+      const user = sighting.reporterUserId ? usersById.get(sighting.reporterUserId) : undefined;
+      return {
         ...sighting,
-        reporterUserId: sighting.reporterUserId || user.id,
-        reporterEmail: primaryEmail(user),
-        reporterName: [user.firstName, user.lastName].filter(Boolean).join(" ") || "Member",
+        reporterEmail: user ? primaryEmail(user) : "",
+        reporterName: user ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || "Member") : "Member",
         reviewReasons: reviewReasonLabels(sighting.reviewState),
-      }));
-  }).sort((a, b) => +new Date(b.rewardState?.photoProof?.uploadedAt || b.createdAt) - +new Date(a.rewardState?.photoProof?.uploadedAt || a.createdAt));
+      };
+    })
+    .sort((a, b) => +new Date(b.rewardState?.photoProof?.uploadedAt || b.createdAt) - +new Date(a.rewardState?.photoProof?.uploadedAt || a.createdAt));
   return NextResponse.json({ ok: true, sightings });
 }
 
@@ -61,6 +70,9 @@ export async function PATCH(req: NextRequest) {
   const publicMetadata = (reporter.publicMetadata && typeof reporter.publicMetadata === "object" ? reporter.publicMetadata : {}) as Record<string, unknown>;
   const privateMetadata = (reporter.privateMetadata && typeof reporter.privateMetadata === "object" ? reporter.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
+  const repository = createCommunitySightingsRepository();
+  const durableTarget = await repository.getSighting(sightingId);
+  const sourceSightings = durableTarget ? [durableTarget] : prefs.submittedSightings;
   const now = new Date().toISOString();
   let status: SightingPhotoReviewStatus | null = null;
   let remove = false;
@@ -74,7 +86,7 @@ export async function PATCH(req: NextRequest) {
   if (payload.action === "resolve_manual_review") resolveManualReview = true;
   if (!status && !remove && !rejectSighting && !resolveManualReview) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 
-  const nextSightings = prefs.submittedSightings.map((sighting) => {
+  const nextSightings = sourceSightings.map((sighting) => {
     if (sighting.id !== sightingId) return sighting;
     const proof = sighting.rewardState?.photoProof;
     const sources = new Set(sighting.rewardState?.verificationSources || []);
@@ -109,8 +121,17 @@ export async function PATCH(req: NextRequest) {
       },
     };
   });
-  const nextPrefs = { ...prefs, submittedSightings: nextSightings };
-  const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards, now);
-  await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  if (durableTarget) {
+    const updated = nextSightings.find((item) => item.id === sightingId);
+    if (!updated) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+    await repository.updateSighting(updated);
+    const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === reporterUserId);
+    const nextRewards = reconcileMemberRewards([...prefs.submittedSightings, ...durableOwned], privateMetadata.memberRewards, now);
+    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  } else {
+    const nextPrefs = { ...prefs, submittedSightings: nextSightings };
+    const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards, now);
+    await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  }
   return NextResponse.json({ ok: true });
 }

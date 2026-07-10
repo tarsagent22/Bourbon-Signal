@@ -333,20 +333,30 @@ export default function SightingsClient() {
       } : undefined,
       createdAt: new Date().toISOString(),
     };
-    const savedSighting = await addSighting(sighting);
-    if (proofPhoto) await uploadSightingPhoto(savedSighting.id, proofPhoto);
-    setSaved(savedSighting);
-    setQuantityEstimate("");
-    setPrice("");
-    setNotes("");
-    setProofPhoto(null);
-    setManualStoreMode(false);
-    setManualStoreAddress("");
-    setManualStoreCity("");
-    setManualStoreState("");
-    setManualStoreZip("");
-    setManualBottleConfirmed(false);
-    setActiveTab("feed");
+    try {
+      const savedSighting = await addSighting(sighting);
+      setSaved(savedSighting);
+      if (proofPhoto) {
+        try {
+          await uploadSightingPhoto(savedSighting.id, proofPhoto);
+        } catch (error) {
+          setSubmitError(error instanceof Error ? `Sighting saved, but the photo was not attached: ${error.message}` : "Sighting saved, but the photo was not attached.");
+        }
+      }
+      setQuantityEstimate("");
+      setPrice("");
+      setNotes("");
+      setProofPhoto(null);
+      setManualStoreMode(false);
+      setManualStoreAddress("");
+      setManualStoreCity("");
+      setManualStoreState("");
+      setManualStoreZip("");
+      setManualBottleConfirmed(false);
+      setActiveTab("feed");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to save sighting. Please try again.");
+    }
   };
 
   if (authLoaded && !isSignedIn) {
