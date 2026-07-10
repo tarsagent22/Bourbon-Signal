@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { decodeDropCursor, encodeDropCursor, paginateDrops } from '../src/lib/drop-cursor.ts';
 import { dropFeedCacheHeaders } from '../src/lib/api-cache-contract.ts';
 import { buildStateDropPartitions, verifyStateDropPartitions } from '../engine/src/site-state-partitions.mjs';
@@ -50,5 +51,10 @@ assert.deepEqual(dropFeedCacheHeaders(true), {
   'Cache-Control': 'private, no-store',
   Vary: 'Cookie, Authorization',
 });
+
+const exporterSource = readFileSync(new URL('../engine/src/export-site-contract.mjs', import.meta.url), 'utf8');
+const verifierSource = readFileSync(new URL('../engine/src/verify-site-contract.mjs', import.meta.url), 'utf8');
+assert.match(exporterSource, /stateDrops:\s*'states\/index\.json'/, 'manifest must declare the state partition index');
+assert.match(verifierSource, /manifest\.files\?\.stateDrops/, 'verifier must use the same manifest key as the exporter');
 
 console.log('Progressive feed contract tests passed.');
