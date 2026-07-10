@@ -79,14 +79,14 @@ export default function RootLayout({
     <ClerkProvider
       proxyUrl={process.env.NEXT_PUBLIC_CLERK_PROXY_URL}
       appearance={{
-        baseTheme: dark,
+        theme: dark,
         variables: {
           colorPrimary: "#D4920B",
           colorBackground: "#14100C",
-          colorText: "#F7F0E0",
-          colorTextSecondary: "#D8CDBB",
-          colorInputBackground: "#F7F0E0",
-          colorInputText: "#14100C",
+          colorForeground: "#F7F0E0",
+          colorMutedForeground: "#D8CDBB",
+          colorInput: "#F7F0E0",
+          colorInputForeground: "#14100C",
           colorDanger: "#FF8B6A",
           fontFamily: "var(--font-dm-sans)",
           borderRadius: "14px",
