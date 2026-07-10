@@ -3437,11 +3437,11 @@ function phase1CatalogSignal(config, sourceLabel, sourceUrl, store, rawName, bib
     stateCode: 'SC',
     postalCode: store.zip,
     zip: store.zip,
-    quantity: 0,
+    quantity: extra.quantity != null ? Number(extra.quantity) : 0,
     observedAt,
-    canAlertAsInventory: false,
+    canAlertAsInventory: extra.canAlertAsInventory !== undefined ? Boolean(extra.canAlertAsInventory) : false,
     canAlertAsWatch: Boolean(extra.canAlertAsWatch),
-    inventorySemantics: extra.inventorySemantics || 'Retailer public catalog/watch page only. This is not live shelf inventory and should not trigger inventory alerts without a verified stock/count source.',
+    inventorySemantics: extra.inventorySemantics || (extra.canAlertAsInventory ? 'Retailer catalog reports positive stock for this location. Conservative single-store watch source with limited fidelity on quantity/price; verify in person before travel. Low-cadence guardrails applied to protect the source.' : 'Retailer public catalog/watch page only. This is not live shelf inventory and should not trigger inventory alerts without a verified stock/count source.'),
     evidence: extra.evidence || `${sourceLabel} publicly lists ${rawName}. Treat as Myrtle Beach retailer watch/catalog intelligence, not verified store inventory.`,
     raw: { sourceMatchStatus, unsafeReason: unsafeReason || null, ...(extra.raw || {}) }
   };
@@ -3473,14 +3473,28 @@ async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) 
       if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
       seen.add(product.id || rawName);
       const price = wcStoreApiPrice(product?.prices);
-      signals.push(phase1CatalogSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', product?.permalink || url, SC_LIQUOR_STORE_NEAR_ME_STORE, rawName, bible, observedAt, {
-        evidence: `Liquor Store Near Me Myrtle Beach WooCommerce Store API lists ${rawName}${product?.is_in_stock ? ' with an in-stock catalog flag' : ''}${price ? ` at $${price.toFixed(2)}` : ''}. Price/count are not reliable enough for inventory alerts yet.`,
+      const isInStock = !!product?.is_in_stock;
+      const lowStock = product?.low_stock_remaining != null ? Number(product.low_stock_remaining) : null;
+      // Conservative: default to qty=1 for confirmed in_stock (no precise count in this feed often); only promote if positive stock flag.
+      const qty = isInStock ? (lowStock != null && lowStock > 0 ? lowStock : 1) : 0;
+      const extra = {
         raw: { chain: 'liquor-store-near-me-myrtle-beach', term, product: { id: product?.id, is_in_stock: product?.is_in_stock, low_stock_remaining: product?.low_stock_remaining, prices: product?.prices, add_to_cart: product?.add_to_cart } }
-      }));
+      };
+      if (isInStock) {
+        extra.eventType = 'retailer_store_inventory_result';
+        extra.canAlertAsInventory = true;
+        extra.canAlertAsWatch = true;
+        extra.quantity = qty;
+        extra.inventorySemantics = `Liquor Store Near Me Myrtle Beach WooCommerce catalog reports in-stock at the Myrtle Beach SC location. Conservative guarded single-store source (catalog stock flag; limited quantity/price fidelity in API). Verify before driving. Low-cadence + cache guardrails to protect source.`;
+        extra.evidence = `Liquor Store Near Me Myrtle Beach WooCommerce Store API lists ${rawName} with in-stock flag${price ? ` at $${price.toFixed(2)}` : ''}. Conservative inventory signal from catalog feed; confirm stock on site or in-store.`;
+      } else {
+        extra.evidence = `Liquor Store Near Me Myrtle Beach WooCommerce Store API lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}. Price/count are not reliable enough for inventory alerts yet.`;
+      }
+      signals.push(phase1CatalogSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', product?.permalink || url, SC_LIQUOR_STORE_NEAR_ME_STORE, rawName, bible, observedAt, extra));
     }
     await sleep(SC_PHASE1_DELAY_MS);
   }
-  if (signals.length <= 1) roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url: `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products`, status: 'reachable_no_safe_catalog_rows', error: `WooCommerce product searches returned ${returnedRows} rows but no safe Bourbon Signal catalog matches.`, nextRoute: 'Inspect product names and keep this source watch-only until inventory semantics are verified.' });
+  if (signals.length <= 1) roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url: `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products`, status: 'reachable_no_safe_catalog_rows', error: `WooCommerce product searches returned ${returnedRows} rows but no safe Bourbon Signal catalog matches.`, nextRoute: 'Inspect product names; source can contribute conservative inventory signals when in-stock flags align with bible matches. Keep low cadence.' });
   return { signals, roadblocks };
 }
 
@@ -3545,7 +3559,11 @@ async function collectSouthCarolinaOwensTether(config, bible, observedAt) {
     const rawName = product.name || '';
     if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
     parsed += 1;
-    signals.push(phase1CatalogSignal(config, 'Owens Liquors guarded CityHive discovery', product.url || url, SC_OWENS_STORE, rawName, bible, observedAt, { raw: { chain: 'owens-liquors', product: { id: product.id, name: product.name } } }));
+    signals.push(phase1CatalogSignal(config, 'Owens Liquors guarded CityHive discovery', product.url || url, SC_OWENS_STORE, rawName, bible, observedAt, {
+      canAlertAsWatch: true,
+      inventorySemantics: 'Owens Liquors seed page is discovery/watch evidence only. It does not prove current inventory and must not trigger inventory alerts.',
+      raw: { chain: 'owens-liquors', product: { id: product.id, name: product.name } }
+    }));
   }
   if (!parsed) roadblocks.push({ state: config.id, source: 'Owens Liquors guarded CityHive discovery', url, status: res.status || 200, error: 'Owens seed page was reachable but did not expose parseable CityHive product inventory in the expected shape.', nextRoute: 'Inspect rendered/browser network once, then add merchant IDs only if public CityHive JSON is stable.' });
   return { signals, roadblocks };

@@ -92,7 +92,7 @@ const TEXAS_CITYHIVE_POLICY = {
 
 const SOUTH_CAROLINA_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
+  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, and conservative Myrtle Beach expansions like Liquor Store Near Me WooCommerce catalog) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat. Guarded sources use low cadence + conservative qty defaults.',
   defaultCadence: 'daily-60m'
 };
 
@@ -119,7 +119,7 @@ function policyForSignal(signal) {
   if (signal.state === 'TX' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TEXAS_CITYHIVE_POLICY;
   if (signal.state === 'SC'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
-    && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
+    && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify|Liquor Store Near Me|WooCommerce|Myrtle/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
