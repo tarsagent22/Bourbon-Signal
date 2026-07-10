@@ -33,8 +33,9 @@
     "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
     "test:alert-queue-repository": "node --experimental-strip-types scripts/test-alert-queue-repository.mts",
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
+    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
+    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
