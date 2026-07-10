@@ -4,6 +4,7 @@ import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
+import { appendChangeJournal } from './optimization/change-journal.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -365,6 +366,8 @@ async function main() {
     .filter((c) => !c.sampleOnly)
     .filter((c) => c.action !== 'do_not_alert_context_only' || c.score >= 65)
     .sort((a, b) => b.score - a.score));
+  const previousJournal = await readJson(path.join(OUT, 'change-journal.json'), { entries: [] });
+  const changeJournal = appendChangeJournal(previousJournal, signals, { recordedAt: generatedAt });
 
   const snapshotFile = path.join(SNAPSHOTS, `${tsSlug(new Date(generatedAt))}.json`);
   await writeFile(snapshotFile, JSON.stringify(current, null, 2));
@@ -372,6 +375,7 @@ async function main() {
   await writeFile(path.join(OUT, 'diff.json'), JSON.stringify({ generatedAt, previousSnapshot: previous?.file || null, currentSnapshot: snapshotFile, bootstrap, changeCount: changes.length, changes }, null, 2));
   await writeFile(path.join(OUT, 'alert-candidates.json'), JSON.stringify({ generatedAt, previousSnapshot: previous?.file || null, bootstrap, candidateCount: alertCandidates.length, candidates: alertCandidates }, null, 2));
   await writeFile(path.join(OUT, 'confidence-policy.json'), JSON.stringify({ generatedAt, policies: STATE_CONFIDENCE_POLICY }, null, 2));
+  await writeFile(path.join(OUT, 'change-journal.json'), JSON.stringify(changeJournal, null, 2));
 
   const diffMd = ['# Bourbon Signal Run Diff', '', `Generated: ${generatedAt}`, `Previous snapshot: ${previous?.file || '[none: bootstrap run]'}`, `Changes: ${changes.length}`, ''];
   for (const change of changes.slice(0, 100)) {
