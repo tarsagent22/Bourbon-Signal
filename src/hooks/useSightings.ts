@@ -113,17 +113,17 @@ export function useSightings(enabled: boolean = true) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sighting),
       });
-      const data = (await res.json().catch(() => ({}))) as SightingsFeedResponse & { sighting?: MemberSighting; error?: string };
-      if (!res.ok) throw new Error(data.error || "Unable to save sighting");
-      const savedSighting = data.sighting || sighting;
-      setSightings((current) => [savedSighting, ...current.filter((item) => item.id !== savedSighting.id)]);
+      if (!res.ok) throw new Error("Unable to save sighting");
+      const data = (await res.json()) as SightingsFeedResponse & { sighting?: MemberSighting };
+      setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
-      setTotalSightings((current) => (current === null ? current : current + (current > 0 && savedSighting.id === sighting.id ? 1 : 0)));
-      return savedSighting;
+      setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
+      setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
+      await refreshPreferences().catch(() => undefined);
+      return data.sighting || sighting;
     } catch (err) {
       console.error("Failed to save sighting", err);
-      const message = err instanceof Error ? err.message : "Unable to save sighting";
-      setError(message);
+      setError("Unable to save sighting");
       throw err;
     } finally {
       setSaving(false);
@@ -139,10 +139,13 @@ export function useSightings(enabled: boolean = true) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sightingId, vote }),
       });
-      const data = (await res.json().catch(() => ({}))) as SightingsFeedResponse & { sighting?: MemberSighting; error?: string };
-      if (!res.ok) throw new Error(data.error || "Unable to save vote");
-      if (data.sighting) setSightings((current) => current.map((item) => item.id === data.sighting!.id ? data.sighting! : item));
+      if (!res.ok) throw new Error("Unable to save vote");
+      const data = (await res.json()) as SightingsFeedResponse;
+      setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
+      setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
+      setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
+      await refreshPreferences().catch(() => undefined);
     } catch (err) {
       console.error("Failed to save sighting vote", err);
       setError("Unable to save vote");

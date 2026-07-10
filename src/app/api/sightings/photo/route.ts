@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { del, put } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
-import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -32,11 +31,8 @@ export async function POST(req: NextRequest) {
   const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-  const repository = createCommunitySightingsRepository();
-  const durableTarget = await repository.getSighting(sightingId);
-  const legacyTarget = prefs.submittedSightings.find((sighting) => sighting.id === sightingId);
-  const target = durableTarget || legacyTarget;
-  if (!target || target.reporterUserId !== userId) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+  const target = prefs.submittedSightings.find((sighting) => sighting.id === sightingId);
+  if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
 
   const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const uploaded = await put(`sighting-proofs/${userId}/${sightingId}-${Date.now()}.${extension}`, file, {
@@ -45,39 +41,23 @@ export async function POST(req: NextRequest) {
   });
 
   const uploadedAt = new Date().toISOString();
-  const updatedTarget: MemberSighting = {
-    ...target,
-    rewardState: {
-      ...(target.rewardState || {}),
-      photoProof: {
-        url: uploaded.url,
-        pathname: uploaded.pathname,
-        uploadedAt,
-        status: "verified_public" as const,
-        publicUrl: uploaded.url,
-      },
-    },
-  };
-  try {
-    let ownedSightings: MemberSighting[];
-    if (durableTarget) {
-      await repository.updateSighting(updatedTarget);
-      ownedSightings = [
-        ...prefs.submittedSightings,
-        ...(await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId),
-      ];
-      const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-      await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
-    } else {
-      const nextSightings = prefs.submittedSightings.map((sighting) => sighting.id === sightingId ? updatedTarget : sighting);
-      ownedSightings = nextSightings;
-      const nextPrefs = { ...prefs, submittedSightings: nextSightings };
-      const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-      await client.users.updateUserMetadata(userId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
-    }
-  } catch (error) {
-    await del(uploaded.url).catch(() => undefined);
-    throw error;
-  }
-  return NextResponse.json({ ok: true, photoProof: updatedTarget.rewardState?.photoProof });
+  const nextSightings = prefs.submittedSightings.map((sighting) => sighting.id === sightingId
+    ? {
+        ...sighting,
+        rewardState: {
+          ...(sighting.rewardState || {}),
+          photoProof: {
+            url: uploaded.url,
+            pathname: uploaded.pathname,
+            uploadedAt,
+            status: "verified_public" as const,
+            publicUrl: uploaded.url,
+          },
+        },
+      }
+    : sighting);
+  const nextPrefs = { ...prefs, submittedSightings: nextSightings };
+  const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards);
+  await client.users.updateUserMetadata(userId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  return NextResponse.json({ ok: true, photoProof: nextSightings.find((sighting) => sighting.id === sightingId)?.rewardState?.photoProof });
 }
