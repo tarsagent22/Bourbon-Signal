@@ -7,6 +7,8 @@ import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, ty
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
+import { formatSmsAlert } from "@/lib/sms-alert-copy";
+import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
 
 export interface AreaPreferences {
   states: string[];
@@ -507,10 +509,9 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
   return Array.from(groups.entries()).map(([locationKey, rows]) => {
     const sorted = [...rows].sort(sortCandidatesForMember);
     const primary = sorted[0] || rows[0];
-    const dedupeKeys = uniqueStrings(sorted.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean)).sort();
     const freshnessHours = Math.min(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.POSITIVE_INFINITY)).filter(Number.isFinite));
     const quantity = sorted.reduce((sum, candidate) => sum + (asNumber(candidate.quantity) || asNumber(candidate.warehouseQty)), 0);
-    const groupDedupeKey = `location-group:${stableHash([locationKey, ...dedupeKeys].join("|"))}`;
+    const groupDedupeKey = stableGroupedAlertDedupeKey(locationKey, sorted);
     return {
       ...primary,
       __groupCandidates: sorted,
@@ -717,16 +718,19 @@ function maskPhone(phone: string) {
 }
 
 function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
-  const bottleName = asString(candidate.bottle, "Bottle signal");
-  const state = asString(candidate.state).toUpperCase();
   const quantity = candidateQuantityLabel(candidate);
   const timestamp = candidateTimestampLabel(candidate);
-  const detail = quantity ? `${quantity} ${timestamp}` : `reported ${timestamp}`;
   const sourceCaveat = candidateIsStoreLevel(candidate)
     ? "Verify before driving."
     : "Board-level signal; check source before driving.";
-  const stateSuffix = state && !new RegExp(`\\b${state.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(storeLabel) ? `, ${state}` : "";
-  return `Bourbon Signal alert: ${bottleName} at ${storeLabel}${stateSuffix}. ${detail}. ${sourceCaveat} Reply STOP to unsubscribe.`.slice(0, 320);
+  return formatSmsAlert({
+    bottleNames: candidateBottleNames(candidate),
+    storeLabel,
+    state: asString(candidate.state).toUpperCase(),
+    quantityLabel: quantity || undefined,
+    timestampLabel: timestamp,
+    sourceCaveat,
+  });
 }
 
 async function sendTwilioSms(to: string, body: string) {
