@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { formatSmsAlert } from '../src/lib/sms-alert-copy.ts';
+import { stableGroupedAlertDedupeKey } from '../src/lib/alert-dedupe.ts';
 
 const groupedBottleNames = [
   'Buffalo Trace Bourbon',
@@ -58,4 +59,23 @@ const unicode = formatSmsAlert({
 assert.equal(/[^\x00-\x7F]/.test(unicode), false, `SMS should remain ASCII/GSM-safe: ${unicode}`);
 assert.match(unicode, /Maker's Mark Wood Finishing Series - 2026/);
 
-console.log(`SMS alert copy tests passed (${grouped.length} chars for the reported grouped alert).`);
+const firstInventorySnapshot = [
+  { matchKey: 'wake|buffalo-trace', dedupeKey: 'wake|buffalo-trace|qty-120' },
+  { matchKey: 'wake|elijah-craig-bp', dedupeKey: 'wake|elijah-craig-bp|qty-24' },
+];
+const changedQuantitySnapshot = [
+  { matchKey: 'wake|buffalo-trace', dedupeKey: 'wake|buffalo-trace|qty-115' },
+  { matchKey: 'wake|elijah-craig-bp', dedupeKey: 'wake|elijah-craig-bp|qty-20' },
+];
+assert.equal(
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot),
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', changedQuantitySnapshot),
+  'quantity changes must not reopen the same grouped SMS alert',
+);
+assert.notEqual(
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot),
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', [...changedQuantitySnapshot, { matchKey: 'wake|new-bottle', dedupeKey: 'wake|new-bottle|qty-1' }]),
+  'a genuinely new bottle should create a new grouped SMS identity',
+);
+
+console.log(`SMS alert copy and dedupe tests passed (${grouped.length} chars for the reported grouped alert).`);

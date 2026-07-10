@@ -8,6 +8,7 @@ import { readSiteExport } from "@/lib/site-engine-contract";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert } from "@/lib/sms-alert-copy";
+import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
 
 export interface AreaPreferences {
   states: string[];
@@ -508,10 +509,9 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
   return Array.from(groups.entries()).map(([locationKey, rows]) => {
     const sorted = [...rows].sort(sortCandidatesForMember);
     const primary = sorted[0] || rows[0];
-    const dedupeKeys = uniqueStrings(sorted.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean)).sort();
     const freshnessHours = Math.min(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.POSITIVE_INFINITY)).filter(Number.isFinite));
     const quantity = sorted.reduce((sum, candidate) => sum + (asNumber(candidate.quantity) || asNumber(candidate.warehouseQty)), 0);
-    const groupDedupeKey = `location-group:${stableHash([locationKey, ...dedupeKeys].join("|"))}`;
+    const groupDedupeKey = stableGroupedAlertDedupeKey(locationKey, sorted);
     return {
       ...primary,
       __groupCandidates: sorted,
