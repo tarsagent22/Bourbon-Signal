@@ -20,17 +20,24 @@ async function runDelivery(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
   const startedAt = Date.now();
-  const scheduledRun = req.nextUrl.searchParams.get("cron") === "v2";
-  const dryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
+  const scheduledRun = req.nextUrl.searchParams.get("cron") === "v3";
+  const requestedDryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
   const baselineOnSiteOnly = req.nextUrl.searchParams.get("baselineOnSite") === "1" || req.nextUrl.searchParams.get("baseline_onsite") === "1";
   const baselineEmailOnly = req.nextUrl.searchParams.get("baselineEmail") === "1" || req.nextUrl.searchParams.get("baseline_email") === "1";
   const baselineSmsOnly = req.nextUrl.searchParams.get("baselineSms") === "1" || req.nextUrl.searchParams.get("baseline_sms") === "1";
   const testEmail = req.nextUrl.searchParams.get("testEmail") === "1" || req.nextUrl.searchParams.get("test_email") === "1";
-  const heartbeatEligible = scheduledRun && !dryRun && !testEmail && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly;
+  const baselineModeCount = [baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly].filter(Boolean).length;
+  if (baselineModeCount > 1) {
+    return NextResponse.json({ ok: false, error: "Select exactly one baseline mode per request" }, { status: 400 });
+  }
+  const monitorOnly = process.env.ALERT_MONITOR_ONLY === "1";
+  const dryRun = requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0);
+  const heartbeatEligible = scheduledRun && !testEmail && baselineModeCount === 0;
   try {
-    const result = testEmail
+    const deliveryResult = testEmail
       ? await sendOperationalTestAlertEmail(req)
       : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly });
+    const result = { ...deliveryResult, monitorOnly };
     if (heartbeatEligible) {
       await writeAlertDeliveryHeartbeat({ startedAt, result: result as unknown as Record<string, unknown> })
         .catch((error) => console.warn("Alert delivery heartbeat write failed", error));

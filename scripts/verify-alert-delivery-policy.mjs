@@ -70,8 +70,16 @@ if (!route.includes('Bourbon Signal alert delivery summary')) {
   fail('Cron route should emit a visible ops summary for every run.');
 }
 
-if (!/"path"\s*:\s*"\/api\/alerts\/deliver\?cron=v2"/.test(vercel) || !/"schedule"\s*:\s*"\*\/5 \* \* \* \*"/.test(vercel)) {
-  fail('Vercel cron must invoke /api/alerts/deliver?cron=v2 every 5 minutes for near-real-time alert delivery.');
+if (!/"path"\s*:\s*"\/api\/alerts\/deliver\?cron=v3"/.test(vercel) || !/"schedule"\s*:\s*"\*\/5 \* \* \* \*"/.test(vercel)) {
+  fail('Vercel cron must invoke /api/alerts/deliver?cron=v3 every 5 minutes.');
+}
+
+if (!/!dryRun\s*&&\s*!baselineOnSiteOnly\s*&&\s*!baselineEmailOnly\s*&&\s*!baselineSmsOnly/.test(delivery)) {
+  fail('Disabled delivery must still allow operator baseline modes to inspect and block queued candidates.');
+}
+
+if (!route.includes('ALERT_MONITOR_ONLY') || !route.includes('monitorOnly')) {
+  fail('Scheduled alert delivery must support an explicit monitor-only mode that forces dry-run execution.');
 }
 
 if (process.exitCode) {

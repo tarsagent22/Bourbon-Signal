@@ -83,14 +83,15 @@ export function evaluateCronRegistration(payload, expected) {
   return { ok: failures.length === 0, expected, actual: matching || null, pending, failures };
 }
 
-export function evaluateLiveHealth(payload, { expectedCronSchedule, expectedDeploymentId = null }) {
+export function evaluateLiveHealth(payload, { expectedCronSchedule, expectedCronStatus = 'healthy', expectedDeploymentId = null }) {
   const failures = [];
   if (!payload || payload.ok !== true) failures.push('Ops health endpoint is not healthy.');
   if (payload?.cron?.expectedSchedule !== expectedCronSchedule) {
     failures.push(`Ops health expected cron ${payload?.cron?.expectedSchedule || 'unknown'}, expected ${expectedCronSchedule}.`);
   }
-  if (payload?.cron?.status !== 'healthy') failures.push(`Cron heartbeat status is ${payload?.cron?.status || 'unknown'}.`);
-  if (payload?.cron?.lastRunDryRun === true) failures.push('Cron heartbeat came from a dry run.');
+  if (payload?.cron?.status !== expectedCronStatus) failures.push(`Cron heartbeat status is ${payload?.cron?.status || 'unknown'}, expected ${expectedCronStatus}.`);
+  if (expectedCronStatus === 'healthy' && payload?.cron?.lastRunDryRun === true) failures.push('Cron heartbeat came from a dry run.');
+  if (expectedCronStatus === 'monitoring' && payload?.cron?.lastRunDryRun !== true) failures.push('Monitor-only cron heartbeat was not a dry run.');
   if (expectedDeploymentId && payload?.cron?.deploymentId !== expectedDeploymentId) failures.push(`Cron heartbeat deployment is ${payload?.cron?.deploymentId || 'unknown'}, expected ${expectedDeploymentId}.`);
   if (!['healthy', 'degraded'].includes(payload?.engine?.status)) failures.push(`Engine health status is ${payload?.engine?.status || 'unknown'}.`);
   return { ok: failures.length === 0, failures };

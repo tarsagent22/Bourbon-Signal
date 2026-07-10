@@ -51,6 +51,18 @@ const dryRun = buildOpsHealth({
 assert.equal(dryRun.ok, false);
 assert.equal(dryRun.cron.status, 'dry_run');
 
+process.env.ALERT_MONITOR_ONLY = '1';
+const monitoring = buildOpsHealth({
+  heartbeat: { ...heartbeat, dryRun: true },
+  engineGeneratedAt: recent,
+  refreshHealth: { failedStateCount: 0, degradedStateCount: 0, staleStateCount: 0 },
+  currentDeploymentId: 'dpl_current',
+});
+assert.equal(monitoring.ok, true);
+assert.equal(monitoring.cron.status, 'monitoring');
+assert.equal(monitoring.delivery.monitorOnly, true);
+delete process.env.ALERT_MONITOR_ONLY;
+
 const wrongDeployment = buildOpsHealth({
   heartbeat: { ...heartbeat, deploymentId: 'dpl_old' },
   engineGeneratedAt: recent,
