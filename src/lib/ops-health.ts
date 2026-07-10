@@ -1,4 +1,4 @@
-import { get, put } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
 
 const HEARTBEAT_PATH = "ops/alert-delivery-heartbeat-v2.json";
 export const EXPECTED_ALERT_CRON_SCHEDULE = "*/5 * * * *";
@@ -60,7 +60,7 @@ export async function writeAlertDeliveryHeartbeat(input: {
     error: failed ? "delivery_failed" : null,
   };
   await put(HEARTBEAT_PATH, JSON.stringify(heartbeat), {
-    access: "private",
+    access: "public",
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -71,9 +71,12 @@ export async function writeAlertDeliveryHeartbeat(input: {
 export async function readAlertDeliveryHeartbeat(): Promise<AlertDeliveryHeartbeat | null> {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    const result = await get(HEARTBEAT_PATH, { access: "private" });
-    if (!result || result.statusCode !== 200) return null;
-    return await new Response(result.stream).json() as AlertDeliveryHeartbeat;
+    const result = await list({ prefix: HEARTBEAT_PATH, limit: 1 });
+    const url = result.blobs.find((blob) => blob.pathname === HEARTBEAT_PATH)?.url;
+    if (!url) return null;
+    const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5_000) });
+    if (!response.ok) return null;
+    return await response.json() as AlertDeliveryHeartbeat;
   } catch {
     return null;
   }
