@@ -33,7 +33,7 @@
     "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.0.7",
+    "@clerk/nextjs": "^7.5.16",
     "@clerk/themes": "^2.4.57",
     "@react-email/components": "^1.0.12",
     "@stripe/stripe-js": "^9.0.0",
@@ -43,10 +43,10 @@
     "framer-motion": "^12.38.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",
-    "next": "^15",
+    "next": "^15.5.20",
     "react": "^19",
     "react-dom": "^19",
-    "react-email": "^6.0.0",
+    "react-email": "^6.6.9",
     "react-leaflet": "^5.0.0",
     "resend": "^6.12.2",
     "stripe": "^21.0.1",
@@ -60,8 +60,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^15",
+    "eslint-config-next": "^15.5.20",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "ws": "8.21.0"
   }
 }
