@@ -1,8 +1,9 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import { atomicWriteJson, validateFwgsChunk, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 
-const OFFSETS = (process.env.FWGS_FULL_OFFSETS || '0,100,200,300,400,500')
+const OFFSETS = (process.env.FWGS_FULL_OFFSETS || '0,100,200,300,400,500,600')
   .split(',')
   .map((value) => Number(value.trim()))
   .filter((value) => Number.isFinite(value));
@@ -11,6 +12,7 @@ const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.
 const CHUNK_RETRIES = Number(process.env.FWGS_FULL_CHUNK_RETRIES || 2);
 const ALLOW_PARTIAL = process.env.FWGS_ALLOW_PARTIAL_FULL === '1';
 const CHUNK_FALLBACK_MAX_AGE_MS = Number(process.env.FWGS_FULL_CHUNK_FALLBACK_MAX_AGE_MS || 24 * 60 * 60_000);
+const CHUNK_REUSE_MAX_AGE_MS = Number(process.env.FWGS_CHUNK_REUSE_MAX_AGE_MS || 2 * 60 * 60_000);
 
 function chunkFileFor(offset) {
   return `out/browser/fwgs-store-inventory-${offset}.json`;
@@ -23,7 +25,9 @@ async function readUsableChunk(file) {
     const ageMs = generatedAt ? Date.now() - generatedAt : Infinity;
     const locationCount = Number(payload.summary?.locationCount || payload.locations?.length || 0);
     const productCount = Number(payload.summary?.productCount || payload.products?.length || 0);
-    if (ageMs >= 0 && ageMs <= CHUNK_FALLBACK_MAX_AGE_MS && locationCount > 0 && productCount > 0) {
+    const offset = Number(file.match(/-(\d+)\.json$/)?.[1] || 0);
+    const validation = validateFwgsChunk(payload, { offset, limit: CHUNK_LIMIT });
+    if (ageMs >= 0 && ageMs <= CHUNK_FALLBACK_MAX_AGE_MS && locationCount > 0 && productCount > 0 && validation.ok) {
       return { file, payload, ageMs };
     }
   } catch {}
@@ -61,12 +65,21 @@ async function main() {
   const failedChunks = [];
   const staleChunks = [];
   for (const offset of OFFSETS) {
-    console.log(`=== FWGS full chunk offset ${offset} ===`);
     let collected = null;
+    const reusable = await readUsableChunk(chunkFileFor(offset));
+    if (reusable && reusable.ageMs <= CHUNK_REUSE_MAX_AGE_MS) {
+      collected = reusable.file;
+      console.log(`Reusing validated fresh FWGS chunk offset ${offset} (${Math.round(reusable.ageMs / 1000)}s old).`);
+    }
     let lastError = null;
-    for (let attempt = 1; attempt <= CHUNK_RETRIES + 1; attempt += 1) {
+    for (let attempt = 1; !collected && attempt <= CHUNK_RETRIES + 1; attempt += 1) {
       try {
-        collected = await runChunk(offset);
+        console.log(`=== FWGS full chunk offset ${offset} ===`);
+        const file = await runChunk(offset);
+        const payload = JSON.parse(await readFile(file, 'utf8'));
+        const validation = validateFwgsChunk(payload, { offset, limit: CHUNK_LIMIT });
+        if (!validation.ok) throw new Error(`FWGS chunk offset ${offset} failed validation: ${validation.failures.join('; ')}`);
+        collected = file;
         break;
       } catch (error) {
         lastError = error;
@@ -105,28 +118,38 @@ async function main() {
   }
 
   const locationsById = new Map();
-  const rows = [];
+  const rowsByKey = new Map();
   const failures = [];
+  const productsBySku = new Map();
   for (const { payload } of chunks) {
     for (const location of payload.locations || []) locationsById.set(location.locationId, location);
-    rows.push(...(payload.inventoryRows || []));
+    for (const product of payload.products || []) if (product?.sku) productsBySku.set(product.sku, product);
+    for (const row of payload.inventoryRows || []) {
+      const key = `${row?.product?.sku || ''}:${row?.location?.locationId || ''}`;
+      if (key !== ':' && (!rowsByKey.has(key) || Number(row.quantity || 0) > Number(rowsByKey.get(key)?.quantity || 0))) rowsByKey.set(key, row);
+    }
     failures.push(...(payload.failures || []));
   }
+  const rows = [...rowsByKey.values()];
+  const generatedTimes = chunks.map(({ payload }) => Date.parse(payload.generatedAt || '')).filter(Number.isFinite);
 
   const merged = {
     ...first,
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedTimes.length ? new Date(Math.min(...generatedTimes)).toISOString() : new Date().toISOString(),
     sourceUrl: 'https://www.finewineandgoodspirits.com/store-locator',
     chunks: chunks.map(({ file, payload }) => ({ file, generatedAt: payload.generatedAt, summary: payload.summary })),
     failedChunks,
     staleChunks,
     locations: [...locationsById.values()].sort((a, b) => String(a.locationId).localeCompare(String(b.locationId))),
+    products: [...productsBySku.values()],
     inventoryRows: rows,
     failures,
     summary: {
-      productCount: first.products?.length || 0,
+      productCount: productsBySku.size,
       searchTermCount: first.summary?.searchTermCount || first.searchTerms?.length || 0,
       locationCount: locationsById.size,
+      sourceLocationCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.sourceLocationCount || payload.locations?.length || 0), 0),
+      excludedLocationCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.excludedLocationCount || 0), 0),
       positiveInventoryRowCount: rows.length,
       failureCount: failures.length,
       swappedCoordinateCount: chunks.reduce((sum, { payload }) => sum + Number(payload.summary?.swappedCoordinateCount || 0), 0),
@@ -135,7 +158,15 @@ async function main() {
       positiveInventoryProductCount: new Set(rows.map((row) => row.product?.sku).filter(Boolean)).size
     }
   };
-  await writeFile(OUT_FILE, JSON.stringify(merged, null, 2));
+  const validation = validateFwgsFullArtifact(merged, {
+    minPositiveRows: Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITIVE_ROWS || 1000),
+    minLocations: Number(process.env.BOURBON_SIGNAL_MIN_FWGS_LOCATIONS || 550)
+  });
+  if (!validation.ok) {
+    if (ALLOW_PARTIAL) await atomicWriteJson(`${OUT_FILE}.partial`, merged);
+    throw new Error(`FWGS full artifact rejected${ALLOW_PARTIAL ? `; diagnostic written to ${OUT_FILE}.partial` : ''}: ${validation.failures.join('; ')}`);
+  }
+  await atomicWriteJson(OUT_FILE, merged);
   console.log(`Wrote ${OUT_FILE}: ${merged.summary.productCount} products, ${merged.summary.locationCount} stores, ${merged.summary.positiveInventoryRowCount} positive store rows, ${merged.summary.failureCount} failures, ${failedChunks.length} failed chunks.`);
 }
 

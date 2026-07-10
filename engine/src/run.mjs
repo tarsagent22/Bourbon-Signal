@@ -7,6 +7,7 @@ import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
+import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 import { runBoundedPool } from './optimization/worker-pool.mjs';
 import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 
@@ -106,12 +107,15 @@ async function activeCooldown(file) {
 }
 
 function validateFwgsArtifact(payload) {
-  const positiveRows = Number(payload?.summary?.positiveInventoryRowCount || 0);
+  const result = validateFwgsFullArtifact(payload, {
+    minPositiveRows: MIN_FWGS_POSITIVE_ROWS,
+    minLocations: Number(process.env.BOURBON_SIGNAL_MIN_FWGS_LOCATIONS || 550)
+  });
+  const rows = Number(payload?.summary?.positiveInventoryRowCount || 0);
   const locations = Number(payload?.summary?.locationCount || 0);
-  if (positiveRows < MIN_FWGS_POSITIVE_ROWS) {
-    return { ok: false, reason: `FWGS artifact has ${positiveRows} positive rows across ${locations} stores; minimum is ${MIN_FWGS_POSITIVE_ROWS}. Keeping previous full artifact.` };
-  }
-  return { ok: true, reason: `FWGS artifact accepted: ${positiveRows} positive rows across ${locations} stores.` };
+  return result.ok
+    ? { ok: true, reason: `FWGS artifact accepted: ${rows} positive rows across ${locations} stores.` }
+    : { ok: false, reason: `FWGS artifact rejected: ${result.failures.join('; ')}. Keeping previous full artifact.` };
 }
 
 function validateOhlqArtifact(payload) {
@@ -193,7 +197,7 @@ async function runGuardedBrowserPreflightJob(job) {
       };
     }
 
-    await writeFile(job.artifact, JSON.stringify(candidate, null, 2));
+    await atomicWriteJson(job.artifact, candidate);
     await rm(tempArtifact, { force: true }).catch(() => {});
     return {
       id: job.id,

@@ -1,6 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
+import { atomicWriteJson } from './fwgs-artifact-policy.mjs';
 
 const DEFAULT_CDP = process.env.FWGS_CDP_URL || process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
 const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.json';
@@ -273,6 +272,9 @@ async function collectFwgs(page) {
     while (allLocations.length < locationLimit) {
       const pageLimit = Math.min(250, locationLimit - allLocations.length);
       const res = await fetchWithTimeout(`/ccstore/v1/locations?limit=${pageLimit}&offset=${locOffset}`, { credentials: 'include', headers: { accept: 'application/json' } }, 22000);
+      if (!res.ok) throw new Error(`FWGS location endpoint returned ${res.status}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) throw new Error(`FWGS location endpoint returned ${contentType || 'unknown content type'}`);
       const json = await res.json();
       if (locationTotal == null) locationTotal = Number(json.totalResults || json.total || 0) || null;
       const items = json.items || [];
@@ -281,7 +283,8 @@ async function collectFwgs(page) {
       locOffset += items.length;
       await sleep(120);
     }
-    return { total: locationTotal, locations: allLocations.filter((loc) => loc.locationId && loc.inventory !== false && loc.pickUp !== false) };
+    const locations = allLocations.filter((loc) => loc.locationId && loc.inventory !== false && loc.pickUp !== false);
+    return { total: locationTotal, sourceLocationCount: allLocations.length, excludedLocationCount: allLocations.length - locations.length, locations };
   }, { locationLimit: LOCATION_LIMIT, locationOffset: LOCATION_OFFSET }, 120000);
   const locations = (locationResult.locations || []).map(normalizePaLocation);
   const swappedCoordinateCount = locations.filter((location) => location.coordinateSwapped).length;
@@ -355,6 +358,7 @@ async function collectFwgs(page) {
   return {
     generatedAt: new Date().toISOString(),
     sourceUrl: 'https://www.finewineandgoodspirits.com/store-locator',
+    locationTotal: locationResult.total,
     locationEndpoint: `/ccstore/v1/locations?limit=${LOCATION_LIMIT}&offset=${LOCATION_OFFSET}`,
     inventoryEndpoint: '/ccstorex/custom/v1/b2b/get-inventory',
     searchTerms: SEARCH_TERMS,
@@ -367,6 +371,8 @@ async function collectFwgs(page) {
       productCount: products.length,
       searchTermCount: SEARCH_TERMS.length,
       locationCount: locations.length,
+      sourceLocationCount: locationResult.sourceLocationCount,
+      excludedLocationCount: locationResult.excludedLocationCount,
       positiveInventoryRowCount: inventoryRows.length,
       failureCount: failures.length,
       swappedCoordinateCount,
@@ -385,10 +391,16 @@ async function main() {
   try {
     await page.navigate('https://www.finewineandgoodspirits.com/store-locator');
     await sleep(2200);
+    const pageHealth = await page.evaluate(`(() => {
+      const text = (document.body?.innerText || '').slice(0, 4000);
+      return { title: document.title, url: location.href, challenged: /access denied|verify you are human|captcha|akamai reference/i.test(text) };
+    })()`, false);
+    if (pageHealth?.challenged || !/finewineandgoodspirits\.com/i.test(pageHealth?.url || '')) {
+      throw new Error(`FWGS browser session did not reach a healthy storefront page: ${JSON.stringify(pageHealth)}`);
+    }
     console.log(`FWGS browser collector: ${SEARCH_TERMS.length} search terms, ${LOCATION_LIMIT} locations from offset ${LOCATION_OFFSET}, concurrency ${INVENTORY_CONCURRENCY}`);
     const payload = await collectFwgs(page);
-    await mkdir(path.dirname(OUT_FILE), { recursive: true });
-    await writeFile(OUT_FILE, JSON.stringify({ ...payload, cdpUrl: DEFAULT_CDP }, null, 2));
+    await atomicWriteJson(OUT_FILE, { ...payload, cdpUrl: DEFAULT_CDP });
     console.log(`Wrote ${OUT_FILE}: ${payload.summary.productCount} products, ${payload.summary.locationCount} stores, ${payload.summary.positiveInventoryRowCount} positive store rows, ${payload.summary.failureCount} failures.`);
   } finally {
     page.close();

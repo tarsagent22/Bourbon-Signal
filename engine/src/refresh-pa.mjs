@@ -9,10 +9,12 @@ const steps = [
       FWGS_INVENTORY_SKU_BATCH_SIZE: process.env.FWGS_INVENTORY_SKU_BATCH_SIZE || '24',
       FWGS_BATCH_SIZE: process.env.FWGS_BATCH_SIZE || '25',
       FWGS_FULL_CHUNK_LIMIT: process.env.FWGS_FULL_CHUNK_LIMIT || '300',
-      FWGS_FULL_OFFSETS: process.env.FWGS_FULL_OFFSETS || '0,300',
+      FWGS_FULL_OFFSETS: process.env.FWGS_FULL_OFFSETS || '0,300,600',
       BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT: '1'
     }
   },
+  { label: 'PA artifact policy tests', command: ['src/test-fwgs-artifact-policy.mjs'] },
+  { label: 'Bourbon bible prerequisite', command: ['src/build-bible.mjs'] },
   { label: 'PA state collection', command: ['src/run.mjs', '--states=PA'], env: { BOURBON_SIGNAL_BROWSER_PREFLIGHT: '0' } },
   { label: 'Operational snapshot', command: ['src/operational-report.mjs'] },
   { label: 'Site export', command: ['--max-old-space-size=16384', 'src/export-site-contract.mjs'] },

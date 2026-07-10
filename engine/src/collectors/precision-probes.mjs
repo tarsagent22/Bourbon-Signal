@@ -6469,7 +6469,7 @@ async function collectPennsylvania(config, bible) {
       const isLicenseeServiceCenter = PA_LICENSEE_SERVICE_CENTER_RE.test(locationName);
       const { base } = signalBase(config.id, 'FWGS store pickup inventory API browser-assisted collector', product.route ? `https://www.finewineandgoodspirits.com${product.route}` : 'out/browser/fwgs-store-inventory.json', product.name, bible);
       signals.push({
-        id: stableId([config.id, isLicenseeServiceCenter ? 'fwgs-licensee-service-center-inventory' : 'fwgs-store-pickup-inventory', product.sku, store.locationId, quantity]),
+        id: stableId([config.id, isLicenseeServiceCenter ? 'fwgs-licensee-service-center-inventory' : 'fwgs-store-pickup-inventory', product.sku, store.locationId]),
         ...base,
         confidence: Math.max(isLicenseeServiceCenter ? 0.58 : 0.78, base.confidence),
         eventType: isLicenseeServiceCenter ? 'licensee_service_center_inventory_observation' : 'store_inventory_result',
@@ -6494,18 +6494,16 @@ async function collectPennsylvania(config, bible) {
       });
       seen.add(product.sku);
     }
-    if (browserRun.summary?.positiveInventoryRowCount) {
-      roadblocks.push({
-        state: config.id,
-        source: 'FWGS direct server fetch',
-        url: 'https://www.finewineandgoodspirits.com/ccstorex/custom/v1/b2b/get-inventory',
-        status: 403,
-        error: 'Store-level PA inventory was collected through browser/CDP because raw Node fetches are Akamai/session gated.',
-        nextRoute: 'Browser/CDP FWGS collection is the production path; inspect CDP/session startup, full-chunk status, or FWGS endpoint shape drift if this artifact fails validation.'
-      });
-    }
-  } catch {
-    // Browser-assisted FWGS pickup inventory is optional; fall back to statewide Oracle Commerce hydration below.
+
+  } catch (error) {
+    roadblocks.push({
+      state: config.id,
+      source: 'FWGS browser pickup inventory artifact',
+      url: 'out/browser/fwgs-store-inventory.json',
+      status: 0,
+      error: error instanceof Error ? error.message : String(error),
+      nextRoute: 'Run the guarded FWGS browser preflight and publish only a complete validated statewide artifact.'
+    });
   }
 
   for (const term of PA_SEARCH_TERMS) {
