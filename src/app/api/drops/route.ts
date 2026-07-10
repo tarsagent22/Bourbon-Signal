@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
+import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
+import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -214,10 +216,17 @@ export async function GET(request: Request) {
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
   const entitlements = getEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
-  const requestedLimit = Math.max(0, Number(url.searchParams.get("limit") ?? "50") || 50);
+  const requestedLimit = Math.min(100, Math.max(0, Number(url.searchParams.get("limit") ?? "40") || 40));
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
   const limit = isFreeAccess ? Math.min(requestedLimit, previewLimit) : requestedLimit;
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
+  const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
+  if (requestedCursor && !decodeDropCursor(requestedCursor)) {
+    return NextResponse.json(
+      { drops: [], total: 0, limit, offset: 0, hasMore: false, nextCursor: null, error: "Invalid cursor" },
+      { status: 400, headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } },
+    );
+  }
   // State selection is a browsing/acquisition control, not a paid-only advanced filter.
   // Free and signed-out users still receive the capped preview, but the preview must
   // come from the requested market; otherwise a saved/selected NC lens can look
@@ -324,7 +333,9 @@ export async function GET(request: Request) {
     const total = drops.length;
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
-    const pagedDrops = displayDrops.slice(offset, offset + limit);
+    const snapshot = String(exportPayload?.generatedAt || engineRunTimestamp(exportPayload?.generatedAt));
+    const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
+    const pagedDrops = page.items;
 
     return NextResponse.json(
       {
@@ -332,8 +343,11 @@ export async function GET(request: Request) {
         drops: pagedDrops,
         total,
         limit,
-        offset,
-        hasMore: !isFreeAccess && offset + limit < total,
+        offset: page.offset,
+        cursor: requestedCursor,
+        nextCursor: isFreeAccess ? null : page.nextCursor,
+        snapshot,
+        hasMore: !isFreeAccess && page.hasMore,
         previewLocked: isFreeAccess && total > pagedDrops.length,
         requiresAccountForFullFeed: isFreeAccess,
         lastUpdated: engineRunTimestamp(exportPayload?.generatedAt),
@@ -344,11 +358,19 @@ export async function GET(request: Request) {
       {
         headers: {
           ...siteExportHeaders("local-export"),
+          ...dropFeedCacheHeaders(isSignedIn),
           "X-Drops-Source": "local-export",
+          "X-Drops-Snapshot": snapshot,
         },
       }
     );
   } catch (err) {
+    if (err instanceof DropCursorSnapshotError) {
+      return NextResponse.json(
+        { drops: [], total: 0, limit, offset: 0, hasMore: false, nextCursor: null, resetCursor: true, error: err.message },
+        { status: 409, headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } },
+      );
+    }
     console.error("[api/drops] Error reading site export:", err);
 
     return NextResponse.json(
@@ -358,6 +380,7 @@ export async function GET(request: Request) {
         limit,
         offset,
         hasMore: false,
+        nextCursor: null,
         lastUpdated: "",
         engineFresh: false,
         degradedStatesFiltered: [],
@@ -368,6 +391,8 @@ export async function GET(request: Request) {
         status: 503,
         headers: {
           ...siteExportHeaders("empty-fallback"),
+          "Cache-Control": "private, no-store",
+          Vary: "Cookie, Authorization",
           "X-Drops-Source": "empty-fallback",
         },
       }

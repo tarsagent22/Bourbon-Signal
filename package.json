@@ -16,6 +16,7 @@
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
+    "test:progressive-feed": "node --experimental-strip-types scripts/test-progressive-feed-contract.mjs",
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs && node --experimental-strip-types scripts/test-sms-alert-copy.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
@@ -36,7 +37,7 @@
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
     "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
+    "verify:ci": "npm run test:progressive-feed && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
@@ -47,13 +48,11 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.5.0",
     "framer-motion": "^12.38.0",
-    "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",
     "next": "^15.5.20",
     "react": "^19",
     "react-dom": "^19",
     "react-email": "^6.6.9",
-    "react-leaflet": "^5.0.0",
     "resend": "^6.12.2",
     "stripe": "^21.0.1",
     "three": "^0.183.2",
@@ -61,7 +60,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/leaflet": "^1.9.21",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
