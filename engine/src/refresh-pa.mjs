@@ -16,6 +16,7 @@ const steps = [
   { label: 'PA artifact policy tests', command: ['src/test-fwgs-artifact-policy.mjs'] },
   { label: 'Bourbon bible prerequisite', command: ['src/build-bible.mjs'] },
   { label: 'PA state collection', command: ['src/run.mjs', '--states=PA'], env: { BOURBON_SIGNAL_BROWSER_PREFLIGHT: '0' } },
+  { label: 'Aggregate state reports', command: ['src/aggregate-state-reports.mjs'] },
   { label: 'Operational snapshot', command: ['src/operational-report.mjs'] },
   { label: 'Site export', command: ['--max-old-space-size=16384', 'src/export-site-contract.mjs'] },
   { label: 'PA verifier', command: ['src/verify-pa.mjs'] },
