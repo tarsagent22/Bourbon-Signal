@@ -62,10 +62,6 @@ async function listUsers() {
   return users;
 }
 
-function dedupeSightings(items: MemberSighting[]) {
-  return [...new Map(items.map((item) => [item.id, item])).values()];
-}
-
 function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
   const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
   const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
@@ -160,7 +156,7 @@ export async function GET(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
   const durableOwned = (await createCommunitySightingsRepository().listSightings()).filter((item) => item.reporterUserId === userId);
-  const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableOwned]);
+  const ownedSightings = [...prefs.submittedSightings, ...durableOwned];
   const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
   if (metadataChanged(privateMetadata.memberRewards, nextRewards)) {
     await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
@@ -176,7 +172,7 @@ export async function POST(req: NextRequest) {
     if (!entitlements.canSubmitSightings) return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
     const sighting: MemberSighting = {
-      id: makeSightingId(),
+      id: payload.id || makeSightingId(),
       bottleName: String(payload.bottleName || "QA Preview Sighting"),
       bottleId: typeof payload.bottleId === "string" ? payload.bottleId : normalizeBottleKey(String(payload.bottleName || "QA Preview Sighting")),
       rarityTier: normalizeRarityTier(payload.rarityTier),
@@ -192,7 +188,7 @@ export async function POST(req: NextRequest) {
       source: "custom",
       sightingType: normalizeSightingType(payload.sightingType),
       reporterUserId: "qa-preview-user",
-      createdAt: new Date().toISOString(),
+      createdAt: payload.createdAt || new Date().toISOString(),
     };
     return NextResponse.json({ ok: true, sighting, sightings: [sighting], qaPreview: true });
   }
@@ -223,7 +219,7 @@ export async function POST(req: NextRequest) {
   const user = await client.users.getUser(userId);
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const sighting: MemberSighting = {
-    id: makeSightingId(),
+    id: payload.id || makeSightingId(),
     bottleName,
     bottleId: typeof payload.bottleId === "string" ? payload.bottleId.slice(0, 160) : normalizeBottleKey(bottleName),
     rarityTier: normalizeRarityTier(payload.rarityTier),
@@ -252,16 +248,16 @@ export async function POST(req: NextRequest) {
       manualStoreState: needsStoreReview ? manualStoreState : undefined,
       manualStoreZip: needsStoreReview ? sanitizeManualSightingField(reviewInput.manualStoreZip || payload.storeZip, 20) : undefined,
     } : undefined,
-    createdAt: new Date().toISOString(),
+    createdAt: payload.createdAt || new Date().toISOString(),
   };
   const repository = createCommunitySightingsRepository();
   const durableSightings = await repository.listSightings();
-  const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings.filter((item) => item.reporterUserId === userId)]);
+  const ownedSightings = [...prefs.submittedSightings, ...durableSightings.filter((item) => item.reporterUserId === userId)];
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const duplicate = ownedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
   if (duplicate) {
     const rewards: MemberRewardsSummary = summarizeMemberRewards(ownedSightings, privateMetadata.memberRewards);
-    return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: duplicate, rewards });
+    return NextResponse.json({ ok: true, duplicate: true, sighting: duplicate, rewards });
   }
 
   const savedSighting = await repository.insertSighting(sighting);
@@ -284,7 +280,7 @@ export async function POST(req: NextRequest) {
     }
   });
   const rewards: MemberRewardsSummary = summarizeMemberRewards(nextOwnedSightings, nextRewards);
-  return NextResponse.json({ ok: true, created: true, sighting: savedSighting, rewards });
+  return NextResponse.json({ ok: true, sighting: savedSighting, rewards });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -311,15 +307,25 @@ export async function PATCH(req: NextRequest) {
   // voting is a lightweight helpful/not-helpful reaction and admins often test their own sightings.
 
   const repository = createCommunitySightingsRepository();
-  if (!(await repository.getSighting(sightingId))) {
-    const { myVote: _myVote, reporterDisplayName: _reporterDisplayName, reporterBadges: _reporterBadges, upCount: _upCount, downCount: _downCount, ...canonicalTarget } = target;
-    await repository.insertSighting(canonicalTarget);
-  }
+  if (!(await repository.getSighting(sightingId))) await repository.insertSighting(target);
   if (!(await repository.getVote(sightingId, userId)) && target.myVote) {
     await repository.setVote(sightingId, userId, target.myVote);
   }
-  const voteResult = await repository.toggleVote(sightingId, userId, vote);
-  const updatedTarget: MemberSighting = { ...voteResult.sighting, myVote: voteResult.kind };
+  const nextVote = await repository.toggleVote(sightingId, userId, vote);
+  const nextUpCount = Math.max(0, (target.upCount || 0) - (target.myVote === "up" ? 1 : 0) + (nextVote === "up" ? 1 : 0));
+  const nextDownCount = Math.max(0, (target.downCount || 0) - (target.myVote === "down" ? 1 : 0) + (nextVote === "down" ? 1 : 0));
+  const isHelpful = communityVerified(nextUpCount, nextDownCount);
+  const updatedTarget: MemberSighting = {
+    ...target,
+    upCount: nextUpCount,
+    downCount: nextDownCount,
+    myVote: nextVote,
+    rewardState: {
+      ...(target.rewardState || {}),
+      helpfulAt: isHelpful ? (target.rewardState?.helpfulAt || new Date().toISOString()) : undefined,
+    },
+  };
+  await repository.updateSighting(updatedTarget);
 
   let rewards: MemberRewardsSummary | undefined;
   try {
@@ -330,10 +336,9 @@ export async function PATCH(req: NextRequest) {
       const ownerPrivateMetadata = (owner.privateMetadata && typeof owner.privateMetadata === "object" ? owner.privateMetadata : {}) as Record<string, unknown>;
       const ownerPrefs = normalizePrefs(ownerPublicMetadata.sightingsPreferences);
       const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === updatedTarget.reporterUserId);
-      const ownedSightings = dedupeSightings([...ownerPrefs.submittedSightings, ...durableOwned]);
-      const nextOwnerRewards = reconcileMemberRewards(ownedSightings, ownerPrivateMetadata.memberRewards);
+      const nextOwnerRewards = reconcileMemberRewards([...ownerPrefs.submittedSightings, ...durableOwned], ownerPrivateMetadata.memberRewards);
       await client.users.updateUserMetadata(updatedTarget.reporterUserId, { privateMetadata: { ...ownerPrivateMetadata, memberRewards: nextOwnerRewards } });
-      rewards = summarizeMemberRewards(ownedSightings, nextOwnerRewards);
+      rewards = summarizeMemberRewards([...ownerPrefs.submittedSightings, ...durableOwned], nextOwnerRewards);
     }
   } catch (error) {
     console.error("Sighting vote persisted, but reward reconciliation failed", error);

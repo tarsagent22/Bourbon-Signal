@@ -334,16 +334,15 @@ export default function SightingsClient() {
       createdAt: new Date().toISOString(),
     };
     try {
-      const { sighting: savedSighting, created } = await addSighting(sighting);
+      const savedSighting = await addSighting(sighting);
       setSaved(savedSighting);
-      if (proofPhoto && created) {
+      if (proofPhoto) {
         try {
           await uploadSightingPhoto(savedSighting.id, proofPhoto);
         } catch (error) {
           setSubmitError(error instanceof Error ? `Sighting saved, but the photo was not attached: ${error.message}` : "Sighting saved, but the photo was not attached.");
         }
       }
-      if (!created) setSubmitError("This sighting was already reported recently, so no duplicate or new photo was added.");
       setQuantityEstimate("");
       setPrice("");
       setNotes("");

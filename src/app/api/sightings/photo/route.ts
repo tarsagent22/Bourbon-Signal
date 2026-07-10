@@ -67,9 +67,7 @@ export async function POST(req: NextRequest) {
         ...(await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId),
       ];
       const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-      await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } }).catch((error) => {
-        console.error("Sighting photo persisted, but reward reconciliation failed", error);
-      });
+      await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
     } else {
       const nextSightings = prefs.submittedSightings.map((sighting) => sighting.id === sightingId ? updatedTarget : sighting);
       ownedSightings = nextSightings;
@@ -80,10 +78,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     await del(uploaded.url).catch(() => undefined);
     throw error;
-  }
-  const previousUrl = target.rewardState?.photoProof?.url;
-  if (previousUrl && previousUrl !== uploaded.url) {
-    await del(previousUrl).catch((error) => console.error("Unable to remove replaced sighting proof", error));
   }
   return NextResponse.json({ ok: true, photoProof: updatedTarget.rewardState?.photoProof });
 }
