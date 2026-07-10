@@ -84,10 +84,14 @@ for (const required of [
 }
 
 const releaseOrchestrator = read('scripts/release-production.mjs');
+const scheduledRefresh = read('engine/bourbon-signal-engine-refresh.ps1');
 const deliveryRoute = read('src/app/api/alerts/deliver/route.ts');
 const opsHealth = read('src/lib/ops-health.ts');
 if (releaseOrchestrator.includes("git(tempRoot, ['push', 'origin', 'HEAD:main'])")) {
   failures.push('Release orchestrator must not mutate origin/main to stage generated exports.');
+}
+if (!scheduledRefresh.includes("$env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'") || scheduledRefresh.includes("BOURBON_SIGNAL_AUTO_DEPLOY) { $env:BOURBON_SIGNAL_AUTO_DEPLOY } else { '1'")) {
+  failures.push('Scheduled engine collection must never deploy directly to Vercel production.');
 }
 if (deliveryRoute.indexOf('assertAlertDeliveryAuthorized(req)') > deliveryRoute.indexOf('const startedAt')) {
   failures.push('Alert delivery authorization must happen before heartbeat-eligible execution starts.');
