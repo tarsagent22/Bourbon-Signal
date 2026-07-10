@@ -163,6 +163,10 @@ async function deployAndAlias(tempRoot, manifest) {
   const deployment = await run('vercel', ['deploy', '--prod', '--yes', '--scope', VERCEL_SCOPE], { cwd: tempRoot });
   const deploymentUrl = parseDeploymentUrl(`${deployment.stdout}\n${deployment.stderr}`);
   if (!deploymentUrl) throw new Error('Vercel deployment completed without a deployment URL.');
+  await run('vercel', ['promote', deploymentUrl, '--yes', '--scope', VERCEL_SCOPE, '--timeout', '3m'], { cwd: tempRoot, timeoutMs: 4 * 60_000 }).catch((error) => {
+    const output = `${error?.result?.stdout || ''}\n${error?.result?.stderr || ''}`;
+    if (!/already the current production deployment/iu.test(output)) throw error;
+  });
   const domains = (process.env.BOURBON_SIGNAL_PRODUCTION_DOMAINS || DEFAULT_DOMAINS.join(','))
     .split(',').map((value) => value.trim()).filter(Boolean);
   for (const domain of domains) {
