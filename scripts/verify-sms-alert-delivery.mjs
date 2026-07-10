@@ -10,6 +10,7 @@ function read(path) {
 }
 
 const delivery = read('src/lib/alert-delivery.ts');
+const smsCopy = read('src/lib/sms-alert-copy.ts');
 const prefs = read('src/lib/notification-preferences.ts');
 const route = read('src/app/api/alerts/deliver/route.ts');
 
@@ -35,8 +36,12 @@ if (!/MessagingServiceSid/.test(delivery)) {
   fail('Twilio sends should prefer MessagingServiceSid for A2P/campaign routing.');
 }
 
-if (!/Body/.test(delivery) || !/Reply STOP/.test(delivery)) {
+if (!/Body/.test(delivery) || !/formatSmsAlert/.test(delivery) || !/Reply STOP/.test(smsCopy)) {
   fail('SMS alert body should include conservative STOP-safe copy.');
+}
+
+if (/\.slice\(0,\s*\d+\)/.test(smsCopy)) {
+  fail('SMS alert copy must not truncate the completed message or compliance footer.');
 }
 
 if (!/smsBaselineDedupeKeys/.test(delivery) || !/lastSmsBaselineAt/.test(delivery)) {
