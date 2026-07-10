@@ -72,8 +72,6 @@ export class CommunitySightingsRepository {
     const rows = await this.query.query(
       `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
        VALUES ($1, $2, $3::jsonb, $4::timestamptz)
-       ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, updated_at = NOW()
-       WHERE community_sightings.reporter_user_id = EXCLUDED.reporter_user_id
        RETURNING payload`,
       [sighting.id, sighting.reporterUserId, JSON.stringify(sighting), sighting.createdAt],
     ) as Array<{ payload: MemberSighting }>;
@@ -84,7 +82,18 @@ export class CommunitySightingsRepository {
   async updateSighting(sighting: MemberSighting): Promise<MemberSighting> {
     await this.ensureSchema();
     const rows = await this.query.query(
-      `UPDATE community_sightings SET payload = $2::jsonb, updated_at = NOW() WHERE id = $1 RETURNING payload`,
+      `WITH locked AS (SELECT pg_advisory_xact_lock(hashtext($1)))
+       UPDATE community_sightings
+       SET payload = jsonb_set(
+         jsonb_set(
+           jsonb_set($2::jsonb, '{upCount}', COALESCE(payload->'upCount', '0'::jsonb), true),
+           '{downCount}', COALESCE(payload->'downCount', '0'::jsonb), true
+         ),
+         '{rewardState,helpfulAt}',
+         COALESCE(payload#>'{rewardState,helpfulAt}', 'null'::jsonb),
+         true
+       ), updated_at = NOW()
+       FROM locked WHERE id = $1 RETURNING community_sightings.payload`,
       [sighting.id, JSON.stringify(sighting)],
     ) as Array<{ payload: MemberSighting }>;
     if (!rows[0]) throw new Error("Member sighting not found.");
@@ -122,34 +131,52 @@ export class CommunitySightingsRepository {
     );
   }
 
-  async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<SightingVoteKind | null> {
+  async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting }> {
     await this.ensureSchema();
     const rows = await this.query.query(
-      `WITH locked AS (
-         SELECT pg_advisory_xact_lock(hashtextextended($1 || ':' || $2, 0))
+      `WITH locked AS MATERIALIZED (
+         SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
        ), prior AS MATERIALIZED (
          SELECT v.kind FROM community_sighting_votes v, locked
          WHERE v.sighting_id = $1 AND v.user_id = $2
+       ), before_counts AS MATERIALIZED (
+         SELECT COUNT(*) FILTER (WHERE v.kind = 'up')::int AS up_count,
+                COUNT(*) FILTER (WHERE v.kind = 'down')::int AS down_count
+         FROM community_sighting_votes v, locked WHERE v.sighting_id = $1
        ), removed AS (
          DELETE FROM community_sighting_votes v
-         USING prior
-         WHERE v.sighting_id = $1 AND v.user_id = $2 AND prior.kind = $3
+         WHERE v.sighting_id = $1 AND v.user_id = $2
+           AND EXISTS (SELECT 1 FROM prior WHERE kind = $3)
          RETURNING v.kind
        ), saved AS (
          INSERT INTO community_sighting_votes (sighting_id, user_id, kind)
-         SELECT $1, $2, $3
-         WHERE NOT EXISTS (SELECT 1 FROM prior WHERE kind = $3)
-         ON CONFLICT (sighting_id, user_id)
-         DO UPDATE SET kind = EXCLUDED.kind, created_at = NOW()
+         SELECT $1, $2, $3 WHERE NOT EXISTS (SELECT 1 FROM prior WHERE kind = $3)
+         ON CONFLICT (sighting_id, user_id) DO UPDATE SET kind = EXCLUDED.kind, created_at = NOW()
          RETURNING kind
-       )
-       SELECT kind FROM saved
-       UNION ALL
-       SELECT NULL::text AS kind FROM removed
-       LIMIT 1`,
+       ), outcome AS MATERIALIZED (
+         SELECT (SELECT kind FROM saved LIMIT 1) AS next_kind,
+           GREATEST(0, before_counts.up_count - CASE WHEN (SELECT kind FROM prior) = 'up' THEN 1 ELSE 0 END + CASE WHEN (SELECT kind FROM saved) = 'up' THEN 1 ELSE 0 END)::int AS up_count,
+           GREATEST(0, before_counts.down_count - CASE WHEN (SELECT kind FROM prior) = 'down' THEN 1 ELSE 0 END + CASE WHEN (SELECT kind FROM saved) = 'down' THEN 1 ELSE 0 END)::int AS down_count
+         FROM before_counts
+       ), updated AS (
+         UPDATE community_sightings SET
+           payload = jsonb_set(jsonb_set(jsonb_set(
+             payload, '{rewardState}',
+             CASE WHEN outcome.up_count >= 3 AND outcome.up_count > outcome.down_count
+               THEN jsonb_set(COALESCE(payload->'rewardState', '{}'::jsonb), '{helpfulAt}', to_jsonb(COALESCE(payload->'rewardState'->>'helpfulAt', NOW()::text)), true)
+               ELSE COALESCE(payload->'rewardState', '{}'::jsonb) - 'helpfulAt' END, true),
+             '{upCount}', to_jsonb(outcome.up_count), true),
+             '{downCount}', to_jsonb(outcome.down_count), true)
+             || jsonb_build_object('communityVerified', outcome.up_count >= 3 AND outcome.up_count > outcome.down_count),
+           updated_at = NOW()
+         FROM outcome WHERE id = $1
+         RETURNING payload, outcome.next_kind, outcome.up_count, outcome.down_count
+       ) SELECT payload, next_kind, up_count, down_count FROM updated`,
       [sightingId, userId, kind],
-    ) as Array<{ kind: SightingVoteKind | null }>;
-    return rows[0]?.kind || null;
+    ) as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number }>;
+    const row = rows[0];
+    if (!row) throw new Error("Sighting not found");
+    return { kind: row.next_kind, upCount: Number(row.up_count), downCount: Number(row.down_count), sighting: row.payload };
   }
 }
 

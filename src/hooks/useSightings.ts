@@ -17,6 +17,7 @@ interface SightingsFeedResponse {
   rewards?: MemberRewardsSummary;
   previewLimit?: number | null;
   totalSightings?: number;
+  created?: boolean;
 }
 
 export function useSightings(enabled: boolean = true) {
@@ -118,8 +119,8 @@ export function useSightings(enabled: boolean = true) {
       const savedSighting = data.sighting || sighting;
       setSightings((current) => [savedSighting, ...current.filter((item) => item.id !== savedSighting.id)]);
       if (data.rewards) setRewards(data.rewards);
-      setTotalSightings((current) => (current === null ? current : current + (current > 0 && savedSighting.id === sighting.id ? 1 : 0)));
-      return savedSighting;
+      setTotalSightings((current) => (current === null ? current : current + (data.created ? 1 : 0)));
+      return { sighting: savedSighting, created: data.created !== false };
     } catch (err) {
       console.error("Failed to save sighting", err);
       const message = err instanceof Error ? err.message : "Unable to save sighting";

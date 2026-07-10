@@ -72,6 +72,9 @@ export async function PATCH(req: NextRequest) {
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
   const repository = createCommunitySightingsRepository();
   const durableTarget = await repository.getSighting(sightingId);
+  if (durableTarget && durableTarget.reporterUserId !== reporterUserId) {
+    return NextResponse.json({ error: "Sighting owner mismatch" }, { status: 409 });
+  }
   const sourceSightings = durableTarget ? [durableTarget] : prefs.submittedSightings;
   const now = new Date().toISOString();
   let status: SightingPhotoReviewStatus | null = null;
