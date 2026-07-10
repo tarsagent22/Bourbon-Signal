@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { put } from "@vercel/blob";
-import { compactSightingsPreferencesForMetadata, type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
+import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -58,6 +58,6 @@ export async function POST(req: NextRequest) {
     : sighting);
   const nextPrefs = { ...prefs, submittedSightings: nextSightings };
   const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards);
-  await client.users.updateUserMetadata(userId, { publicMetadata: { ...publicMetadata, sightingsPreferences: compactSightingsPreferencesForMetadata(nextPrefs) }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  await client.users.updateUserMetadata(userId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   return NextResponse.json({ ok: true, photoProof: nextSightings.find((sighting) => sighting.id === sightingId)?.rewardState?.photoProof });
 }

@@ -207,9 +207,8 @@ export default function SightingsClient() {
   const [proofPhoto, setProofPhoto] = useState<File | null>(null);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
-
+  const [saved, setSaved] = useState<MemberSighting | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitNotice, setSubmitNotice] = useState<string | null>(null);
   const [bottleCheckMatches, setBottleCheckMatches] = useState<Bottle[]>([]);
 
   useEffect(() => {
@@ -293,7 +292,6 @@ export default function SightingsClient() {
 
   const submit = async () => {
     setSubmitError(null);
-    setSubmitNotice(null);
     if (!authLoaded || !isSignedIn) return signIn();
     if (!canSubmitSightings) return setSubmitError("Sign in to submit sightings.");
     const bottleName = bottleQuery.trim();
@@ -335,33 +333,20 @@ export default function SightingsClient() {
       } : undefined,
       createdAt: new Date().toISOString(),
     };
-    try {
-      const savedSighting = await addSighting(sighting);
-
-      setSubmitNotice("Sighting saved. It now appears in the member feed.");
-      let photoUploadFailed = false;
-      if (proofPhoto) {
-        try {
-          await uploadSightingPhoto(savedSighting.id, proofPhoto);
-        } catch {
-          photoUploadFailed = true;
-          setSubmitNotice("Sighting saved, but the photo could not be uploaded. You can still find the sighting in the member feed.");
-        }
-      }
-      setQuantityEstimate("");
-      setPrice("");
-      setNotes("");
-      setProofPhoto(null);
-      setManualStoreMode(false);
-      setManualStoreAddress("");
-      setManualStoreCity("");
-      setManualStoreState("");
-      setManualStoreZip("");
-      setManualBottleConfirmed(false);
-      if (!photoUploadFailed) setActiveTab("feed");
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Unable to save this sighting. Please try again.");
-    }
+    const savedSighting = await addSighting(sighting);
+    if (proofPhoto) await uploadSightingPhoto(savedSighting.id, proofPhoto);
+    setSaved(savedSighting);
+    setQuantityEstimate("");
+    setPrice("");
+    setNotes("");
+    setProofPhoto(null);
+    setManualStoreMode(false);
+    setManualStoreAddress("");
+    setManualStoreCity("");
+    setManualStoreState("");
+    setManualStoreZip("");
+    setManualBottleConfirmed(false);
+    setActiveTab("feed");
   };
 
   if (authLoaded && !isSignedIn) {
@@ -519,7 +504,7 @@ export default function SightingsClient() {
 
               <section className="sighting-step-card" data-complete={Boolean(bottleQuery.trim() && (selectedStore || isManualStore))}>
                 <div className="sighting-step-head"><span className="sighting-step-number">04</span><div><strong>Submit</strong><span>We’ll add the report to the member feed and use new bottle/store info to strengthen Bourbon Signal.</span></div></div>
-                {submitError ? <div style={{ color: "#ffb4a3", marginTop: 12, fontSize: 13 }}>{submitError}</div> : null}{submitNotice ? <div style={{ color: "var(--color-accent-amber)", marginTop: 12, fontSize: 13 }}>{submitNotice}</div> : null}
+                {submitError ? <div style={{ color: "#ffb4a3", marginTop: 12, fontSize: 13 }}>{submitError}</div> : null}{saved ? <div style={{ color: "var(--color-accent-amber)", marginTop: 12, fontSize: 13 }}>Sighting saved. It now appears in the member feed.</div> : null}
                 <button type="button" onClick={submit} disabled={saving || !canSubmitSightings} className="sighting-submit"><Send size={16} /> {saving ? "Saving…" : "Submit sighting"}</button>
               </section>
             </div>

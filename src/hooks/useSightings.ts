@@ -112,10 +112,9 @@ export function useSightings(enabled: boolean = true) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sighting),
-        signal: AbortSignal.timeout(20_000),
       });
-      const data = (await res.json().catch(() => ({}))) as SightingsFeedResponse & { sighting?: MemberSighting; error?: string };
-      if (!res.ok) throw new Error(data.error || "Unable to save sighting");
+      if (!res.ok) throw new Error("Unable to save sighting");
+      const data = (await res.json()) as SightingsFeedResponse & { sighting?: MemberSighting };
       setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
       setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
@@ -124,7 +123,7 @@ export function useSightings(enabled: boolean = true) {
       return data.sighting || sighting;
     } catch (err) {
       console.error("Failed to save sighting", err);
-      setError(err instanceof Error ? err.message : "Unable to save sighting");
+      setError("Unable to save sighting");
       throw err;
     } finally {
       setSaving(false);
@@ -134,26 +133,14 @@ export function useSightings(enabled: boolean = true) {
   const voteSighting = useCallback(async (sightingId: string, vote: SightingVoteKind) => {
     setSaving(true);
     setError(null);
-    setSightings((current) => current.map((sighting) => {
-      if (sighting.id !== sightingId) return sighting;
-      const sameVote = sighting.myVote === vote;
-      const wasUp = sighting.myVote === "up";
-      const wasDown = sighting.myVote === "down";
-      return {
-        ...sighting,
-        myVote: sameVote ? null : vote,
-        upCount: Math.max(0, (sighting.upCount || 0) - (wasUp ? 1 : 0) + (!sameVote && vote === "up" ? 1 : 0)),
-        downCount: Math.max(0, (sighting.downCount || 0) - (wasDown ? 1 : 0) + (!sameVote && vote === "down" ? 1 : 0)),
-      };
-    })); // optimistic: both feeds respond immediately while persistence completes
     try {
       const res = await fetch("/api/sightings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sightingId, vote }),
       });
-      const data = (await res.json().catch(() => ({}))) as SightingsFeedResponse & { error?: string };
-      if (!res.ok) throw new Error(data.error || "Unable to save vote");
+      if (!res.ok) throw new Error("Unable to save vote");
+      const data = (await res.json()) as SightingsFeedResponse;
       setSightings(data.sightings || []);
       if (data.rewards) setRewards(data.rewards);
       setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
@@ -161,13 +148,12 @@ export function useSightings(enabled: boolean = true) {
       await refreshPreferences().catch(() => undefined);
     } catch (err) {
       console.error("Failed to save sighting vote", err);
-      setError(err instanceof Error ? err.message : "Unable to save vote");
-      await refreshSightings().catch(() => undefined);
+      setError("Unable to save vote");
       throw err;
     } finally {
       setSaving(false);
     }
-  }, [refreshPreferences, refreshSightings]);
+  }, [refreshPreferences]);
 
   const uploadSightingPhoto = useCallback(async (sightingId: string, file: File) => {
     setSaving(true);
