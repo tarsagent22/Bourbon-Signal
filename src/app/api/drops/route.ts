@@ -5,6 +5,7 @@ import { isUserFacingDropSignal, normalizeDropForSite, readSiteExport, siteExpor
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
+import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -106,10 +107,6 @@ function asTime(value: unknown) {
   return Number.isFinite(time) ? time : Number.NaN;
 }
 
-function publicDropTimestamp(drop: Record<string, unknown>) {
-  return asTime(drop.timestamp ?? drop.displayAt ?? drop.event_at ?? drop.eventAt ?? drop.first_seen_at ?? drop.firstSeenAt ?? drop.last_confirmed_at ?? drop.lastConfirmedAt);
-}
-
 function maxAgeForDrop(drop: Record<string, unknown>) {
   const type = String(drop.event_type ?? drop.type ?? "").toLowerCase();
   const category = String(drop.signal_category ?? drop.signalCategory ?? "").toLowerCase();
@@ -130,7 +127,7 @@ function maxAgeForDrop(drop: Record<string, unknown>) {
 }
 
 function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.now()) {
-  const timestamp = publicDropTimestamp(drop);
+  const timestamp = dropFreshnessTime(drop);
   if (!Number.isFinite(timestamp)) return false;
   if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
   return now - timestamp <= maxAgeForDrop(drop);
@@ -216,9 +213,8 @@ export async function GET(request: Request) {
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
   const entitlements = getEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
-  const requestedLimit = Math.min(100, Math.max(0, Number(url.searchParams.get("limit") ?? "40") || 40));
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
-  const limit = isFreeAccess ? Math.min(requestedLimit, previewLimit) : requestedLimit;
+  const limit = resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
   if (requestedCursor && !decodeDropCursor(requestedCursor)) {
