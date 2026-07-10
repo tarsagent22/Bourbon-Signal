@@ -77,6 +77,30 @@ export const EMPTY_SIGHTINGS_PREFERENCES: SightingsPreferences = {
   sightingVotes: [],
 };
 
+export function compactSightingsPreferencesForMetadata(prefs: SightingsPreferences): SightingsPreferences {
+  return {
+    submittedSightings: prefs.submittedSightings.slice(0, 100).map((sighting) => {
+      const { reporterUserId: _derivedReporter, rewardState, reviewState, ...essential } = sighting;
+      const compactReward = rewardState?.photoProof || rewardState?.removedAt
+        ? { photoProof: rewardState.photoProof, removedAt: rewardState.removedAt }
+        : undefined;
+      const compactReview = reviewState && Object.values(reviewState).some((value) => value !== undefined && value !== false && value !== "")
+        ? Object.fromEntries(Object.entries(reviewState).filter(([, value]) => value !== undefined && value !== false && value !== "")) as SightingReviewState
+        : undefined;
+      return { ...essential, rewardState: compactReward, reviewState: compactReview };
+    }),
+    signalReports: prefs.signalReports.slice(0, 100),
+    sightingVotes: (prefs.sightingVotes || []).slice(0, 100),
+  };
+}
+
+export function applySightingVote(existingVotes: SightingVote[], sightingId: string, vote: SightingVoteKind, createdAt = new Date().toISOString()) {
+  const existing = existingVotes.find((item) => item.sightingId === sightingId);
+  const withoutExisting = existingVotes.filter((item) => item.sightingId !== sightingId);
+  if (existing?.kind === vote) return withoutExisting;
+  return [{ sightingId, kind: vote, createdAt }, ...withoutExisting].slice(0, 500);
+}
+
 export function normalizeBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }

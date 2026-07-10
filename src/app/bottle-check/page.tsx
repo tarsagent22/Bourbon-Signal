@@ -119,7 +119,7 @@ export default function BottleCheckPage() {
   const bottleCheckLimit = entitlements.bottleCheckLimit;
   const isFreeBottleCheck = bottleCheckLimit !== null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
-  const [query, setQuery] = useState("Buffalo Trace");
+  const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [submittedState, setSubmittedState] = useState("NC");
   const [state, setState] = useState("NC");
@@ -549,7 +549,7 @@ const bottleCheckCss = `
 .bc-shell { padding: 10px 0 78px; }
 .bc-search-card { display:flex; align-items:flex-end; gap:12px; width:100%; max-width:100%; box-sizing:border-box; padding:16px; border:1px solid rgba(196,148,58,.22); border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.025)); box-shadow:0 24px 90px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.055); }
 .bc-field { display:grid; gap:8px; min-width:0; max-width:100%; }
-.bc-field.grow { flex:1 1 0; min-width:0; }
+.bc-field.grow { position:relative; z-index:8; flex:1 1 0; min-width:0; }
 .bc-field.state { width:220px; min-width:0; }
 .bc-field label { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
 .bc-search-input-wrap { position:relative; min-width:0; max-width:100%; }
@@ -557,7 +557,7 @@ const bottleCheckCss = `
 .bc-field input:focus { border-color:rgba(212,164,74,.78); box-shadow:0 0 0 3px rgba(212,164,74,.12); }
 .bc-search-clear { position:absolute; right:8px; top:50%; transform:translateY(-50%); appearance:none; width:32px; height:32px; border:1px solid rgba(247,240,224,.10); border-radius:999px; background:rgba(255,255,255,.045); color:var(--color-text-secondary); display:grid; place-items:center; padding:0; font:800 22px/0 var(--font-dm-sans); cursor:pointer; }
 .bc-search-clear:hover, .bc-search-clear:focus-visible { color:var(--color-text-primary); border-color:rgba(212,146,11,.34); outline:none; }
-.bc-live-suggestions { margin-top:8px; display:grid; gap:7px; width:100%; max-width:100%; min-width:0; overflow:hidden; }
+.bc-live-suggestions { position:absolute; z-index:30; top:calc(100% + 7px); left:0; right:0; display:grid; gap:7px; width:100%; max-width:100%; max-height:min(420px,60vh); min-width:0; overflow-y:auto; padding:8px; box-sizing:border-box; border:1px solid rgba(196,148,58,.2); border-radius:16px; background:rgba(13,10,8,.985); box-shadow:0 20px 48px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04); }
 .bc-live-suggestions button { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; width:100%; max-width:100%; min-width:0; box-sizing:border-box; text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:13px; background:rgba(255,255,255,.035); color:var(--color-text-primary); padding:9px 10px 9px 12px; font:800 13px/1.2 var(--font-dm-sans); cursor:pointer; }
 .bc-live-suggestions button:hover, .bc-live-suggestions button:focus-visible { border-color:rgba(196,148,58,.48); background:rgba(196,148,58,.095); outline:none; }
 .bc-live-suggestions .bc-live-missing { margin-top:6px; border-color:rgba(196,148,58,.32); background:rgba(196,148,58,.11); }

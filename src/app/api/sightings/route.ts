@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
+import { applySightingVote, compactSightingsPreferencesForMetadata, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
 import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
 
   const nextRewards = reconcileMemberRewards(next.submittedSightings, privateMetadata.memberRewards);
 
-  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: compactSightingsPreferencesForMetadata(next) }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   if (needsBottleReview) {
     await addBottleContribution({
       rawName: sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140),
@@ -285,20 +285,15 @@ export async function PATCH(req: NextRequest) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
-  const existingVote = (prefs.sightingVotes || []).find((item) => item.sightingId === sightingId);
-  const withoutExisting = (prefs.sightingVotes || []).filter((item) => item.sightingId !== sightingId);
-  const nextVote: SightingVote = { sightingId, kind: vote, createdAt: new Date().toISOString() };
-  const nextVotes: SightingVote[] = existingVote?.kind === vote
-    ? withoutExisting
-    : [nextVote, ...withoutExisting].slice(0, 500);
+  const nextVotes = applySightingVote(prefs.sightingVotes || [], sightingId, vote);
   const next = { ...prefs, sightingVotes: nextVotes };
-  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: next } });
+  await client.users.updateUserMetadata(userId, { publicMetadata: { ...user.publicMetadata, sightingsPreferences: compactSightingsPreferencesForMetadata(next) } });
 
   if (target.reporterUserId) {
     const owner = await client.users.getUser(target.reporterUserId);
     const ownerPublicMetadata = (owner.publicMetadata && typeof owner.publicMetadata === "object" ? owner.publicMetadata : {}) as Record<string, unknown>;
     const ownerPrivateMetadata = (owner.privateMetadata && typeof owner.privateMetadata === "object" ? owner.privateMetadata : {}) as Record<string, unknown>;
-    const ownerPrefs = normalizePrefs(ownerPublicMetadata.sightingsPreferences);
+    const ownerPrefs = target.reporterUserId === userId ? next : normalizePrefs(ownerPublicMetadata.sightingsPreferences);
     const updatedOwnerSightings: MemberSighting[] = ownerPrefs.submittedSightings.map((item) => {
       const nextUpCount = (target.upCount || 0) + (vote === "up" && target.myVote !== "up" ? 1 : 0);
       if (item.id !== sightingId || !communityVerified(nextUpCount, target.downCount || 0)) return item;
@@ -306,7 +301,8 @@ export async function PATCH(req: NextRequest) {
     });
     const ownerNextPrefs = { ...ownerPrefs, submittedSightings: updatedOwnerSightings };
     const ownerRewards = reconcileMemberRewards(updatedOwnerSightings, ownerPrivateMetadata.memberRewards);
-    await client.users.updateUserMetadata(target.reporterUserId, { publicMetadata: { ...ownerPublicMetadata, sightingsPreferences: ownerNextPrefs }, privateMetadata: { ...ownerPrivateMetadata, memberRewards: ownerRewards } });
+    const ownerMetadataBase = target.reporterUserId === userId ? user.publicMetadata : ownerPublicMetadata;
+    await client.users.updateUserMetadata(target.reporterUserId, { publicMetadata: { ...ownerMetadataBase, sightingsPreferences: compactSightingsPreferencesForMetadata(ownerNextPrefs) }, privateMetadata: { ...ownerPrivateMetadata, memberRewards: ownerRewards } });
   }
 
   const sightings = await getAggregateSightings(userId);
