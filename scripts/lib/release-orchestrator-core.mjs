@@ -27,8 +27,14 @@ export function assertExportFileSet(files) {
   if (unexpected.length) throw new Error(`Unexpected site export files: ${unexpected.join(', ')}`);
 }
 
+function isAllowedSiteExportPath(file) {
+  return ALLOWED_SITE_EXPORT_PATHS.has(file)
+    || file === 'engine/out/site/states/index.json'
+    || /^engine\/out\/site\/states\/[A-Z0-9-]+\/drops\.json$/u.test(file);
+}
+
 export function assertChangedExportPaths(paths) {
-  const unsafe = paths.filter((file) => !ALLOWED_SITE_EXPORT_PATHS.has(file));
+  const unsafe = paths.filter((file) => !isAllowedSiteExportPath(file));
   if (unsafe.length) throw new Error(`Generated export staging touched non-allowlisted paths: ${unsafe.join(', ')}`);
 }
 

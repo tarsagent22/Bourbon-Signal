@@ -77,9 +77,21 @@ async function sha256File(file) {
   return createHash('sha256').update(await readFile(file)).digest('hex');
 }
 
+async function listJsonFiles(directory, relative = '') {
+  const entries = await readdir(path.join(directory, relative), { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const child = relative ? `${relative}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) files.push(...await listJsonFiles(directory, child));
+    else if (entry.isFile() && entry.name.endsWith('.json')) files.push(child);
+  }
+  return files.sort();
+}
+
 async function hashJsonDirectory(directory) {
-  const files = (await readdir(directory)).filter((file) => file.endsWith('.json')).sort();
-  assertExportFileSet(files);
+  const files = await listJsonFiles(directory);
+  assertExportFileSet(files.filter((file) => !file.includes('/')));
+  assertChangedExportPaths(files.map((file) => `engine/out/site/${file}`));
   const entries = await Promise.all(files.map(async (file) => ({ path: file, contents: await readFile(path.join(directory, file)) })));
   return hashEntries(entries);
 }
@@ -87,11 +99,17 @@ async function hashJsonDirectory(directory) {
 async function copySiteExports(sourceDir, checkoutRoot) {
   const sourceStat = await stat(sourceDir).catch(() => null);
   if (!sourceStat?.isDirectory()) throw new Error(`Site export source is not a directory: ${sourceDir}`);
-  const files = (await readdir(sourceDir)).filter((file) => file.endsWith('.json')).sort();
-  assertExportFileSet(files);
+  const files = await listJsonFiles(sourceDir);
+  assertExportFileSet(files.filter((file) => !file.includes('/')));
+  assertChangedExportPaths(files.map((file) => `engine/out/site/${file}`));
   const destination = path.join(checkoutRoot, 'engine', 'out', 'site');
+  await rm(destination, { recursive: true, force: true });
   await mkdir(destination, { recursive: true });
-  for (const file of files) await copyFile(path.join(sourceDir, file), path.join(destination, file));
+  for (const file of files) {
+    const output = path.join(destination, file);
+    await mkdir(path.dirname(output), { recursive: true });
+    await copyFile(path.join(sourceDir, file), output);
+  }
   return { destination, files };
 }
 
