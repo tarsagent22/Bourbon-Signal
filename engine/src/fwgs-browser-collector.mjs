@@ -71,8 +71,7 @@ async function getOrCreateTarget(cdpUrl) {
   };
   if (process.env.FWGS_REUSE_TAB !== '1') return newTarget();
   const tabs = await cdpFetch(cdpUrl, '/json/list');
-  const existing = tabs.find((t) => t.type === 'page' && /finewineandgoodspirits\.com/.test(t.url || '') && t.webSocketDebuggerUrl)
-    || tabs.find((t) => t.type === 'page' && t.url !== 'chrome://newtab/' && t.webSocketDebuggerUrl);
+  const existing = tabs.find((t) => t.type === 'page' && /finewineandgoodspirits\.com/.test(t.url || '') && t.webSocketDebuggerUrl);
   return existing?.webSocketDebuggerUrl ? existing : newTarget();
 }
 
@@ -99,6 +98,11 @@ class CdpPage {
       if (msg.error) pending.reject(new Error(`${msg.error.message}${msg.error.data ? `: ${msg.error.data}` : ''}`));
       else pending.resolve(msg.result);
     });
+    this.ws.addEventListener('close', () => {
+      const error = new Error('CDP websocket closed');
+      for (const pending of this.pending.values()) pending.reject(error);
+      this.pending.clear();
+    }, { once: true });
     await this.send('Page.enable');
     await this.send('Runtime.enable');
   }

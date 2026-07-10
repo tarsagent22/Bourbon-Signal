@@ -127,6 +127,20 @@ function validateOhlqArtifact(payload) {
   return { ok: true, reason: `OHLQ artifact accepted: ${okProducts} successful products, ${inventoryRows} inventory rows.` };
 }
 
+function terminateProcessTree(child) {
+  if (!child?.pid) return Promise.resolve();
+  if (process.platform === 'win32') {
+    return new Promise((resolve) => {
+      const killer = spawn('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+      killer.once('close', resolve);
+      killer.once('error', resolve);
+    });
+  }
+  try { process.kill(-child.pid, 'SIGTERM'); }
+  catch { try { child.kill('SIGTERM'); } catch {} }
+  return Promise.resolve();
+}
+
 function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_TIMEOUT_MS || 180_000), extraEnv = {}) {
   return new Promise((resolve) => {
     const startedAt = new Date().toISOString();
@@ -134,15 +148,16 @@ function runNodeScript(command, timeoutMs = Number(process.env.BOURBON_SIGNAL_BR
       cwd: process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, ...extraEnv },
-      windowsHide: true
+      windowsHide: true,
+      detached: process.platform !== 'win32'
     });
     let stdout = '';
     let stderr = '';
     let settled = false;
-    const timeout = timeoutMs > 0 ? setTimeout(() => {
+    const timeout = timeoutMs > 0 ? setTimeout(async () => {
       if (settled) return;
       settled = true;
-      try { child.kill(); } catch {}
+      await terminateProcessTree(child);
       resolve({ ok: false, startedAt, finishedAt: new Date().toISOString(), code: 'timeout', stdout: stdout.slice(-4000), stderr: stderr.slice(-4000), error: `Timed out after ${Math.round(timeoutMs / 1000)}s` });
     }, timeoutMs) : null;
     child.stdout.on('data', (chunk) => { stdout += chunk.toString(); process.stdout.write(chunk); });

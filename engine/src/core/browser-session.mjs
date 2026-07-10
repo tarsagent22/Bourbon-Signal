@@ -69,13 +69,18 @@ export async function ensureBrowserCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
   const autoStart = options.autoStart ?? process.env.FWGS_AUTO_START_BROWSER !== '0';
   if (!autoStart) throw new Error(`CDP is not reachable at ${cdpUrl}; FWGS_AUTO_START_BROWSER=0 disables browser startup.`);
   const started = spawnBrowserForCdp(cdpUrl, options);
-  const startedAt = Date.now();
-  const timeoutMs = Number(options.timeoutMs || process.env.BROWSER_CDP_START_TIMEOUT_MS || 30000);
-  while (Date.now() - startedAt < timeoutMs) {
-    if (await cdpReady(cdpUrl)) return { ok: true, cdpUrl, started: true, ...started };
-    await sleep(500);
+  try {
+    const startedAt = Date.now();
+    const timeoutMs = Number(options.timeoutMs || process.env.BROWSER_CDP_START_TIMEOUT_MS || 30000);
+    while (Date.now() - startedAt < timeoutMs) {
+      if (await cdpReady(cdpUrl)) return { ok: true, cdpUrl, started: true, ...started };
+      await sleep(500);
+    }
+    throw new Error(`Started browser pid ${started.pid || 'unknown'} but CDP did not become reachable at ${cdpUrl} within ${Math.round(timeoutMs / 1000)}s.`);
+  } catch (error) {
+    await killBrowserCdp({ started: true, ...started });
+    throw error;
   }
-  throw new Error(`Started browser pid ${started.pid || 'unknown'} but CDP did not become reachable at ${cdpUrl} within ${Math.round(timeoutMs / 1000)}s.`);
 }
 
 export async function killBrowserCdp(browser) {
@@ -100,8 +105,6 @@ export async function getOrCreateTarget(cdpUrl = DEFAULT_CDP_URL, preferUrl = nu
   const tabs = await cdpFetch(cdpUrl, '/json/list');
   const preferred = preferUrl ? tabs.find((t) => t.type === 'page' && String(t.url || '').includes(preferUrl)) : null;
   if (preferred?.webSocketDebuggerUrl) return preferred;
-  const existing = tabs.find((t) => t.type === 'page' && t.url !== 'chrome://newtab/');
-  if (existing?.webSocketDebuggerUrl) return existing;
   try {
     return await cdpFetch(cdpUrl, `/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
   } catch {
@@ -135,6 +138,11 @@ export class BrowserPage {
       if (msg.error) pending.reject(new Error(`${msg.error.message}${msg.error.data ? `: ${msg.error.data}` : ''}`));
       else pending.resolve(msg.result);
     });
+    this.ws.addEventListener('close', () => {
+      const error = new Error('CDP websocket closed');
+      for (const pending of this.pending.values()) pending.reject(error);
+      this.pending.clear();
+    }, { once: true });
     await this.send('Page.enable');
     await this.send('Runtime.enable');
     await this.send('Network.enable').catch(() => null);
