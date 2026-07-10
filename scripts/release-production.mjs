@@ -268,6 +268,10 @@ async function main() {
     worktreeAdded = true;
     record.baseCommit = baseCommit;
     if (options.publishSiteExports) {
+      // Export verification imports engine modules that resolve dependencies from
+      // the repository root. Install the clean checkout before validating the
+      // staged export; verifyAndBuild will still repeat npm ci for reproducibility.
+      await run('npm', ['ci'], { cwd: tempRoot });
       record.exportStage = await stageExports(tempRoot, options.publishSiteExports);
     }
     const head = (await git(tempRoot, ['rev-parse', 'HEAD'])).stdout.trim();
