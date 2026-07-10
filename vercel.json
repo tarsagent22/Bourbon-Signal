@@ -2,5 +2,10 @@
   "github": {
     "silent": true
   },
-  "crons": []
+  "crons": [
+    {
+      "path": "/api/alerts/deliver?cron=v3",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

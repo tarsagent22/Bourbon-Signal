@@ -876,7 +876,7 @@ export async function deliverPreferenceAlerts(req: Request, options: { dryRun?: 
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
 
-  if (!dryRun && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
+  if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
     return {
       ...summary,
       deliveryDisabled: true,

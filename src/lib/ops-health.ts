@@ -2,6 +2,7 @@ import { get, put } from "@vercel/blob";
 
 const HEARTBEAT_PATH = "ops/alert-delivery-heartbeat-v2.json";
 export const EXPECTED_ALERT_CRON_SCHEDULE = "*/5 * * * *";
+export const EXPECTED_ALERT_CRON_PATH = "/api/alerts/deliver?cron=v3";
 export const EXPECTED_ALERT_CRON_CADENCE_MINUTES = 5;
 const CRON_STALE_AFTER_MINUTES = 12;
 const ENGINE_STALE_AFTER_MINUTES = 120;
@@ -97,12 +98,17 @@ export function buildOpsHealth(input: {
   const degradedStateCount = finiteNumber(input.refreshHealth?.degradedStateCount);
   const staleStateCount = finiteNumber(input.refreshHealth?.staleStateCount);
   const deploymentMismatch = Boolean(input.currentDeploymentId && input.heartbeat?.deploymentId !== input.currentDeploymentId);
+  const monitorOnly = process.env.ALERT_MONITOR_ONLY === "1";
+  const deliveryChannelsEnabled = process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1"
+    || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1"
+    || process.env.ALERT_SMS_DELIVERY_ENABLED === "1"
+    || process.env.ALERT_DELIVERY_ENABLED === "1";
   const cronStatus = !input.heartbeat
     ? "unknown"
-    : input.heartbeat.dryRun
-      ? "dry_run"
-      : deploymentMismatch
+    : deploymentMismatch
         ? "wrong_deployment"
+      : input.heartbeat.dryRun
+        ? monitorOnly && !deliveryChannelsEnabled ? "monitoring" : "dry_run"
         : input.heartbeat.ok !== true
       ? "failed"
       : cronAgeMinutes !== null && cronAgeMinutes <= CRON_STALE_AFTER_MINUTES
@@ -115,7 +121,7 @@ export function buildOpsHealth(input: {
       : engineAgeMinutes !== null && engineAgeMinutes <= ENGINE_STALE_AFTER_MINUTES
       ? "healthy"
       : engineAgeMinutes === null ? "unknown" : "stale";
-  const ok = cronStatus === "healthy" && (engineStatus === "healthy" || engineStatus === "degraded");
+  const ok = (cronStatus === "healthy" || cronStatus === "monitoring") && (engineStatus === "healthy" || engineStatus === "degraded");
 
   return {
     ok,
@@ -126,7 +132,7 @@ export function buildOpsHealth(input: {
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || null,
     },
     cron: {
-      path: "/api/alerts/deliver?cron=v2",
+      path: EXPECTED_ALERT_CRON_PATH,
       expectedSchedule: EXPECTED_ALERT_CRON_SCHEDULE,
       expectedCadenceMinutes: EXPECTED_ALERT_CRON_CADENCE_MINUTES,
       staleAfterMinutes: CRON_STALE_AFTER_MINUTES,
@@ -152,6 +158,7 @@ export function buildOpsHealth(input: {
       onSiteEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
       emailEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
       smsEnabled: process.env.ALERT_SMS_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+      monitorOnly,
     },
   };
 }
