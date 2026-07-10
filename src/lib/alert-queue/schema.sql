@@ -61,23 +61,6 @@ create table if not exists alert_baselines (
 
 alter table alert_baselines add column if not exists migration_id text;
 
-create table if not exists alert_lifecycle_states (
-  user_id text not null,
-  channel text not null check (channel in ('onSite', 'email', 'sms')),
-  lifecycle_key text not null,
-  last_observed_quantity numeric not null check (last_observed_quantity >= 0),
-  last_observed_at timestamptz not null,
-  last_alerted_quantity numeric not null check (last_alerted_quantity >= 0),
-  last_alerted_at timestamptz not null,
-  alert_version integer not null default 1 check (alert_version > 0),
-  last_decision_reason text not null,
-  unavailable_since timestamptz,
-  primary key (user_id, channel, lifecycle_key)
-);
-
-create index if not exists alert_lifecycle_states_observed_idx
-  on alert_lifecycle_states (last_observed_at);
-
 create table if not exists clerk_alert_metadata_backups (
   migration_id text not null,
   user_id text not null,

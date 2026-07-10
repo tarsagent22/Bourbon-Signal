@@ -42,10 +42,6 @@ for (const phrase of [
   'freshnessPolicyHours',
   'ALERT_REALTIME_MAX_FRESHNESS_HOURS',
   'Math.min(candidateLimit, ALERT_REALTIME_MAX_FRESHNESS_HOURS)',
-  'alertLifecycleIdentity',
-  'evaluateLifecycle',
-  'lifecycleBaseline: true',
-  'updateMatchingOnSiteInventory',
 ]) {
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }
@@ -88,10 +84,6 @@ if (!route.includes('ALERT_MONITOR_ONLY') || !route.includes('monitorOnly')) {
 
 if (!/const dryRun = options\.dryRun === true \|\| requestedQueueMode === "shadow"/.test(delivery)) {
   fail('Queue shadow mode must force dry-run behavior even if an environment toggle is misconfigured.');
-}
-
-if (!/legacy_delivery_baseline[\s\S]*?queueRepository\.enqueue[\s\S]*?queueRepository\.markLifecycleBaselineDelivered/.test(delivery)) {
-  fail('Legacy deliveries must create a durable semantic lifecycle baseline, not only suppress one run.');
 }
 
 if (process.exitCode) {

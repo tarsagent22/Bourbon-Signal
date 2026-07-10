@@ -18,38 +18,6 @@ test('postgres adapter enqueues idempotently and maps durable records', async ()
   assert.match(calls[0].text, /on conflict\s*\(user_id, channel, stable_match_key, alert_window\)/i);
 });
 
-test('postgres adapter evaluates lifecycle changes atomically before queue reservation', async () => {
-  const calls = [];
-  const sql = { query: async (text, params) => {
-    calls.push({ text, params });
-    return { rows: [{ alert_version: 1, last_decision_reason: 'inventory_decrease' }] };
-  } };
-  const repository = new PostgresAlertQueueRepository(sql);
-  const decision = await repository.evaluateLifecycle({
-    userId: 'user-1', channel: 'sms', lifecycleKey: 'alert-lifecycle:key-1', quantity: 5,
-    observedAt: '2026-07-10T13:00:00.000Z', legacyBottle: 'Weller 12', legacyLocation: 'Store 44',
-  });
-  assert.equal(decision.shouldOpenDelivery, false);
-  assert.equal(decision.alertWindow, 'lifecycle-v1');
-  assert.match(calls[0].text, /insert into alert_lifecycle_states/i);
-  assert.match(calls[0].text, /on conflict\s*\(user_id, channel, lifecycle_key\)/i);
-  assert.match(calls[0].text, /\$4::numeric/i);
-  assert.match(calls[0].text, /legacy_delivery_baseline/i);
-});
-
-test('postgres adapter marks lifecycle baselines delivered without requiring a provider claim', async () => {
-  const calls = [];
-  const sql = { query: async (text, params) => {
-    calls.push({ text, params });
-    return { rows: [{ id: 'baseline-1' }] };
-  } };
-  const repository = new PostgresAlertQueueRepository(sql);
-  await repository.markLifecycleBaselineDelivered('baseline-1', 'lifecycle-baseline:baseline-1', '2026-07-10T12:00:00.000Z');
-  assert.match(calls[0].text, /payload->>'lifecycleBaseline'/i);
-  assert.match(calls[0].text, /status in \('pending', 'claimed', 'delivered'\)/i);
-  assert.match(calls[0].text, /update alert_candidates[\s\S]*status = 'delivered'/i);
-});
-
 test('postgres adapter claims with one atomic conditional update', async () => {
   const calls = [];
   const sql = { query: async (text, params) => { calls.push({ text, params }); return { rows: [row({ status: 'claimed', claimed_by: 'worker-1', claimed_at: '2026-07-10T12:01:00.000Z' })] }; } };

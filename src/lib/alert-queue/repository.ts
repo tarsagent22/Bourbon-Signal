@@ -1,5 +1,3 @@
-import { evaluateAlertLifecycle, type AlertLifecycleReason, type AlertLifecycleState } from "../alert-lifecycle.js";
-
 export type AlertChannel = "onSite" | "email" | "sms";
 export type AlertCandidateStatus = "pending" | "claimed" | "delivered" | "suppressed" | "failed";
 
@@ -32,23 +30,6 @@ export interface AlertBaselineInput {
   createdAt: string;
 }
 
-export interface AlertLifecycleInput {
-  userId: string;
-  channel: AlertChannel;
-  lifecycleKey: string;
-  quantity: number;
-  observedAt: string;
-  legacyBottle?: string;
-  legacyLocation?: string;
-}
-
-export interface AlertLifecycleEvaluation {
-  shouldOpenDelivery: boolean;
-  reason: AlertLifecycleReason | "legacy_delivery_baseline";
-  alertVersion: number;
-  alertWindow: string;
-}
-
 export interface EngineSnapshotInput {
   snapshotId: string;
   appCommit: string;
@@ -63,10 +44,8 @@ export interface AlertQueueRepository {
   registerSnapshot(input: EngineSnapshotInput): Promise<void>;
   enqueue(input: AlertCandidateInput): Promise<AlertCandidateRecord>;
   baseline(input: AlertBaselineInput): Promise<void>;
-  evaluateLifecycle(input: AlertLifecycleInput): Promise<AlertLifecycleEvaluation>;
   claim(id: string, workerId: string, claimedAt: string): Promise<AlertCandidateRecord | null>;
   markDelivered(id: string, providerMessageId: string, deliveredAt: string): Promise<void>;
-  markLifecycleBaselineDelivered(id: string, providerMessageId: string, deliveredAt: string): Promise<void>;
   markFailed(id: string, errorCode: string, failedAt: string, retryAt?: string): Promise<void>;
   recoverStaleClaims(claimedBefore: string): Promise<number>;
   get(id: string): Promise<AlertCandidateRecord | null>;
@@ -93,7 +72,6 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
   private readonly candidates = new Map<string, AlertCandidateRecord>();
   private readonly idsByUniqueKey = new Map<string, string>();
   private readonly baselines = new Set<string>();
-  private readonly lifecycleStates = new Map<string, AlertLifecycleState>();
   private nextId = 1;
 
   async registerSnapshot(_input: EngineSnapshotInput) {}
@@ -125,21 +103,6 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
     }
   }
 
-  async evaluateLifecycle(input: AlertLifecycleInput) {
-    const key = [input.userId, input.channel, input.lifecycleKey].join("\u001f");
-    const decision = evaluateAlertLifecycle(this.lifecycleStates.get(key) || null, {
-      quantity: input.quantity,
-      observedAt: input.observedAt,
-    });
-    this.lifecycleStates.set(key, decision.state);
-    return {
-      shouldOpenDelivery: decision.shouldOpenDelivery,
-      reason: decision.reason,
-      alertVersion: decision.state.alertVersion,
-      alertWindow: `lifecycle-v${decision.state.alertVersion}`,
-    };
-  }
-
   async claim(id: string, workerId: string, claimedAt: string) {
     const record = this.candidates.get(id);
     if (!record || record.status !== "pending") return null;
@@ -158,18 +121,6 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
     record.status = "delivered";
     record.providerMessageId = providerMessageId;
     record.deliveredAt = deliveredAt;
-  }
-
-  async markLifecycleBaselineDelivered(id: string, providerMessageId: string, deliveredAt: string) {
-    const record = this.candidates.get(id);
-    if (!record || record.payload?.lifecycleBaseline !== true || !["pending", "claimed", "delivered"].includes(record.status)) {
-      throw new Error(`Cannot mark non-baseline alert candidate ${id} as delivered`);
-    }
-    record.status = "delivered";
-    record.providerMessageId = providerMessageId;
-    record.deliveredAt = deliveredAt;
-    delete record.claimedBy;
-    delete record.claimedAt;
   }
 
   async markFailed(id: string, errorCode: string, _failedAt: string, retryAt?: string) {

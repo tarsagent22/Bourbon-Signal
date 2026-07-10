@@ -25,7 +25,6 @@ export interface MemberAlertRecord {
   id: string;
   userId: string;
   dedupeKey: string;
-  lifecycleKey?: string;
   bottleName: string;
   state: string;
   storeLabel: string;
