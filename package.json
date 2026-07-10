@@ -30,7 +30,10 @@
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
     "verify:production-engine": "node scripts/verify-production-engine-regression.mjs",
-    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
+    "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
+    "test:alert-queue-repository": "node --experimental-strip-types scripts/test-alert-queue-repository.mts",
+    "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
+    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
