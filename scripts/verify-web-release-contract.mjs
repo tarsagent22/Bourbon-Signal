@@ -101,8 +101,8 @@ if (!deliveryRoute.includes('requestedDryRun || (monitorOnly && !testEmail && ba
 if ((deliveryRoute.match(/if \(heartbeatEligible\)/gu) || []).length !== 2) {
   failures.push('Both successful and failed heartbeat writes must use the same strict eligibility predicate.');
 }
-if (!opsHealth.includes('access: "private"') || !opsHealth.includes('get(HEARTBEAT_PATH')) {
-  failures.push('The operational heartbeat must use authenticated private Blob storage.');
+if (!opsHealth.includes('access: "public"') || !opsHealth.includes('list({ prefix: HEARTBEAT_PATH') || !opsHealth.includes('fetch(url')) {
+  failures.push('The sanitized operational heartbeat must use the project public Blob store and be read back without exposing sensitive data.');
 }
 for (const invariant of ['quality:states', 'siteExportSha256', 'assertCleanOriginMain', 'verify:production-live']) {
   if (!releaseOrchestrator.includes(invariant)) failures.push(`Release orchestrator is missing provenance invariant ${invariant}.`);
