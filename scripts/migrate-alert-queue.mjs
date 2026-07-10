@@ -30,7 +30,7 @@ await sql.transaction((txn) => [
     insert into alert_queue_migrations (version)
     values ($1)
     on conflict (version) do nothing
-  `, ['alert-queue-v2']),
+  `, ['alert-queue-v3']),
 ]);
 
 const verification = await sql.query(`
@@ -42,6 +42,7 @@ const verification = await sql.query(`
       'alert_candidates',
       'alert_deliveries',
       'alert_baselines',
+      'alert_lifecycle_states',
       'clerk_alert_metadata_backups',
       'alert_queue_migrations'
     )
@@ -49,12 +50,12 @@ const verification = await sql.query(`
 `);
 
 const tables = verification.map((row) => row.table_name);
-if (tables.length !== 6) {
-  throw new Error(`Alert queue schema verification failed: found ${tables.length}/6 required tables.`);
+if (tables.length !== 7) {
+  throw new Error(`Alert queue schema verification failed: found ${tables.length}/7 required tables.`);
 }
 
 console.log(JSON.stringify({
   ok: true,
-  migration: 'alert-queue-v2',
+  migration: 'alert-queue-v3',
   tables,
 }, null, 2));

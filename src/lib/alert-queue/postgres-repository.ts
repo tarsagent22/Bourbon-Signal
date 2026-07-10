@@ -3,6 +3,8 @@ import type {
   AlertBaselineInput,
   AlertCandidateInput,
   AlertCandidateRecord,
+  AlertLifecycleEvaluation,
+  AlertLifecycleInput,
   AlertQueueRepository,
   EngineSnapshotInput,
 } from "./repository";
@@ -97,6 +99,89 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
     `, [input.userId, input.channel, input.stableMatchKey, input.createdAt]);
   }
 
+  async evaluateLifecycle(input: AlertLifecycleInput): Promise<AlertLifecycleEvaluation> {
+    const result = await this.sql.query(`
+      with legacy as (
+        select max(delivered_at) as delivered_at
+        from alert_candidates
+        where user_id = $1
+          and channel = $2
+          and status = 'delivered'
+          and lower(coalesce(payload->>'bottle', '')) = lower($6)
+          and lower(coalesce(payload->>'location', '')) = lower($7)
+      )
+      insert into alert_lifecycle_states (
+        user_id, channel, lifecycle_key,
+        last_observed_quantity, last_observed_at,
+        last_alerted_quantity, last_alerted_at,
+        alert_version, last_decision_reason, unavailable_since
+      )
+      select $1, $2, $3, $4::numeric, $5::timestamptz, $4::numeric,
+        coalesce(legacy.delivered_at, $5::timestamptz), 1,
+        case when legacy.delivered_at is null then 'new_availability' else 'legacy_delivery_baseline' end,
+        case when $4::numeric <= 0 then $5::timestamptz else null end
+      from legacy
+      on conflict (user_id, channel, lifecycle_key) do update set
+        last_decision_reason = case
+          when excluded.last_observed_quantity <= 0 then
+            case when excluded.last_observed_quantity = alert_lifecycle_states.last_observed_quantity then 'unchanged' else 'inventory_decrease' end
+          when alert_lifecycle_states.last_observed_quantity <= 0 and alert_lifecycle_states.unavailable_since is not null then
+            case when excluded.last_observed_at - alert_lifecycle_states.unavailable_since >= interval '12 hours' then 'available_again' else 'availability_reset_cooldown' end
+          when excluded.last_observed_quantity = alert_lifecycle_states.last_observed_quantity then 'unchanged'
+          when excluded.last_observed_quantity < alert_lifecycle_states.last_observed_quantity then 'inventory_decrease'
+          when excluded.last_observed_quantity - alert_lifecycle_states.last_alerted_quantity >= greatest(3, ceil(alert_lifecycle_states.last_alerted_quantity * 0.5))
+            and excluded.last_observed_at - alert_lifecycle_states.last_alerted_at >= interval '48 hours' then 'material_restock'
+          when excluded.last_observed_quantity - alert_lifecycle_states.last_alerted_quantity >= greatest(3, ceil(alert_lifecycle_states.last_alerted_quantity * 0.5)) then 'restock_cooldown'
+          else 'increase_not_material'
+        end,
+        alert_version = alert_lifecycle_states.alert_version + case
+          when alert_lifecycle_states.last_observed_quantity <= 0 and alert_lifecycle_states.unavailable_since is not null
+            and excluded.last_observed_at - alert_lifecycle_states.unavailable_since >= interval '12 hours' then 1
+          when excluded.last_observed_quantity > alert_lifecycle_states.last_observed_quantity
+            and excluded.last_observed_quantity - alert_lifecycle_states.last_alerted_quantity >= greatest(3, ceil(alert_lifecycle_states.last_alerted_quantity * 0.5))
+            and excluded.last_observed_at - alert_lifecycle_states.last_alerted_at >= interval '48 hours' then 1
+          else 0 end,
+        last_alerted_quantity = case
+          when alert_lifecycle_states.last_observed_quantity <= 0 and alert_lifecycle_states.unavailable_since is not null
+            and excluded.last_observed_at - alert_lifecycle_states.unavailable_since >= interval '12 hours' then excluded.last_observed_quantity
+          when excluded.last_observed_quantity > alert_lifecycle_states.last_observed_quantity
+            and excluded.last_observed_quantity - alert_lifecycle_states.last_alerted_quantity >= greatest(3, ceil(alert_lifecycle_states.last_alerted_quantity * 0.5))
+            and excluded.last_observed_at - alert_lifecycle_states.last_alerted_at >= interval '48 hours' then excluded.last_observed_quantity
+          else alert_lifecycle_states.last_alerted_quantity end,
+        last_alerted_at = case
+          when alert_lifecycle_states.last_observed_quantity <= 0 and alert_lifecycle_states.unavailable_since is not null
+            and excluded.last_observed_at - alert_lifecycle_states.unavailable_since >= interval '12 hours' then excluded.last_observed_at
+          when excluded.last_observed_quantity > alert_lifecycle_states.last_observed_quantity
+            and excluded.last_observed_quantity - alert_lifecycle_states.last_alerted_quantity >= greatest(3, ceil(alert_lifecycle_states.last_alerted_quantity * 0.5))
+            and excluded.last_observed_at - alert_lifecycle_states.last_alerted_at >= interval '48 hours' then excluded.last_observed_at
+          else alert_lifecycle_states.last_alerted_at end,
+        last_observed_quantity = excluded.last_observed_quantity,
+        last_observed_at = excluded.last_observed_at,
+        unavailable_since = case
+          when excluded.last_observed_quantity <= 0 then coalesce(alert_lifecycle_states.unavailable_since, excluded.last_observed_at)
+          else null end
+      returning alert_version, last_decision_reason
+    `, [
+      input.userId,
+      input.channel,
+      input.lifecycleKey,
+      Math.max(0, Number.isFinite(input.quantity) ? input.quantity : 0),
+      input.observedAt,
+      input.legacyBottle || "",
+      input.legacyLocation || "",
+    ]);
+    const row = result.rows[0];
+    if (!row) throw new Error("Alert lifecycle evaluation returned no state");
+    const alertVersion = Number(row.alert_version || 1);
+    const reason = String(row.last_decision_reason || "unchanged") as AlertLifecycleEvaluation["reason"];
+    return {
+      shouldOpenDelivery: reason === "new_availability" || reason === "material_restock" || reason === "available_again",
+      reason,
+      alertVersion,
+      alertWindow: `lifecycle-v${alertVersion}`,
+    };
+  }
+
   async claim(id: string, workerId: string, claimedAt: string) {
     const result = await this.sql.query(`
       update alert_candidates
@@ -127,6 +212,34 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
       returning id
     `, [id, providerMessageId, deliveredAt]);
     if (!result.rows[0]) throw new Error(`Cannot mark unclaimed alert candidate ${id} as delivered`);
+  }
+
+  async markLifecycleBaselineDelivered(id: string, providerMessageId: string, deliveredAt: string) {
+    const result = await this.sql.query(`
+      with baseline as (
+        select id, status from alert_candidates
+        where id = $1
+          and status in ('pending', 'claimed', 'delivered')
+          and coalesce(payload->>'lifecycleBaseline', 'false') = 'true'
+        for update
+      ), delivery as (
+        insert into alert_deliveries (
+          candidate_id, attempt_number, provider_message_id, status, attempted_at, completed_at
+        )
+        select baseline.id,
+          coalesce((select max(attempt_number) + 1 from alert_deliveries where candidate_id = baseline.id), 1),
+          $2, 'delivered', $3::timestamptz, $3::timestamptz
+        from baseline
+        where baseline.status <> 'delivered'
+        on conflict do nothing
+      )
+      update alert_candidates
+      set status = 'delivered', delivered_at = $3::timestamptz, provider_message_id = $2,
+          claimed_by = null, claimed_at = null
+      where id in (select id from baseline)
+      returning id
+    `, [id, providerMessageId, deliveredAt]);
+    if (!result.rows[0]) throw new Error(`Cannot mark non-baseline alert candidate ${id} as delivered`);
   }
 
   async markFailed(id: string, errorCode: string, failedAt: string, retryAt?: string) {

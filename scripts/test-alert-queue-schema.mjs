@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 
-const schema = readFileSync(new URL("../src/lib/alert-queue/schema.sql", import.meta.url), "utf8");
+const schema = await readFile(new URL('../src/lib/alert-queue/schema.sql', import.meta.url), 'utf8');
+const migration = await readFile(new URL('./migrate-alert-queue.mjs', import.meta.url), 'utf8');
 assert.match(schema, /create table if not exists alert_candidates/i);
 assert.match(schema, /unique\s*\(\s*user_id\s*,\s*channel\s*,\s*stable_match_key\s*,\s*alert_window\s*\)/i);
 assert.match(schema, /create table if not exists alert_deliveries/i);
@@ -14,4 +15,13 @@ assert.match(schema, /next_attempt_at\s+timestamptz/i);
 assert.match(schema, /create table if not exists clerk_alert_metadata_backups/i);
 assert.match(schema, /migration_id\s+text/i);
 assert.match(schema, /unique\s*\(user_id, channel, stable_match_key\)/i);
+assert.match(schema, /create table if not exists alert_lifecycle_states/i);
+assert.match(schema, /primary key\s*\(user_id, channel, lifecycle_key\)/i);
+assert.match(schema, /last_observed_quantity\s+numeric/i);
+assert.match(schema, /last_alerted_quantity\s+numeric/i);
+assert.match(schema, /alert_version\s+integer/i);
+assert.match(schema, /last_decision_reason/i);
+assert.match(migration, /alert_lifecycle_states/i);
+assert.match(migration, /alert-queue-v3/i);
+assert.match(migration, /tables\.length !== 7/i);
 console.log("Alert queue Postgres schema contract passed.");

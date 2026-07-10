@@ -43,4 +43,35 @@ assert.equal(await repository.recoverStaleClaims("2026-07-10T02:30:00.000Z"), 1)
 assert.equal((await repository.get(staleClaim.id))?.status, "pending");
 assert.equal((await repository.get(staleSmsClaim.id))?.status, "claimed", "ambiguous SMS claims must never be auto-retried into duplicate texts");
 
+const lifecycleInput = {
+  userId: "user-1",
+  channel: "sms" as const,
+  lifecycleKey: "alert-lifecycle:store-44-weller-12",
+  quantity: 8,
+  observedAt: "2026-07-10T12:00:00.000Z",
+  legacyBottle: "Weller 12 Year",
+  legacyLocation: "Store 44",
+};
+const initialLifecycle = await repository.evaluateLifecycle(lifecycleInput);
+assert.equal(initialLifecycle.shouldOpenDelivery, true);
+assert.equal(initialLifecycle.alertWindow, "lifecycle-v1");
+const lowerLifecycle = await repository.evaluateLifecycle({ ...lifecycleInput, quantity: 5, observedAt: "2026-07-10T13:00:00.000Z" });
+assert.equal(lowerLifecycle.shouldOpenDelivery, false, "lower inventory must not reopen delivery");
+assert.equal(lowerLifecycle.alertWindow, "lifecycle-v1");
+const restockLifecycle = await repository.evaluateLifecycle({ ...lifecycleInput, quantity: 14, observedAt: "2026-07-12T12:01:00.000Z" });
+assert.equal(restockLifecycle.shouldOpenDelivery, true, "material restock after cooldown must reopen delivery");
+assert.equal(restockLifecycle.alertVersion, 2, "material restock should advance the durable alert version");
+
+const lifecycleBaseline = await repository.enqueue({
+  snapshotId: "snapshot-2",
+  userId: "user-1",
+  channel: "email",
+  stableMatchKey: "semantic-bottle-store",
+  alertWindow: "lifecycle-v1",
+  payload: { lifecycleBaseline: true },
+  createdAt: "2026-07-01T12:00:00.000Z",
+});
+await repository.markLifecycleBaselineDelivered(lifecycleBaseline.id, `lifecycle-baseline:${lifecycleBaseline.id}`, "2026-07-01T12:00:00.000Z");
+assert.equal((await repository.get(lifecycleBaseline.id))?.status, "delivered", "legacy semantic baselines must be durable across later runs");
+
 console.log("Alert queue repository contract tests passed.");

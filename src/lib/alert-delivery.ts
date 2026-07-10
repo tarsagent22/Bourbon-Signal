@@ -10,6 +10,7 @@ import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activ
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert } from "@/lib/sms-alert-copy";
 import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
+import { alertLifecycleIdentity, updateMatchingOnSiteInventory } from "@/lib/alert-lifecycle.js";
 import { createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
 import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
@@ -527,6 +528,7 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
     const freshnessHours = Math.min(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.POSITIVE_INFINITY)).filter(Number.isFinite));
     const quantity = sorted.reduce((sum, candidate) => sum + (asNumber(candidate.quantity) || asNumber(candidate.warehouseQty)), 0);
     const groupDedupeKey = stableGroupedAlertDedupeKey(locationKey, sorted);
+    const lifecycleKey = alertLifecycleIdentity(locationKey, sorted);
     return {
       ...primary,
       __groupCandidates: sorted,
@@ -534,6 +536,7 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
       quantity,
       freshnessHours: Number.isFinite(freshnessHours) ? freshnessHours : primary.freshnessHours,
       dedupeKey: groupDedupeKey,
+      lifecycleKey,
       matchKey: `location-group:${stableHash(locationKey)}`,
     } as CandidateAlert;
   }).sort(sortCandidatesForMember);
@@ -625,6 +628,7 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     id,
     userId,
     dedupeKey,
+    lifecycleKey: asString(source.lifecycleKey) || undefined,
     bottleName,
     state: asString(source.state),
     storeLabel: asString(source.storeLabel, "Tracked location"),
@@ -656,6 +660,7 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     id: buildAlertId(userId, dedupeKey, createdAt),
     userId,
     dedupeKey,
+    lifecycleKey: asString(candidate.lifecycleKey) || undefined,
     bottleName: asString(candidate.bottle, "Bottle signal"),
     state: asString(candidate.state).toUpperCase(),
     storeLabel: candidateStoreLabel(candidate),
@@ -911,6 +916,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     skippedNoEmail: 0,
     skippedDedupe: 0,
     skippedOnSiteDedupe: 0,
+    skippedLifecycleRepeat: 0,
+    onSiteInventoryUpdated: 0,
     skippedSpecificBottlePrefs: 0,
     queueMode,
     queueIntentsObserved: 0,
@@ -951,24 +958,65 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   async function reserveQueuedIntent(
     userId: string,
     channel: AlertChannel,
-    stableMatchKey: string,
+    lifecycleKey: string,
     payload: Record<string, unknown>,
   ) {
     if (!queueRepository) return null;
+    const lifecycle = queueMode === "active" && !dryRun
+      ? await queueRepository.evaluateLifecycle({
+          userId,
+          channel,
+          lifecycleKey,
+          quantity: asNumber(payload.quantity),
+          observedAt: now,
+          legacyBottle: asString(payload.bottle),
+          legacyLocation: asString(payload.location),
+        })
+      : null;
+    if (lifecycle && !lifecycle.shouldOpenDelivery) summary.skippedLifecycleRepeat += 1;
+    if (lifecycle?.reason === "legacy_delivery_baseline") {
+      const baselineCandidate = await queueRepository.enqueue({
+        snapshotId: queueSnapshotId,
+        userId,
+        channel,
+        stableMatchKey: lifecycleKey,
+        alertWindow: lifecycle.alertWindow,
+        payload: {
+          ...payload,
+          lifecycleKey,
+          lifecycleReason: lifecycle.reason,
+          lifecycleBaseline: true,
+        },
+        createdAt: now,
+      });
+      if (baselineCandidate.status !== "delivered") {
+        await queueRepository.markLifecycleBaselineDelivered(
+          baselineCandidate.id,
+          `lifecycle-baseline:${baselineCandidate.id}`,
+          now,
+        );
+      }
+      summary.queueSuppressed += 1;
+      return { candidate: baselineCandidate, claimed: false, reason: "lifecycle_suppressed", lifecycle };
+    }
     const reservation = await reserveAlertDelivery(queueRepository, {
       snapshotId: queueSnapshotId,
       userId,
       channel,
-      stableMatchKey,
-      alertWindow: "stable-v1",
+      stableMatchKey: lifecycleKey,
+      alertWindow: lifecycle?.alertWindow || "stable-v1",
       createdAt: now,
-      payload,
+      payload: {
+        ...payload,
+        lifecycleKey,
+        lifecycleReason: lifecycle?.reason || "shadow_observation",
+      },
     }, { mode: queueMode as AlertQueueMode, workerId: queueWorkerId, now });
     summary.queueIntentsObserved += 1;
     if (reservation.claimed) summary.queueClaimsGranted += 1;
     else if (reservation.reason === "suppressed") summary.queueSuppressed += 1;
     else if (queueMode === "active") summary.queueDuplicatesSkipped += 1;
-    return reservation;
+    return { ...reservation, lifecycle };
   }
 
   async function failQueuedIntent(candidate: AlertCandidateRecord | null, error: unknown) {
@@ -1041,6 +1089,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
       let onSiteQueueCandidates: AlertCandidateRecord[] = [];
+      let onSiteInboxUpdated = false;
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
       if (baselineOnSiteOnly) {
         const baselineDedupeKeys = uniqueStrings(matchingPreferenceCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
@@ -1073,6 +1122,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
         const draftOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => {
+            if (queueMode === "active" && !dryRun) return true;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const duplicate = existingOnSiteDedupe.has(dedupeKey) || onSiteBaseline.has(dedupeKey);
             if (duplicate) summary.skippedOnSiteDedupe += 1;
@@ -1082,16 +1132,31 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           .map((candidate) => candidateToMemberAlert(userId, candidate, now, areaPrefs));
 
         for (const alert of draftOnSiteAlerts) {
-          const reservation = await reserveQueuedIntent(userId, "onSite", alert.dedupeKey, {
+          const reservation = await reserveQueuedIntent(userId, "onSite", alert.lifecycleKey || alert.dedupeKey, {
             alertId: alert.id,
             bottle: alert.bottleName,
             state: alert.state,
             location: alert.storeLabel,
+            quantity: alert.quantity,
             eventType: alert.eventType,
           });
-          if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
+          if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) {
+            if (reservation.lifecycle && !reservation.lifecycle.shouldOpenDelivery) {
+              const updatedInbox = updateMatchingOnSiteInventory(alertInbox.recent, {
+                bottleName: alert.bottleName,
+                storeLabel: alert.storeLabel,
+                quantity: alert.quantity,
+              });
+              if (updatedInbox.updated) {
+                alertInbox.recent = updatedInbox.records;
+                onSiteInboxUpdated = true;
+                summary.onSiteInventoryUpdated += 1;
+              }
+            }
+            continue;
+          }
           newOnSiteAlerts.push(alert);
-          if (reservation?.claimed) onSiteQueueCandidates.push(reservation.candidate);
+          if (reservation?.claimed && reservation.candidate) onSiteQueueCandidates.push(reservation.candidate);
         }
 
         if (newOnSiteAlerts.length) summary.onSiteAlertsCreated += newOnSiteAlerts.length;
@@ -1134,16 +1199,18 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             continue;
           }
 
-            const delivered = recentDeliverySet(deliveryMetadata, "email");
+          const delivered = recentDeliverySet(deliveryMetadata, "email");
           const emailBaseline = new Set(deliveryMetadata.emailBaselineDedupeKeys || []);
           const matchedCandidates = emailModeCandidates
             .filter((candidate) => {
+              if (queueMode === "active" && !dryRun) return true;
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const baselineDuplicate = emailBaseline.has(dedupeKey);
               if (baselineDuplicate) summary.skippedEmailBaseline += 1;
               return !baselineDuplicate;
             })
             .filter((candidate) => {
+              if (queueMode === "active" && !dryRun) return true;
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const duplicate = delivered.has(deliveryDedupeToken(dedupeKey, "email"));
               if (duplicate) summary.skippedDedupe += 1;
@@ -1154,19 +1221,21 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           for (const candidate of matchedCandidates) {
             if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+            const lifecycleKey = asString(candidate.lifecycleKey, dedupeKey);
             const bottleName = asString(candidate.bottle, "Bottle signal");
             const storeLabel = candidateStoreLabel(candidate);
             const matchedArea = candidateMatchedArea(candidate, areaPrefs);
             const state = asString(candidate.state).toUpperCase();
-            const reservation = await reserveQueuedIntent(userId, "email", dedupeKey, {
+            const reservation = await reserveQueuedIntent(userId, "email", lifecycleKey, {
               bottle: bottleName,
               state,
               location: storeLabel,
+              quantity: asNumber(candidate.quantity),
               emailMode: notificationPrefs.email.mode,
               source: candidateSourceLabel(candidate),
             });
             if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
-            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
+            const queuedCandidate = reservation?.claimed && reservation.candidate ? reservation.candidate : null;
 
             try {
               let messageId: string | null = null;
@@ -1265,12 +1334,14 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           const smsBaseline = new Set(deliveryMetadata.smsBaselineDedupeKeys || []);
           const matchedSmsCandidates = smsCandidates
             .filter((candidate) => {
+              if (queueMode === "active" && !dryRun) return true;
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const baselineDuplicate = smsBaseline.has(dedupeKey);
               if (baselineDuplicate) summary.skippedSmsBaseline += 1;
               return !baselineDuplicate;
             })
             .filter((candidate) => {
+              if (queueMode === "active" && !dryRun) return true;
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const duplicate = delivered.has(deliveryDedupeToken(dedupeKey, "sms"));
               if (duplicate) summary.skippedDedupe += 1;
@@ -1281,16 +1352,18 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           for (const candidate of matchedSmsCandidates) {
             if (summary.smsSent + summary.smsWouldSend >= MAX_SMS_PER_RUN) break;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+            const lifecycleKey = asString(candidate.lifecycleKey, dedupeKey);
             const storeLabel = candidateStoreLabel(candidate);
-            const reservation = await reserveQueuedIntent(userId, "sms", dedupeKey, {
+            const reservation = await reserveQueuedIntent(userId, "sms", lifecycleKey, {
               bottle: asString(candidate.bottle, "Bottle signal"),
               state: asString(candidate.state).toUpperCase(),
               location: storeLabel,
+              quantity: asNumber(candidate.quantity),
               smsMode: notificationPrefs.sms.mode,
               source: candidateSourceLabel(candidate),
             });
             if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
-            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
+            const queuedCandidate = reservation?.claimed && reservation.candidate ? reservation.candidate : null;
             try {
               let messageId: string | null = null;
               let status: string | null = null;
@@ -1316,7 +1389,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         }
       }
 
-      if ((newRecords.length || newOnSiteAlerts.length) && !dryRun) {
+      if ((newRecords.length || newOnSiteAlerts.length || onSiteInboxUpdated) && !dryRun) {
         const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
           .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
           .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
@@ -1362,7 +1435,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }
         }
 
-        if (newOnSiteAlerts.length) {
+        if (newOnSiteAlerts.length || onSiteInboxUpdated) {
           let onSiteInboxWritten = false;
           const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
             .filter((alert, index, rows) => rows.findIndex((item) => item.dedupeKey === alert.dedupeKey) === index)
@@ -1380,13 +1453,12 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           } catch (error) {
             const primaryError = error instanceof Error ? error.message : String(error);
             try {
-              // Clerk rejects oversized/legacy-shaped private metadata with 422s. Do not let a stale
-              // historical inbox block the current alert; retry with a compact inbox containing only
-              // freshly-created records, still deduped by the candidate key.
+              // Clerk rejects oversized/legacy-shaped private metadata with 422s. Keep the latest
+              // lifecycle-updated records while compacting the historical inbox.
               await client.users.updateUserMetadata(userId, {
                 privateMetadata: {
                   alertInbox: {
-                    recent: newOnSiteAlerts.slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER)),
+                    recent: nextOnSiteAlerts.slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER)),
                     lastSyncedAt: now,
                     compactionReason: "onsite_alert_metadata_retry",
                   },
