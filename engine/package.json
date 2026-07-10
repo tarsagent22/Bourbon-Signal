@@ -41,6 +41,7 @@
     "or": "node src/or-browser-collector.mjs",
     "bible-report": "node src/bible-report.mjs",
     "test": "node src/verify.mjs",
+    "test:data-plane": "node --test test/*.test.mjs",
     "refresh:site": "node src/refresh-site.mjs",
     "verify:nc": "node src/verify-nc.mjs",
     "score:nc": "node src/score-nc-user-reach.mjs",
@@ -49,7 +50,7 @@
     "score:tn": "node src/score-tn-user-reach.mjs",
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
-    "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states",
+    "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states && npm run test:data-plane",
     "verify:pa:automation": "node src/verify-pa-automation.mjs",
     "store:identity": "node src/build-store-identity.mjs"
   },
