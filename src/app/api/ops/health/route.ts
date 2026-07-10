@@ -15,6 +15,7 @@ export async function GET() {
     refreshHealth: stats?.refreshHealth && typeof stats.refreshHealth === "object"
       ? stats.refreshHealth as Record<string, unknown>
       : null,
+    currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
   });
 
   return NextResponse.json(health, {

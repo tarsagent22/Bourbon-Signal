@@ -84,8 +84,15 @@ for (const required of [
 }
 
 const releaseOrchestrator = read('scripts/release-production.mjs');
-if (releaseOrchestrator.includes("['push', 'origin', 'HEAD:main']")) {
-  failures.push('Release orchestration must not create a new Git commit for every generated engine export.');
+const deliveryRoute = read('src/app/api/alerts/deliver/route.ts');
+if (releaseOrchestrator.includes("git(tempRoot, ['push', 'origin', 'HEAD:main'])")) {
+  failures.push('Release orchestrator must not mutate origin/main to stage generated exports.');
+}
+if (deliveryRoute.indexOf('assertAlertDeliveryAuthorized(req)') > deliveryRoute.indexOf('const startedAt')) {
+  failures.push('Alert delivery authorization must happen before heartbeat-eligible execution starts.');
+}
+if (!deliveryRoute.includes('scheduledRun && !dryRun && !testEmail')) {
+  failures.push('Only authenticated, non-dry-run scheduler executions may write the delivery heartbeat.');
 }
 for (const invariant of ['quality:states', 'siteExportSha256', 'assertCleanOriginMain', 'verify:production-live']) {
   if (!releaseOrchestrator.includes(invariant)) failures.push(`Release orchestrator is missing provenance invariant ${invariant}.`);

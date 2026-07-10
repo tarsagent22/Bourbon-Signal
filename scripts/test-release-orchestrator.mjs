@@ -5,6 +5,8 @@ import {
   evaluateCronRegistration,
   evaluateLiveHealth,
   hashEntries,
+  assertExportFileSet,
+  parseDeploymentId,
   parseDeploymentUrl,
   parsePorcelainPaths,
 } from './lib/release-orchestrator-core.mjs';
@@ -31,8 +33,9 @@ const cronOk = evaluateCronRegistration({
   crons: [{ path: '/api/alerts/deliver', schedule: '*/5 * * * *', host: 'deploy.vercel.app' }],
   undeployed: [],
   modified: [],
-}, { path: '/api/alerts/deliver', schedule: '*/5 * * * *' });
+}, { path: '/api/alerts/deliver', schedule: '*/5 * * * *', host: 'deploy.vercel.app' });
 assert.equal(cronOk.ok, true);
+assert.equal(evaluateCronRegistration({ crons: [{ path: '/api/alerts/deliver', schedule: '*/5 * * * *', host: 'old.vercel.app' }], modified: [] }, { path: '/api/alerts/deliver', schedule: '*/5 * * * *', host: 'deploy.vercel.app' }).ok, false);
 assert.equal(evaluateCronRegistration({ crons: [{ path: '/api/alerts/deliver', schedule: '*/30 * * * *' }], modified: [] }, { path: '/api/alerts/deliver', schedule: '*/5 * * * *' }).ok, false);
 assert.equal(evaluateCronRegistration({ crons: [{ path: '/api/alerts/deliver', schedule: '*/5 * * * *' }], modified: [{ path: '/api/alerts/deliver' }] }, { path: '/api/alerts/deliver', schedule: '*/5 * * * *' }).ok, false);
 
@@ -45,6 +48,12 @@ assert.equal(healthy.ok, true);
 assert.equal(evaluateLiveHealth({ ok: false, cron: { status: 'stale', expectedSchedule: '*/5 * * * *' }, engine: { status: 'healthy' } }, { expectedCronSchedule: '*/5 * * * *' }).ok, false);
 
 assert.equal(parseDeploymentUrl('Production: https://bourbon-signal-abc.vercel.app [1m]'), 'https://bourbon-signal-abc.vercel.app');
+assert.equal(parseDeploymentId('id\t\tdpl_1234567890'), 'dpl_1234567890');
+
+const exportFiles = ['alerts.json', 'bottles.json', 'drops.json', 'events.json', 'historical-trends.json', 'locations.json', 'manifest.json', 'nc-intelligence.json', 'stats.json', 'store-identity.json', 'stores.json'];
+assert.doesNotThrow(() => assertExportFileSet(exportFiles));
+assert.throws(() => assertExportFileSet([...exportFiles, 'debug.json']), /Unexpected site export files/);
+assert.throws(() => assertExportFileSet(exportFiles.filter((file) => file !== 'alerts.json')), /Missing site export files/);
 assert.deepEqual(
   parsePorcelainPaths(' M engine/out/site/alerts.json\n?? engine/out/site/state-quality.json\n'),
   ['engine/out/site/alerts.json', 'engine/out/site/state-quality.json'],

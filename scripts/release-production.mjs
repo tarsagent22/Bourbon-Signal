@@ -6,10 +6,12 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   assertCleanOriginMain,
+  assertExportFileSet,
   buildReleaseManifest,
   evaluateCronRegistration,
   evaluateLiveHealth,
   hashEntries,
+  parseDeploymentId,
   parseDeploymentUrl,
   parsePorcelainPaths,
 } from './lib/release-orchestrator-core.mjs';
@@ -76,6 +78,7 @@ async function sha256File(file) {
 
 async function hashJsonDirectory(directory) {
   const files = (await readdir(directory)).filter((file) => file.endsWith('.json')).sort();
+  assertExportFileSet(files);
   const entries = await Promise.all(files.map(async (file) => ({ path: file, contents: await readFile(path.join(directory, file)) })));
   return hashEntries(entries);
 }
@@ -84,9 +87,7 @@ async function copySiteExports(sourceDir, checkoutRoot) {
   const sourceStat = await stat(sourceDir).catch(() => null);
   if (!sourceStat?.isDirectory()) throw new Error(`Site export source is not a directory: ${sourceDir}`);
   const files = (await readdir(sourceDir)).filter((file) => file.endsWith('.json')).sort();
-  if (!files.includes('manifest.json') || !files.includes('stats.json') || !files.includes('drops.json') || !files.includes('alerts.json')) {
-    throw new Error(`Site export source is incomplete: ${sourceDir}`);
-  }
+  assertExportFileSet(files);
   const destination = path.join(checkoutRoot, 'engine', 'out', 'site');
   await mkdir(destination, { recursive: true });
   for (const file of files) await copyFile(path.join(sourceDir, file), path.join(destination, file));
@@ -125,6 +126,12 @@ async function stageExports(tempRoot, sourceDir) {
 
 async function verifyAndBuild(tempRoot) {
   const verification = [];
+  const projectLink = path.join(SOURCE_ROOT, '.vercel', 'project.json');
+  const linkedProject = await stat(projectLink).catch(() => null);
+  if (!linkedProject?.isFile()) throw new Error(`Missing Vercel project link: ${projectLink}`);
+  await mkdir(path.join(tempRoot, '.vercel'), { recursive: true });
+  await copyFile(projectLink, path.join(tempRoot, '.vercel', 'project.json'));
+  await run('vercel', ['pull', '--yes', '--environment=production', '--scope', VERCEL_SCOPE], { cwd: tempRoot, timeoutMs: 5 * 60_000 });
   for (const [command, args] of [
     ['npm', ['ci']],
     ['npm', ['run', 'verify:ci']],
@@ -132,12 +139,6 @@ async function verifyAndBuild(tempRoot) {
     const result = await run(command, args, { cwd: tempRoot });
     verification.push({ command: `${command} ${args.join(' ')}`, ok: true, startedAt: result.startedAt, finishedAt: result.finishedAt });
   }
-  const projectLink = path.join(SOURCE_ROOT, '.vercel', 'project.json');
-  const linkedProject = await stat(projectLink).catch(() => null);
-  if (!linkedProject?.isFile()) throw new Error(`Missing Vercel project link: ${projectLink}`);
-  await mkdir(path.join(tempRoot, '.vercel'), { recursive: true });
-  await copyFile(projectLink, path.join(tempRoot, '.vercel', 'project.json'));
-  await run('vercel', ['pull', '--yes', '--environment=production', '--scope', VERCEL_SCOPE], { cwd: tempRoot, timeoutMs: 5 * 60_000 });
   return verification;
 }
 
@@ -163,6 +164,9 @@ async function deployAndAlias(tempRoot, manifest) {
   const deployment = await run('vercel', ['deploy', '--prod', '--yes', '--scope', VERCEL_SCOPE], { cwd: tempRoot });
   const deploymentUrl = parseDeploymentUrl(`${deployment.stdout}\n${deployment.stderr}`);
   if (!deploymentUrl) throw new Error('Vercel deployment completed without a deployment URL.');
+  const inspection = await run('vercel', ['inspect', deploymentUrl, '--scope', VERCEL_SCOPE], { cwd: tempRoot, quiet: true });
+  const deploymentId = parseDeploymentId(`${inspection.stdout}\n${inspection.stderr}`);
+  if (!deploymentId) throw new Error(`Could not determine deployment ID for ${deploymentUrl}.`);
   await run('vercel', ['promote', deploymentUrl, '--yes', '--scope', VERCEL_SCOPE, '--timeout', '3m'], { cwd: tempRoot, timeoutMs: 4 * 60_000 }).catch((error) => {
     const output = `${error?.result?.stdout || ''}\n${error?.result?.stderr || ''}`;
     if (!/already the current production deployment/iu.test(output)) throw error;
@@ -171,13 +175,16 @@ async function deployAndAlias(tempRoot, manifest) {
     .split(',').map((value) => value.trim()).filter(Boolean);
   for (const domain of domains) {
     await run('vercel', ['alias', 'set', deploymentUrl, domain, '--scope', VERCEL_SCOPE], { cwd: tempRoot });
+    const aliasInspection = await run('vercel', ['inspect', `https://${domain}`, '--scope', VERCEL_SCOPE], { cwd: tempRoot, quiet: true });
+    const aliasTarget = parseDeploymentUrl(`${aliasInspection.stdout}\n${aliasInspection.stderr}`);
+    if (aliasTarget !== deploymentUrl) throw new Error(`Alias ${domain} points to ${aliasTarget || 'unknown'}, expected ${deploymentUrl}.`);
   }
-  return { deploymentUrl, domains };
+  return { deploymentUrl, deploymentId, domains };
 }
 
-async function assertCronRegistered(tempRoot) {
+async function assertCronRegistered(tempRoot, deploymentUrl) {
   const result = await run('vercel', ['crons', 'ls', '--format', 'json', '--scope', VERCEL_SCOPE], { cwd: tempRoot, quiet: true });
-  const cron = evaluateCronRegistration(parseJsonOutput(result.stdout), EXPECTED_CRON);
+  const cron = evaluateCronRegistration(parseJsonOutput(result.stdout), { ...EXPECTED_CRON, host: new URL(deploymentUrl).hostname });
   if (!cron.ok) throw new Error(`Cron registration assertion failed: ${cron.failures.join(' ')}`);
   return cron;
 }
@@ -198,13 +205,13 @@ async function assertLiveManifest(manifest) {
   }
 }
 
-async function waitForHealthyOps({ skipWait }) {
+async function waitForHealthyOps({ skipWait, expectedDeploymentId }) {
   const deadline = Date.now() + (skipWait ? 1 : HEALTH_WAIT_MS);
   let latest = null;
   do {
     latest = await fetchJson('https://www.bourbonsignal.com/api/ops/health').catch(() => null);
     if (latest?.json) {
-      const evaluated = evaluateLiveHealth(latest.json, { expectedCronSchedule: EXPECTED_CRON.schedule });
+      const evaluated = evaluateLiveHealth(latest.json, { expectedCronSchedule: EXPECTED_CRON.schedule, expectedDeploymentId });
       if (evaluated.ok) return latest.json;
     }
     if (skipWait) break;
@@ -213,7 +220,7 @@ async function waitForHealthyOps({ skipWait }) {
   throw new Error(`Live ops health did not become healthy within ${Math.round(HEALTH_WAIT_MS / 60_000)} minutes: ${JSON.stringify(latest?.json || latest?.text || null)}`);
 }
 
-async function runLiveSlos(tempRoot, manifest, { skipHealthWait }) {
+async function runLiveSlos(tempRoot, manifest, deployment, { skipHealthWait }) {
   await assertLiveManifest(manifest);
   await run('npm', ['run', 'verify:production-live'], { cwd: tempRoot });
   await run('npm', ['run', 'verify:production-engine'], { cwd: tempRoot });
@@ -223,7 +230,7 @@ async function runLiveSlos(tempRoot, manifest, { skipHealthWait }) {
   }
   const sitemap = await fetch('https://www.bourbonsignal.com/sitemap.xml', { cache: 'no-store' }).then((response) => response.text());
   if (sitemap.includes('/bottle-check') || sitemap.includes('https://bourbonsignal.com<')) throw new Error('Live sitemap still exposes protected Bottle Check or apex canonical URLs.');
-  return waitForHealthyOps({ skipWait: skipHealthWait });
+  return waitForHealthyOps({ skipWait: skipHealthWait, expectedDeploymentId: deployment.deploymentId });
 }
 
 async function saveReleaseStatus(record) {
@@ -261,8 +268,8 @@ async function main() {
     }
 
     record.deployment = await deployAndAlias(tempRoot, manifest);
-    record.cron = await assertCronRegistered(tempRoot);
-    record.health = await runLiveSlos(tempRoot, manifest, { skipHealthWait: options.skipHealthWait });
+    record.cron = await assertCronRegistered(tempRoot, record.deployment.deploymentUrl);
+    record.health = await runLiveSlos(tempRoot, manifest, record.deployment, { skipHealthWait: options.skipHealthWait });
     record.ok = true;
     record.finishedAt = new Date().toISOString();
     await saveReleaseStatus(record);

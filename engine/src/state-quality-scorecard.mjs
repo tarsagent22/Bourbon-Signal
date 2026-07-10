@@ -142,6 +142,11 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     if (before.releaseEligible === true && state.releaseEligible !== true) {
       failures.push(`${state.state}: changed from release eligible to blocked.`);
     }
+    const beforeDegraded = /stale|failed|degraded/iu.test(String(before.input?.status || ''));
+    const currentDegraded = /stale|failed|degraded/iu.test(String(state.input?.status || ''));
+    if (!beforeDegraded && currentDegraded) {
+      failures.push(`${state.state}: state status became degraded (${state.input?.status || 'unknown'}).`);
+    }
   }
   return { ok: failures.length === 0, failures, warnings };
 }

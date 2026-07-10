@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deliverPreferenceAlerts, sendOperationalTestAlertEmail } from "@/lib/alert-delivery";
+import { assertAlertDeliveryAuthorized, deliverPreferenceAlerts, sendOperationalTestAlertEmail } from "@/lib/alert-delivery";
 import { writeAlertDeliveryHeartbeat } from "@/lib/ops-health";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,13 @@ export async function POST(req: NextRequest) {
 }
 
 async function runDelivery(req: NextRequest) {
+  try {
+    assertAlertDeliveryAuthorized(req);
+  } catch {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
   const startedAt = Date.now();
+  const scheduledRun = req.nextUrl.searchParams.get("cron") === "v2";
   try {
     const dryRun = req.nextUrl.searchParams.get("dryRun") === "1" || req.nextUrl.searchParams.get("dry_run") === "1";
     const baselineOnSiteOnly = req.nextUrl.searchParams.get("baselineOnSite") === "1" || req.nextUrl.searchParams.get("baseline_onsite") === "1";
@@ -24,15 +30,17 @@ async function runDelivery(req: NextRequest) {
     const result = testEmail
       ? await sendOperationalTestAlertEmail(req)
       : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly });
-    await writeAlertDeliveryHeartbeat({ startedAt, result: result as unknown as Record<string, unknown> })
-      .catch((error) => console.warn("Alert delivery heartbeat write failed", error));
+    if (scheduledRun && !dryRun && !testEmail && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly) {
+      await writeAlertDeliveryHeartbeat({ startedAt, result: result as unknown as Record<string, unknown> })
+        .catch((error) => console.warn("Alert delivery heartbeat write failed", error));
+    }
     console.info("Bourbon Signal alert delivery summary", JSON.stringify(result));
     return NextResponse.json(result);
   } catch (error) {
-    await writeAlertDeliveryHeartbeat({ startedAt, error })
-      .catch((heartbeatError) => console.warn("Alert delivery failure heartbeat write failed", heartbeatError));
-    const message = error instanceof Error ? error.message : String(error);
-    const status = /unauthorized/i.test(message) ? 401 : 500;
-    return NextResponse.json({ ok: false, error: message }, { status });
+    if (scheduledRun) {
+      await writeAlertDeliveryHeartbeat({ startedAt, error })
+        .catch((heartbeatError) => console.warn("Alert delivery failure heartbeat write failed", heartbeatError));
+    }
+    return NextResponse.json({ ok: false, error: "Alert delivery failed" }, { status: 500 });
   }
 }

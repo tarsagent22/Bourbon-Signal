@@ -66,4 +66,11 @@ assert.equal(regression.ok, false);
 assert.ok(regression.failures.some((failure) => failure.includes('score')));
 assert.ok(regression.failures.some((failure) => failure.includes('drops')));
 
+const degradedRegression = compareStateQuality(
+  { states: [{ ...strong, state: 'AA', releaseEligible: true }] },
+  { states: [{ ...strong, state: 'AA', releaseEligible: true, input: { ...strong.input, status: 'degraded' }, weaknesses: ['degraded_state_status'] }] },
+);
+assert.equal(degradedRegression.ok, false);
+assert.ok(degradedRegression.failures.some((failure) => failure.includes('degraded')));
+
 console.log('State quality scorecard tests passed.');
