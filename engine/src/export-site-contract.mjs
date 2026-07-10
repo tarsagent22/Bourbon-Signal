@@ -7,6 +7,7 @@ import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
+import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1550,6 +1551,7 @@ async function main() {
       stores: 'stores.json',
       locations: 'locations.json',
       drops: 'drops.json',
+      stateDrops: 'states/index.json',
       events: 'events.json',
       alerts: 'alerts.json',
       stateQuality: 'state-quality.json',
@@ -1569,6 +1571,25 @@ async function main() {
     }
   };
 
+  const stateDropPartitions = buildStateDropPartitions(drops, {
+    contractVersion: CONTRACT_VERSION,
+    generatedAt,
+    activeStates: [...activeStateIds],
+  });
+  const partitionVerification = verifyStateDropPartitions(drops, stateDropPartitions);
+  if (!partitionVerification.ok) {
+    throw new Error(`State drop partition verification failed: ${partitionVerification.errors.join(' ')}`);
+  }
+  manifest.statePartitions = stateDropPartitions.index.states;
+
+  await rm(path.join(SITE_OUT, 'states'), { recursive: true, force: true });
+  await mkdir(path.join(SITE_OUT, 'states'), { recursive: true });
+  await writeFile(path.join(SITE_OUT, 'states', 'index.json'), JSON.stringify(stateDropPartitions.index, null, 2));
+  for (const [state, payload] of stateDropPartitions.payloads) {
+    const stateDir = path.join(SITE_OUT, 'states', state);
+    await mkdir(stateDir, { recursive: true });
+    await writeFile(path.join(stateDir, 'drops.json'), JSON.stringify(payload, null, 2));
+  }
   await writeFile(path.join(SITE_OUT, 'manifest.json'), JSON.stringify(manifest, null, 2));
   await writeFile(path.join(SITE_OUT, 'stats.json'), JSON.stringify(stats, null, 2));
   await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: bottles.length, bottles }, null, 2));

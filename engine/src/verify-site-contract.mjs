@@ -26,7 +26,10 @@ function walkValues(value, visitor, pathParts = []) {
   for (const [key, child] of Object.entries(value)) walkValues(child, visitor, [...pathParts, key]);
 }
 
+const manifest = readJson('manifest.json');
+const hasStatePartitions = typeof manifest.files?.stateDrops === 'string';
 const required = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'events.json', 'alerts.json', 'state-quality.json'];
+if (hasStatePartitions) required.push(manifest.files.stateDrops);
 for (const file of required) {
   try {
     const full = path.join(siteDir, file);
@@ -108,6 +111,28 @@ for (const aggregateState of ['UT', 'MD-MONTGOMERY']) {
 }
 
 const drops = readJson('drops.json');
+if (hasStatePartitions) {
+  const partitionIndex = readJson(manifest.files.stateDrops);
+  const partitionDrops = [];
+  for (const expected of activeStates) {
+    const entry = (partitionIndex.states || []).find((item) => item.state === expected);
+    if (!entry) {
+      fail(`${manifest.files.stateDrops} missing active state ${expected}.`);
+      continue;
+    }
+    const payload = readJson(entry.file);
+    if (payload.state !== expected) fail(`${entry.file} declares state ${payload.state}, expected ${expected}.`);
+    if (payload.count !== (payload.drops || []).length || entry.count !== payload.count) fail(`${entry.file} count is incomplete.`);
+    if ((payload.drops || []).some((drop) => drop.state !== expected)) fail(`${entry.file} contains rows from another state.`);
+    partitionDrops.push(...(payload.drops || []));
+  }
+  if (partitionIndex.totalCount !== (drops.drops || []).length || partitionDrops.length !== (drops.drops || []).length) {
+    fail(`state drop partitions must preserve all ${(drops.drops || []).length} drops; index=${partitionIndex.totalCount}, combined=${partitionDrops.length}.`);
+  }
+  const sourceRows = (drops.drops || []).map((drop) => JSON.stringify(drop)).sort();
+  const partitionRows = partitionDrops.map((drop) => JSON.stringify(drop)).sort();
+  if (sourceRows.some((row, index) => row !== partitionRows[index])) fail('state drop partitions are not a lossless copy of drops.json.');
+}
 const dropStates = new Set((drops.drops || []).map((drop) => drop.state).filter(Boolean));
 if ((drops.drops || []).length !== stats.dropCount) {
   fail(`stats.dropCount should match drops.json length (${(drops.drops || []).length}), got ${stats.dropCount}.`);

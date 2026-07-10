@@ -35,6 +35,8 @@ interface DropsResponse {
   limit?: number;
   offset?: number;
   hasMore?: boolean;
+  nextCursor?: string | null;
+  snapshot?: string;
   fallback?: boolean;
   error?: string;
 }
@@ -1376,6 +1378,7 @@ export default function DropFeed() {
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextDropOffset, setNextDropOffset] = useState(0);
+  const [nextDropCursor, setNextDropCursor] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1406,7 +1409,7 @@ export default function DropFeed() {
       const seenIds = new Set<string>();
 
       for (let attempts = 0; attempts < 12; attempts += 1) {
-        const query = new URLSearchParams({ limit: "200", offset: String(nextOffset) });
+        const query = new URLSearchParams({ limit: "40", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
@@ -1453,6 +1456,7 @@ export default function DropFeed() {
       setData(json);
       setGrouped(newGrouped);
       setNextDropOffset(nextOffset);
+      setNextDropCursor(json.nextCursor ?? null);
       setVisibleDropCount(isFreeUser ? 7 : 10);
     } catch {
       setError(true);
@@ -1679,6 +1683,7 @@ export default function DropFeed() {
   const fetchOlderDrops = async () => {
     if (!isSignedIn || isLoadingMore) return;
     let nextOffset = nextDropOffset;
+    let cursor = nextDropCursor;
     if (data && data.total <= nextOffset) return;
 
     setIsLoadingMore(true);
@@ -1690,7 +1695,9 @@ export default function DropFeed() {
       const existingIds = new Set(grouped.map((drop) => drop.id));
 
       while (attempts < 24) {
-        const query = new URLSearchParams({ limit: "100", offset: String(nextOffset) });
+        const query = new URLSearchParams({ limit: "40" });
+        if (cursor) query.set("cursor", cursor);
+        else query.set("offset", String(nextOffset));
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
@@ -1707,12 +1714,14 @@ export default function DropFeed() {
         accumulatedMatchingCount += nextRows.filter((drop) => matchesActiveFeedFilters(drop) && matchesSavedAreaPreferences(drop)).length;
 
         nextOffset = (json.offset ?? nextOffset) + (json.limit ?? sourceDrops.length);
+        cursor = json.nextCursor ?? null;
         const exhausted = !json.hasMore || nextOffset >= json.total || sourceDrops.length === 0;
         if (accumulatedMatchingCount >= 10 || exhausted) break;
         attempts += 1;
       }
 
       setNextDropOffset(nextOffset);
+      setNextDropCursor(cursor);
       if (latestJson) {
         setData((prev) => prev ? { ...prev, total: latestJson.total, hasMore: latestJson.hasMore && nextOffset < latestJson.total, offset: 0, limit: latestJson.limit } : latestJson);
       }
@@ -2351,7 +2360,7 @@ export default function DropFeed() {
                 <span>
                   {isKentuckyFeed
                     ? `${finalFeed.length} current gift-shop pickup ${finalFeed.length === 1 ? "lead" : "leads"} · ${KENTUCKY_RELEASE_WATCH_SOURCE_COUNT} official release-watch sources`
-                    : `${displayedGrouped.length} of ${finalFeed.length} drops`}
+                    : `${displayedGrouped.length} visible · ${data.total} matching signals${data.lastUpdated ? ` · refreshed ${formatRelativeTime(data.lastUpdated)}` : ""}`}
                 </span>
                 {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
               </div>

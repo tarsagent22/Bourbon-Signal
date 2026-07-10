@@ -21,6 +21,21 @@ This is a standalone foundation and is not wired into the live site.
 - Runner: `src/run.mjs`
 - Verification gate: `src/verify.mjs`
 
+## Optimization foundations
+
+The pure/tested modules under `src/optimization/` provide the integration boundaries for the next engine hardening phase:
+
+- `collector-state.mjs` persists ETag/Last-Modified/content-hash probe metadata and decides due, forced, disabled, and conditional probes. Integrate it around each collector's fetch boundary when collector state persistence is introduced.
+- `worker-pool.mjs` provides ordered bounded execution with global concurrency, per-domain concurrency, timeout, and abort signals. Collectors must pass the supplied abort signal to network work before replacing their current serial loops.
+- `change-set.mjs` computes added/updated/removed records and full/incremental/no-op partition plans. Use it before rebuilding state/site partitions.
+- `history-compression.mjs` is a pure, reversible transform that run-length compresses unchanged observations without deleting source history. No destructive history migration is included.
+- `query-indexes.mjs` generates state/board/county/city/store lookup indexes while retaining the complete detail record by id. The safe integration point is site-contract export after public drops and locations are finalized.
+- `change-journal.mjs` creates stable novelty identities that deliberately exclude quantity and observation timestamps. `operational-report.mjs` now updates `out/change-journal.json`; repeated quantity observations update an existing entry rather than manufacturing novelty.
+- `promotion-gate.mjs` retains the last useful state payload as `stale_useful` when a candidate collapses or fails quality/roadblock gates. Apply it where per-state reports are promoted into aggregate/site output, after state-specific quality metrics exist.
+- `source-scheduler.mjs` calculates source ROI and adaptive due times with unchanged/failure backoff. It is decision-only and does not enable sources, alerts, or scheduled jobs.
+
+Run `npm run test:foundations` for focused coverage. These modules intentionally do not activate collectors, alter source aliases, schedule production jobs, or rewrite existing history.
+
 ## States covered
 
 OH, OR, IA, UT, AL, VA, PA, ID, NC, NH, Montgomery County MD, ME, VT, MI, MT, WV, WY, MS.

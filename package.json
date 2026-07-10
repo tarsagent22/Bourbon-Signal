@@ -16,6 +16,7 @@
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
+    "test:progressive-feed": "node --experimental-strip-types scripts/test-progressive-feed-contract.mjs",
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs && node --experimental-strip-types scripts/test-sms-alert-copy.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
@@ -29,11 +30,17 @@
     "ops:bottle-queue": "node automation/bourbon-signal/bottle-queue-autoprocess.mjs",
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
+    "test:engine-snapshot-reader": "node --experimental-strip-types scripts/test-engine-snapshot-reader.mjs",
     "verify:production-engine": "node scripts/verify-production-engine-regression.mjs",
-    "verify:ci": "npm run test:ops && npm run test:release && npm run test:sms-alerts && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run build"
+    "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
+    "test:alert-queue-repository": "node --experimental-strip-types scripts/test-alert-queue-repository.mts",
+    "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
+    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
+    "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
+    "verify:ci": "npm run test:progressive-feed && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.0.7",
+    "@clerk/nextjs": "^7.5.16",
     "@clerk/themes": "^2.4.57",
     "@react-email/components": "^1.0.12",
     "@stripe/stripe-js": "^9.0.0",
@@ -41,13 +48,11 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.5.0",
     "framer-motion": "^12.38.0",
-    "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",
-    "next": "^15",
+    "next": "^15.5.20",
     "react": "^19",
     "react-dom": "^19",
-    "react-email": "^6.0.0",
-    "react-leaflet": "^5.0.0",
+    "react-email": "^6.6.9",
     "resend": "^6.12.2",
     "stripe": "^21.0.1",
     "three": "^0.183.2",
@@ -55,13 +60,15 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/leaflet": "^1.9.21",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^15",
+    "eslint-config-next": "^15.5.20",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "ws": "8.21.0"
   }
 }
