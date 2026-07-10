@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as crypto from "crypto";
+import { verifyClerkWebhookSignature } from "@/lib/clerk-webhook";
 import { createNewsletterContact, normalizeNewsletterEmail } from "@/lib/newsletter";
 
 export const dynamic = "force-dynamic";
@@ -18,40 +18,16 @@ type ClerkWebhookUser = {
   emailAddresses?: ClerkEmailAddress[];
 };
 
-function decodeWebhookSecret(secret: string) {
-  const trimmed = secret.trim();
-  const withoutPrefix = trimmed.startsWith("whsec_") ? trimmed.slice(6) : trimmed;
-  return Buffer.from(withoutPrefix, "base64");
-}
-
-function timingSafeEqualString(a: string, b: string) {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
 function verifyClerkSignature(payload: string, req: NextRequest) {
   const secret = process.env.CLERK_WEBHOOK_SECRET;
   if (!secret) throw new Error("CLERK_WEBHOOK_SECRET is not configured");
-
-  const svixId = req.headers.get("svix-id");
-  const svixTimestamp = req.headers.get("svix-timestamp");
-  const svixSignature = req.headers.get("svix-signature");
-  if (!svixId || !svixTimestamp || !svixSignature) return false;
-
-  const timestampSeconds = Number(svixTimestamp);
-  const ageSeconds = Math.abs(Date.now() / 1000 - timestampSeconds);
-  if (!Number.isFinite(timestampSeconds) || ageSeconds > 300) return false;
-
-  const signedContent = `${svixId}.${svixTimestamp}.${payload}`;
-  const expected = crypto.createHmac("sha256", decodeWebhookSecret(secret)).update(signedContent).digest("base64");
-  return svixSignature
-    .split(" ")
-    .flatMap((part) => part.split(","))
-    .map((part) => part.trim())
-    .filter((part) => part.startsWith("v1,"))
-    .map((part) => part.slice(3))
-    .some((signature) => timingSafeEqualString(signature, expected));
+  return verifyClerkWebhookSignature({
+    payload,
+    secret,
+    id: req.headers.get("svix-id") || "",
+    timestamp: req.headers.get("svix-timestamp") || "",
+    signature: req.headers.get("svix-signature") || "",
+  });
 }
 
 function primaryEmailForWebhookUser(user: ClerkWebhookUser) {
@@ -67,7 +43,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid Clerk webhook signature" }, { status: 400 });
   }
 
-  const event = JSON.parse(payload) as { type?: string; data?: ClerkWebhookUser };
+  let event: { type?: string; data?: ClerkWebhookUser };
+  try {
+    event = JSON.parse(payload) as { type?: string; data?: ClerkWebhookUser };
+  } catch {
+    return NextResponse.json({ error: "Invalid Clerk webhook payload" }, { status: 400 });
+  }
   if (event.type !== "user.created") {
     return NextResponse.json({ ok: true, ignored: true });
   }

@@ -7,10 +7,11 @@ const CRON_STALE_AFTER_MINUTES = 12;
 const ENGINE_STALE_AFTER_MINUTES = 120;
 
 export interface AlertDeliveryHeartbeat {
-  schemaVersion: 1;
+  schemaVersion: 2;
   completedAt: string;
   ok: boolean;
   dryRun: boolean;
+  deploymentId: string | null;
   durationMs: number;
   counts: Record<string, number>;
   error: string | null;
@@ -46,15 +47,16 @@ export async function writeAlertDeliveryHeartbeat(input: {
 }) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   const result = input.result || {};
-  const errorMessage = input.error instanceof Error ? input.error.message : input.error ? String(input.error) : null;
+  const failed = Boolean(input.error) || result.ok === false;
   const heartbeat: AlertDeliveryHeartbeat = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     completedAt: new Date().toISOString(),
-    ok: !errorMessage && result.ok !== false,
+    ok: !failed,
     dryRun: result.dryRun === true,
+    deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
     durationMs: Math.max(0, Date.now() - input.startedAt),
     counts: safeCounts(result),
-    error: errorMessage?.slice(0, 240) || null,
+    error: failed ? "delivery_failed" : null,
   };
   await put(HEARTBEAT_PATH, JSON.stringify(heartbeat), {
     access: "public",
@@ -90,23 +92,33 @@ export function buildOpsHealth(input: {
   heartbeat: AlertDeliveryHeartbeat | null;
   engineGeneratedAt: string | null;
   refreshHealth?: Record<string, unknown> | null;
+  currentDeploymentId?: string | null;
 }) {
   const cronAgeMinutes = ageMinutes(input.heartbeat?.completedAt);
   const engineAgeMinutes = ageMinutes(input.engineGeneratedAt);
   const failedStateCount = finiteNumber(input.refreshHealth?.failedStateCount);
+  const degradedStateCount = finiteNumber(input.refreshHealth?.degradedStateCount);
+  const staleStateCount = finiteNumber(input.refreshHealth?.staleStateCount);
+  const deploymentMismatch = Boolean(input.currentDeploymentId && input.heartbeat?.deploymentId !== input.currentDeploymentId);
   const cronStatus = !input.heartbeat
     ? "unknown"
-    : input.heartbeat.ok !== true
+    : input.heartbeat.dryRun
+      ? "dry_run"
+      : deploymentMismatch
+        ? "wrong_deployment"
+        : input.heartbeat.ok !== true
       ? "failed"
       : cronAgeMinutes !== null && cronAgeMinutes <= CRON_STALE_AFTER_MINUTES
         ? "healthy"
         : "stale";
   const engineStatus = failedStateCount > 0
     ? "failed"
-    : engineAgeMinutes !== null && engineAgeMinutes <= ENGINE_STALE_AFTER_MINUTES
+    : degradedStateCount > 0 || staleStateCount > 0
+      ? "degraded"
+      : engineAgeMinutes !== null && engineAgeMinutes <= ENGINE_STALE_AFTER_MINUTES
       ? "healthy"
       : engineAgeMinutes === null ? "unknown" : "stale";
-  const ok = cronStatus === "healthy" && engineStatus === "healthy";
+  const ok = cronStatus === "healthy" && (engineStatus === "healthy" || engineStatus === "degraded");
 
   return {
     ok,
@@ -126,6 +138,7 @@ export function buildOpsHealth(input: {
       ageMinutes: cronAgeMinutes,
       lastRunOk: input.heartbeat?.ok ?? null,
       lastRunDryRun: input.heartbeat?.dryRun ?? null,
+      deploymentId: input.heartbeat?.deploymentId || null,
     },
     engine: {
       status: engineStatus,
@@ -133,6 +146,8 @@ export function buildOpsHealth(input: {
       ageMinutes: engineAgeMinutes,
       staleAfterMinutes: ENGINE_STALE_AFTER_MINUTES,
       failedStateCount,
+      degradedStateCount,
+      staleStateCount,
     },
     delivery: {
       cronSecretConfigured: Boolean(process.env.CRON_SECRET || process.env.ALERT_DELIVERY_SECRET),

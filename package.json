@@ -11,7 +11,7 @@
     "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs",
     "ops:searches": "node automation/bourbon-signal/search-events-report.mjs",
     "test:ops": "node scripts/verify-ops-workflow.mjs",
-    "test:release": "node scripts/test-release-orchestrator.mjs && node --experimental-strip-types scripts/test-notification-preferences.mjs && node --experimental-strip-types scripts/test-ops-health.mjs && node scripts/verify-web-release-contract.mjs",
+    "test:release": "node scripts/test-release-orchestrator.mjs && node --experimental-strip-types scripts/test-clerk-webhook.mjs && node --experimental-strip-types scripts/test-notification-preferences.mjs && node --experimental-strip-types scripts/test-ops-health.mjs && node scripts/verify-web-release-contract.mjs",
     "release:production": "node scripts/release-production.mjs --apply",
     "test:member-sightings": "node scripts/verify-member-sightings.mjs",
     "test:drop-feed-api": "node scripts/verify-drop-feed-api-contract.mjs",
