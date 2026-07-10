@@ -92,8 +92,11 @@ if (releaseOrchestrator.includes("git(tempRoot, ['push', 'origin', 'HEAD:main'])
 if (deliveryRoute.indexOf('assertAlertDeliveryAuthorized(req)') > deliveryRoute.indexOf('const startedAt')) {
   failures.push('Alert delivery authorization must happen before heartbeat-eligible execution starts.');
 }
-if (!deliveryRoute.includes('scheduledRun && !dryRun && !testEmail')) {
-  failures.push('Only authenticated, non-dry-run scheduler executions may write the delivery heartbeat.');
+if (!deliveryRoute.includes('scheduledRun && !testEmail && baselineModeCount === 0')) {
+  failures.push('Only authenticated scheduler monitor executions may write the delivery heartbeat; test and baseline requests must remain excluded.');
+}
+if (!deliveryRoute.includes('requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0)')) {
+  failures.push('Monitor-only scheduler executions must be forced to dry-run before delivery begins.');
 }
 if ((deliveryRoute.match(/if \(heartbeatEligible\)/gu) || []).length !== 2) {
   failures.push('Both successful and failed heartbeat writes must use the same strict eligibility predicate.');
