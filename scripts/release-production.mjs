@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   assertCleanOriginMain,
+  assertChangedExportPaths,
   assertExportFileSet,
   buildReleaseManifest,
   evaluateCronRegistration,
@@ -117,8 +118,7 @@ async function stageExports(tempRoot, sourceDir) {
   const status = (await git(tempRoot, ['status', '--porcelain'])).stdout.trimEnd();
   if (!status.trim()) return { changed: false, files: copied.files };
   const changedPaths = parsePorcelainPaths(status);
-  const unsafe = changedPaths.filter((file) => !file.startsWith('engine/out/site/') || !file.endsWith('.json'));
-  if (unsafe.length) throw new Error(`Generated export staging touched non-allowlisted paths: ${unsafe.join(', ')}`);
+  assertChangedExportPaths(changedPaths);
 
   await run('npm', ['--prefix', 'engine', 'run', 'verify:site'], { cwd: tempRoot });
   return { changed: true, files: copied.files, changedPaths };
