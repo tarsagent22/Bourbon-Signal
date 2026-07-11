@@ -1,21 +1,19 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T14:37:29.541Z",
+  "generatedAt": "2026-07-11T20:17:12.976Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
     "stores": "stores.json",
     "locations": "locations.json",
     "drops": "drops.json",
-    "stateDrops": "states/index.json",
     "events": "events.json",
     "alerts": "alerts.json",
-    "stateQuality": "state-quality.json",
     "historicalTrends": "historical-trends.json",
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
-  "snapshotCount": 2,
+  "snapshotCount": 40,
   "schemas": {
     "bottle": [
       "id",
@@ -197,6 +195,8 @@
       "eligibleForEmail",
       "eligibleForSms",
       "actionabilityClass",
+      "freshnessPolicyHours",
+      "deliveryCaveat",
       "priorityClass",
       "deliveryChannel",
       "sendRecommendation",
@@ -227,9 +227,7 @@
       "policyMode",
       "inventorySemantics",
       "reason",
-      "evidence",
-      "freshnessPolicyHours",
-      "deliveryCaveat"
+      "evidence"
     ],
     "historicalTrend": [
       "state",
@@ -256,7 +254,7 @@
     {
       "state": "AZ",
       "file": "states/AZ/drops.json",
-      "count": 0
+      "count": 21
     },
     {
       "state": "CA",
@@ -291,7 +289,7 @@
     {
       "state": "IN",
       "file": "states/IN/drops.json",
-      "count": 73
+      "count": 72
     },
     {
       "state": "KY",
@@ -331,7 +329,7 @@
     {
       "state": "OH",
       "file": "states/OH/drops.json",
-      "count": 560
+      "count": 379
     },
     {
       "state": "PA",
@@ -341,7 +339,7 @@
     {
       "state": "SC",
       "file": "states/SC/drops.json",
-      "count": 72
+      "count": 10
     },
     {
       "state": "TN",
