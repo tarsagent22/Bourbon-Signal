@@ -723,6 +723,11 @@ const AZ_MESA_LIQUOR_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.en
 const AZ_FLAGSTAFF_LIQUOR_URL = 'https://flagstaffliquor.com/products.json?limit=250';
 const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store inventory';
 const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
+const AZ_ALBERTSONS_STORE_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_STORE_KEY || '7bad9afbb87043b28519c4443106db06';
+const AZ_ALBERTSONS_SEARCH_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_SEARCH_KEY || 'e914eec9448c4d5eb672debf5011cf8f';
+const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85701,86001,86301').split(',').map((x) => x.trim()).filter(Boolean);
+const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || 16));
+const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3157,6 +3162,71 @@ async function collectArizonaFlagstaffLiquor(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+async function collectArizonaAlbertsons(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const stores = new Map();
+  for (const zip of AZ_ALBERTSONS_ZIPS) {
+    const url = `https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=${encodeURIComponent(zip)}&radius=50&size=100`;
+    const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_STORE_KEY }, timeoutMs: 20_000 });
+    if (!res.ok && res.status !== 206) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront subscription key and retry.' }); continue; }
+    try {
+      const payload = JSON.parse(res.text);
+      for (const lane of ['instore', 'pickup', 'delivery']) {
+        let rows = payload?.[lane]?.stores || [];
+        if (!Array.isArray(rows)) rows = rows ? [rows] : [];
+        for (const store of rows) {
+          if (String(store?.address?.state || '').toUpperCase() !== 'AZ' || !store?.locationId) continue;
+          const previous = stores.get(String(store.locationId));
+          stores.set(String(store.locationId), { ...(previous || store), ...store, lanes: new Set([...(previous?.lanes || []), lane]) });
+        }
+      }
+    } catch (error) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the public resolver response shape.' }); }
+    await sleep(AZ_ALBERTSONS_DELAY_MS);
+  }
+  const selected = [...stores.values()].sort((a, b) => Number(a.distance || 999) - Number(b.distance || 999)).slice(0, AZ_ALBERTSONS_MAX_STORES);
+  for (const store of selected) {
+    const banner = String(store.polarisBannerName || store.domainName || 'safeway').toLowerCase().includes('albertsons') ? 'albertsons' : 'safeway';
+    const host = `https://www.${banner}.com`;
+    const params = new URLSearchParams({ 'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: String(store.locationId), featured: 'true', 'search-uid': '', q: 'bourbon', channel: 'instore', banner });
+    const url = `${host}/abs/pub/xapi/search/substitute?${params}`;
+    const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, timeoutMs: 25_000 });
+    if (!res.ok) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront search key and retry at low cadence.' }); await sleep(AZ_ALBERTSONS_DELAY_MS); continue; }
+    let docs = [];
+    try { docs = JSON.parse(res.text)?.response?.docs || []; } catch (error) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the XAPI search response shape.' }); }
+    for (const product of docs) {
+      const rawName = htmlToText(product?.name || '');
+      if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)) continue;
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record || String(product?.restrictedValue || '').toLowerCase() === 'true' && product?.containsAlcohol === false) continue;
+      const inventory = product?.channelInventory || {};
+      const positive = String(inventory.instore ?? inventory.inStore ?? '') === '1';
+      if (!positive) continue;
+      const exactQty = Number(inventory.instoreItemQty ?? inventory.inStoreItemQty);
+      const quantity = Number.isFinite(exactQty) && exactQty > 0 ? exactQty : 0;
+      const address = store.address || {};
+      const sourceLabel = `${banner === 'albertsons' ? 'Albertsons' : 'Safeway'} Arizona XAPI store inventory`;
+      signals.push({
+        id: stableId([config.id, 'albertsons-xapi', store.locationId, product.id || product.pid || product.upc]), state: config.id,
+        sourceLabel, sourceUrl: `${host}/shop/product-details.${product.pid || product.id || product.upc}.html`, sourceChain: banner, merchantId: String(store.locationId),
+        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+        confidence: quantity > 0 ? 0.86 : Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+        locationName: `${store.domainName || banner} #${store.locationId}`, storeName: `${store.domainName || banner} #${store.locationId}`, storeId: `${banner}:${store.locationId}`,
+        storeAddress: `${address.line1}, ${address.city}, AZ ${address.zipcode}`, city: address.city, stateCode: 'AZ', postalCode: address.zipcode, zip: address.zipcode,
+        lat: Number(store.latitude ?? store.lat) || null, lng: Number(store.longitude ?? store.lng) || null,
+        quantity, price: Number(product.price) || null, availabilityStatus: 'in_stock', availabilityLabel: quantity > 0 ? `Retailer reports ${quantity} available` : 'Retailer reports in-store inventory', sourceAvailabilityVerified: true, observedAt,
+        canAlertAsInventory: true, canAlertAsWatch: true,
+        inventorySemantics: quantity > 0 ? 'Albertsons Companies XAPI reports positive store/channel inventory and an item quantity.' : 'Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.',
+        evidence: `${sourceLabel} reports ${rawName} available at ${address.line1}, ${address.city}${quantity > 0 ? ` with quantity ${quantity}` : ''}.`,
+        raw: { chain: banner, merchantId: String(store.locationId), product: { id: product.id, pid: product.pid, upc: product.upc, inventoryAvailable: product.inventoryAvailable }, channelInventory: inventory, channelEligibility: product.channelEligibility }
+      });
+    }
+    await sleep(AZ_ALBERTSONS_DELAY_MS);
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona XAPI inventory', status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive in-store bourbon rows were returned.', nextRoute: 'Refresh public keys and inspect channelInventory without treating catalog presence as stock.' });
+  return { signals, roadblocks };
+}
+
 async function collectArizona(config, bible) {
   const observedAt = new Date().toISOString();
   const signals = [];
@@ -3308,9 +3378,10 @@ async function collectArizona(config, bible) {
   }
   const mesaLiquor = await collectArizonaMesaLiquor(config, bible, observedAt);
   const flagstaffLiquor = await collectArizonaFlagstaffLiquor(config, bible, observedAt);
+  const albertsons = await collectArizonaAlbertsons(config, bible, observedAt);
   return {
-    signals: [...signals, ...mesaLiquor.signals, ...flagstaffLiquor.signals],
-    roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...flagstaffLiquor.roadblocks]
+    signals: [...signals, ...mesaLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals],
+    roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...albertsons.roadblocks]
   };
 }
 
