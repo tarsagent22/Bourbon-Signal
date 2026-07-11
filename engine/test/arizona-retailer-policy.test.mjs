@@ -82,3 +82,18 @@ test('Safeway and Albertsons XAPI identities require matching banner host and st
   assert.equal(isArizonaRetailerSignalIdentity({ ...xapi, storeId: 'safeway:9999' }), false);
   assert.equal(isArizonaRetailerSignalIdentity({ ...xapi, sourceChain: 'albertsons' }), false);
 });
+
+test('Target RedSky orderability is alertable without treating ATP as exact shelf quantity', () => {
+  const target = {
+    state: 'AZ', eventType: 'retailer_store_inventory_result', sourceLabel: 'Target Arizona RedSky store fulfillment',
+    sourceUrl: 'https://www.target.com/p/test/-/A-14983851', sourceChain: 'target', merchantId: '2354',
+    locationPrecision: 'store_level', storeId: 'target:2354', storeAddress: '5715 N 19th Ave, Phoenix, AZ 85015',
+    quantity: 0, availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, confidence: 0.82,
+    raw: { chain: 'target', merchantId: '2354', availableToPromise: 9 }
+  };
+  assert.equal(isArizonaRetailerSignalIdentity(target), true);
+  assert.equal(isArizonaRetailerInventory(target), true);
+  assert.equal(confidenceForSignal(target).canAlertAsInventory, true);
+  assert.equal(isArizonaRetailerSignalIdentity({ ...target, merchantId: '9999', storeId: 'target:9999' }), false);
+  assert.equal(isArizonaRetailerSignalIdentity({ ...target, sourceUrl: 'https://attacker.example/p/test' }), false);
+});

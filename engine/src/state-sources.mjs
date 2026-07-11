@@ -339,9 +339,12 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://chandlerliquorsaz.com/shop/?subtype=Bourbon', label: 'Chandler Liquors CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://luckysliquor.com/shop/?search=bourbon', label: "Lucky's Liquor Phoenix CityHive bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://onestopdrivethruliquor.com/shop/?search=bourbon', label: 'One Stop Drive Thru Liquor Phoenix CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://liquorexpresstempe.store/shop/?subtype=bourbon', label: 'Liquor Express Tempe CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1', label: 'Mesa Liquor WooCommerce in-stock bourbon inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://bestliquortempe.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1', label: 'Best Liquor Tempe WooCommerce in-stock bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://flagstaffliquor.com/products.json?limit=250', label: 'Flagstaff Liquor Shopify available bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=85001&radius=50&size=100', label: 'Safeway and Albertsons Arizona XAPI store inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2', label: 'Target Arizona RedSky store fulfillment', precisionOnly: true },
       { kind: 'xml', url: 'https://www.totalwine.com/Store-en-USD.xml', label: 'Total Wine Arizona authoritative store discovery', precisionOnly: true },
       { kind: 'api', url: 'https://api.kroger.com/v1/locations?filter.zipCode.near=85001&filter.radiusInMiles=25&filter.limit=50', label: "Fry's official Kroger Locations API", precisionOnly: true }
     ],
