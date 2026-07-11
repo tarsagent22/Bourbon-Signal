@@ -31,14 +31,27 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   const entry = getRadarEntryByPath(kind, slug);
   if (!entry) notFound();
   const canonical = `https://www.bourbonsignal.com${radarPath(entry)}`;
-  const schemaType = entry.kind === "event" || entry.kind === "lottery" ? "Event" : "Article";
-  const schema: Record<string, unknown> = schemaType === "Event" ? {
-    "@context": "https://schema.org", "@type": "Event", name: entry.title, description: entry.summary,
-    startDate: entry.startDate, endDate: entry.endDate || entry.startDate,
+  const isScheduled = entry.kind === "event" || entry.kind === "lottery";
+  const eventBase = {
+    name: entry.title,
+    description: entry.summary,
     eventStatus: "https://schema.org/EventScheduled",
+    url: canonical,
+    organizer: { "@type": "Organization", name: entry.sources[0].label, url: entry.sources[0].url },
+  };
+  const schema: Record<string, unknown> = isScheduled ? entry.occurrenceDates?.length ? {
+    "@context": "https://schema.org", "@type": "EventSeries", ...eventBase,
+    subEvent: entry.occurrenceDates.map((date) => ({
+      "@type": "Event", ...eventBase, startDate: date, endDate: date,
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      location: entry.location ? { "@type": "Place", name: entry.location } : undefined,
+    })),
+  } : {
+    "@context": "https://schema.org", "@type": "Event", ...eventBase,
+    startDate: entry.schemaStartDate || entry.startDate,
+    endDate: entry.schemaEndDate || entry.endDate || entry.startDate,
     eventAttendanceMode: entry.kind === "lottery" ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
-    location: entry.location ? { "@type": "Place", name: entry.location } : undefined,
-    url: canonical, organizer: { "@type": "Organization", name: entry.sources[0].label, url: entry.sources[0].url },
+    location: entry.kind !== "lottery" && entry.location ? { "@type": "Place", name: entry.location } : undefined,
   } : {
     "@context": "https://schema.org", "@type": "Article", headline: entry.title, description: entry.summary,
     dateModified: entry.updatedAt, mainEntityOfPage: canonical,

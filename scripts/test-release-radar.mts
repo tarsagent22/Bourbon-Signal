@@ -21,6 +21,15 @@ assert.ok(getEntriesByKind("release").length > 0, "launch content needs a releas
 assert.ok(getEntriesByKind("event").length > 0, "launch content needs an event");
 assert.ok(getEntriesByKind("bottle").length > 0, "launch content needs bottle context");
 
+const lottery = getRadarEntry("lottery", "virginia-abc-rare-character-july-2026");
+assert.ok(lottery?.schemaStartDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern opening time");
+assert.ok(lottery?.schemaEndDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern closing time");
+const camp = getRadarEntry("event", "camp-buffalo-trace-2026");
+assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate Camp dates must not become one continuous event");
+const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
+assert.match(detailSource, /OnlineEventAttendanceMode/);
+assert.match(detailSource, /EventSeries/);
+
 const upcoming = getUpcomingEntries("2026-07-10");
 assert.ok(upcoming.length > 0, "calendar needs upcoming records");
 assert.deepEqual(upcoming, [...upcoming].sort((a, b) => a.startDate.localeCompare(b.startDate)), "calendar must sort chronologically");

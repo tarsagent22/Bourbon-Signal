@@ -15,6 +15,9 @@ export interface RadarEntry {
   summary: string;
   startDate: string;
   endDate?: string;
+  schemaStartDate?: string;
+  schemaEndDate?: string;
+  occurrenceDates?: string[];
   dateLabel: string;
   status: "announced" | "open" | "upcoming" | "releasing" | "watch";
   states: string[];
@@ -55,6 +58,8 @@ export const radarEntries: RadarEntry[] = [
     summary: "Entries open July 12 at 9:00 p.m. and close July 16 at 8:59 p.m. Virginia residents should confirm bottle eligibility, pricing, and pickup requirements on the official lottery page before entering.",
     startDate: "2026-07-12",
     endDate: "2026-07-16",
+    schemaStartDate: "2026-07-12T21:00:00-04:00",
+    schemaEndDate: "2026-07-16T20:59:00-04:00",
     dateLabel: "Jul 12–16",
     status: "upcoming",
     states: ["Virginia"],
@@ -115,6 +120,7 @@ export const radarEntries: RadarEntry[] = [
     summary: "Camp Buffalo Trace is scheduled for August 29 and September 5 at Buffalo Trace Distillery. Capacity and overnight options are limited; official registration details should be treated as authoritative.",
     startDate: "2026-08-29",
     endDate: "2026-09-05",
+    occurrenceDates: ["2026-08-29", "2026-09-05"],
     dateLabel: "Aug 29 & Sep 5",
     status: "upcoming",
     states: ["Kentucky"],
