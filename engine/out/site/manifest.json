@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T20:17:12.976Z",
+  "generatedAt": "2026-07-11T21:55:27.843Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
@@ -249,12 +249,12 @@
     {
       "state": "AL",
       "file": "states/AL/drops.json",
-      "count": 1184
+      "count": 0
     },
     {
       "state": "AZ",
       "file": "states/AZ/drops.json",
-      "count": 21
+      "count": 38
     },
     {
       "state": "CA",
@@ -274,22 +274,22 @@
     {
       "state": "IA",
       "file": "states/IA/drops.json",
-      "count": 1303
+      "count": 0
     },
     {
       "state": "ID",
       "file": "states/ID/drops.json",
-      "count": 140
+      "count": 0
     },
     {
       "state": "IL",
       "file": "states/IL/drops.json",
-      "count": 181
+      "count": 0
     },
     {
       "state": "IN",
       "file": "states/IN/drops.json",
-      "count": 72
+      "count": 0
     },
     {
       "state": "KY",
@@ -299,7 +299,7 @@
     {
       "state": "MD-MONTGOMERY",
       "file": "states/MD-MONTGOMERY/drops.json",
-      "count": 9
+      "count": 0
     },
     {
       "state": "MI",
@@ -319,7 +319,7 @@
     {
       "state": "NC",
       "file": "states/NC/drops.json",
-      "count": 530
+      "count": 0
     },
     {
       "state": "NV",
@@ -329,27 +329,27 @@
     {
       "state": "OH",
       "file": "states/OH/drops.json",
-      "count": 379
+      "count": 0
     },
     {
       "state": "PA",
       "file": "states/PA/drops.json",
-      "count": 9
+      "count": 0
     },
     {
       "state": "SC",
       "file": "states/SC/drops.json",
-      "count": 10
+      "count": 0
     },
     {
       "state": "TN",
       "file": "states/TN/drops.json",
-      "count": 94
+      "count": 0
     },
     {
       "state": "VA",
       "file": "states/VA/drops.json",
-      "count": 2416
+      "count": 0
     },
     {
       "state": "WA",

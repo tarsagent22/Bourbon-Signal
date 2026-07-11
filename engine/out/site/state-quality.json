@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T20:17:12.976Z",
+  "generatedAt": "2026-07-11T21:55:27.843Z",
   "summary": {
     "stateCount": 23,
     "releaseEligibleStates": 12,
@@ -384,7 +384,7 @@
     {
       "state": "AZ",
       "coverageTier": "retailer_warehouse_inventory",
-      "score": 95,
+      "score": 93,
       "threshold": 50,
       "releaseEligible": true,
       "freshnessHours": 0,
@@ -394,19 +394,19 @@
         "precision": 16,
         "alerts": 15,
         "sourceDiversity": 15,
-        "reliability": 9
+        "reliability": 7
       },
       "weaknesses": [],
       "input": {
         "state": "AZ",
         "coverageTier": "retailer_warehouse_inventory",
-        "signalCount": 61,
-        "dropCount": 21,
-        "storeLevelDropCount": 21,
-        "alertCandidateCount": 21,
-        "sourceCount": 6,
-        "roadblockCount": 1,
-        "freshestObservedAt": "2026-07-11T20:15:58.448Z",
+        "signalCount": 124,
+        "dropCount": 38,
+        "storeLevelDropCount": 38,
+        "alertCandidateCount": 55,
+        "sourceCount": 10,
+        "roadblockCount": 2,
+        "freshestObservedAt": "2026-07-11T21:53:22.764Z",
         "status": "useful"
       }
     },
