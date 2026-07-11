@@ -235,12 +235,16 @@ function publicSignal(signal, bible, freshness = null) {
         : isAzRetailerInventory
           ? 'Arizona is a private retail market. Whitelisted public retailer CityHive sources expose store-level bottle availability, price, and sometimes exact quantity; alert as retailer-published availability with a verify-before-driving caveat.'
           : signal.inventorySemantics;
-  const canAlertAsInventory = signal.state === 'AZ'
-    ? isAzRetailerInventory
-    : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
-  const canAlertAsWatch = signal.state === 'AZ'
-    ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
-    : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
+  const canAlertAsInventory = isCostcoWarehouseInventory
+    ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
+    : signal.state === 'AZ'
+      ? isAzRetailerInventory
+      : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
+  const canAlertAsWatch = isCostcoWarehouseInventory
+    ? Boolean(signal.canAlertAsWatch)
+    : signal.state === 'AZ'
+      ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
+      : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -549,7 +553,7 @@ function isUserFacingDropSignal(signal) {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
     return quantity > 0;
   }
-  if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && quantity > 0;
+  if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && (quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'));
   if (type === 'retailer_store_inventory_result') return quantity > 0;
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;

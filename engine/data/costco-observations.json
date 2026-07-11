@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-07-11T23:14:33Z",
+  "observations": [
+    {
+      "state": "AZ",
+      "city": "Chandler",
+      "storeNumber": "736",
+      "storeName": "Costco Chandler",
+      "address": "595 S Galleria Way, Chandler, AZ 85226",
+      "zip": "85226",
+      "bottleName": "Buffalo Trace Bourbon",
+      "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml",
+      "status": "available",
+      "price": 25.29,
+      "observedAt": "2026-07-11T23:14:33Z",
+      "sourceSystem": "costco_sameday_guest_storefront",
+      "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon",
+      "availabilitySemantics": "Guest storefront displayed an enabled Add control after selecting the Chandler delivery address. This proves current delivery orderability, not exact warehouse quantity or a reservation."
+    }
+  ]
+}
