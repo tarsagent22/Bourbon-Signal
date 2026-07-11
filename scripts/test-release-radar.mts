@@ -57,6 +57,11 @@ assert.match(hubSource, /LotteryBrief/);
 assert.match(hubSource, /StateGuideIndex/);
 assert.match(hubSource, /BottleIndex/);
 assert.doesNotMatch(hubSource, /RadarCard/, "hub must not fall back to repeated editorial cards");
+const lotterySource = readFileSync(resolve("src/components/release-radar/LotteryBrief.tsx"), "utf8");
+assert.match(lotterySource, /<table/);
+assert.match(lotterySource, /<thead>/);
+assert.match(lotterySource, /<th scope="col">/);
+assert.match(lotterySource, /<td data-label=/);
 for (const route of [
   "src/app/release-radar/page.tsx",
   "src/app/release-radar/[kind]/[slug]/page.tsx",

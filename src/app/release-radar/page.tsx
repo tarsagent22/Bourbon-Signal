@@ -37,7 +37,7 @@ export default function ReleaseRadarPage() {
       </header>
 
       <nav className="rr-jump" aria-label="Jump to Release Radar section">
-        <span>Jump to</span><a href="#action">Now</a><a href="#calendar">Calendar</a><a href="#releases">Releases</a><a href="#states">States</a><a href="#bottles">Bottles</a>
+        <span>Jump to</span><a href="#action">Now</a><a href="#calendar">Calendar</a><a href="#releases">Releases</a><a href="#lotteries">Lotteries</a><a href="#states">States</a><a href="#bottles">Bottles</a>
       </nav>
 
       <ActionNow entries={lotteries} />
