@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T22:31:15.800Z",
-  "count": 3616,
+  "generatedAt": "2026-07-11T22:53:33.530Z",
+  "count": 3614,
   "stores": [
     {
       "id": "alabc:001",
@@ -50163,7 +50163,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "albertsons:2988",
@@ -50192,20 +50192,6 @@
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
       "signalCount": 6
-    },
-    {
-      "id": "albertsons:3204",
-      "sourceStoreId": "albertsons:3204",
-      "state": "AZ",
-      "name": "Albertsons #3204",
-      "address": "1980 Mcculloch Blvd, Lake Havasu City, AZ 86403",
-      "city": "Lake Havasu City",
-      "county": null,
-      "zip": "86403",
-      "lat": 0,
-      "lng": 0,
-      "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 5
     },
     {
       "id": "albertsons:3931",
@@ -50485,7 +50471,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "safeway:245",
@@ -50612,20 +50598,6 @@
       "lng": -111.6158603,
       "source": "Skyline Liquor Arizona CityHive store inventory",
       "signalCount": 9
-    },
-    {
-      "id": "target:2354",
-      "sourceStoreId": "target:2354",
-      "state": "AZ",
-      "name": "Target Phoenix Spectrum",
-      "address": "5715 N 19th Ave, Phoenix, AZ 85015",
-      "city": "Phoenix",
-      "county": null,
-      "zip": "85015",
-      "lat": null,
-      "lng": null,
-      "source": "Target Arizona RedSky store fulfillment",
-      "signalCount": 1
     }
   ]
 }
