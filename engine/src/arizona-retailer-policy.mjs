@@ -10,11 +10,20 @@ const ARIZONA_RETAILER_IDENTITIES = new Map([
 ]);
 
 export function isArizonaRetailerSignalIdentity(signal) {
-  const identity = ARIZONA_RETAILER_IDENTITIES.get(String(signal.sourceLabel || signal.source || ''));
-  const merchantId = String(signal.merchantId || signal.raw?.option?.merchant_id || '');
+  const source = String(signal.sourceLabel || signal.source || '');
+  const merchantId = String(signal.merchantId || signal.raw?.option?.merchant_id || signal.raw?.merchantId || '');
+  const chain = String(signal.sourceChain || signal.raw?.chain || '');
   let sourceHostname = '';
   try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
-  return Boolean(identity && (signal.sourceChain || signal.raw?.chain) === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);
+  if (/^(Safeway|Albertsons) Arizona XAPI store inventory$/.test(source)) {
+    const expectedChain = source.startsWith('Albertsons') ? 'albertsons' : 'safeway';
+    return chain === expectedChain
+      && sourceHostname === `${expectedChain}.com`
+      && /^\d{2,6}$/.test(merchantId)
+      && String(signal.storeId || '') === `${expectedChain}:${merchantId}`;
+  }
+  const identity = ARIZONA_RETAILER_IDENTITIES.get(source);
+  return Boolean(identity && chain === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);
 }
 
 export function isArizonaRetailerInventory(signal) {

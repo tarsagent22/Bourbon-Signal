@@ -67,3 +67,18 @@ test('Mesa Liquor WooCommerce orderability is alertable without inventing exact 
   assert.equal(isArizonaRetailerInventory({ ...mesa, raw: { ...mesa.raw, product: { id: 123, is_in_stock: false } } }), false);
   assert.equal(confidenceForSignal({ ...mesa, sourceUrl: 'https://attacker.example/product/123' }).canAlertAsInventory, false);
 });
+
+test('Safeway and Albertsons XAPI identities require matching banner host and store identity', () => {
+  const xapi = {
+    state: 'AZ', eventType: 'retailer_store_inventory_result', sourceLabel: 'Safeway Arizona XAPI store inventory',
+    sourceUrl: 'https://www.safeway.com/shop/product-details.123.html', sourceChain: 'safeway', merchantId: '1491',
+    locationPrecision: 'store_level', storeId: 'safeway:1491', storeAddress: '7920 E Chaparral Rd, Scottsdale, AZ 85250',
+    quantity: 5, availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, confidence: 0.86
+  };
+  assert.equal(isArizonaRetailerSignalIdentity(xapi), true);
+  assert.equal(isArizonaRetailerInventory(xapi), true);
+  assert.equal(confidenceForSignal(xapi).canAlertAsInventory, true);
+  assert.equal(isArizonaRetailerSignalIdentity({ ...xapi, sourceUrl: 'https://www.albertsons.com/shop/product-details.123.html' }), false);
+  assert.equal(isArizonaRetailerSignalIdentity({ ...xapi, storeId: 'safeway:9999' }), false);
+  assert.equal(isArizonaRetailerSignalIdentity({ ...xapi, sourceChain: 'albertsons' }), false);
+});
