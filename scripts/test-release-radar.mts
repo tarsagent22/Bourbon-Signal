@@ -29,6 +29,8 @@ assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate 
 const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailSource, /OnlineEventAttendanceMode/);
 assert.match(detailSource, /EventSeries/);
+const hubSource = readFileSync(resolve("src/app/release-radar/page.tsx"), "utf8");
+assert.match(hubSource, /entry\.occurrenceDates\?\.length \? "EventSeries"/, "hub and detail schema must agree on event series");
 
 const upcoming = getUpcomingEntries("2026-07-10");
 assert.ok(upcoming.length > 0, "calendar needs upcoming records");

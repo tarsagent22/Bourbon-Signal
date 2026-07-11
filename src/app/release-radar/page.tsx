@@ -19,7 +19,11 @@ export default function ReleaseRadarPage() {
         description: "Source-backed bourbon release calendar, official whiskey lotteries, bottle intelligence, distillery events, and state hunting guides.",
         url: "https://www.bourbonsignal.com/release-radar",
         isPartOf: { "@type": "WebSite", name: "Bourbon Signal", url: "https://www.bourbonsignal.com" },
-        hasPart: radarEntries.map((entry) => ({ "@type": entry.kind === "event" || entry.kind === "lottery" ? "Event" : "Article", name: entry.title, url: `https://www.bourbonsignal.com${radarPath(entry)}` })),
+        hasPart: radarEntries.map((entry) => ({
+          "@type": entry.occurrenceDates?.length ? "EventSeries" : entry.kind === "event" || entry.kind === "lottery" ? "Event" : "Article",
+          name: entry.title,
+          url: `https://www.bourbonsignal.com${radarPath(entry)}`,
+        })),
       }} />
       <div className="radar-shell">
         <RadarMasthead />
