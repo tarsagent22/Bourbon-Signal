@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T14:37:29.541Z",
+  "generatedAt": "2026-07-11T20:17:12.976Z",
   "summary": {
     "stateCount": 23,
-    "releaseEligibleStates": 11,
-    "releaseBlockedStates": 12,
-    "averageScore": 47,
+    "releaseEligibleStates": 12,
+    "releaseBlockedStates": 11,
+    "averageScore": 51,
     "weakestStates": [
       "KY",
-      "AZ",
       "CA",
       "FL",
-      "GA"
+      "GA",
+      "MI"
     ]
   },
   "states": [
@@ -384,34 +384,29 @@
     {
       "state": "AZ",
       "coverageTier": "retailer_warehouse_inventory",
-      "score": 9,
+      "score": 95,
       "threshold": 50,
-      "releaseEligible": false,
-      "freshnessHours": null,
+      "releaseEligible": true,
+      "freshnessHours": 0,
       "dimensions": {
-        "freshness": 0,
-        "volume": 0,
-        "precision": 0,
-        "alerts": 0,
-        "sourceDiversity": 0,
+        "freshness": 20,
+        "volume": 20,
+        "precision": 16,
+        "alerts": 15,
+        "sourceDiversity": 15,
         "reliability": 9
       },
-      "weaknesses": [
-        "unknown_freshness",
-        "no_public_drops",
-        "no_alert_candidates",
-        "single_source_dependency"
-      ],
+      "weaknesses": [],
       "input": {
         "state": "AZ",
         "coverageTier": "retailer_warehouse_inventory",
-        "signalCount": 0,
-        "dropCount": 0,
-        "storeLevelDropCount": 0,
-        "alertCandidateCount": 0,
-        "sourceCount": 0,
+        "signalCount": 61,
+        "dropCount": 21,
+        "storeLevelDropCount": 21,
+        "alertCandidateCount": 21,
+        "sourceCount": 6,
         "roadblockCount": 1,
-        "freshestObservedAt": null,
+        "freshestObservedAt": "2026-07-11T20:15:58.448Z",
         "status": "useful"
       }
     },
@@ -759,6 +754,8 @@
   "regression": {
     "ok": true,
     "failures": [],
-    "warnings": []
+    "warnings": [
+      "Atomic AZ partition promotion preserved all non-AZ production partitions."
+    ]
   }
 }
