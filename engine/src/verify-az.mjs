@@ -10,13 +10,13 @@ const arizonaPolicySource = await readFile('src/arizona-retailer-policy.mjs', 'u
 const confidencePolicySource = await readFile('src/confidence-policy.mjs', 'utf8');
 const stateSourceConfig = await readFile('src/state-sources.mjs', 'utf8');
 const signals = state.signals || [];
-const inventory = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
+const inventory = signals.filter((signal) => /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/.test(signal.eventType));
+const xapiInventory = inventory.filter((signal) => /^(Safeway|Albertsons) Arizona XAPI/.test(signal.sourceLabel || ''));
 const catalogWatch = signals.filter((signal) => signal.eventType === 'cityhive_store_catalog_watch');
 const stores = signals.filter((signal) => signal.eventType === 'retailer_store_location');
 const highValue = inventory.filter((signal) => /blanton|eagle rare|e\.?\s*h\.?\s*taylor|buffalo trace|1792 (?:full proof|sweet wheat)/i.test(`${signal.rawName || ''} ${signal.canonicalName || ''}`));
 const rareTierInventory = inventory.filter((signal) => ['unicorn', 'allocated', 'limited'].includes(signal.tier));
-const allowedCities = new Set(['Phoenix', 'Scottsdale', 'Mesa', 'Chandler', 'Casa Grande']);
-const unsafe = inventory.filter((signal) => signal.state !== 'AZ' || signal.stateCode !== 'AZ' || !allowedCities.has(signal.city) || !/,\s*(?:Phoenix|Scottsdale|Mesa|Chandler|Casa Grande),\s*AZ\s+\d{5}/i.test(signal.storeAddress || '') || signal.locationPrecision !== 'store_level' || !signal.storeId || !signal.canAlertAsInventory || Number(signal.quantity || 0) <= 0);
+const unsafe = inventory.filter((signal) => signal.state !== 'AZ' || signal.stateCode !== 'AZ' || !/,\s*AZ\s+\d{5}/i.test(signal.storeAddress || '') || signal.locationPrecision !== 'store_level' || !signal.storeId || !signal.canAlertAsInventory || (Number(signal.quantity || 0) <= 0 && signal.sourceAvailabilityVerified !== true));
 const sentinelLeaks = signals.filter((signal) => Number(signal.raw?.reportedQuantity || 0) >= 100 && (signal.eventType !== 'cityhive_store_catalog_watch' || Number(signal.quantity || 0) !== 0 || signal.canAlertAsInventory || signal.availabilityStatus !== 'catalog_listed' || signal.raw?.quantitySemantics !== 'catalog_sentinel_unverified'));
 const smallFormats = inventory.filter((signal) => {
   const size = signal.raw?.option?.option_params?.size || {};
@@ -35,6 +35,8 @@ assert(stores.length >= 5, `Expected at least five Arizona retailer locations; g
 assert(stores.some((signal) => /Paradise Liquor/i.test(signal.storeName || '') && signal.city === 'Phoenix'), 'Expected Paradise Liquor Phoenix store location signal.');
 assert(inventory.length > 0, 'Expected at least one finite-quantity guarded Arizona inventory signal.');
 assert(['Scottsdale', 'Mesa'].every((city) => inventory.some((signal) => signal.city === city)), 'Expected verified Phoenix-metro inventory in Scottsdale and Mesa.');
+assert(xapiInventory.length >= 20, `Expected broad Safeway/Albertsons XAPI inventory; got ${xapiInventory.length}.`);
+assert(new Set(xapiInventory.map((signal) => signal.storeId)).size >= 10, 'Expected Safeway/Albertsons coverage across at least ten stores.');
 assert(highValue.length > 0, 'Expected at least one high-value finite-quantity Arizona signal.');
 assert(rareTierInventory.length > 0, 'Expected at least one allocated/limited/unicorn Arizona signal with an explicit tier.');
 assert(catalogWatch.length > 0, 'Expected sentinel-only CityHive rows to remain visible as non-inventory catalog watch evidence.');
@@ -47,6 +49,8 @@ console.log(JSON.stringify({
   stateStatus: state.status,
   storeLocations: stores.length,
   inventorySignals: inventory.length,
+  xapiInventorySignals: xapiInventory.length,
+  xapiStores: new Set(xapiInventory.map((signal) => signal.storeId)).size,
   catalogWatchSignals: catalogWatch.length,
   highValueSignals: highValue.length,
   cities: [...new Set(inventory.map((signal) => signal.city))],
