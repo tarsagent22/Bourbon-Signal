@@ -3143,6 +3143,8 @@ async function collectArizona(config, bible) {
                   state: config.id,
                   sourceLabel: source.sourceLabel,
                   sourceUrl: url,
+                  sourceChain: source.id,
+                  merchantId: optionMerchantId,
                   rawName,
                   canonicalBottleId: record.id,
                   canonicalName: record.canonical,

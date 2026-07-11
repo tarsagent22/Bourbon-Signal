@@ -7,10 +7,10 @@ const ARIZONA_RETAILER_IDENTITIES = new Map([
 
 export function isArizonaRetailerSignalIdentity(signal) {
   const identity = ARIZONA_RETAILER_IDENTITIES.get(String(signal.sourceLabel || signal.source || ''));
-  const merchantId = String(signal.raw?.option?.merchant_id || '');
+  const merchantId = String(signal.merchantId || signal.raw?.option?.merchant_id || '');
   let sourceHostname = '';
   try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
-  return Boolean(identity && signal.raw?.chain === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);
+  return Boolean(identity && (signal.sourceChain || signal.raw?.chain) === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);
 }
 
 export function isArizonaRetailerInventory(signal) {
