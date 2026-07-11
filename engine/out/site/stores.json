@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T22:53:33.530Z",
-  "count": 3614,
+  "generatedAt": "2026-07-11T23:21:24.837Z",
+  "count": 3616,
   "stores": [
     {
       "id": "alabc:001",
@@ -50163,7 +50163,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "albertsons:2988",
@@ -50192,6 +50192,20 @@
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
       "signalCount": 6
+    },
+    {
+      "id": "albertsons:3204",
+      "sourceStoreId": "albertsons:3204",
+      "state": "AZ",
+      "name": "Albertsons #3204",
+      "address": "1980 Mcculloch Blvd, Lake Havasu City, AZ 86403",
+      "city": "Lake Havasu City",
+      "county": null,
+      "zip": "86403",
+      "lat": 0,
+      "lng": 0,
+      "source": "Albertsons Arizona XAPI store inventory",
+      "signalCount": 5
     },
     {
       "id": "albertsons:3931",
@@ -50248,6 +50262,20 @@
       "lng": -111.8418832,
       "source": "Chandler Liquors CityHive store locator",
       "signalCount": 11
+    },
+    {
+      "id": "costco-736",
+      "sourceStoreId": "costco-736",
+      "state": "AZ",
+      "name": "Costco Chandler",
+      "address": "595 S Galleria Way, Chandler, AZ 85226",
+      "city": "Chandler",
+      "county": null,
+      "zip": "85226",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
     },
     {
       "id": "liquor-express-tempe:5f88c1ab8f687229c6c2c8a4",
@@ -50387,7 +50415,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "safeway:1983",
@@ -50457,7 +50485,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "safeway:216",
@@ -50471,7 +50499,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "safeway:245",
@@ -50555,7 +50583,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 5
+      "signalCount": 4
     },
     {
       "id": "safeway:752",

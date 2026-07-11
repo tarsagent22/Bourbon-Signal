@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T22:53:33.530Z",
-  "totalCount": 6624,
+  "generatedAt": "2026-07-11T23:21:24.837Z",
+  "totalCount": 6627,
   "stateCount": 23,
   "states": [
     {
@@ -12,7 +12,7 @@
     {
       "state": "AZ",
       "file": "states/AZ/drops.json",
-      "count": 53
+      "count": 56
     },
     {
       "state": "CA",

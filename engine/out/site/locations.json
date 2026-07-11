@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T22:53:33.530Z",
-  "count": 5158,
+  "generatedAt": "2026-07-11T23:21:24.837Z",
+  "count": 5160,
   "locations": [
     {
       "id": "7e4332f37178b757",
@@ -123023,7 +123023,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123041,13 +123041,13 @@
       "lng": 0,
       "precision": "store_level",
       "source": "Albertsons Arizona XAPI store inventory",
-      "sourceUrl": "https://www.albertsons.com/shop/product-details.960080976.html",
+      "sourceUrl": "https://www.albertsons.com/shop/product-details.189032017.html",
       "inventoryCapability": "store_level",
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "signalCount": 5,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123071,7 +123071,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123095,7 +123095,31 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
+      "lastVerifiedAt": null,
+      "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
+    },
+    {
+      "id": "albertsons:3204",
+      "state": "AZ",
+      "type": "store",
+      "locationType": "store",
+      "name": "Albertsons #3204",
+      "address": "1980 Mcculloch Blvd, Lake Havasu City, AZ 86403",
+      "city": "Lake Havasu City",
+      "county": null,
+      "zip": "86403",
+      "lat": 0,
+      "lng": 0,
+      "precision": "store_level",
+      "source": "Albertsons Arizona XAPI store inventory",
+      "sourceUrl": "https://www.albertsons.com/shop/product-details.189032017.html",
+      "inventoryCapability": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true,
+      "signalCount": 5,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123119,7 +123143,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123143,7 +123167,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123167,9 +123191,33 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
+    },
+    {
+      "id": "costco-736",
+      "state": "AZ",
+      "type": "store",
+      "locationType": "store",
+      "name": "Costco Chandler",
+      "address": "595 S Galleria Way, Chandler, AZ 85226",
+      "city": "Chandler",
+      "county": null,
+      "zip": "85226",
+      "lat": null,
+      "lng": null,
+      "precision": "store_level",
+      "source": "Costco warehouse inventory",
+      "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon",
+      "inventoryCapability": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true,
+      "signalCount": 1,
+      "lastSignalAt": "2026-07-11T23:14:33Z",
+      "lastVerifiedAt": null,
+      "notes": "Costco warehouse/app availability can expose allocated bourbon by item number and warehouse. Treat as retailer-published warehouse availability with a verify-before-driving caveat; keep copy in Bourbon Signal style rather than Discord bot syntax."
     },
     {
       "id": "mesa-liquor:7143-e-southern",
@@ -123191,7 +123239,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123215,7 +123263,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 4,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123239,7 +123287,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123263,7 +123311,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123286,8 +123334,8 @@
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "signalCount": 6,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123311,7 +123359,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123335,7 +123383,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123359,7 +123407,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123383,7 +123431,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123406,8 +123454,8 @@
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "signalCount": 5,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123430,8 +123478,8 @@
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "signalCount": 5,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123455,7 +123503,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 6,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123479,7 +123527,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123503,7 +123551,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123527,7 +123575,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123551,7 +123599,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123569,13 +123617,13 @@
       "lng": 0,
       "precision": "store_level",
       "source": "Safeway Arizona XAPI store inventory",
-      "sourceUrl": "https://www.safeway.com/shop/product-details.189032017.html",
+      "sourceUrl": "https://www.safeway.com/shop/product-details.960162059.html",
       "inventoryCapability": "store_level",
       "searchable": true,
       "collectorAttached": true,
       "hasSignals": true,
-      "signalCount": 5,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "signalCount": 4,
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123599,7 +123647,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 3,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123623,7 +123671,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 11,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory."
     },
@@ -123647,7 +123695,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 17,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory."
     },
@@ -123671,7 +123719,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 12,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123695,7 +123743,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory."
     },
@@ -123719,7 +123767,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 1,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory."
     },
@@ -123743,7 +123791,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 13,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory."
     },
@@ -123767,7 +123815,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 9,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     },
@@ -123791,7 +123839,7 @@
       "collectorAttached": true,
       "hasSignals": true,
       "signalCount": 16,
-      "lastSignalAt": "2026-07-11T22:49:58.728Z",
+      "lastSignalAt": "2026-07-11T23:18:42.167Z",
       "lastVerifiedAt": null,
       "notes": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat."
     }
