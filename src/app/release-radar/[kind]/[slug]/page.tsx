@@ -35,12 +35,13 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   const schema: Record<string, unknown> = schemaType === "Event" ? {
     "@context": "https://schema.org", "@type": "Event", name: entry.title, description: entry.summary,
     startDate: entry.startDate, endDate: entry.endDate || entry.startDate,
-    eventStatus: "https://schema.org/EventScheduled", eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: entry.kind === "lottery" ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
     location: entry.location ? { "@type": "Place", name: entry.location } : undefined,
     url: canonical, organizer: { "@type": "Organization", name: entry.sources[0].label, url: entry.sources[0].url },
   } : {
     "@context": "https://schema.org", "@type": "Article", headline: entry.title, description: entry.summary,
-    datePublished: entry.startDate, dateModified: entry.updatedAt, mainEntityOfPage: canonical,
+    dateModified: entry.updatedAt, mainEntityOfPage: canonical,
     publisher: { "@type": "Organization", name: "Bourbon Signal", url: "https://www.bourbonsignal.com" },
     citation: entry.sources.map((source) => source.url),
   };

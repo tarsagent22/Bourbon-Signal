@@ -58,6 +58,6 @@ export function RadarCard({ entry, index, featured = false }: { entry: RadarEntr
   );
 }
 
-export function JsonLd({ value }: { value: Record<string, unknown> | Array<Record<string, unknown>> }) {
+export function JsonLd({ value }: { value: unknown }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(value).replace(/</g, "\\u003c") }} />;
 }
