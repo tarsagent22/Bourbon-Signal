@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ kind: str
     description: entry.summary,
     alternates: { canonical: path },
     openGraph: { title: entry.title, description: entry.dek, url: path, type: "article" },
+    twitter: { card: "summary", title: entry.title, description: entry.dek },
   };
 }
 
@@ -51,7 +52,9 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
     startDate: entry.schemaStartDate || entry.startDate,
     endDate: entry.schemaEndDate || entry.endDate || entry.startDate,
     eventAttendanceMode: entry.kind === "lottery" ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
-    location: entry.kind !== "lottery" && entry.location ? { "@type": "Place", name: entry.location } : undefined,
+    location: entry.kind === "lottery"
+      ? { "@type": "VirtualLocation", url: entry.sources[0].url }
+      : entry.location ? { "@type": "Place", name: entry.location } : undefined,
   } : {
     "@context": "https://schema.org", "@type": "Article", headline: entry.title, description: entry.summary,
     dateModified: entry.updatedAt, mainEntityOfPage: canonical,

@@ -352,7 +352,7 @@ export const stateGuides: StateGuide[] = [
     ],
     sources: [
       { label: "Fine Wine & Good Spirits", url: "https://www.finewineandgoodspirits.com/", type: "state" },
-      { label: "PLCB limited-release lotteries", url: "https://www.pa.gov/agencies/lcb/consumers/limited-release-lotteries.html", type: "state" },
+      { label: "Fine Wine & Good Spirits limited-release lottery", url: "https://www.finewineandgoodspirits.com/en/limited-release-lottery", type: "state" },
     ],
   },
 ];
