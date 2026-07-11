@@ -9,6 +9,7 @@ import {
   getEntriesByKind,
   getStateGuide,
 } from "../src/lib/release-radar.ts";
+import { getCalendarOccurrences, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 8, "Release Radar should launch with at least eight sourced records");
 assert.equal(new Set(radarEntries.map((entry) => entry.slug)).size, radarEntries.length, "record slugs must be unique");
@@ -26,11 +27,19 @@ assert.ok(lottery?.schemaStartDate?.endsWith("-04:00"), "lottery schema must ret
 assert.ok(lottery?.schemaEndDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern closing time");
 const camp = getRadarEntry("event", "camp-buffalo-trace-2026");
 assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate Camp dates must not become one continuous event");
+assert.ok(lottery, "lottery fixture must exist");
+assert.ok(camp, "recurring event fixture must exist");
+assert.deepEqual(getCalendarOccurrences(lottery, "2026-07").map((item) => item.date), ["2026-07-12", "2026-07-16"], "multi-day windows must expose both opening and closing dates");
+assert.deepEqual(getCalendarOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }], "recurring events must expose the occurrence inside the selected month");
+assert.equal(isValidMonth("2026-12"), true);
+assert.equal(isValidMonth("2026-99"), false, "invalid query months must be rejected");
 const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailSource, /OnlineEventAttendanceMode/);
 assert.match(detailSource, /EventSeries/);
 const hubSource = readFileSync(resolve("src/app/release-radar/page.tsx"), "utf8");
-assert.match(hubSource, /entry\.occurrenceDates\?\.length \? "EventSeries"/, "hub and detail schema must agree on event series");
+assert.match(hubSource, /"@type": "ItemList"/, "calendar hub should reference detail entities through an ItemList");
+assert.match(hubSource, /"@type": "ListItem"/);
+assert.doesNotMatch(hubSource, /entry\.occurrenceDates\?\.length \? "EventSeries"/, "hub must not emit incomplete Event nodes");
 
 const upcoming = getUpcomingEntries("2026-07-10");
 assert.ok(upcoming.length > 0, "calendar needs upcoming records");

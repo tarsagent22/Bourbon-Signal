@@ -17,11 +17,15 @@ export default function ReleaseRadarPage() {
       name: "Bourbon Signal Release Radar",
       description: "A chronological bourbon release calendar covering official release dates, lotteries, distillery events, and state guides.",
       url: "https://www.bourbonsignal.com/release-radar",
-      hasPart: radarEntries.map((entry) => ({
-        "@type": entry.occurrenceDates?.length ? "EventSeries" : entry.kind === "event" || entry.kind === "lottery" ? "Event" : "Article",
-        name: entry.title,
-        url: `https://www.bourbonsignal.com${radarPath(entry)}`,
-      })),
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: radarEntries.map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: entry.title,
+          url: `https://www.bourbonsignal.com${radarPath(entry)}`,
+        })),
+      },
     }}/>
     <div className="rr-shell">
       <header className="rr-hero rr-hero--calendar">

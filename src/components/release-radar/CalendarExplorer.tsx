@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { RadarEntry, RadarKind } from "@/lib/release-radar";
 import { radarPath } from "@/lib/release-radar";
+import { getCalendarOccurrences, isValidMonth } from "@/lib/release-radar-calendar";
 
 const typeLabels: Record<RadarKind, string> = {
   release: "Release",
@@ -12,10 +13,6 @@ const typeLabels: Record<RadarKind, string> = {
   event: "Event",
   bottle: "Bottle",
 };
-
-function monthKey(date: string) {
-  return date.slice(0, 7);
-}
 
 function addMonths(value: string, amount: number) {
   const [year, month] = value.split("-").map(Number);
@@ -34,10 +31,6 @@ function confidenceLabel(entry: RadarEntry) {
   return "Official date";
 }
 
-function calendarDates(entry: RadarEntry) {
-  return entry.occurrenceDates?.length ? entry.occurrenceDates : [entry.startDate];
-}
-
 export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntry[]; initialMonth: string }) {
   const [month, setMonth] = useState(initialMonth);
   const [state, setState] = useState("all");
@@ -48,7 +41,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
     const requestedMonth = params.get("month");
     const requestedState = params.get("state");
     const requestedKind = params.get("type");
-    if (requestedMonth && /^\d{4}-\d{2}$/.test(requestedMonth)) setMonth(requestedMonth);
+    if (requestedMonth && isValidMonth(requestedMonth)) setMonth(requestedMonth);
     if (requestedState) setState(requestedState);
     if (requestedKind && ["release", "lottery", "event"].includes(requestedKind)) setKind(requestedKind);
   }, []);
@@ -63,12 +56,12 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
   }, [initialMonth, kind, month, state]);
 
   const states = useMemo(() => [...new Set(entries.flatMap((entry) => entry.states))].sort(), [entries]);
-  const filtered = useMemo(() => entries.filter((entry) => {
-    const inMonth = calendarDates(entry).some((date) => monthKey(date) === month) || monthKey(entry.startDate) === month;
+  const filtered = useMemo(() => entries.flatMap((entry) => {
     const inState = state === "all" || entry.states.includes(state) || entry.states.includes("Nationwide");
     const isKind = kind === "all" || entry.kind === kind;
-    return inMonth && inState && isKind;
-  }).sort((a, b) => a.startDate.localeCompare(b.startDate)), [entries, kind, month, state]);
+    if (!inState || !isKind) return [];
+    return getCalendarOccurrences(entry, month).map((occurrence) => ({ entry, occurrence }));
+  }).sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date)), [entries, kind, month, state]);
 
   const [year, monthNumber] = month.split("-").map(Number);
   const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
@@ -78,10 +71,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
     return day > 0 && day <= daysInMonth ? day : null;
   });
 
-  const entriesForDay = (day: number) => filtered.filter((entry) => calendarDates(entry).some((date) => {
-    const [entryYear, entryMonth, entryDay] = date.split("-").map(Number);
-    return entryYear === year && entryMonth === monthNumber && entryDay === day;
-  }));
+  const entriesForDay = (day: number) => filtered.filter(({ occurrence }) => Number(occurrence.date.slice(8, 10)) === day);
 
   return (
     <section className="rr-calendar" aria-labelledby="calendar-title">
@@ -92,7 +82,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
         </div>
         <div className="rr-month-controls">
           <button type="button" onClick={() => setMonth(addMonths(month, -1))} aria-label="Previous month"><ChevronLeft size={18} /></button>
-          <button type="button" className="rr-month-today" onClick={() => setMonth(initialMonth)}>Current month</button>
+          <button type="button" className="rr-month-today" onClick={() => setMonth(initialMonth)}>Latest month</button>
           <button type="button" onClick={() => setMonth(addMonths(month, 1))} aria-label="Next month"><ChevronRight size={18} /></button>
         </div>
       </div>
@@ -107,14 +97,14 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
       <div className="rr-calendar-grid" aria-label={`${monthLabel(month)} calendar`}>
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day) => <div className="rr-weekday" key={day}>{day}</div>)}
         {cells.map((day, index) => <div className={day ? "rr-day" : "rr-day rr-day--empty"} key={`${month}-${index}`}>
-          {day && <><span className="rr-day-number">{day}</span><div className="rr-day-events">{entriesForDay(day).map((entry) => <Link href={radarPath(entry)} className={`rr-day-event rr-day-event--${entry.kind}`} key={`${entry.kind}-${entry.slug}`}><small>{typeLabels[entry.kind]}</small><strong>{entry.title}</strong></Link>)}</div></>}
+          {day && <><span className="rr-day-number">{day}</span><div className="rr-day-events">{entriesForDay(day).map(({ entry, occurrence }) => <Link href={radarPath(entry)} className={`rr-day-event rr-day-event--${entry.kind}`} key={`${entry.kind}-${entry.slug}-${occurrence.date}`}><small>{typeLabels[entry.kind]} · {occurrence.label}</small><strong>{entry.title}</strong></Link>)}</div></>}
         </div>)}
       </div>
 
-      <div className="rr-agenda" aria-live="polite">
-        <div className="rr-agenda-heading"><span>{filtered.length} record{filtered.length === 1 ? "" : "s"}</span><strong>{monthLabel(month)}</strong></div>
-        {filtered.length ? filtered.map((entry) => <Link className="rr-agenda-row" href={radarPath(entry)} key={`${entry.kind}-${entry.slug}`}>
-          <time dateTime={entry.startDate}><b>{entry.dateLabel}</b><span>{entry.states.join(" · ")}</span></time>
+      <div className="rr-agenda">
+        <div className="rr-agenda-heading"><span aria-live="polite">{filtered.length} calendar item{filtered.length === 1 ? "" : "s"}</span><strong>{monthLabel(month)}</strong></div>
+        {filtered.length ? filtered.map(({ entry, occurrence }) => <Link className="rr-agenda-row" href={radarPath(entry)} key={`${entry.kind}-${entry.slug}-${occurrence.date}`}>
+          <time dateTime={occurrence.date}><b>{occurrence.label}</b><span>{entry.states.join(" · ")}</span></time>
           <span className="rr-agenda-copy"><small>{typeLabels[entry.kind]} · {confidenceLabel(entry)}</small><strong>{entry.title}</strong><em>{entry.location || entry.facts[0]?.value}</em></span>
           <ChevronRight size={18} aria-hidden />
         </Link>) : <div className="rr-calendar-empty"><strong>No records match this month.</strong><p>Try another month or clear the active filters.</p></div>}
