@@ -14,6 +14,10 @@ function normalizePrefs(input: unknown): SightingsPreferences {
   };
 }
 
+function dedupeSightings(items: MemberSighting[]) {
+  return [...new Map(items.map((item) => [item.id, item])).values()];
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -63,7 +67,9 @@ export async function POST(req: NextRequest) {
       await del(uploaded.url).catch(() => undefined);
       return NextResponse.json({ error: "Photo changed in another request. Please retry." }, { status: 409 });
     }
-    const ownedSightings = (await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId);
+    const durableOwned = (await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId);
+    const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
+    const ownedSightings = dedupeSightings([...legacyOwned, ...durableOwned]);
     const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
     await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } }).catch((error) => {
       console.error("Sighting photo persisted, but reward reconciliation failed", error);

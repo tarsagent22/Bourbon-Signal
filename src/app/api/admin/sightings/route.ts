@@ -14,6 +14,10 @@ function normalizePrefs(input: unknown): SightingsPreferences {
   };
 }
 
+function dedupeSightings(items: MemberSighting[]) {
+  return [...new Map(items.map((item) => [item.id, item])).values()];
+}
+
 function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
   const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
   const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
@@ -39,7 +43,7 @@ export async function GET() {
   const legacySightings = users.flatMap((user) => {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-    return prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: sighting.reporterUserId || user.id }));
+    return prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: user.id }));
   });
   const durableSightings = await createCommunitySightingsRepository().listSightings();
   const sightingsById = new Map<string, MemberSighting>(legacySightings.map((sighting) => [sighting.id, sighting]));
@@ -129,7 +133,8 @@ export async function PATCH(req: NextRequest) {
     if (!updated) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
     await repository.updateSighting(updated);
     const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === reporterUserId);
-    const nextRewards = reconcileMemberRewards([...prefs.submittedSightings, ...durableOwned], privateMetadata.memberRewards, now);
+    const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
+    const nextRewards = reconcileMemberRewards(dedupeSightings([...legacyOwned, ...durableOwned]), privateMetadata.memberRewards, now);
     await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   } else {
     const nextPrefs = { ...prefs, submittedSightings: nextSightings };
