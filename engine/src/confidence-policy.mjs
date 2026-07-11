@@ -1,5 +1,6 @@
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
+import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -103,12 +104,6 @@ const ARIZONA_RETAILER_POLICY = {
   defaultCadence: '30-60m'
 };
 
-const ARIZONA_RETAILER_SOURCES = new Set([
-  'Paradise Liquor Mini Mart Phoenix CityHive store inventory',
-  'Liquor Vault Scottsdale CityHive store inventory',
-  'Skyline Liquor Arizona CityHive store inventory',
-  'Chandler Liquors CityHive store inventory'
-]);
 
 const KENTUCKY_DISTILLERY_POLICY = {
   maxAlertMode: 'distillery_release_watch',
@@ -136,7 +131,7 @@ function policyForSignal(signal) {
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
     && /^cityhive_store_inventory_result$/i.test(eventType)
-    && ARIZONA_RETAILER_SOURCES.has(source)) return ARIZONA_RETAILER_POLICY;
+    && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;

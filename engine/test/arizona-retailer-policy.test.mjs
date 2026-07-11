@@ -36,6 +36,16 @@ test('central confidence policy enables only the exact Arizona retailer inventor
   assert.equal(spoofed.policyMode, 'policy_only');
   assert.equal(spoofed.canAlertAsInventory, false);
 
+  for (const forged of [
+    { ...valid, sourceUrl: 'https://attacker.example/shop/' },
+    { ...valid, raw: { ...valid.raw, chain: 'attacker-chain' } },
+    { ...valid, raw: { ...valid.raw, option: { merchant_id: 'attacker-merchant' } } }
+  ]) {
+    const rejected = confidenceForSignal(forged);
+    assert.equal(rejected.policyMode, 'policy_only');
+    assert.equal(rejected.canAlertAsInventory, false);
+  }
+
   const sentinel = confidenceForSignal({ ...valid, eventType: 'cityhive_store_catalog_watch', quantity: 0, availabilityStatus: 'catalog_listed' });
   assert.equal(sentinel.policyMode, 'policy_only');
   assert.equal(sentinel.canAlertAsInventory, false);
