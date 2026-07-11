@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T23:21:24.837Z",
+  "generatedAt": "2026-07-11T23:55:58.988Z",
   "summary": {
     "stateCount": 23,
     "releaseEligibleStates": 12,
@@ -400,13 +400,13 @@
       "input": {
         "state": "AZ",
         "coverageTier": "retailer_warehouse_inventory",
-        "signalCount": 190,
-        "dropCount": 56,
-        "storeLevelDropCount": 56,
-        "alertCandidateCount": 57,
+        "signalCount": 199,
+        "dropCount": 64,
+        "storeLevelDropCount": 64,
+        "alertCandidateCount": 55,
         "sourceCount": 11,
         "roadblockCount": 2,
-        "freshestObservedAt": "2026-07-11T23:18:42.167Z",
+        "freshestObservedAt": "2026-07-11T23:53:08.271Z",
         "status": "useful"
       }
     },
