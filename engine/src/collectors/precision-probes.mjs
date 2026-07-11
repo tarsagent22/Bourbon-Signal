@@ -659,6 +659,47 @@ const TN_CITYHIVE_SOURCES = [
 
 ];
 
+const AZ_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_MAX_PAGES || 2);
+const AZ_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_PAGE_DELAY_MS || 1_200);
+const AZ_CITYHIVE_SOURCES = [
+  {
+    id: 'paradise-liquor-phoenix',
+    chainName: 'Paradise Liquor Mini Mart',
+    sourceLabel: 'Paradise Liquor Mini Mart Phoenix CityHive store inventory',
+    baseUrl: 'https://paradiseliquoraz.com',
+    merchantIds: ['6060f68f2641d516427b8bc6'],
+    urls: [
+      'https://paradiseliquoraz.com/shop/?subtype=bourbon',
+      'https://paradiseliquoraz.com/shop/?subtype=whiskey'
+    ]
+  },
+  {
+    id: 'liquor-vault-scottsdale',
+    chainName: 'Liquor Vault',
+    sourceLabel: 'Liquor Vault Scottsdale CityHive store inventory',
+    baseUrl: 'https://azliquorvault.com',
+    merchantIds: ['6060f74f93fbc722f35ec763'],
+    urls: ['https://azliquorvault.com/shop/?subtype=bourbon']
+  },
+  {
+    id: 'skyline-liquor',
+    chainName: 'Skyline Liquor',
+    sourceLabel: 'Skyline Liquor Arizona CityHive store inventory',
+    baseUrl: 'https://skylinebroadway.com',
+    merchantIds: ['598100c3d05b4360e32fa9b6', '686c048672e27f25df6deeda'],
+    urls: ['https://skylinebroadway.com/shop/?subtype=bourbon']
+  },
+  {
+    id: 'chandler-liquors',
+    chainName: 'Chandler Liquors',
+    sourceLabel: 'Chandler Liquors CityHive store inventory',
+    baseUrl: 'https://chandlerliquorsaz.com',
+    merchantIds: ['5e8e0a0778e8f16f128f7e5a'],
+    urls: ['https://chandlerliquorsaz.com/shop/?subtype=Bourbon']
+  }
+];
+const AZ_CITYHIVE_MERCHANT_IDS = new Set(AZ_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
+
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
   'https://specsonline.com/shop/spirits/native-texas-bourbon/',
@@ -3005,6 +3046,154 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
   await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
 }
 
+async function collectArizona(config, bible) {
+  const observedAt = new Date().toISOString();
+  const signals = [];
+  const roadblocks = [];
+  const seenProductOptions = new Set();
+  const seenStores = new Set();
+
+  for (const source of AZ_CITYHIVE_SOURCES) {
+    for (const seedUrl of source.urls) {
+      for (const merchantId of source.merchantIds || []) {
+        for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, AZ_CITYHIVE_MAX_PAGES)) {
+          const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
+          if (!res.ok) {
+            roadblocks.push({
+              state: config.id,
+              source: source.sourceLabel,
+              url,
+              status: res.status || 0,
+              error: res.error || `HTTP ${res.status}`,
+              nextRoute: 'Retry the selected Arizona CityHive merchant page at low cadence; do not bypass retailer protection.'
+            });
+            continue;
+          }
+          const blobs = cityHiveJsonBlobs(res.text);
+          const products = cityHiveProducts(blobs);
+          for (const cfg of cityHiveMerchantConfigs(blobs)) {
+            const merchant = cfg?.merchant || cfg;
+            if (!merchant?.id || !AZ_CITYHIVE_MERCHANT_IDS.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+            const a = cityHiveAddressParts(merchant.address || {});
+            if ((a.state || '').toUpperCase() !== 'AZ' && !/,\s*AZ\s+\d{5}/i.test(a.fullAddress || '')) continue;
+            seenStores.add(`${source.id}|${merchant.id}`);
+            signals.push({
+              id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]),
+              state: config.id,
+              sourceLabel: `${source.chainName} CityHive store locator`,
+              sourceUrl: source.baseUrl,
+              rawName: merchant.display_name || merchant.name || source.chainName,
+              canonicalBottleId: null,
+              canonicalName: null,
+              confidence: 0.78,
+              eventType: 'retailer_store_location',
+              locationPrecision: 'store_level',
+              locationName: merchant.display_name || merchant.name || source.chainName,
+              storeName: merchant.display_name || merchant.name || source.chainName,
+              storeId: `${source.id}:${merchant.id}`,
+              storeAddress: a.fullAddress || [a.street, a.city, 'AZ', a.zip].filter(Boolean).join(', '),
+              city: a.city || 'Phoenix',
+              county: a.county,
+              stateCode: 'AZ',
+              postalCode: a.zip,
+              zip: a.zip,
+              lat: a.lat,
+              lng: a.lng,
+              quantity: 0,
+              observedAt,
+              canAlertAsInventory: false,
+              canAlertAsWatch: false,
+              inventorySemantics: `${source.chainName} CityHive configuration identifies an Arizona order-capable store. A store-location row is not bottle inventory.`,
+              evidence: `${source.chainName} CityHive configuration lists ${merchant.display_name || merchant.name || source.chainName}${a.fullAddress ? ` at ${a.fullAddress}` : ''}.`,
+              raw: { chain: source.id, merchant }
+            });
+          }
+
+          for (const product of products) {
+            for (const merchant of product.merchants || []) {
+              for (const option of merchant.product_options || []) {
+                const optionMerchantId = String(option.merchant_id || '');
+                if (!AZ_CITYHIVE_MERCHANT_IDS.has(optionMerchantId)) continue;
+                const fullAddress = option.full_address || '';
+                if (!/,\s*AZ\s+\d{5}/i.test(fullAddress)) continue;
+                if (!isBourbonRelevantProduct(product, option)) continue;
+                const reportedQuantity = Number(option.quantity || 0) || 0;
+                if (reportedQuantity <= 0) continue;
+                const sizeQuantity = Number(option.option_params?.size?.quantity || 0) || 0;
+                const sizeMeasure = String(option.option_params?.size?.measure || '').toLowerCase();
+                const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
+                if (sizeMl != null && sizeMl < 375) continue;
+                // CityHive commonly uses 100 as an availability sentinel rather than a trustworthy
+                // exact shelf count. Preserve the raw value as evidence but publish a lower-bound 1.
+                const exactQuantityKnown = reportedQuantity < 100;
+                const quantity = exactQuantityKnown ? reportedQuantity : 1;
+                const key = `${source.id}|${optionMerchantId}|${option.product_id}|${option.option_id}`;
+                if (seenProductOptions.has(key)) continue;
+                seenProductOptions.add(key);
+                const rawName = option.option_display_data?.name || product.name || '';
+                const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+                if (!record) continue;
+                const city = fullAddress.match(/,\s*([^,]+),\s*AZ\s+\d{5}/i)?.[1] || 'Phoenix';
+                const zip = fullAddress.match(/\bAZ\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
+                const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
+                const price = Number(option.price || 0) || null;
+                signals.push({
+                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id, quantity, price]),
+                  state: config.id,
+                  sourceLabel: source.sourceLabel,
+                  sourceUrl: option.product_url || url,
+                  rawName,
+                  canonicalBottleId: record.id,
+                  canonicalName: record.canonical,
+                  tier: record.tier,
+                  confidence: Math.max(0.82, match?.confidence || 0.5),
+                  eventType: 'cityhive_store_inventory_result',
+                  locationPrecision: 'store_level',
+                  locationName: option.merchant_name || source.chainName,
+                  storeName: option.merchant_name || source.chainName,
+                  storeId: `${source.id}:${optionMerchantId}`,
+                  storeAddress: fullAddress,
+                  city,
+                  stateCode: 'AZ',
+                  postalCode: zip,
+                  zip,
+                  lat: Number(option.coordinates?.[1]) || null,
+                  lng: Number(option.coordinates?.[0]) || null,
+                  quantity,
+                  price,
+                  availabilityStatus: 'in_stock',
+                  availabilityLabel: exactQuantityKnown ? 'In stock' : 'Listed in stock',
+                  observedAt,
+                  canAlertAsInventory: true,
+                  canAlertAsWatch: true,
+                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product availability and price for the selected Arizona store. Values of 100 are treated as an availability sentinel, not an exact shelf count; verify before driving.`,
+                  evidence: exactQuantityKnown
+                    ? `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}.`
+                    : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} in stock at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; exact count is not exposed.`,
+                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : 'listed_available_no_exact_count', matchGuard: unsafeReason }
+                });
+              }
+            }
+          }
+          await sleep(AZ_CITYHIVE_PAGE_DELAY_MS);
+        }
+      }
+    }
+  }
+
+  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Arizona CityHive retailer inventory pages',
+      url: AZ_CITYHIVE_SOURCES.map((source) => source.baseUrl).join(', '),
+      status: 'reachable_no_safe_inventory_rows',
+      error: 'Selected Arizona CityHive pages produced no positive, safely matched bourbon inventory rows.',
+      nextRoute: 'Inspect embedded CityHive product JSON and exact bottle aliases; do not weaken identity or in-stock guards.'
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -4536,6 +4725,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
+  if (config.id === 'AZ') return collectArizona(config, bible);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);
