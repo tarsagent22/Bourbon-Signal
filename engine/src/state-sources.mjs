@@ -305,7 +305,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'SC', label: 'South Carolina retailer inventory mesh', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
-    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only. Myrtle Beach expansions use Liquor Store Near Me WooCommerce in-stock flags conservatively; Burnt Barrel events and Owens seed pages remain watch-only. Phase 1 cache, request delays, cooldowns, and low cadence protect sources from repeated traffic.',
+    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only.',
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
