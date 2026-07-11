@@ -93,6 +93,7 @@ function canonicalizeSignal(signal, bible) {
     quantity: qty(signal),
     availabilityStatus: signal.availabilityStatus || signal.raw?.availability?.status || null,
     availabilityLabel: signal.availabilityLabel || signal.raw?.availability?.label || null,
+    sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
     availabilityValue: signal.availabilityValue ?? signal.raw?.availability?.value ?? null,
     warehouseQty: Number(signal.warehouseQty ?? signal.raw?.warehouseQty ?? 0) || 0,
     price: price(signal),

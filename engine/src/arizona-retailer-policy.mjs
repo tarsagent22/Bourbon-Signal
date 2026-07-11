@@ -22,7 +22,7 @@ export function isArizonaRetailerInventory(signal) {
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isArizonaRetailerSignalIdentity(signal)
     && signal.locationPrecision === 'store_level'
-    && (Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && (signal.raw?.product?.is_in_stock === true || signal.raw?.variant?.available === true)))
+    && (Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && (signal.sourceAvailabilityVerified === true || signal.raw?.product?.is_in_stock === true || signal.raw?.variant?.available === true)))
     && Boolean(signal.storeId)
     && /,\s*AZ\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
