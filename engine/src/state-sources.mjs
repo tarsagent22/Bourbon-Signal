@@ -328,10 +328,16 @@ const BASE_STATE_SOURCES = [
   },
 
   {
-    id: 'AZ', label: 'Arizona Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Arizona Costco warehouses are useful private-market bourbon signals when verified through warehouse/app observations.',
-    rareSignalTarget: false,
-    sources: [],
+    id: 'AZ', label: 'Arizona retailer inventory + Costco watch', tier: 'B', strategy: 'retailer_store_inventory_and_costco_watch', cadence: '30-60m',
+    value: 'Arizona is a private retail market. Public CityHive inventory from selected Phoenix retailers provides store-level bottle, quantity, price, and address signals; Costco remains a separate warehouse watch. Retailer availability is fast-moving and must be verified before driving.',
+    rareSignalTarget: true,
+    sources: [
+      { kind: 'html', url: 'https://paradiseliquoraz.com/shop/?subtype=bourbon', label: 'Paradise Liquor Mini Mart Phoenix CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://paradiseliquoraz.com/shop/?subtype=whiskey', label: 'Paradise Liquor Mini Mart Phoenix CityHive whiskey inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://azliquorvault.com/shop/?subtype=bourbon', label: 'Liquor Vault Scottsdale CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://skylinebroadway.com/shop/?subtype=bourbon', label: 'Skyline Liquor Mesa and Casa Grande CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://chandlerliquorsaz.com/shop/?subtype=Bourbon', label: 'Chandler Liquors CityHive bourbon inventory', precisionOnly: true }
+    ],
     apiCandidates: []
   },
   {

@@ -1,5 +1,6 @@
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
+import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -27,7 +28,8 @@ export const STATE_CONFIDENCE_POLICY = {
   TX: { maxAlertMode: 'catalog_release_watch', inventorySemantics: "Texas is a private retail market. TABC/comptroller pages are policy/license context; Spec's public product/event pages are retailer catalog or release-watch signals, not live shelf inventory unless a store-specific row is later extracted.", defaultCadence: 'daily-weekly' },
   SC: { maxAlertMode: 'policy_only', inventorySemantics: 'South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.', defaultCadence: 'weekly-monthly' },
   GA: { maxAlertMode: 'catalog_price_watch', inventorySemantics: 'Georgia DOR official pages expose brand/label registration guidance, active alcohol license reports, and shipment reporting context. Treat as source-discovery/catalog infrastructure, not consumer bottle inventory.', defaultCadence: 'weekly-monthly' },
-  FL: { maxAlertMode: 'policy_only', inventorySemantics: 'Florida ABT official pages expose licensing/quota-license lottery context, not bourbon product availability.', defaultCadence: 'weekly-monthly' }
+  FL: { maxAlertMode: 'policy_only', inventorySemantics: 'Florida ABT official pages expose licensing/quota-license lottery context, not bourbon product availability.', defaultCadence: 'weekly-monthly' },
+  AZ: { maxAlertMode: 'policy_only', inventorySemantics: 'Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory.', defaultCadence: '30-60m' }
 };
 
 const EVENT_WEIGHTS = [
@@ -96,6 +98,13 @@ const SOUTH_CAROLINA_RETAILER_POLICY = {
   defaultCadence: 'daily-60m'
 };
 
+const ARIZONA_RETAILER_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-driving caveat.',
+  defaultCadence: '30-60m'
+};
+
+
 const KENTUCKY_DISTILLERY_POLICY = {
   maxAlertMode: 'distillery_release_watch',
   inventorySemantics: 'Official Kentucky distillery source. Gift-shop/product-availability rows are distillery pickup/drop leads and upcoming-release rows are release-watch leads; neither is retailer store shipment inventory.',
@@ -120,6 +129,9 @@ function policyForSignal(signal) {
   if (signal.state === 'SC'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
+  if (signal.state === 'AZ'
+    && /^cityhive_store_inventory_result$/i.test(eventType)
+    && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
