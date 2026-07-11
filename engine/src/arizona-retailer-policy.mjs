@@ -5,8 +5,11 @@ const ARIZONA_RETAILER_IDENTITIES = new Map([
   ['Chandler Liquors CityHive store inventory', { chain: 'chandler-liquors', hostname: 'chandlerliquorsaz.com', merchants: new Set(['5e8e0a0778e8f16f128f7e5a']) }],
   ["Lucky's Liquor Phoenix CityHive store inventory", { chain: 'luckys-liquor-phoenix', hostname: 'luckysliquor.com', merchants: new Set(['65fe530ba854f17fbd29a744']) }],
   ['One Stop Drive Thru Liquor Phoenix CityHive store inventory', { chain: 'one-stop-drive-thru-phoenix', hostname: 'onestopdrivethruliquor.com', merchants: new Set(['6377cc75b9615e6a2b8290c1']) }],
+  ['Liquor Express Tempe CityHive store inventory', { chain: 'liquor-express-tempe', hostname: 'liquorexpresstempe.store', merchants: new Set(['5f88c1ab8f687229c6c2c8a4']) }],
   ['Mesa Liquor WooCommerce store inventory', { chain: 'mesa-liquor', hostname: 'mesaliquorstore.com', merchants: new Set(['mesa-liquor-woocommerce']) }],
-  ['Flagstaff Liquor Shopify store inventory', { chain: 'flagstaff-liquor', hostname: 'flagstaffliquor.com', merchants: new Set(['flagstaff-liquor-shopify']) }]
+  ['Best Liquor Tempe WooCommerce store inventory', { chain: 'best-liquor-tempe', hostname: 'bestliquortempe.com', merchants: new Set(['best-liquor-tempe-woocommerce']) }],
+  ['Flagstaff Liquor Shopify store inventory', { chain: 'flagstaff-liquor', hostname: 'flagstaffliquor.com', merchants: new Set(['flagstaff-liquor-shopify']) }],
+  ['Target Arizona RedSky store fulfillment', { chain: 'target', hostname: 'target.com', merchants: new Set(['2354', '2236']) }]
 ]);
 
 export function isArizonaRetailerSignalIdentity(signal) {

@@ -712,6 +712,14 @@ const AZ_CITYHIVE_SOURCES = [
     baseUrl: 'https://onestopdrivethruliquor.com',
     merchantIds: ['6377cc75b9615e6a2b8290c1'],
     urls: ['https://onestopdrivethruliquor.com/shop/?search=bourbon']
+  },
+  {
+    id: 'liquor-express-tempe',
+    chainName: 'Liquor Express Tempe',
+    sourceLabel: 'Liquor Express Tempe CityHive store inventory',
+    baseUrl: 'https://liquorexpresstempe.store',
+    merchantIds: ['5f88c1ab8f687229c6c2c8a4'],
+    urls: ['https://liquorexpresstempe.store/shop/?subtype=bourbon', 'https://liquorexpresstempe.store/shop/?search=bourbon']
   }
 ];
 
@@ -720,6 +728,9 @@ const AZ_MESA_LIQUOR_SOURCE_LABEL = 'Mesa Liquor WooCommerce store inventory';
 const AZ_MESA_LIQUOR_STORE = { id: 'mesa-liquor:7143-e-southern', name: 'Mesa Liquor', address: '7143 E Southern Ave, Mesa, AZ 85209', city: 'Mesa', zip: '85209' };
 const AZ_MESA_LIQUOR_TERMS = ['bourbon', 'blanton', 'weller', 'eagle rare', 'buffalo trace', 'stagg', 'e h taylor'];
 const AZ_MESA_LIQUOR_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_AZ_MESA_LIQUOR_DELAY_MS) || 900));
+const AZ_BEST_LIQUOR_BASE_URL = 'https://bestliquortempe.com';
+const AZ_BEST_LIQUOR_SOURCE_LABEL = 'Best Liquor Tempe WooCommerce store inventory';
+const AZ_BEST_LIQUOR_STORE = { id: 'best-liquor-tempe:3320-s-priest', name: 'Best Liquor', address: '3320 S Priest Dr, Tempe, AZ 85282', city: 'Tempe', zip: '85282' };
 const AZ_FLAGSTAFF_LIQUOR_URL = 'https://flagstaffliquor.com/products.json?limit=250';
 const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store inventory';
 const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
@@ -729,6 +740,11 @@ const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || 
 const AZ_ALBERTSONS_TERMS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || "bourbon,blanton's,weller,buffalo trace,e.h. taylor").split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(80, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || 24));
 const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));
+const AZ_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || '9f36aeafbe60771e321a7cc95a78140772ab3e96';
+const AZ_TARGET_STORES = new Map([
+  ['2354', { name: 'Target Phoenix Spectrum', address: '5715 N 19th Ave, Phoenix, AZ 85015', city: 'Phoenix', zip: '85015' }],
+  ['2236', { name: 'Target Phoenix 7th Street and Bell', address: '16806 N 7th St, Phoenix, AZ 85022', city: 'Phoenix', zip: '85022' }]
+]);
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3076,21 +3092,21 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
   await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
 }
 
-async function collectArizonaMesaLiquor(config, bible, observedAt) {
+async function collectArizonaWooCommerceRetailer(config, bible, observedAt, retailer) {
   const signals = [];
   const roadblocks = [];
   const seen = new Set();
   for (const term of AZ_MESA_LIQUOR_TERMS) {
-    const url = `${AZ_MESA_LIQUOR_BASE_URL}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
+    const url = `${retailer.baseUrl}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
     const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000 });
     if (!res.ok) {
-      roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence.' });
+      roadblocks.push({ state: config.id, source: retailer.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence.' });
       await sleep(AZ_MESA_LIQUOR_DELAY_MS);
       continue;
     }
     let products = [];
     try { products = JSON.parse(res.text); } catch (error) {
-      roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the WooCommerce Store API response shape.' });
+      roadblocks.push({ state: config.id, source: retailer.sourceLabel, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the WooCommerce Store API response shape.' });
       continue;
     }
     if (!Array.isArray(products)) continue;
@@ -3099,28 +3115,28 @@ async function collectArizonaMesaLiquor(config, bible, observedAt) {
       const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
       const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
       const productKey = `${rawName.toLowerCase().replace(/\s+/g, ' ').trim()}|${wcStoreApiPrice(product?.prices) || ''}`;
-      if (!rawName || (sizeMl != null && sizeMl < 375) || seen.has(productKey) || product?.is_in_stock !== true) continue;
+      if (!rawName || (sizeMl != null && sizeMl < 375) || seen.has(productKey) || product?.is_in_stock !== true || product?.is_purchasable === false || product?.is_on_backorder === true) continue;
       seen.add(productKey);
       const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record) continue;
       const price = wcStoreApiPrice(product?.prices);
       signals.push({
-        id: stableId([config.id, 'woocommerce-store-inventory', 'mesa-liquor', product.id]), state: config.id,
-        sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, sourceUrl: product?.permalink || url, sourceChain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce',
+        id: stableId([config.id, 'woocommerce-store-inventory', retailer.chain, product.id]), state: config.id,
+        sourceLabel: retailer.sourceLabel, sourceUrl: product?.permalink || url, sourceChain: retailer.chain, merchantId: retailer.merchantId,
         rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
         confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
-        locationName: AZ_MESA_LIQUOR_STORE.name, storeName: AZ_MESA_LIQUOR_STORE.name, storeId: AZ_MESA_LIQUOR_STORE.id,
-        storeAddress: AZ_MESA_LIQUOR_STORE.address, city: AZ_MESA_LIQUOR_STORE.city, stateCode: 'AZ', postalCode: AZ_MESA_LIQUOR_STORE.zip, zip: AZ_MESA_LIQUOR_STORE.zip,
+        locationName: retailer.store.name, storeName: retailer.store.name, storeId: retailer.store.id,
+        storeAddress: retailer.store.address, city: retailer.store.city, stateCode: 'AZ', postalCode: retailer.store.zip, zip: retailer.store.zip,
         quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Retailer reports in stock', sourceAvailabilityVerified: true, observedAt,
         canAlertAsInventory: true, canAlertAsWatch: true,
-        inventorySemantics: 'Mesa Liquor’s public WooCommerce Store API reports this bottle in stock and orderable. It does not expose exact on-hand quantity; verify directly before driving.',
-        evidence: `Mesa Liquor WooCommerce reports ${rawName} in stock${price ? ` at $${price.toFixed(2)}` : ''} for its Mesa store. Exact quantity is not published.`,
-        raw: { chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', product: { id: product.id, sku: product.sku, is_in_stock: product.is_in_stock, low_stock_remaining: product.low_stock_remaining, prices: product.prices } }
+        inventorySemantics: `${retailer.store.name}’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.`,
+        evidence: `${retailer.store.name} WooCommerce reports ${rawName} in stock${price ? ` at $${price.toFixed(2)}` : ''} for its ${retailer.store.city} store. Exact quantity is not published.`,
+        raw: { chain: retailer.chain, merchantId: retailer.merchantId, product: { id: product.id, sku: product.sku, is_in_stock: product.is_in_stock, is_purchasable: product.is_purchasable, is_on_backorder: product.is_on_backorder, low_stock_remaining: product.low_stock_remaining, prices: product.prices } }
       });
     }
     await sleep(AZ_MESA_LIQUOR_DELAY_MS);
   }
-  if (!signals.length) roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url: `${AZ_MESA_LIQUOR_BASE_URL}/wp-json/wc/store/v1/products`, status: 'reachable_no_safe_inventory_rows', error: 'Public WooCommerce searches produced no safely matched in-stock bourbon rows.', nextRoute: 'Inspect product names and Store API stock flags without weakening bottle or availability guards.' });
+  if (!signals.length) roadblocks.push({ state: config.id, source: retailer.sourceLabel, url: `${retailer.baseUrl}/wp-json/wc/store/v1/products`, status: 'reachable_no_safe_inventory_rows', error: 'Public WooCommerce searches produced no safely matched in-stock bourbon rows.', nextRoute: 'Inspect product names and Store API stock flags without weakening bottle or availability guards.' });
   return { signals, roadblocks };
 }
 
@@ -3235,6 +3251,51 @@ async function collectArizonaAlbertsons(config, bible, observedAt) {
     }
   }
   if (!signals.length) roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona XAPI inventory', status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive in-store bourbon rows were returned.', nextRoute: 'Refresh public keys and inspect channelInventory without treating catalog presence as stock.' });
+  return { signals, roadblocks };
+}
+
+async function collectArizonaTarget(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const visitorId = crypto.randomUUID();
+  const searchParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: '2354', store_ids: '2354', visitor_id: visitorId });
+  const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  if (!search.ok) return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: search.error || `HTTP ${search.status}`, nextRoute: 'Refresh the public Target frontend key and retry without bypassing retailer protection.' }] };
+  let products = [];
+  try { products = JSON.parse(search.text)?.data?.search?.products || []; } catch (error) { return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the RedSky search response shape.' }] }; }
+  for (const product of products.slice(0, 16)) {
+    const rawName = htmlToText(product?.item?.product_description?.title || '');
+    const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+    if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
+    const fulfillParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: '2354', store_positions_store_id: '2354', scheduled_delivery_store_id: '2354', zip: '85018', visitor_id: visitorId });
+    const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${fulfillParams}`;
+    const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+    if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); continue; }
+    let fulfillment = null;
+    try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
+    for (const option of fulfillment?.store_options || []) {
+      const store = AZ_TARGET_STORES.get(String(option?.location_id || ''));
+      const inStock = option?.order_pickup?.availability_status === 'IN_STOCK' || option?.in_store_only?.availability_status === 'IN_STOCK';
+      if (!store || !inStock) continue;
+      const price = Number(product?.price?.current_retail || product?.price?.formatted_current_price?.replace(/[^0-9.]/g, '')) || null;
+      signals.push({
+        id: stableId([config.id, 'target-redsky', option.location_id, product.tcin]), state: config.id,
+        sourceLabel: 'Target Arizona RedSky store fulfillment', sourceUrl: product?.item?.enrichment?.buy_url || `https://www.target.com/p/-/A-${product.tcin}`, sourceChain: 'target', merchantId: String(option.location_id),
+        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+        confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+        locationName: store.name, storeName: store.name, storeId: `target:${option.location_id}`,
+        storeAddress: store.address, city: store.city, stateCode: 'AZ', postalCode: store.zip, zip: store.zip,
+        quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Target reports pickup or in-store availability', sourceAvailabilityVerified: true, observedAt,
+        canAlertAsInventory: true, canAlertAsWatch: true,
+        inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise quantity is retained as evidence but is not represented as exact shelf quantity.',
+        evidence: `Target RedSky reports ${rawName} orderable at ${store.name}. Exact shelf quantity is not published.`,
+        raw: { chain: 'target', merchantId: String(option.location_id), tcin: String(product.tcin), availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
+      });
+    }
+    await sleep(500);
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', status: 'reachable_no_safe_inventory_rows', error: 'Target returned no safely matched store-orderable bourbon rows.', nextRoute: 'Retain catalog/store discovery and retry fulfillment without treating search presence as inventory.' });
   return { signals, roadblocks };
 }
 
@@ -3387,12 +3448,14 @@ async function collectArizona(config, bible) {
       nextRoute: 'Inspect embedded CityHive product JSON and exact bottle aliases; do not weaken identity or in-stock guards.'
     });
   }
-  const mesaLiquor = await collectArizonaMesaLiquor(config, bible, observedAt);
+  const mesaLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_MESA_LIQUOR_BASE_URL, sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', store: AZ_MESA_LIQUOR_STORE });
+  const bestLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_BEST_LIQUOR_BASE_URL, sourceLabel: AZ_BEST_LIQUOR_SOURCE_LABEL, chain: 'best-liquor-tempe', merchantId: 'best-liquor-tempe-woocommerce', store: AZ_BEST_LIQUOR_STORE });
   const flagstaffLiquor = await collectArizonaFlagstaffLiquor(config, bible, observedAt);
   const albertsons = await collectArizonaAlbertsons(config, bible, observedAt);
+  const target = await collectArizonaTarget(config, bible, observedAt);
   return {
-    signals: [...signals, ...mesaLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals],
-    roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...albertsons.roadblocks]
+    signals: [...signals, ...mesaLiquor.signals, ...bestLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...target.signals],
+    roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...bestLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...albertsons.roadblocks, ...target.roadblocks]
   };
 }
 
