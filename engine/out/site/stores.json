@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T22:22:18.647Z",
-  "count": 3612,
+  "generatedAt": "2026-07-11T22:31:15.800Z",
+  "count": 3616,
   "stores": [
     {
       "id": "alabc:001",
@@ -50236,6 +50236,20 @@
       "signalCount": 6
     },
     {
+      "id": "best-liquor-tempe:3320-s-priest",
+      "sourceStoreId": "best-liquor-tempe:3320-s-priest",
+      "state": "AZ",
+      "name": "Best Liquor",
+      "address": "3320 S Priest Dr, Tempe, AZ 85282",
+      "city": "Tempe",
+      "county": null,
+      "zip": "85282",
+      "lat": null,
+      "lng": null,
+      "source": "Best Liquor Tempe WooCommerce store inventory",
+      "signalCount": 5
+    },
+    {
       "id": "chandler-liquors:5e8e0a0778e8f16f128f7e5a",
       "sourceStoreId": "chandler-liquors:5e8e0a0778e8f16f128f7e5a",
       "state": "AZ",
@@ -50248,6 +50262,20 @@
       "lng": -111.8418832,
       "source": "Chandler Liquors CityHive store locator",
       "signalCount": 11
+    },
+    {
+      "id": "liquor-express-tempe:5f88c1ab8f687229c6c2c8a4",
+      "sourceStoreId": "liquor-express-tempe:5f88c1ab8f687229c6c2c8a4",
+      "state": "AZ",
+      "name": "Liquor Express Tempe",
+      "address": "1605 E Apache Blvd, Tempe, AZ 85281, USA",
+      "city": "Tempe",
+      "county": "Maricopa County",
+      "zip": "85281",
+      "lat": 33.4142817,
+      "lng": -111.9121474,
+      "source": "Liquor Express Tempe CityHive store locator",
+      "signalCount": 17
     },
     {
       "id": "liquor-vault-scottsdale:6060f74f93fbc722f35ec763",
@@ -50373,7 +50401,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "safeway:1983",
@@ -50474,6 +50502,20 @@
       "signalCount": 6
     },
     {
+      "id": "safeway:247",
+      "sourceStoreId": "safeway:247",
+      "state": "AZ",
+      "name": "Safeway #247",
+      "address": "1225 W Guadalupe, Mesa, AZ 85202",
+      "city": "Mesa",
+      "county": null,
+      "zip": "85202",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 1
+    },
+    {
       "id": "safeway:255",
       "sourceStoreId": "safeway:255",
       "state": "AZ",
@@ -50570,6 +50612,20 @@
       "lng": -111.6158603,
       "source": "Skyline Liquor Arizona CityHive store inventory",
       "signalCount": 9
+    },
+    {
+      "id": "target:2354",
+      "sourceStoreId": "target:2354",
+      "state": "AZ",
+      "name": "Target Phoenix Spectrum",
+      "address": "5715 N 19th Ave, Phoenix, AZ 85015",
+      "city": "Phoenix",
+      "county": null,
+      "zip": "85015",
+      "lat": null,
+      "lng": null,
+      "source": "Target Arizona RedSky store fulfillment",
+      "signalCount": 1
     }
   ]
 }
