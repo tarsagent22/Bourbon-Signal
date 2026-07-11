@@ -742,9 +742,57 @@ const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(80, Number(process.env.BOU
 const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));
 const AZ_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || '9f36aeafbe60771e321a7cc95a78140772ab3e96';
 const AZ_TARGET_STORES = new Map([
+  ['233', { name: 'Target Paradise Valley', address: '12602 N Paradise Village Pkwy W, Phoenix, AZ 85032', city: 'Phoenix', zip: '85032' }],
+  ['251', { name: 'Target Mesa Central', address: '1135 S Gilbert Rd, Mesa, AZ 85204', city: 'Mesa', zip: '85204' }],
+  ['319', { name: 'Target Tempe', address: '1818 E Baseline Rd, Tempe, AZ 85283', city: 'Tempe', zip: '85283' }],
+  ['363', { name: 'Target Scottsdale Talking Stick Way', address: '9000 E Talking Stick Way, Scottsdale, AZ 85250', city: 'Scottsdale', zip: '85250' }],
+  ['639', { name: 'Target Mesa East', address: '1525 S Power Rd, Mesa, AZ 85206', city: 'Mesa', zip: '85206' }],
+  ['700', { name: 'Target Oro Valley', address: '10555 N Oracle Rd, Oro Valley, AZ 85737', city: 'Oro Valley', zip: '85737' }],
+  ['825', { name: 'Target Peoria North', address: '8055 W Bell Rd, Peoria, AZ 85382', city: 'Peoria', zip: '85382' }],
+  ['851', { name: 'Target Westridge', address: '7409 W Virginia Ave, Phoenix, AZ 85035', city: 'Phoenix', zip: '85035' }],
+  ['854', { name: 'Target Marana', address: '3901 W Ina Rd, Tucson, AZ 85741', city: 'Tucson', zip: '85741' }],
+  ['855', { name: 'Target Tucson NE', address: '6500 E Grant Rd, Tucson, AZ 85715', city: 'Tucson', zip: '85715' }],
+  ['884', { name: 'Target Prescott', address: '1851 E Highway 69, Prescott, AZ 86301', city: 'Prescott', zip: '86301' }],
+  ['909', { name: 'Target Ahwatukee', address: '4734 E Ray Rd, Phoenix, AZ 85044', city: 'Phoenix', zip: '85044' }],
+  ['935', { name: 'Target Flagstaff', address: '1650 S Milton Rd, Flagstaff, AZ 86001', city: 'Flagstaff', zip: '86001' }],
+  ['936', { name: 'Target Frank Lloyd Wright Blvd', address: '15444 N Frank Lloyd Wright Blvd, Scottsdale, AZ 85260', city: 'Scottsdale', zip: '85260' }],
+  ['950', { name: 'Target Arcadia Crossing', address: '4515 E Thomas Rd, Phoenix, AZ 85018', city: 'Phoenix', zip: '85018' }],
+  ['1141', { name: 'Target Phoenix I17 and SR101', address: '2727 W Agua Fria Fwy, Phoenix, AZ 85027', city: 'Phoenix', zip: '85027' }],
+  ['1209', { name: 'Target Gilbert Val Vista', address: '1515 E Warner Rd, Gilbert, AZ 85296', city: 'Gilbert', zip: '85296' }],
+  ['1242', { name: 'Target Goodyear', address: '1515 N Litchfield Rd, Goodyear, AZ 85395', city: 'Goodyear', zip: '85395' }],
+  ['1316', { name: 'Target Tucson SW', address: '1225 W Irvington Rd, Tucson, AZ 85714', city: 'Tucson', zip: '85714' }],
+  ['1327', { name: 'Target Scottsdale Road', address: '32351 N Scottsdale Rd, Scottsdale, AZ 85266', city: 'Scottsdale', zip: '85266' }],
+  ['1335', { name: 'Target Surprise', address: '13731 W Bell Rd, Surprise, AZ 85374', city: 'Surprise', zip: '85374' }],
+  ['1360', { name: 'Target Phoenix NE', address: '21001 N Tatum Blvd Ste 20, Phoenix, AZ 85050', city: 'Phoenix', zip: '85050' }],
+  ['1361', { name: 'Target Peoria SW', address: '9350 W Northern Ave, Glendale, AZ 85305', city: 'Glendale', zip: '85305' }],
+  ['1386', { name: 'Target Mesa Red Mountain', address: '2151 N Power Rd, Mesa, AZ 85215', city: 'Mesa', zip: '85215' }],
+  ['1429', { name: 'Target Mesa West', address: '1230 S Longmore Ave, Mesa, AZ 85202', city: 'Mesa', zip: '85202' }],
+  ['1432', { name: 'Target Fountain Hills', address: '16825 E Shea Blvd, Fountain Hills, AZ 85268', city: 'Fountain Hills', zip: '85268' }],
+  ['1439', { name: 'Target Tucson El Con Mall', address: '3699 E Broadway Blvd, Tucson, AZ 85716', city: 'Tucson', zip: '85716' }],
+  ['1838', { name: 'Target Chandler Fashion Center', address: '3425 W Frye Rd, Chandler, AZ 85226', city: 'Chandler', zip: '85226' }],
+  ['1863', { name: 'Target Tucson SE', address: '9615 E Old Spanish Trl, Tucson, AZ 85748', city: 'Tucson', zip: '85748' }],
+  ['1905', { name: 'Target South Mountain', address: '2140 E Baseline Rd, Phoenix, AZ 85042', city: 'Phoenix', zip: '85042' }],
+  ['1959', { name: 'Target Gilbert Gateway', address: '5110 S Power Rd, Mesa, AZ 85212', city: 'Mesa', zip: '85212' }],
+  ['1960', { name: 'Target Gilbert SW', address: '3931 S Gilbert Rd, Gilbert, AZ 85297', city: 'Gilbert', zip: '85297' }],
+  ['2083', { name: 'Target Yuma', address: '1450 S Yuma Palms Pkwy, Yuma, AZ 85365', city: 'Yuma', zip: '85365' }],
+  ['2140', { name: 'Target Tucson North', address: '4040 N Oracle Rd, Tucson, AZ 85705', city: 'Tucson', zip: '85705' }],
+  ['2149', { name: 'Target Phoenix SW', address: '9830 W Lower Buckeye Rd, Tolleson, AZ 85353', city: 'Tolleson', zip: '85353' }],
+  ['2176', { name: 'Target Tempe Rio Salado', address: '1800 E Rio Salado Pkwy, Tempe, AZ 85281', city: 'Tempe', zip: '85281' }],
+  ['2227', { name: 'Target Peoria Lake Pleasant Pkwy', address: '24890 N Lake Pleasant Pkwy, Peoria, AZ 85383', city: 'Peoria', zip: '85383' }],
+  ['2236', { name: 'Target Phoenix 7th Street and Bell', address: '16806 N 7th St, Phoenix, AZ 85022', city: 'Phoenix', zip: '85022' }],
+  ['2341', { name: 'Target Glendale', address: '10404 N 43rd Ave, Glendale, AZ 85302', city: 'Glendale', zip: '85302' }],
   ['2354', { name: 'Target Phoenix Spectrum', address: '5715 N 19th Ave, Phoenix, AZ 85015', city: 'Phoenix', zip: '85015' }],
-  ['2236', { name: 'Target Phoenix 7th Street and Bell', address: '16806 N 7th St, Phoenix, AZ 85022', city: 'Phoenix', zip: '85022' }]
+  ['2365', { name: 'Target Queen Creek', address: '21398 S Ellsworth Loop Rd, Queen Creek, AZ 85142', city: 'Queen Creek', zip: '85142' }],
+  ['2368', { name: 'Target Bullhead City', address: '3699 Hwy 95, Bullhead City, AZ 86442', city: 'Bullhead City', zip: '86442' }],
+  ['2400', { name: 'Target Goodyear West', address: '995 S Cotton Ln, Goodyear, AZ 85338', city: 'Goodyear', zip: '85338' }],
+  ['2747', { name: 'Target Chandler South', address: '3777 S Arizona Ave, Chandler, AZ 85248', city: 'Chandler', zip: '85248' }],
+  ['2915', { name: 'Target Surprise West Prasada', address: '14101 N Prasada Pkwy, Surprise, AZ 85388', city: 'Surprise', zip: '85388' }],
+  ['2920', { name: 'Target Queen Creek Gantzel and Combs', address: '37854 N Gantzel Rd, Queen Creek, AZ 85140', city: 'Queen Creek', zip: '85140' }],
+  ['2944', { name: 'Target Buckeye - Verrado', address: '1355 N Verrado Way, Buckeye, AZ 85396', city: 'Buckeye', zip: '85396' }],
+  ['2953', { name: 'Target Casa Grande Promenade', address: '951 N Promenade Pkwy, Casa Grande, AZ 85194', city: 'Casa Grande', zip: '85194' }],
+  ['3261', { name: 'Target Phoenix Uptown Camelback', address: '1625 E Camelback Rd, Phoenix, AZ 85016', city: 'Phoenix', zip: '85016' }]
 ]);
+const AZ_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_TARGET_COHORT_SIZE) || 3));
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3258,42 +3306,53 @@ async function collectArizonaTarget(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
-  const searchParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: '2354', store_ids: '2354', visitor_id: visitorId });
+  const storeEntries = [...AZ_TARGET_STORES.entries()];
+  const cohortCount = Math.ceil(storeEntries.length / AZ_TARGET_COHORT_SIZE);
+  const cohortIndex = Math.floor(Date.now() / 86_400_000) % cohortCount;
+  const cohort = storeEntries.slice(cohortIndex * AZ_TARGET_COHORT_SIZE, (cohortIndex + 1) * AZ_TARGET_COHORT_SIZE);
+  const [seedStoreId, seedStore] = cohort[0] || storeEntries[0];
+  const searchParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: seedStoreId, store_ids: seedStoreId, visitor_id: visitorId });
   const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
   const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
   if (!search.ok) return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: search.error || `HTTP ${search.status}`, nextRoute: 'Refresh the public Target frontend key and retry without bypassing retailer protection.' }] };
   let products = [];
   try { products = JSON.parse(search.text)?.data?.search?.products || []; } catch (error) { return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the RedSky search response shape.' }] }; }
-  for (const product of products.slice(0, 16)) {
-    const rawName = htmlToText(product?.item?.product_description?.title || '');
-    const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
-    if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
-    const fulfillParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: '2354', store_positions_store_id: '2354', scheduled_delivery_store_id: '2354', zip: '85018', visitor_id: visitorId });
-    const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${fulfillParams}`;
-    const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
-    if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); continue; }
-    let fulfillment = null;
-    try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
-    for (const option of fulfillment?.store_options || []) {
-      const store = AZ_TARGET_STORES.get(String(option?.location_id || ''));
-      const inStock = option?.order_pickup?.availability_status === 'IN_STOCK' || option?.in_store_only?.availability_status === 'IN_STOCK';
-      if (!store || !inStock) continue;
-      const price = Number(product?.price?.current_retail || product?.price?.formatted_current_price?.replace(/[^0-9.]/g, '')) || null;
-      signals.push({
-        id: stableId([config.id, 'target-redsky', option.location_id, product.tcin]), state: config.id,
-        sourceLabel: 'Target Arizona RedSky store fulfillment', sourceUrl: product?.item?.enrichment?.buy_url || `https://www.target.com/p/-/A-${product.tcin}`, sourceChain: 'target', merchantId: String(option.location_id),
-        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
-        confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
-        locationName: store.name, storeName: store.name, storeId: `target:${option.location_id}`,
-        storeAddress: store.address, city: store.city, stateCode: 'AZ', postalCode: store.zip, zip: store.zip,
-        quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Target reports pickup or in-store availability', sourceAvailabilityVerified: true, observedAt,
-        canAlertAsInventory: true, canAlertAsWatch: true,
-        inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise quantity is retained as evidence but is not represented as exact shelf quantity.',
-        evidence: `Target RedSky reports ${rawName} orderable at ${store.name}. Exact shelf quantity is not published.`,
-        raw: { chain: 'target', merchantId: String(option.location_id), tcin: String(product.tcin), availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
-      });
+  const seenTargetSignals = new Set();
+  for (const [primaryStoreId, primaryStore] of cohort) {
+    for (const product of products.slice(0, 10)) {
+      const rawName = htmlToText(product?.item?.product_description?.title || '');
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
+      const fulfillParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: primaryStoreId, store_positions_store_id: primaryStoreId, scheduled_delivery_store_id: primaryStoreId, zip: primaryStore.zip, visitor_id: visitorId });
+      const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${fulfillParams}`;
+      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); continue; }
+      let fulfillment = null;
+      try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
+      for (const option of fulfillment?.store_options || []) {
+        const locationId = String(option?.location_id || '');
+        const store = AZ_TARGET_STORES.get(locationId);
+        const inStock = option?.order_pickup?.availability_status === 'IN_STOCK' || option?.in_store_only?.availability_status === 'IN_STOCK';
+        const signalKey = `${locationId}|${product.tcin}`;
+        if (!store || !inStock || seenTargetSignals.has(signalKey)) continue;
+        seenTargetSignals.add(signalKey);
+        const price = locationId === primaryStoreId ? Number(product?.price?.current_retail || product?.price?.formatted_current_price?.replace(/[^0-9.]/g, '')) || null : null;
+        signals.push({
+          id: stableId([config.id, 'target-redsky', locationId, product.tcin]), state: config.id,
+          sourceLabel: 'Target Arizona RedSky store fulfillment', sourceUrl: product?.item?.enrichment?.buy_url || `https://www.target.com/p/-/A-${product.tcin}`, sourceChain: 'target', merchantId: locationId,
+          rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+          confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+          locationName: store.name, storeName: store.name, storeId: `target:${locationId}`,
+          storeAddress: store.address, city: store.city, stateCode: 'AZ', postalCode: store.zip, zip: store.zip,
+          quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Target reports pickup or in-store availability', sourceAvailabilityVerified: true, observedAt,
+          canAlertAsInventory: true, canAlertAsWatch: true,
+          inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise quantity is retained as evidence but is not represented as exact shelf quantity.',
+          evidence: `Target RedSky reports ${rawName} orderable at ${store.name}. Exact shelf quantity is not published.`,
+          raw: { chain: 'target', merchantId: locationId, tcin: String(product.tcin), cohortIndex, primaryStoreId, availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
+        });
+      }
+      await sleep(400);
     }
-    await sleep(500);
   }
   if (!signals.length) roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', status: 'reachable_no_safe_inventory_rows', error: 'Target returned no safely matched store-orderable bourbon rows.', nextRoute: 'Retain catalog/store discovery and retry fulfillment without treating search presence as inventory.' });
   return { signals, roadblocks };
@@ -3305,6 +3364,7 @@ async function collectArizona(config, bible) {
   const roadblocks = [];
   const seenProductOptions = new Set();
   const seenStores = new Set();
+  const detailChecksBySource = new Map();
 
   for (const source of AZ_CITYHIVE_SOURCES) {
     const sourceMerchantIds = new Set(source.merchantIds || []);
@@ -3388,10 +3448,44 @@ async function collectArizona(config, bible) {
                 const rawName = option.option_display_data?.name || product.name || '';
                 const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
                 if (!record) continue;
+                let detailAvailabilityVerified = false;
+                let detailEvidence = null;
+                const detailEligible = reportedQuantity >= 100 && ['paradise-liquor-phoenix', 'liquor-express-tempe'].includes(source.id);
+                const checksUsed = detailChecksBySource.get(source.id) || 0;
+                if (detailEligible && checksUsed < 4 && option.product_url && option.option_id) {
+                  detailChecksBySource.set(source.id, checksUsed + 1);
+                  let detailUrl = null;
+                  try { detailUrl = new URL(String(option.product_url), source.baseUrl); detailUrl.searchParams.set('option-id', String(option.option_id)); } catch {}
+                  if (detailUrl) {
+                    const detail = await curlTextFetch(detailUrl.toString(), { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, maxBuffer: 4 * 1024 * 1024 });
+                    if (detail.ok) {
+                      const scripts = [...detail.text.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+                      for (const script of scripts) {
+                        let parsed = null;
+                        try { parsed = JSON.parse(script[1]); } catch { continue; }
+                        const candidates = Array.isArray(parsed) ? parsed : [parsed];
+                        const productLd = candidates.find((item) => String(item?.['@type'] || '').toLowerCase() === 'product');
+                        const offer = Array.isArray(productLd?.offers) ? productLd.offers[0] : productLd?.offers;
+                        let offerHost = '';
+                        try { offerHost = new URL(String(offer?.seller?.url || '')).hostname.replace(/^www\./i, ''); } catch {}
+                        const expectedHost = new URL(source.baseUrl).hostname.replace(/^www\./i, '');
+                        const identityMatches = String(productLd?.productID || '') === String(option.option_id)
+                          && String(offer?.url || '').includes(String(option.option_id))
+                          && offerHost === expectedHost;
+                        if (identityMatches && String(offer?.availability || '') === 'http://schema.org/InStock') {
+                          detailAvailabilityVerified = true;
+                          detailEvidence = { url: detailUrl.toString(), productID: productLd.productID, availability: offer.availability };
+                        }
+                        break;
+                      }
+                    }
+                  }
+                }
                 const city = fullAddress.match(/,\s*([^,]+),\s*AZ\s+\d{5}/i)?.[1] || null;
                 const zip = fullAddress.match(/\bAZ\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
                 const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
                 const price = Number(option.price || 0) || null;
+                const inventoryVerified = exactQuantityKnown || detailAvailabilityVerified;
                 signals.push({
                   id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id]),
                   state: config.id,
@@ -3404,7 +3498,7 @@ async function collectArizona(config, bible) {
                   canonicalName: record.canonical,
                   tier: record.tier,
                   confidence: Math.max(0.82, match?.confidence || 0.5),
-                  eventType: exactQuantityKnown ? 'cityhive_store_inventory_result' : 'cityhive_store_catalog_watch',
+                  eventType: inventoryVerified ? 'cityhive_store_inventory_result' : 'cityhive_store_catalog_watch',
                   locationPrecision: 'store_level',
                   locationName: option.merchant_name || source.chainName,
                   storeName: option.merchant_name || source.chainName,
@@ -3418,16 +3512,19 @@ async function collectArizona(config, bible) {
                   lng: Number(option.coordinates?.[0]) || null,
                   quantity,
                   price,
-                  availabilityStatus: exactQuantityKnown ? 'in_stock' : 'catalog_listed',
-                  availabilityLabel: exactQuantityKnown ? 'In stock' : 'Retailer listing — availability unverified',
+                  availabilityStatus: inventoryVerified ? 'in_stock' : 'catalog_listed',
+                  availabilityLabel: exactQuantityKnown ? 'In stock' : detailAvailabilityVerified ? 'In stock — verified product option' : 'Retailer listing — availability unverified',
+                  sourceAvailabilityVerified: detailAvailabilityVerified,
                   observedAt,
-                  canAlertAsInventory: exactQuantityKnown,
+                  canAlertAsInventory: inventoryVerified,
                   canAlertAsWatch: true,
-                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product rows and price. Finite positive quantities qualify as retailer-published inventory; the common value 100 is treated only as an unverified catalog/listing sentinel and cannot trigger inventory alerts.`,
+                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product rows and price. Finite positive quantities qualify as retailer-published inventory; for the common value 100, only an identity-matched product-detail JSON-LD InStock offer qualifies as binary availability. The sentinel is never exported as exact quantity.`,
                   evidence: exactQuantityKnown
                     ? `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}.`
-                    : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; the sentinel value does not prove current availability.`,
-                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : 'catalog_sentinel_unverified', matchGuard: unsafeReason }
+                    : detailAvailabilityVerified
+                      ? `${source.chainName} product-detail JSON-LD verifies the selected option for ${rawName} is InStock at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; exact quantity is not published.`
+                      : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; the sentinel value does not prove current availability.`,
+                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, detailEvidence, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : detailAvailabilityVerified ? 'binary_detail_availability' : 'catalog_sentinel_unverified', matchGuard: unsafeReason }
                 });
               }
             }
