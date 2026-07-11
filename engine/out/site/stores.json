@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T23:21:24.837Z",
-  "count": 3616,
+  "generatedAt": "2026-07-11T23:55:58.988Z",
+  "count": 3624,
   "stores": [
     {
       "id": "alabc:001",
@@ -50278,6 +50278,118 @@
       "signalCount": 1
     },
     {
+      "id": "costco-674",
+      "sourceStoreId": "costco-674",
+      "state": "AZ",
+      "name": "Costco Glendale",
+      "address": "17550 N 79th Ave, Glendale, AZ 85308",
+      "city": "Glendale",
+      "county": null,
+      "zip": "85308",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-1028",
+      "sourceStoreId": "costco-1028",
+      "state": "AZ",
+      "name": "Costco Mesa",
+      "address": "1444 S Sossaman Rd, Mesa, AZ 85209",
+      "city": "Mesa",
+      "county": null,
+      "zip": "85209",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-466",
+      "sourceStoreId": "costco-466",
+      "state": "AZ",
+      "name": "Costco Prescott",
+      "address": "3911 E State Route 69, Prescott, AZ 86301",
+      "city": "Prescott",
+      "county": null,
+      "zip": "86301",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-1620",
+      "sourceStoreId": "costco-1620",
+      "state": "AZ",
+      "name": "Costco Queen Creek",
+      "address": "20260 S Ellsworth Rd, Queen Creek, AZ 85142-8840",
+      "city": "Queen Creek",
+      "county": null,
+      "zip": "85142",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-427",
+      "sourceStoreId": "costco-427",
+      "state": "AZ",
+      "name": "Costco Scottsdale",
+      "address": "15255 N Hayden Rd, Scottsdale, AZ 85260",
+      "city": "Scottsdale",
+      "county": null,
+      "zip": "85260",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-1375",
+      "sourceStoreId": "costco-1375",
+      "state": "AZ",
+      "name": "Costco Surprise",
+      "address": "16385 W Waddell Rd, Surprise, AZ 85388",
+      "city": "Surprise",
+      "county": null,
+      "zip": "85388",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-436",
+      "sourceStoreId": "costco-436",
+      "state": "AZ",
+      "name": "Costco Tempe",
+      "address": "1445 W Elliot Rd, Tempe, AZ 85284-1103",
+      "city": "Tempe",
+      "county": null,
+      "zip": "85284",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
+      "id": "costco-407",
+      "sourceStoreId": "costco-407",
+      "state": "AZ",
+      "name": "Costco Tucson",
+      "address": "6255 E Grant Rd, Tucson, AZ 85712-5804",
+      "city": "Tucson",
+      "county": null,
+      "zip": "85712",
+      "lat": null,
+      "lng": null,
+      "source": "Costco warehouse inventory",
+      "signalCount": 1
+    },
+    {
       "id": "liquor-express-tempe:5f88c1ab8f687229c6c2c8a4",
       "sourceStoreId": "liquor-express-tempe:5f88c1ab8f687229c6c2c8a4",
       "state": "AZ",
@@ -50415,7 +50527,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 6
+      "signalCount": 5
     },
     {
       "id": "safeway:1983",
@@ -50499,7 +50611,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 5
+      "signalCount": 6
     },
     {
       "id": "safeway:245",
@@ -50583,7 +50695,7 @@
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 4
+      "signalCount": 5
     },
     {
       "id": "safeway:752",
