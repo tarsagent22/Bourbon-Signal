@@ -1,21 +1,51 @@
 {
-  "generatedAt": "2026-07-11T23:14:33Z",
+  "generatedAt": "2026-07-11T23:52:37Z",
   "observations": [
     {
-      "state": "AZ",
-      "city": "Chandler",
-      "storeNumber": "736",
-      "storeName": "Costco Chandler",
-      "address": "595 S Galleria Way, Chandler, AZ 85226",
-      "zip": "85226",
-      "bottleName": "Buffalo Trace Bourbon",
-      "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml",
-      "status": "available",
-      "price": 25.29,
-      "observedAt": "2026-07-11T23:14:33Z",
-      "sourceSystem": "costco_sameday_guest_storefront",
-      "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon",
-      "availabilitySemantics": "Guest storefront displayed an enabled Add control after selecting the Chandler delivery address. This proves current delivery orderability, not exact warehouse quantity or a reservation."
+      "state": "AZ", "city": "Chandler", "storeNumber": "736", "storeName": "Costco Chandler", "address": "595 S Galleria Way, Chandler, AZ 85226", "zip": "85226",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon",
+      "availabilitySemantics": "Guest storefront displayed an enabled Add control after selecting the warehouse delivery address. This proves current delivery orderability, not exact warehouse quantity or a reservation."
+    },
+    {
+      "state": "AZ", "city": "Mesa", "storeNumber": "1028", "storeName": "Costco Mesa", "address": "1444 S Sossaman Rd, Mesa, AZ 85209", "zip": "85209",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Scottsdale", "storeNumber": "427", "storeName": "Costco Scottsdale", "address": "15255 N Hayden Rd, Scottsdale, AZ 85260", "zip": "85260",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Tempe", "storeNumber": "436", "storeName": "Costco Tempe", "address": "1445 W Elliot Rd, Tempe, AZ 85284-1103", "zip": "85284",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Glendale", "storeNumber": "674", "storeName": "Costco Glendale", "address": "17550 N 79th Ave, Glendale, AZ 85308", "zip": "85308",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Surprise", "storeNumber": "1375", "storeName": "Costco Surprise", "address": "16385 W Waddell Rd, Surprise, AZ 85388", "zip": "85388",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Tucson", "storeNumber": "407", "storeName": "Costco Tucson", "address": "6255 E Grant Rd, Tucson, AZ 85712-5804", "zip": "85712",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Prescott", "storeNumber": "466", "storeName": "Costco Prescott", "address": "3911 E State Route 69, Prescott, AZ 86301", "zip": "86301",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
+    },
+    {
+      "state": "AZ", "city": "Queen Creek", "storeNumber": "1620", "storeName": "Costco Queen Creek", "address": "20260 S Ellsworth Rd, Queen Creek, AZ 85142-8840", "zip": "85142",
+      "bottleName": "Buffalo Trace Bourbon", "description": "Buffalo Trace Bourbon Whiskey, Kentucky, 750 ml", "status": "available", "price": 25.29,
+      "observedAt": "2026-07-11T23:52:37Z", "sourceSystem": "costco_sameday_guest_storefront", "sourceUrl": "https://sameday.costco.com/store/costco/s?k=bourbon"
     }
   ]
 }
