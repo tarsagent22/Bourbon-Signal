@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     url: "/release-radar",
     type: "website",
   },
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export default function ReleaseRadarLayout({ children }: { children: React.ReactNode }) {

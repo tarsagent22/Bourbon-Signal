@@ -40,15 +40,23 @@ assert.ok(stateGuides.length >= 3, "launch should include multiple substantive s
 assert.ok(stateGuides.every((guide) => guide.sections.length >= 3), "state guides need substantive sections");
 assert.ok(getStateGuide(stateGuides[0].slug), "state guides must be retrievable by slug");
 
-const navigation = readFileSync(resolve("src/components/Navigation.tsx"), "utf8");
-assert.match(navigation, /Release Radar/);
-assert.match(navigation, /\/release-radar/);
+const nav = readFileSync(resolve("src/components/Navigation.tsx"), "utf8");
+assert.doesNotMatch(nav, /Release Radar/, "preview must not appear in primary navigation");
 
 const sitemap = readFileSync(resolve("src/app/sitemap.ts"), "utf8");
-assert.match(sitemap, /release-radar/);
-assert.match(sitemap, /radarEntries/);
-assert.match(sitemap, /stateGuides/);
+assert.doesNotMatch(sitemap, /radarEntries|stateGuides/, "preview routes must not be discoverable through sitemap");
 
+const radarLayout = readFileSync(resolve("src/app/release-radar/layout.tsx"), "utf8");
+assert.match(radarLayout, /index:\s*false/);
+assert.match(radarLayout, /follow:\s*false/);
+
+assert.match(hubSource, /ActionNow/);
+assert.match(hubSource, /ReleaseTimeline/);
+assert.match(hubSource, /ReleaseLedger/);
+assert.match(hubSource, /LotteryBrief/);
+assert.match(hubSource, /StateGuideIndex/);
+assert.match(hubSource, /BottleIndex/);
+assert.doesNotMatch(hubSource, /RadarCard/, "hub must not fall back to repeated editorial cards");
 for (const route of [
   "src/app/release-radar/page.tsx",
   "src/app/release-radar/[kind]/[slug]/page.tsx",
