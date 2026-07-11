@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Buffalo Trace turns bourbon education into summer camp",
+    summary: "Camp Buffalo Trace debuts August 29 and September 5 as an adults-only distillery experience pairing bourbon education and camp-style programming with a limited overnight glamping option.",
+    note: "A fresh bourbon-culture story from the source: part distillery immersion, part summer camp, and intentionally limited enough to feel like a true destination event.",
+    href: "https://www.buffalotracedistillery.com/camp/",
+    source: "Buffalo Trace Distillery",
+  },
+  {
     title: "1792 adds its first rye and oldest bourbon yet",
     summary: "Barton 1792 is expanding the lineup with Kentucky Straight Rye plus 1792 XV, a 15-year cask-strength bourbon positioned as the oldest expression in the collection.",
     note: "High-attention 1792 news: one bottle broadens the permanent rye lane while XV gives hunters a scarce release-watch target.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.abc.virginia.gov/products/limited-availability/lottery",
     source: "Virginia ABC",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "NC ABC opens comment window on statewide liquor pricing",
     summary: "North Carolina's ABC Commission is studying baseline pricing for spirituous liquor and taking public comments through July 29, a policy lane that could affect how bottles are priced across every ABC store in the state.",
@@ -40,9 +50,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://horsesoldierbourbon.com/blogs/news/horse-solider-farms-announces-performers-and-pbr-for-grand-opening-fourth-of-july-celebration",
     source: "Horse Soldier Bourbon",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Buffalo Trace brings back its Prohibition Collection",
     summary: "Buffalo Trace's third Prohibition Collection is a five-bottle limited set tied to the distillery's medicinal-whiskey era, now moving into select retailer, bar, and restaurant distribution.",
@@ -333,7 +340,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated July 8, 2026</span>
+            <span className="daily-briefing-updated">Updated July 10, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>

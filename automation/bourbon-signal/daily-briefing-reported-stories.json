@@ -1,7 +1,21 @@
 {
-  "updatedAt": "2026-07-07T09:00:00-05:00",
+  "updatedAt": "2026-07-10T21:25:47-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "Buffalo Trace turns bourbon education into summer camp",
+      "source": "Buffalo Trace Distillery",
+      "url": "https://www.buffalotracedistillery.com/camp/",
+      "firstReportedAt": "2026-07-10",
+      "status": "homepage-visible"
+    },
+    {
+      "title": "1792 adds its first rye and oldest bourbon yet",
+      "source": "Barton 1792 Distillery",
+      "url": "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/barton-1792-distillery-adds-two-landmark-expressions-to-its-whiskey-lineup-1792-kentucky-straight-rye-whiskey-and-1792-xv",
+      "firstReportedAt": "2026-07-08",
+      "status": "homepage-visible"
+    },
     {
       "title": "Virginia ABC opens July 13–16 whiskey lottery",
       "source": "Virginia ABC",
@@ -14,7 +28,7 @@
       "source": "NC ABCC",
       "url": "https://www.abc.nc.gov/spirituous-liquor-pricing",
       "firstReportedAt": "2026-07-05",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Buffalo Trace brings back its Prohibition Collection",
@@ -105,7 +119,7 @@
       "source": "Horse Soldier Bourbon",
       "url": "https://horsesoldierbourbon.com/blogs/news/horse-solider-farms-announces-performers-and-pbr-for-grand-opening-fourth-of-july-celebration",
       "firstReportedAt": "2026-07-01",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "Frey Ranch 10-Year Bourbon ships after lottery launch",
