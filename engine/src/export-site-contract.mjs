@@ -8,6 +8,7 @@ import { getStateLifecycle } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
+import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -207,19 +208,6 @@ function isSouthCarolinaRetailerInventory(signal) {
     && /,\s*SC\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
 
-function isArizonaAllowedRetailerSource(signal) {
-  return /Paradise Liquor Mini Mart|Liquor Vault Scottsdale|Skyline Liquor Arizona|Chandler Liquors/i.test(String(signal.sourceLabel || signal.source || ''));
-}
-
-function isArizonaRetailerInventory(signal) {
-  return signal.state === 'AZ'
-    && /^cityhive_store_inventory_result$/i.test(String(signal.eventType || signal.type || ''))
-    && isArizonaAllowedRetailerSource(signal)
-    && signal.locationPrecision === 'store_level'
-    && Number(signal.quantity || 0) > 0
-    && Boolean(signal.storeId)
-    && /,\s*AZ\s+\d{5}/i.test(String(signal.storeAddress || ''));
-}
 
 function isCostcoWarehouseInventorySignal(signal) {
   return isCostcoSpiritsEligibleState(signal.state)
@@ -247,8 +235,12 @@ function publicSignal(signal, bible, freshness = null) {
         : isAzRetailerInventory
           ? 'Arizona is a private retail market. Whitelisted public retailer CityHive sources expose store-level bottle availability, price, and sometimes exact quantity; alert as retailer-published availability with a verify-before-driving caveat.'
           : signal.inventorySemantics;
-  const canAlertAsInventory = Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isCostcoWarehouseInventory;
-  const canAlertAsWatch = Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isCostcoWarehouseInventory;
+  const canAlertAsInventory = signal.state === 'AZ'
+    ? isAzRetailerInventory
+    : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
+  const canAlertAsWatch = signal.state === 'AZ'
+    ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
+    : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory || isCostcoWarehouseInventory;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -483,10 +475,12 @@ function buildStores(signals) {
 }
 
 function signalCanAlertAsInventory(signal) {
+  if (signal.state === 'AZ') return isArizonaRetailerInventory(signal);
   return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }
 
 function signalCanAlertAsWatch(signal) {
+  if (signal.state === 'AZ') return Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal);
   return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }
 

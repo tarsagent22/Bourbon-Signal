@@ -659,8 +659,8 @@ const TN_CITYHIVE_SOURCES = [
 
 ];
 
-const AZ_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_MAX_PAGES || 2);
-const AZ_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_PAGE_DELAY_MS || 1_200);
+const AZ_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_MAX_PAGES) || 2));
+const AZ_CITYHIVE_PAGE_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_AZ_CITYHIVE_PAGE_DELAY_MS) || 1_200));
 const AZ_CITYHIVE_SOURCES = [
   {
     id: 'paradise-liquor-phoenix',
@@ -698,7 +698,6 @@ const AZ_CITYHIVE_SOURCES = [
     urls: ['https://chandlerliquorsaz.com/shop/?subtype=Bourbon']
   }
 ];
-const AZ_CITYHIVE_MERCHANT_IDS = new Set(AZ_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3054,6 +3053,7 @@ async function collectArizona(config, bible) {
   const seenStores = new Set();
 
   for (const source of AZ_CITYHIVE_SOURCES) {
+    const sourceMerchantIds = new Set(source.merchantIds || []);
     for (const seedUrl of source.urls) {
       for (const merchantId of source.merchantIds || []) {
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, AZ_CITYHIVE_MAX_PAGES)) {
@@ -3067,13 +3067,14 @@ async function collectArizona(config, bible) {
               error: res.error || `HTTP ${res.status}`,
               nextRoute: 'Retry the selected Arizona CityHive merchant page at low cadence; do not bypass retailer protection.'
             });
+            await sleep(AZ_CITYHIVE_PAGE_DELAY_MS);
             continue;
           }
           const blobs = cityHiveJsonBlobs(res.text);
           const products = cityHiveProducts(blobs);
           for (const cfg of cityHiveMerchantConfigs(blobs)) {
             const merchant = cfg?.merchant || cfg;
-            if (!merchant?.id || !AZ_CITYHIVE_MERCHANT_IDS.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+            if (!merchant?.id || !sourceMerchantIds.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
             const a = cityHiveAddressParts(merchant.address || {});
             if ((a.state || '').toUpperCase() !== 'AZ' && !/,\s*AZ\s+\d{5}/i.test(a.fullAddress || '')) continue;
             seenStores.add(`${source.id}|${merchant.id}`);
@@ -3092,7 +3093,7 @@ async function collectArizona(config, bible) {
               storeName: merchant.display_name || merchant.name || source.chainName,
               storeId: `${source.id}:${merchant.id}`,
               storeAddress: a.fullAddress || [a.street, a.city, 'AZ', a.zip].filter(Boolean).join(', '),
-              city: a.city || 'Phoenix',
+              city: a.city || null,
               county: a.county,
               stateCode: 'AZ',
               postalCode: a.zip,
@@ -3113,7 +3114,7 @@ async function collectArizona(config, bible) {
             for (const merchant of product.merchants || []) {
               for (const option of merchant.product_options || []) {
                 const optionMerchantId = String(option.merchant_id || '');
-                if (!AZ_CITYHIVE_MERCHANT_IDS.has(optionMerchantId)) continue;
+                if (!sourceMerchantIds.has(optionMerchantId)) continue;
                 const fullAddress = option.full_address || '';
                 if (!/,\s*AZ\s+\d{5}/i.test(fullAddress)) continue;
                 if (!isBourbonRelevantProduct(product, option)) continue;
@@ -3124,30 +3125,30 @@ async function collectArizona(config, bible) {
                 const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
                 if (sizeMl != null && sizeMl < 375) continue;
                 // CityHive commonly uses 100 as an availability sentinel rather than a trustworthy
-                // exact shelf count. Preserve the raw value as evidence but publish a lower-bound 1.
+                // stock count. Preserve it as non-inventory watch evidence only.
                 const exactQuantityKnown = reportedQuantity < 100;
-                const quantity = exactQuantityKnown ? reportedQuantity : 1;
+                const quantity = exactQuantityKnown ? reportedQuantity : 0;
                 const key = `${source.id}|${optionMerchantId}|${option.product_id}|${option.option_id}`;
                 if (seenProductOptions.has(key)) continue;
                 seenProductOptions.add(key);
                 const rawName = option.option_display_data?.name || product.name || '';
                 const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
                 if (!record) continue;
-                const city = fullAddress.match(/,\s*([^,]+),\s*AZ\s+\d{5}/i)?.[1] || 'Phoenix';
+                const city = fullAddress.match(/,\s*([^,]+),\s*AZ\s+\d{5}/i)?.[1] || null;
                 const zip = fullAddress.match(/\bAZ\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
                 const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
                 const price = Number(option.price || 0) || null;
                 signals.push({
-                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id, quantity, price]),
+                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id]),
                   state: config.id,
                   sourceLabel: source.sourceLabel,
-                  sourceUrl: option.product_url || url,
+                  sourceUrl: url,
                   rawName,
                   canonicalBottleId: record.id,
                   canonicalName: record.canonical,
                   tier: record.tier,
                   confidence: Math.max(0.82, match?.confidence || 0.5),
-                  eventType: 'cityhive_store_inventory_result',
+                  eventType: exactQuantityKnown ? 'cityhive_store_inventory_result' : 'cityhive_store_catalog_watch',
                   locationPrecision: 'store_level',
                   locationName: option.merchant_name || source.chainName,
                   storeName: option.merchant_name || source.chainName,
@@ -3161,16 +3162,16 @@ async function collectArizona(config, bible) {
                   lng: Number(option.coordinates?.[0]) || null,
                   quantity,
                   price,
-                  availabilityStatus: 'in_stock',
-                  availabilityLabel: exactQuantityKnown ? 'In stock' : 'Listed in stock',
+                  availabilityStatus: exactQuantityKnown ? 'in_stock' : 'catalog_listed',
+                  availabilityLabel: exactQuantityKnown ? 'In stock' : 'Retailer listing — availability unverified',
                   observedAt,
-                  canAlertAsInventory: true,
+                  canAlertAsInventory: exactQuantityKnown,
                   canAlertAsWatch: true,
-                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product availability and price for the selected Arizona store. Values of 100 are treated as an availability sentinel, not an exact shelf count; verify before driving.`,
+                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product rows and price. Finite positive quantities qualify as retailer-published inventory; the common value 100 is treated only as an unverified catalog/listing sentinel and cannot trigger inventory alerts.`,
                   evidence: exactQuantityKnown
                     ? `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}.`
-                    : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} in stock at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; exact count is not exposed.`,
-                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : 'listed_available_no_exact_count', matchGuard: unsafeReason }
+                    : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; the sentinel value does not prove current availability.`,
+                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : 'catalog_sentinel_unverified', matchGuard: unsafeReason }
                 });
               }
             }
