@@ -21,6 +21,9 @@ const valid = {
 test('Arizona retailer inventory requires exact source, merchant, host, geography, and positive quantity', () => {
   assert.equal(isArizonaRetailerSignalIdentity(valid), true);
   assert.equal(isArizonaRetailerInventory(valid), true);
+  const normalized = { ...valid, sourceChain: valid.raw.chain, merchantId: valid.raw.option.merchant_id };
+  delete normalized.raw;
+  assert.equal(isArizonaRetailerInventory(normalized), true);
   assert.equal(isArizonaRetailerInventory({ ...valid, quantity: 0, eventType: 'cityhive_store_catalog_watch' }), false);
   assert.equal(isArizonaRetailerInventory({ ...valid, sourceUrl: 'https://example.com/shop/' }), false);
   assert.equal(isArizonaRetailerInventory({ ...valid, raw: { ...valid.raw, option: { merchant_id: 'other' } } }), false);

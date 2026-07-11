@@ -72,6 +72,8 @@ function canonicalizeSignal(signal, bible) {
     eventType: signal.eventType,
     sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
+    sourceChain: signal.sourceChain || signal.raw?.chain || null,
+    merchantId: signal.merchantId || signal.raw?.option?.merchant_id || null,
     observedAt: observedAt(signal),
     sourceEventAt: signal.sourceEventAt || null,
     eventDate: signal.eventDate || signal.releaseDate || signal.raw?.eventDate || signal.raw?.releaseDate || null,
