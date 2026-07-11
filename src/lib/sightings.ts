@@ -88,6 +88,35 @@ export function makeSightingId(prefix = "sighting") {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
+export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: string): MemberSighting {
+  const parsedCreatedAt = new Date(input.createdAt);
+  const now = new Date();
+  const createdAt = Number.isFinite(parsedCreatedAt.getTime()) && parsedCreatedAt <= now ? parsedCreatedAt.toISOString() : now.toISOString();
+  const review = input.reviewState;
+  return {
+    id: String(input.id).slice(0, 160), bottleName: String(input.bottleName || "Unknown bottle").slice(0, 180),
+    bottleId: input.bottleId ? String(input.bottleId).slice(0, 180) : undefined, rarityTier: input.rarityTier,
+    storeId: String(input.storeId || "manual-store").slice(0, 180), storeName: String(input.storeName || "Unknown store").slice(0, 180),
+    storeAddress: String(input.storeAddress || "").slice(0, 300), storeCity: input.storeCity ? String(input.storeCity).slice(0, 100) : undefined,
+    storeState: input.storeState ? String(input.storeState).slice(0, 32) : undefined, storeZip: input.storeZip ? String(input.storeZip).slice(0, 20) : undefined,
+    quantityEstimate: input.quantityEstimate ? String(input.quantityEstimate).slice(0, 80) : undefined,
+    price: typeof input.price === "number" && Number.isFinite(input.price) ? input.price : null,
+    notes: input.notes ? String(input.notes).slice(0, 1000) : undefined, source: input.source, sightingType: input.sightingType,
+    reporterUserId: ownerUserId, createdAt, storeTimeZone: input.storeTimeZone ? String(input.storeTimeZone).slice(0, 80) : undefined,
+    rewardState: {},
+    reviewState: review ? {
+      needsBottleReview: Boolean(review.needsBottleReview), needsStoreReview: Boolean(review.needsStoreReview),
+      manualBottleName: review.manualBottleName ? String(review.manualBottleName).slice(0, 180) : undefined,
+      manualBottleRarityTier: review.manualBottleRarityTier,
+      manualStoreName: review.manualStoreName ? String(review.manualStoreName).slice(0, 180) : undefined,
+      manualStoreAddress: review.manualStoreAddress ? String(review.manualStoreAddress).slice(0, 300) : undefined,
+      manualStoreCity: review.manualStoreCity ? String(review.manualStoreCity).slice(0, 100) : undefined,
+      manualStoreState: review.manualStoreState ? String(review.manualStoreState).slice(0, 32) : undefined,
+      manualStoreZip: review.manualStoreZip ? String(review.manualStoreZip).slice(0, 20) : undefined,
+    } : undefined,
+  };
+}
+
 export function formatStoreAddress(parts: Array<string | undefined | null>) {
   return parts.map((part) => String(part || "").trim()).filter(Boolean).join(", ");
 }

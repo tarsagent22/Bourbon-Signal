@@ -1,6 +1,6 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
+import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { communityVerified, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
@@ -111,7 +111,7 @@ async function getAggregateSightings(currentUserId: string) {
   const usersById = new Map(users.map((user) => [user.id, user]));
   for (const user of users) {
     const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
-    for (const sighting of prefs.submittedSightings) sightingsById.set(sighting.id, { ...sighting, reporterUserId: sighting.reporterUserId || user.id });
+    for (const sighting of prefs.submittedSightings) sightingsById.set(sighting.id, { ...sighting, reporterUserId: user.id });
   }
   for (const sighting of durableSightings) sightingsById.set(sighting.id, sighting);
   const sightings: MemberSighting[] = [];
@@ -312,8 +312,8 @@ export async function PATCH(req: NextRequest) {
 
   const repository = createCommunitySightingsRepository();
   if (!(await repository.getSighting(sightingId))) {
-    const { myVote: _myVote, reporterDisplayName: _reporterDisplayName, reporterBadges: _reporterBadges, upCount: _upCount, downCount: _downCount, ...canonicalTarget } = target;
-    await repository.insertSighting(canonicalTarget);
+    if (!target.reporterUserId || !/^[-_a-zA-Z0-9]{1,160}$/.test(target.id)) return NextResponse.json({ error: "Invalid legacy sighting" }, { status: 409 });
+    await repository.insertSightingIfAbsent(canonicalizeLegacySighting(target, target.reporterUserId));
   }
   if (!(await repository.getVote(sightingId, userId)) && target.myVote) {
     await repository.setVote(sightingId, userId, target.myVote);

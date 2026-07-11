@@ -79,6 +79,20 @@ export class CommunitySightingsRepository {
     return rows[0].payload;
   }
 
+  async insertSightingIfAbsent(sighting: MemberSighting): Promise<MemberSighting> {
+    await this.ensureSchema();
+    const rows = await this.query.query(
+      `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
+       VALUES ($1, $2, $3::jsonb, $4::timestamptz)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING payload`,
+      [sighting.id, sighting.reporterUserId, JSON.stringify(sighting), sighting.createdAt],
+    ) as Array<{ payload: MemberSighting }>;
+    const stored = rows[0]?.payload || await this.getSighting(sighting.id);
+    if (!stored || stored.reporterUserId !== sighting.reporterUserId) throw new Error("Sighting ownership conflict.");
+    return stored;
+  }
+
   async updateSighting(sighting: MemberSighting): Promise<MemberSighting> {
     await this.ensureSchema();
     const rows = await this.query.query(
@@ -98,6 +112,19 @@ export class CommunitySightingsRepository {
     ) as Array<{ payload: MemberSighting }>;
     if (!rows[0]) throw new Error("Member sighting not found.");
     return rows[0].payload;
+  }
+
+  async replacePhotoProof(sightingId: string, ownerUserId: string, expectedPreviousUrl: string | null, photoProof: NonNullable<NonNullable<MemberSighting["rewardState"]>["photoProof"]>): Promise<MemberSighting | null> {
+    await this.ensureSchema();
+    const rows = await this.query.query(
+      `UPDATE community_sightings
+       SET payload = jsonb_set(payload, '{rewardState,photoProof}', $4::jsonb, true), updated_at = NOW()
+       WHERE id = $1 AND reporter_user_id = $2
+         AND (payload#>>'{rewardState,photoProof,url}') IS NOT DISTINCT FROM $3
+       RETURNING payload`,
+      [sightingId, ownerUserId, expectedPreviousUrl, JSON.stringify(photoProof)],
+    ) as Array<{ payload: MemberSighting }>;
+    return rows[0]?.payload || null;
   }
 
   async listVotes(): Promise<DurableSightingVote[]> {
@@ -133,7 +160,9 @@ export class CommunitySightingsRepository {
 
   async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting }> {
     await this.ensureSchema();
-    const rows = await this.query.query(
+    const [, voteRows] = await this.query.transaction((tx) => [
+      tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [sightingId]),
+      tx.query(
       `WITH locked AS MATERIALIZED (
          SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
        ), prior AS MATERIALIZED (
@@ -162,18 +191,20 @@ export class CommunitySightingsRepository {
          UPDATE community_sightings SET
            payload = jsonb_set(jsonb_set(jsonb_set(
              payload, '{rewardState}',
-             CASE WHEN outcome.up_count >= 3 AND outcome.up_count > outcome.down_count
+             CASE WHEN outcome.up_count >= 3 AND outcome.up_count - outcome.down_count >= 3
                THEN jsonb_set(COALESCE(payload->'rewardState', '{}'::jsonb), '{helpfulAt}', to_jsonb(COALESCE(payload->'rewardState'->>'helpfulAt', NOW()::text)), true)
                ELSE COALESCE(payload->'rewardState', '{}'::jsonb) - 'helpfulAt' END, true),
              '{upCount}', to_jsonb(outcome.up_count), true),
              '{downCount}', to_jsonb(outcome.down_count), true)
-             || jsonb_build_object('communityVerified', outcome.up_count >= 3 AND outcome.up_count > outcome.down_count),
+             || jsonb_build_object('communityVerified', outcome.up_count >= 3 AND outcome.up_count - outcome.down_count >= 3),
            updated_at = NOW()
          FROM outcome WHERE id = $1
          RETURNING payload, outcome.next_kind, outcome.up_count, outcome.down_count
        ) SELECT payload, next_kind, up_count, down_count FROM updated`,
       [sightingId, userId, kind],
-    ) as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number }>;
+      ),
+    ], { isolationLevel: "ReadCommitted" });
+    const rows = voteRows as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number }>;
     const row = rows[0];
     if (!row) throw new Error("Sighting not found");
     return { kind: row.next_kind, upCount: Number(row.up_count), downCount: Number(row.down_count), sighting: row.payload };

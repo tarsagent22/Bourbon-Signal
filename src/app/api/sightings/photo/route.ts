@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { del, put } from "@vercel/blob";
-import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
+import { canonicalizeLegacySighting, type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
 
@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
   const repository = createCommunitySightingsRepository();
   const durableTarget = await repository.getSighting(sightingId);
   const legacyTarget = prefs.submittedSightings.find((sighting) => sighting.id === sightingId);
-  const target = durableTarget || legacyTarget;
+  if (durableTarget && durableTarget.reporterUserId !== userId) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+  if (!durableTarget && legacyTarget) {
+    if (!/^[-_a-zA-Z0-9]{1,160}$/.test(legacyTarget.id)) return NextResponse.json({ error: "Invalid legacy sighting" }, { status: 409 });
+    await repository.insertSightingIfAbsent(canonicalizeLegacySighting(legacyTarget, userId));
+  }
+  const target = await repository.getSighting(sightingId);
   if (!target || target.reporterUserId !== userId) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
 
   const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
@@ -45,38 +50,24 @@ export async function POST(req: NextRequest) {
   });
 
   const uploadedAt = new Date().toISOString();
-  const updatedTarget: MemberSighting = {
-    ...target,
-    rewardState: {
-      ...(target.rewardState || {}),
-      photoProof: {
+  const photoProof = {
         url: uploaded.url,
         pathname: uploaded.pathname,
         uploadedAt,
         status: "verified_public" as const,
         publicUrl: uploaded.url,
-      },
-    },
   };
   try {
-    let ownedSightings: MemberSighting[];
-    if (durableTarget) {
-      await repository.updateSighting(updatedTarget);
-      ownedSightings = [
-        ...prefs.submittedSightings,
-        ...(await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId),
-      ];
-      const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-      await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } }).catch((error) => {
-        console.error("Sighting photo persisted, but reward reconciliation failed", error);
-      });
-    } else {
-      const nextSightings = prefs.submittedSightings.map((sighting) => sighting.id === sightingId ? updatedTarget : sighting);
-      ownedSightings = nextSightings;
-      const nextPrefs = { ...prefs, submittedSightings: nextSightings };
-      const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-      await client.users.updateUserMetadata(userId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+    const updatedTarget = await repository.replacePhotoProof(sightingId, userId, target.rewardState?.photoProof?.url || null, photoProof);
+    if (!updatedTarget) {
+      await del(uploaded.url).catch(() => undefined);
+      return NextResponse.json({ error: "Photo changed in another request. Please retry." }, { status: 409 });
     }
+    const ownedSightings = (await repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId);
+    const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
+    await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } }).catch((error) => {
+      console.error("Sighting photo persisted, but reward reconciliation failed", error);
+    });
   } catch (error) {
     await del(uploaded.url).catch(() => undefined);
     throw error;
@@ -85,5 +76,5 @@ export async function POST(req: NextRequest) {
   if (previousUrl && previousUrl !== uploaded.url) {
     await del(previousUrl).catch((error) => console.error("Unable to remove replaced sighting proof", error));
   }
-  return NextResponse.json({ ok: true, photoProof: updatedTarget.rewardState?.photoProof });
+  return NextResponse.json({ ok: true, photoProof });
 }
