@@ -330,12 +330,14 @@ const BASE_STATE_SOURCES = [
   {
     id: 'AZ', label: 'Arizona Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Arizona Costco warehouses are useful private-market bourbon signals when verified through warehouse/app observations.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'CA', label: 'California Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. California is one of the strongest Costco whiskey/bourbon markets; treat observations as fast-moving warehouse signals.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
@@ -348,42 +350,49 @@ const BASE_STATE_SOURCES = [
   {
     id: 'MN', label: 'Minnesota Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Minnesota Costco spirits access can produce useful bourbon warehouse signals where verified.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'MO', label: 'Missouri Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Missouri Costco warehouses are useful private-market bourbon signals where verified.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'NV', label: 'Nevada Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Nevada Costco warehouses, especially major metro/travel markets, are useful bourbon signals where verified.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'WA', label: 'Washington Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Washington is a high-signal Costco spirits market and should be monitored through warehouse/app observations.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'WI', label: 'Wisconsin Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Wisconsin Costco spirits access can produce useful bourbon warehouse signals where verified.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'GA', label: 'Georgia Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   },
   {
     id: 'FL', label: 'Florida Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
     value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
+    rareSignalTarget: false,
     sources: [],
     apiCandidates: []
   }
