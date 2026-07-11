@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-11T21:55:27.843Z",
-  "count": 3605,
+  "generatedAt": "2026-07-11T22:22:18.647Z",
+  "count": 3612,
   "stores": [
     {
       "id": "alabc:001",
@@ -50138,18 +50138,46 @@
       "signalCount": 46
     },
     {
-      "id": "albertsons:2997",
-      "sourceStoreId": "albertsons:2997",
+      "id": "albertsons:2951",
+      "sourceStoreId": "albertsons:2951",
       "state": "AZ",
-      "name": "Albertsons #2997",
-      "address": "4060 W Ray Rd, Chandler, AZ 85226",
-      "city": "Chandler",
+      "name": "Albertsons #2951",
+      "address": "252 W 32nd St, Yuma, AZ 85364",
+      "city": "Yuma",
       "county": null,
-      "zip": "85226",
+      "zip": "85364",
       "lat": 0,
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 6
+      "signalCount": 3
+    },
+    {
+      "id": "albertsons:2955",
+      "sourceStoreId": "albertsons:2955",
+      "state": "AZ",
+      "name": "Albertsons #2955",
+      "address": "2785 N Scottsdale Rd, Scottsdale, AZ 85257",
+      "city": "Scottsdale",
+      "county": null,
+      "zip": "85257",
+      "lat": 0,
+      "lng": 0,
+      "source": "Albertsons Arizona XAPI store inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "albertsons:2988",
+      "sourceStoreId": "albertsons:2988",
+      "state": "AZ",
+      "name": "Albertsons #2988",
+      "address": "5085 N La Canada Dr, Tucson, AZ 85704",
+      "city": "Tucson",
+      "county": null,
+      "zip": "85704",
+      "lat": 0,
+      "lng": 0,
+      "source": "Albertsons Arizona XAPI store inventory",
+      "signalCount": 3
     },
     {
       "id": "albertsons:3203",
@@ -50166,18 +50194,32 @@
       "signalCount": 6
     },
     {
-      "id": "albertsons:3941",
-      "sourceStoreId": "albertsons:3941",
+      "id": "albertsons:3204",
+      "sourceStoreId": "albertsons:3204",
       "state": "AZ",
-      "name": "Albertsons #3941",
-      "address": "5040 W Cactus Rd, Glendale, AZ 85304",
-      "city": "Glendale",
+      "name": "Albertsons #3204",
+      "address": "1980 Mcculloch Blvd, Lake Havasu City, AZ 86403",
+      "city": "Lake Havasu City",
       "county": null,
-      "zip": "85304",
+      "zip": "86403",
       "lat": 0,
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 3
+      "signalCount": 5
+    },
+    {
+      "id": "albertsons:3931",
+      "sourceStoreId": "albertsons:3931",
+      "state": "AZ",
+      "name": "Albertsons #3931",
+      "address": "2378 W 24th St, Yuma, AZ 85364",
+      "city": "Yuma",
+      "county": null,
+      "zip": "85364",
+      "lat": 0,
+      "lng": 0,
+      "source": "Albertsons Arizona XAPI store inventory",
+      "signalCount": 6
     },
     {
       "id": "albertsons:961",
@@ -50192,20 +50234,6 @@
       "lng": 0,
       "source": "Albertsons Arizona XAPI store inventory",
       "signalCount": 6
-    },
-    {
-      "id": "albertsons:980",
-      "sourceStoreId": "albertsons:980",
-      "state": "AZ",
-      "name": "Albertsons #980",
-      "address": "1951 W Baseline Rd, Mesa, AZ 85202",
-      "city": "Mesa",
-      "county": null,
-      "zip": "85202",
-      "lat": 0,
-      "lng": 0,
-      "source": "Albertsons Arizona XAPI store inventory",
-      "signalCount": 3
     },
     {
       "id": "chandler-liquors:5e8e0a0778e8f16f128f7e5a",
@@ -50292,60 +50320,32 @@
       "signalCount": 13
     },
     {
-      "id": "safeway:1535",
-      "sourceStoreId": "safeway:1535",
+      "id": "safeway:1487",
+      "sourceStoreId": "safeway:1487",
       "state": "AZ",
-      "name": "Safeway #1535",
-      "address": "1515 E Elliot Rd, Tempe, AZ 85284",
+      "name": "Safeway #1487",
+      "address": "926 E Broadway Rd, Tempe, AZ 85282",
       "city": "Tempe",
       "county": null,
-      "zip": "85284",
+      "zip": "85282",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 4
+    },
+    {
+      "id": "safeway:1491",
+      "sourceStoreId": "safeway:1491",
+      "state": "AZ",
+      "name": "Safeway #1491",
+      "address": "7920 E Chaparral Rd, Scottsdale, AZ 85250",
+      "city": "Scottsdale",
+      "county": null,
+      "zip": "85250",
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
       "signalCount": 5
-    },
-    {
-      "id": "safeway:1604",
-      "sourceStoreId": "safeway:1604",
-      "state": "AZ",
-      "name": "Safeway #1604",
-      "address": "1159 W Chandler Blvd, Chandler, AZ 85224",
-      "city": "Chandler",
-      "county": null,
-      "zip": "85224",
-      "lat": 0,
-      "lng": 0,
-      "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 3
-    },
-    {
-      "id": "safeway:1605",
-      "sourceStoreId": "safeway:1605",
-      "state": "AZ",
-      "name": "Safeway #1605",
-      "address": "1060 E Ray Rd, Chandler, AZ 85225",
-      "city": "Chandler",
-      "county": null,
-      "zip": "85225",
-      "lat": 0,
-      "lng": 0,
-      "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 3
-    },
-    {
-      "id": "safeway:1654",
-      "sourceStoreId": "safeway:1654",
-      "state": "AZ",
-      "name": "Safeway #1654",
-      "address": "4811 N 83rd Ave, Phoenix, AZ 85033",
-      "city": "Phoenix",
-      "county": null,
-      "zip": "85033",
-      "lat": 0,
-      "lng": 0,
-      "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 2
     },
     {
       "id": "safeway:1684",
@@ -50362,6 +50362,20 @@
       "signalCount": 6
     },
     {
+      "id": "safeway:1819",
+      "sourceStoreId": "safeway:1819",
+      "state": "AZ",
+      "name": "Safeway #1819",
+      "address": "18495 E Queen Creek Rd, Queen Creek, AZ 85142",
+      "city": "Queen Creek",
+      "county": null,
+      "zip": "85142",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 4
+    },
+    {
       "id": "safeway:1983",
       "sourceStoreId": "safeway:1983",
       "state": "AZ",
@@ -50374,6 +50388,20 @@
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
       "signalCount": 1
+    },
+    {
+      "id": "safeway:2032",
+      "sourceStoreId": "safeway:2032",
+      "state": "AZ",
+      "name": "Safeway #2032",
+      "address": "10773 N Scottsdale Rd, Scottsdale, AZ 85254",
+      "city": "Scottsdale",
+      "county": null,
+      "zip": "85254",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 5
     },
     {
       "id": "safeway:2060",
@@ -50390,6 +50418,48 @@
       "signalCount": 1
     },
     {
+      "id": "safeway:2083",
+      "sourceStoreId": "safeway:2083",
+      "state": "AZ",
+      "name": "Safeway #2083",
+      "address": "2190 E Fry Blvd, Sierra Vista, AZ 85635",
+      "city": "Sierra Vista",
+      "county": null,
+      "zip": "85635",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "safeway:209",
+      "sourceStoreId": "safeway:209",
+      "state": "AZ",
+      "name": "Safeway #209",
+      "address": "22983 E Riggs Rd, Queen Creek, AZ 85142",
+      "city": "Queen Creek",
+      "county": null,
+      "zip": "85142",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 6
+    },
+    {
+      "id": "safeway:216",
+      "sourceStoreId": "safeway:216",
+      "state": "AZ",
+      "name": "Safeway #216",
+      "address": "1650 Mcculloch Blvd N, Lake Havasu City, AZ 86403",
+      "city": "Lake Havasu City",
+      "county": null,
+      "zip": "86403",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 5
+    },
+    {
       "id": "safeway:245",
       "sourceStoreId": "safeway:245",
       "state": "AZ",
@@ -50402,20 +50472,6 @@
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
       "signalCount": 6
-    },
-    {
-      "id": "safeway:247",
-      "sourceStoreId": "safeway:247",
-      "state": "AZ",
-      "name": "Safeway #247",
-      "address": "1225 W Guadalupe, Mesa, AZ 85202",
-      "city": "Mesa",
-      "county": null,
-      "zip": "85202",
-      "lat": 0,
-      "lng": 0,
-      "source": "Safeway Arizona XAPI store inventory",
-      "signalCount": 1
     },
     {
       "id": "safeway:255",
@@ -50432,6 +50488,20 @@
       "signalCount": 1
     },
     {
+      "id": "safeway:267",
+      "sourceStoreId": "safeway:267",
+      "state": "AZ",
+      "name": "Safeway #267",
+      "address": "2940 W Valencia Rd, Tucson, AZ 85746",
+      "city": "Tucson",
+      "county": null,
+      "zip": "85746",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 3
+    },
+    {
       "id": "safeway:274",
       "sourceStoreId": "safeway:274",
       "state": "AZ",
@@ -50440,6 +50510,34 @@
       "city": "Prescott",
       "county": null,
       "zip": "86303",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 3
+    },
+    {
+      "id": "safeway:3173",
+      "sourceStoreId": "safeway:3173",
+      "state": "AZ",
+      "name": "Safeway #3173",
+      "address": "40950 N Ironwood Rd, San Tan Valley, AZ 85140",
+      "city": "San Tan Valley",
+      "county": null,
+      "zip": "85140",
+      "lat": 0,
+      "lng": 0,
+      "source": "Safeway Arizona XAPI store inventory",
+      "signalCount": 5
+    },
+    {
+      "id": "safeway:752",
+      "sourceStoreId": "safeway:752",
+      "state": "AZ",
+      "name": "Safeway #752",
+      "address": "4747 E Elliot Rd, Phoenix, AZ 85044",
+      "city": "Phoenix",
+      "county": null,
+      "zip": "85044",
       "lat": 0,
       "lng": 0,
       "source": "Safeway Arizona XAPI store inventory",
