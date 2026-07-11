@@ -130,7 +130,7 @@ function policyForSignal(signal) {
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
-    && /^cityhive_store_inventory_result$/i.test(eventType)
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;

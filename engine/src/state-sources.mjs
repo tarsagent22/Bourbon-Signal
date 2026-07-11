@@ -336,7 +336,11 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://paradiseliquoraz.com/shop/?subtype=whiskey', label: 'Paradise Liquor Mini Mart Phoenix CityHive whiskey inventory', precisionOnly: true },
       { kind: 'html', url: 'https://azliquorvault.com/shop/?subtype=bourbon', label: 'Liquor Vault Scottsdale CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://skylinebroadway.com/shop/?subtype=bourbon', label: 'Skyline Liquor Mesa and Casa Grande CityHive bourbon inventory', precisionOnly: true },
-      { kind: 'html', url: 'https://chandlerliquorsaz.com/shop/?subtype=Bourbon', label: 'Chandler Liquors CityHive bourbon inventory', precisionOnly: true }
+      { kind: 'html', url: 'https://chandlerliquorsaz.com/shop/?subtype=Bourbon', label: 'Chandler Liquors CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://luckysliquor.com/shop/?search=bourbon', label: "Lucky's Liquor Phoenix CityHive bourbon inventory", precisionOnly: true },
+      { kind: 'html', url: 'https://onestopdrivethruliquor.com/shop/?search=bourbon', label: 'One Stop Drive Thru Liquor Phoenix CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1', label: 'Mesa Liquor WooCommerce in-stock bourbon inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://flagstaffliquor.com/products.json?limit=250', label: 'Flagstaff Liquor Shopify available bourbon inventory', precisionOnly: true }
     ],
     apiCandidates: []
   },
