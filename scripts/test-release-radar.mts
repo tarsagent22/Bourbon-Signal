@@ -50,20 +50,39 @@ const radarLayout = readFileSync(resolve("src/app/release-radar/layout.tsx"), "u
 assert.match(radarLayout, /index:\s*false/);
 assert.match(radarLayout, /follow:\s*false/);
 
-assert.match(hubSource, /ActionNow/);
-assert.match(hubSource, /ReleaseTimeline/);
-assert.match(hubSource, /ReleaseLedger/);
-assert.match(hubSource, /LotteryBrief/);
-assert.match(hubSource, /StateGuideIndex/);
-assert.match(hubSource, /BottleIndex/);
+assert.match(hubSource, /CalendarExplorer/);
+assert.match(hubSource, /RadarTabs/);
+assert.doesNotMatch(hubSource, /ActionNow|ReleaseTimeline|ReleaseLedger|LotteryBrief|BottleIndex/, "calendar hub must not repeat records across editorial modules");
 assert.doesNotMatch(hubSource, /RadarCard/, "hub must not fall back to repeated editorial cards");
-const lotterySource = readFileSync(resolve("src/components/release-radar/LotteryBrief.tsx"), "utf8");
-assert.match(lotterySource, /<table/);
-assert.match(lotterySource, /<thead>/);
-assert.match(lotterySource, /<th scope="col">/);
-assert.match(lotterySource, /<td data-label=/);
+
+const tabsSource = readFileSync(resolve("src/components/release-radar/RadarTabs.tsx"), "utf8");
+for (const label of ["Calendar", "Briefings", "State guides", "Bottle guides"]) {
+  assert.match(tabsSource, new RegExp(label), `route-backed tabs must include ${label}`);
+}
+for (const href of ["/release-radar", "/release-radar/briefings", "/release-radar/states", "/release-radar/bottles"]) {
+  assert.match(tabsSource, new RegExp(`href: \\"${href.replaceAll("/", "\\/")}\\"`), `tab must link to ${href}`);
+}
+
+const calendarSource = readFileSync(resolve("src/components/release-radar/CalendarExplorer.tsx"), "utf8");
+assert.match(calendarSource, /use client/);
+assert.match(calendarSource, /All states/);
+assert.match(calendarSource, /All types/);
+assert.match(calendarSource, /Previous month/);
+assert.match(calendarSource, /Next month/);
+assert.match(calendarSource, /radarPath\(entry\)/, "calendar events must link to their associated editorial pages");
+assert.match(calendarSource, /rr-calendar-grid/, "desktop needs a month grid");
+assert.match(calendarSource, /rr-agenda/, "mobile needs a chronological agenda");
+
+for (const route of ["briefings", "bottles", "states"]) {
+  const indexSource = readFileSync(resolve(`src/app/release-radar/${route}/page.tsx`), "utf8");
+  assert.match(indexSource, new RegExp(`canonical: \\"/release-radar/${route}\\"`), `${route} index needs its own canonical URL`);
+}
+
 for (const route of [
   "src/app/release-radar/page.tsx",
+  "src/app/release-radar/briefings/page.tsx",
+  "src/app/release-radar/bottles/page.tsx",
+  "src/app/release-radar/states/page.tsx",
   "src/app/release-radar/[kind]/[slug]/page.tsx",
   "src/app/release-radar/states/[slug]/page.tsx",
 ]) {

@@ -21,18 +21,17 @@ export function RadarMasthead({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function RadarNav({ active = "overview" }: { active?: string }) {
+export function RadarNav({ active = "calendar" }: { active?: string }) {
+  const normalized = active === "states" ? "states" : active === "bottles" || active === "bottle" ? "bottles" : active === "overview" || active === "calendar" ? "calendar" : "briefings";
   const links = [
-    ["overview", "Overview", "/release-radar"],
-    ["calendar", "Calendar", "/release-radar#calendar"],
-    ["releases", "Releases", "/release-radar#releases"],
-    ["lotteries", "Lotteries", "/release-radar#lotteries"],
-    ["states", "State guides", "/release-radar#states"],
-    ["bottles", "Bottle guides", "/release-radar#bottles"],
+    ["calendar", "Calendar", "/release-radar"],
+    ["briefings", "Briefings", "/release-radar/briefings"],
+    ["states", "State guides", "/release-radar/states"],
+    ["bottles", "Bottle guides", "/release-radar/bottles"],
   ];
   return (
     <nav className="radar-subnav" aria-label="Release Radar sections">
-      {links.map(([id, label, href]) => <Link key={id} className={active === id ? "is-active" : ""} href={href}>{label}</Link>)}
+      {links.map(([id, label, href]) => <Link key={id} className={normalized === id ? "is-active" : ""} href={href}>{label}</Link>)}
     </nav>
   );
 }
