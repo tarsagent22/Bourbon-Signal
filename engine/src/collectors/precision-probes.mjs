@@ -696,8 +696,33 @@ const AZ_CITYHIVE_SOURCES = [
     baseUrl: 'https://chandlerliquorsaz.com',
     merchantIds: ['5e8e0a0778e8f16f128f7e5a'],
     urls: ['https://chandlerliquorsaz.com/shop/?subtype=Bourbon']
+  },
+  {
+    id: 'luckys-liquor-phoenix',
+    chainName: "Lucky's Liquor",
+    sourceLabel: "Lucky's Liquor Phoenix CityHive store inventory",
+    baseUrl: 'https://luckysliquor.com',
+    merchantIds: ['65fe530ba854f17fbd29a744'],
+    urls: ['https://luckysliquor.com/shop/?search=bourbon']
+  },
+  {
+    id: 'one-stop-drive-thru-phoenix',
+    chainName: 'One Stop Drive Thru Liquor',
+    sourceLabel: 'One Stop Drive Thru Liquor Phoenix CityHive store inventory',
+    baseUrl: 'https://onestopdrivethruliquor.com',
+    merchantIds: ['6377cc75b9615e6a2b8290c1'],
+    urls: ['https://onestopdrivethruliquor.com/shop/?search=bourbon']
   }
 ];
+
+const AZ_MESA_LIQUOR_BASE_URL = 'https://mesaliquorstore.com';
+const AZ_MESA_LIQUOR_SOURCE_LABEL = 'Mesa Liquor WooCommerce store inventory';
+const AZ_MESA_LIQUOR_STORE = { id: 'mesa-liquor:7143-e-southern', name: 'Mesa Liquor', address: '7143 E Southern Ave, Mesa, AZ 85209', city: 'Mesa', zip: '85209' };
+const AZ_MESA_LIQUOR_TERMS = ['bourbon', 'blanton', 'weller', 'eagle rare', 'buffalo trace', 'stagg', 'e h taylor'];
+const AZ_MESA_LIQUOR_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_AZ_MESA_LIQUOR_DELAY_MS) || 900));
+const AZ_FLAGSTAFF_LIQUOR_URL = 'https://flagstaffliquor.com/products.json?limit=250';
+const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store inventory';
+const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3045,6 +3070,93 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
   await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
 }
 
+async function collectArizonaMesaLiquor(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seen = new Set();
+  for (const term of AZ_MESA_LIQUOR_TERMS) {
+    const url = `${AZ_MESA_LIQUOR_BASE_URL}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000 });
+    if (!res.ok) {
+      roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence.' });
+      await sleep(AZ_MESA_LIQUOR_DELAY_MS);
+      continue;
+    }
+    let products = [];
+    try { products = JSON.parse(res.text); } catch (error) {
+      roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the WooCommerce Store API response shape.' });
+      continue;
+    }
+    if (!Array.isArray(products)) continue;
+    for (const product of products) {
+      const rawName = htmlToText(product?.name || '');
+      const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
+      const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
+      const productKey = `${rawName.toLowerCase().replace(/\s+/g, ' ').trim()}|${wcStoreApiPrice(product?.prices) || ''}`;
+      if (!rawName || (sizeMl != null && sizeMl < 375) || seen.has(productKey) || product?.is_in_stock !== true) continue;
+      seen.add(productKey);
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record) continue;
+      const price = wcStoreApiPrice(product?.prices);
+      signals.push({
+        id: stableId([config.id, 'woocommerce-store-inventory', 'mesa-liquor', product.id]), state: config.id,
+        sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, sourceUrl: product?.permalink || url, sourceChain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce',
+        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+        confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+        locationName: AZ_MESA_LIQUOR_STORE.name, storeName: AZ_MESA_LIQUOR_STORE.name, storeId: AZ_MESA_LIQUOR_STORE.id,
+        storeAddress: AZ_MESA_LIQUOR_STORE.address, city: AZ_MESA_LIQUOR_STORE.city, stateCode: 'AZ', postalCode: AZ_MESA_LIQUOR_STORE.zip, zip: AZ_MESA_LIQUOR_STORE.zip,
+        quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Retailer reports in stock', observedAt,
+        canAlertAsInventory: true, canAlertAsWatch: true,
+        inventorySemantics: 'Mesa Liquor’s public WooCommerce Store API reports this bottle in stock and orderable. It does not expose exact on-hand quantity; verify directly before driving.',
+        evidence: `Mesa Liquor WooCommerce reports ${rawName} in stock${price ? ` at $${price.toFixed(2)}` : ''} for its Mesa store. Exact quantity is not published.`,
+        raw: { chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', product: { id: product.id, sku: product.sku, is_in_stock: product.is_in_stock, low_stock_remaining: product.low_stock_remaining, prices: product.prices } }
+      });
+    }
+    await sleep(AZ_MESA_LIQUOR_DELAY_MS);
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: AZ_MESA_LIQUOR_SOURCE_LABEL, url: `${AZ_MESA_LIQUOR_BASE_URL}/wp-json/wc/store/v1/products`, status: 'reachable_no_safe_inventory_rows', error: 'Public WooCommerce searches produced no safely matched in-stock bourbon rows.', nextRoute: 'Inspect product names and Store API stock flags without weakening bottle or availability guards.' });
+  return { signals, roadblocks };
+}
+
+async function collectArizonaFlagstaffLiquor(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const res = await textFetch(AZ_FLAGSTAFF_LIQUOR_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000 });
+  if (!res.ok) return { signals, roadblocks: [{ state: config.id, source: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, url: AZ_FLAGSTAFF_LIQUOR_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify products feed at low cadence.' }] };
+  let products = [];
+  try { products = JSON.parse(res.text)?.products || []; } catch (error) {
+    return { signals, roadblocks: [{ state: config.id, source: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, url: AZ_FLAGSTAFF_LIQUOR_URL, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the Shopify products feed response shape.' }] };
+  }
+  for (const product of products) {
+    const rawName = htmlToText(product?.title || '');
+    if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor/i.test(rawName)) continue;
+    const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
+    const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
+    if (sizeMl != null && sizeMl < 375) continue;
+    const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+    if (!record) continue;
+    for (const variant of product?.variants || []) {
+      if (variant?.available !== true) continue;
+      const price = Number(variant?.price || 0) || null;
+      signals.push({
+        id: stableId([config.id, 'shopify-store-inventory', 'flagstaff-liquor', variant.id]), state: config.id,
+        sourceLabel: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, sourceUrl: `https://flagstaffliquor.com/products/${product.handle}`, sourceChain: 'flagstaff-liquor', merchantId: 'flagstaff-liquor-shopify',
+        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+        confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+        locationName: AZ_FLAGSTAFF_LIQUOR_STORE.name, storeName: AZ_FLAGSTAFF_LIQUOR_STORE.name, storeId: AZ_FLAGSTAFF_LIQUOR_STORE.id,
+        storeAddress: AZ_FLAGSTAFF_LIQUOR_STORE.address, city: AZ_FLAGSTAFF_LIQUOR_STORE.city, stateCode: 'AZ', postalCode: AZ_FLAGSTAFF_LIQUOR_STORE.zip, zip: AZ_FLAGSTAFF_LIQUOR_STORE.zip,
+        quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Retailer reports available', observedAt,
+        canAlertAsInventory: true, canAlertAsWatch: true,
+        inventorySemantics: 'Flagstaff Liquor’s public Shopify feed marks this sellable variant available. Exact on-hand quantity is not published; verify directly before driving.',
+        evidence: `Flagstaff Liquor Shopify reports ${rawName} available${price ? ` at $${price.toFixed(2)}` : ''}. Exact quantity is not published.`,
+        raw: { chain: 'flagstaff-liquor', merchantId: 'flagstaff-liquor-shopify', product: { id: product.id, handle: product.handle }, variant: { id: variant.id, sku: variant.sku, available: variant.available, price: variant.price } }
+      });
+    }
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, url: AZ_FLAGSTAFF_LIQUOR_URL, status: 'reachable_no_safe_inventory_rows', error: 'Shopify feed produced no safely matched available bourbon rows.', nextRoute: 'Inspect product titles and variant availability without weakening guards.' });
+  return { signals, roadblocks };
+}
+
 async function collectArizona(config, bible) {
   const observedAt = new Date().toISOString();
   const signals = [];
@@ -3194,7 +3306,12 @@ async function collectArizona(config, bible) {
       nextRoute: 'Inspect embedded CityHive product JSON and exact bottle aliases; do not weaken identity or in-stock guards.'
     });
   }
-  return { signals, roadblocks };
+  const mesaLiquor = await collectArizonaMesaLiquor(config, bible, observedAt);
+  const flagstaffLiquor = await collectArizonaFlagstaffLiquor(config, bible, observedAt);
+  return {
+    signals: [...signals, ...mesaLiquor.signals, ...flagstaffLiquor.signals],
+    roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...flagstaffLiquor.roadblocks]
+  };
 }
 
 async function collectSouthCarolinaCityHive(config, bible, observedAt) {
