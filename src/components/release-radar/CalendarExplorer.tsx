@@ -3,14 +3,12 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
-  CalendarDays,
+
   ChevronLeft,
   ChevronRight,
   Clock3,
   MapPin,
-  Radio,
-  SlidersHorizontal,
-  Sparkles,
+
 } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { RadarEntry, RadarKind } from "@/lib/release-radar";
@@ -115,7 +113,6 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
       <div className="rr-command-bar">
         <div className="rr-calendar-bar">
           <div>
-            <span className="rr-kicker"><CalendarDays size={13} /> Verified release calendar</span>
             <h2 id="calendar-title">{monthLabel(month)}</h2>
           </div>
           <div className="rr-month-controls">
@@ -126,7 +123,6 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
         </div>
 
         <div className="rr-filters" aria-label="Calendar filters">
-          <span><SlidersHorizontal size={13} /> Refine radar</span>
           <label><b>State</b><select value={state} onChange={(event) => setState(event.target.value)}><option value="all">All states</option>{states.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
           <label><b>Type</b><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All types</option><option value="release">Releases</option><option value="lottery">Lotteries</option><option value="event">Events</option></select></label>
           {filtersActive && <button type="button" className="rr-clear" onClick={() => { setState("all"); setKind("all"); }}>Clear</button>}
@@ -142,8 +138,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
 
       <section className="rr-timeline" aria-labelledby="timeline-title">
         <header className="rr-timeline-head">
-          <div><span className="rr-kicker"><Radio size={12} /> Action timeline</span><h3 id="timeline-title">What happens next</h3></div>
-          <p aria-live="polite"><strong>{agendaOccurrences.length}</strong> dated record{agendaOccurrences.length === 1 ? "" : "s"}</p>
+          <h3 id="timeline-title">Upcoming dates</h3>
         </header>
 
         {agendaOccurrences.length ? <div className="rr-timeline-track">
@@ -162,8 +157,8 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
                   {leadFact && <span><Clock3 size={13} /> {leadFact.value}</span>}
                 </div>
                 <footer className="rr-card-proof">
-                  <span><Sparkles size={12} /> {sourceType(entry)} · Updated {entry.updatedAt}</span>
-                  <a href={entry.sources[0]?.url} target="_blank" rel="noreferrer">View source <ArrowUpRight size={12} /></a>
+                  <span>{sourceType(entry)} · Updated {entry.updatedAt}</span>
+                  <a href={entry.sources[0]?.url} target="_blank" rel="noreferrer">Official source <ArrowUpRight size={12} /></a>
                 </footer>
               </div>
             </article>;
@@ -172,7 +167,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
       </section>
 
       {watchEntries.length > 0 && <section className="rr-watch-deck" aria-labelledby="watch-title">
-        <header><div><span className="rr-kicker">Unfixed windows</span><h3 id="watch-title">On the horizon</h3></div><p>Officially announced, without false date precision.</p></header>
+        <header><div><h3 id="watch-title">Release windows</h3></div><p>Announced without an exact date.</p></header>
         <div>{watchEntries.map((entry) => <Link href={radarPath(entry)} key={entry.slug} className="rr-watch-card"><span>{entry.dateLabel}</span><strong>{entry.title}</strong><p>{entry.availability}</p><small>{sourceType(entry)} · {entry.sources[0]?.label}</small><ArrowUpRight size={16}/></Link>)}</div>
       </section>}
     </section>
