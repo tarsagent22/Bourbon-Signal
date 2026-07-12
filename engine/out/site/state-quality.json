@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T23:55:58.988Z",
+  "generatedAt": "2026-07-12T00:25:38.623Z",
   "summary": {
     "stateCount": 23,
     "releaseEligibleStates": 12,
@@ -76,13 +76,13 @@
     {
       "state": "SC",
       "coverageTier": "live_store_inventory",
-      "score": 91,
+      "score": 92,
       "threshold": 65,
       "releaseEligible": true,
-      "freshnessHours": 0.5,
+      "freshnessHours": 0,
       "dimensions": {
         "freshness": 20,
-        "volume": 14,
+        "volume": 15,
         "precision": 20,
         "alerts": 15,
         "sourceDiversity": 15,
@@ -92,13 +92,13 @@
       "input": {
         "state": "SC",
         "coverageTier": "live_store_inventory",
-        "signalCount": 235,
-        "dropCount": 72,
-        "storeLevelDropCount": 72,
-        "alertCandidateCount": 69,
-        "sourceCount": 40,
+        "signalCount": 247,
+        "dropCount": 77,
+        "storeLevelDropCount": 77,
+        "alertCandidateCount": 115,
+        "sourceCount": 45,
         "roadblockCount": 2,
-        "freshestObservedAt": "2026-07-11T14:05:24.233Z",
+        "freshestObservedAt": "2026-07-12T00:22:45.252Z",
         "status": "useful"
       }
     },
@@ -384,7 +384,7 @@
     {
       "state": "AZ",
       "coverageTier": "retailer_warehouse_inventory",
-      "score": 93,
+      "score": 95,
       "threshold": 50,
       "releaseEligible": true,
       "freshnessHours": 0,
@@ -394,19 +394,19 @@
         "precision": 16,
         "alerts": 15,
         "sourceDiversity": 15,
-        "reliability": 7
+        "reliability": 9
       },
       "weaknesses": [],
       "input": {
         "state": "AZ",
         "coverageTier": "retailer_warehouse_inventory",
-        "signalCount": 199,
-        "dropCount": 64,
-        "storeLevelDropCount": 64,
-        "alertCandidateCount": 55,
-        "sourceCount": 11,
-        "roadblockCount": 2,
-        "freshestObservedAt": "2026-07-11T23:53:08.271Z",
+        "signalCount": 61,
+        "dropCount": 21,
+        "storeLevelDropCount": 21,
+        "alertCandidateCount": 21,
+        "sourceCount": 6,
+        "roadblockCount": 1,
+        "freshestObservedAt": "2026-07-11T20:15:58.448Z",
         "status": "useful"
       }
     },
