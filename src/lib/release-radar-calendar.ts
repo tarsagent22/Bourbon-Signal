@@ -38,8 +38,18 @@ export function getAgendaOccurrences(entry: RadarEntry, month: string): Calendar
   }
 
   if (entry.endDate && entry.endDate !== entry.startDate) {
-    const intersectsMonth = entry.startDate.startsWith(`${month}-`) || entry.endDate.startsWith(`${month}-`);
-    return intersectsMonth ? [{ date: entry.startDate, label: entry.dateLabel, rangeEnd: entry.endDate }] : [];
+    const monthStart = `${month}-01`;
+    const [year, monthNumber] = month.split("-").map(Number);
+    const nextMonthDate = new Date(Date.UTC(year, monthNumber, 1));
+    const nextMonthStart = `${nextMonthDate.getUTCFullYear()}-${String(nextMonthDate.getUTCMonth() + 1).padStart(2, "0")}-01`;
+    const intersectsMonth = entry.startDate < nextMonthStart && entry.endDate >= monthStart;
+    if (!intersectsMonth) return [];
+    const continuesFromPriorMonth = entry.startDate < monthStart;
+    return [{
+      date: continuesFromPriorMonth ? monthStart : entry.startDate,
+      label: continuesFromPriorMonth ? `Open through ${shortDate(entry.endDate)}` : entry.dateLabel,
+      rangeEnd: entry.endDate,
+    }];
   }
 
   return entry.startDate.startsWith(`${month}-`) ? [{ date: entry.startDate, label: entry.dateLabel }] : [];

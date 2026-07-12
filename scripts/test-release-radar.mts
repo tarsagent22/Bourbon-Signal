@@ -33,6 +33,8 @@ assert.deepEqual(getCalendarOccurrences(lottery, "2026-07").map((item) => item.d
 assert.deepEqual(getAgendaOccurrences(lottery, "2026-07"), [{ date: "2026-07-12", label: "Jul 12–16", rangeEnd: "2026-07-16" }], "agenda must consolidate a lottery window into one actionable record");
 assert.deepEqual(getAgendaOccurrences(camp, "2026-08"), [{ date: "2026-08-29", label: "Aug 29" }], "separate event occurrences remain independently actionable");
 assert.deepEqual(getAgendaOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }]);
+const crossMonthWindow = { ...lottery!, startDate: "2026-07-31", endDate: "2026-08-02", dateLabel: "Jul 31–Aug 2" };
+assert.deepEqual(getAgendaOccurrences(crossMonthWindow, "2026-08"), [{ date: "2026-08-01", label: "Open through Aug 2", rangeEnd: "2026-08-02" }], "a window spanning two months must remain visible in the second month's agenda");
 assert.deepEqual(getCalendarOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }], "recurring events must expose the occurrence inside the selected month");
 assert.equal(isValidMonth("2026-12"), true);
 assert.equal(isValidMonth("2026-99"), false, "invalid query months must be rejected");
