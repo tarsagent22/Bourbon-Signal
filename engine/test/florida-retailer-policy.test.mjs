@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from '../src/florida-retailer-policy.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
+import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
 const mdp = {
   state: 'FL',
@@ -82,4 +83,16 @@ test('Florida lifecycle advertises retailer inventory rather than empty Costco-o
   assert.equal(lifecycle.lifecycle, 'retailer_store_inventory');
   assert.equal(lifecycle.coverageTier, 'live_store_inventory');
   assert.equal(lifecycle.refinementLevel, 'city_store');
+});
+
+test('Florida registry includes the second-wave retailer discovery sources', () => {
+  const florida = ALL_STATE_SOURCES.find((entry) => entry.id === 'FL');
+  const labels = florida.sources.map((source) => source.label || source.name);
+  for (const expected of [
+    '1001 Liquors / My Florida Liquors bourbon catalog',
+    'Florida Plaza Liquors bourbon catalog',
+    'Liquor Depot Tampa private barrel picks',
+    'Paradise / Fubar Liquors Florida catalog',
+    "Gaspar's Liquor Shoppe bourbon catalog",
+  ]) assert.ok(labels.includes(expected), `Missing Florida source: ${expected}`);
 });
