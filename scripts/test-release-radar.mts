@@ -98,13 +98,17 @@ for (const route of ["briefings", "bottles", "states"]) {
 }
 const briefingsSource = readFileSync(resolve("src/app/release-radar/briefings/page.tsx"), "utf8");
 assert.match(briefingsSource, /rr-briefing-lead/, "briefings needs an editorial lead story");
-assert.match(briefingsSource, /rr-source-count/, "briefings should communicate sourcing depth");
+assert.doesNotMatch(briefingsSource, /rr-source-count|rr-briefing-number|FIELD NOTE/, "briefings should not use decorative stats or issue markers");
 const statesSource = readFileSync(resolve("src/app/release-radar/states/page.tsx"), "utf8");
 assert.match(statesSource, /rr-state-atlas/, "state guides need a geographic atlas composition");
-assert.match(statesSource, /quickFacts/, "state guide cards need useful system facts");
+assert.match(statesSource, /guide\.model/, "state cards must retain the release-system model");
+assert.doesNotMatch(statesSource, /systems mapped in depth|Why states matter/, "state index should avoid decorative metrics and repeated explanation");
 const bottlesSource = readFileSync(resolve("src/app/release-radar/bottles/page.tsx"), "utf8");
 assert.match(bottlesSource, /rr-bottle-vault/, "bottle guides need a differentiated collector-vault composition");
 assert.match(bottlesSource, /entry\.facts/, "bottle cards need bottle facts, not only prose links");
+assert.doesNotMatch(bottlesSource, /limited editions under watch|Evidence standard/, "bottle index should avoid decorative counts and repeated manifestos");
+assert.doesNotMatch(tabsSource, /index:|<small>/, "section tabs should use plain labels without decorative numbering");
+assert.doesNotMatch(hubSource, /rr-hero-metrics|Dated records|Primary sources|Watch windows/, "calendar hero should not use decorative coverage statistics");
 
 for (const route of [
   "src/app/release-radar/page.tsx",
