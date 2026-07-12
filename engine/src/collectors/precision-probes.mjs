@@ -3401,8 +3401,7 @@ async function collectFloridaMdp(config, bible, observedAt) {
     const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
     if (!res.ok) {
       roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify products feed at low cadence.' });
-      await sleep(FL_MDP_DELAY_MS);
-      continue;
+      break;
     }
     let products = [];
     try { products = JSON.parse(res.text)?.products || []; } catch (error) {
@@ -3441,7 +3440,7 @@ async function collectFloridaMdp(config, bible, observedAt) {
     }
     await sleep(FL_MDP_DELAY_MS);
   }
-  if (!signals.length) roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url: FL_MDP_PRODUCTS_BASE_URL, status: 'reachable_no_safe_inventory_rows', error: `Shopify returned ${returnedProducts} products but no safely matched available bourbon rows.`, nextRoute: 'Inspect product titles and variant availability without weakening bottle or geography guards.' });
+  if (!signals.length && returnedProducts > 0) roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url: FL_MDP_PRODUCTS_BASE_URL, status: 'reachable_no_safe_inventory_rows', error: `Shopify returned ${returnedProducts} products but no safely matched available bourbon rows.`, nextRoute: 'Inspect product titles and variant availability without weakening bottle or geography guards.' });
   return { signals, roadblocks };
 }
 
