@@ -305,7 +305,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'SC', label: 'South Carolina retailer inventory mesh', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
-    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, and Southern Spirits Shopify availability. Official DOR ABL pages remain licensing/regulatory context only.',
+    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, Southern Spirits Shopify availability, and All American Liquor WooCommerce in-store availability. Official DOR ABL pages remain licensing/regulatory context only.',
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
@@ -320,6 +320,7 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://rollerswineandspirits.com/shop/?subtype=bourbon', label: 'Rollers Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://dabrownbag.com/wp-json/moo-clover/v1/search/bourbon', label: 'Da Brown Bag Clover bourbon stockCount API', precisionOnly: true },
       { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true },
+      { kind: 'api', url: 'https://www.aalmauldin.com/wp-json/wc/store/v1/products?search=blanton&per_page=20', label: 'All American Liquor Mauldin WooCommerce in-store availability', precisionOnly: true },
       { kind: 'api', url: 'https://liquorstorenearmemyrtlebeach.com/wp-json/wc/store/products?search=bourbon&per_page=20', label: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', precisionOnly: true },
       { kind: 'api', url: 'https://burntbarrelwineandspirits.com/wp-json/tribe/events/v1/events?search=bourbon&per_page=5', label: 'Burnt Barrel Wine & Spirits events watch', precisionOnly: true },
       { kind: 'html', url: 'https://www.owensliquors.com/shop/product/1792-small-batch-bourbon/573141c869702d067c152900', label: 'Owens Liquors guarded CityHive discovery', precisionOnly: true }

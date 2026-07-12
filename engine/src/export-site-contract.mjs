@@ -195,7 +195,7 @@ function isTennesseeRetailerInventory(signal) {
 }
 
 function isSouthCarolinaAllowedRetailerSource(signal) {
-  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(String(signal.sourceLabel || signal.source || ''));
+  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify|All American Liquor/i.test(String(signal.sourceLabel || signal.source || ''));
 }
 
 function isSouthCarolinaRetailerInventory(signal) {
@@ -203,7 +203,7 @@ function isSouthCarolinaRetailerInventory(signal) {
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isSouthCarolinaAllowedRetailerSource(signal)
     && signal.locationPrecision === 'store_level'
-    && Number(signal.quantity || 0) > 0
+    && (Number(signal.quantity || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     && Boolean(signal.storeId)
     && /,\s*SC\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
@@ -554,7 +554,7 @@ function isUserFacingDropSignal(signal) {
     return quantity > 0;
   }
   if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && (quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'));
-  if (type === 'retailer_store_inventory_result') return quantity > 0;
+  if (type === 'retailer_store_inventory_result') return quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
   if (type === 'cityhive_store_inventory_result') return quantity > 0;
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
