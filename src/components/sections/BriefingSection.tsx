@@ -13,11 +13,11 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
-    title: "Buffalo Trace turns bourbon education into summer camp",
-    summary: "Camp Buffalo Trace debuts August 29 and September 5 as an adults-only distillery experience pairing bourbon education and camp-style programming with a limited overnight glamping option.",
-    note: "A fresh bourbon-culture story from the source: part distillery immersion, part summer camp, and intentionally limited enough to feel like a true destination event.",
-    href: "https://www.buffalotracedistillery.com/camp/",
-    source: "Buffalo Trace Distillery",
+    title: "Kentucky Bourbon Trail expands its 2026 map",
+    summary: "The Kentucky Bourbon Trail has added ten distillery and tasting experiences for 2026, spanning new craft destinations, established Kentucky names, and satellite experiences across the state.",
+    note: "Useful trip-planning intelligence: the expansion creates more official stops to pair with release calendars, distillery-only bottles, and destination events before planning a Kentucky run.",
+    href: "https://kybourbontrail.com/fresh-faces-bold-flavors-meet-the-newest-kentucky-bourbon-trail-stops/",
+    source: "Kentucky Bourbon Trail",
   },
   {
     title: "1792 adds its first rye and oldest bourbon yet",
@@ -36,6 +36,13 @@ const briefingItems: BriefingItem[] = [
 ];
 
 const additionalBriefingItems: BriefingItem[] = [
+  {
+    title: "Buffalo Trace turns bourbon education into summer camp",
+    summary: "Camp Buffalo Trace debuts August 29 and September 5 as an adults-only distillery experience pairing bourbon education and camp-style programming with a limited overnight glamping option.",
+    note: "A fresh bourbon-culture story from the source: part distillery immersion, part summer camp, and intentionally limited enough to feel like a true destination event.",
+    href: "https://www.buffalotracedistillery.com/camp/",
+    source: "Buffalo Trace Distillery",
+  },
   {
     title: "NC ABC opens comment window on statewide liquor pricing",
     summary: "North Carolina's ABC Commission is studying baseline pricing for spirituous liquor and taking public comments through July 29, a policy lane that could affect how bottles are priced across every ABC store in the state.",
@@ -340,7 +347,7 @@ export default function BriefingSection() {
             Daily Briefing
           </h2>
           <div>
-            <span className="daily-briefing-updated">Updated July 10, 2026</span>
+            <span className="daily-briefing-updated">Updated July 12, 2026</span>
             <p className="daily-briefing-subcopy">
               Release notes, upcoming lotteries, allocation changes, and other bourbon news stories — updated daily.
             </p>
