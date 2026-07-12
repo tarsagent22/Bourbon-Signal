@@ -411,12 +411,12 @@ const BASE_STATE_SOURCES = [
     value: 'Whitelisted Florida retailer storefront and store-fulfillment inventory, with Costco warehouse observations where verified. Store availability is retailer-published and must carry verify-before-driving caveats.',
     rareSignalTarget: true,
     sources: [
-      { name: 'MDP Liquor Kissimmee Shopify inventory', url: 'https://mdpliquorfl.com/products.json?limit=250&page=1' },
-      { name: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518' },
-      { name: 'ABC Fine Wine & Spirits public bourbon search', url: 'https://abcfws.com/spirits/shop-by-type/bourbon/' },
-      { name: 'Luekens Wine & Spirits Shopify and location inventory', url: 'https://www.luekensliquors.com/collections/bourbon' },
-      { name: "Jensen's Liquors Shopify pickup inventory", url: 'https://jensensliquors.com/collections/american-bourbons' },
-      { name: 'Total Wine Florida store inventory discovery', url: 'https://www.totalwine.com/store-finder/browse/FL' }
+      { name: 'MDP Liquor Kissimmee Shopify inventory', label: 'MDP Liquor Kissimmee Shopify inventory', url: 'https://mdpliquorfl.com/products.json?limit=250&page=1', precisionOnly: true },
+      { name: 'Target Florida RedSky fulfillment', label: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518', precisionOnly: true },
+      { name: 'ABC Fine Wine & Spirits public bourbon search', label: 'ABC Fine Wine & Spirits public bourbon search', url: 'https://abcfws.com/spirits/shop-by-type/bourbon/', precisionOnly: true },
+      { name: 'Luekens Wine & Spirits Shopify and location inventory', label: 'Luekens Wine & Spirits Shopify and location inventory', url: 'https://www.luekensliquors.com/collections/bourbon', precisionOnly: true },
+      { name: "Jensen's Liquors Shopify pickup inventory", label: "Jensen's Liquors Shopify pickup inventory", url: 'https://jensensliquors.com/collections/american-bourbons', precisionOnly: true },
+      { name: 'Total Wine Florida store inventory discovery', label: 'Total Wine Florida store inventory discovery', url: 'https://www.totalwine.com/store-finder/browse/FL', precisionOnly: true }
     ],
     apiCandidates: []
   }
