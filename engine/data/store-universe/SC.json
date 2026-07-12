@@ -6,13 +6,13 @@
   "summary": {
     "seedCount": 10,
     "probedCount": 10,
-    "knownStoreCount": 20,
-    "currentStoreCount": 20,
-    "probeDiscoveredStoreCount": 18,
+    "knownStoreCount": 21,
+    "currentStoreCount": 21,
+    "probeDiscoveredStoreCount": 19,
     "directorySeedStoreCount": 0,
     "directoryUrlStoreCount": 0,
     "byStatus": {
-      "live-inventory": 20
+      "live-inventory": 21
     },
     "cityCount": 13,
     "byCity": {
@@ -21,7 +21,7 @@
       "Hilton Head Island": 2,
       "Indian Land": 1,
       "Landrum": 1,
-      "Mauldin": 1,
+      "Mauldin": 2,
       "Mount Pleasant": 1,
       "Myrtle Beach": 2,
       "North Charleston": 1,
@@ -373,6 +373,22 @@
       "inventoryStatus": "live-inventory",
       "discoverySource": "state-output",
       "key": "o-darby-s-taylors-taylors-29687"
+    },
+    {
+      "id": "all-american-liquor:all-american-liquor-mauldin",
+      "name": "All American Liquor",
+      "address": "121 W Butler Rd, Mauldin, SC 29662",
+      "city": "Mauldin",
+      "state": "SC",
+      "zip": "29662",
+      "sourceLabels": [
+        "All American Liquor Mauldin WooCommerce in-store availability"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "brave-plus-live-probe",
+      "website": "https://www.aalmauldin.com",
+      "ecommercePlatform": "woocommerce-store-api",
+      "key": "all-american-liquor-mauldin-29662"
     }
   ]
 }

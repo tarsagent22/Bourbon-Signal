@@ -205,13 +205,19 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Murrells Inlet",
         "Columbia",
         "Greenville",
+        "Mauldin",
+        "Simpsonville",
+        "Taylors",
+        "Landrum",
+        "Spartanburg",
         "Charleston",
         "Mount Pleasant",
         "North Charleston",
+        "Summerville",
         "Hilton Head Island",
         "Bluffton",
-        "Rock Hill",
-        "Spartanburg"
+        "Indian Land",
+        "Rock Hill"
       ],
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
     },
