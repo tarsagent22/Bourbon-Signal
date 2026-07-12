@@ -50,13 +50,19 @@ const SC_ALERT_AREA_SEEDS = [
   "Murrells Inlet",
   "Columbia",
   "Greenville",
+  "Mauldin",
+  "Simpsonville",
+  "Taylors",
+  "Landrum",
+  "Spartanburg",
   "Charleston",
   "Mount Pleasant",
   "North Charleston",
+  "Summerville",
   "Hilton Head Island",
   "Bluffton",
+  "Indian Land",
   "Rock Hill",
-  "Spartanburg",
 ] as const;
 
 interface BottleOption {
