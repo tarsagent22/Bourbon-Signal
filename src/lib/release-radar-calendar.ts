@@ -3,6 +3,7 @@ import type { RadarEntry } from "./release-radar.ts";
 export interface CalendarOccurrence {
   date: string;
   label: string;
+  rangeEnd?: string;
 }
 
 function shortDate(date: string) {
@@ -27,4 +28,19 @@ export function getCalendarOccurrences(entry: RadarEntry, month: string): Calend
       : [{ date: entry.startDate, label: entry.dateLabel }];
 
   return dates.filter((occurrence) => occurrence.date.startsWith(`${month}-`));
+}
+
+export function getAgendaOccurrences(entry: RadarEntry, month: string): CalendarOccurrence[] {
+  if (entry.occurrenceDates?.length) {
+    return entry.occurrenceDates
+      .filter((date) => date.startsWith(`${month}-`))
+      .map((date) => ({ date, label: shortDate(date) }));
+  }
+
+  if (entry.endDate && entry.endDate !== entry.startDate) {
+    const intersectsMonth = entry.startDate.startsWith(`${month}-`) || entry.endDate.startsWith(`${month}-`);
+    return intersectsMonth ? [{ date: entry.startDate, label: entry.dateLabel, rangeEnd: entry.endDate }] : [];
+  }
+
+  return entry.startDate.startsWith(`${month}-`) ? [{ date: entry.startDate, label: entry.dateLabel }] : [];
 }

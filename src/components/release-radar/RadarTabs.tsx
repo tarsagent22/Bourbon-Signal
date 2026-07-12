@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export type RadarTab = "calendar" | "briefings" | "states" | "bottles";
 
-const tabs: Array<{ id: RadarTab; label: string; href: string }> = [
-  { id: "calendar", label: "Calendar", href: "/release-radar" },
-  { id: "briefings", label: "Briefings", href: "/release-radar/briefings" },
-  { id: "states", label: "State guides", href: "/release-radar/states" },
-  { id: "bottles", label: "Bottle guides", href: "/release-radar/bottles" },
+const tabs: Array<{ id: RadarTab; label: string; href: string; index: string }> = [
+  { id: "calendar", label: "Calendar", href: "/release-radar", index: "01" },
+  { id: "briefings", label: "Briefings", href: "/release-radar/briefings", index: "02" },
+  { id: "states", label: "States", href: "/release-radar/states", index: "03" },
+  { id: "bottles", label: "Bottles", href: "/release-radar/bottles", index: "04" },
 ];
 
 export function RadarTabs({ active }: { active: RadarTab }) {
@@ -19,7 +19,7 @@ export function RadarTabs({ active }: { active: RadarTab }) {
           className={tab.id === active ? "is-active" : undefined}
           aria-current={tab.id === active ? "page" : undefined}
         >
-          {tab.label}
+          <small>{tab.index}</small><span>{tab.label}</span>
         </Link>
       ))}
     </nav>

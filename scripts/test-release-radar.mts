@@ -9,7 +9,7 @@ import {
   getEntriesByKind,
   getStateGuide,
 } from "../src/lib/release-radar.ts";
-import { getCalendarOccurrences, isValidMonth } from "../src/lib/release-radar-calendar.ts";
+import { getAgendaOccurrences, getCalendarOccurrences, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 8, "Release Radar should launch with at least eight sourced records");
 assert.equal(new Set(radarEntries.map((entry) => entry.slug)).size, radarEntries.length, "record slugs must be unique");
@@ -29,7 +29,10 @@ const camp = getRadarEntry("event", "camp-buffalo-trace-2026");
 assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate Camp dates must not become one continuous event");
 assert.ok(lottery, "lottery fixture must exist");
 assert.ok(camp, "recurring event fixture must exist");
-assert.deepEqual(getCalendarOccurrences(lottery, "2026-07").map((item) => item.date), ["2026-07-12", "2026-07-16"], "multi-day windows must expose both opening and closing dates");
+assert.deepEqual(getCalendarOccurrences(lottery, "2026-07").map((item) => item.date), ["2026-07-12", "2026-07-16"], "month grid may expose opening and closing dates");
+assert.deepEqual(getAgendaOccurrences(lottery, "2026-07"), [{ date: "2026-07-12", label: "Jul 12–16", rangeEnd: "2026-07-16" }], "agenda must consolidate a lottery window into one actionable record");
+assert.deepEqual(getAgendaOccurrences(camp, "2026-08"), [{ date: "2026-08-29", label: "Aug 29" }], "separate event occurrences remain independently actionable");
+assert.deepEqual(getAgendaOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }]);
 assert.deepEqual(getCalendarOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }], "recurring events must expose the occurrence inside the selected month");
 assert.equal(isValidMonth("2026-12"), true);
 assert.equal(isValidMonth("2026-99"), false, "invalid query months must be rejected");
@@ -65,7 +68,7 @@ assert.doesNotMatch(hubSource, /ActionNow|ReleaseTimeline|ReleaseLedger|LotteryB
 assert.doesNotMatch(hubSource, /RadarCard/, "hub must not fall back to repeated editorial cards");
 
 const tabsSource = readFileSync(resolve("src/components/release-radar/RadarTabs.tsx"), "utf8");
-for (const label of ["Calendar", "Briefings", "State guides", "Bottle guides"]) {
+for (const label of ["Calendar", "Briefings", "States", "Bottles"]) {
   assert.match(tabsSource, new RegExp(label), `route-backed tabs must include ${label}`);
 }
 for (const href of ["/release-radar", "/release-radar/briefings", "/release-radar/states", "/release-radar/bottles"]) {
@@ -80,12 +83,26 @@ assert.match(calendarSource, /Previous month/);
 assert.match(calendarSource, /Next month/);
 assert.match(calendarSource, /radarPath\(entry\)/, "calendar events must link to their associated editorial pages");
 assert.match(calendarSource, /rr-calendar-grid/, "desktop needs a month grid");
-assert.match(calendarSource, /rr-agenda/, "mobile needs a chronological agenda");
+assert.match(calendarSource, /rr-timeline/, "mobile needs a visual timeline rail");
+assert.match(calendarSource, /Official source/, "agenda must surface provenance without requiring a detail click");
+assert.match(calendarSource, /Updated/, "agenda must surface freshness");
+assert.match(calendarSource, /rr-watch-deck/, "uncertain watch windows must be separated from fixed calendar records");
+assert.match(calendarSource, /getAgendaOccurrences/, "agenda should consolidate multi-day windows");
+assert.doesNotMatch(calendarSource, /rr-agenda-row/, "overhaul must replace the repetitive legacy text-row treatment");
 
 for (const route of ["briefings", "bottles", "states"]) {
   const indexSource = readFileSync(resolve(`src/app/release-radar/${route}/page.tsx`), "utf8");
   assert.match(indexSource, new RegExp(`canonical: \\"/release-radar/${route}\\"`), `${route} index needs its own canonical URL`);
 }
+const briefingsSource = readFileSync(resolve("src/app/release-radar/briefings/page.tsx"), "utf8");
+assert.match(briefingsSource, /rr-briefing-lead/, "briefings needs an editorial lead story");
+assert.match(briefingsSource, /rr-source-count/, "briefings should communicate sourcing depth");
+const statesSource = readFileSync(resolve("src/app/release-radar/states/page.tsx"), "utf8");
+assert.match(statesSource, /rr-state-atlas/, "state guides need a geographic atlas composition");
+assert.match(statesSource, /quickFacts/, "state guide cards need useful system facts");
+const bottlesSource = readFileSync(resolve("src/app/release-radar/bottles/page.tsx"), "utf8");
+assert.match(bottlesSource, /rr-bottle-vault/, "bottle guides need a differentiated collector-vault composition");
+assert.match(bottlesSource, /entry\.facts/, "bottle cards need bottle facts, not only prose links");
 
 for (const route of [
   "src/app/release-radar/page.tsx",
