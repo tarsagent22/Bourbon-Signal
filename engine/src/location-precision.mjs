@@ -35,7 +35,7 @@ export const LOCATION_PROFILES = {
   TX: { target: 'statewide_catalog', note: "Texas is a private retail market. Current public coverage is TABC/comptroller context plus Spec's retailer catalog/release pages; store-level inventory remains a future retailer-specific extraction target." },
   SC: { target: 'statewide_policy', note: 'South Carolina DOR ABL pages expose liquor licensing/regulatory context, not bottle/store inventory.' },
   GA: { target: 'statewide_catalog', note: 'Georgia DOR brand/label and active-license pages expose registration/license context, not public consumer bottle availability.' },
-  FL: { target: 'statewide_policy', note: 'Florida ABT quota/license pages expose regulatory/lottery context, not bourbon inventory.' }
+  FL: { target: 'store_level', note: 'Florida is a private retail market. Whitelisted retailer storefront and store-fulfillment sources can expose store-level retailer-published availability with verify-before-driving caveats.' }
 };
 
 export function precisionRank(level) {

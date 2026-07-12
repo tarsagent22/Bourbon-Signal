@@ -163,12 +163,12 @@
     },
     "FL": {
       "customerLabel": "Florida",
-      "sourceLabel": "Florida Costco warehouse bourbon watch",
+      "sourceLabel": "Florida retailer inventory watch",
       "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Florida warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city_store",
+      "customerSummary": "Whitelisted Florida retailer storefront and store-fulfillment signals, with store-specific identity and verify-before-driving caveats. Costco warehouse observations remain included where verified."
     },
     "GA": {
       "customerLabel": "Georgia",
