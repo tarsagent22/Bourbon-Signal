@@ -1,7 +1,14 @@
 {
-  "updatedAt": "2026-07-10T21:25:47-04:00",
+  "updatedAt": "2026-07-12T10:15:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "Kentucky Bourbon Trail expands its 2026 map",
+      "source": "Kentucky Bourbon Trail",
+      "url": "https://kybourbontrail.com/fresh-faces-bold-flavors-meet-the-newest-kentucky-bourbon-trail-stops/",
+      "firstReportedAt": "2026-07-12",
+      "status": "homepage-visible"
+    },
     {
       "title": "Buffalo Trace turns bourbon education into summer camp",
       "source": "Buffalo Trace Distillery",
