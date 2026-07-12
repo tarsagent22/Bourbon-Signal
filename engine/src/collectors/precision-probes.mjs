@@ -798,6 +798,18 @@ const FL_MDP_PRODUCTS_BASE_URL = 'https://mdpliquorfl.com/products.json?limit=25
 const FL_MDP_STORE = { id: 'mdp-liquor-kissimmee:4636-w-irlo-bronson', name: 'MDP Liquor Kissimmee', address: '4636 W Irlo Bronson Memorial Hwy, Kissimmee, FL 34746', city: 'Kissimmee', zip: '34746' };
 const FL_MDP_MAX_PAGES = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_FL_MDP_MAX_PAGES) || 3));
 const FL_MDP_DELAY_MS = Math.max(300, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_MDP_DELAY_MS) || 600));
+const FL_SHOPIFY_RETAILERS = [
+  {
+    id: 'luekens', chain: 'luekens', label: 'Luekens Wine & Spirits Shopify inventory', host: 'www.luekensliquors.com',
+    productsUrl: 'https://www.luekensliquors.com/products.json?limit=250', maxPages: 3, store: null
+  },
+  {
+    id: 'jensens-miami', chain: 'jensens-liquors', label: "Jensen's Liquors Miami Shopify pickup inventory", host: 'jensensliquors.com',
+    productsUrl: 'https://jensensliquors.com/products.json?limit=250', maxPages: 3,
+    store: { id: 'jensens-liquors:1646-sw-27th', name: "Jensen's Liquors - SW 27th Ave", address: '1646 SW 27th Ave, Miami, FL 33145', city: 'Miami', zip: '33145' }
+  }
+];
+const FL_ABC_SEARCHSPRING_URL = 'https://api.searchspring.net/api/search/search.json?siteId=p16j4k&q=bourbon&resultsFormat=native&resultsPerPage=100';
 const FL_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || AZ_TARGET_KEY;
 const FL_TARGET_STORES = new Map([
   ['649', { name: 'Target East Colonial', address: '718 Maguire Blvd, Orlando, FL 32803', city: 'Orlando', zip: '32803' }],
@@ -3489,11 +3501,96 @@ async function collectFloridaTarget(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+function floridaRetailerWatch(config, record, match, details) {
+  return {
+    id: stableId([config.id, details.chain, details.rawName, details.variantId || details.sku || 'catalog']), state: config.id,
+    sourceLabel: details.label, sourceUrl: details.url, sourceChain: details.chain, merchantId: details.merchantId,
+    rawName: details.rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+    confidence: Math.max(0.66, Math.min(0.79, match?.confidence || 0.66)), eventType: 'retailer_catalog_availability',
+    locationPrecision: 'statewide_catalog', locationName: `${details.retailer} Florida availability watch`,
+    quantity: 0, price: details.price || null, availabilityStatus: 'retailer_available',
+    availabilityLabel: 'Retailer reports available; exact Florida store not established', sourceAvailabilityVerified: true,
+    observedAt: details.observedAt, canAlertAsInventory: false, canAlertAsWatch: true,
+    inventorySemantics: 'Retailer-published online availability. Exact Florida pickup store is not established, so this is a watch lead and never a store-inventory alert.',
+    evidence: `${details.retailer} reports ${details.rawName} available online${details.price ? ` at $${details.price.toFixed(2)}` : ''}. Verify fulfillment and location directly.`,
+    raw: { chain: details.chain, merchantId: details.merchantId, variantId: details.variantId || null, sku: details.sku || null, provenanceGuard: 'online availability only; no inferred store' }
+  };
+}
+
+async function collectFloridaShopifyRetailers(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  for (const retailer of FL_SHOPIFY_RETAILERS) {
+    let productCount = 0;
+    for (let page = 1; page <= retailer.maxPages; page++) {
+      const url = `${retailer.productsUrl}&page=${page}`;
+      const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+      if (!res.ok) { roadblocks.push({ state: 'FL', source: retailer.label, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify feed at low cadence.' }); break; }
+      let products = [];
+      try { products = JSON.parse(res.text)?.products || []; } catch { break; }
+      if (!products.length) break;
+      productCount += products.length;
+      for (const product of products) {
+        const rawName = htmlToText(product?.title || '');
+        if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s|old fitz|michter|willett|1792|elijah craig/i.test(rawName)) continue;
+        const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+        if (!record) continue;
+        const variant = (product.variants || []).find((row) => row?.available === true);
+        if (!variant) continue;
+        const sourceUrl = `https://${retailer.host}/products/${product.handle}`;
+        const price = Number(variant.price || 0) || null;
+        if (!retailer.store) {
+          signals.push(floridaRetailerWatch(config, record, match, { label: retailer.label, url: sourceUrl, chain: retailer.chain, merchantId: `${retailer.id}-shopify`, retailer: 'Luekens Wine & Spirits', rawName, price, variantId: variant.id, sku: variant.sku, observedAt }));
+          continue;
+        }
+        const pickupUrl = `https://${retailer.host}/variants/${variant.id}/?section_id=pickup-availability`;
+        const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 20_000 });
+        const pickupText = htmlToText(pickup.text || '');
+        if (!pickup.ok || !/pickup available/i.test(pickupText) || !/1646\s+(?:southwest|sw)\s+27th/i.test(pickupText)) continue;
+        signals.push({
+          id: stableId(['FL', retailer.id, retailer.store.id, variant.id]), state: 'FL', sourceLabel: retailer.label, sourceUrl,
+          sourceChain: retailer.chain, merchantId: `${retailer.id}-shopify`, rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+          confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+          locationName: retailer.store.name, storeName: retailer.store.name, storeId: retailer.store.id, storeAddress: retailer.store.address,
+          city: retailer.store.city, stateCode: 'FL', postalCode: retailer.store.zip, zip: retailer.store.zip,
+          quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Shopify reports pickup available', sourceAvailabilityVerified: true,
+          observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
+          inventorySemantics: 'The retailer public Shopify pickup response reports this bottle available at the named Miami store. Exact on-hand quantity is not published; verify before driving.',
+          evidence: `${retailer.label} reports pickup available for ${rawName} at ${retailer.store.address}.`,
+          raw: { chain: retailer.chain, merchantId: `${retailer.id}-shopify`, productId: product.id, variant: { id: variant.id, sku: variant.sku, available: true }, pickupVerified: true }
+        });
+      }
+      await sleep(500);
+    }
+    if (!productCount) roadblocks.push({ state: 'FL', source: retailer.label, url: retailer.productsUrl, status: 'reachable_no_products', error: 'No Shopify products returned.', nextRoute: 'Inspect public catalog response shape.' });
+  }
+  return { signals, roadblocks };
+}
+
+async function collectFloridaAbc(config, bible, observedAt) {
+  const signals = [];
+  const res = await textFetch(FL_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+  if (!res.ok) return { signals, roadblocks: [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public retailer search endpoint.' }] };
+  let rows = [];
+  try { rows = JSON.parse(res.text)?.results || []; } catch {}
+  for (const row of rows) {
+    if (!/^(?:1|true)$/i.test(String(row.ss_in_stock || ''))) continue;
+    const rawName = htmlToText(row.name || '');
+    const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+    if (!record) continue;
+    const price = Number(row.custom_zone_5_sale_price || row.custom_zone_5_list_price || row.price || 0) || null;
+    signals.push(floridaRetailerWatch(config, record, match, { label: 'ABC Fine Wine & Spirits Searchspring bourbon availability', url: row.url ? new URL(row.url, 'https://abcfws.com').href : 'https://abcfws.com/spirits/shop-by-type/bourbon/', chain: 'abc-fine-wine-spirits', merchantId: 'abc-searchspring-p16j4k', retailer: 'ABC Fine Wine & Spirits', rawName, price, sku: row.sku, observedAt }));
+  }
+  return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched in-stock allocated bourbon rows.', nextRoute: 'Keep catalog discovery active; require exact-store fulfillment before inventory alerting.' }] };
+}
+
 async function collectFlorida(config, bible) {
   const observedAt = new Date().toISOString();
   const mdp = await collectFloridaMdp(config, bible, observedAt);
   const target = await collectFloridaTarget(config, bible, observedAt);
-  return { signals: [...mdp.signals, ...target.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks] };
+  const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt);
+  const abc = await collectFloridaAbc(config, bible, observedAt);
+  return { signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks] };
 }
 
 async function collectArizona(config, bible) {

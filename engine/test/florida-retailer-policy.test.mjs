@@ -45,6 +45,28 @@ test('Florida Target identity fails closed to explicitly listed Florida stores',
   assert.equal(isFloridaRetailerSignalIdentity({ ...target, sourceUrl: 'https://attacker.example/p/test' }), false);
 });
 
+test("Florida Jensen's pickup inventory requires exact merchant, host, store, and pickup proof", () => {
+  const jensens = {
+    ...mdp,
+    sourceLabel: "Jensen's Liquors Miami Shopify pickup inventory",
+    sourceUrl: 'https://jensensliquors.com/products/blantons-single-barrel',
+    sourceChain: 'jensens-liquors', merchantId: 'jensens-miami-shopify',
+    storeId: 'jensens-liquors:1646-sw-27th', storeAddress: '1646 SW 27th Ave, Miami, FL 33145',
+    raw: { chain: 'jensens-liquors', merchantId: 'jensens-miami-shopify', variant: { available: true }, pickupVerified: true },
+  };
+  assert.equal(isFloridaRetailerSignalIdentity(jensens), true);
+  assert.equal(isFloridaRetailerInventory(jensens), true);
+  assert.equal(confidenceForSignal(jensens).canAlertAsInventory, true);
+  assert.equal(isFloridaRetailerSignalIdentity({ ...jensens, sourceUrl: 'https://other.example/product' }), false);
+  assert.equal(isFloridaRetailerSignalIdentity({ ...jensens, storeId: 'jensens-liquors:other' }), false);
+});
+
+test('Florida online catalog rows remain watch-only without exact-store evidence', () => {
+  const watch = { ...mdp, eventType: 'retailer_catalog_availability', locationPrecision: 'statewide_catalog', sourceLabel: 'Luekens Wine & Spirits Shopify inventory', sourceUrl: 'https://www.luekensliquors.com/products/blantons' };
+  assert.equal(isFloridaRetailerInventory(watch), false);
+  assert.equal(confidenceForSignal(watch).canAlertAsInventory, false);
+});
+
 test('central confidence policy enables only guarded Florida retailer inventory', () => {
   const accepted = confidenceForSignal(mdp);
   assert.equal(accepted.policyMode, 'alert_retailer_store_inventory_caveat');
