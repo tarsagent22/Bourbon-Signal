@@ -4,6 +4,7 @@ import { STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
+import { summarizeRoadblocks } from './roadblock-health.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -32,6 +33,7 @@ function stateSummary(report) {
   const sources = report.sources || [];
   const signals = report.signals || [];
   const roadblocks = report.roadblocks || [];
+  const roadblockHealth = summarizeRoadblocks(roadblocks);
   const actionableInventorySignalCount = signals.filter((s) => s.locationPrecision === 'store_level' && (s.canAlertAsInventory || confidenceForSignal(s).canAlertAsInventory)).length;
   return {
     state: report.state,
@@ -52,6 +54,8 @@ function stateSummary(report) {
     siteActionableInventorySignalCount: actionableInventorySignalCount,
     siteExactStoreDropCount: null,
     roadblockCount: roadblocks.length,
+    expectedNegativeCount: roadblockHealth.expectedNegativeCount,
+    actionableRoadblockCount: roadblockHealth.actionableCount,
     targetLocationPrecision: LOCATION_PROFILES[report.state]?.target || null,
     bestLocationPrecision: bestPrecision(signals),
     strategy: report.strategy,
@@ -97,6 +101,7 @@ async function main() {
 
   const allSignals = reports.flatMap((report) => report.signals || []);
   const allRoadblocks = reports.flatMap((report) => report.roadblocks || []);
+  const roadblockHealth = summarizeRoadblocks(allRoadblocks);
   const stateSummaries = reports.map(stateSummary);
   const siteDrops = await readJson(path.join(OUT, 'site', 'drops.json'), { drops: [] });
   for (const state of stateSummaries) {
@@ -109,6 +114,8 @@ async function main() {
     stateCount: reports.length,
     signalCount: allSignals.length,
     roadblockCount: allRoadblocks.length,
+    expectedNegativeCount: roadblockHealth.expectedNegativeCount,
+    actionableRoadblockCount: roadblockHealth.actionableCount,
     degradedStateCount: reports.filter((r) => r.stale || /^failed_/.test(String(r.status || ''))).length,
     staleStateCount: reports.filter((r) => r.stale).length,
     failedStateCount: reports.filter((r) => /^failed_/.test(String(r.status || ''))).length,
@@ -126,6 +133,8 @@ async function main() {
       failedStateCount: summary.failedStateCount,
       signalCount: summary.signalCount,
       roadblockCount: summary.roadblockCount,
+      expectedNegativeCount: summary.expectedNegativeCount,
+      actionableRoadblockCount: summary.actionableRoadblockCount,
       actionableInventorySignalCount: stateSummaries.reduce((sum, state) => sum + state.actionableInventorySignalCount, 0)
     },
     states: stateSummaries.map((state) => ({
@@ -143,6 +152,8 @@ async function main() {
       siteActionableInventorySignalCount: state.siteActionableInventorySignalCount,
       siteExactStoreDropCount: state.siteExactStoreDropCount,
       roadblockCount: state.roadblockCount,
+      expectedNegativeCount: state.expectedNegativeCount,
+      actionableRoadblockCount: state.actionableRoadblockCount,
       targetLocationPrecision: state.targetLocationPrecision,
       bestLocationPrecision: state.bestLocationPrecision
     }))
@@ -150,7 +161,7 @@ async function main() {
 
   await writeFile(path.join(OUT, 'summary.json'), JSON.stringify(summary, null, 2));
   await writeFile(path.join(OUT, 'signals.json'), JSON.stringify({ generatedAt, signals: allSignals }, null, 2));
-  await writeFile(path.join(OUT, 'roadblocks.json'), JSON.stringify({ generatedAt, roadblocks: allRoadblocks }, null, 2));
+  await writeFile(path.join(OUT, 'roadblocks.json'), JSON.stringify({ generatedAt, ...roadblockHealth }, null, 2));
   await writeFile(path.join(OUT, 'source-health.json'), JSON.stringify(sourceHealth, null, 2));
   await writeFile(path.join(OUT, 'source-health.md'), `# Bourbon Signal Engine Source Health\n\nGenerated: ${generatedAt}\n\nStatus: ${sourceHealth.status}\n\n${sourceHealth.states.map((s) => `## ${s.state} — ${s.label}\n\n- Status: ${s.status}${s.stale ? ` (${s.staleReason || 'stale'})` : ''}\n- Sources: ${s.reachableSourceCount}/${s.sourceCount} reachable, ${s.signalProducingSourceCount} signal-producing\n- Signals: ${s.signalCount}; store-level: ${s.storeLevelSignalCount}; actionable inventory: ${s.actionableInventorySignalCount}\n- Precision: ${s.bestLocationPrecision || 'blocked'} / target ${s.targetLocationPrecision || 'unknown'}\n- Roadblocks: ${s.roadblockCount}\n`).join('\n')}`);
   await writeFile(path.join(OUT, 'readable.md'), `# Bourbon Signal Aggregated Engine Reports\n\nGenerated: ${generatedAt}\n\nStates covered: ${summary.stateCount}\nNormalized signals: ${summary.signalCount}\nRoadblocks logged: ${summary.roadblockCount}\n\n${reports.map(stateMarkdown).join('\n')}\n`);

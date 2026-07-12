@@ -9,6 +9,8 @@ import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
+import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -226,6 +228,7 @@ function publicSignal(signal, bible, freshness = null) {
   const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
   const isAzRetailerInventory = isArizonaRetailerInventory(signal);
+  const isFlRetailerInventory = isFloridaRetailerInventory(signal);
   const inventorySemantics = isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
     : isTnRetailerInventory
@@ -234,16 +237,22 @@ function publicSignal(signal, bible, freshness = null) {
         ? 'South Carolina is a private retail market. Whitelisted public retailer sources can expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
         : isAzRetailerInventory
           ? 'Arizona is a private retail market. Whitelisted public retailer CityHive sources expose store-level bottle availability, price, and sometimes exact quantity; alert as retailer-published availability with a verify-before-driving caveat.'
+          : isFlRetailerInventory
+            ? 'Florida is a private retail market. Whitelisted retailer storefront and store-fulfillment sources expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
           : signal.inventorySemantics;
   const canAlertAsInventory = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
+      : signal.state === 'FL'
+        ? isFlRetailerInventory
       : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
   const canAlertAsWatch = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
+      : signal.state === 'FL'
+        ? Boolean(signal.canAlertAsWatch) && isFloridaRetailerSignalIdentity(signal)
       : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
@@ -296,7 +305,7 @@ function publicSignal(signal, bible, freshness = null) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
     sourceStale: ohioFeedStaleCaveat(signal),
@@ -1466,6 +1475,12 @@ async function main() {
   const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 1000, 200);
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
+  const engineGeneratedAt = summary.generatedAt || snapshot.generatedAt || generatedAt;
+  const runIdentity = {
+    runId: stableId(['site-export', engineGeneratedAt, generatedAt, signals.length]),
+    generatedAt,
+    engineGeneratedAt,
+  };
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
   const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const summaryStatesById = new Map((summary.states || []).filter((state) => activeStateIds.has(state.state)).map((state) => [state.state, state]));
@@ -1499,14 +1514,15 @@ async function main() {
     ? compareStateQuality(previousStateQuality, stateQuality)
     : { ok: true, failures: [], warnings: ['No previous state-quality scorecard; recording baseline.'] };
   stateQuality.regression = stateQualityRegression;
+  stateQuality.runId = runIdentity.runId;
+  stateQuality.engineGeneratedAt = runIdentity.engineGeneratedAt;
   if (!stateQualityRegression.ok && process.env.BOURBON_SIGNAL_ALLOW_STATE_QUALITY_REGRESSION !== '1') {
     throw new Error(`State quality regression blocked site export: ${stateQualityRegression.failures.join(' ')}`);
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const stats = {
     contractVersion: CONTRACT_VERSION,
-    generatedAt,
-    engineGeneratedAt: summary.generatedAt || snapshot.generatedAt || null,
+    ...runIdentity,
     stateCount: activeSummaryStates.length,
     signalCount: signals.length,
     historicalSignalCount,
@@ -1559,7 +1575,7 @@ async function main() {
 
   const manifest = {
     contractVersion: CONTRACT_VERSION,
-    generatedAt,
+    ...runIdentity,
     files: {
       stats: 'stats.json',
       bottles: 'bottles.json',
@@ -1591,11 +1607,30 @@ async function main() {
     generatedAt,
     activeStates: [...activeStateIds],
   });
+  Object.assign(stateDropPartitions.index, runIdentity);
+  for (const payload of stateDropPartitions.payloads.values()) Object.assign(payload, runIdentity);
   const partitionVerification = verifyStateDropPartitions(drops, stateDropPartitions);
   if (!partitionVerification.ok) {
     throw new Error(`State drop partition verification failed: ${partitionVerification.errors.join(' ')}`);
   }
   manifest.statePartitions = stateDropPartitions.index.states;
+
+  const artifactPayloads = {
+    manifest,
+    stats,
+    bottles: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: bottles.length, bottles }, runIdentity),
+    stores: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: stores.length, stores }, runIdentity),
+    locations: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: locations.length, locations }, runIdentity),
+    drops: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: drops.length, drops }, runIdentity),
+    events: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: events.length, events }, runIdentity),
+    alerts: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: cappedAlertCandidates.length, alerts: cappedAlertCandidates }, runIdentity),
+    stateQuality,
+    historicalTrends: attachRunIdentity({ contractVersion: CONTRACT_VERSION, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, runIdentity),
+    stateIndex: stateDropPartitions.index,
+  };
+  if (ncIntelligenceRaw) artifactPayloads.ncIntelligence = attachRunIdentity({ contractVersion: CONTRACT_VERSION, ...ncIntelligenceRaw }, runIdentity);
+  const coherence = verifyRunCoherence(artifactPayloads, runIdentity);
+  if (!coherence.ok) throw new Error(`Site artifact run coherence failed: ${coherence.errors.join(' ')}`);
 
   await rm(path.join(SITE_OUT, 'states'), { recursive: true, force: true });
   await mkdir(path.join(SITE_OUT, 'states'), { recursive: true });
@@ -1605,19 +1640,17 @@ async function main() {
     await mkdir(stateDir, { recursive: true });
     await writeFile(path.join(stateDir, 'drops.json'), JSON.stringify(payload, null, 2));
   }
-  await writeFile(path.join(SITE_OUT, 'manifest.json'), JSON.stringify(manifest, null, 2));
-  await writeFile(path.join(SITE_OUT, 'stats.json'), JSON.stringify(stats, null, 2));
-  await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: bottles.length, bottles }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: stores.length, stores }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: locations.length, locations }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: drops.length, drops }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: events.length, events }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, count: cappedAlertCandidates.length, alerts: cappedAlertCandidates }, null, 2));
-  await writeFile(path.join(SITE_OUT, 'state-quality.json'), JSON.stringify(stateQuality, null, 2));
-  await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, null, 2));
-  if (ncIntelligenceRaw) {
-    await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify({ contractVersion: CONTRACT_VERSION, generatedAt, ...ncIntelligenceRaw }, null, 2));
-  }
+  await writeFile(path.join(SITE_OUT, 'manifest.json'), JSON.stringify(artifactPayloads.manifest, null, 2));
+  await writeFile(path.join(SITE_OUT, 'stats.json'), JSON.stringify(artifactPayloads.stats, null, 2));
+  await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify(artifactPayloads.bottles, null, 2));
+  await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify(artifactPayloads.stores, null, 2));
+  await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify(artifactPayloads.locations, null, 2));
+  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops, null, 2));
+  await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify(artifactPayloads.events, null, 2));
+  await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify(artifactPayloads.alerts, null, 2));
+  await writeFile(path.join(SITE_OUT, 'state-quality.json'), JSON.stringify(artifactPayloads.stateQuality, null, 2));
+  await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify(artifactPayloads.historicalTrends, null, 2));
+  if (artifactPayloads.ncIntelligence) await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify(artifactPayloads.ncIntelligence, null, 2));
 
   console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${cappedAlertCandidates.length} alert candidates -> out/site/`);
 }

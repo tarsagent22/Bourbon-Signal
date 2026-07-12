@@ -794,6 +794,20 @@ const AZ_TARGET_STORES = new Map([
 ]);
 const AZ_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_TARGET_COHORT_SIZE) || 3));
 
+const FL_MDP_PRODUCTS_BASE_URL = 'https://mdpliquorfl.com/products.json?limit=250';
+const FL_MDP_STORE = { id: 'mdp-liquor-kissimmee:4636-w-irlo-bronson', name: 'MDP Liquor Kissimmee', address: '4636 W Irlo Bronson Memorial Hwy, Kissimmee, FL 34746', city: 'Kissimmee', zip: '34746' };
+const FL_MDP_MAX_PAGES = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_FL_MDP_MAX_PAGES) || 3));
+const FL_MDP_DELAY_MS = Math.max(300, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_MDP_DELAY_MS) || 600));
+const FL_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || AZ_TARGET_KEY;
+const FL_TARGET_STORES = new Map([
+  ['649', { name: 'Target East Colonial', address: '718 Maguire Blvd, Orlando, FL 32803', city: 'Orlando', zip: '32803' }],
+  ['650', { name: 'Target Orlando Sand Lake Rd', address: '880 Sand Lake Rd, Orlando, FL 32809', city: 'Orlando', zip: '32809' }],
+  ['1518', { name: 'Target Orlando Millenia', address: '4750 Millenia Plaza Way, Orlando, FL 32839', city: 'Orlando', zip: '32839' }],
+  ['1760', { name: 'Target Waterford Lakes', address: '325 N Alafaya Trl, Orlando, FL 32828', city: 'Orlando', zip: '32828' }],
+  ['2376', { name: 'Target Orlando Sodo', address: '120 W Grant St, Orlando, FL 32806', city: 'Orlando', zip: '32806' }]
+]);
+const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 2));
+
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
   'https://specsonline.com/shop/spirits/native-texas-bourbon/',
@@ -3365,6 +3379,123 @@ async function collectArizonaTarget(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+async function collectFloridaMdp(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seenVariants = new Set();
+  let returnedProducts = 0;
+  for (let page = 1; page <= FL_MDP_MAX_PAGES; page++) {
+    const url = `${FL_MDP_PRODUCTS_BASE_URL}&page=${page}`;
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+    if (!res.ok) {
+      roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify products feed at low cadence.' });
+      await sleep(FL_MDP_DELAY_MS);
+      continue;
+    }
+    let products = [];
+    try { products = JSON.parse(res.text)?.products || []; } catch (error) {
+      roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the Shopify products feed response shape.' });
+      break;
+    }
+    if (!products.length) break;
+    returnedProducts += products.length;
+    for (const product of products) {
+      const rawName = htmlToText(product?.title || '');
+      if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s|old fitz|michter'?s|four roses/i.test(rawName)) continue;
+      const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
+      const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
+      if (sizeMl != null && sizeMl < 375) continue;
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record) continue;
+      for (const variant of product?.variants || []) {
+        if (variant?.available !== true || seenVariants.has(String(variant.id))) continue;
+        seenVariants.add(String(variant.id));
+        const price = Number(variant?.price || 0) || null;
+        signals.push({
+          id: stableId([config.id, 'shopify-store-inventory', 'mdp-liquor-kissimmee', variant.id]), state: config.id,
+          sourceLabel: 'MDP Liquor Kissimmee Shopify store inventory', sourceUrl: `https://mdpliquorfl.com/products/${product.handle}`, sourceChain: 'mdp-liquor-kissimmee', merchantId: 'mdp-liquor-kissimmee-shopify',
+          rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+          confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+          locationName: FL_MDP_STORE.name, storeName: FL_MDP_STORE.name, storeId: FL_MDP_STORE.id,
+          storeAddress: FL_MDP_STORE.address, city: FL_MDP_STORE.city, stateCode: 'FL', postalCode: FL_MDP_STORE.zip, zip: FL_MDP_STORE.zip,
+          quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Retailer reports available', sourceAvailabilityVerified: true, observedAt,
+          canAlertAsInventory: true, canAlertAsWatch: true,
+          inventorySemantics: 'MDP Liquor’s public Shopify feed marks this variant available for its Kissimmee storefront. Exact on-hand quantity is not published; verify directly before driving.',
+          evidence: `MDP Liquor Shopify reports ${rawName} available${price ? ` at $${price.toFixed(2)}` : ''} for its Kissimmee store. Exact quantity is not published.`,
+          raw: { chain: 'mdp-liquor-kissimmee', merchantId: 'mdp-liquor-kissimmee-shopify', product: { id: product.id, handle: product.handle }, variant: { id: variant.id, sku: variant.sku, available: variant.available, price: variant.price } }
+        });
+        break;
+      }
+    }
+    await sleep(FL_MDP_DELAY_MS);
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url: FL_MDP_PRODUCTS_BASE_URL, status: 'reachable_no_safe_inventory_rows', error: `Shopify returned ${returnedProducts} products but no safely matched available bourbon rows.`, nextRoute: 'Inspect product titles and variant availability without weakening bottle or geography guards.' });
+  return { signals, roadblocks };
+}
+
+async function collectFloridaTarget(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const visitorId = crypto.randomUUID();
+  const storeEntries = [...FL_TARGET_STORES.entries()];
+  const cohortCount = Math.ceil(storeEntries.length / FL_TARGET_COHORT_SIZE);
+  const cohortIndex = Math.floor(Date.now() / 86_400_000) % cohortCount;
+  const cohort = storeEntries.slice(cohortIndex * FL_TARGET_COHORT_SIZE, (cohortIndex + 1) * FL_TARGET_COHORT_SIZE);
+  const [seedStoreId] = cohort[0] || storeEntries[0];
+  const searchParams = new URLSearchParams({ key: FL_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: seedStoreId, store_ids: seedStoreId, visitor_id: visitorId });
+  const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  if (!search.ok) return { signals, roadblocks: [{ state: config.id, source: 'Target Florida RedSky store fulfillment', url: searchUrl, status: search.status || 0, error: search.error || `HTTP ${search.status}`, nextRoute: 'Refresh the public Target frontend key and retry without bypassing retailer protection.' }] };
+  let products = [];
+  try { products = JSON.parse(search.text)?.data?.search?.products || []; } catch (error) { return { signals, roadblocks: [{ state: config.id, source: 'Target Florida RedSky store fulfillment', url: searchUrl, status: search.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the RedSky search response shape.' }] }; }
+  const seen = new Set();
+  for (const [primaryStoreId, primaryStore] of cohort) {
+    for (const product of products.slice(0, 12)) {
+      const rawName = htmlToText(product?.item?.product_description?.title || '');
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
+      const params = new URLSearchParams({ key: FL_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: primaryStoreId, store_positions_store_id: primaryStoreId, scheduled_delivery_store_id: primaryStoreId, zip: primaryStore.zip, visitor_id: visitorId });
+      const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${params}`;
+      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); await sleep(400); continue; }
+      let fulfillment = null;
+      try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
+      for (const option of fulfillment?.store_options || []) {
+        const locationId = String(option?.location_id || '');
+        const store = FL_TARGET_STORES.get(locationId);
+        const inStock = option?.order_pickup?.availability_status === 'IN_STOCK' || option?.in_store_only?.availability_status === 'IN_STOCK';
+        const key = `${locationId}|${product.tcin}`;
+        if (!store || !inStock || seen.has(key)) continue;
+        seen.add(key);
+        const price = locationId === primaryStoreId ? Number(product?.price?.current_retail || product?.price?.formatted_current_price?.replace(/[^0-9.]/g, '')) || null : null;
+        signals.push({
+          id: stableId([config.id, 'target-redsky', locationId, product.tcin]), state: config.id,
+          sourceLabel: 'Target Florida RedSky store fulfillment', sourceUrl: product?.item?.enrichment?.buy_url || `https://www.target.com/p/-/A-${product.tcin}`, sourceChain: 'target', merchantId: locationId,
+          rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+          confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+          locationName: store.name, storeName: store.name, storeId: `target:${locationId}`,
+          storeAddress: store.address, city: store.city, stateCode: 'FL', postalCode: store.zip, zip: store.zip,
+          quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Target reports pickup or in-store availability', sourceAvailabilityVerified: true, observedAt,
+          canAlertAsInventory: true, canAlertAsWatch: true,
+          inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise quantity is retained as evidence but is not represented as exact shelf quantity.',
+          evidence: `Target RedSky reports ${rawName} orderable at ${store.name}. Exact shelf quantity is not published.`,
+          raw: { chain: 'target', merchantId: locationId, tcin: String(product.tcin), cohortIndex, primaryStoreId, availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
+        });
+      }
+      await sleep(400);
+    }
+  }
+  if (!signals.length) roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', status: 'reachable_no_safe_inventory_rows', error: 'Target returned no safely matched store-orderable bourbon rows for the current Florida cohort.', nextRoute: 'Retain store discovery and retry fulfillment without treating search presence as inventory.' });
+  return { signals, roadblocks };
+}
+
+async function collectFlorida(config, bible) {
+  const observedAt = new Date().toISOString();
+  const mdp = await collectFloridaMdp(config, bible, observedAt);
+  const target = await collectFloridaTarget(config, bible, observedAt);
+  return { signals: [...mdp.signals, ...target.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks] };
+}
+
 async function collectArizona(config, bible) {
   const observedAt = new Date().toISOString();
   const signals = [];
@@ -5178,6 +5309,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
   if (config.id === 'AZ') return collectArizona(config, bible);
+  if (config.id === 'FL') return collectFlorida(config, bible);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible);

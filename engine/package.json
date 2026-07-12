@@ -23,6 +23,7 @@
     "verify:al": "node src/verify-al.mjs",
     "verify:in": "node src/verify-in.mjs",
     "verify:az": "node src/verify-az.mjs",
+    "verify:fl": "node src/verify-fl.mjs",
     "verify:idaho": "node src/verify-idaho-hardening.mjs",
     "verify:ia": "node src/verify-iowa-hardening.mjs",
     "verify:md": "node src/verify-maryland-hardening.mjs",

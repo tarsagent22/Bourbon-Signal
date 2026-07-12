@@ -407,10 +407,13 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'FL', label: 'Florida Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
-    rareSignalTarget: false,
-    sources: [],
+    id: 'FL', label: 'Florida retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Whitelisted Florida retailer storefront and store-fulfillment inventory, with Costco warehouse observations where verified. Store availability is retailer-published and must carry verify-before-driving caveats.',
+    rareSignalTarget: true,
+    sources: [
+      { name: 'MDP Liquor Kissimmee Shopify inventory', url: 'https://mdpliquorfl.com/products.json?limit=250&page=1' },
+      { name: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518' }
+    ],
     apiCandidates: []
   }
 ];

@@ -1,6 +1,7 @@
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
+import { isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -104,6 +105,12 @@ const ARIZONA_RETAILER_POLICY = {
   defaultCadence: '30-60m'
 };
 
+const FLORIDA_RETAILER_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'Florida is a private retail market. Only explicitly whitelisted retailer storefront and store-fulfillment rows may alert, with retailer-published availability and verify-before-driving caveats.',
+  defaultCadence: '30-60m'
+};
+
 
 const KENTUCKY_DISTILLERY_POLICY = {
   maxAlertMode: 'distillery_release_watch',
@@ -132,6 +139,9 @@ function policyForSignal(signal) {
   if (signal.state === 'AZ'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
+  if (signal.state === 'FL'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
+    && isFloridaRetailerSignalIdentity(signal)) return FLORIDA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
