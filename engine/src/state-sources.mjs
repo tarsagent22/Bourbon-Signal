@@ -412,7 +412,11 @@ const BASE_STATE_SOURCES = [
     rareSignalTarget: true,
     sources: [
       { name: 'MDP Liquor Kissimmee Shopify inventory', url: 'https://mdpliquorfl.com/products.json?limit=250&page=1' },
-      { name: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518' }
+      { name: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518' },
+      { name: 'ABC Fine Wine & Spirits public bourbon search', url: 'https://abcfws.com/spirits/shop-by-type/bourbon/' },
+      { name: 'Luekens Wine & Spirits Shopify and location inventory', url: 'https://www.luekensliquors.com/collections/bourbon' },
+      { name: "Jensen's Liquors Shopify pickup inventory", url: 'https://jensensliquors.com/collections/american-bourbons' },
+      { name: 'Total Wine Florida store inventory discovery', url: 'https://www.totalwine.com/store-finder/browse/FL' }
     ],
     apiCandidates: []
   }

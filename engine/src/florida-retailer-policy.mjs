@@ -7,6 +7,12 @@ const FLORIDA_RETAILER_IDENTITIES = new Map([
     merchants: new Set(['mdp-liquor-kissimmee-shopify']),
     stores: new Set(['mdp-liquor-kissimmee:4636-w-irlo-bronson']),
   }],
+  ["Jensen's Liquors Miami Shopify pickup inventory", {
+    chain: 'jensens-liquors',
+    hostname: 'jensensliquors.com',
+    merchants: new Set(['jensens-miami-shopify']),
+    stores: new Set(['jensens-liquors:1646-sw-27th']),
+  }],
 ]);
 
 export function isFloridaRetailerSignalIdentity(signal) {
