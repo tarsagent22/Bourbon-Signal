@@ -41,11 +41,7 @@ export function readBundledSiteExport(name: SiteExportName) {
 }
 
 const blobStorage = new VercelBlobSnapshotStorage();
-const readActivePointer = unstable_cache(
-  async () => blobStorage.readPointer(),
-  ["engine-active-snapshot-pointer-v1"],
-  { revalidate: 45 },
-);
+const readActivePointer = async () => blobStorage.readPointer();
 const readImmutableObject = unstable_cache(
   async (key: string) => blobStorage.readObject(key),
   ["engine-immutable-snapshot-object-v1"],

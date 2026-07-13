@@ -10,7 +10,11 @@ export class VercelBlobSnapshotStorage implements RemoteSnapshotStorage {
   async readObject(pathname: string) {
     const blob = await exactBlob(pathname);
     if (!blob) return null;
-    const response = await fetch(blob.url, { cache: "no-store" });
+    const url = new URL(blob.url);
+    if (pathname === "engine/active.json") {
+      url.searchParams.set("_engine_pointer", `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    }
+    const response = await fetch(url, { cache: "no-store", headers: { "cache-control": "no-cache" } });
     if (!response.ok) throw new Error(`Engine snapshot object read failed with HTTP ${response.status}`);
     return response.text();
   }

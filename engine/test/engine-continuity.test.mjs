@@ -36,6 +36,11 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
   const verifier = await readFile(new URL('../src/verify-site-contract.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(verifier, /should not include TX|contains TX customer-facing|contains TX in states array/);
+  const blobReader = await readFile(new URL('../../src/lib/vercel-blob-snapshot-storage.ts', import.meta.url), 'utf8');
+  assert.match(blobReader, /_engine_pointer/);
+  assert.match(blobReader, /cache:\s*["']no-store["']/);
+  const siteContract = await readFile(new URL('../../src/lib/site-engine-contract.ts', import.meta.url), 'utf8');
+  assert.match(siteContract, /const readActivePointer = async \(\) => blobStorage\.readPointer\(\)/);
   const productionGuard = await readFile(new URL('../../scripts/verify-production-engine-regression.mjs', import.meta.url), 'utf8');
   assert.match(productionGuard, /Live stateCount .*does not match local/);
   assert.match(productionGuard, /Live generatedAt .*does not match local/);
