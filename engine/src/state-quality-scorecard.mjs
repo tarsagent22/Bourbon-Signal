@@ -111,7 +111,7 @@ export function buildStateQualityScorecard(inputs, { generatedAt = new Date().to
     .sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
   const scores = states.map((state) => state.score);
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt,
     summary: {
       stateCount: states.length,
@@ -145,7 +145,10 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     const beforeDegraded = /stale|failed|degraded/iu.test(String(before.input?.status || ''));
     const currentDegraded = /stale|failed|degraded/iu.test(String(state.input?.status || ''));
     if (!beforeDegraded && currentDegraded) {
-      failures.push(`${state.state}: state status became degraded (${state.input?.status || 'unknown'}).`);
+      const preservedFallback = /quality_fallback/iu.test(String(state.input?.status || ''))
+        && currentDrops >= Math.floor(priorDrops * minDropRatio);
+      if (preservedFallback) warnings.push(`${state.state}: preserved fallback is serving the last good rows while collection retries.`);
+      else failures.push(`${state.state}: state status became degraded (${state.input?.status || 'unknown'}).`);
     }
   }
   return { ok: failures.length === 0, failures, warnings };

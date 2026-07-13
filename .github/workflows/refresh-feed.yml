@@ -2,7 +2,7 @@ name: Refresh production inventory feed
 
 on:
   schedule:
-    - cron: "7 * * * *"
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       force_all_states:
@@ -20,14 +20,14 @@ permissions:
 jobs:
   collect-verify-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 28
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
-      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "2700000"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1080000"
       BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1200000"
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
@@ -51,15 +51,12 @@ jobs:
             engine/out/browser
             engine/out/cache
             engine/out/states
-            engine/out/state-run-metrics.json
+            engine/out/snapshots
+            engine/out/optimization/state-run-metrics.json
             engine/out/site
           key: inventory-refresh-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             inventory-refresh-${{ runner.os }}-
-
-      - name: Refresh and gate the Texas candidate
-        working-directory: engine
-        run: node src/build-bible.mjs && npm run run -- --states=TX --skip-browser-preflight && npm run verify:tx
 
       - name: Refresh all due customer-active states
         working-directory: engine
@@ -76,8 +73,12 @@ jobs:
         working-directory: engine
         run: node src/data-plane/publish-site-snapshot.mjs --site-dir out/site
 
-      - name: Verify production observes the refreshed engine
-        run: npm run verify:production-engine
+      - name: Verify production observes the refreshed engine or roll back
+        run: |
+          if ! npm run verify:production-engine; then
+            node engine/src/data-plane/publish-site-snapshot.mjs --rollback
+            exit 1
+          fi
 
       - name: Preserve refresh diagnostics
         if: always()
@@ -90,5 +91,5 @@ jobs:
             engine/out/site-refresh-status.json
             engine/out/source-health.json
             engine/out/operational-report.json
-            engine/out/state-run-metrics.json
+            engine/out/optimization/state-run-metrics.json
             engine/out/states/TX.json

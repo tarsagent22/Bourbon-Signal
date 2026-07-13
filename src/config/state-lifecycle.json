@@ -16,6 +16,7 @@
     "AZ",
     "CA",
     "FL",
+    "TX",
     "GA",
     "MI",
     "MN",
@@ -169,6 +170,15 @@
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city_store",
       "customerSummary": "Whitelisted Florida retailer storefront and store-fulfillment signals, with store-specific identity and verify-before-driving caveats. Costco warehouse observations remain included where verified."
+    },
+    "TX": {
+      "customerLabel": "Texas",
+      "sourceLabel": "Texas retailer inventory watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city_store",
+      "customerSummary": "Guarded first-party Texas retailer inventory across multiple regions, with exact-store identity and verify-before-driving caveats. TABC and retailer catalog/event pages remain non-inventory context."
     },
     "GA": {
       "customerLabel": "Georgia",

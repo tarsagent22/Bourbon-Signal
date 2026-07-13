@@ -7,6 +7,8 @@ const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbo
 const MIN_RATIO = Number(process.env.BOURBON_SIGNAL_REGRESSION_MIN_DROP_RATIO || 0.4);
 const MIN_STATE_COUNT_RATIO = Number(process.env.BOURBON_SIGNAL_REGRESSION_MIN_STATE_COUNT_RATIO || 0.9);
 const ABS_DROP_FLOOR = Number(process.env.BOURBON_SIGNAL_REGRESSION_ABS_DROP_FLOOR || 3);
+const PRODUCTION_VERIFY_ATTEMPTS = Number(process.env.BOURBON_SIGNAL_PRODUCTION_VERIFY_ATTEMPTS || 6);
+const PRODUCTION_VERIFY_DELAY_MS = Number(process.env.BOURBON_SIGNAL_PRODUCTION_VERIFY_DELAY_MS || 10_000);
 const failures = [];
 const warnings = [];
 
@@ -14,13 +16,19 @@ function readJson(relPath, fallback = null) {
   try { return JSON.parse(readFileSync(path.join(ROOT, relPath), 'utf8')); } catch { return fallback; }
 }
 async function getJson(route) {
-  const url = new URL(route, BASE_URL).toString();
-  const res = await fetch(url, { headers: { 'user-agent': 'BourbonSignalRegressionGuard/1.0' }, signal: AbortSignal.timeout(30_000) });
+  const url = new URL(route, BASE_URL);
+  url.searchParams.set('_bs_verify', `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const res = await fetch(url, {
+    headers: { 'user-agent': 'BourbonSignalRegressionGuard/1.0', 'cache-control': 'no-cache' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(30_000),
+  });
   const text = await res.text();
   let json = null;
   try { json = JSON.parse(text); } catch {}
-  return { ok: res.ok, status: res.status, json, text: json ? undefined : text.slice(0, 300), url };
+  return { ok: res.ok, status: res.status, json, text: json ? undefined : text.slice(0, 300), url: url.toString() };
 }
+function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 function fail(message) { failures.push(message); }
 function warn(message) { warnings.push(message); }
 function activeStates() {
@@ -42,13 +50,24 @@ async function main() {
   const localStats = readJson('engine/out/site/stats.json', {});
   const localDropMap = localDropsByState();
   const states = activeStates();
-  const liveStatsRes = await getJson('/api/stats');
-  if (!liveStatsRes.ok || !liveStatsRes.json) fail(`/api/stats failed: status ${liveStatsRes.status}`);
-  const liveStats = liveStatsRes.json || {};
+  let liveStatsRes = null;
+  for (let attempt = 1; attempt <= PRODUCTION_VERIFY_ATTEMPTS; attempt += 1) {
+    liveStatsRes = await getJson('/api/stats');
+    const candidate = liveStatsRes.json || {};
+    const stateCountMatches = Number(candidate.stateCount || 0) === Number(localStats.stateCount || states.length || 0);
+    const generationMatches = !localStats.generatedAt || candidate.generatedAt === localStats.generatedAt;
+    if (liveStatsRes.ok && stateCountMatches && generationMatches) break;
+    if (attempt < PRODUCTION_VERIFY_ATTEMPTS) await sleep(PRODUCTION_VERIFY_DELAY_MS);
+  }
+  if (!liveStatsRes?.ok || !liveStatsRes.json) fail(`/api/stats failed: status ${liveStatsRes?.status || 'unavailable'}`);
+  const liveStats = liveStatsRes?.json || {};
   const localStateCount = Number(localStats.stateCount || states.length || 0);
   const liveStateCount = Number(liveStats.stateCount || 0);
-  if (localStateCount && liveStateCount < Math.ceil(localStateCount * MIN_STATE_COUNT_RATIO)) {
-    fail(`Live stateCount ${liveStateCount} regressed below ${Math.ceil(localStateCount * MIN_STATE_COUNT_RATIO)} from local ${localStateCount}.`);
+  if (localStateCount && liveStateCount !== localStateCount) {
+    fail(`Live stateCount ${liveStateCount} does not match local ${localStateCount}.`);
+  }
+  if (localStats.generatedAt && liveStats.generatedAt !== localStats.generatedAt) {
+    fail(`Live generatedAt ${liveStats.generatedAt || '(missing)'} does not match local ${localStats.generatedAt}.`);
   }
   if (Number(liveStats.alertCandidateCount || 0) === 0 && Number(localStats.alertCandidateCount || 0) > 0) {
     fail(`Live alertCandidateCount is 0 while local has ${localStats.alertCandidateCount}.`);

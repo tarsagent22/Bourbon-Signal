@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 import { createSiteSnapshotManifest } from './site-snapshot-contract.mjs';
-import { publishSiteSnapshot } from './site-snapshot-publisher.mjs';
+import { publishSiteSnapshot, rollbackSiteSnapshot } from './site-snapshot-publisher.mjs';
 import { VercelBlobObjectStorage } from './vercel-blob-object-storage.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -65,7 +65,7 @@ export async function deriveGitProvenance(projectRoot) {
   return { appCommit, engineCommit };
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const valueAfter = (flag) => {
     const index = argv.indexOf(flag);
     return index >= 0 ? argv[index + 1] : null;
@@ -73,12 +73,18 @@ function parseArgs(argv) {
   return {
     siteDir: path.resolve(valueAfter('--site-dir') || path.join(process.cwd(), 'out', 'site')),
     dryRun: argv.includes('--dry-run'),
+    rollback: argv.includes('--rollback'),
     activate: !argv.includes('--stage'),
   };
 }
 
 export async function runPublisher(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
+  if (options.rollback) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error('BLOB_READ_WRITE_TOKEN is required to rollback');
+    const storage = new VercelBlobObjectStorage();
+    return rollbackSiteSnapshot(storage);
+  }
   const files = await collectSiteFiles(options.siteDir);
   const stats = JSON.parse(files['stats.json'] || '{}');
   const projectRoot = path.resolve(options.siteDir, '..', '..', '..');

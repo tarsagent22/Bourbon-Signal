@@ -10,6 +10,8 @@ import { confidenceForSignal } from './confidence-policy.mjs';
 import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 import { runBoundedPool } from './optimization/worker-pool.mjs';
 import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
+import { guardStateReport } from './state-report-guard.mjs';
+import { withStateRunLock } from './state-run-lock.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -329,7 +331,7 @@ function failedReport(config, reason) {
   };
 }
 
-function runStateChild(config) {
+function runStateChild(config, outputFile) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
     const timeoutMs = stateTimeoutMs(config);
@@ -337,7 +339,7 @@ function runStateChild(config) {
     const child = spawn(process.execPath, ['src/run-state.mjs', config.id], {
       cwd: process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
+      env: { ...process.env, BOURBON_SIGNAL_STATE_OUT_FILE: outputFile },
       windowsHide: true
     });
     let stdout = '';
@@ -369,20 +371,35 @@ function runStateChild(config) {
   });
 }
 
-async function collectStateResilient(config) {
+async function collectStateResilientUnlocked(config) {
   const statePath = path.join(STATES_OUT, `${config.id}.json`);
+  const candidatePath = path.join(STATES_OUT, `${config.id}.candidate-${process.pid}-${Date.now()}.json`);
+  const previous = await readJson(statePath, null);
   try {
-    await runStateChild(config);
-    const report = await readJson(statePath, null);
-    if (!report) throw new Error(`${config.id} collector finished but did not write ${statePath}`);
-    return report;
+    await runStateChild(config, candidatePath);
+    const candidate = await readJson(candidatePath, null);
+    if (!candidate) throw new Error(`${config.id} collector finished but did not write ${candidatePath}`);
+    const guarded = guardStateReport({ previous, candidate });
+    if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
+    await atomicWriteJson(statePath, guarded.report);
+    return guarded.report;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    const previous = await readJson(statePath, null);
     const report = previous ? markStaleReport(previous, config, reason) : failedReport(config, reason);
-    await writeFile(statePath, JSON.stringify(report, null, 2));
+    await atomicWriteJson(statePath, report);
     return report;
+  } finally {
+    await rm(candidatePath, { force: true }).catch(() => {});
   }
+}
+
+async function collectStateResilient(config) {
+  const lockPath = path.join(STATES_OUT, `${config.id}.run-lock`);
+  const timeoutMs = stateTimeoutMs(config);
+  return withStateRunLock(lockPath, () => collectStateResilientUnlocked(config), {
+    staleMs: timeoutMs + 120_000,
+    waitTimeoutMs: timeoutMs + 180_000,
+  });
 }
 
 function signalScore(report) {

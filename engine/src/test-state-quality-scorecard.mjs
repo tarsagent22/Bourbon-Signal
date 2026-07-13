@@ -52,7 +52,7 @@ const watchLane = scoreStateQuality({
 assert.ok(!watchLane.weaknesses.includes('no_store_level_drops'), 'watch lanes must not be judged as live store inventory');
 
 const scorecard = buildStateQualityScorecard([strong.input, weak.input, watchLane.input], { generatedAt: '2026-07-09T00:00:00.000Z' });
-assert.equal(scorecard.schemaVersion, 1);
+assert.equal(scorecard.schemaVersion, 2);
 assert.equal(scorecard.states.length, 3);
 assert.equal(scorecard.summary.releaseBlockedStates, 1);
 assert.equal(scorecard.states[0].state, 'AA');

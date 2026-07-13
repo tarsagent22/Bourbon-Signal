@@ -32,7 +32,7 @@ export const LOCATION_PROFILES = {
   MS: { target: 'statewide_catalog', note: 'Mississippi ABC public pages expose SPA/bailment price-change PDFs and vendor/product policy, not bottle/store inventory.' },
   KY: { target: 'distillery', note: 'Kentucky public value comes from official distillery gift-shop/drop and release-watch sources. Treat distillery signals separately from retailer store inventory.' },
   TN: { target: 'store_level', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, while selected public retailer e-commerce pages can expose store-level quantity/price with a verify-before-driving caveat.' },
-  TX: { target: 'statewide_catalog', note: "Texas is a private retail market. Current public coverage is TABC/comptroller context plus Spec's retailer catalog/release pages; store-level inventory remains a future retailer-specific extraction target." },
+  TX: { target: 'store_level', note: 'Texas is a private retail market. Guarded first-party CityHive sources provide exact-store retailer availability with verify-before-driving caveats; TABC and retailer catalog/event pages remain non-inventory context.' },
   SC: { target: 'statewide_policy', note: 'South Carolina DOR ABL pages expose liquor licensing/regulatory context, not bottle/store inventory.' },
   GA: { target: 'statewide_catalog', note: 'Georgia DOR brand/label and active-license pages expose registration/license context, not public consumer bottle availability.' },
   FL: { target: 'store_level', note: 'Florida is a private retail market. Whitelisted retailer storefront and store-fulfillment sources can expose store-level retailer-published availability with verify-before-driving caveats.' }

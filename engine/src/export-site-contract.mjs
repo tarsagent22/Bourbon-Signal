@@ -1465,6 +1465,7 @@ async function main() {
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
   const drops = buildDrops(historicalSignals, bible, signals);
+  const currentDrops = buildDrops(signals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
   const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(drops);
@@ -1507,12 +1508,12 @@ async function main() {
   const stateCoverage = buildStateCoverage({ ...summary, states: activeSummaryStates }, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness({ ...summary, states: activeSummaryStates }, signals);
   const stateQuality = buildStateQualityScorecard(
-    buildStateQualityInputs({ stateCoverage, drops, alerts: cappedAlertCandidates }),
+    buildStateQualityInputs({ stateCoverage, drops: currentDrops, alerts: cappedAlertCandidates }),
     { generatedAt },
   );
-  const stateQualityRegression = previousStateQuality
+  const stateQualityRegression = previousStateQuality?.schemaVersion === stateQuality.schemaVersion
     ? compareStateQuality(previousStateQuality, stateQuality)
-    : { ok: true, failures: [], warnings: ['No previous state-quality scorecard; recording baseline.'] };
+    : { ok: true, failures: [], warnings: ['State-quality baseline schema changed; recording a current-snapshot baseline.'] };
   stateQuality.regression = stateQualityRegression;
   stateQuality.runId = runIdentity.runId;
   stateQuality.engineGeneratedAt = runIdentity.engineGeneratedAt;

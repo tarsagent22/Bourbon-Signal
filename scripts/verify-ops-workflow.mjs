@@ -55,8 +55,15 @@ const stateSources = read('engine/src/state-sources.mjs');
 if (!/state-lifecycle\.mjs/.test(stateSources)) {
   fail('engine/src/state-sources.mjs should source CUSTOMER_ACTIVE_STATE_IDS from the shared state lifecycle config.');
 }
-if (customerStates.has('TX')) {
-  fail('TX must not be in activeStates until Texas has stronger customer-facing data.');
+const txLifecycle = stateLifecycleConfig.states?.TX;
+if (!customerStates.has('TX')
+  || txLifecycle?.publicStatus !== 'active'
+  || txLifecycle?.lifecycle !== 'retailer_store_inventory'
+  || txLifecycle?.coverageTier !== 'live_store_inventory'
+  || !enginePackageJson.scripts?.['verify:tx']
+  || !/TEXAS_RETAILER_IDENTITIES/.test(read('engine/src/texas-retailer-policy.mjs'))
+  || !/isTexasRetailerInventory/.test(read('engine/src/confidence-policy.mjs'))) {
+  fail('TX should remain active only with its hardened exact-store retailer inventory policy and verification gate.');
 }
 for (const state of ['AL', 'IL', 'IN', 'NC', 'PA', 'SC', 'TN', 'VA', 'IA', 'ID', 'MD-MONTGOMERY', 'KY']) {
   if (!customerStates.has(state)) {

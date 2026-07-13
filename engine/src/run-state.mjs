@@ -15,7 +15,8 @@ async function main() {
   await mkdir(STATES_OUT, { recursive: true });
   const bible = await BourbonBible.load();
   const report = await collectState(config, bible);
-  await writeFile(path.join(STATES_OUT, `${config.id}.json`), JSON.stringify(report, null, 2));
+  const outputFile = process.env.BOURBON_SIGNAL_STATE_OUT_FILE || path.join(STATES_OUT, `${config.id}.json`);
+  await writeFile(outputFile, JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ state: config.id, status: report.status, signalCount: report.signals.length, roadblockCount: report.roadblocks.length }));
 }
 
