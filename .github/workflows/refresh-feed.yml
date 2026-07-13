@@ -59,7 +59,7 @@ jobs:
 
       - name: Refresh and gate the Texas candidate
         working-directory: engine
-        run: npm run run -- --states=TX --skip-browser-preflight && npm run verify:tx
+        run: node src/build-bible.mjs && npm run run -- --states=TX --skip-browser-preflight && npm run verify:tx
 
       - name: Refresh all due customer-active states
         working-directory: engine
