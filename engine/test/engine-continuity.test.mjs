@@ -34,6 +34,8 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(workflow, /engine\/out\/snapshots/);
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
+  const verifier = await readFile(new URL('../src/verify-site-contract.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(verifier, /should not include TX|contains TX customer-facing|contains TX in states array/);
   const productionGuard = await readFile(new URL('../../scripts/verify-production-engine-regression.mjs', import.meta.url), 'utf8');
   assert.match(productionGuard, /Live stateCount .*does not match local/);
   assert.match(productionGuard, /Live generatedAt .*does not match local/);

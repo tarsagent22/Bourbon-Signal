@@ -46,12 +46,8 @@ for (const file of readdirSync(siteDir).filter((name) => name.endsWith('.json'))
   }
   walkValues(payload, (node, parts) => {
     const state = typeof node.state === 'string' ? node.state.toUpperCase() : null;
-    if (state === 'TX') fail(`${file} contains TX customer-facing record at ${parts.join('.') || '<root>'}`);
     if (state && !activeStates.has(state) && state !== 'MD-MONTGOMERY') {
       fail(`${file} contains non-active customer-facing state ${state} at ${parts.join('.') || '<root>'}`);
-    }
-    if (Array.isArray(node.states) && node.states.some((item) => String(item).toUpperCase() === 'TX')) {
-      fail(`${file} contains TX in states array at ${parts.join('.') || '<root>'}`);
     }
   });
 }
@@ -83,9 +79,6 @@ if (stateQuality.regression?.ok !== true) {
 for (const state of stateQuality.states || []) {
   if (!Number.isFinite(state.score) || state.score < 0 || state.score > 100) fail(`${state.state} has invalid quality score ${state.score}.`);
   if (!Array.isArray(state.weaknesses)) fail(`${state.state} quality weaknesses must be an array.`);
-}
-if (coverageStates.some((state) => String(state.state).toUpperCase() === 'TX')) {
-  fail('stats.stateCoverage.states should not include TX.');
 }
 for (const [code, lifecycle] of Object.entries(STATE_LIFECYCLE)) {
   if (lifecycle.publicStatus !== 'active' && coverageStateIds.has(code)) {
