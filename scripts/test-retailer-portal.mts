@@ -60,7 +60,7 @@ const submission = normalizeRetailerSubmission({
 });
 assert.equal(submission.ok, true);
 assert.equal(submission.value?.title, "Elijah Craig private barrel");
-assert.equal(submission.value?.status, "pending_review");
+assert.equal(submission.value?.status, "reviewed");
 
 const notice = buildRetailerAccountNotification({
   userId: "user_123",
@@ -83,6 +83,7 @@ for (const file of [
   "src/app/retailers/onboarding/page.tsx",
   "src/app/retailers/login/[[...login]]/page.tsx",
   "src/app/retailers/portal/page.tsx",
+  "src/app/retailers/portal/RetailerSignalForm.tsx",
   "src/app/admin/retailers/page.tsx",
   "src/lib/retailer-notifications.ts",
   "src/lib/retailer-repository.ts",
@@ -114,6 +115,10 @@ assert.match(webhook, /upsertPendingApplication[\s\S]*notifyRetailerAccountCreat
 const repository = read("src/lib/retailer-repository.ts");
 assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_applications/);
 assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_submissions/);
+assert.match(repository, /ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'/);
+assert.match(repository, /INSERT INTO retailer_submissions \(id, user_id, store_name, store_address, payload, status, reviewed_at, reviewed_by\)/);
+assert.match(repository, /'reviewed', NOW\(\), 'retailer_direct'/);
+assert.match(repository, /UPDATE retailer_submissions[\s\S]*status = 'reviewed'[\s\S]*WHERE status = 'pending_review'/);
 assert.match(repository, /WHERE user_id = \$2 AND status = 'verified'/);
 assert.match(repository, /store_name TEXT NOT NULL/);
 assert.match(repository, /deleteApplication/);
@@ -124,7 +129,12 @@ assert.match(repository, /DELETE FROM retailer_submissions WHERE id = \$1 AND us
 const portal = read("src/app/retailers/portal/page.tsx");
 assert.match(portal, /retailerStatus/);
 assert.match(portal, /verified/);
-assert.match(portal, /pending review/);
+assert.match(portal, /Submit a signal/);
+assert.match(portal, /RetailerSignalForm/);
+assert.match(portal, /filter\(\(submission\) => submission\.status !== "rejected"\)/);
+assert.doesNotMatch(portal, /stateFromAddress/);
+assert.match(portal, /We only verify store access once/);
+assert.doesNotMatch(portal, /reviewed before|Submit for review|pending review/);
 assert.match(portal, /if \(!application\) redirect\("\/retailers\/onboarding"\)/);
 assert.match(portal, /retryRetailerNotification/);
 assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
@@ -153,6 +163,26 @@ assert.match(layout, /rootBox:[\s\S]*justifyContent: "center"/);
 assert.match(layout, /cardBox:[\s\S]*maxWidth: "400px"/);
 const retailerStyles = read("src/app/retailers/retailers.module.css");
 assert.match(retailerStyles, /\.authPanel[\s\S]*justify-content: center/);
+assert.match(retailerStyles, /\.signalInput[\s\S]*background:[^;]*(?:#1|rgba\()/);
+assert.match(retailerStyles, /\.suggestionList[\s\S]*max-height:[^;]+;[\s\S]*overflow-y: auto/);
+
+const signalForm = read("src/app/retailers/portal/RetailerSignalForm.tsx");
+const bottleCheckApi = read("src/app/api/bottle-check/route.ts");
+const suggestBranchIndex = bottleCheckApi.indexOf('if (intent === "suggest")');
+const suggestBranchEnd = bottleCheckApi.indexOf("if (!bottle)", suggestBranchIndex);
+const localSignalIndex = bottleCheckApi.indexOf("const localSignal = await getLocalSignal");
+assert.ok(suggestBranchIndex >= 0 && suggestBranchEnd > suggestBranchIndex && localSignalIndex > suggestBranchEnd, "Suggest branch must return before local scoring");
+const suggestBranch = bottleCheckApi.slice(suggestBranchIndex, suggestBranchEnd);
+assert.match(suggestBranch, /suggestions: suggestions\.map\(userFacingBottle\)/);
+assert.match(suggestBranch, /return NextResponse\.json/);
+assert.doesNotMatch(suggestBranch, /getLocalSignal|captureSearchEvent/);
+assert.match(signalForm, /intent=suggest/);
+assert.doesNotMatch(signalForm, /[?&]state=|state: string/);
+assert.match(signalForm, /canonicalName/);
+assert.match(signalForm, /event\.key === "Escape"[\s\S]*setOpen\(false\)[\s\S]*setActiveIndex\(-1\)/);
+assert.match(signalForm, /role="listbox"/);
+assert.match(signalForm, /name="title"/);
+assert.match(signalForm, />Submit signal<\/button>/);
 
 const admin = read("src/app/admin/retailers/page.tsx");
 assert.match(admin, /isRetailerAdminEmail/);
@@ -162,7 +192,8 @@ assert.match(admin, /verificationMethod/);
 assert.match(admin, /verificationContact/);
 assert.match(admin, /removeRetailerAccess/);
 assert.match(admin, /removeRetailerSubmission/);
-assert.match(admin, />Approve<\/button>/);
+assert.match(admin, /submission\.status === "rejected" \? "removed" : "retailer signal"/);
+assert.doesNotMatch(admin, /reviewSubmission|>Approve<\/button>|>Reject<\/button>|pending review/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
 
 const settings = read("src/app/settings/page.tsx");

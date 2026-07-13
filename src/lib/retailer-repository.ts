@@ -123,14 +123,23 @@ export class RetailerRepository {
             store_name TEXT NOT NULL,
             store_address TEXT NOT NULL,
             payload JSONB NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'reviewed', 'rejected')),
+            status TEXT NOT NULL DEFAULT 'reviewed' CHECK (status IN ('pending_review', 'reviewed', 'rejected')),
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             reviewed_at TIMESTAMPTZ,
             reviewed_by TEXT
           )
         `);
+        await this.query.query(`ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_submissions_user_created_idx ON retailer_submissions (user_id, created_at DESC)`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_submissions_status_created_idx ON retailer_submissions (status, created_at DESC)`);
+        await this.query.query(`
+          UPDATE retailer_submissions
+          SET status = 'reviewed',
+              payload = jsonb_set(payload, '{status}', '"reviewed"'::jsonb, true),
+              reviewed_at = COALESCE(reviewed_at, created_at),
+              reviewed_by = COALESCE(reviewed_by, 'retailer_direct')
+          WHERE status = 'pending_review'
+        `);
       })().catch((error) => {
         this.schemaReady = null;
         throw error;
@@ -217,8 +226,8 @@ export class RetailerRepository {
   }) {
     await this.ensureSchema();
     const rows = await this.query.query(`
-      INSERT INTO retailer_submissions (id, user_id, store_name, store_address, payload)
-      SELECT $1, user_id, store_name, store_address, $3::jsonb
+      INSERT INTO retailer_submissions (id, user_id, store_name, store_address, payload, status, reviewed_at, reviewed_by)
+      SELECT $1, user_id, store_name, store_address, $3::jsonb, 'reviewed', NOW(), 'retailer_direct'
       FROM retailer_applications
       WHERE user_id = $2 AND status = 'verified'
       RETURNING *

@@ -43,23 +43,6 @@ async function updateRetailerStatus(formData: FormData) {
   revalidatePath("/retailers/portal");
 }
 
-async function reviewSubmission(formData: FormData) {
-  "use server";
-  const { admin } = await requireRetailerAdmin();
-  const targetUserId = String(formData.get("userId") || "");
-  const submissionId = String(formData.get("submissionId") || "");
-  const decision = String(formData.get("decision") || "");
-  if (!targetUserId || !submissionId || !["reviewed", "rejected"].includes(decision)) return;
-  await getRetailerRepository().reviewSubmission({
-    id: submissionId,
-    userId: targetUserId,
-    status: decision as "reviewed" | "rejected",
-    reviewedBy: admin.id,
-  });
-  revalidatePath("/admin/retailers");
-  revalidatePath("/retailers/portal");
-}
-
 async function removeRetailerSubmission(formData: FormData) {
   "use server";
   await requireRetailerAdmin();
@@ -154,11 +137,10 @@ export default async function RetailerAdminPage() {
                   </div>
                 </div>
 
-                {submissions.length ? <div className="mt-6 border-t border-white/10 pt-5"><h3 className="font-serif text-lg">Submitted updates</h3><div className="mt-3 grid gap-3">{submissions.map((submission) => (
+                {submissions.length ? <div className="mt-6 border-t border-white/10 pt-5"><h3 className="font-serif text-lg">Submitted signals</h3><div className="mt-3 grid gap-3">{submissions.map((submission) => (
                   <div key={submission.id} className="grid gap-3 border border-white/10 p-4 md:grid-cols-[1fr_auto]">
-                    <div><div className="flex flex-wrap gap-2"><strong>{submission.title}</strong><span className="font-mono text-[10px] uppercase text-amber-200">{submission.status === "reviewed" ? "approved" : submission.status?.replaceAll("_", " ") || "pending review"}</span></div><p className="mt-1 text-sm text-[var(--color-text-secondary)]">{submission.storeName} · {submission.storeAddress}{submission.locationDetails ? ` · ${submission.locationDetails}` : ""} · {submission.availability || "No availability supplied"} · {submission.price || "No price supplied"}</p></div>
+                    <div><div className="flex flex-wrap gap-2"><strong>{submission.title}</strong><span className="font-mono text-[10px] uppercase text-amber-200">{submission.status === "rejected" ? "removed" : "retailer signal"}</span></div><p className="mt-1 text-sm text-[var(--color-text-secondary)]">{submission.storeName} · {submission.storeAddress}{submission.locationDetails ? ` · ${submission.locationDetails}` : ""} · {submission.availability || "No availability supplied"} · {submission.price || "No price supplied"}</p></div>
                     <div className="flex flex-wrap items-start gap-2">
-                      {submission.status === "pending_review" ? <><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="reviewed" /><button className="border border-emerald-600/50 px-3 py-2 text-xs text-emerald-200">Approve</button></form><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="rejected" /><button className="border border-red-600/50 px-3 py-2 text-xs text-red-100">Reject</button></form></> : null}
                       <details className="border border-red-600/30 px-3 py-2 text-xs text-red-100"><summary className="cursor-pointer">Remove</summary><form action={removeRetailerSubmission} className="mt-2"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><button className="border border-red-600/50 px-2 py-1" type="submit">Confirm remove</button></form></details>
                     </div>
                   </div>

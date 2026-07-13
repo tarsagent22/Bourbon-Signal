@@ -87,7 +87,7 @@ export function normalizeRetailerSubmission(input: unknown): Result<RetailerSubm
     availability: text(row.availability, 100),
     notes: text(row.notes, 1_000),
     expiresAt: text(row.expiresAt, 40),
-    status: "pending_review",
+    status: "reviewed",
   };
   if (!value.title) return { ok: false, error: "A bottle, event, or promotion title is required." };
   return { ok: true, value };

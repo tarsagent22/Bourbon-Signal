@@ -308,6 +308,22 @@ export async function GET(request: Request) {
   ]);
   const suggestions = dedupeBottleSuggestions(suggestionRows).slice(0, 8);
 
+  if (intent === "suggest") {
+    const matchScore = bottle && typeof (bottle as BibleBottle & { matchScore?: number }).matchScore === "number"
+      ? (bottle as BibleBottle & { matchScore: number }).matchScore
+      : 0;
+    return NextResponse.json(
+      {
+        query,
+        bottle: bottle ? userFacingBottle(bottle) : null,
+        suggestions: suggestions.map(userFacingBottle),
+        showSuggestions: !bottle || matchScore < 95,
+        usage: usageGate.usage,
+      },
+      { headers: siteExportHeaders("local-export") }
+    );
+  }
+
   if (!bottle) {
     captureSearchEvent({
       surface: "bottle-check",

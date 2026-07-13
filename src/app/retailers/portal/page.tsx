@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
 import { normalizeRetailerSubmission } from "@/lib/retailer-portal";
+import RetailerSignalForm from "./RetailerSignalForm";
 import styles from "../retailers.module.css";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   const repository = getRetailerRepository();
   const application = await repository.getApplication(userId);
   if (!application) redirect("/retailers/onboarding");
-  const submissions = await repository.listSubmissions(userId);
+  const submissions = (await repository.listSubmissions(userId)).filter((submission) => submission.status !== "rejected");
   const retailerStatus = application.status;
   const storeName = application.storeName;
   const error = typeof params.error === "string" ? params.error : "";
@@ -79,13 +80,13 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
         {params.applied === "1" ? <p className={styles.notice}>Application received. We’ll verify your relationship with the store before enabling submissions.</p> : null}
         {params.notification === "pending" ? <p className={styles.error} role="alert">Your application is saved, but the review notification needs to be retried below.</p> : null}
         {params.notified === "1" ? <p className={styles.notice}>The review team has been notified.</p> : null}
-        {params.submitted === "1" ? <p className={styles.notice}>Update submitted for Bourbon Signal review.</p> : null}
+        {params.submitted === "1" ? <p className={styles.notice}>Signal submitted. No additional approval is required.</p> : null}
 
         {retailerStatus === "pending" ? (
           <section className={styles.statusPanel}>
             <div className={styles.statusLine}><span className={styles.status}>Verification pending</span><strong>{storeName}</strong></div>
-            <h2>We’re confirming your connection to the store.</h2>
-            <p className={styles.muted}>Bourbon Signal will contact the business using a phone number or email found independently—not solely the information supplied during registration.</p>
+            <h2>We only verify store access once.</h2>
+            <p className={styles.muted}>We confirm your connection through a publicly listed business phone or an official business email. After approval, your signals do not go through a separate review step.</p>
             {!application?.notificationSentAt ? <form action={retryRetailerNotification}><button className={styles.secondaryButton} type="submit">Notify the review team</button></form> : null}
           </section>
         ) : retailerStatus === "rejected" ? (
@@ -98,37 +99,21 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
           <div className={styles.portalGrid}>
             <section className={styles.statusPanel}>
               <div className={styles.statusLine}><span className={styles.status}>Retailer verified</span></div>
-              <h2>Submit an update</h2>
-              <p className={styles.muted}>Updates are reviewed before they appear on Bourbon Signal.</p>
-              <form action={submitRetailerUpdate} className={styles.formGrid}>
-                <div className={styles.field}>
-                  <label htmlFor="kind">Update type</label>
-                  <select id="kind" name="kind" defaultValue="bottle_drop">
-                    <option value="bottle_drop">Bottle drop</option><option value="barrel_pick">Barrel pick</option><option value="tasting">Tasting</option><option value="lottery">Lottery</option><option value="other">Other</option>
-                  </select>
-                </div>
-                <div className={styles.field}><label htmlFor="title">Bottle or event title</label><input id="title" name="title" required maxLength={160} /></div>
-                <div className={styles.field}><label htmlFor="locationDetails">Location details <span className={styles.muted}>(optional)</span></label><input id="locationDetails" name="locationDetails" placeholder="Front counter, tasting room…" maxLength={180} /></div>
-                <div className={`${styles.formGrid} ${styles.twoColumns}`}>
-                  <div className={styles.field}><label htmlFor="price">Price</label><input id="price" name="price" placeholder="$79.99" maxLength={40} /></div>
-                  <div className={styles.field}><label htmlFor="availability">Availability</label><input id="availability" name="availability" placeholder="12 bottles, limit one" maxLength={100} /></div>
-                </div>
-                <div className={styles.field}><label htmlFor="expiresAt">End or expiration</label><input id="expiresAt" name="expiresAt" type="datetime-local" /></div>
-                <div className={styles.field}><label htmlFor="notes">Customer details</label><textarea id="notes" name="notes" maxLength={1000} /></div>
-                <button className={styles.primaryButton} type="submit">Submit for review</button>
-              </form>
+              <h2>Submit a signal</h2>
+              <p className={styles.muted}>Share a bottle drop, barrel pick, tasting, or lottery directly. Verified retailers do not wait for per-signal approval.</p>
+              <RetailerSignalForm action={submitRetailerUpdate} />
             </section>
 
             <section>
-              <p className={styles.eyebrow}>Recent updates</p>
+              <p className={styles.eyebrow}>Recent signals</p>
               <div className={styles.submissions}>
                 {submissions.length ? submissions.map((submission) => (
                   <article className={styles.submissionCard} key={submission.id || `${submission.title}-${submission.createdAt}`}>
-                    <div className={styles.statusLine}><span className={styles.status}>{submission.status === "reviewed" ? "approved" : submission.status?.replaceAll("_", " ") || "pending review"}</span><strong>{submission.title}</strong></div>
+                    <div className={styles.statusLine}><span className={styles.status}>submitted</span><strong>{submission.title}</strong></div>
                     <p className={styles.muted}>{submission.notes || "No additional details."}</p>
                     <div className={styles.submissionMeta}><span>{submission.kind?.replaceAll("_", " ")}</span><span>{submission.storeName}</span><span>{submission.storeAddress}</span>{submission.locationDetails ? <span>{submission.locationDetails}</span> : null}<span>{submission.price || "Price not supplied"}</span><span>{submission.availability || "Availability not supplied"}</span></div>
                   </article>
-                )) : <div className={styles.submissionCard}><strong>No retailer updates yet.</strong><p className={styles.muted}>Your submitted drops, picks, tastings, and lotteries will appear here.</p></div>}
+                )) : <div className={styles.submissionCard}><strong>No retailer signals yet.</strong><p className={styles.muted}>Your submitted drops, picks, tastings, and lotteries will appear here.</p></div>}
               </div>
             </section>
           </div>
