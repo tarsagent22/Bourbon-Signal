@@ -350,6 +350,23 @@ const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_
 const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_CACHE_MAX_AGE_MS || 10 * 60 * 60_000);
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
+const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 4));
+const TN_CITYHIVE_ROTATION_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_ROTATION_MS) || 60 * 60_000);
+
+export function rotatingSourceCohort(sources, observedAt, cohortSize, rotationMs) {
+  if (!Array.isArray(sources) || sources.length === 0) return [];
+  const safeSize = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));
+  const safeRotationMs = Math.max(1, Number(rotationMs) || 1);
+  const slot = Math.floor(new Date(observedAt).getTime() / safeRotationMs);
+  const start = (slot * safeSize) % sources.length;
+  return Array.from({ length: safeSize }, (_, index) => sources[(start + index) % sources.length]);
+}
+
+export function normalizeCityHiveReportedQuantity(value) {
+  const reportedQuantity = Number(value || 0) || 0;
+  const binaryAvailability = reportedQuantity === 100;
+  return { reportedQuantity, binaryAvailability, quantity: binaryAvailability ? 1 : reportedQuantity };
+}
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
 const TN_COOL_SPRINGS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_PAGE_SIZE || 100));
 const TN_COOL_SPRINGS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_MAX_PAGES || 3);
@@ -2484,13 +2501,13 @@ async function collectIndianaCityHive(config, bible, observedAt) {
               const rawName = option.option_display_data?.name || product.name;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
-              const quantity = Number(option.quantity || 0) || 0;
+              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
               const fullAddress = option.full_address || null;
               const city = fullAddress?.match(/,\s*([^,]+),\s*IN\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress?.match(/\bIN\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
               const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
               signals.push({
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.option_id, quantity, option.price]),
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.product_id, option.option_id]),
                 state: config.id,
                 sourceLabel: source.sourceLabel,
                 sourceUrl: option.product_url || url,
@@ -2512,7 +2529,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
                 lng: Number(option.coordinates?.[0]) || null,
                 quantity,
                 price: Number(option.price || 0) || null,
-                availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
+                availabilityStatus: quantity > 0 ? (binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock') : 'out_of_stock',
                 availabilityLabel: quantity > 0 ? 'In stock' : 'Out of stock',
                 observedAt,
                 canAlertAsInventory: quantity > 0,
@@ -2595,8 +2612,13 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
   const seenProductOptions = new Set();
   const seenStores = new Set();
   const seenPageFirstProducts = new Set();
+  const blockedSourceIds = new Set();
+  const forceAllSources = process.env.BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES === '1';
+  const selectedSources = forceAllSources
+    ? TN_CITYHIVE_SOURCES
+    : rotatingSourceCohort(TN_CITYHIVE_SOURCES, observedAt, TN_CITYHIVE_SOURCE_COHORT_SIZE, TN_CITYHIVE_ROTATION_MS);
 
-  for (const source of TN_CITYHIVE_SOURCES) {
+  for (const source of selectedSources) {
     let sourceBlocked = false;
     for (const seedUrl of source.urls) {
       if (sourceBlocked) break;
@@ -2611,7 +2633,10 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
             error: res.error || `HTTP ${res.status}`,
             nextRoute: 'Retry the CityHive page or inspect rendered/network calls for current product JSON shape.'
           });
-          if (res.status === 429) sourceBlocked = true;
+          if (res.status === 429) {
+            sourceBlocked = true;
+            blockedSourceIds.add(source.id);
+          }
           break;
         }
 
@@ -2670,13 +2695,13 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
               const rawName = option.option_display_data?.name || product.name;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
-              const quantity = Number(option.quantity || 0) || 0;
+              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
               const fullAddress = option.full_address || null;
               const city = fullAddress?.match(/,\s*([^,]+),\s*TN\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress?.match(/\bTN\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
               const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
               signals.push({
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.option_id, quantity, option.price]),
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.product_id, option.option_id]),
                 state: config.id,
                 sourceLabel: source.sourceLabel,
                 sourceUrl: option.product_url || url,
@@ -2698,14 +2723,16 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
                 lng: Number(option.coordinates?.[0]) || null,
                 quantity,
                 price: Number(option.price || 0) || null,
-                availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
+                availabilityStatus: quantity > 0 ? (binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock') : 'out_of_stock',
                 availabilityLabel: quantity > 0 ? 'In stock' : 'Out of stock',
                 observedAt,
                 canAlertAsInventory: quantity > 0,
                 canAlertAsWatch: true,
                 inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
-                evidence: `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
-                raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
+                evidence: binaryAvailability
+                  ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}; the retailer value 100 is treated as binary availability, not an exact shelf count.`
+                  : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
+                raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
               });
             }
           }
@@ -2714,6 +2741,17 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
       }
     }
     await sleep(TN_CITYHIVE_SOURCE_DELAY_MS);
+  }
+
+  const selectedSourceIds = new Set(selectedSources.map((source) => source.id));
+  if (cache) {
+    const retained = (cache.signals || []).filter((signal) => {
+      const sourceId = signal?.raw?.chain;
+      if (!sourceId) return false;
+      return !selectedSourceIds.has(sourceId) || blockedSourceIds.has(sourceId);
+    });
+    const liveKeys = new Set(signals.map((signal) => signal.id));
+    signals.push(...retained.filter((signal) => !liveKeys.has(signal.id)));
   }
 
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
