@@ -8,6 +8,18 @@ import {
   normalizeRetailerSubmission,
 } from "../src/lib/retailer-portal.ts";
 import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-admin.ts";
+import { normalizeClerkProxyRequest } from "../src/lib/clerk-proxy-origin.ts";
+
+const untrustedProxyRequest = new Request("https://www.bourbonsignal.com/api/clerk-proxy/npm/@clerk/clerk-js@6/dist/clerk.browser.js", {
+  headers: {
+    "x-forwarded-host": "bourbonsignal.com",
+    "x-forwarded-proto": "http",
+  },
+});
+const normalizedProxyRequest = normalizeClerkProxyRequest(untrustedProxyRequest);
+assert.equal(normalizedProxyRequest.url, untrustedProxyRequest.url);
+assert.equal(normalizedProxyRequest.headers.get("x-forwarded-host"), "www.bourbonsignal.com");
+assert.equal(normalizedProxyRequest.headers.get("x-forwarded-proto"), "https");
 
 assert.equal(RETAILER_ADMIN_EMAIL, "chandlertodd22@gmail.com");
 assert.equal(isRetailerAdminEmail(" CHANDLERTODD22@gmail.com "), true);
@@ -82,6 +94,9 @@ const middleware = read("src/middleware.ts");
 assert.match(middleware, /"\/retailers\/portal\(\.\*\)"/);
 assert.doesNotMatch(middleware, /"\/retailers\(\.\*\)"/);
 assert.match(middleware, /url\.pathname\.startsWith\("\/admin"\)[\s\S]*new URL\("\/sign-in"/);
+
+const proxy = read("src/app/api/clerk-proxy/[...path]/route.ts");
+assert.match(proxy, /clerkFrontendApiProxy\(normalizeClerkProxyRequest\(request\)/);
 
 const webhook = read("src/app/api/webhooks/clerk/route.ts");
 assert.match(webhook, /notifyRetailerAccountCreated/);
