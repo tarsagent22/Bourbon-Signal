@@ -82,10 +82,13 @@ const middleware = read("src/middleware.ts");
 assert.match(middleware, /"\/retailers\/portal\(\.\*\)"/);
 assert.doesNotMatch(middleware, /"\/retailers\(\.\*\)"/);
 assert.match(middleware, /url\.pathname\.startsWith\("\/admin"\)[\s\S]*new URL\("\/sign-in"/);
-assert.doesNotMatch(middleware, /clerk-proxy|__clerk/);
+assert.match(middleware, /hostname === "bourbonsignal\.com" && url\.pathname\.startsWith\("\/api\/clerk-proxy"\)[\s\S]*NextResponse\.next\(\)/);
 
 const layout = read("src/app/layout.tsx");
-assert.doesNotMatch(layout, /proxyUrl=/);
+assert.match(layout, /proxyUrl="https:\/\/bourbonsignal\.com\/api\/clerk-proxy"/);
+
+const proxy = read("src/app/api/clerk-proxy/[...path]/route.ts");
+assert.match(proxy, /APEX_HOST = "bourbonsignal\.com"/);
 
 const webhook = read("src/app/api/webhooks/clerk/route.ts");
 assert.match(webhook, /notifyRetailerAccountCreated/);

@@ -77,6 +77,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
+      proxyUrl="https://bourbonsignal.com/api/clerk-proxy"
       appearance={{
         theme: dark,
         variables: {
