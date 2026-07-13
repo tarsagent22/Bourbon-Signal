@@ -55,6 +55,8 @@
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
     "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states && npm run test:data-plane",
+    "verify:reliability": "node src/verify-reliability.mjs",
+    "drill:recovery": "node src/run-recovery-drill.mjs",
     "verify:pa:automation": "node src/verify-pa-automation.mjs && node src/test-fwgs-artifact-policy.mjs",
     "store:identity": "node src/build-store-identity.mjs"
   },

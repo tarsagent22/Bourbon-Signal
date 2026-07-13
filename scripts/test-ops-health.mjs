@@ -23,6 +23,7 @@ assert.equal(healthy.ok, true);
 assert.equal(healthy.cron.expectedSchedule, EXPECTED_ALERT_CRON_SCHEDULE);
 assert.equal(healthy.cron.status, 'healthy');
 assert.equal(healthy.engine.status, 'healthy');
+assert.equal(healthy.engine.staleAfterMinutes, 45);
 
 const stale = buildOpsHealth({
   heartbeat: { ...heartbeat, completedAt: new Date(now.getTime() - 20 * 60_000).toISOString() },
@@ -96,11 +97,15 @@ const healthyPipeline = buildOpsHealth({
     appCommit: 'app123',
     engineCommit: 'engine123',
     collectionRunId: 'run123',
+    lastRollbackAt: '2026-07-13T10:00:00.000Z',
+    lastRollbackFrom: 'snapshot-bad',
+    lastRollbackTo: 'snapshot-123',
   },
 });
 assert.equal(healthyPipeline.engine.freshnessStage, 'healthy');
 assert.equal(healthyPipeline.engine.snapshotId, 'snapshot-123');
 assert.equal(healthyPipeline.engine.provenance.engineCommit, 'engine123');
+assert.deepEqual(healthyPipeline.engine.lastRollback, { at: '2026-07-13T10:00:00.000Z', from: 'snapshot-bad', to: 'snapshot-123' });
 
 const publisherDelay = buildOpsHealth({
   heartbeat,

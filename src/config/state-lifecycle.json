@@ -25,6 +25,24 @@
     "WA",
     "WI"
   ],
+  "reliabilityPolicy": {
+    "schemaVersion": 1,
+    "refreshIntervalMs": 1800000,
+    "refreshSafetyMarginMs": 300000,
+    "defaultExpectedStateRunMs": 90000,
+    "workerConcurrency": 4,
+    "grandfatheredActiveStates": [
+      "NC", "VA", "PA", "OH", "IA", "ID", "AL", "IL", "IN", "TN", "SC", "MD-MONTGOMERY", "KY", "AZ", "CA", "FL", "TX", "GA", "MI", "MN", "MO", "NV", "WA", "WI"
+    ],
+    "stateExpectedRunMs": {
+      "TX": 420000,
+      "VA": 240000,
+      "IN": 240000,
+      "TN": 180000,
+      "SC": 180000,
+      "KY": 180000
+    }
+  },
   "states": {
     "NC": {
       "customerLabel": "North Carolina",

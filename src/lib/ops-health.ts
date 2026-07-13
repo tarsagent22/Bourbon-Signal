@@ -5,7 +5,7 @@ export const EXPECTED_ALERT_CRON_SCHEDULE = "*/5 * * * *";
 export const EXPECTED_ALERT_CRON_PATH = "/api/alerts/deliver?cron=v3";
 export const EXPECTED_ALERT_CRON_CADENCE_MINUTES = 5;
 const CRON_STALE_AFTER_MINUTES = 12;
-const ENGINE_STALE_AFTER_MINUTES = 120;
+const ENGINE_STALE_AFTER_MINUTES = 45;
 
 export interface AlertDeliveryHeartbeat {
   schemaVersion: 2;
@@ -126,6 +126,9 @@ export function buildOpsHealth(input: {
     appCommit?: string | null;
     engineCommit?: string | null;
     collectionRunId?: string | null;
+    lastRollbackAt?: string | null;
+    lastRollbackFrom?: string | null;
+    lastRollbackTo?: string | null;
   };
 }) {
   const cronAgeMinutes = ageMinutes(input.heartbeat?.completedAt);
@@ -204,6 +207,11 @@ export function buildOpsHealth(input: {
       snapshotUploadedAt: input.snapshot?.snapshotUploadedAt ?? null,
       snapshotActivatedAt: input.snapshot?.snapshotActivatedAt ?? null,
       productionObservedAt: input.snapshot?.productionObservedAt ?? null,
+      lastRollback: input.snapshot?.lastRollbackAt ? {
+        at: input.snapshot.lastRollbackAt,
+        from: input.snapshot.lastRollbackFrom ?? null,
+        to: input.snapshot.lastRollbackTo ?? null,
+      } : null,
       provenance: {
         appCommit: input.snapshot?.appCommit ?? null,
         engineCommit: input.snapshot?.engineCommit ?? null,

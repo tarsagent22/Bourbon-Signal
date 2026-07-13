@@ -141,7 +141,10 @@ export async function rollbackSiteSnapshot(storage, options = {}) {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const current = await storage.readPointer();
     if (!current?.active) return { status: 'no_active_snapshot', pointer: current };
-    if (current.lastRollback?.to === current.active) return { status: 'already_rolled_back', pointer: current };
+    if (current.lastRollback?.to === current.active) {
+      if (typeof storage.ensurePointerEvent === 'function') await storage.ensurePointerEvent(current);
+      return { status: 'already_rolled_back', pointer: current };
+    }
     if (!current.previous) return { status: 'no_previous_snapshot', pointer: current };
     await readPublishedManifest(storage, current.previous);
     const next = {

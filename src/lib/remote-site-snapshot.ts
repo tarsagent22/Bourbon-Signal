@@ -76,6 +76,9 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
       if (Buffer.byteLength(plaintext) !== descriptor.bytes || sha256(plaintext) !== descriptor.sha256) {
         throw new Error(`Engine snapshot file hash mismatch: ${filePath}`);
       }
+      const rollback = pointer?.lastRollback && typeof pointer.lastRollback === "object"
+        ? pointer.lastRollback as Record<string, unknown>
+        : null;
       return {
         source: "remote" as const,
         snapshotId,
@@ -85,6 +88,9 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
         appCommit: typeof (manifest as unknown as Record<string, unknown>).appCommit === "string" ? (manifest as unknown as Record<string, string>).appCommit : null,
         engineCommit: typeof (manifest as unknown as Record<string, unknown>).engineCommit === "string" ? (manifest as unknown as Record<string, string>).engineCommit : null,
         collectionRunId: typeof (manifest as unknown as Record<string, unknown>).collectionRunId === "string" ? (manifest as unknown as Record<string, string>).collectionRunId : null,
+        lastRollbackAt: typeof rollback?.at === "string" ? rollback.at : null,
+        lastRollbackFrom: typeof rollback?.from === "string" ? rollback.from : null,
+        lastRollbackTo: typeof rollback?.to === "string" ? rollback.to : null,
         payload: JSON.parse(plaintext) as Record<string, unknown>,
       };
     },

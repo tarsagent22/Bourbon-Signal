@@ -71,6 +71,19 @@ test('failed readback never activates a partial snapshot', async () => {
   assert.equal(await storage.readPointer(), null);
 });
 
+test('idempotent rollback republishes the authoritative pointer event', async () => {
+  const storage = new InMemoryObjectStorage();
+  const first = await publishSiteSnapshot(storage, files, metadata, { encryptionKey });
+  const newerFiles = { ...files, 'stats.json': JSON.stringify({ contractVersion: 'bourbon-signal-site-v0.1', generatedAt: '2026-07-10T14:03:49.778Z', signalCount: 12 }) };
+  await publishSiteSnapshot(storage, newerFiles, { ...metadata, generatedAt: '2026-07-10T14:03:49.778Z', collectionRunId: 'run-125' }, { encryptionKey });
+  await rollbackSiteSnapshot(storage);
+  let repaired = null;
+  storage.ensurePointerEvent = async (pointer) => { repaired = pointer; };
+  const repeat = await rollbackSiteSnapshot(storage);
+  assert.equal(repeat.status, 'already_rolled_back');
+  assert.equal(repaired.active, first.manifest.snapshotId);
+});
+
 test('repeat publication is idempotent and rollback restores the previous complete snapshot', async () => {
   const storage = new InMemoryObjectStorage();
   const first = await publishSiteSnapshot(storage, files, metadata, { encryptionKey });

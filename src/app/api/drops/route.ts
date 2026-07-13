@@ -1,7 +1,7 @@
 import { getEntitlements } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResult, siteExportHeaders } from "@/lib/site-engine-contract";
+import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
@@ -233,10 +233,7 @@ export async function GET(request: Request) {
   const tierFilter = parseTierFilter(url);
 
   try {
-    const [dropResult, statsResult] = await Promise.all([
-      readSiteExportResult("drops"),
-      readSiteExportResult("stats"),
-    ]);
+    const [dropResult, statsResult] = await readSiteExportResults(["drops", "stats"]);
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];

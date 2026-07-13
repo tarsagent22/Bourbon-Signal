@@ -1,0 +1,63 @@
+name: Production engine freshness watchdog
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: production-engine-watchdog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout watchdog contract
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Probe the customer domain twice
+        id: watchdog
+        continue-on-error: true
+        env:
+          BOURBON_SIGNAL_WATCHDOG_ATTEMPTS: "2"
+          BOURBON_SIGNAL_WATCHDOG_RETRY_DELAY_MS: "15000"
+          BOURBON_SIGNAL_WATCHDOG_MAX_SNAPSHOT_AGE_MS: "2700000"
+        run: node scripts/production-engine-watchdog.mjs
+
+      - name: Preserve watchdog evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-engine-watchdog-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: engine/out/production-watchdog.json
+
+      - name: Dispatch guarded recovery after two failed probes
+        if: steps.watchdog.outcome == 'failure' && vars.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          active_runs="$(gh run list --workflow refresh-feed.yml --limit 10 --json status --jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')"
+          if [ "$active_runs" -eq 0 ]; then
+            gh workflow run refresh-feed.yml --ref main -f force_all_states=true
+          else
+            echo "A guarded refresh is already active; suppressing duplicate recovery dispatch."
+          fi
+
+      - name: Fail loudly after recovery dispatch
+        if: steps.watchdog.outcome == 'failure'
+        run: |
+          echo "Production engine freshness SLO failed twice; guarded refresh dispatched."
+          exit 1

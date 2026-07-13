@@ -1,0 +1,35 @@
+name: Monthly engine recovery drill
+
+on:
+  schedule:
+    - cron: "17 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulate-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout recovery contracts
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run non-production recovery simulation
+        working-directory: engine
+        run: node src/run-recovery-drill.mjs
+
+      - name: Preserve recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-recovery-drill-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: engine/out/recovery-drill.json

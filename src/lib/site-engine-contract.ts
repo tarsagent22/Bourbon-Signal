@@ -23,6 +23,9 @@ export interface SiteExportResult {
   appCommit?: string | null;
   engineCommit?: string | null;
   collectionRunId?: string | null;
+  lastRollbackAt?: string | null;
+  lastRollbackFrom?: string | null;
+  lastRollbackTo?: string | null;
   shadowMatch?: boolean;
   fallbackReason?: string;
 }
@@ -56,6 +59,64 @@ function payloadHash(payload: JsonRecord | null) {
   return payload ? createHash("sha256").update(JSON.stringify(payload)).digest("hex") : null;
 }
 
+function remoteExportResult(name: SiteExportName, remote: Awaited<ReturnType<typeof remoteReader.read>>, bundled: JsonRecord | null, mode: string): SiteExportResult {
+  const payload = validatePayload(name, remote.payload);
+  if (mode === "shadow") {
+    return {
+      payload: bundled,
+      source: "local-export",
+      snapshotId: remote.snapshotId,
+      generatedAt: typeof bundled?.generatedAt === "string" ? bundled.generatedAt : null,
+      shadowMatch: payloadHash(payload) === payloadHash(bundled),
+    };
+  }
+  return {
+    payload,
+    source: "remote-snapshot",
+    snapshotId: remote.snapshotId,
+    generatedAt: remote.generatedAt,
+    snapshotUploadedAt: remote.snapshotUploadedAt,
+    snapshotActivatedAt: remote.snapshotActivatedAt,
+    appCommit: remote.appCommit,
+    engineCommit: remote.engineCommit,
+    collectionRunId: remote.collectionRunId,
+    lastRollbackAt: remote.lastRollbackAt,
+    lastRollbackFrom: remote.lastRollbackFrom,
+    lastRollbackTo: remote.lastRollbackTo,
+  };
+}
+
+export async function readSiteExportResults(names: SiteExportName[]): Promise<SiteExportResult[]> {
+  const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
+  const bundled = names.map((name) => readBundledSiteExport(name));
+  if (mode === "off") {
+    return bundled.map((payload) => ({
+      payload,
+      source: "local-export" as const,
+      snapshotId: null,
+      generatedAt: typeof payload?.generatedAt === "string" ? payload.generatedAt : null,
+    }));
+  }
+  try {
+    const pointer = await readActivePointer();
+    const pinnedReader = createRemoteSiteSnapshotReader({
+      encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "",
+      storage: { readPointer: async () => pointer, readObject: readImmutableObject },
+    });
+    const remote = await Promise.all(names.map((name) => pinnedReader.read(name)));
+    return remote.map((result, index) => remoteExportResult(names[index], result, bundled[index], mode));
+  } catch (error) {
+    if (bundled.some((payload) => !payload)) throw error;
+    return bundled.map((payload) => ({
+      payload,
+      source: "cache-fallback" as const,
+      snapshotId: null,
+      generatedAt: typeof payload?.generatedAt === "string" ? payload.generatedAt : null,
+      fallbackReason: error instanceof Error ? error.message : "remote_snapshot_unavailable",
+    }));
+  }
+}
+
 export async function readSiteExportResult(name: SiteExportName): Promise<SiteExportResult> {
   const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
   const bundled = readBundledSiteExport(name);
@@ -85,6 +146,9 @@ export async function readSiteExportResult(name: SiteExportName): Promise<SiteEx
       appCommit: remote.appCommit,
       engineCommit: remote.engineCommit,
       collectionRunId: remote.collectionRunId,
+      lastRollbackAt: remote.lastRollbackAt,
+      lastRollbackFrom: remote.lastRollbackFrom,
+      lastRollbackTo: remote.lastRollbackTo,
     };
   } catch (error) {
     if (!bundled) throw error;

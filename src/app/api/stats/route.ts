@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
-import { normalizeStatsForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { normalizeStatsForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
 
 export async function GET() {
   try {
-    const [statsPayload, bottlesPayload, storesPayload, dropsPayload] = await Promise.all([
-      readSiteExport("stats"),
-      readSiteExport("bottles"),
-      readSiteExport("stores"),
-      readSiteExport("drops"),
+    const [statsResult, bottlesResult, storesResult, dropsResult] = await readSiteExportResults([
+      "stats",
+      "bottles",
+      "stores",
+      "drops",
     ]);
+    const statsPayload = statsResult.payload;
+    const bottlesPayload = bottlesResult.payload;
+    const storesPayload = storesResult.payload;
+    const dropsPayload = dropsResult.payload;
+    const incoherent = [bottlesResult, storesResult, dropsResult]
+      .some((result) => result.source !== statsResult.source || result.snapshotId !== statsResult.snapshotId);
+    if (incoherent) throw new Error("Mixed engine snapshot generation in stats response");
 
     const bottles = Array.isArray(bottlesPayload?.bottles) ? (bottlesPayload.bottles as Record<string, unknown>[]) : [];
     const stores = Array.isArray(storesPayload?.stores) ? (storesPayload.stores as Record<string, unknown>[]) : [];
@@ -17,7 +24,7 @@ export async function GET() {
     const data = normalizeStatsForSite(statsPayload, bottles, stores, drops);
 
     return NextResponse.json(data, {
-      headers: siteExportHeaders("local-export"),
+      headers: siteExportHeaders(statsResult.source, statsResult.snapshotId),
     });
   } catch (err) {
     console.error("[api/stats] Error reading site export:", err);

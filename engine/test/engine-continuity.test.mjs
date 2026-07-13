@@ -47,3 +47,30 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(productionGuard, /PRODUCTION_VERIFY_ATTEMPTS/);
   assert.match(productionGuard, /cache-control.*no-cache/);
 });
+
+test('stats endpoint propagates the exact remote snapshot provenance used by the watchdog', async () => {
+  const route = await readFile(new URL('../../src/app/api/stats/route.ts', import.meta.url), 'utf8');
+  assert.match(route, /readSiteExportResults\(\[[\s\S]*?["']stats["']/);
+  assert.doesNotMatch(route, /Promise\.all\(\[[\s\S]*?readSiteExportResult/);
+  assert.match(route, /siteExportHeaders\(statsResult\.source,\s*statsResult\.snapshotId\)/);
+  assert.match(route, /result\.source\s*!==\s*statsResult\.source/);
+  assert.match(route, /result\.snapshotId\s*!==\s*statsResult\.snapshotId/);
+  assert.doesNotMatch(route, /if\s*\(statsResult\.source\s*===\s*["']remote-snapshot["']\)/);
+  assert.doesNotMatch(route, /siteExportHeaders\(["']local-export["']\)/);
+});
+
+test('independent watchdog and monthly recovery drill are required operational contracts', async () => {
+  const watchdogWorkflow = await readFile(new URL('../../.github/workflows/engine-watchdog.yml', import.meta.url), 'utf8');
+  assert.match(watchdogWorkflow, /cron:\s*["']\*\/10 \* \* \* \*['"]/);
+  assert.match(watchdogWorkflow, /actions:\s*write/);
+  assert.match(watchdogWorkflow, /production-engine-watchdog\.mjs/);
+  assert.match(watchdogWorkflow, /workflow run refresh-feed\.yml/);
+  assert.match(watchdogWorkflow, /upload-artifact@v4/);
+
+  const drillWorkflow = await readFile(new URL('../../.github/workflows/engine-recovery-drill.yml', import.meta.url), 'utf8');
+  assert.match(drillWorkflow, /cron:\s*["']17 6 1 \* \*['"]/);
+  assert.match(drillWorkflow, /run-recovery-drill\.mjs/);
+
+  const ci = await readFile(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  assert.match(ci, /verify:reliability/);
+});

@@ -2,7 +2,7 @@
   "contractVersion": "bourbon-signal-site-v0.1",
   "generatedAt": "2026-07-12T00:32:36.192Z",
   "engineGeneratedAt": "2026-07-12T00:32:36.192Z",
-  "stateCount": 23,
+  "stateCount": 24,
   "signalCount": 28227,
   "historicalSignalCount": 246355,
   "historyDays": 30,
@@ -52,11 +52,11 @@
       }
     ]
   },
-  "statesAtTargetPrecision": 23,
+  "statesAtTargetPrecision": 14,
   "rareStatesVerified": 14,
   "stateCoverage": {
     "counts": {
-      "live_store_inventory": 8,
+      "live_store_inventory": 9,
       "store_delivery_leads": 1,
       "store_availability_status": 1,
       "shipment_drop_intelligence": 1,
@@ -525,6 +525,25 @@
         "areaOptions": [],
         "customerSummary": "Costco warehouse bourbon signals for Wisconsin warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
         "coverageTier": "retailer_warehouse_inventory"
+      },
+      {
+        "state": "TX",
+        "label": "Texas",
+        "sourceLabel": "Texas retailer inventory watch",
+        "tier": "B",
+        "status": "stale_useful_quality_fallback",
+        "publicStatus": "active",
+        "lifecycle": "retailer_store_inventory",
+        "signalCount": 949,
+        "roadblockCount": 12,
+        "targetLocationPrecision": "store_level",
+        "bestLocationPrecision": "store_level",
+        "strategy": "retailer_store_inventory_candidate",
+        "refinementLevel": "city_store",
+        "customerAreaLabel": null,
+        "areaOptions": [],
+        "customerSummary": "Guarded first-party Texas retailer inventory across multiple regions, with exact-store identity and verify-before-driving caveats. TABC and retailer catalog/event pages remain non-inventory context.",
+        "coverageTier": "live_store_inventory"
       }
     ]
   },
@@ -1062,12 +1081,12 @@
           "bottle": "Buffalo Trace Bourbon",
           "rawName": "Buffalo Trace Bourbon",
           "locationPrecision": "store_level",
-          "locationName": "Buster’s Liquors | University",
+          "locationName": "Buster\u2019s Liquors | University",
           "quantity": 136,
           "confidence": 0.86,
           "canAlertAsInventory": true,
           "canAlertAsWatch": true,
-          "summary": "Buster's Liquors & Wines CityHive reports 136 750mls of Buffalo Trace Bourbon at Buster’s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $25.99."
+          "summary": "Buster's Liquors & Wines CityHive reports 136 750mls of Buffalo Trace Bourbon at Buster\u2019s Liquors | University (Dillard Square Shopping Center, 191 S Highland St, Memphis, TN 38111, USA) for $25.99."
         },
         {
           "id": "38696ed15faa61d4",
@@ -1402,7 +1421,7 @@
     {
       "state": "IN",
       "bottleName": "Bulleit Bourbon",
-      "source": "Cap n’ Cork Coldwater #411",
+      "source": "Cap n\u2019 Cork Coldwater #411",
       "locationPrecision": "store_level",
       "inventoryObservations": 160,
       "watchObservations": 160,

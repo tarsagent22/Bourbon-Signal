@@ -31,6 +31,8 @@ jobs:
       BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1200000"
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+      BOURBON_SIGNAL_DISABLED_STATES: ${{ vars.BOURBON_SIGNAL_DISABLED_STATES }}
+      BOURBON_SIGNAL_QUARANTINED_STATES: ${{ vars.BOURBON_SIGNAL_QUARANTINED_STATES }}
     steps:
       - name: Checkout current production engine
         uses: actions/checkout@v4
@@ -57,6 +59,10 @@ jobs:
           key: inventory-refresh-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             inventory-refresh-${{ runner.os }}-
+
+      - name: Verify expansion capacity and reliability policy
+        working-directory: engine
+        run: npm run verify:reliability
 
       - name: Refresh all due customer-active states
         working-directory: engine
@@ -89,6 +95,7 @@ jobs:
           if-no-files-found: warn
           path: |
             engine/out/site-refresh-status.json
+            engine/out/reliability-status.json
             engine/out/source-health.json
             engine/out/operational-report.json
             engine/out/optimization/state-run-metrics.json

@@ -28,6 +28,9 @@ export async function GET() {
       appCommit: statsResult.appCommit ?? null,
       engineCommit: statsResult.engineCommit ?? null,
       collectionRunId: statsResult.collectionRunId ?? null,
+      lastRollbackAt: statsResult.lastRollbackAt ?? null,
+      lastRollbackFrom: statsResult.lastRollbackFrom ?? null,
+      lastRollbackTo: statsResult.lastRollbackTo ?? null,
     },
   });
 

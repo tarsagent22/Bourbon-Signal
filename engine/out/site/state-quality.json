@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedAt": "2026-07-12T00:25:38.623Z",
   "summary": {
-    "stateCount": 23,
-    "releaseEligibleStates": 12,
+    "stateCount": 24,
+    "releaseEligibleStates": 13,
     "releaseBlockedStates": 11,
-    "averageScore": 51,
+    "averageScore": 52,
     "weakestStates": [
       "KY",
       "CA",
@@ -748,6 +748,39 @@
         "roadblockCount": 3,
         "freshestObservedAt": null,
         "status": "useful"
+      }
+    },
+    {
+      "state": "TX",
+      "coverageTier": "live_store_inventory",
+      "score": 75,
+      "threshold": 65,
+      "releaseEligible": true,
+      "freshnessHours": 3.4,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 20,
+        "precision": 20,
+        "alerts": 0,
+        "sourceDiversity": 15,
+        "reliability": 0
+      },
+      "weaknesses": [
+        "no_alert_candidates",
+        "high_roadblock_load",
+        "degraded_state_status"
+      ],
+      "input": {
+        "state": "TX",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 949,
+        "dropCount": 133,
+        "storeLevelDropCount": 133,
+        "alertCandidateCount": 0,
+        "sourceCount": 57,
+        "roadblockCount": 12,
+        "freshestObservedAt": "2026-07-13T13:01:26.700Z",
+        "status": "stale_useful_quality_fallback"
       }
     }
   ],

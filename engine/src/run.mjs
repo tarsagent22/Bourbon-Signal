@@ -12,6 +12,7 @@ import { runBoundedPool } from './optimization/worker-pool.mjs';
 import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 import { guardStateReport } from './state-report-guard.mjs';
 import { withStateRunLock } from './state-run-lock.mjs';
+import { evaluateStateControl } from './reliability-policy.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -379,6 +380,13 @@ async function collectStateResilientUnlocked(config) {
     await runStateChild(config, candidatePath);
     const candidate = await readJson(candidatePath, null);
     if (!candidate) throw new Error(`${config.id} collector finished but did not write ${candidatePath}`);
+    const control = evaluateStateControl(config.id);
+    if (!control.publishCandidate) {
+      const reason = `State ${config.id} is ${control.mode}; candidate collected for diagnostics but cannot replace the last known-good report.`;
+      const report = previous ? markStaleReport(previous, config, reason) : failedReport(config, reason);
+      await atomicWriteJson(statePath, report);
+      return report;
+    }
     const guarded = guardStateReport({ previous, candidate });
     if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
     await atomicWriteJson(statePath, guarded.report);
@@ -518,8 +526,16 @@ async function main() {
   const schedule = STATE_SCHEDULER_ENABLED
     ? selectScheduledStates(selectedStateSources, previousMetrics, scheduleOptions)
     : selectedStateSources.map((config) => ({ id: config.id, config, run: true, decision: 'scheduler_disabled' }));
+  const stateControls = new Map(selectedStateSources.map((config) => [config.id, evaluateStateControl(config.id)]));
   for (const entry of schedule) {
-    if (!entry.run && !(await readJson(path.join(STATES_OUT, `${entry.id}.json`), null))) {
+    const control = stateControls.get(entry.id);
+    if (!control.collect) {
+      entry.run = false;
+      entry.decision = `state_${control.mode}`;
+    }
+  }
+  for (const entry of schedule) {
+    if (!entry.run && stateControls.get(entry.id)?.collect && !(await readJson(path.join(STATES_OUT, `${entry.id}.json`), null))) {
       entry.run = true;
       entry.decision = 'missing_previous_report';
     }
@@ -590,7 +606,10 @@ async function main() {
         coverageTier: lifecycle?.coverageTier || null,
         refinementLevel: lifecycle?.refinementLevel || null,
         customerAreaLabel: lifecycle?.customerAreaLabel || null,
-        customerSummary: lifecycle?.customerSummary || null
+        customerSummary: lifecycle?.customerSummary || null,
+        reliabilityMode: stateControls.get(r.state)?.mode || 'active',
+        collectionEnabled: stateControls.get(r.state)?.collect !== false,
+        candidatePublicationEnabled: stateControls.get(r.state)?.publishCandidate !== false
       };
     })
   };
