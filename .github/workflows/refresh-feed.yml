@@ -57,15 +57,16 @@ jobs:
           restore-keys: |
             inventory-refresh-${{ runner.os }}-
 
+      - name: Refresh and gate the Texas candidate
+        working-directory: engine
+        run: npm run run -- --states=TX --skip-browser-preflight && npm run verify:tx
+
       - name: Refresh all due customer-active states
         working-directory: engine
         env:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
         run: npm run refresh:site
 
-      - name: Enforce Texas production gate
-        working-directory: engine
-        run: npm run verify:tx
 
       - name: Verify coherent site contract
         working-directory: engine

@@ -291,7 +291,7 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'TX', label: "Texas retailer inventory + TABC watch", tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    id: 'TX', label: "Texas retailer inventory + TABC watch", tier: 'B', strategy: 'retailer_store_inventory_candidate', cadence: '30-60m',
     value: "Texas is a private retail market. Guarded first-party CityHive sources provide exact-store retailer availability across DFW, Houston, Central Texas, San Antonio, and the Gulf Coast. TABC and Spec's event/catalog pages remain non-inventory context.",
     rareSignalTarget: false,
     sources: [

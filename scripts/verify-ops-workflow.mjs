@@ -55,7 +55,10 @@ const stateSources = read('engine/src/state-sources.mjs');
 if (!/state-lifecycle\.mjs/.test(stateSources)) {
   fail('engine/src/state-sources.mjs should source CUSTOMER_ACTIVE_STATE_IDS from the shared state lifecycle config.');
 }
-for (const state of ['AL', 'IL', 'IN', 'NC', 'PA', 'SC', 'TN', 'TX', 'VA', 'IA', 'ID', 'MD-MONTGOMERY', 'KY']) {
+if (customerStates.has('TX')) {
+  fail('TX must not be in activeStates until Texas has stronger customer-facing data.');
+}
+for (const state of ['AL', 'IL', 'IN', 'NC', 'PA', 'SC', 'TN', 'VA', 'IA', 'ID', 'MD-MONTGOMERY', 'KY']) {
   if (!customerStates.has(state)) {
     fail(`Expected active customer state ${state} missing from shared state lifecycle config.`);
   }

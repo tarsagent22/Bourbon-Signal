@@ -16,7 +16,6 @@ export const STATE_LIFECYCLE_CONFIG = {
     "AZ",
     "CA",
     "FL",
-    "TX",
     "GA",
     "MI",
     "MN",
@@ -170,15 +169,6 @@ export const STATE_LIFECYCLE_CONFIG = {
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city_store",
       "customerSummary": "Whitelisted Florida retailer storefront and store-fulfillment signals, with store-specific identity and verify-before-driving caveats. Costco warehouse observations remain included where verified."
-    },
-    "TX": {
-      "customerLabel": "Texas",
-      "sourceLabel": "Texas retailer inventory network",
-      "publicStatus": "active",
-      "lifecycle": "retailer_store_inventory",
-      "coverageTier": "live_store_inventory",
-      "refinementLevel": "city_store",
-      "customerSummary": "First-party Texas retailer availability across major and secondary markets. Every inventory row is bound to a verified store and carries a verify-before-driving caveat; TABC, catalog, and event pages are not shelf inventory."
     },
     "GA": {
       "customerLabel": "Georgia",
