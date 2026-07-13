@@ -253,9 +253,11 @@ export async function GET(request: Request) {
       return dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse");
     };
 
-    const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean; requireFreshEngine: boolean }) => {
+    const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean }) => {
       let filtered = [...items];
-      if (options.requireFreshEngine && !engineFresh) filtered = [];
+      // Do not blank the customer feed solely because the aggregate engine timestamp
+      // crossed 24 hours. Every row is still checked against its stricter type-specific
+      // freshness window below, so recent inventory survives while expired rows fail closed.
       filtered = filtered.filter((drop) => isUserFacingDropSignal(drop));
       filtered = filtered.filter((drop) => {
         const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
@@ -267,7 +269,7 @@ export async function GET(request: Request) {
     };
 
     if (include !== "all") {
-      drops = applyPublicDropFilters(drops, { filterDegradedStates: true, requireFreshEngine: true });
+      drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
     }
 
     if (state) {
@@ -279,7 +281,7 @@ export async function GET(request: Request) {
     }
 
     if (include !== "all" && state && drops.length === 0 && !bottle && !store && degradedStates.has(state)) {
-      drops = applyPublicDropFilters(normalizedDrops, { filterDegradedStates: false, requireFreshEngine: true })
+      drops = applyPublicDropFilters(normalizedDrops, { filterDegradedStates: false })
         .filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
       if (tierFilter.size > 0) drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
       degradedStateFallback = drops.length > 0;
