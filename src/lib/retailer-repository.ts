@@ -228,6 +228,24 @@ export class RetailerRepository {
     return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
   }
 
+  async deleteSubmission(input: { id: string; userId: string }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      DELETE FROM retailer_submissions WHERE id = $1 AND user_id = $2
+      RETURNING *
+    `, [input.id, input.userId]);
+    return rows[0] ? submissionFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
+  async deleteApplication(userId: string) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      DELETE FROM retailer_applications WHERE user_id = $1
+      RETURNING *
+    `, [userId]);
+    return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
   async reviewSubmission(input: { id: string; userId: string; status: "reviewed" | "rejected"; reviewedBy: string }) {
     await this.ensureSchema();
     const rows = await this.query.query(`

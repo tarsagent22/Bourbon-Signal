@@ -7,6 +7,12 @@ import {
   normalizeRetailerStatus,
   normalizeRetailerSubmission,
 } from "../src/lib/retailer-portal.ts";
+import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-admin.ts";
+
+assert.equal(RETAILER_ADMIN_EMAIL, "chandlertodd22@gmail.com");
+assert.equal(isRetailerAdminEmail(" CHANDLERTODD22@gmail.com "), true);
+assert.equal(isRetailerAdminEmail("chandler@bourbonsignal.com"), false);
+assert.equal(isRetailerAdminEmail(null), false);
 
 const validApplication = {
   storeName: "  All American Liquor  ",
@@ -89,6 +95,10 @@ assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_applications/);
 assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_submissions/);
 assert.match(repository, /WHERE user_id = \$2 AND status = 'verified'/);
 assert.match(repository, /store_name TEXT NOT NULL/);
+assert.match(repository, /deleteApplication/);
+assert.match(repository, /DELETE FROM retailer_applications WHERE user_id = \$1/);
+assert.match(repository, /deleteSubmission/);
+assert.match(repository, /DELETE FROM retailer_submissions WHERE id = \$1 AND user_id = \$2/);
 
 const portal = read("src/app/retailers/portal/page.tsx");
 assert.match(portal, /retailerStatus/);
@@ -99,11 +109,19 @@ assert.match(portal, /retryRetailerNotification/);
 assert.doesNotMatch(portal, /unsafeMetadata|retailerSubmissions:/);
 
 const admin = read("src/app/admin/retailers/page.tsx");
-assert.match(admin, /isRewardsAdminEmail/);
+assert.match(admin, /isRetailerAdminEmail/);
+assert.doesNotMatch(admin, /isRewardsAdminEmail/);
 assert.match(admin, /verified/);
 assert.match(admin, /verificationMethod/);
 assert.match(admin, /verificationContact/);
+assert.match(admin, /removeRetailerAccess/);
+assert.match(admin, /removeRetailerSubmission/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
+
+const settings = read("src/app/settings/page.tsx");
+assert.match(settings, /isRetailerAdminEmail/);
+assert.match(settings, /\/admin\/retailers/);
+assert.match(settings, /Retailer administration/);
 
 const publicSurface = [
   read("src/app/retailers/page.tsx"),

@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
+import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
@@ -10,7 +12,9 @@ function SettingsPageContent() {
   const { user, signOut } = useAuth();
 
   const userEmail =
+    user?.emailAddresses?.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress ||
     user?.emailAddresses?.[0]?.emailAddress || "";
+  const canAdministerRetailers = isRetailerAdminEmail(userEmail);
 
   return (
     <div
@@ -142,6 +146,23 @@ function SettingsPageContent() {
             </button>
           </div>
         </div>
+
+        {canAdministerRetailers && (
+          <div
+            style={{
+              marginTop: "20px",
+              background: "linear-gradient(135deg, rgba(212,146,11,0.12), rgba(20,16,12,0.96))",
+              border: "1px solid rgba(212,146,11,0.32)",
+              borderRadius: "12px",
+              padding: "28px",
+            }}
+          >
+            <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.16em", color: "var(--color-accent-amber)", textTransform: "uppercase", marginBottom: "8px" }}>Private access</p>
+            <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", fontWeight: 700, color: "var(--color-cream)", marginBottom: "8px" }}>Retailer administration</h2>
+            <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.6, color: "var(--color-text-tertiary)", marginBottom: "18px" }}>Approve or deny retailer access, review submitted updates, and remove retailer profiles or posts.</p>
+            <Link href="/admin/retailers" style={{ display: "inline-flex", padding: "10px 16px", borderRadius: "6px", background: "var(--color-accent-amber)", color: "#171109", fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, textDecoration: "none" }}>Open retailer admin</Link>
+          </div>
+        )}
       </div>
     </div>
   );

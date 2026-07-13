@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
-import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
+import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
 import { normalizeRetailerStatus } from "@/lib/retailer-portal";
 
@@ -18,7 +18,7 @@ async function requireRetailerAdmin() {
   if (!userId) redirect("/sign-in?redirect_url=/admin/retailers");
   const client = await clerkClient();
   const admin = await client.users.getUser(userId);
-  if (!isRewardsAdminEmail(primaryEmail(admin))) notFound();
+  if (!isRetailerAdminEmail(primaryEmail(admin))) notFound();
   return { client, admin };
 }
 
@@ -56,6 +56,31 @@ async function reviewSubmission(formData: FormData) {
     status: decision as "reviewed" | "rejected",
     reviewedBy: admin.id,
   });
+  revalidatePath("/admin/retailers");
+  revalidatePath("/retailers/portal");
+}
+
+async function removeRetailerSubmission(formData: FormData) {
+  "use server";
+  await requireRetailerAdmin();
+  const targetUserId = String(formData.get("userId") || "");
+  const submissionId = String(formData.get("submissionId") || "");
+  if (!targetUserId || !submissionId) return;
+  await getRetailerRepository().deleteSubmission({ id: submissionId, userId: targetUserId });
+  revalidatePath("/admin/retailers");
+  revalidatePath("/retailers/portal");
+}
+
+async function removeRetailerAccess(formData: FormData) {
+  "use server";
+  await requireRetailerAdmin();
+  const targetUserId = String(formData.get("userId") || "");
+  const confirmation = String(formData.get("confirmation") || "").trim();
+  if (!targetUserId || !confirmation) return;
+  const repository = getRetailerRepository();
+  const application = await repository.getApplication(targetUserId);
+  if (!application || confirmation !== application.storeName) return;
+  await repository.deleteApplication(targetUserId);
   revalidatePath("/admin/retailers");
   revalidatePath("/retailers/portal");
 }
@@ -117,13 +142,25 @@ export default async function RetailerAdminPage() {
                       <form action={updateRetailerStatus} className="flex-1"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="status" value="pending" /><button className="w-full border border-amber-600/50 bg-amber-950/30 px-4 py-2 text-sm text-amber-100" type="submit">Keep pending</button></form>
                       <form action={updateRetailerStatus} className="flex-1"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="status" value="rejected" /><button className="w-full border border-red-600/50 bg-red-950/30 px-4 py-2 text-sm text-red-100" type="submit">Reject access</button></form>
                     </div>
+                    <details className="border border-red-600/30 bg-red-950/10 p-3 text-sm">
+                      <summary className="cursor-pointer text-red-200">Remove retailer access</summary>
+                      <form action={removeRetailerAccess} className="mt-3 grid gap-2">
+                        <input type="hidden" name="userId" value={application.userId} />
+                        <label className="text-xs text-[var(--color-text-secondary)]" htmlFor={`remove-${application.userId}`}>Type <strong>{application.storeName}</strong> to remove this retailer profile and all its submissions. The customer’s main sign-in account is not deleted.</label>
+                        <input className="bg-[#f7f0e0] px-2 py-2 text-sm text-[#14100c]" id={`remove-${application.userId}`} name="confirmation" required autoComplete="off" />
+                        <button className="border border-red-600/50 px-3 py-2 text-xs text-red-100" type="submit">Remove retailer profile</button>
+                      </form>
+                    </details>
                   </div>
                 </div>
 
                 {submissions.length ? <div className="mt-6 border-t border-white/10 pt-5"><h3 className="font-serif text-lg">Submitted updates</h3><div className="mt-3 grid gap-3">{submissions.map((submission) => (
                   <div key={submission.id} className="grid gap-3 border border-white/10 p-4 md:grid-cols-[1fr_auto]">
                     <div><div className="flex flex-wrap gap-2"><strong>{submission.title}</strong><span className="font-mono text-[10px] uppercase text-amber-200">{submission.status || "pending_review"}</span></div><p className="mt-1 text-sm text-[var(--color-text-secondary)]">{submission.storeName} · {submission.storeAddress}{submission.locationDetails ? ` · ${submission.locationDetails}` : ""} · {submission.availability || "No availability supplied"} · {submission.price || "No price supplied"}</p></div>
-                    {submission.status === "pending_review" ? <div className="flex gap-2"><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="reviewed" /><button className="border border-emerald-600/50 px-3 py-2 text-xs text-emerald-200">Reviewed</button></form><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="rejected" /><button className="border border-red-600/50 px-3 py-2 text-xs text-red-100">Reject</button></form></div> : null}
+                    <div className="flex flex-wrap items-start gap-2">
+                      {submission.status === "pending_review" ? <><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="reviewed" /><button className="border border-emerald-600/50 px-3 py-2 text-xs text-emerald-200">Reviewed</button></form><form action={reviewSubmission}><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><input type="hidden" name="decision" value="rejected" /><button className="border border-red-600/50 px-3 py-2 text-xs text-red-100">Reject</button></form></> : null}
+                      <details className="border border-red-600/30 px-3 py-2 text-xs text-red-100"><summary className="cursor-pointer">Remove</summary><form action={removeRetailerSubmission} className="mt-2"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="submissionId" value={submission.id} /><button className="border border-red-600/50 px-2 py-1" type="submit">Confirm remove</button></form></details>
+                    </div>
                   </div>
                 ))}</div></div> : null}
               </article>
