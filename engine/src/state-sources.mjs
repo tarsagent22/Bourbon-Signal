@@ -291,13 +291,21 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'TX', label: "Texas TABC + Spec's retailer watch", tier: 'C', strategy: 'retailer_catalog_and_release_watch', cadence: 'daily-weekly',
-    value: "Texas is a private retail market. Current public coverage focuses on TABC/comptroller market context plus Spec's public product/event pages for retailer catalog and rare-release watch; do not present as live shelf inventory unless a store-specific source is later extracted.",
+    id: 'TX', label: "Texas retailer inventory + TABC watch", tier: 'B', strategy: 'retailer_store_inventory_candidate', cadence: '30-60m',
+    value: "Texas is a private retail market. Guarded first-party CityHive sources provide exact-store retailer availability across DFW, Houston, Central Texas, San Antonio, and the Gulf Coast. TABC and Spec's event/catalog pages remain non-inventory context.",
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://comptroller.texas.gov/taxes/alcohol/', label: 'Texas Comptroller alcohol reporting' },
       { kind: 'html', url: 'https://www.tabc.texas.gov/public-information/tabc-public-inquiry/', label: 'TABC public inquiry / license search' },
       { kind: 'html', url: 'https://twinliquors.com/shop/?subtype=bourbon', label: 'Twin Liquors CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://www.zippsliquor.com/shop/?subtype=Bourbon', label: 'Zipps Liquor CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://www.pelicanliquor.com/shop/?subtype=Bourbon', label: 'Pelican Liquor McKinney CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://tipsyliquorroundrock.com/shop/?subtype=Bourbon', label: 'Tipsy Liquor Round Rock CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://wbliquors.com/shop/?subtype=whiskey', label: 'WB Liquors & Wine Texas CityHive whiskey inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://shop.maverickbevtx.com/shop/?subtype=Whiskey', label: 'JB Maverick of Texas CityHive whiskey inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://oakliquorcabinet.com/shop/?subtype=Bourbon', label: 'Oak Liquor Cabinet Austin CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://liquorpedia.us/shop/?subtype=Bourbon', label: 'Liquorpedia Riverstone CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://spankysliquor.com/shop/?subtype=Bourbon', label: "Spanky's Liquor Texas CityHive bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://specsonline.com/shop/spirits/?s=bourbon', label: "Spec's public bourbon product search", precisionOnly: true },
       { kind: 'html', url: 'https://specsonline.com/bourbonday2024/', label: "Spec's Bourbon Drop / rare-release event page", precisionOnly: true }
     ],

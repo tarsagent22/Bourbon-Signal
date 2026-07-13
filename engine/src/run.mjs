@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-import { STATE_SOURCES } from './state-sources.mjs';
+import { ALL_STATE_SOURCES, STATE_SOURCES } from './state-sources.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
@@ -480,10 +480,10 @@ async function main() {
   const allRoadblocks = [];
 
   const selectedStateSources = REQUESTED_STATE_IDS.size
-    ? STATE_SOURCES.filter((config) => REQUESTED_STATE_IDS.has(config.id))
+    ? ALL_STATE_SOURCES.filter((config) => config.active !== false && REQUESTED_STATE_IDS.has(config.id))
     : STATE_SOURCES;
   if (REQUESTED_STATE_IDS.size && selectedStateSources.length !== REQUESTED_STATE_IDS.size) {
-    const known = new Set(STATE_SOURCES.map((config) => config.id));
+    const known = new Set(ALL_STATE_SOURCES.filter((config) => config.active !== false).map((config) => config.id));
     const missing = [...REQUESTED_STATE_IDS].filter((id) => !known.has(id));
     throw new Error(`Unknown requested state id(s): ${missing.join(', ')}`);
   }

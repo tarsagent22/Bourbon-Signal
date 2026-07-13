@@ -2,6 +2,7 @@ import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { isTexasRetailerInventory, isTexasRetailerSignalIdentity } from './texas-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -132,7 +133,9 @@ function policyForSignal(signal) {
   if (signal.state === 'TN'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
-  if (signal.state === 'TX' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TEXAS_CITYHIVE_POLICY;
+  if (signal.state === 'TX'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
+    && isTexasRetailerSignalIdentity(signal)) return TEXAS_CITYHIVE_POLICY;
   if (signal.state === 'SC'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
@@ -169,12 +172,13 @@ export function confidenceForSignal(signal) {
   const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
   const isDistilleryLane = signal.state === 'KY' && /^distillery_/i.test(eventType);
   const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
+  const texasInventoryAllowed = signal.state !== 'TX' || isTexasRetailerInventory(signal);
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsInventory: texasInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
     canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

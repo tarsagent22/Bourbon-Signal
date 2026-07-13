@@ -827,12 +827,37 @@ const FL_CITYHIVE_SOURCES = [
 ];
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
+const TX_INVENTORY_CACHE_PATH = 'out/cache/tx-cityhive-inventory.json';
+const TX_INVENTORY_CACHE_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_TX_INVENTORY_CACHE_MAX_AGE_MS) || 6 * 60 * 60_000);
 const TX_SPECS_PRODUCT_URLS = [
   'https://specsonline.com/shop/spirits/native-texas-bourbon/',
   'https://specsonline.com/shop/spirits/tx-bourbon-whiskey-6-case/',
   'https://specsonline.com/shop/spirits/specs-single-barrel-tx-bourbon/'
 ];
 const TX_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TX_CITYHIVE_MAX_PAGES || 2);
+const TX_TWIN_MAX_MERCHANTS = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_TX_TWIN_MAX_MERCHANTS) || 28));
+const TX_TWIN_MERCHANT_IDS = [
+  '5af17b54c8852b44f5995f46', '5af17b52c8852b44f5995f41', '5ada5b59db109f209fb1b63d', '546ba9ef3932330002910100',
+  '5af17ad1c8852b44f5995ed8', '5ada111597465774e9268c20', '5af17bacc8852b44f5995f78', '5af17be2c8852b44f5995fb9',
+  '5af17be4c8852b44f5995fbe', '5af17c0ec8852b44f5995fd7', '5af17c10c8852b44f5995fdc', '5af17836c8852b44f5995e96',
+  '5d81685dc3b543272efe63e6', '5af17c3bc8852b44f5995fff', '5d81675ecc23515b1707d1f6', '5d816904c3b543271ffe6fac',
+  '5d8167fda1c7fa5597262ed0', '5d8168ab384009231fb508ef', '5af17b4cc8852b44f5995f32', '5af17b1cc8852b44f5995f05',
+  '5af17c15c8852b44f5995fe6', '5af17bddc8852b44f5995faf', '5af17b9fc8852b44f5995f5f', '5af17bd1c8852b44f5995f91',
+  '5af17c17c8852b44f5995feb', '5af17c3ac8852b44f5995ffa', '5af17bdcc8852b44f5995faa', '5af17a75c8852b44f5995ea6'
+];
+const TX_CITYHIVE_MERCHANT_COHORTS = {
+  'twin-liquors': TX_TWIN_MERCHANT_IDS.slice(0, TX_TWIN_MAX_MERCHANTS),
+  'wb-liquors': [
+    '6060f687e17e773238490ddc', '648cb54bb2fadf2a86856f05', '648cb5866b21332a821b5706', '648cb5d720a8582a9053eb3d', '648cb664132b1b2a7f0caedf',
+    '648cb6df0a94182aaa3a337e', '648cb72079337d2ad1af6945', '648cb7920c3b492a993d9cdb', '648cb7cf711b392a9607244a', '648cb80ff3e7a62aa5fdca9c',
+    '648cba980c3b492a913dba11', '648cbaea711b392a8b0735a8', '648cbb3370e7a2482d21acc3', '648cbb6b06d1f9274361ed16', '648cbb9c0c980c43adbb375d',
+    '648cbbd379337d2ad1aff1be', '648cbc120c3b492a993e10a9', '648cc46a4aa0ea46855420ba', '648cc4b74aa0ea456854112d', '648cc5a5d7df9c2aa8dc62a9',
+    '648cc5e0d2b12c2aa870a73b', '648cc6250a3e60471c8fc8c1', '648cc73e06d1f9274362d6ad', '648cc77d0c3b4945cd3b72a5', '648cc7e14aa0ea4685545a2a',
+    '648cc8214aa0ea4685545f1d', '648cc85144a86b45f20d5d13', '648cc8859d8cf2273fff6cc6', '648cc963c704d72a6cf7ab99', '648dcdc9d701e12a85594feb',
+    '648dce4867293e2aa535e376'
+  ],
+  'spankys-liquor': ['6351f69ad97d1925924544b1', '636149add1dc3840de108e86', '636149e612f67f29976df315', '63614a12bad2862922986dda', '63614a4612f67f29976dfee1', '63614b8ebfa4a167804f0eca', '63614be6bfa4a166dc4f104d', '63614c12d1dc38417a10a55e', '63614c39f428d12939961eaa', '63614c5ebfa4a166dc4f1905']
+};
 const TX_CITYHIVE_SOURCES = [
   {
     id: 'twin-liquors',
@@ -843,7 +868,21 @@ const TX_CITYHIVE_SOURCES = [
       'https://twinliquors.com/shop/?subtype=bourbon',
       'https://twinliquors.com/shop/?subtype=whiskey'
     ]
-  }
+  },
+  { id: 'zipps-liquor', chainName: 'Zipps Liquor', sourceLabel: 'Zipps Liquor CityHive store inventory', baseUrl: 'https://www.zippsliquor.com', urls: ['https://www.zippsliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'pelican-liquor', chainName: 'Pelican Liquor', sourceLabel: 'Pelican Liquor McKinney CityHive store inventory', baseUrl: 'https://www.pelicanliquor.com', urls: ['https://www.pelicanliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'tipsy-liquor-round-rock', chainName: 'Tipsy Liquor Round Rock', sourceLabel: 'Tipsy Liquor Round Rock CityHive store inventory', baseUrl: 'https://tipsyliquorroundrock.com', urls: ['https://tipsyliquorroundrock.com/shop/?subtype=Bourbon'] },
+  { id: 'wb-liquors', chainName: 'WB Liquors & Wine', sourceLabel: 'WB Liquors & Wine Texas CityHive store inventory', baseUrl: 'https://wbliquors.com', urls: ['https://wbliquors.com/shop/?subtype=whiskey'] },
+  { id: 'jb-maverick-texas', chainName: 'JB Maverick of Texas', sourceLabel: 'JB Maverick of Texas CityHive store inventory', baseUrl: 'https://shop.maverickbevtx.com', urls: ['https://shop.maverickbevtx.com/shop/?subtype=Whiskey'] },
+  { id: 'oak-liquor-cabinet', chainName: 'Oak Liquor Cabinet', sourceLabel: 'Oak Liquor Cabinet Austin CityHive store inventory', baseUrl: 'https://oakliquorcabinet.com', urls: ['https://oakliquorcabinet.com/shop/?subtype=Bourbon'] },
+  { id: 'liquorpedia-riverstone', chainName: 'Liquorpedia Riverstone', sourceLabel: 'Liquorpedia Riverstone CityHive store inventory', baseUrl: 'https://liquorpebcd48c8c.sites.cityhive.app', urls: ['https://liquorpebcd48c8c.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'spankys-liquor', chainName: "Spanky's Liquor, Beer and Wine", sourceLabel: "Spanky's Liquor Texas CityHive store inventory", baseUrl: 'https://spankysl9f9e48c3.sites.cityhive.app', urls: ['https://spankysl9f9e48c3.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'steves-liquor-austin', chainName: "Steve's Liquor & Fine Wines", sourceLabel: "Steve's Liquor Austin CityHive store inventory", baseUrl: 'https://stevesli404f9321.sites.cityhive.app', urls: ['https://stevesli404f9321.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'liquor-hub-fort-worth', chainName: 'Liquor Hub', sourceLabel: 'Liquor Hub Fort Worth CityHive store inventory', baseUrl: 'https://liquorde0800e82f.sites.cityhive.app', urls: ['https://liquorde0800e82f.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'longhorn-liquor', chainName: 'Longhorn Liquor', sourceLabel: 'Longhorn Liquor Lumberton CityHive store inventory', baseUrl: 'https://longhorn.sites.cityhive.app', urls: ['https://longhorn.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'texas-cheer-liquor', chainName: 'Texas Cheer Liquor', sourceLabel: 'Texas Cheer Liquor San Antonio CityHive store inventory', baseUrl: 'https://texascheb103f7cc.sites.cityhive.app', urls: ['https://texascheb103f7cc.sites.cityhive.app/shop/?subtype=Bourbon'] },
+  { id: 'whitesboro-liquor', chainName: 'Whitesboro Liquor', sourceLabel: 'Whitesboro Liquor CityHive store inventory', baseUrl: 'https://whitesboroliquor.com', urls: ['https://whitesboroliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'spirit-six-austin', chainName: 'Spirit Six', sourceLabel: 'Spirit Six Austin CityHive store inventory', baseUrl: 'https://www.spiritsix.com', urls: ['https://www.spiritsix.com/shop/?subtype=Bourbon'] }
 ];
 const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|bardstown|holladay|single barrel|barrel pick|rare|allocated/i;
 
@@ -4573,8 +4612,12 @@ async function collectTexas(config, bible) {
   const signals = [];
   const roadblocks = [];
 
-  for (const source of TX_CITYHIVE_SOURCES) {
-    for (const seedUrl of source.urls) {
+  sourceLoop: for (const source of TX_CITYHIVE_SOURCES) {
+    const merchantCohort = TX_CITYHIVE_MERCHANT_COHORTS[source.id];
+    const sourceSeedUrls = merchantCohort?.length
+      ? merchantCohort.map((merchantId) => `${source.baseUrl}/shop/?subtype=bourbon&merchant-id=${merchantId}`)
+      : source.urls;
+    for (const seedUrl of sourceSeedUrls) {
       for (const url of cityHivePageUrls(seedUrl, TX_CITYHIVE_MAX_PAGES)) {
         const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
         if (!res.ok) {
@@ -4584,8 +4627,9 @@ async function collectTexas(config, bible) {
             url,
             status: res.status,
             error: res.error || `HTTP ${res.status}`,
-            nextRoute: 'Retry the Texas CityHive page or inspect rendered/network calls for current product JSON shape.'
+            nextRoute: res.status === 429 ? 'Source stopped after first rate limit; retry on a later scheduled run.' : 'Retry the Texas CityHive page or inspect rendered/network calls for current product JSON shape.'
           });
+          if (res.status === 429) continue sourceLoop;
           continue;
         }
         const blobs = cityHiveJsonBlobs(res.text);
@@ -4632,17 +4676,31 @@ async function collectTexas(config, bible) {
               if (!rawName || !TX_WATCH_RE.test(rawName)) continue;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
-              const quantity = Number(option.quantity || 0) || 0;
-              if (quantity <= 0) continue;
+              const reportedQuantity = Number(option.quantity || 0) || 0;
+              if (reportedQuantity <= 0) continue;
+              const quantityIsSentinel = reportedQuantity === 100;
+              const quantity = quantityIsSentinel ? 0 : reportedQuantity;
               const fullAddress = option.full_address || null;
+              if (!/,\s*TX\s+\d{5}/i.test(String(fullAddress || ''))) continue;
               const city = fullAddress?.match(/,\s*([^,]+),\s*TX\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress?.match(/\bTX\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
               const price = Number(option.price || 0) || null;
+              const merchantId = String(option.merchant_id || '');
+              const productId = String(product.id || product._id || product.product_id || '');
+              const optionId = String(option.option_id || option.id || '');
+              if (!/^[0-9a-f]{24}$/i.test(merchantId) || !productId || !optionId) continue;
+              const sourceUrl = new URL(String(option.product_url || url), source.baseUrl).toString();
               signals.push({
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.option_id, quantity, price]),
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, record.id, productId, optionId]),
+                key: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, record.id, productId, optionId]),
                 state: config.id,
+                stateCode: 'TX',
                 sourceLabel: source.sourceLabel,
-                sourceUrl: option.product_url || url,
+                sourceUrl,
+                sourceChain: source.id,
+                merchantId,
+                productId,
+                optionId,
                 rawName,
                 canonicalBottleId: record.id,
                 canonicalName: record.canonical,
@@ -4651,7 +4709,7 @@ async function collectTexas(config, bible) {
                 locationPrecision: 'store_level',
                 locationName: option.merchant_name || source.chainName,
                 storeName: option.merchant_name || source.chainName,
-                storeId: option.merchant_id ? `${source.id}:${option.merchant_id}` : null,
+                storeId: `${source.id}:${merchantId}`,
                 storeAddress: fullAddress,
                 city,
                 stateCode: 'TX',
@@ -4660,15 +4718,24 @@ async function collectTexas(config, bible) {
                 lat: Number(option.coordinates?.[1]) || null,
                 lng: Number(option.coordinates?.[0]) || null,
                 quantity,
+                storeQty: quantity,
+                quantitySemantics: quantityIsSentinel ? 'binary_retailer_in_stock' : 'retailer_reported_quantity',
                 price,
                 availabilityStatus: 'in_stock',
-                availabilityLabel: 'In stock',
+                availabilityLabel: quantityIsSentinel ? 'Retailer reports available — exact quantity unavailable' : 'In stock',
+                sourceAvailabilityVerified: true,
                 observedAt,
+                fetchedAt: observedAt,
                 canAlertAsInventory: true,
                 canAlertAsWatch: true,
-                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for selected branches. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
-                evidence: `${source.chainName} CityHive reports ${quantity} unit${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${price ? ` for $${price.toFixed(2)}` : ''}.`,
-                raw: { product, option, matchGuard: unsafeReason }
+                dataLane: 'inventory',
+                inventorySemantics: quantityIsSentinel
+                  ? `${source.chainName} reports store-level availability; the repeated quantity 100 is treated as a sentinel, not an exact shelf count. Verify before driving.`
+                  : `${source.chainName} CityHive reports store-level quantity and price. Treat as retailer-published pickup/order availability and verify before driving.`,
+                evidence: quantityIsSentinel
+                  ? `${source.chainName} reports ${rawName} available${option.merchant_name ? ` at ${option.merchant_name}` : ''}; exact quantity is not exposed.`
+                  : `${source.chainName} reports ${quantity} unit${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${price ? ` for $${price.toFixed(2)}` : ''}.`,
+                raw: { chain: source.id, merchantId, productId, optionId, reportedQuantity, quantityIsSentinel, product, option, matchGuard: unsafeReason, sourceAvailabilityVerified: true }
               });
             }
           }
@@ -4752,6 +4819,22 @@ async function collectTexas(config, bible) {
       evidence: `Spec's public product page lists ${rawName}${sku ? ` with SKU ${sku}` : ''}.`,
       raw: { sku, textSample: text.slice(0, 1000) }
     });
+  }
+
+  const liveInventory = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
+  if (liveInventory.length >= 75) {
+    await mkdir(path.dirname(TX_INVENTORY_CACHE_PATH), { recursive: true });
+    await writeFile(TX_INVENTORY_CACHE_PATH, JSON.stringify({ generatedAt: observedAt, signals: liveInventory }, null, 2));
+  } else {
+    const cached = await readFile(TX_INVENTORY_CACHE_PATH, 'utf8').then(JSON.parse).catch(() => null);
+    const cacheAgeMs = cached?.generatedAt ? Date.now() - new Date(cached.generatedAt).getTime() : Infinity;
+    if (Array.isArray(cached?.signals) && cached.signals.length >= 75 && cacheAgeMs <= TX_INVENTORY_CACHE_MAX_AGE_MS) {
+      for (let index = signals.length - 1; index >= 0; index -= 1) {
+        if (signals[index].eventType === 'cityhive_store_inventory_result') signals.splice(index, 1);
+      }
+      signals.push(...cached.signals.map((signal) => ({ ...signal, fallback: true, fallbackReason: 'Texas CityHive live run was rate-limited; using the last complete inventory artifact within the six-hour TTL.' })));
+      roadblocks.push({ state: config.id, source: 'Texas CityHive inventory cache', url: TX_INVENTORY_CACHE_PATH, status: 'fresh_cache_fallback', error: `Live run produced ${liveInventory.length} inventory rows; retained ${cached.signals.length} rows from the last complete artifact.`, nextRoute: 'Retry at the next scheduled cadence; never extend inventory beyond the configured cache TTL.' });
+    }
   }
 
   signals.push({
