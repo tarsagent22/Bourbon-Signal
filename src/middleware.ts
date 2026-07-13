@@ -6,6 +6,7 @@ const isProtectedRoute = createRouteMatcher([
   "/admin(.*)",
   "/bottle-check(.*)",
   "/dashboard(.*)",
+  "/retailers/portal(.*)",
   "/events(.*)",
 
   "/finder(.*)",
@@ -50,6 +51,11 @@ export default clerkMiddleware(async (auth, request) => {
 
   if (url.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Account required" }, { status: 401 });
+  }
+  if (url.pathname.startsWith("/retailers/portal")) {
+    const retailerLoginUrl = new URL("/retailers/login", request.url);
+    retailerLoginUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
+    return NextResponse.redirect(retailerLoginUrl);
   }
 
   const signUpUrl = new URL("/sign-up", request.url);
