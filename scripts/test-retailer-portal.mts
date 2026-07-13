@@ -104,7 +104,7 @@ assert.match(repository, /DELETE FROM retailer_submissions WHERE id = \$1 AND us
 const portal = read("src/app/retailers/portal/page.tsx");
 assert.match(portal, /retailerStatus/);
 assert.match(portal, /verified/);
-assert.match(portal, /pending_review/);
+assert.match(portal, /pending review/);
 assert.match(portal, /upsertPendingApplication[\s\S]*sendApplicationNotification/);
 assert.match(portal, /retryRetailerNotification/);
 assert.doesNotMatch(portal, /unsafeMetadata|retailerSubmissions:/);
@@ -117,6 +117,7 @@ assert.match(admin, /verificationMethod/);
 assert.match(admin, /verificationContact/);
 assert.match(admin, /removeRetailerAccess/);
 assert.match(admin, /removeRetailerSubmission/);
+assert.match(admin, />Approve<\/button>/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
 
 const settings = read("src/app/settings/page.tsx");
