@@ -92,7 +92,10 @@ export async function publishSiteSnapshot(storage, files, metadata, options = {}
   const maxAttempts = Number(options.pointerRetries ?? 3) + 1;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const current = await storage.readPointer();
-    if (current?.active === manifest.snapshotId) return { status: 'already_active', manifest, pointer: current };
+    if (current?.active === manifest.snapshotId) {
+      if (typeof storage.ensurePointerEvent === 'function') await storage.ensurePointerEvent(current);
+      return { status: 'already_active', manifest, pointer: current };
+    }
     const revision = current?.revision ?? 0;
     const next = {
       contractVersion: 'bourbon-signal-active-pointer-v1',

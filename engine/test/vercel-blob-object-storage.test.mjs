@@ -6,10 +6,15 @@ import { VercelBlobObjectStorage } from '../src/data-plane/vercel-blob-object-st
 function fakeBlobApi() {
   const objects = new Map();
   let revision = 0;
+  let pointerEventFailures = 0;
   class PreconditionError extends Error {}
   return {
     BlobPreconditionFailedError: PreconditionError,
     async put(pathname, body, options) {
+      if (pathname.startsWith('engine/pointer-events/') && pointerEventFailures > 0) {
+        pointerEventFailures -= 1;
+        throw new Error('transient pointer event failure');
+      }
       const current = objects.get(pathname);
       if (current && !options.allowOverwrite) throw new Error('already exists');
       if (options.ifMatch && current?.etag !== options.ifMatch) throw new PreconditionError('etag mismatch');
@@ -33,6 +38,7 @@ function fakeBlobApi() {
       return { ok: Boolean(value), status: value ? 200 : 404, text: async () => value?.body || '' };
     },
     objects,
+    failPointerEvents(count) { pointerEventFailures = count; },
   };
 }
 
@@ -52,7 +58,9 @@ test('blob pointer compare-and-swap rejects a stale etag', async () => {
   assert.equal(await first.compareAndSwapPointer(0, { revision: 1, active: 'one' }), true);
   assert.equal((await first.readPointer()).active, 'one');
   assert.equal((await second.readPointer()).revision, 1);
+  api.failPointerEvents(2);
   assert.equal(await first.compareAndSwapPointer(1, { revision: 2, active: 'two' }), true);
+  assert.equal([...api.objects.keys()].filter((key) => key.startsWith('engine/pointer-events/')).length, 2);
   assert.equal(await second.compareAndSwapPointer(1, { revision: 2, active: 'stale' }), false);
   assert.equal((await second.readPointer()).active, 'two');
 });

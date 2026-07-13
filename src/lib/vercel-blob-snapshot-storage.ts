@@ -1,7 +1,15 @@
 import { list } from "@vercel/blob";
 import type { RemoteSnapshotStorage } from "./remote-site-snapshot";
 
+const ACTIVE_POINTER = "engine/active.json";
+const ACTIVE_POINTER_EVENTS = "engine/pointer-events/";
+
 async function exactBlob(pathname: string) {
+  if (pathname === ACTIVE_POINTER) {
+    const events = await list({ prefix: ACTIVE_POINTER_EVENTS, limit: 1000, token: process.env.BLOB_READ_WRITE_TOKEN });
+    const newest = events.blobs.slice().sort((left, right) => left.pathname.localeCompare(right.pathname))[0];
+    if (newest) return newest;
+  }
   const result = await list({ prefix: pathname, limit: 100, token: process.env.BLOB_READ_WRITE_TOKEN });
   return result.blobs.find((blob) => blob.pathname === pathname) ?? null;
 }

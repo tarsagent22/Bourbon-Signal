@@ -1,6 +1,13 @@
+import { randomUUID } from 'node:crypto';
 import * as vercelBlob from '@vercel/blob';
 
 const ACTIVE_POINTER = 'engine/active.json';
+const ACTIVE_POINTER_EVENTS = 'engine/pointer-events/';
+
+function pointerEventKey() {
+  const reverseTimestamp = String(9_999_999_999_999 - Date.now()).padStart(13, '0');
+  return `${ACTIVE_POINTER_EVENTS}${reverseTimestamp}-${randomUUID()}.json`;
+}
 
 export class VercelBlobObjectStorage {
   #blob;
@@ -58,6 +65,30 @@ export class VercelBlobObjectStorage {
     return pointer;
   }
 
+  async #writePointerEvent(pointer) {
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await this.#blob.put(pointerEventKey(), JSON.stringify(pointer), {
+          access: 'public',
+          addRandomSuffix: false,
+          allowOverwrite: false,
+          cacheControlMaxAge: 31_536_000,
+          contentType: 'application/json',
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  }
+
+  async ensurePointerEvent(pointer) {
+    await this.#writePointerEvent(pointer);
+  }
+
   async compareAndSwapPointer(expectedRevision, next) {
     if (this.#pointerRevision !== expectedRevision) await this.readPointer();
     if (this.#pointerRevision !== expectedRevision) return false;
@@ -72,6 +103,7 @@ export class VercelBlobObjectStorage {
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       const metadata = await this.#blob.head(result.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      await this.#writePointerEvent(next);
       this.#pointerEtag = metadata.etag || null;
       this.#pointerRevision = next.revision;
       return true;
