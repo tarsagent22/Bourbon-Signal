@@ -35,6 +35,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // slow or retrying. Let them finish instead of publishing stale fallbacks.
   TN: Number(process.env.BOURBON_SIGNAL_TN_STATE_TIMEOUT_MS || 420_000),
   SC: Number(process.env.BOURBON_SIGNAL_SC_STATE_TIMEOUT_MS || 420_000),
+  // Texas fans out through bounded first-party merchant cohorts. Keep the parent
+  // watchdog above the normal cohort duration while retaining a hard ceiling.
+  TX: Number(process.env.BOURBON_SIGNAL_TX_STATE_TIMEOUT_MS || 900_000),
   // Kentucky official distillery/release-watch probes can cross the generic
   // 180s scheduled-run watchdog during normal successful runs. Give it enough
   // room so a slow official-source pass does not publish a stale fallback.
