@@ -1,0 +1,93 @@
+name: Refresh production inventory feed
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      force_all_states:
+        description: "Disable adaptive scheduling and refresh every active state"
+        required: false
+        default: "false"
+
+concurrency:
+  group: production-inventory-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect-verify-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
+      BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "2700000"
+      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1200000"
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+    steps:
+      - name: Checkout current production engine
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore collector artifacts and adaptive scheduler state
+        uses: actions/cache@v4
+        with:
+          path: |
+            engine/out/browser
+            engine/out/cache
+            engine/out/states
+            engine/out/state-run-metrics.json
+            engine/out/site
+          key: inventory-refresh-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            inventory-refresh-${{ runner.os }}-
+
+      - name: Refresh all due customer-active states
+        working-directory: engine
+        env:
+          BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
+        run: npm run refresh:site
+
+      - name: Enforce Texas production gate
+        working-directory: engine
+        run: npm run verify:tx
+
+      - name: Verify coherent site contract
+        working-directory: engine
+        run: npm run verify:site
+
+      - name: Publish and atomically activate encrypted snapshot
+        working-directory: engine
+        run: node src/data-plane/publish-site-snapshot.mjs --site-dir out/site
+
+      - name: Verify production observes the refreshed engine
+        run: npm run verify:production-engine
+
+      - name: Preserve refresh diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-refresh-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            engine/out/site-refresh-status.json
+            engine/out/source-health.json
+            engine/out/operational-report.json
+            engine/out/state-run-metrics.json
+            engine/out/states/TX.json
