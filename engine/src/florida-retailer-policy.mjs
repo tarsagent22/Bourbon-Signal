@@ -1,5 +1,10 @@
 const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376']);
 
+const FLORIDA_CITYHIVE_IDENTITIES = new Map([
+  ['1001 Liquors / My Florida Liquors CityHive store inventory', { chain: 'my-florida-liquors', hostname: 'myfloridaliquors.com' }],
+  ['Paradise / Fubar Liquors Florida CityHive store inventory', { chain: 'paradise-fubar-liquors', hostname: 'shopparadiseliquor.com' }],
+]);
+
 const FLORIDA_RETAILER_IDENTITIES = new Map([
   ['MDP Liquor Kissimmee Shopify store inventory', {
     chain: 'mdp-liquor-kissimmee',
@@ -30,6 +35,14 @@ export function isFloridaRetailerSignalIdentity(signal) {
       && storeId === `target:${merchantId}`;
   }
 
+  const cityHiveIdentity = FLORIDA_CITYHIVE_IDENTITIES.get(source);
+  if (cityHiveIdentity) {
+    return chain === cityHiveIdentity.chain
+      && sourceHostname === cityHiveIdentity.hostname
+      && /^[0-9a-f]{24}$/i.test(merchantId)
+      && storeId === `${chain}:${merchantId}`;
+  }
+
   const identity = FLORIDA_RETAILER_IDENTITIES.get(source);
   return Boolean(identity
     && chain === identity.chain
@@ -43,7 +56,7 @@ export function isFloridaRetailerInventory(signal) {
     && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isFloridaRetailerSignalIdentity(signal)
     && signal.locationPrecision === 'store_level'
-    && (Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && (signal.sourceAvailabilityVerified === true || signal.raw?.variant?.available === true)))
+    && (Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && (signal.sourceAvailabilityVerified === true || signal.raw?.variant?.available === true || signal.raw?.sourceAvailabilityVerified === true)))
     && Boolean(signal.storeId)
     && /,\s*FL\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
