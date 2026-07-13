@@ -6,6 +6,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
+import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from './cityhive-hardening.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -353,20 +354,7 @@ const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIV
 const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 4));
 const TN_CITYHIVE_ROTATION_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_ROTATION_MS) || 60 * 60_000);
 
-export function rotatingSourceCohort(sources, observedAt, cohortSize, rotationMs) {
-  if (!Array.isArray(sources) || sources.length === 0) return [];
-  const safeSize = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));
-  const safeRotationMs = Math.max(1, Number(rotationMs) || 1);
-  const slot = Math.floor(new Date(observedAt).getTime() / safeRotationMs);
-  const start = (slot * safeSize) % sources.length;
-  return Array.from({ length: safeSize }, (_, index) => sources[(start + index) % sources.length]);
-}
 
-export function normalizeCityHiveReportedQuantity(value) {
-  const reportedQuantity = Number(value || 0) || 0;
-  const binaryAvailability = reportedQuantity === 100;
-  return { reportedQuantity, binaryAvailability, quantity: binaryAvailability ? 1 : reportedQuantity };
-}
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
 const TN_COOL_SPRINGS_PAGE_SIZE = Math.min(100, Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_PAGE_SIZE || 100));
 const TN_COOL_SPRINGS_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_COOL_SPRINGS_MAX_PAGES || 3);

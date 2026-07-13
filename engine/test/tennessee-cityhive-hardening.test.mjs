@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from '../src/collectors/precision-probes.mjs';
+import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from '../src/collectors/cityhive-hardening.mjs';
 
 test('Tennessee CityHive cohorts rotate without hammering the full source universe', () => {
   const sources = ['a', 'b', 'c', 'd', 'e'];
