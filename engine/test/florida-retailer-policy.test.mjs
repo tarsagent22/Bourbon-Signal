@@ -62,6 +62,26 @@ test("Florida Jensen's pickup inventory requires exact merchant, host, store, an
   assert.equal(isFloridaRetailerSignalIdentity({ ...jensens, storeId: 'jensens-liquors:other' }), false);
 });
 
+test('Florida CityHive inventory binds first-party host, merchant, store, and Florida address', () => {
+  const cityHive = {
+    ...mdp,
+    eventType: 'cityhive_store_inventory_result',
+    sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory',
+    sourceUrl: 'https://myfloridaliquors.com/shop/product/test?merchant-id=5f58f60980eb420def3fd51b',
+    sourceChain: 'my-florida-liquors',
+    merchantId: '5f58f60980eb420def3fd51b',
+    storeId: 'my-florida-liquors:5f58f60980eb420def3fd51b',
+    storeAddress: '14904 E Orange Lake Blvd, Kissimmee, FL 34747',
+    raw: { chain: 'my-florida-liquors', merchantId: '5f58f60980eb420def3fd51b', sourceAvailabilityVerified: true },
+  };
+  assert.equal(isFloridaRetailerSignalIdentity(cityHive), true);
+  assert.equal(isFloridaRetailerInventory(cityHive), true);
+  assert.equal(confidenceForSignal(cityHive).canAlertAsInventory, true);
+  assert.equal(isFloridaRetailerSignalIdentity({ ...cityHive, sourceUrl: 'https://attacker.example/product' }), false);
+  assert.equal(isFloridaRetailerSignalIdentity({ ...cityHive, storeId: 'my-florida-liquors:other' }), false);
+  assert.equal(isFloridaRetailerInventory({ ...cityHive, storeAddress: 'Kissimmee, GA 34747' }), false);
+});
+
 test('Florida online catalog rows remain watch-only without exact-store evidence', () => {
   const watch = { ...mdp, eventType: 'retailer_catalog_availability', locationPrecision: 'statewide_catalog', sourceLabel: 'Luekens Wine & Spirits Shopify inventory', sourceUrl: 'https://www.luekensliquors.com/products/blantons' };
   assert.equal(isFloridaRetailerInventory(watch), false);

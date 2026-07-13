@@ -819,6 +819,12 @@ const FL_TARGET_STORES = new Map([
   ['2376', { name: 'Target Orlando Sodo', address: '120 W Grant St, Orlando, FL 32806', city: 'Orlando', zip: '32806' }]
 ]);
 const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 2));
+const FL_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_PAGES) || 1));
+const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
+const FL_CITYHIVE_SOURCES = [
+  { id: 'my-florida-liquors', chainName: '1001 Liquors / My Florida Liquors', sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory', baseUrl: 'https://myfloridaliquors.com', urls: ['https://myfloridaliquors.com/shop/?subtype=Bourbon'] },
+  { id: 'paradise-fubar-liquors', chainName: 'Paradise / Fubar Liquors', sourceLabel: 'Paradise / Fubar Liquors Florida CityHive store inventory', baseUrl: 'https://shopparadiseliquor.com', urls: ['https://shopparadiseliquor.com/shop/?subtype=Bourbon'] },
+];
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_SPECS_PRODUCT_URLS = [
@@ -3583,13 +3589,106 @@ async function collectFloridaAbc(config, bible, observedAt) {
   return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched in-stock allocated bourbon rows.', nextRoute: 'Keep catalog discovery active; require exact-store fulfillment before inventory alerting.' }] };
 }
 
+async function collectFloridaCityHive(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seenProductOptions = new Set();
+  const seenStores = new Set();
+  for (const source of FL_CITYHIVE_SOURCES) {
+    let blocked = false;
+    for (const seedUrl of source.urls) {
+      if (blocked) break;
+      const first = await textFetch(seedUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+      if (!first.ok) {
+        roadblocks.push({ state: config.id, source: source.sourceLabel, url: seedUrl, status: first.status || 0, error: first.error || `HTTP ${first.status}`, nextRoute: 'Retry the public CityHive storefront at low cadence.' });
+        continue;
+      }
+      const firstBlobs = cityHiveJsonBlobs(first.text);
+      const merchants = cityHivePriorityMerchants(firstBlobs, source)
+        .filter((merchant) => {
+          const address = cityHiveAddressParts(merchant.address || {});
+          return String(address.state || '').toUpperCase() === 'FL' || /,\s*FL\s+\d{5}/i.test(address.fullAddress || '');
+        });
+      const crawlUrls = [seedUrl];
+      for (const merchant of merchants) crawlUrls.push(...cityHiveMerchantPageUrls(seedUrl, merchant.id, FL_CITYHIVE_MAX_PAGES));
+      for (const url of [...new Set(crawlUrls)]) {
+        const res = url === seedUrl ? first : await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+        if (!res.ok) {
+          roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the selected CityHive merchant page at low cadence.' });
+          if (res.status === 429) blocked = true;
+          break;
+        }
+        const blobs = cityHiveJsonBlobs(res.text);
+        for (const cfg of cityHiveMerchantConfigs(blobs)) {
+          const merchant = cfg?.merchant || cfg;
+          if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+          const address = cityHiveAddressParts(merchant.address || {});
+          if (String(address.state || '').toUpperCase() !== 'FL' && !/,\s*FL\s+\d{5}/i.test(address.fullAddress || '')) continue;
+          seenStores.add(`${source.id}|${merchant.id}`);
+          signals.push({
+            id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]), state: config.id,
+            sourceLabel: `${source.chainName} CityHive store locator`, sourceUrl: source.baseUrl,
+            sourceChain: source.id, merchantId: String(merchant.id), rawName: merchant.display_name || merchant.name || source.chainName,
+            canonicalBottleId: null, canonicalName: null, confidence: 0.78, eventType: 'retailer_store_location', locationPrecision: 'store_level',
+            locationName: merchant.display_name || merchant.name || source.chainName, storeName: merchant.display_name || merchant.name || source.chainName,
+            storeId: `${source.id}:${merchant.id}`, storeAddress: address.fullAddress || [address.street, address.city, 'FL', address.zip].filter(Boolean).join(', '),
+            city: address.city || null, county: address.county, stateCode: 'FL', postalCode: address.zip, zip: address.zip, lat: address.lat, lng: address.lng,
+            quantity: 0, observedAt, canAlertAsInventory: false, canAlertAsWatch: false,
+            inventorySemantics: `${source.chainName} CityHive configuration identifies an order-capable Florida branch; the store row alone is not bottle inventory.`,
+            evidence: `${source.chainName} CityHive lists ${merchant.display_name || merchant.name || source.chainName}${address.fullAddress ? ` at ${address.fullAddress}` : ''}.`,
+            raw: { chain: source.id, merchantId: String(merchant.id), merchant }
+          });
+        }
+        for (const product of cityHiveProducts(blobs)) {
+          for (const merchant of product.merchants || []) {
+            for (const option of merchant.product_options || []) {
+              if (!isBourbonRelevantProduct(product, option)) continue;
+              const merchantId = String(option.merchant_id || '');
+              const key = `${source.id}|${merchantId}|${option.product_id}|${option.option_id}`;
+              if (!merchantId || seenProductOptions.has(key)) continue;
+              const fullAddress = String(option.full_address || '');
+              if (!/,\s*FL\s+\d{5}/i.test(fullAddress)) continue;
+              const rawName = option.option_display_data?.name || product.name;
+              const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+              if (!record) continue;
+              const reportedQuantity = Number(option.quantity || 0) || 0;
+              if (reportedQuantity <= 0) continue;
+              seenProductOptions.add(key);
+              const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
+              const zip = fullAddress.match(/\bFL\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
+              const quantity = 0;
+              signals.push({
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, option.option_id, reportedQuantity, option.price]), state: config.id,
+                sourceLabel: source.sourceLabel, sourceUrl: new URL(option.product_url || url, source.baseUrl).href, sourceChain: source.id, merchantId,
+                rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+                confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'cityhive_store_inventory_result', locationPrecision: 'store_level',
+                locationName: option.merchant_name || source.chainName, storeName: option.merchant_name || source.chainName,
+                storeId: `${source.id}:${merchantId}`, storeAddress: fullAddress, city, stateCode: 'FL', postalCode: zip, zip,
+                lat: Number(option.coordinates?.[1]) || null, lng: Number(option.coordinates?.[0]) || null,
+                quantity, price: Number(option.price || 0) || null, availabilityStatus: 'in_stock', availabilityLabel: quantity > 0 ? `Retailer reports ${quantity} available` : 'Retailer reports available',
+                sourceAvailabilityVerified: true, observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
+                inventorySemantics: reportedQuantity === 100 ? `${source.chainName} CityHive uses 100 as an availability sentinel; this is binary orderability, not exact shelf quantity.` : `${source.chainName} CityHive publishes positive store-level product-option quantity and price. Verify directly before driving.`,
+                evidence: `${source.chainName} CityHive reports ${rawName} available at ${option.merchant_name || source.chainName}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
+                raw: { chain: source.id, merchantId, sourceAvailabilityVerified: true, reportedQuantity, product: { id: product.id, name: product.name }, option, matchGuard: unsafeReason }
+              });
+            }
+          }
+        }
+        await sleep(FL_CITYHIVE_PAGE_DELAY_MS);
+      }
+    }
+  }
+  return { signals, roadblocks };
+}
+
 async function collectFlorida(config, bible) {
   const observedAt = new Date().toISOString();
   const mdp = await collectFloridaMdp(config, bible, observedAt);
   const target = await collectFloridaTarget(config, bible, observedAt);
   const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt);
   const abc = await collectFloridaAbc(config, bible, observedAt);
-  return { signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks] };
+  const cityHive = await collectFloridaCityHive(config, bible, observedAt);
+  return { signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals, ...cityHive.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks] };
 }
 
 async function collectArizona(config, bible) {
