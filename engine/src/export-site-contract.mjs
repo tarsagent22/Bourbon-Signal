@@ -564,7 +564,7 @@ function isUserFacingDropSignal(signal) {
   }
   if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && (quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'));
   if (type === 'retailer_store_inventory_result') return quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
-  if (type === 'cityhive_store_inventory_result') return quantity > 0;
+  if (type === 'cityhive_store_inventory_result') return quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
   if (isKentuckyDistilleryDrop(signal)) return true;
