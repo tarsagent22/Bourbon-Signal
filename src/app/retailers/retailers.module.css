@@ -162,6 +162,20 @@
   padding: clamp(22px, 5vw, 36px);
 }
 
+.authPanel {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.authPanel > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 400px;
+}
+
 .formGrid {
   display: grid;
   gap: 18px;

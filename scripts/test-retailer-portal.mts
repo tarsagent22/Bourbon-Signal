@@ -6,8 +6,19 @@ import {
   normalizeRetailerApplication,
   normalizeRetailerStatus,
   normalizeRetailerSubmission,
+  safeRetailerRedirect,
 } from "../src/lib/retailer-portal.ts";
 import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-admin.ts";
+import { toIsoDate } from "../src/lib/retailer-repository.ts";
+
+const timestamp = new Date("2026-07-13T21:00:00.000Z");
+assert.equal(toIsoDate(timestamp), "2026-07-13T21:00:00.000Z");
+assert.equal(toIsoDate("2026-07-13 21:00:00+00"), "2026-07-13T21:00:00.000Z");
+assert.equal(safeRetailerRedirect("/retailers/onboarding?step=2"), "/retailers/onboarding?step=2");
+assert.equal(safeRetailerRedirect("/retailers/portal?notification=pending"), "/retailers/portal?notification=pending");
+assert.equal(safeRetailerRedirect("https://evil.example/retailers/portal"), "/retailers/portal");
+assert.equal(safeRetailerRedirect("//evil.example/retailers/portal"), "/retailers/portal");
+assert.equal(safeRetailerRedirect("/admin/retailers"), "/retailers/portal");
 
 assert.equal(RETAILER_ADMIN_EMAIL, "chandlertodd22@gmail.com");
 assert.equal(isRetailerAdminEmail(" CHANDLERTODD22@gmail.com "), true);
@@ -69,6 +80,7 @@ const read = (file: string) => readFileSync(path.join(root, file), "utf8");
 for (const file of [
   "src/app/retailers/page.tsx",
   "src/app/retailers/register/[[...register]]/page.tsx",
+  "src/app/retailers/onboarding/page.tsx",
   "src/app/retailers/login/[[...login]]/page.tsx",
   "src/app/retailers/portal/page.tsx",
   "src/app/admin/retailers/page.tsx",
@@ -80,6 +92,7 @@ for (const file of [
 
 const middleware = read("src/middleware.ts");
 assert.match(middleware, /"\/retailers\/portal\(\.\*\)"/);
+assert.match(middleware, /"\/retailers\/onboarding\(\.\*\)"/);
 assert.doesNotMatch(middleware, /"\/retailers\(\.\*\)"/);
 assert.match(middleware, /url\.pathname\.startsWith\("\/admin"\)[\s\S]*new URL\("\/sign-in"/);
 assert.match(middleware, /hostname === "bourbonsignal\.com" && url\.pathname\.startsWith\("\/api\/clerk-proxy"\)[\s\S]*NextResponse\.next\(\)/);
@@ -112,9 +125,34 @@ const portal = read("src/app/retailers/portal/page.tsx");
 assert.match(portal, /retailerStatus/);
 assert.match(portal, /verified/);
 assert.match(portal, /pending review/);
-assert.match(portal, /upsertPendingApplication[\s\S]*sendApplicationNotification/);
+assert.match(portal, /if \(!application\) redirect\("\/retailers\/onboarding"\)/);
 assert.match(portal, /retryRetailerNotification/);
-assert.doesNotMatch(portal, /unsafeMetadata|retailerSubmissions:/);
+assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
+
+const register = read("src/app/retailers/register/[[...register]]/page.tsx");
+assert.match(register, /forceRedirectUrl="\/retailers\/onboarding"/);
+assert.match(register, /unsafeMetadata=\{\{ accountType: "retailer" \}\}/);
+assert.doesNotMatch(register, /storeName|normalizeRetailerApplication|retailerApplication/);
+assert.match(register, /ageConfirmed/);
+assert.match(register, /verified-email-required/);
+assert.doesNotMatch(register, /ageConfirmed\s*\|\|\s*verificationRequired/);
+assert.match(register, /authPanel/);
+
+const onboarding = read("src/app/retailers/onboarding/page.tsx");
+assert.match(onboarding, /upsertPendingApplication/);
+assert.match(onboarding, /emailAddress\.verification\?\.status !== "verified"/);
+assert.match(onboarding, /redirect\("\/retailers\/portal\?applied=1"\)/);
+assert.match(onboarding, /ageConfirmed/);
+
+const login = read("src/app/retailers/login/[[...login]]/page.tsx");
+assert.match(login, /safeRetailerRedirect/);
+assert.match(login, /redirect_url/);
+assert.match(login, /authPanel/);
+
+assert.match(layout, /rootBox:[\s\S]*justifyContent: "center"/);
+assert.match(layout, /cardBox:[\s\S]*maxWidth: "400px"/);
+const retailerStyles = read("src/app/retailers/retailers.module.css");
+assert.match(retailerStyles, /\.authPanel[\s\S]*justify-content: center/);
 
 const admin = read("src/app/admin/retailers/page.tsx");
 assert.match(admin, /isRetailerAdminEmail/);

@@ -92,11 +92,24 @@ export default function RootLayout({
           borderRadius: "14px",
         },
         elements: {
+          rootBox: {
+            width: "100%",
+            maxWidth: "100%",
+            display: "flex",
+            justifyContent: "center",
+          },
+          cardBox: {
+            width: "100%",
+            maxWidth: "400px",
+            margin: "0 auto",
+          },
           modalBackdrop: {
             background: "rgba(5,4,3,0.72)",
             backdropFilter: "blur(10px)",
           },
           card: {
+            width: "100%",
+            maxWidth: "100%",
             background: "linear-gradient(180deg, rgba(24,19,14,0.98) 0%, rgba(14,11,8,0.99) 100%)",
             boxShadow: "0 28px 80px rgba(0,0,0,0.72), 0 0 0 1px rgba(196,148,58,0.16)",
             border: "1px solid rgba(196,148,58,0.24)",

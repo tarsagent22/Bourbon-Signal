@@ -1,22 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
-import {
-  normalizeRetailerApplication,
-  normalizeRetailerSubmission,
-} from "@/lib/retailer-portal";
+import { normalizeRetailerSubmission } from "@/lib/retailer-portal";
 import styles from "../retailers.module.css";
 
 export const dynamic = "force-dynamic";
-
-function primaryEmail(user: { emailAddresses?: Array<{ id?: string; emailAddress?: string }>; primaryEmailAddressId?: string | null }) {
-  const emails = user.emailAddresses || [];
-  const primary = emails.find((email) => email.id === user.primaryEmailAddressId) || emails[0];
-  return primary?.emailAddress?.trim().toLowerCase() || "";
-}
 
 async function sendApplicationNotification(application: RetailerApplicationRecord) {
   const notification = await notifyRetailerAccountCreated({
@@ -26,34 +17,6 @@ async function sendApplicationNotification(application: RetailerApplicationRecor
     application,
   });
   await getRetailerRepository().markNotificationSent(application.userId, notification.messageId);
-}
-
-async function applyForRetailerAccess(formData: FormData) {
-  "use server";
-  const { userId } = await auth();
-  if (!userId) redirect("/retailers/login");
-  const normalized = normalizeRetailerApplication(Object.fromEntries(formData.entries()));
-  if (!normalized.ok) redirect(`/retailers/portal?error=${encodeURIComponent(normalized.error)}`);
-
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const email = primaryEmail(user);
-  if (!email) redirect("/retailers/portal?error=Verified%20account%20email%20required");
-
-  const application = await getRetailerRepository().upsertPendingApplication({
-    userId,
-    email,
-    firstName: user.firstName,
-    application: normalized.value,
-  });
-  try {
-    await sendApplicationNotification(application);
-  } catch {
-    revalidatePath("/retailers/portal");
-    redirect("/retailers/portal?applied=1&notification=pending");
-  }
-  revalidatePath("/retailers/portal");
-  redirect("/retailers/portal?applied=1");
 }
 
 async function retryRetailerNotification() {
@@ -92,12 +55,11 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   if (!userId) redirect("/retailers/login");
   const params = await searchParams;
   const repository = getRetailerRepository();
-  const [application, submissions] = await Promise.all([
-    repository.getApplication(userId),
-    repository.listSubmissions(userId),
-  ]);
-  const retailerStatus = application?.status || "not_started";
-  const storeName = application?.storeName || "Your store";
+  const application = await repository.getApplication(userId);
+  if (!application) redirect("/retailers/onboarding");
+  const submissions = await repository.listSubmissions(userId);
+  const retailerStatus = application.status;
+  const storeName = application.storeName;
   const error = typeof params.error === "string" ? params.error : "";
 
   return (
@@ -119,23 +81,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
         {params.notified === "1" ? <p className={styles.notice}>The review team has been notified.</p> : null}
         {params.submitted === "1" ? <p className={styles.notice}>Update submitted for Bourbon Signal review.</p> : null}
 
-        {retailerStatus === "not_started" ? (
-          <section className={styles.statusPanel}>
-            <p className={styles.eyebrow}>Store access request</p>
-            <h2>Connect this account to your store.</h2>
-            <p className={styles.muted}>Access remains locked until Bourbon Signal verifies you through a business contact found independently.</p>
-            <form action={applyForRetailerAccess} className={`${styles.formGrid} ${styles.panel}`}>
-              <div className={styles.field}><label htmlFor="storeName">Store name</label><input id="storeName" name="storeName" required maxLength={120} /></div>
-              <div className={styles.field}><label htmlFor="storeAddress">Store address</label><input id="storeAddress" name="storeAddress" required maxLength={240} /></div>
-              <div className={`${styles.formGrid} ${styles.twoColumns}`}>
-                <div className={styles.field}><label htmlFor="listedPhone">Publicly listed phone</label><input id="listedPhone" name="listedPhone" required maxLength={40} /></div>
-                <div className={styles.field}><label htmlFor="applicantRole">Your role</label><input id="applicantRole" name="applicantRole" required maxLength={80} /></div>
-              </div>
-              <div className={styles.field}><label htmlFor="website">Official website</label><input id="website" name="website" type="url" maxLength={240} /></div>
-              <button className={styles.primaryButton} type="submit">Request retailer access</button>
-            </form>
-          </section>
-        ) : retailerStatus === "pending" ? (
+        {retailerStatus === "pending" ? (
           <section className={styles.statusPanel}>
             <div className={styles.statusLine}><span className={styles.status}>Verification pending</span><strong>{storeName}</strong></div>
             <h2>We’re confirming your connection to the store.</h2>

@@ -36,6 +36,12 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+export function toIsoDate(value: unknown) {
+  const parsed = value instanceof Date ? value : new Date(typeof value === "string" || typeof value === "number" ? value : "");
+  if (Number.isNaN(parsed.getTime())) throw new RangeError("Invalid retailer timestamp");
+  return parsed.toISOString();
+}
+
 function applicationFromRow(row: Record<string, unknown>): RetailerApplicationRecord {
   return {
     userId: asString(row.user_id),
@@ -47,11 +53,11 @@ function applicationFromRow(row: Record<string, unknown>): RetailerApplicationRe
     listedPhone: asString(row.listed_phone),
     applicantRole: asString(row.applicant_role),
     status: asString(row.status) as RetailerApplicationRecord["status"],
-    createdAt: new Date(asString(row.created_at)).toISOString(),
-    updatedAt: new Date(asString(row.updated_at)).toISOString(),
+    createdAt: toIsoDate(row.created_at),
+    updatedAt: toIsoDate(row.updated_at),
     verificationMethod: asString(row.verification_method) || null,
     verificationContact: asString(row.verification_contact) || null,
-    notificationSentAt: asString(row.notification_sent_at) ? new Date(asString(row.notification_sent_at)).toISOString() : undefined,
+    notificationSentAt: row.notification_sent_at ? toIsoDate(row.notification_sent_at) : undefined,
     notificationMessageId: asString(row.notification_message_id) || undefined,
   };
 }
@@ -71,8 +77,8 @@ function submissionFromRow(row: Record<string, unknown>): RetailerSubmissionReco
     notes: asString(payload.notes),
     expiresAt: asString(payload.expiresAt),
     status: asString(row.status) as RetailerSubmissionStatus,
-    createdAt: new Date(asString(row.created_at)).toISOString(),
-    reviewedAt: asString(row.reviewed_at) ? new Date(asString(row.reviewed_at)).toISOString() : undefined,
+    createdAt: toIsoDate(row.created_at),
+    reviewedAt: row.reviewed_at ? toIsoDate(row.reviewed_at) : undefined,
   };
 }
 

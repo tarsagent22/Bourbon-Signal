@@ -48,6 +48,12 @@ function validHttpUrl(value: string) {
   }
 }
 
+export function safeRetailerRedirect(value: unknown) {
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/retailers/portal";
+  const path = value.split("#", 1)[0];
+  return /^\/retailers\/(?:portal|onboarding)(?:[/?]|$)/.test(path) ? path : "/retailers/portal";
+}
+
 export function normalizeRetailerApplication(input: unknown): Result<RetailerApplication> {
   const row = input && typeof input === "object" ? input as Record<string, unknown> : {};
   const value: RetailerApplication = {
