@@ -57,6 +57,11 @@ export default clerkMiddleware(async (auth, request) => {
     retailerLoginUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
     return NextResponse.redirect(retailerLoginUrl);
   }
+  if (url.pathname.startsWith("/admin")) {
+    const adminLoginUrl = new URL("/sign-in", request.url);
+    adminLoginUrl.searchParams.set("redirect_url", `${url.pathname}${url.search}`);
+    return NextResponse.redirect(adminLoginUrl);
+  }
 
   const signUpUrl = new URL("/sign-up", request.url);
   const redirectAfterAccount = url.pathname.startsWith("/sightings") ? "/pricing" : `${url.pathname}${url.search}`;

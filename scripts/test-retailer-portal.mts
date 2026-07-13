@@ -81,6 +81,7 @@ for (const file of [
 const middleware = read("src/middleware.ts");
 assert.match(middleware, /"\/retailers\/portal\(\.\*\)"/);
 assert.doesNotMatch(middleware, /"\/retailers\(\.\*\)"/);
+assert.match(middleware, /url\.pathname\.startsWith\("\/admin"\)[\s\S]*new URL\("\/sign-in"/);
 
 const webhook = read("src/app/api/webhooks/clerk/route.ts");
 assert.match(webhook, /notifyRetailerAccountCreated/);
