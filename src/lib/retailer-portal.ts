@@ -48,6 +48,19 @@ function validHttpUrl(value: string) {
   }
 }
 
+function validLocalDateTime(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value);
+  if (!match) return false;
+  const [, year, month, day, hour, minute, second = "0"] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)));
+  return date.getUTCFullYear() === Number(year)
+    && date.getUTCMonth() === Number(month) - 1
+    && date.getUTCDate() === Number(day)
+    && date.getUTCHours() === Number(hour)
+    && date.getUTCMinutes() === Number(minute)
+    && date.getUTCSeconds() === Number(second);
+}
+
 export function safeRetailerRedirect(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/retailers/portal";
   const path = value.split("#", 1)[0];
@@ -79,17 +92,22 @@ export function normalizeRetailerSubmission(input: unknown): Result<RetailerSubm
   const row = input && typeof input === "object" ? input as Record<string, unknown> : {};
   const allowedKinds = new Set<RetailerSubmissionKind>(["bottle_drop", "barrel_pick", "tasting", "lottery", "other"]);
   const kind = text(row.kind, 40) as RetailerSubmissionKind;
+  const normalizedKind = allowedKinds.has(kind) ? kind : "other";
   const value: RetailerSubmission = {
-    kind: allowedKinds.has(kind) ? kind : "other",
+    kind: normalizedKind,
     title: text(row.title, 160),
     locationDetails: text(row.locationDetails, 180),
-    price: text(row.price, 40),
-    availability: text(row.availability, 100),
+    price: normalizedKind === "other" ? "" : text(row.price, 40),
+    availability: normalizedKind === "other" ? "" : text(row.availability, 100),
     notes: text(row.notes, 1_000),
     expiresAt: text(row.expiresAt, 40),
     status: "reviewed",
   };
   if (!value.title) return { ok: false, error: "A bottle, event, or promotion title is required." };
+  if (value.kind === "tasting" && !value.expiresAt) return { ok: false, error: "An event date and time is required for tastings." };
+  if (value.kind === "lottery" && !value.expiresAt) return { ok: false, error: "An entry deadline is required for lotteries." };
+  if (value.kind === "tasting" && !validLocalDateTime(value.expiresAt)) return { ok: false, error: "Enter a valid event date and time." };
+  if (value.kind === "lottery" && !validLocalDateTime(value.expiresAt)) return { ok: false, error: "Enter a valid entry deadline." };
   return { ok: true, value };
 }
 

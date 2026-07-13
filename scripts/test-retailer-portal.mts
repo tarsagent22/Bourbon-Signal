@@ -10,6 +10,7 @@ import {
 } from "../src/lib/retailer-portal.ts";
 import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-admin.ts";
 import { toIsoDate } from "../src/lib/retailer-repository.ts";
+import { retailerSignalFieldConfig } from "../src/lib/retailer-signal-fields.ts";
 
 const timestamp = new Date("2026-07-13T21:00:00.000Z");
 assert.equal(toIsoDate(timestamp), "2026-07-13T21:00:00.000Z");
@@ -61,6 +62,45 @@ const submission = normalizeRetailerSubmission({
 assert.equal(submission.ok, true);
 assert.equal(submission.value?.title, "Elijah Craig private barrel");
 assert.equal(submission.value?.status, "reviewed");
+
+const tastingWithoutDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting" });
+assert.equal(tastingWithoutDate.ok, false);
+assert.match(tastingWithoutDate.error || "", /event date/i);
+const lotteryWithoutDeadline = normalizeRetailerSubmission({ kind: "lottery", title: "Van Winkle lottery" });
+assert.equal(lotteryWithoutDeadline.ok, false);
+assert.match(lotteryWithoutDeadline.error || "", /entry deadline/i);
+const tastingWithInvalidDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting", expiresAt: "tomorrow night" });
+assert.equal(tastingWithInvalidDate.ok, false);
+assert.match(tastingWithInvalidDate.error || "", /valid event date/i);
+const otherWithHiddenMetadata = normalizeRetailerSubmission({ kind: "other", title: "Holiday hours", price: "$50", availability: "10 bottles" });
+assert.equal(otherWithHiddenMetadata.ok, true);
+assert.equal(otherWithHiddenMetadata.value?.price, "");
+assert.equal(otherWithHiddenMetadata.value?.availability, "");
+
+const bottleDropFields = retailerSignalFieldConfig("bottle_drop");
+assert.equal(bottleDropFields.useBottleSuggestions, true);
+assert.equal(bottleDropFields.titleLabel, "Bottle");
+assert.equal(bottleDropFields.availabilityLabel, "Quantity or purchase limit");
+
+const barrelPickFields = retailerSignalFieldConfig("barrel_pick");
+assert.equal(barrelPickFields.useBottleSuggestions, true);
+assert.equal(barrelPickFields.notesLabel, "Pick details");
+
+const tastingFields = retailerSignalFieldConfig("tasting");
+assert.equal(tastingFields.useBottleSuggestions, false);
+assert.equal(tastingFields.titleLabel, "Event name");
+assert.equal(tastingFields.expiresAtLabel, "Event date and time");
+assert.equal(tastingFields.availabilityLabel, "Capacity or reservation details");
+
+const lotteryFields = retailerSignalFieldConfig("lottery");
+assert.equal(lotteryFields.useBottleSuggestions, true);
+assert.equal(lotteryFields.expiresAtLabel, "Entry deadline");
+
+const otherFields = retailerSignalFieldConfig("other");
+assert.equal(otherFields.useBottleSuggestions, false);
+assert.equal(otherFields.titleLabel, "Signal title");
+assert.equal(otherFields.showPrice, false);
+assert.equal(otherFields.showAvailability, false);
 
 const notice = buildRetailerAccountNotification({
   userId: "user_123",
@@ -132,6 +172,7 @@ assert.match(portal, /verified/);
 assert.match(portal, /Submit a signal/);
 assert.match(portal, /RetailerSignalForm/);
 assert.match(portal, /filter\(\(submission\) => submission\.status !== "rejected"\)/);
+assert.match(portal, /submission\.kind !== "other"/);
 assert.doesNotMatch(portal, /stateFromAddress/);
 assert.match(portal, /We only verify store access once/);
 assert.doesNotMatch(portal, /reviewed before|Submit for review|pending review/);
@@ -177,6 +218,10 @@ assert.match(suggestBranch, /suggestions: suggestions\.map\(userFacingBottle\)/)
 assert.match(suggestBranch, /return NextResponse\.json/);
 assert.doesNotMatch(suggestBranch, /getLocalSignal|captureSearchEvent/);
 assert.match(signalForm, /intent=suggest/);
+assert.match(signalForm, /retailerSignalFieldConfig\(kind\)/);
+assert.match(signalForm, /fieldConfig\.useBottleSuggestions/);
+assert.match(signalForm, /fieldConfig\.showPrice/);
+assert.match(signalForm, /fieldConfig\.showAvailability/);
 assert.doesNotMatch(signalForm, /[?&]state=|state: string/);
 assert.match(signalForm, /canonicalName/);
 assert.match(signalForm, /event\.key === "Escape"[\s\S]*setOpen\(false\)[\s\S]*setActiveIndex\(-1\)/);
@@ -193,6 +238,7 @@ assert.match(admin, /verificationContact/);
 assert.match(admin, /removeRetailerAccess/);
 assert.match(admin, /removeRetailerSubmission/);
 assert.match(admin, /submission\.status === "rejected" \? "removed" : "retailer signal"/);
+assert.match(admin, /submission\.kind === "other"/);
 assert.doesNotMatch(admin, /reviewSubmission|>Approve<\/button>|>Reject<\/button>|pending review/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
 

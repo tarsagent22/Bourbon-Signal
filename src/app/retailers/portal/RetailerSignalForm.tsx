@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { retailerSignalFieldConfig, type RetailerSignalKind } from "@/lib/retailer-signal-fields";
 import styles from "../retailers.module.css";
 
 type BottleSuggestion = {
@@ -20,16 +21,19 @@ type RetailerSignalFormProps = {
 };
 
 export default function RetailerSignalForm({ action }: RetailerSignalFormProps) {
+  const [kind, setKind] = useState<RetailerSignalKind>("bottle_drop");
   const [title, setTitle] = useState("");
   const [suggestions, setSuggestions] = useState<BottleSuggestion[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
+  const fieldConfig = retailerSignalFieldConfig(kind);
 
   useEffect(() => {
     const query = title.trim();
-    if (query.length < 2) {
+    if (!fieldConfig.useBottleSuggestions || query.length < 2) {
       setSuggestions([]);
       setOpen(false);
+      setActiveIndex(-1);
       return;
     }
 
@@ -52,6 +56,7 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
         if ((error as Error).name !== "AbortError") {
           setSuggestions([]);
           setOpen(false);
+          setActiveIndex(-1);
         }
       }
     }, 180);
@@ -60,7 +65,7 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [title]);
+  }, [fieldConfig.useBottleSuggestions, title]);
 
   const activeId = useMemo(() => activeIndex >= 0 ? `retailer-bottle-option-${activeIndex}` : undefined, [activeIndex]);
 
@@ -75,7 +80,13 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
     <form action={action} className={`${styles.formGrid} ${styles.signalForm}`}>
       <div className={styles.field}>
         <label htmlFor="kind">Signal type</label>
-        <select className={styles.signalInput} id="kind" name="kind" defaultValue="bottle_drop">
+        <select
+          className={styles.signalInput}
+          id="kind"
+          name="kind"
+          onChange={(event) => setKind(event.target.value as RetailerSignalKind)}
+          value={kind}
+        >
           <option value="bottle_drop">Bottle drop</option>
           <option value="barrel_pick">Barrel pick</option>
           <option value="tasting">Tasting</option>
@@ -85,25 +96,29 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="title">Bottle search or event title</label>
+        <label htmlFor="title">{fieldConfig.titleLabel}</label>
         <div className={styles.suggestionWrap}>
           <input
-            aria-activedescendant={activeId}
-            aria-autocomplete="list"
-            aria-controls="retailer-bottle-suggestions"
-            aria-expanded={open}
+            aria-activedescendant={fieldConfig.useBottleSuggestions ? activeId : undefined}
+            aria-autocomplete={fieldConfig.useBottleSuggestions ? "list" : undefined}
+            aria-controls={fieldConfig.useBottleSuggestions ? "retailer-bottle-suggestions" : undefined}
+            aria-describedby="retailer-signal-title-help"
+            aria-expanded={fieldConfig.useBottleSuggestions ? open : undefined}
             autoComplete="off"
             className={styles.signalInput}
             id="title"
+            maxLength={160}
             name="title"
             onBlur={() => window.setTimeout(() => {
               setOpen(false);
               setActiveIndex(-1);
             }, 120)}
             onChange={(event) => setTitle(event.target.value)}
-            onFocus={() => setOpen(suggestions.length > 0)}
+            onFocus={() => {
+              if (fieldConfig.useBottleSuggestions) setOpen(suggestions.length > 0);
+            }}
             onKeyDown={(event) => {
-              if (!open || suggestions.length === 0) return;
+              if (!fieldConfig.useBottleSuggestions || !open || suggestions.length === 0) return;
               if (event.key === "ArrowDown") {
                 event.preventDefault();
                 setActiveIndex((current) => (current + 1) % suggestions.length);
@@ -118,13 +133,12 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
                 setActiveIndex(-1);
               }
             }}
-            placeholder="Start typing a bottle name…"
+            placeholder={fieldConfig.titlePlaceholder}
             required
-            maxLength={160}
-            role="combobox"
+            role={fieldConfig.useBottleSuggestions ? "combobox" : undefined}
             value={title}
           />
-          {open ? (
+          {fieldConfig.useBottleSuggestions && open ? (
             <div className={styles.suggestionList} id="retailer-bottle-suggestions" role="listbox">
               {suggestions.map((suggestion, index) => (
                 <button
@@ -144,19 +158,41 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
             </div>
           ) : null}
         </div>
-        <p className={styles.fieldHelp}>Choose a Bottle Check suggestion or keep your own title if it is not listed.</p>
+        <p className={styles.fieldHelp} id="retailer-signal-title-help">{fieldConfig.titleHelp}</p>
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="locationDetails">Location details <span className={styles.muted}>(optional)</span></label>
-        <input className={styles.signalInput} id="locationDetails" name="locationDetails" placeholder="Front counter, tasting room…" maxLength={180} />
+        <label htmlFor="locationDetails">{fieldConfig.locationLabel} <span className={styles.muted}>(optional)</span></label>
+        <input className={styles.signalInput} id="locationDetails" name="locationDetails" placeholder={fieldConfig.locationPlaceholder} maxLength={180} />
       </div>
-      <div className={`${styles.formGrid} ${styles.twoColumns}`}>
-        <div className={styles.field}><label htmlFor="price">Price</label><input className={styles.signalInput} id="price" name="price" placeholder="$79.99" maxLength={40} /></div>
-        <div className={styles.field}><label htmlFor="availability">Availability</label><input className={styles.signalInput} id="availability" name="availability" placeholder="12 bottles, limit one" maxLength={100} /></div>
+
+      {fieldConfig.showPrice || fieldConfig.showAvailability ? (
+        <div className={`${styles.formGrid} ${styles.twoColumns}`}>
+          {fieldConfig.showPrice ? (
+            <div className={styles.field}>
+              <label htmlFor="price">{fieldConfig.priceLabel} <span className={styles.muted}>(optional)</span></label>
+              <input className={styles.signalInput} id="price" name="price" placeholder={fieldConfig.pricePlaceholder} maxLength={40} />
+            </div>
+          ) : null}
+          {fieldConfig.showAvailability ? (
+            <div className={styles.field}>
+              <label htmlFor="availability">{fieldConfig.availabilityLabel} <span className={styles.muted}>(optional)</span></label>
+              <input className={styles.signalInput} id="availability" name="availability" placeholder={fieldConfig.availabilityPlaceholder} maxLength={100} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={styles.field}>
+        <label htmlFor="expiresAt">{fieldConfig.expiresAtLabel}{fieldConfig.expiresAtRequired ? null : <span className={styles.muted}> (optional)</span>}</label>
+        <input className={styles.signalInput} id="expiresAt" name="expiresAt" required={fieldConfig.expiresAtRequired} type="datetime-local" />
       </div>
-      <div className={styles.field}><label htmlFor="expiresAt">End or expiration</label><input className={styles.signalInput} id="expiresAt" name="expiresAt" type="datetime-local" /></div>
-      <div className={styles.field}><label htmlFor="notes">Customer details</label><textarea className={styles.signalInput} id="notes" name="notes" maxLength={1000} /></div>
+
+      <div className={styles.field}>
+        <label htmlFor="notes">{fieldConfig.notesLabel} <span className={styles.muted}>(optional)</span></label>
+        <textarea className={styles.signalInput} id="notes" name="notes" placeholder={fieldConfig.notesPlaceholder} maxLength={1000} />
+      </div>
+
       <button className={styles.primaryButton} type="submit">Submit signal</button>
     </form>
   );

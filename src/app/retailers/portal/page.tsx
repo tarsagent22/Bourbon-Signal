@@ -111,7 +111,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
                   <article className={styles.submissionCard} key={submission.id || `${submission.title}-${submission.createdAt}`}>
                     <div className={styles.statusLine}><span className={styles.status}>submitted</span><strong>{submission.title}</strong></div>
                     <p className={styles.muted}>{submission.notes || "No additional details."}</p>
-                    <div className={styles.submissionMeta}><span>{submission.kind?.replaceAll("_", " ")}</span><span>{submission.storeName}</span><span>{submission.storeAddress}</span>{submission.locationDetails ? <span>{submission.locationDetails}</span> : null}<span>{submission.price || "Price not supplied"}</span><span>{submission.availability || "Availability not supplied"}</span></div>
+                    <div className={styles.submissionMeta}><span>{submission.kind?.replaceAll("_", " ")}</span><span>{submission.storeName}</span><span>{submission.storeAddress}</span>{submission.locationDetails ? <span>{submission.locationDetails}</span> : null}{submission.kind !== "other" ? <><span>{submission.price || "Price not supplied"}</span><span>{submission.availability || "Availability not supplied"}</span></> : null}</div>
                   </article>
                 )) : <div className={styles.submissionCard}><strong>No retailer signals yet.</strong><p className={styles.muted}>Your submitted drops, picks, tastings, and lotteries will appear here.</p></div>}
               </div>
