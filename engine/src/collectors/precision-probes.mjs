@@ -3978,12 +3978,16 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
 
   const seenProductOptions = new Set();
   const seenStores = new Set();
+  let globallyBlocked = false;
   for (const source of SC_CITYHIVE_SOURCES) {
+    if (globallyBlocked) break;
+    let sourceBlocked = false;
     // The bourbon page already carries the high-value watch terms. Keep the default
     // request matrix to one category per merchant; broad whiskey pagination caused
     // avoidable CityHive 429s without adding proportional alert-grade coverage.
     for (const seedUrl of source.urls.slice(0, 1)) {
       for (const merchantId of source.merchantIds || []) {
+        if (sourceBlocked) break;
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, SC_CITYHIVE_MAX_PAGES)) {
           const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
           if (!res.ok) {
@@ -3995,7 +3999,11 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
               error: res.error || `HTTP ${res.status}`,
               nextRoute: 'Retry the selected South Carolina CityHive merchant-id page or inspect rendered/network calls for current product JSON shape.'
             });
-            continue;
+            if (res.status === 429) {
+              sourceBlocked = true;
+              globallyBlocked = true;
+            }
+            break;
           }
           const blobs = cityHiveJsonBlobs(res.text);
           const products = cityHiveProducts(blobs);
@@ -4047,7 +4055,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 const rawName = option.option_display_data?.name || product.name || '';
                 const candidateText = JSON.stringify({ name: rawName, productName: product.name, category: product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
                 if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
-                const quantity = Number(option.quantity || 0) || 0;
+                const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
                 if (quantity <= 0) continue;
                 const key = `${source.id}|${optionMerchantId}|${option.product_id}|${option.option_id}`;
                 if (seenProductOptions.has(key)) continue;
@@ -4059,7 +4067,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
                 const price = Number(option.price || 0) || null;
                 signals.push({
-                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.option_id, quantity, price]),
+                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.product_id, option.option_id]),
                   state: config.id,
                   sourceLabel: source.sourceLabel,
                   sourceUrl: option.product_url || url,
@@ -4081,14 +4089,16 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                   lng: Number(option.coordinates?.[0]) || null,
                   quantity,
                   price,
-                  availabilityStatus: 'in_stock',
+                  availabilityStatus: binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock',
                   availabilityLabel: 'In stock',
                   observedAt,
                   canAlertAsInventory: true,
                   canAlertAsWatch: true,
                   inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected South Carolina branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
-                  evidence: `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}.`,
-                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
+                  evidence: binaryAvailability
+                    ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}; the retailer value 100 is treated as binary availability, not an exact shelf count.`
+                    : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}.`,
+                  raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
                 });
               }
             }
