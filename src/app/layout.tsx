@@ -77,7 +77,6 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
-      proxyUrl={process.env.NEXT_PUBLIC_CLERK_PROXY_URL}
       appearance={{
         theme: dark,
         variables: {
