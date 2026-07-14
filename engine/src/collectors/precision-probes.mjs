@@ -16,6 +16,16 @@ import {
   isUsefulBourbonSize,
   isAllowedHttpsHost,
 } from './florida-tampa-surfaces.mjs';
+import {
+  INDIANA_TARGET_STORES,
+  filterFreshIndianaTargetSignals,
+  indianaCityHivePriorityRank,
+  isIndianaCityHivePriorityMarket,
+  mergeIndianaTargetCacheSignals,
+  parseIndianaTargetFulfillment,
+  parseIndianaTargetSearchProducts,
+  shouldWriteIndianaTargetCache,
+} from './indiana-retailer-surfaces.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -202,7 +212,15 @@ const IN_ATC_SEARCH_URL = 'https://mylicense.in.gov/everification/Search.aspx?fa
 const IN_ATC_RESULTS_URL = 'https://mylicense.in.gov/everification/SearchResults.aspx';
 const IN_ATC_ARTIFACT_PATH = 'out/browser/IN-atc-package-stores.json';
 const IN_CITYHIVE_ARTIFACT_PATH = 'out/browser/IN-cityhive-retailer-inventory.json';
+const IN_TARGET_ARTIFACT_PATH = 'out/browser/IN-target-retailer-inventory.json';
+const IN_TARGET_KEY = String(process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || '').trim();
+const IN_TARGET_CACHE_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_IN_TARGET_CACHE_MAX_AGE_MS) || 10 * 60 * 60_000);
+const IN_TARGET_COHORT_SIZE = Math.max(1, Math.min(INDIANA_TARGET_STORES.size, Number(process.env.BOURBON_SIGNAL_IN_TARGET_COHORT_SIZE) || 3));
+const IN_TARGET_ROTATION_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_IN_TARGET_ROTATION_MS) || 2 * 60 * 60_000);
+const IN_TARGET_PRODUCT_LIMIT = Math.max(1, Math.min(24, Number(process.env.BOURBON_SIGNAL_IN_TARGET_PRODUCT_LIMIT) || 12));
+const IN_TARGET_REQUEST_DELAY_MS = Math.max(250, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_IN_TARGET_REQUEST_DELAY_MS) || 450));
 const IN_ATC_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_ATC_MAX_PAGES || 60);
+
 const IN_ATC_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_ATC_CACHE_MAX_AGE_MS || 7 * 24 * 60 * 60_000);
 const IN_ATC_POST_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_IN_ATC_POST_TIMEOUT_MS || 15_000);
 const IN_BOURBON_WORLD_URL = 'https://bourbonworld.net/';
@@ -214,15 +232,7 @@ const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHI
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
 const IN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PAGE_DELAY_MS || 1_250);
 const IN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_DELAY_MS || 2_500);
-const IN_CITYHIVE_PRIORITY_CITY_RE = /indianapolis|carmel|fishers|noblesville|greenwood|avon|brownsburg|plainfield|speedway|westfield|greenfield|martinsville|bedford|french lick|morgantown|trafalgar|fort wayne|new haven|granger|goshen|roseland|huntington|valparaiso|merrillville|chesterton|bloomington|lafayette|west lafayette|south bend|mishawaka|elkhart|evansville|muncie|anderson|kokomo|terre haute|west terre haute|columbus|jeffersonville|new albany|jasper/i;
-const IN_CITYHIVE_PRIORITY_CITY_ORDER = [
-  'avon', 'plainfield', 'noblesville', 'speedway', 'westfield', 'greenfield',
-  'south bend', 'mishawaka', 'elkhart', 'granger', 'goshen', 'roseland', 'huntington',
-  'lafayette', 'west lafayette', 'evansville', 'muncie', 'anderson', 'kokomo', 'columbus', 'jeffersonville', 'new albany',
-  'indianapolis', 'carmel', 'fishers', 'greenwood', 'brownsburg', 'mccordsville',
-  'fort wayne', 'new haven', 'valparaiso', 'merrillville', 'chesterton', 'bloomington', 'terre haute', 'west terre haute',
-  'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar', 'jasper'
-];
+
 const IN_KAHNS_API_URL = 'https://www.kahnsfinewines.com/api/trpc/product.getAll';
 const IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID = '2sipcm0ec0lsm';
 const IN_KAHNS_STORE = {
@@ -348,6 +358,24 @@ const IN_CITYHIVE_SOURCES = [
     baseUrl: 'https://holidayl7c37e10a.sites.cityhive.app',
     urls: [
       'https://holidayl7c37e10a.sites.cityhive.app/shop/?subtype=Bourbon'
+    ]
+  },
+  {
+    id: 'gays-hops-n-schnapps',
+    chainName: "Gays Hops-N-Schnapps",
+    sourceLabel: "Gays Hops-N-Schnapps CityHive store inventory",
+    baseUrl: 'https://gayshopsb1eca398.sites.cityhive.app',
+    urls: [
+      'https://gayshopsb1eca398.sites.cityhive.app/shop/?subtype=Bourbon'
+    ]
+  },
+  {
+    id: 'vine-and-table',
+    chainName: 'Vine & Table',
+    sourceLabel: 'Vine & Table CityHive store inventory',
+    baseUrl: 'https://vinetabl687fd7df.sites.cityhive.app',
+    urls: [
+      'https://vinetabl687fd7df.sites.cityhive.app/shop/?subtype=Bourbon'
     ]
   }
 ];
@@ -1691,9 +1719,8 @@ function cityHiveAddressParts(address = {}) {
 }
 
 function cityHivePriorityRank(merchant) {
-  const text = `${merchant.name || ''} ${merchant.city || ''} ${merchant.address || ''}`.toLowerCase().replace(/\s+/g, ' ');
-  const orderIndex = IN_CITYHIVE_PRIORITY_CITY_ORDER.findIndex((city) => text.includes(city));
-  return orderIndex >= 0 ? orderIndex : IN_CITYHIVE_PRIORITY_CITY_ORDER.length;
+  const text = `${merchant.name || ''} ${merchant.city || ''} ${merchant.address || ''}`;
+  return indianaCityHivePriorityRank(text);
 }
 
 function cityHivePriorityMerchants(blobs, source) {
@@ -1707,7 +1734,7 @@ function cityHivePriorityMerchants(blobs, source) {
     const a = cityHiveAddressParts(merchant.address || {});
     if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
     const haystack = `${merchant.display_name || merchant.name || ''} ${a.fullAddress || ''} ${a.city || ''}`;
-    if (!IN_CITYHIVE_PRIORITY_CITY_RE.test(haystack)) continue;
+    if (!isIndianaCityHivePriorityMarket(haystack)) continue;
     merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id, ordinal: ordinal++ });
   }
   return merchants
@@ -2042,9 +2069,9 @@ async function collectIndianaDoorDashFrontier(config, bible, observedAt) {
       availabilityStatus: 'marketplace_listed_not_out_of_stock',
       availabilityLabel: 'Listed on DoorDash; not marked out of stock',
       observedAt,
-      canAlertAsInventory: true,
+      canAlertAsInventory: false,
       canAlertAsWatch: true,
-      inventorySemantics: 'DoorDash public retail item cards list this SKU for Frontier Liquors in Evansville with price and no out-of-stock flags. DoorDash does not expose exact bottle count; quantity is a lower-bound marketplace availability marker and should be verified before driving/order placement.',
+      inventorySemantics: 'DoorDash public retail item cards list this SKU for Frontier Liquors in Evansville with price and no out-of-stock flags. This is third-party delivery-marketplace orderability, not first-party shelf inventory or an exact bottle count; publish as a watch lead only.',
       evidence: `DoorDash lists ${item.itemName} at ${store.name}, ${store.address}${item.price ? ` for $${item.price.toFixed(2)}` : ''}, with no out-of-stock flag in the public retail item card.`,
       raw: { source: 'doordash_frontier_liquors_public_store_page', store, item, quantitySemantics: 'listed_not_out_of_stock_no_exact_count', matchGuard: unsafeReason }
     });
@@ -2518,6 +2545,8 @@ async function collectIndianaCityHive(config, bible, observedAt) {
                 state: config.id,
                 sourceLabel: source.sourceLabel,
                 sourceUrl: option.product_url || url,
+                sourceChain: source.id,
+                merchantId: option.merchant_id ? String(option.merchant_id) : null,
                 rawName,
                 canonicalBottleId: record.id,
                 canonicalName: record.canonical,
@@ -2541,15 +2570,27 @@ async function collectIndianaCityHive(config, bible, observedAt) {
                 observedAt,
                 canAlertAsInventory: quantity > 0,
                 canAlertAsWatch: true,
-                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
-                evidence: `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
-                raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
+                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                evidence: binaryAvailability
+                  ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}; the retailer value ${reportedQuantity} is treated as binary availability, not an exact shelf count.`
+                  : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
+                raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
               });
             }
           }
         }
         await sleep(IN_CITYHIVE_PAGE_DELAY_MS);
       }
+    }
+    if (!signals.some((signal) => signal.raw?.chain === source.id && signal.eventType === 'cityhive_store_inventory_result')) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.urls[0],
+        status: 'reachable_no_safe_inventory_rows',
+        error: `${source.chainName} returned no positive, safely matched bourbon inventory rows in the current bounded crawl.`,
+        nextRoute: 'Retry at the next low-cadence refresh; do not promote catalog-only, out-of-stock, or unsafe bottle matches.'
+      });
     }
     await sleep(IN_CITYHIVE_SOURCE_DELAY_MS);
   }
@@ -2591,6 +2632,243 @@ async function collectIndianaCityHive(config, bible, observedAt) {
     }
   } else {
     await writeIndianaCityHiveCache(signals, roadblocks);
+  }
+  return { signals, roadblocks };
+}
+
+async function readIndianaTargetCache() {
+  try {
+    const cache = JSON.parse(await readFile(IN_TARGET_ARTIFACT_PATH, 'utf8'));
+    const generatedMs = Date.parse(cache.generatedAt || '');
+    const nowMs = Date.now();
+    if (!Number.isFinite(generatedMs) || nowMs - generatedMs > IN_TARGET_CACHE_MAX_AGE_MS) return null;
+    const signals = filterFreshIndianaTargetSignals(cache.signals, nowMs, IN_TARGET_CACHE_MAX_AGE_MS);
+    if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) return null;
+    return { ...cache, signals, roadblocks: Array.isArray(cache.roadblocks) ? cache.roadblocks : [] };
+  } catch {
+    return null;
+  }
+}
+
+async function writeIndianaTargetCache(signals, roadblocks) {
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    source: 'Target Indiana RedSky store fulfillment cache',
+    cacheMaxAgeMs: IN_TARGET_CACHE_MAX_AGE_MS,
+    signalCount: signals.length,
+    storeIds: [...new Set(signals.map((signal) => signal.merchantId).filter(Boolean))].sort(),
+    signals,
+    roadblocks,
+  };
+  await mkdir(path.dirname(IN_TARGET_ARTIFACT_PATH), { recursive: true });
+  await writeFile(IN_TARGET_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+}
+
+function cachedIndianaTargetSignals(cache) {
+  return (cache?.signals || []).map((signal) => ({
+    ...signal,
+    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: IN_TARGET_ARTIFACT_PATH },
+  }));
+}
+
+async function collectIndianaTarget(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const cache = await readIndianaTargetCache();
+  const allStores = [...INDIANA_TARGET_STORES.entries()];
+  const selectedStores = process.env.BOURBON_SIGNAL_IN_TARGET_FORCE_ALL_STORES === '1'
+    ? allStores
+    : rotatingSourceCohort(allStores, observedAt, IN_TARGET_COHORT_SIZE, IN_TARGET_ROTATION_MS);
+  const [seedStoreId, seedStore] = selectedStores[0] || allStores[0];
+  if (!IN_TARGET_KEY) {
+    if (cache) signals.push(...cachedIndianaTargetSignals(cache));
+    roadblocks.push({
+      state: config.id,
+      source: 'Target Indiana RedSky store fulfillment',
+      url: seedStore?.officialUrl || 'https://www.target.com/c/bourbon-liquor-wine-beer-grocery/-/N-xxj34',
+      status: 'missing_runtime_configuration',
+      error: 'Target RedSky collection requires BOURBON_SIGNAL_TARGET_REDSKY_KEY at runtime.',
+      nextRoute: 'Configure the public Target frontend key in the protected runner environment; never hardcode it or treat category presence as inventory.',
+    });
+    return { signals, roadblocks };
+  }
+  const visitorId = randomUUID();
+  const searchParams = new URLSearchParams({
+    key: IN_TARGET_KEY,
+    channel: 'WEB',
+    count: '24',
+    default_purchasability_filter: 'true',
+    keyword: 'bourbon',
+    offset: '0',
+    page: '/s/bourbon',
+    pricing_store_id: seedStoreId,
+    store_ids: seedStoreId,
+    visitor_id: visitorId,
+  });
+  const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  if (!search.ok) {
+    if (cache) signals.push(...cachedIndianaTargetSignals(cache));
+    roadblocks.push({
+      state: config.id,
+      source: 'Target Indiana RedSky store fulfillment',
+      url: seedStore?.officialUrl || 'https://www.target.com/c/bourbon-liquor-wine-beer-grocery/-/N-xxj34',
+      status: search.status || 0,
+      error: search.error || `HTTP ${search.status}`,
+      nextRoute: 'Refresh the public Target frontend key and retry the public RedSky search at low cadence; never promote category presence as inventory.',
+    });
+    return { signals, roadblocks };
+  }
+
+  const products = parseIndianaTargetSearchProducts(search.text);
+  if (!products.length) {
+    if (cache) signals.push(...cachedIndianaTargetSignals(cache));
+    roadblocks.push({
+      state: config.id,
+      source: 'Target Indiana RedSky store fulfillment',
+      url: seedStore?.officialUrl || 'https://www.target.com/c/bourbon-liquor-wine-beer-grocery/-/N-xxj34',
+      status: 'reachable_no_valid_product_rows',
+      error: 'Target search returned no valid product array for the bounded bourbon query.',
+      nextRoute: 'Inspect the public Target RedSky search response shape without weakening store or product identity guards.',
+    });
+    return { signals, roadblocks };
+  }
+
+  const seen = new Set();
+  const completedStoreIds = new Set();
+  for (const [primaryStoreId, primaryStore] of selectedStores) {
+    let attemptedRequests = 0;
+    let storeComplete = true;
+    for (const product of products.slice(0, IN_TARGET_PRODUCT_LIMIT)) {
+      const rawName = htmlToText(product?.item?.product_description?.title || '');
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+      if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
+      attemptedRequests += 1;
+      const params = new URLSearchParams({
+        key: IN_TARGET_KEY,
+        channel: 'WEB',
+        tcin: String(product.tcin),
+        store_id: primaryStoreId,
+        store_positions_store_id: primaryStoreId,
+        scheduled_delivery_store_id: primaryStoreId,
+        zip: primaryStore.zip,
+        visitor_id: visitorId,
+      });
+      const requestUrl = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${params}`;
+      const res = await textFetch(requestUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      if (!res.ok) {
+        storeComplete = false;
+        roadblocks.push({
+          state: config.id,
+          source: 'Target Indiana RedSky store fulfillment',
+          url: primaryStore.officialUrl,
+          status: res.status || 0,
+          error: res.error || `HTTP ${res.status}`,
+          nextRoute: 'Retry the public Target fulfillment endpoint at low cadence; retain only still-fresh cache rows for unaffected stores.',
+        });
+        await sleep(IN_TARGET_REQUEST_DELAY_MS);
+        continue;
+      }
+      let fulfillmentJson = null;
+      try { fulfillmentJson = JSON.parse(res.text); } catch {}
+      if (!Array.isArray(fulfillmentJson?.data?.product?.fulfillment?.store_options)) {
+        storeComplete = false;
+        roadblocks.push({
+          state: config.id,
+          source: 'Target Indiana RedSky store fulfillment',
+          url: primaryStore.officialUrl,
+          status: 'reachable_invalid_fulfillment_shape',
+          error: `Target returned an invalid fulfillment response for store ${primaryStoreId}.`,
+          nextRoute: 'Retain still-fresh cache for this store and inspect the public response shape without weakening identity guards.',
+        });
+        await sleep(IN_TARGET_REQUEST_DELAY_MS);
+        continue;
+      }
+      for (const row of parseIndianaTargetFulfillment(fulfillmentJson)) {
+        if (row.locationId !== primaryStoreId) continue;
+        const key = `${row.locationId}|${product.tcin}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const sourceUrl = product?.item?.enrichment?.buy_url || `https://www.target.com/p/-/A-${product.tcin}`;
+        const price = primaryStoreId === seedStoreId
+          ? Number(product?.price?.current_retail || product?.price?.formatted_current_price?.replace(/[^0-9.]/g, '')) || null
+          : null;
+        signals.push({
+          id: stableId([config.id, 'target-redsky', row.locationId, product.tcin]),
+          state: config.id,
+          sourceLabel: 'Target Indiana RedSky store fulfillment',
+          sourceUrl,
+          sourceChain: 'target',
+          merchantId: row.locationId,
+          rawName,
+          canonicalBottleId: record.id,
+          canonicalName: record.canonical,
+          tier: record.tier,
+          confidence: Math.max(0.8, match?.confidence || 0.5),
+          eventType: 'retailer_store_inventory_result',
+          locationPrecision: 'store_level',
+          locationName: row.store.name,
+          storeName: row.store.name,
+          storeId: `target:${row.locationId}`,
+          storeAddress: row.store.address,
+          city: row.store.city,
+          stateCode: 'IN',
+          postalCode: row.store.zip,
+          zip: row.store.zip,
+          quantity: 0,
+          price,
+          availabilityStatus: 'in_stock',
+          availabilityLabel: row.availabilityMode === 'order_pickup' ? 'Target reports order pickup available' : 'Target reports in-store availability',
+          sourceAvailabilityVerified: true,
+          observedAt,
+          canAlertAsInventory: true,
+          canAlertAsWatch: true,
+          inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise is retained as supporting evidence but is not represented as an exact shelf count.',
+          evidence: `Target reports ${rawName} ${row.availabilityMode === 'order_pickup' ? 'orderable for pickup' : 'available in store'} at ${row.store.name}, ${row.store.address}. Exact shelf quantity is not published; verify before driving.`,
+          raw: {
+            chain: 'target',
+            merchantId: row.locationId,
+            tcin: String(product.tcin),
+            selectedStoreId: primaryStoreId,
+            availableToPromise: row.availableToPromise,
+            availabilityMode: row.availabilityMode,
+            orderPickup: row.orderPickup,
+            inStoreOnly: row.inStoreOnly,
+            matchGuard: unsafeReason,
+          },
+        });
+      }
+      await sleep(IN_TARGET_REQUEST_DELAY_MS);
+    }
+    if (attemptedRequests > 0 && storeComplete) completedStoreIds.add(primaryStoreId);
+  }
+
+  const liveSignalCount = signals.length;
+  if (cache) {
+    const merged = mergeIndianaTargetCacheSignals(signals, cachedIndianaTargetSignals(cache), { completedStoreIds });
+    const cacheAdded = merged.length - signals.length;
+    signals.splice(0, signals.length, ...merged);
+    if (cacheAdded > 0 && selectedStores.some(([id]) => !completedStoreIds.has(id))) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Target Indiana RedSky store fulfillment cache',
+        url: IN_TARGET_ARTIFACT_PATH,
+        status: 'partial_fresh_cache_merge',
+        error: `Target refresh was incomplete for part of the selected cohort; retained ${cacheAdded} still-fresh cached rows instead of projecting false stock loss.`,
+        nextRoute: 'Retry incomplete stores on the next low-cadence cohort and replace cache only after every bounded fulfillment request completes.',
+      });
+    }
+  }
+  if (shouldWriteIndianaTargetCache(liveSignalCount, completedStoreIds)) await writeIndianaTargetCache(signals, roadblocks);
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Target Indiana RedSky store fulfillment',
+      url: seedStore?.officialUrl || 'https://www.target.com/c/bourbon-liquor-wine-beer-grocery/-/N-xxj34',
+      status: 'reachable_no_safe_inventory_rows',
+      error: 'Target returned no safely matched store-orderable bourbon rows for the current Indiana cohort.',
+      nextRoute: 'Retain official store discovery and retry fulfillment without treating catalog/search presence as inventory.',
+    });
   }
   return { signals, roadblocks };
 }
@@ -2735,9 +3013,9 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
                 observedAt,
                 canAlertAsInventory: quantity > 0,
                 canAlertAsWatch: true,
-                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
                 evidence: binaryAvailability
-                  ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}; the retailer value 100 is treated as binary availability, not an exact shelf count.`
+                  ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}; the retailer value ${reportedQuantity} is treated as binary availability, not an exact shelf count.`
                   : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
                 raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
               });
@@ -4224,9 +4502,9 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                   observedAt,
                   canAlertAsInventory: true,
                   canAlertAsWatch: true,
-                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product option quantity and price for the selected South Carolina branch. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
+                  inventorySemantics: `${source.chainName} CityHive pages embed store-level product option availability and price for the selected South Carolina branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
                   evidence: binaryAvailability
-                    ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}; the retailer value 100 is treated as binary availability, not an exact shelf count.`
+                    ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}; the retailer value ${reportedQuantity} is treated as binary availability, not an exact shelf count.`
                     : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''} (${fullAddress})${price ? ` for $${price.toFixed(2)}` : ''}.`,
                   raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
                 });
@@ -6164,6 +6442,10 @@ async function collectIndiana(config, bible) {
     const cityHive = await collectIndianaCityHive(config, bible, observedAt);
     signals.push(...cityHive.signals);
     roadblocks.push(...cityHive.roadblocks);
+
+    const target = await collectIndianaTarget(config, bible, observedAt);
+    signals.push(...target.signals);
+    roadblocks.push(...target.roadblocks);
   } catch (error) {
     roadblocks.push({
       state: config.id,

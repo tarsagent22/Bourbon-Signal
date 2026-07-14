@@ -120,11 +120,12 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'IN', label: 'Indiana ATC + retailer inventory watch', tier: 'B', strategy: 'license_spine_plus_retailer_store_inventory', cadence: 'daily-60m',
-    value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus retailer store inventory/watch surfaces from Kahn\'s, Big Red/Bourbon World, Cap n Cork, Wise Guys, Belmont Beverage/Chalet Party Shoppe, Cork Liquors, and Payless Liquors East Street barrel selections. ATC permits must never be presented as bottle inventory.',
+    value: 'Indiana is a private retail market, not a control-state inventory board. Best current value is statewide active package-store coverage from the public ATC permit lookup plus identity-bound retailer inventory from Target RedSky, Kahn\'s, Big Red/Bourbon World, Cap n Cork, Wise Guys, Belmont Beverage/Chalet Party Shoppe, Cork Liquors, Holiday Liquors, 21st Amendment, Penguin Liquor, and Payless Liquors East Street. ATC permits must never be presented as bottle inventory; delivery aggregators remain watch-only.',
     sources: [
       { kind: 'html', url: 'https://mylicense.in.gov/everification/Search.aspx?facility=Y', label: 'Indiana ATC public facility permit search', precisionOnly: true },
       { kind: 'html', url: 'https://www.in.gov/atc/public-records/', label: 'Indiana ATC public records / permit search guidance', precisionOnly: true },
       { kind: 'api', url: 'https://www.kahnsfinewines.com/api/trpc/product.getAll', label: 'Kahn\'s Fine Wines & Spirits in-stock bourbon API', precisionOnly: true },
+      { kind: 'api', url: 'https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1', label: 'Target Indiana exact-store pickup/orderability', precisionOnly: true },
       { kind: 'html', url: 'https://belmontbev.com/shop?subtype=bourbon', label: 'Belmont Beverage / Chalet Party Shoppe CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://shop.corkliquor.com/spirits/bourbon', label: 'Cork Liquors CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://www.paylessliquors.info/barrel-selections', label: 'Payless Liquors East Street barrel selections', precisionOnly: true },

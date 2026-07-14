@@ -125,7 +125,7 @@
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "statewide",
-      "customerSummary": "Retailer-specific store inventory/watch surfaces plus ATC store-spine context. ATC rows are not bottle availability. Costco warehouse bourbon signals are included alongside Indiana retailer inventory where verified."
+      "customerSummary": "Verified retailer store inventory and pickup/orderability across Indiana, with exact-store identity and verify-before-driving caveats. ATC rows provide store-spine context only and are never bottle availability. Costco warehouse bourbon signals are included where verified."
     },
     "TN": {
       "customerLabel": "Tennessee",

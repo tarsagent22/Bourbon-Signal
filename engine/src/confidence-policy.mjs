@@ -2,6 +2,7 @@ import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { isTexasRetailerInventory, isTexasRetailerSignalIdentity } from './texas-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
@@ -112,6 +113,12 @@ const FLORIDA_RETAILER_POLICY = {
   defaultCadence: '30-60m'
 };
 
+const INDIANA_RETAILER_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'Indiana is a private retail market. Only identity-bound first-party retailer inventory or verified store-orderability rows may alert. Binary availability remains distinct from exact quantity, and delivery aggregators remain watch-only.',
+  defaultCadence: '30-60m'
+};
+
 
 const KENTUCKY_DISTILLERY_POLICY = {
   maxAlertMode: 'distillery_release_watch',
@@ -145,6 +152,9 @@ function policyForSignal(signal) {
   if (signal.state === 'FL'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isFloridaRetailerSignalIdentity(signal)) return FLORIDA_RETAILER_POLICY;
+  if (signal.state === 'IN'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
+    && isIndianaRetailerSignalIdentity(signal)) return INDIANA_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
@@ -173,12 +183,15 @@ export function confidenceForSignal(signal) {
   const isDistilleryLane = signal.state === 'KY' && /^distillery_/i.test(eventType);
   const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
   const texasInventoryAllowed = signal.state !== 'TX' || isTexasRetailerInventory(signal);
+  const indianaRetailerEvent = signal.state === 'IN' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
+  const indianaInventoryAllowed = !indianaRetailerEvent || isIndianaRetailerInventory(signal);
+  const indianaWatchAllowed = !indianaRetailerEvent || isIndianaRetailerSignalIdentity(signal);
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: texasInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: texasInventoryAllowed && indianaInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: indianaWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

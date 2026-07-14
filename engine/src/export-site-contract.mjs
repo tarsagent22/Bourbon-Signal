@@ -10,6 +10,7 @@ import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQualit
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
 
 const OUT = path.resolve('out');
@@ -229,6 +230,9 @@ function publicSignal(signal, bible, freshness = null) {
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
   const isAzRetailerInventory = isArizonaRetailerInventory(signal);
   const isFlRetailerInventory = isFloridaRetailerInventory(signal);
+  const isInRetailerInventory = isIndianaRetailerInventory(signal);
+  const isInRetailerEvent = signal.state === 'IN'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const inventorySemantics = isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
     : isTnRetailerInventory
@@ -239,21 +243,27 @@ function publicSignal(signal, bible, freshness = null) {
           ? 'Arizona is a private retail market. Whitelisted public retailer CityHive sources expose store-level bottle availability, price, and sometimes exact quantity; alert as retailer-published availability with a verify-before-driving caveat.'
           : isFlRetailerInventory
             ? 'Florida is a private retail market. Whitelisted retailer storefront and store-fulfillment sources expose store-level bottle availability; alert as retailer-published availability with a verify-before-driving caveat.'
-          : signal.inventorySemantics;
+            : isInRetailerInventory
+              ? 'Indiana is a private retail market. Identity-bound first-party retailer inventory and verified store-orderability rows may alert with a verify-before-driving caveat; binary availability is not an exact shelf count.'
+              : signal.inventorySemantics;
   const canAlertAsInventory = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
       : signal.state === 'FL'
         ? isFlRetailerInventory
-      : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
+        : signal.state === 'IN'
+          ? (isInRetailerEvent ? isInRetailerInventory : Boolean(signal.canAlertAsInventory))
+          : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
   const canAlertAsWatch = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
       : signal.state === 'FL'
         ? Boolean(signal.canAlertAsWatch) && isFloridaRetailerSignalIdentity(signal)
-      : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
+        : signal.state === 'IN'
+          ? Boolean(signal.canAlertAsWatch) && (!isInRetailerEvent || isIndianaRetailerSignalIdentity(signal))
+          : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -281,6 +291,9 @@ function publicSignal(signal, bible, freshness = null) {
     type: signal.eventType,
     source: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
+    sourceChain: signal.sourceChain || signal.raw?.chain || null,
+    merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
+    sourceIdentity: signal.raw?.source || null,
     observedAt: signal.observedAt,
     releaseDate: signal.releaseDate || signal.eventDate || null,
     eventDate: signal.eventDate || signal.releaseDate || null,
@@ -305,7 +318,7 @@ function publicSignal(signal, bible, freshness = null) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isInRetailerInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
     sourceStale: ohioFeedStaleCaveat(signal),

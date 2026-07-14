@@ -1,4 +1,6 @@
 import { readFile } from 'node:fs/promises';
+import { INDIANA_TARGET_STORES } from './collectors/indiana-retailer-surfaces.mjs';
+import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 
 async function readJson(file, fallback) {
   try { return JSON.parse(await readFile(file, 'utf8')); }
@@ -52,7 +54,8 @@ const atcAlerts = inAlerts.filter((alert) => /ATC|permit/i.test(`${alert.source 
 
 const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result']);
 const retailerInventorySignals = allSignals.filter((signal) => inventoryTypes.has(signal.eventType));
-const alertableRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && Number(signal.quantity || 0) > 0 && signal.storeId && signal.storeAddress);
+const alertableRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && isIndianaRetailerInventory(signal));
+const untrustedRetailerInventorySignals = retailerInventorySignals.filter((signal) => !isIndianaRetailerSignalIdentity(signal));
 const retailerInventoryCities = new Set(retailerInventorySignals.map((signal) => String(signal.city || '').trim()).filter(Boolean));
 const retailerInventorySources = new Set(retailerInventorySignals.map((signal) => signal.sourceLabel).filter(Boolean));
 const cityHiveInventorySignals = allSignals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
@@ -63,12 +66,22 @@ const penguinInventorySignals = allSignals.filter((signal) => signal.eventType =
 const penguinRoadblocks = roadblocks.filter((roadblock) => /Penguin Liquor/i.test(String(roadblock.source || roadblock.url || roadblock.error || '')));
 const kahnsInventorySignals = allSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Kahn/i.test(String(signal.sourceLabel || '')));
 const kahnsRoadblocks = roadblocks.filter((roadblock) => /Kahn/i.test(String(roadblock.source || roadblock.url || roadblock.error || '')));
+const targetInventorySignals = retailerInventorySignals.filter((signal) => /Target Indiana/i.test(String(signal.sourceLabel || '')));
+const targetInventoryStores = new Set(targetInventorySignals.map((signal) => signal.storeId).filter(Boolean));
+const targetRoadblocks = roadblocks.filter((roadblock) => /Target Indiana/i.test(String(roadblock.source || roadblock.url || roadblock.error || '')));
+const gaysInventorySignals = cityHiveInventorySignals.filter((signal) => /Gays Hops-N-Schnapps/i.test(String(signal.sourceLabel || '')));
+const gaysInventoryStores = new Set(gaysInventorySignals.map((signal) => signal.storeId).filter(Boolean));
+const gaysInventoryCities = new Set(gaysInventorySignals.map((signal) => signal.city).filter(Boolean));
+const doorDashInventoryAlerts = retailerInventorySignals.filter((signal) => /DoorDash Frontier/i.test(String(signal.sourceLabel || '')) && signal.canAlertAsInventory);
+const projectedSentinels = cityHiveInventorySignals.filter((signal) => Number(signal.raw?.reportedQuantity) >= 100 && Number(signal.quantity || 0) > 1);
 const retailerWatchDrops = inDrops.filter((drop) => drop.type === 'retailer_allocated_raffle_item' && /Bourbon World|Big Red/i.test(String(drop.source || '')));
 const eventSignals = allSignals.filter((signal) => /lottery|tasting|event|release/i.test(`${signal.eventType || ''} ${signal.sourceLabel || ''} ${signal.readableSummary || ''} ${signal.evidence || ''}`));
 const ilgTastingSignals = allSignals.filter((signal) => signal.eventType === 'retailer_tasting_event' && /Indiana Liquor Group/i.test(String(signal.sourceLabel || '')));
 const ilgTastingDrops = inDrops.filter((drop) => drop.type === 'retailer_tasting_event' && /Indiana Liquor Group/i.test(String(drop.source || '')));
 const retailerInventoryDrops = inDrops.filter((drop) => inventoryTypes.has(drop.type));
-const alertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
+const invalidRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => !isIndianaRetailerSignalIdentity(drop));
+const nonAlertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => !drop.canAlertAsInventory || !isIndianaRetailerInventory(drop));
+const doorDashInventoryDrops = retailerInventoryDrops.filter((drop) => /DoorDash Frontier/i.test(String(drop.source || drop.sourceLabel || '')));
 const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'retailer_tasting_event', 'cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(drop.type));
 
 const highValueInventorySignals = retailerInventorySignals.filter((signal) => HIGH_VALUE_RE.test(`${signal.rawName || ''} ${signal.canonicalName || ''}`));
@@ -103,6 +116,18 @@ assert(highValueInventorySignals.length >= 20, `Expected at least 20 Indiana hig
 assert(paylessInventorySignals.length >= 1, `Expected Payless East Street barrel-selection inventory signals; got ${paylessInventorySignals.length}`);
 assert(kahnsInventorySignals.length > 0 || kahnsRoadblocks.length > 0, `Expected Kahn's inventory rows or an explicit roadblock; got ${kahnsInventorySignals.length} rows and ${kahnsRoadblocks.length} roadblocks`);
 assert(penguinInventorySignals.length > 0 || penguinRoadblocks.length > 0, `Expected Penguin inventory rows or an explicit roadblock; got ${penguinInventorySignals.length} rows and ${penguinRoadblocks.length} roadblocks`);
+assert(gaysInventorySignals.length >= 8, `Expected durable Gays Hops-N-Schnapps bottle inventory; got ${gaysInventorySignals.length} rows`);
+assert(gaysInventoryStores.size >= 5, `Expected all 5 Gays Hops-N-Schnapps branches; got ${gaysInventoryStores.size}: ${[...gaysInventoryStores].join(', ')}`);
+assert(['Auburn', 'Fremont', 'Angola', 'LaGrange'].every((city) => gaysInventoryCities.has(city)), `Missing a Gays Hops-N-Schnapps market: ${[...gaysInventoryCities].sort().join(', ')}`);
+assert(INDIANA_TARGET_STORES.size >= 9, `Expected at least 9 exact Indiana Target store identities; got ${INDIANA_TARGET_STORES.size}`);
+assert(targetInventorySignals.length > 0 || targetRoadblocks.length > 0, `Expected Target exact-store inventory rows or an explicit blocked-source roadblock; got ${targetInventorySignals.length} rows and ${targetRoadblocks.length} roadblocks`);
+if (targetInventorySignals.length) {
+  assert(targetInventoryStores.size >= 1, `Expected Target inventory to bind at least one exact Indiana store; got ${targetInventoryStores.size}`);
+  assert(targetInventorySignals.every((signal) => isIndianaRetailerInventory(signal)), 'Target rows failed Indiana identity/orderability policy.', targetInventorySignals.filter((signal) => !isIndianaRetailerInventory(signal)).slice(0, 10));
+}
+assert(untrustedRetailerInventorySignals.length === 0, `Indiana retailer inventory identity must fail closed; got ${untrustedRetailerInventorySignals.length} untrusted rows`, untrustedRetailerInventorySignals.slice(0, 10));
+assert(doorDashInventoryAlerts.length === 0, `DoorDash marketplace rows must remain watch-only; got ${doorDashInventoryAlerts.length} inventory-alert rows`);
+assert(projectedSentinels.length === 0, `CityHive binary availability sentinels must never become exact quantity >1; got ${projectedSentinels.length}`, projectedSentinels.slice(0, 10));
 
 assert(hasMarketCity(['Indianapolis', 'Carmel', 'Fishers', 'Noblesville', 'Greenwood', 'Avon', 'Brownsburg', 'Plainfield', 'Speedway', 'McCordsville']), `Expected Indianapolis metro inventory coverage; got ${[...retailerInventoryCities].sort().join(', ')}`);
 assert(hasMarketCity(['Fort Wayne', 'New Haven']), `Expected Fort Wayne/New Haven inventory coverage; got ${[...retailerInventoryCities].sort().join(', ')}`);
@@ -115,8 +140,10 @@ assert(!badDropCoordinates.length, 'Indiana exported drops include coordinates o
 assert(!badSignalCoordinates.length, 'Indiana state store-level signals include coordinates outside Indiana bounds.', badSignalCoordinates.slice(0, 10));
 
 assert(retailerWatchDrops.length <= eventSignals.length, `Exported retailer watch drops exceeded source event signals (${retailerWatchDrops.length}/${eventSignals.length})`);
+assert(invalidRetailerInventoryDrops.length === 0, `Every exported Indiana retailer inventory drop must retain a valid source/store identity; got ${invalidRetailerInventoryDrops.length}`, invalidRetailerInventoryDrops.slice(0, 10));
+assert(nonAlertableRetailerInventoryDrops.length === 0, `Every exported Indiana retailer inventory drop must remain alertable under the Indiana policy; got ${nonAlertableRetailerInventoryDrops.length}`, nonAlertableRetailerInventoryDrops.slice(0, 10));
+assert(doorDashInventoryDrops.length === 0, `DoorDash marketplace rows must never export as Indiana inventory drops; got ${doorDashInventoryDrops.length}`, doorDashInventoryDrops.slice(0, 10));
 if (inDrops.length) {
-  assert(alertableRetailerInventoryDrops.length === retailerInventoryDrops.length, `Every exported Indiana retailer inventory drop must be alertable/store-level; got ${alertableRetailerInventoryDrops.length}/${retailerInventoryDrops.length}`);
   assert(ilgTastingDrops.length <= ilgTastingSignals.length, `Exported ILG tasting drops exceeded source signals (${ilgTastingDrops.length}/${ilgTastingSignals.length})`);
 }
 assert(unsafeDrops.length === 0, `Unexpected non-retailer-watch Indiana drops found: ${unsafeDrops.map((drop) => `${drop.type}:${drop.bottleName}`).join(', ')}`);
@@ -147,8 +174,18 @@ console.log(JSON.stringify({
   paylessInventorySignals: paylessInventorySignals.length,
   penguinInventorySignals: penguinInventorySignals.length,
   penguinRoadblocks: penguinRoadblocks.length,
+  gaysInventorySignals: gaysInventorySignals.length,
+  gaysInventoryStores: [...gaysInventoryStores].sort(),
+  gaysInventoryCities: [...gaysInventoryCities].sort(),
+  targetInventorySignals: targetInventorySignals.length,
+  targetInventoryStores: [...targetInventoryStores].sort(),
+  targetRoadblocks: targetRoadblocks.length,
+  untrustedRetailerInventorySignals: untrustedRetailerInventorySignals.length,
+  projectedSentinels: projectedSentinels.length,
   retailerInventoryCities: [...retailerInventoryCities].sort(),
   retailerInventoryDrops: retailerInventoryDrops.length,
-  alertableRetailerInventoryDrops: alertableRetailerInventoryDrops.length,
+  invalidRetailerInventoryDrops: invalidRetailerInventoryDrops.length,
+  nonAlertableRetailerInventoryDrops: nonAlertableRetailerInventoryDrops.length,
+  doorDashInventoryDrops: doorDashInventoryDrops.length,
   eventSignals: eventSignals.length
 }, null, 2));
