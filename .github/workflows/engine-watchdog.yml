@@ -45,7 +45,7 @@ jobs:
           path: engine/out/production-watchdog.json
 
       - name: Dispatch guarded recovery after two failed probes
-        if: steps.watchdog.outcome == 'failure' && vars.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'
+        if: steps.watchdog.outcome == 'failure' && (vars.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '' || vars.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -56,8 +56,8 @@ jobs:
             echo "A guarded refresh is already active; suppressing duplicate recovery dispatch."
           fi
 
-      - name: Fail loudly after recovery dispatch
+      - name: Fail loudly after stale production snapshot
         if: steps.watchdog.outcome == 'failure'
         run: |
-          echo "Production engine freshness SLO failed twice; guarded refresh dispatched."
+          echo "Production engine freshness SLO failed twice; inspect the guarded recovery step for dispatch status."
           exit 1

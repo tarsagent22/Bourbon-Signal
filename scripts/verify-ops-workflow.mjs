@@ -49,6 +49,14 @@ if (!enginePackageJson.scripts?.['store:identity']) {
   fail('engine/package.json should expose store:identity so refresh/deploy loops can build the store identity graph.');
 }
 
+const engineWatchdogWorkflow = read('.github/workflows/engine-watchdog.yml');
+if (!/BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == ''\s*\|\|\s*vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog recovery must default on when BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED is unset; GitHub treats a missing variable as null-like in workflow expressions.');
+}
+if (/guarded refresh dispatched/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must not claim recovery was dispatched when the kill switch may have skipped that step.');
+}
+
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
 const customerStates = new Set(stateLifecycleConfig.activeStates || []);
 const stateSources = read('engine/src/state-sources.mjs');
