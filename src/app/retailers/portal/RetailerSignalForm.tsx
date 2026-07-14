@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { retailerSignalFieldConfig, type RetailerSignalKind } from "@/lib/retailer-signal-fields";
+import { RETAILER_TIME_ZONES, type RetailerTimeZone } from "@/lib/retailer-time-zone";
 import styles from "../retailers.module.css";
 
 type BottleSuggestion = {
@@ -18,11 +19,17 @@ type SuggestionResponse = {
 
 type RetailerSignalFormProps = {
   action: (formData: FormData) => void | Promise<void>;
+  defaultTimeZone: RetailerTimeZone | "";
 };
 
-export default function RetailerSignalForm({ action }: RetailerSignalFormProps) {
+export default function RetailerSignalForm({ action, defaultTimeZone }: RetailerSignalFormProps) {
   const [kind, setKind] = useState<RetailerSignalKind>("bottle_drop");
+  const [availabilityTiming, setAvailabilityTiming] = useState<"now" | "scheduled">("now");
+  const [startsAtLocal, setStartsAtLocal] = useState("");
+  const [expiresAtLocal, setExpiresAtLocal] = useState("");
+  const [timeZone, setTimeZone] = useState<RetailerTimeZone | "">(defaultTimeZone);
   const [title, setTitle] = useState("");
+  const [selectedBottleId, setSelectedBottleId] = useState("");
   const [suggestions, setSuggestions] = useState<BottleSuggestion[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
@@ -68,9 +75,27 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
   }, [fieldConfig.useBottleSuggestions, title]);
 
   const activeId = useMemo(() => activeIndex >= 0 ? `retailer-bottle-option-${activeIndex}` : undefined, [activeIndex]);
+  const timeZoneField = (
+    <div className={styles.field}>
+      <label htmlFor="timeZone">Store time zone</label>
+      <select
+        className={styles.signalInput}
+        id="timeZone"
+        name="timeZone"
+        onChange={(event) => setTimeZone(event.target.value as RetailerTimeZone | "")}
+        required
+        value={timeZone}
+      >
+        {defaultTimeZone ? null : <option disabled value="">Choose time zone</option>}
+        {RETAILER_TIME_ZONES.map((zone) => <option key={zone.value} value={zone.value}>{zone.label}</option>)}
+      </select>
+      <p className={styles.fieldHelp}>{defaultTimeZone ? "Used for the date and time above. Change it only if needed." : "Choose the time zone used at your store."}</p>
+    </div>
+  );
 
   function selectSuggestion(suggestion: BottleSuggestion) {
     setTitle(suggestion.canonicalName);
+    setSelectedBottleId(suggestion.id);
     setSuggestions([]);
     setOpen(false);
     setActiveIndex(-1);
@@ -78,16 +103,23 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
 
   return (
     <form action={action} className={`${styles.formGrid} ${styles.signalForm}`}>
+      <input name="bottleId" type="hidden" value={selectedBottleId} />
       <div className={styles.field}>
         <label htmlFor="kind">Signal type</label>
         <select
           className={styles.signalInput}
           id="kind"
           name="kind"
-          onChange={(event) => setKind(event.target.value as RetailerSignalKind)}
+          onChange={(event) => {
+            setKind(event.target.value as RetailerSignalKind);
+            setAvailabilityTiming("now");
+            setStartsAtLocal("");
+            setExpiresAtLocal("");
+            setSelectedBottleId("");
+          }}
           value={kind}
         >
-          <option value="bottle_drop">Bottle drop</option>
+          <option value="bottle_drop">Bottle availability</option>
           <option value="barrel_pick">Barrel pick</option>
           <option value="tasting">Tasting</option>
           <option value="lottery">Lottery</option>
@@ -113,7 +145,10 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
               setOpen(false);
               setActiveIndex(-1);
             }, 120)}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              setSelectedBottleId("");
+            }}
             onFocus={() => {
               if (fieldConfig.useBottleSuggestions) setOpen(suggestions.length > 0);
             }}
@@ -161,6 +196,51 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
         <p className={styles.fieldHelp} id="retailer-signal-title-help">{fieldConfig.titleHelp}</p>
       </div>
 
+      {fieldConfig.supportsAvailabilityTiming ? (
+        <fieldset className={styles.timingFieldset}>
+          <legend>When will it be available?</legend>
+          <div className={styles.timingOptions}>
+            <label className={styles.timingOption}>
+              <input
+                checked={availabilityTiming === "now"}
+                name="availabilityTiming"
+                onChange={() => setAvailabilityTiming("now")}
+                type="radio"
+                value="now"
+              />
+              <span><strong>Available now</strong><small>Publish as live inventory immediately.</small></span>
+            </label>
+            <label className={styles.timingOption}>
+              <input
+                checked={availabilityTiming === "scheduled"}
+                name="availabilityTiming"
+                onChange={() => setAvailabilityTiming("scheduled")}
+                type="radio"
+                value="scheduled"
+              />
+              <span><strong>Schedule for later</strong><small>Show it as upcoming until the selected time.</small></span>
+            </label>
+          </div>
+          {availabilityTiming === "scheduled" ? (
+            <>
+              <div className={styles.field}>
+                <label htmlFor="startsAtLocal">Go-live date and time</label>
+                <input
+                  className={styles.signalInput}
+                  id="startsAtLocal"
+                  name="startsAt"
+                  onChange={(event) => setStartsAtLocal(event.target.value)}
+                  required
+                  type="datetime-local"
+                  value={startsAtLocal}
+                />
+              </div>
+              {timeZoneField}
+            </>
+          ) : null}
+        </fieldset>
+      ) : null}
+
       <div className={styles.field}>
         <label htmlFor="locationDetails">{fieldConfig.locationLabel} <span className={styles.muted}>(optional)</span></label>
         <input className={styles.signalInput} id="locationDetails" name="locationDetails" placeholder={fieldConfig.locationPlaceholder} maxLength={180} />
@@ -184,9 +264,19 @@ export default function RetailerSignalForm({ action }: RetailerSignalFormProps) 
       ) : null}
 
       <div className={styles.field}>
-        <label htmlFor="expiresAt">{fieldConfig.expiresAtLabel}{fieldConfig.expiresAtRequired ? null : <span className={styles.muted}> (optional)</span>}</label>
-        <input className={styles.signalInput} id="expiresAt" name="expiresAt" required={fieldConfig.expiresAtRequired} type="datetime-local" />
+        <label htmlFor="expiresAtLocal">{fieldConfig.expiresAtLabel}{fieldConfig.expiresAtRequired ? null : <span className={styles.muted}> (optional)</span>}</label>
+        <input
+          className={styles.signalInput}
+          id="expiresAtLocal"
+          name="expiresAt"
+          onChange={(event) => setExpiresAtLocal(event.target.value)}
+          required={fieldConfig.expiresAtRequired}
+          type="datetime-local"
+          value={expiresAtLocal}
+        />
+        {fieldConfig.supportsAvailabilityTiming ? <p className={styles.fieldHelp}>Leave this blank and it will expire 24 hours after it goes live.</p> : null}
       </div>
+      {availabilityTiming !== "scheduled" && (fieldConfig.expiresAtRequired || Boolean(expiresAtLocal)) ? timeZoneField : null}
 
       <div className={styles.field}>
         <label htmlFor="notes">{fieldConfig.notesLabel} <span className={styles.muted}>(optional)</span></label>

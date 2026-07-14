@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
+import { getRetailerRepository } from "@/lib/retailer-repository";
+import { retailerSubmissionToEvent } from "@/lib/retailer-signal-feed";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -36,7 +38,8 @@ function isUpcomingActionableEvent(event: ReturnType<typeof normalizeEvent>) {
   const hasFutureDate = Number.isFinite(eventDate) && eventDate >= Date.now() - 24 * 60 * 60 * 1000;
   const hasOfficialLink = typeof event.source_url === "string" && /^https?:\/\//i.test(event.source_url);
   const isSourceWatchPage = status === "watch_page" || category === "release_watch" || !event.event_date;
-  return hasOfficialLink && hasFutureDate && !isSourceWatchPage && ["high", "medium"].includes(actionability);
+  const isVerifiedRetailer = event.source_type === "verified_retailer";
+  return (hasOfficialLink || isVerifiedRetailer) && hasFutureDate && !isSourceWatchPage && ["high", "medium"].includes(actionability);
 }
 
 function normalizeEvent(event: JsonRecord) {
@@ -77,6 +80,15 @@ function normalizeEvent(event: JsonRecord) {
   };
 }
 
+async function publicRetailerSubmissions() {
+  try {
+    return await getRetailerRepository().listPublicSubmissions();
+  } catch (error) {
+    console.error("[api/events] Retailer signals unavailable:", error);
+    return [];
+  }
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
@@ -88,9 +100,15 @@ export async function GET(request: Request) {
   const offset = Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
 
   try {
-    const exportPayload = await readSiteExport("events");
+    const [exportPayload, retailerSubmissions] = await Promise.all([
+      readSiteExport("events"),
+      publicRetailerSubmissions(),
+    ]);
     const rawEvents = Array.isArray(exportPayload?.events) ? exportPayload.events : [];
-    let events = rawEvents.map((event) => normalizeEvent(event as JsonRecord));
+    const retailerEvents = retailerSubmissions
+      .map((submission) => retailerSubmissionToEvent(submission))
+      .filter((event): event is NonNullable<typeof event> => Boolean(event));
+    let events = [...rawEvents, ...retailerEvents].map((event) => normalizeEvent(event as JsonRecord));
     events = events.filter(isUpcomingActionableEvent);
     const facets = {
       states: Array.from(new Set(events.map((event) => String(event.state || "")).filter(Boolean))).sort(),
@@ -136,6 +154,7 @@ export async function GET(request: Request) {
       {
         headers: {
           ...siteExportHeaders("local-export"),
+          ...(retailerSubmissions.length > 0 ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } : {}),
           "X-Events-Source": "local-export",
         },
       }

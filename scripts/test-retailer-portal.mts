@@ -6,11 +6,14 @@ import {
   normalizeRetailerApplication,
   normalizeRetailerStatus,
   normalizeRetailerSubmission,
+  retailerSubmissionLifecycle,
   safeRetailerRedirect,
 } from "../src/lib/retailer-portal.ts";
 import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-admin.ts";
 import { toIsoDate } from "../src/lib/retailer-repository.ts";
 import { retailerSignalFieldConfig } from "../src/lib/retailer-signal-fields.ts";
+import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice, zonedLocalDateTimeToIso } from "../src/lib/retailer-time-zone.ts";
+import { retailerSignalSnapshot, retailerSubmissionToDrop, retailerSubmissionToEvent, retailerStateCode } from "../src/lib/retailer-signal-feed.ts";
 
 const timestamp = new Date("2026-07-13T21:00:00.000Z");
 assert.equal(toIsoDate(timestamp), "2026-07-13T21:00:00.000Z");
@@ -20,6 +23,16 @@ assert.equal(safeRetailerRedirect("/retailers/portal?notification=pending"), "/r
 assert.equal(safeRetailerRedirect("https://evil.example/retailers/portal"), "/retailers/portal");
 assert.equal(safeRetailerRedirect("//evil.example/retailers/portal"), "/retailers/portal");
 assert.equal(safeRetailerRedirect("/admin/retailers"), "/retailers/portal");
+
+assert.equal(inferRetailerTimeZone("121 W Butler Rd, Mauldin, SC 29662"), "America/New_York");
+assert.equal(inferRetailerTimeZone("500 Main St, Dallas, TX 75201"), "America/Chicago");
+assert.equal(retailerTimeZoneNeedsChoice("500 N Oregon St, El Paso, TX 79901"), true);
+assert.equal(retailerTimeZoneNeedsChoice("10 Palafox Pl, Pensacola, FL 32502"), true);
+assert.equal(retailerTimeZoneNeedsChoice("121 W Butler Rd, Mauldin, SC 29662"), false);
+assert.equal(zonedLocalDateTimeToIso("2026-07-15T10:00", "America/New_York"), "2026-07-15T14:00:00.000Z");
+assert.equal(zonedLocalDateTimeToIso("2026-07-15T10:00", "America/Denver"), "2026-07-15T16:00:00.000Z");
+assert.equal(zonedLocalDateTimeToIso("2026-03-08T02:30", "America/New_York"), null);
+assert.equal(zonedLocalDateTimeToIso("2026-11-01T01:30", "America/New_York"), null);
 
 assert.equal(RETAILER_ADMIN_EMAIL, "chandlertodd22@gmail.com");
 assert.equal(isRetailerAdminEmail(" CHANDLERTODD22@gmail.com "), true);
@@ -63,6 +76,103 @@ assert.equal(submission.ok, true);
 assert.equal(submission.value?.title, "Elijah Craig private barrel");
 assert.equal(submission.value?.status, "reviewed");
 
+const signalNow = new Date("2026-07-13T21:00:00.000Z");
+const availableNow = normalizeRetailerSubmission(
+  { kind: "bottle_drop", title: "Blanton's", availabilityTiming: "now" },
+  signalNow,
+);
+assert.equal(availableNow.ok, true);
+assert.equal(availableNow.value?.availabilityTiming, "now");
+assert.equal(availableNow.value?.startsAt, "2026-07-13T21:00:00.000Z");
+assert.equal(availableNow.value?.expiresAt, "2026-07-14T21:00:00.000Z");
+assert.equal(availableNow.value?.timeZone, "");
+
+const scheduledAvailability = normalizeRetailerSubmission(
+  {
+    kind: "bottle_drop",
+    title: "E.H. Taylor Small Batch",
+    availabilityTiming: "scheduled",
+    startsAt: "2026-07-15T10:00",
+    timeZone: "America/New_York",
+  },
+  signalNow,
+);
+assert.equal(scheduledAvailability.ok, true);
+assert.equal(scheduledAvailability.value?.startsAt, "2026-07-15T14:00:00.000Z");
+assert.equal(scheduledAvailability.value?.expiresAt, "2026-07-16T14:00:00.000Z");
+assert.equal(scheduledAvailability.value?.timeZone, "America/New_York");
+
+const missingScheduledTime = normalizeRetailerSubmission(
+  { kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled" },
+  signalNow,
+);
+assert.equal(missingScheduledTime.ok, false);
+assert.match(missingScheduledTime.error || "", /go-live date/i);
+
+const scheduledWithoutTimeZone = normalizeRetailerSubmission(
+  { kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled", startsAt: "2026-07-15T10:00" },
+  signalNow,
+);
+assert.equal(scheduledWithoutTimeZone.ok, false);
+assert.match(scheduledWithoutTimeZone.error || "", /time zone/i);
+
+const pastScheduledTime = normalizeRetailerSubmission(
+  {
+    kind: "barrel_pick",
+    title: "Store pick",
+    availabilityTiming: "scheduled",
+    startsAt: "2026-07-12T10:00",
+    timeZone: "America/New_York",
+  },
+  signalNow,
+);
+assert.equal(pastScheduledTime.ok, false);
+assert.match(pastScheduledTime.error || "", /future/i);
+
+assert.equal(retailerSubmissionLifecycle(scheduledAvailability.value!, signalNow), "upcoming");
+assert.equal(
+  retailerSubmissionLifecycle(scheduledAvailability.value!, new Date("2026-07-15T14:30:00.000Z")),
+  "live",
+);
+assert.equal(
+  retailerSubmissionLifecycle(scheduledAvailability.value!, new Date("2026-07-16T14:00:00.000Z")),
+  "ended",
+);
+assert.equal(
+  retailerSubmissionLifecycle({ ...scheduledAvailability.value!, soldOutAt: "2026-07-15T13:00:00.000Z" }, signalNow),
+  "ended",
+);
+assert.equal(
+  retailerSubmissionLifecycle({ kind: "bottle_drop", startsAt: "", expiresAt: "", soldOutAt: "" }, signalNow),
+  "ended",
+);
+
+const scheduledRecord = {
+  ...scheduledAvailability.value!,
+  id: "signal-1",
+  userId: "user-1",
+  storeName: "Test Bottle Shop",
+  storeAddress: "121 W Butler Rd, Mauldin, SC 29662",
+  createdAt: "2026-07-13T21:00:00.000Z",
+};
+assert.equal(retailerStateCode(scheduledRecord.storeAddress), "SC");
+assert.equal(retailerSubmissionToDrop(scheduledRecord, signalNow), null);
+assert.equal(retailerSignalSnapshot([scheduledRecord], signalNow), retailerSignalSnapshot([], signalNow));
+assert.equal(
+  retailerSignalSnapshot([{ ...scheduledRecord, kind: "tasting" }], signalNow),
+  retailerSignalSnapshot([], signalNow),
+);
+assert.notEqual(
+  retailerSignalSnapshot([scheduledRecord], signalNow),
+  retailerSignalSnapshot([scheduledRecord], new Date("2026-07-15T14:00:00.000Z")),
+);
+assert.equal(retailerSubmissionToEvent(scheduledRecord, signalNow)?.eventDate, "2026-07-15T14:00:00.000Z");
+const liveRetailerDrop = retailerSubmissionToDrop(scheduledRecord, new Date("2026-07-15T14:00:00.000Z"));
+assert.equal(liveRetailerDrop?.source, "verified-retailer");
+assert.equal(liveRetailerDrop?.state, "SC");
+assert.equal(liveRetailerDrop?.storeName, "Test Bottle Shop");
+assert.equal(retailerSubmissionToDrop(scheduledRecord, new Date("2026-07-16T14:00:00.000Z")), null);
+
 const tastingWithoutDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting" });
 assert.equal(tastingWithoutDate.ok, false);
 assert.match(tastingWithoutDate.error || "", /event date/i);
@@ -81,16 +191,20 @@ const bottleDropFields = retailerSignalFieldConfig("bottle_drop");
 assert.equal(bottleDropFields.useBottleSuggestions, true);
 assert.equal(bottleDropFields.titleLabel, "Bottle");
 assert.equal(bottleDropFields.availabilityLabel, "Quantity or purchase limit");
+assert.equal(bottleDropFields.supportsAvailabilityTiming, true);
+assert.equal(bottleDropFields.expiresAtLabel, "Available until");
 
 const barrelPickFields = retailerSignalFieldConfig("barrel_pick");
 assert.equal(barrelPickFields.useBottleSuggestions, true);
 assert.equal(barrelPickFields.notesLabel, "Pick details");
+assert.equal(barrelPickFields.supportsAvailabilityTiming, true);
 
 const tastingFields = retailerSignalFieldConfig("tasting");
 assert.equal(tastingFields.useBottleSuggestions, false);
 assert.equal(tastingFields.titleLabel, "Event name");
 assert.equal(tastingFields.expiresAtLabel, "Event date and time");
 assert.equal(tastingFields.availabilityLabel, "Capacity or reservation details");
+assert.equal(tastingFields.supportsAvailabilityTiming, false);
 
 const lotteryFields = retailerSignalFieldConfig("lottery");
 assert.equal(lotteryFields.useBottleSuggestions, true);
@@ -124,9 +238,12 @@ for (const file of [
   "src/app/retailers/login/[[...login]]/page.tsx",
   "src/app/retailers/portal/page.tsx",
   "src/app/retailers/portal/RetailerSignalForm.tsx",
+  "src/app/retailers/portal/RetailerSignalTime.tsx",
   "src/app/admin/retailers/page.tsx",
   "src/lib/retailer-notifications.ts",
   "src/lib/retailer-repository.ts",
+  "src/lib/retailer-time-zone.ts",
+  "src/lib/retailer-signal-feed.ts",
 ]) {
   assert.equal(existsSync(path.join(root, file)), true, `Missing ${file}`);
 }
@@ -165,6 +282,20 @@ assert.match(repository, /deleteApplication/);
 assert.match(repository, /DELETE FROM retailer_applications WHERE user_id = \$1/);
 assert.match(repository, /deleteSubmission/);
 assert.match(repository, /DELETE FROM retailer_submissions WHERE id = \$1 AND user_id = \$2/);
+assert.match(repository, /markSubmissionSoldOut/);
+assert.match(repository, /jsonb_set\(payload, '\{soldOutAt\}'/);
+assert.match(repository, /payload->>'kind' IN \('bottle_drop', 'barrel_pick'\)/);
+assert.match(repository, /listPublicSubmissions/);
+assert.match(repository, /applications\.status = 'verified'/);
+assert.match(repository, /submissions\.status = 'reviewed'/);
+
+const dropsApi = read("src/app/api/drops/route.ts");
+assert.match(dropsApi, /retailerSubmissionToDrop/);
+assert.match(dropsApi, /retailerSignalSnapshot/);
+assert.match(dropsApi, /isVerifiedRetailerDrop/);
+const eventsApi = read("src/app/api/events/route.ts");
+assert.match(eventsApi, /retailerSubmissionToEvent/);
+assert.match(eventsApi, /source_type === "verified_retailer"/);
 
 const portal = read("src/app/retailers/portal/page.tsx");
 assert.match(portal, /retailerStatus/);
@@ -178,6 +309,10 @@ assert.match(portal, /We only verify store access once/);
 assert.doesNotMatch(portal, /reviewed before|Submit for review|pending review/);
 assert.match(portal, /if \(!application\) redirect\("\/retailers\/onboarding"\)/);
 assert.match(portal, /retryRetailerNotification/);
+assert.match(portal, /markRetailerSignalSoldOut/);
+assert.match(portal, /retailerSubmissionLifecycle/);
+assert.match(portal, /Mark sold out/);
+assert.match(portal, /Cancel scheduled signal/);
 assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
 
 const register = read("src/app/retailers/register/[[...register]]/page.tsx");
@@ -208,6 +343,9 @@ assert.match(retailerStyles, /\.signalInput[\s\S]*background:[^;]*(?:#1|rgba\()/
 assert.match(retailerStyles, /\.suggestionList[\s\S]*max-height:[^;]+;[\s\S]*overflow-y: auto/);
 
 const signalForm = read("src/app/retailers/portal/RetailerSignalForm.tsx");
+const signalTime = read("src/app/retailers/portal/RetailerSignalTime.tsx");
+assert.match(signalTime, /Intl\.DateTimeFormat/);
+assert.match(signalTime, /dateStyle: "medium"/);
 const bottleCheckApi = read("src/app/api/bottle-check/route.ts");
 const suggestBranchIndex = bottleCheckApi.indexOf('if (intent === "suggest")');
 const suggestBranchEnd = bottleCheckApi.indexOf("if (!bottle)", suggestBranchIndex);
@@ -222,6 +360,17 @@ assert.match(signalForm, /retailerSignalFieldConfig\(kind\)/);
 assert.match(signalForm, /fieldConfig\.useBottleSuggestions/);
 assert.match(signalForm, /fieldConfig\.showPrice/);
 assert.match(signalForm, /fieldConfig\.showAvailability/);
+assert.match(signalForm, /fieldConfig\.supportsAvailabilityTiming/);
+assert.match(signalForm, /Available now/);
+assert.match(signalForm, /Schedule for later/);
+assert.match(signalForm, /name="availabilityTiming"/);
+assert.match(signalForm, /name="startsAt"/);
+assert.match(signalForm, /name="expiresAt"/);
+assert.match(signalForm, /name="timeZone"/);
+assert.match(signalForm, /name="bottleId"/);
+assert.match(signalForm, /Store time zone/);
+assert.match(signalForm, /24 hours after it goes live/);
+assert.match(signalForm, /<option value="bottle_drop">Bottle availability<\/option>/);
 assert.doesNotMatch(signalForm, /[?&]state=|state: string/);
 assert.match(signalForm, /canonicalName/);
 assert.match(signalForm, /event\.key === "Escape"[\s\S]*setOpen\(false\)[\s\S]*setActiveIndex\(-1\)/);

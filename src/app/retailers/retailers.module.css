@@ -324,6 +324,66 @@
   margin-top: 22px;
 }
 
+.timingFieldset {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.timingFieldset legend {
+  margin-bottom: 9px;
+  color: var(--color-text-primary);
+  font-family: var(--font-jetbrains);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timingOptions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.timingOption {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px;
+  border: 1px solid rgba(242, 193, 78, 0.24);
+  border-radius: 10px;
+  background: rgba(247, 240, 224, 0.055);
+  cursor: pointer;
+}
+
+.timingOption:has(input:checked) {
+  border-color: rgba(242, 193, 78, 0.7);
+  background: rgba(242, 193, 78, 0.1);
+}
+
+.timingOption input {
+  margin-top: 3px;
+  accent-color: var(--color-accent-gold);
+}
+
+.timingOption span {
+  display: grid;
+  gap: 3px;
+}
+
+.timingOption strong {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.timingOption small {
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
 .suggestionWrap {
   position: relative;
 }
@@ -395,7 +455,8 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .twoColumns {
+  .twoColumns,
+  .timingOptions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

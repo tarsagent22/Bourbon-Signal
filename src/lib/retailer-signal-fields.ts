@@ -2,6 +2,7 @@ export type RetailerSignalKind = "bottle_drop" | "barrel_pick" | "tasting" | "lo
 
 export type RetailerSignalFieldConfig = {
   useBottleSuggestions: boolean;
+  supportsAvailabilityTiming: boolean;
   titleLabel: string;
   titlePlaceholder: string;
   titleHelp: string;
@@ -22,6 +23,7 @@ export type RetailerSignalFieldConfig = {
 const configs: Record<RetailerSignalKind, RetailerSignalFieldConfig> = {
   bottle_drop: {
     useBottleSuggestions: true,
+    supportsAvailabilityTiming: true,
     titleLabel: "Bottle",
     titlePlaceholder: "Start typing a bottle name…",
     titleHelp: "Choose a Bottle Check suggestion or keep your own bottle name if it is not listed.",
@@ -40,6 +42,7 @@ const configs: Record<RetailerSignalKind, RetailerSignalFieldConfig> = {
   },
   barrel_pick: {
     useBottleSuggestions: true,
+    supportsAvailabilityTiming: true,
     titleLabel: "Barrel pick bottle",
     titlePlaceholder: "Start typing the bottle name…",
     titleHelp: "Choose the base bottle from Bottle Check or enter the pick name yourself.",
@@ -58,6 +61,7 @@ const configs: Record<RetailerSignalKind, RetailerSignalFieldConfig> = {
   },
   tasting: {
     useBottleSuggestions: false,
+    supportsAvailabilityTiming: false,
     titleLabel: "Event name",
     titlePlaceholder: "Summer bourbon tasting",
     titleHelp: "Use the public event name customers will recognize.",
@@ -76,6 +80,7 @@ const configs: Record<RetailerSignalKind, RetailerSignalFieldConfig> = {
   },
   lottery: {
     useBottleSuggestions: true,
+    supportsAvailabilityTiming: false,
     titleLabel: "Bottle or lottery name",
     titlePlaceholder: "Start typing a bottle or enter the lottery name…",
     titleHelp: "Choose a featured bottle when possible, or enter the retailer's lottery name.",
@@ -94,6 +99,7 @@ const configs: Record<RetailerSignalKind, RetailerSignalFieldConfig> = {
   },
   other: {
     useBottleSuggestions: false,
+    supportsAvailabilityTiming: false,
     titleLabel: "Signal title",
     titlePlaceholder: "What should customers know?",
     titleHelp: "Give customers a short, specific description.",

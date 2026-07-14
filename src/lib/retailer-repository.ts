@@ -70,10 +70,15 @@ function submissionFromRow(row: Record<string, unknown>): RetailerSubmissionReco
     storeName: asString(row.store_name),
     storeAddress: asString(row.store_address),
     kind: asString(payload.kind) as RetailerSubmissionRecord["kind"],
+    bottleId: asString(payload.bottleId),
     title: asString(payload.title),
     locationDetails: asString(payload.locationDetails),
     price: asString(payload.price),
     availability: asString(payload.availability),
+    availabilityTiming: asString(payload.availabilityTiming) as RetailerSubmissionRecord["availabilityTiming"],
+    startsAt: asString(payload.startsAt),
+    soldOutAt: asString(payload.soldOutAt),
+    timeZone: asString(payload.timeZone) as RetailerSubmissionRecord["timeZone"],
     notes: asString(payload.notes),
     expiresAt: asString(payload.expiresAt),
     status: asString(row.status) as RetailerSubmissionStatus,
@@ -241,6 +246,35 @@ export class RetailerRepository {
       ? await this.query.query(`SELECT * FROM retailer_submissions WHERE user_id = $1 ORDER BY created_at DESC`, [userId])
       : await this.query.query(`SELECT * FROM retailer_submissions ORDER BY created_at DESC`);
     return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
+  }
+
+  async listPublicSubmissions() {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      SELECT submissions.*
+      FROM retailer_submissions submissions
+      INNER JOIN retailer_applications applications ON applications.user_id = submissions.user_id
+      WHERE submissions.status = 'reviewed'
+        AND applications.status = 'verified'
+        AND submissions.payload->>'kind' IN ('bottle_drop', 'barrel_pick', 'tasting', 'lottery')
+      ORDER BY submissions.created_at DESC
+    `);
+    return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
+  }
+
+  async markSubmissionSoldOut(input: { id: string; userId: string; soldOutAt: string }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      UPDATE retailer_submissions
+      SET payload = jsonb_set(payload, '{soldOutAt}', to_jsonb($3::text), true)
+      WHERE id = $1
+        AND user_id = $2
+        AND status = 'reviewed'
+        AND payload->>'kind' IN ('bottle_drop', 'barrel_pick')
+        AND COALESCE(payload->>'soldOutAt', '') = ''
+      RETURNING *
+    `, [input.id, input.userId, input.soldOutAt]);
+    return rows[0] ? submissionFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
   async deleteSubmission(input: { id: string; userId: string }) {

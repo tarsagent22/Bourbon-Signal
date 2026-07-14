@@ -6,6 +6,8 @@ import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-nor
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { getRetailerRepository } from "@/lib/retailer-repository";
+import { isVerifiedRetailerDrop, retailerSignalSnapshot, retailerSubmissionToDrop } from "@/lib/retailer-signal-feed";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -54,7 +56,7 @@ function parseTierFilter(url: URL) {
 }
 
 function isDropFeedRarity(drop: Record<string, unknown>) {
-  return DROP_FEED_TIERS.has(dropRarityTier(drop)) && !isKnownFalseRareMatch(drop);
+  return isVerifiedRetailerDrop(drop) || (DROP_FEED_TIERS.has(dropRarityTier(drop)) && !isKnownFalseRareMatch(drop));
 }
 
 function includesNeedle(value: unknown, needle: string) {
@@ -205,6 +207,15 @@ function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
   return diversified;
 }
 
+async function publicRetailerSubmissions() {
+  try {
+    return await getRetailerRepository().listPublicSubmissions();
+  } catch (error) {
+    console.error("[api/drops] Retailer signals unavailable:", error);
+    return [];
+  }
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
@@ -233,11 +244,17 @@ export async function GET(request: Request) {
   const tierFilter = parseTierFilter(url);
 
   try {
-    const [dropResult, statsResult] = await readSiteExportResults(["drops", "stats"]);
+    const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
+      readSiteExportResults(["drops", "stats"]),
+      publicRetailerSubmissions(),
+    ]);
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
-    const normalizedDrops = rawDrops.map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+    const retailerDrops = retailerSubmissions
+      .map((submission) => retailerSubmissionToDrop(submission))
+      .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
+    const normalizedDrops = [...rawDrops, ...retailerDrops].map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
     let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
@@ -331,7 +348,8 @@ export async function GET(request: Request) {
     const total = drops.length;
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
-    const snapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
+    const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
+    const snapshot = `${engineSnapshot}:retailer:${retailerSignalSnapshot(retailerSubmissions)}`;
     const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 
@@ -356,7 +374,9 @@ export async function GET(request: Request) {
       {
         headers: {
           ...siteExportHeaders(dropResult.source, dropResult.snapshotId),
-          ...dropFeedCacheHeaders(isSignedIn),
+          ...(retailerSubmissions.length > 0 && !isSignedIn
+            ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30", Vary: "Cookie, Authorization" }
+            : dropFeedCacheHeaders(isSignedIn)),
           "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
         },
