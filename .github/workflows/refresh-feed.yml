@@ -9,6 +9,10 @@ on:
         description: "Disable adaptive scheduling and refresh every active state"
         required: false
         default: "false"
+      states:
+        description: "Optional comma-separated state ids to refresh"
+        required: false
+        default: ""
 
 concurrency:
   group: production-inventory-refresh
@@ -68,6 +72,7 @@ jobs:
         working-directory: engine
         env:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
+          BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
         run: npm run refresh:site
 
 

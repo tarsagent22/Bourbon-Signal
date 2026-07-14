@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const collector = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
 const verifier = readFileSync(new URL('../src/verify-sc.mjs', import.meta.url), 'utf8');
+const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
 
 function defaultHours(constantName) {
   const match = collector.match(new RegExp(`const ${constantName} = Number\\(process\\.env\\.[A-Z0-9_]+ \\|\\| (\\d+) \\* 60 \\* 60_000\\)`));
@@ -23,6 +24,8 @@ test('Myrtle Beach CityHive inventory refresh stays inside the public freshness 
 });
 
 test('Myrtle Beach live inventory remains a South Carolina release contract', () => {
+  assert.match(refreshWorkflow, /states:[\s\S]*description: "Optional comma-separated state ids to refresh"/);
+  assert.match(refreshWorkflow, /BOURBON_SIGNAL_RUN_STATES: \$\{\{ inputs\.states \|\| '' \}\}/);
   assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*baseUrl: 'https:\/\/beachdiscountbeverages\.com'[\s\S]*https:\/\/beachdis0402bdcd\.sites\.cityhive\.app\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6144e1c2085a5f20a622a15f'\]/);
   assert.match(collector, /id: 'greens-beverage'[\s\S]*https:\/\/greensbeb2c6efe1\.sites\.cityhive\.app\/shop\/\?subtype=bourbon/, "Green's should use the CityHive-hosted first-party storefront route that works from scheduled runners");
   assert.match(collector, /'61e1d04c823936166693c7f3'/, "Green's Myrtle Beach merchant must remain selected");
