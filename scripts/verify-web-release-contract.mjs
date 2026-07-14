@@ -44,6 +44,9 @@ if (/const signUpUrl = new URL\("\/sign-up", request\.url\)/.test(middleware)) {
 if (!middleware.includes('hostname === "bourbonsignal.com"') || !middleware.includes('www.bourbonsignal.com') || !middleware.includes('308')) {
   failures.push('Middleware must permanently redirect the apex host to canonical www without changing route access policy.');
 }
+if (!middleware.includes('type: "host"') || !middleware.includes('value: "clerk.bourbonsignal.com"')) {
+  failures.push('The Clerk recovery hostname must run middleware for every path, including versioned JavaScript assets.');
+}
 const robots = read('src/app/robots.ts');
 if (!robots.includes('https://www.bourbonsignal.com/sitemap.xml')) failures.push('robots.ts must publish the canonical www sitemap URL.');
 
