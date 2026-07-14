@@ -173,41 +173,74 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
               <a className={activeTab === "profile" ? styles.portalTabActive : styles.portalTab} href="/retailers/portal?tab=profile">Store profile</a>
             </nav>
             {activeTab === "profile" ? (
-              <section className={styles.statusPanel}>
-                <p className={styles.eyebrow}>Store locations</p>
-                <h2>Manage your locations</h2>
-                <p className={styles.muted}>Update your primary location below or add another store to this retailer account. Every signal is tied to the location you select.</p>
-                <form action={updateStoreProfile} className={styles.formGrid}>
-                  <div className={styles.field}><label htmlFor="profileStoreName">Store name</label><input id="profileStoreName" name="storeName" autoComplete="organization" defaultValue={application.storeName} required maxLength={120} /></div>
-                  <div className={styles.field}><label htmlFor="profileStoreAddress">Store address</label><input id="profileStoreAddress" name="storeAddress" autoComplete="street-address" defaultValue={application.storeAddress} required maxLength={240} /></div>
-                  <div className={`${styles.formGrid} ${styles.twoColumns}`}>
-                    <div className={styles.field}><label htmlFor="profileListedPhone">Publicly listed phone</label><input id="profileListedPhone" name="listedPhone" autoComplete="tel" defaultValue={application.listedPhone} required maxLength={40} /></div>
-                    <div className={styles.field}><label htmlFor="profileApplicantRole">Your role</label><input id="profileApplicantRole" name="applicantRole" defaultValue={application.applicantRole} required maxLength={80} /></div>
-                  </div>
-                  <div className={styles.field}><label htmlFor="profileWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="profileWebsite" name="website" type="url" defaultValue={application.website} placeholder="https://" maxLength={240} /></div>
-                  <button className={styles.primaryButton} type="submit">Save primary location</button>
-                </form>
-                <div className={styles.submissions}>
-                  {stores.map((store) => (
-                    <article className={styles.submissionCard} key={store.id}>
-                      <div className={styles.statusLine}><span className={styles.status}>{store.isPrimary ? "Primary" : "Location"}</span><strong>{store.storeName}</strong></div>
-                      <p className={styles.muted}>{store.storeAddress}</p>
-                      <div className={styles.submissionMeta}><span>{store.listedPhone}</span>{store.website ? <span>{store.website}</span> : null}</div>
-                    </article>
-                  ))}
-                </div>
-                <h3>Add another location</h3>
-                <p className={styles.muted}>Added locations belong to this verified retailer account and become available in the signal form immediately.</p>
-                <form action={addRetailerStore} className={styles.formGrid}>
-                  <div className={styles.field}><label htmlFor="newStoreName">Store name</label><input id="newStoreName" name="storeName" autoComplete="organization" required maxLength={120} /></div>
-                  <div className={styles.field}><label htmlFor="newStoreAddress">Full store address</label><input id="newStoreAddress" name="storeAddress" autoComplete="street-address" required maxLength={240} /></div>
-                  <div className={`${styles.formGrid} ${styles.twoColumns}`}>
-                    <div className={styles.field}><label htmlFor="newStorePhone">Publicly listed phone</label><input id="newStorePhone" name="listedPhone" autoComplete="tel" required maxLength={40} /></div>
-                    <div className={styles.field}><label htmlFor="newStoreWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="newStoreWebsite" name="website" type="url" placeholder="https://" maxLength={240} /></div>
-                  </div>
-                  <button className={styles.primaryButton} type="submit">Add store location</button>
-                </form>
-              </section>
+              <div className={styles.profilePanel}>
+                <section className={styles.profileOverview}>
+                  <p className={styles.eyebrow}>Store locations</p>
+                  <h2>Manage your locations</h2>
+                  <p className={styles.muted}>Keep your primary store details current, then add any other locations managed by this retailer account.</p>
+                </section>
+
+                <section className={`${styles.locationSection} ${styles.primaryLocationSection}`}>
+                  <header className={styles.locationSectionHeader}>
+                    <span className={styles.locationStep}>Primary</span>
+                    <div>
+                      <h3>Primary store</h3>
+                      <p className={styles.muted}>Your account’s main location and the default store for signals.</p>
+                    </div>
+                  </header>
+                  <form action={updateStoreProfile} className={`${styles.formGrid} ${styles.locationForm}`}>
+                    <div className={styles.field}><label htmlFor="profileStoreName">Store name</label><input id="profileStoreName" name="storeName" autoComplete="organization" defaultValue={application.storeName} required maxLength={120} /></div>
+                    <div className={styles.field}><label htmlFor="profileStoreAddress">Store address</label><input id="profileStoreAddress" name="storeAddress" autoComplete="street-address" defaultValue={application.storeAddress} required maxLength={240} /></div>
+                    <div className={`${styles.formGrid} ${styles.twoColumns}`}>
+                      <div className={styles.field}><label htmlFor="profileListedPhone">Publicly listed phone</label><input id="profileListedPhone" name="listedPhone" autoComplete="tel" defaultValue={application.listedPhone} required maxLength={40} /></div>
+                      <div className={styles.field}><label htmlFor="profileApplicantRole">Your role</label><input id="profileApplicantRole" name="applicantRole" defaultValue={application.applicantRole} required maxLength={80} /></div>
+                    </div>
+                    <div className={styles.field}><label htmlFor="profileWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="profileWebsite" name="website" type="url" defaultValue={application.website} placeholder="https://" maxLength={240} /></div>
+                    <button className={`${styles.primaryButton} ${styles.locationButton}`} type="submit">Save primary location</button>
+                  </form>
+                </section>
+
+                {stores.filter((store) => !store.isPrimary).length ? (
+                  <section className={styles.locationList}>
+                    <div className={styles.locationListHeader}>
+                      <div>
+                        <p className={styles.eyebrow}>Additional locations</p>
+                        <h3>Your other stores</h3>
+                      </div>
+                      <span className={styles.locationCount}>{stores.filter((store) => !store.isPrimary).length}</span>
+                    </div>
+                    <div className={styles.submissions}>
+                      {stores.filter((store) => !store.isPrimary).map((store) => (
+                        <article className={`${styles.submissionCard} ${styles.locationCard}`} key={store.id}>
+                          <div className={styles.statusLine}><span className={styles.status}>Location</span><strong>{store.storeName}</strong></div>
+                          <p className={styles.muted}>{store.storeAddress}</p>
+                          <div className={styles.submissionMeta}><span>{store.listedPhone}</span>{store.website ? <span>{store.website}</span> : null}</div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                <section className={`${styles.locationSection} ${styles.addLocationSection}`}>
+                  <header className={styles.locationSectionHeader}>
+                    <span className={styles.addLocationMark} aria-hidden="true">+</span>
+                    <div>
+                      <p className={styles.eyebrow}>Expand your account</p>
+                      <h3>Add another location</h3>
+                      <p className={styles.muted}>New locations become available in the signal form immediately.</p>
+                    </div>
+                  </header>
+                  <form action={addRetailerStore} className={`${styles.formGrid} ${styles.locationForm}`}>
+                    <div className={styles.field}><label htmlFor="newStoreName">Store name</label><input id="newStoreName" name="storeName" autoComplete="organization" required maxLength={120} /></div>
+                    <div className={styles.field}><label htmlFor="newStoreAddress">Full store address</label><input id="newStoreAddress" name="storeAddress" autoComplete="street-address" required maxLength={240} /></div>
+                    <div className={`${styles.formGrid} ${styles.twoColumns}`}>
+                      <div className={styles.field}><label htmlFor="newStorePhone">Publicly listed phone</label><input id="newStorePhone" name="listedPhone" autoComplete="tel" required maxLength={40} /></div>
+                      <div className={styles.field}><label htmlFor="newStoreWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="newStoreWebsite" name="website" type="url" placeholder="https://" maxLength={240} /></div>
+                    </div>
+                    <button className={`${styles.primaryButton} ${styles.locationButton}`} type="submit">Add store location</button>
+                  </form>
+                </section>
+              </div>
             ) : (
           <div className={styles.portalGrid}>
             <section className={styles.statusPanel}>

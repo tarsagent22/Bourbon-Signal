@@ -395,6 +395,12 @@ assert.match(portal, /repository\.listStores\(userId\)/);
 assert.match(portal, /stores=\{stores\.map/);
 assert.match(portal, /tab=profile/);
 assert.match(portal, /Store profile/);
+assert.match(portal, /styles\.profilePanel/);
+assert.match(portal, /styles\.profileOverview/);
+assert.match(portal, /styles\.locationSection/);
+assert.match(portal, /styles\.addLocationSection/);
+assert.match(portal, /stores\.filter\(\(store\) => !store\.isPrimary\)/);
+assert.doesNotMatch(portal, /\{stores\.map\(\(store\) => \(\s*<article/);
 assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
 
 const register = read("src/app/retailers/register/[[...register]]/page.tsx");
@@ -430,6 +436,10 @@ assert.match(retailerLanding, /Retailer signals are published to the feed instan
 assert.match(layout, /rootBox:[\s\S]*justifyContent: "center"/);
 assert.match(layout, /cardBox:[\s\S]*maxWidth: "400px"/);
 const retailerStyles = read("src/app/retailers/retailers.module.css");
+assert.match(retailerStyles, /\.profileOverview[\s\S]*border-radius:/);
+assert.match(retailerStyles, /\.locationSection[\s\S]*border-radius:/);
+assert.match(retailerStyles, /\.addLocationSection[\s\S]*border-color:/);
+assert.match(retailerStyles, /\.locationSectionHeader/);
 assert.match(retailerStyles, /\.authPanel[\s\S]*justify-content: center/);
 assert.match(retailerStyles, /\.signalInput[\s\S]*background:[^;]*(?:#1|rgba\()/);
 assert.match(retailerStyles, /\.suggestionList[\s\S]*max-height:[^;]+;[\s\S]*overflow-y: auto/);

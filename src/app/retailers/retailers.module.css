@@ -302,6 +302,194 @@
   padding: clamp(24px, 4vw, 38px);
 }
 
+.profilePanel {
+  display: grid;
+  width: min(920px, 100%);
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.profileOverview {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(242, 193, 78, 0.2);
+  border-radius: 18px;
+  padding: clamp(22px, 4vw, 32px);
+  background:
+    radial-gradient(circle at 92% 0%, rgba(212, 146, 11, 0.16), transparent 16rem),
+    linear-gradient(145deg, rgba(34, 26, 18, 0.98), rgba(20, 15, 11, 0.98));
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+}
+
+.profileOverview::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #f2c14e, #9d6510);
+  content: "";
+}
+
+.profileOverview h2 {
+  margin: 9px 0 8px;
+  font-family: var(--font-playfair);
+  font-size: clamp(28px, 4vw, 38px);
+  letter-spacing: -0.025em;
+}
+
+.profileOverview .muted {
+  max-width: 650px;
+  margin: 0;
+}
+
+.locationSection {
+  overflow: hidden;
+  border: 1px solid rgba(247, 240, 224, 0.14);
+  border-radius: 18px;
+  padding: clamp(22px, 4vw, 34px);
+  background: linear-gradient(180deg, rgba(29, 23, 17, 0.98), rgba(17, 13, 10, 0.99));
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
+}
+
+.primaryLocationSection {
+  border-color: rgba(247, 240, 224, 0.16);
+}
+
+.locationSectionHeader {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(247, 240, 224, 0.1);
+  padding-bottom: 20px;
+}
+
+.locationSectionHeader > div {
+  min-width: 0;
+}
+
+.locationSectionHeader h3,
+.locationListHeader h3 {
+  margin: 0 0 5px;
+  font-family: var(--font-playfair);
+  font-size: clamp(22px, 3.5vw, 28px);
+  letter-spacing: -0.02em;
+}
+
+.locationSectionHeader .eyebrow {
+  margin: 0 0 7px;
+}
+
+.locationSectionHeader .muted {
+  margin: 0;
+}
+
+.locationStep,
+.addLocationMark,
+.locationCount {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(242, 193, 78, 0.38);
+  color: #f2c14e;
+  font-family: var(--font-jetbrains);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.locationStep {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(212, 146, 11, 0.08);
+}
+
+.addLocationMark {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(212, 146, 11, 0.12);
+  font-family: var(--font-dm-sans);
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.locationForm {
+  margin-top: 24px;
+}
+
+.locationForm .field input {
+  min-height: 52px;
+  border-color: rgba(242, 193, 78, 0.2);
+  border-radius: 11px;
+  background: rgba(247, 240, 224, 0.045);
+}
+
+.locationButton {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 10px;
+  margin-top: 2px;
+}
+
+.addLocationSection {
+  position: relative;
+  border-color: rgba(242, 193, 78, 0.34);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(212, 146, 11, 0.13), transparent 20rem),
+    linear-gradient(180deg, rgba(31, 24, 17, 0.99), rgba(17, 13, 10, 0.99));
+}
+
+.addLocationSection::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(242, 193, 78, 0.9), transparent);
+  content: "";
+}
+
+.locationList {
+  border: 1px solid rgba(247, 240, 224, 0.1);
+  border-radius: 16px;
+  padding: clamp(20px, 3vw, 28px);
+  background: rgba(247, 240, 224, 0.025);
+}
+
+.locationListHeader {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.locationListHeader .eyebrow {
+  margin: 0 0 6px;
+}
+
+.locationCount {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(212, 146, 11, 0.08);
+  font-size: 11px;
+}
+
+.locationCard {
+  border-radius: 13px;
+  background: rgba(15, 12, 9, 0.68);
+  box-shadow: none;
+}
+
+.locationCard .muted {
+  margin: 10px 0 0;
+}
+
 .statusLine {
   display: flex;
   flex-wrap: wrap;
@@ -493,6 +681,48 @@
   background: rgba(45, 106, 79, 0.18);
   padding: 12px 14px;
   color: #bfe7d2;
+}
+
+@media (max-width: 759px) {
+  .profilePanel {
+    gap: 18px;
+  }
+
+  .profileOverview,
+  .locationSection,
+  .locationList {
+    border-radius: 15px;
+    padding: 20px 18px;
+  }
+
+  .locationSectionHeader {
+    gap: 12px;
+    padding-bottom: 18px;
+  }
+
+  .locationSectionHeader h3,
+  .locationListHeader h3 {
+    font-size: 23px;
+  }
+
+  .locationStep {
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 9px;
+  }
+
+  .addLocationMark {
+    width: 32px;
+    height: 32px;
+  }
+
+  .locationForm {
+    margin-top: 20px;
+  }
+
+  .locationButton {
+    min-height: 54px;
+  }
 }
 
 @media (min-width: 760px) {
