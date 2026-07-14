@@ -140,7 +140,10 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
       failures.push(`${state.state}: public drops fell from ${priorDrops} to ${currentDrops}.`);
     }
     if (before.releaseEligible === true && state.releaseEligible !== true) {
-      failures.push(`${state.state}: changed from release eligible to blocked.`);
+      const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
+      const hardFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness));
+      if (hardFailure) failures.push(`${state.state}: changed from release eligible to blocked.`);
+      else warnings.push(`${state.state}: release score crossed below threshold without a hard source failure.`);
     }
     const beforeDegraded = /stale|failed|degraded/iu.test(String(before.input?.status || ''));
     const currentDegraded = /stale|failed|degraded/iu.test(String(state.input?.status || ''));

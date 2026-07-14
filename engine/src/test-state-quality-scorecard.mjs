@@ -73,4 +73,19 @@ const degradedRegression = compareStateQuality(
 assert.equal(degradedRegression.ok, false);
 assert.ok(degradedRegression.failures.some((failure) => failure.includes('degraded')));
 
+const inventoryChurn = compareStateQuality(
+  { states: [{ state: 'FL', score: 66, releaseEligible: true, input: { dropCount: 24, status: 'useful' } }] },
+  { states: [{ state: 'FL', score: 64, releaseEligible: false, weaknesses: ['no_alert_candidates'], input: { dropCount: 22, status: 'useful' } }] },
+);
+assert.equal(inventoryChurn.ok, true, 'normal rare-inventory churn must not block a fresh whole-site snapshot');
+assert.ok(inventoryChurn.warnings.some((warning) => warning.includes('without a hard source failure')));
+
+const hardEligibilityRegression = compareStateQuality(
+  { states: [{ state: 'FL', score: 66, releaseEligible: true, input: { dropCount: 24, status: 'useful' } }] },
+  { states: [{ state: 'FL', score: 45, releaseEligible: false, weaknesses: ['no_store_level_drops'], input: { dropCount: 22, status: 'useful' } }] },
+  { maxScoreDrop: 30 },
+);
+assert.equal(hardEligibilityRegression.ok, false);
+assert.ok(hardEligibilityRegression.failures.some((failure) => failure.includes('release eligible')));
+
 console.log('State quality scorecard tests passed.');
