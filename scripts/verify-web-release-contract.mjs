@@ -35,6 +35,12 @@ for (const match of sitemap.matchAll(/url:\s*"([^"]+)"/g)) {
 
 const middleware = read('src/middleware.ts');
 if (!middleware.includes('"/bottle-check(.*)"')) failures.push('Bottle Check access protection must remain intact.');
+if (!/const signInUrl = new URL\("\/sign-in", request\.url\)/.test(middleware) || !/signInUrl\.searchParams\.set\("redirect_url", redirectAfterAccount\)/.test(middleware)) {
+  failures.push('Expired member sessions on protected routes must return to sign in, not account creation.');
+}
+if (/const signUpUrl = new URL\("\/sign-up", request\.url\)/.test(middleware)) {
+  failures.push('Protected member routes must not send existing members to sign up.');
+}
 if (!middleware.includes('hostname === "bourbonsignal.com"') || !middleware.includes('www.bourbonsignal.com') || !middleware.includes('308')) {
   failures.push('Middleware must permanently redirect the apex host to canonical www without changing route access policy.');
 }

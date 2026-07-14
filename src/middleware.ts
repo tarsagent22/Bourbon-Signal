@@ -67,10 +67,10 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(adminLoginUrl);
   }
 
-  const signUpUrl = new URL("/sign-up", request.url);
-  const redirectAfterAccount = url.pathname.startsWith("/sightings") ? "/pricing" : `${url.pathname}${url.search}`;
-  signUpUrl.searchParams.set("redirect_url", redirectAfterAccount);
-  return withDashboardCacheBust(NextResponse.redirect(signUpUrl), url.pathname);
+  const signInUrl = new URL("/sign-in", request.url);
+  const redirectAfterAccount = `${url.pathname}${url.search}`;
+  signInUrl.searchParams.set("redirect_url", redirectAfterAccount);
+  return withDashboardCacheBust(NextResponse.redirect(signInUrl), url.pathname);
 });
 
 export const config = {
