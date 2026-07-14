@@ -18,6 +18,17 @@ import { toIsoDate } from "../src/lib/retailer-repository.ts";
 import { retailerSignalFieldConfig } from "../src/lib/retailer-signal-fields.ts";
 import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice, zonedLocalDateTimeToIso } from "../src/lib/retailer-time-zone.ts";
 import { retailerFeedSnapshot, retailerSignalSnapshot, retailerSubmissionToDrop, retailerSubmissionToEvent, retailerSubmissionToFeedCard, retailerStateCode } from "../src/lib/retailer-signal-feed.ts";
+import { resolveClerkRecoveryUrl } from "../src/lib/clerk-recovery-host.ts";
+
+assert.equal(
+  resolveClerkRecoveryUrl("https://clerk.bourbonsignal.com/v1/environment?probe=1", "clerk.bourbonsignal.com"),
+  "https://bourbonsignal.com/api/clerk-proxy/v1/environment?probe=1",
+);
+assert.equal(
+  resolveClerkRecoveryUrl("https://clerk.bourbonsignal.com/npm/@clerk/clerk-js@6/dist/clerk.browser.js", "CLERK.BOURBONSIGNAL.COM:443"),
+  "https://bourbonsignal.com/api/clerk-proxy/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+);
+assert.equal(resolveClerkRecoveryUrl("https://www.bourbonsignal.com/sign-in", "www.bourbonsignal.com"), null);
 
 const timestamp = new Date("2026-07-13T21:00:00.000Z");
 assert.equal(toIsoDate(timestamp), "2026-07-13T21:00:00.000Z");

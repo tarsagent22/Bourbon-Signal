@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { resolveClerkRecoveryUrl } from "@/lib/clerk-recovery-host";
 
 const isProtectedRoute = createRouteMatcher([
   "/alerts(.*)",
@@ -36,7 +37,12 @@ function withDashboardCacheBust(response: NextResponse, pathname: string) {
 
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
-  const hostname = (request.headers.get("host") || "").split(":")[0].toLowerCase();
+  const hostHeader = request.headers.get("host");
+  const hostname = (hostHeader || "").split(":")[0].toLowerCase();
+  const clerkRecoveryUrl = resolveClerkRecoveryUrl(request.url, hostHeader);
+  if (clerkRecoveryUrl) {
+    return NextResponse.rewrite(clerkRecoveryUrl);
+  }
   if (hostname === "bourbonsignal.com" && url.pathname.startsWith("/api/clerk-proxy")) {
     return NextResponse.next();
   }
