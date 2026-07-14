@@ -5,6 +5,11 @@ export type RetailerSubmissionStatus = "pending_review" | "reviewed" | "rejected
 export type RetailerSubmissionKind = "bottle_drop" | "barrel_pick" | "tasting" | "lottery" | "other";
 export type RetailerAvailabilityTiming = "now" | "scheduled";
 export type RetailerSubmissionLifecycle = "upcoming" | "live" | "ended" | "submitted";
+export const CURRENT_RETAILER_TERMS_VERSION = "2026-07-01";
+
+export interface RetailerTermsAcceptance {
+  termsVersion: typeof CURRENT_RETAILER_TERMS_VERSION;
+}
 
 export interface RetailerApplication {
   storeName: string;
@@ -35,6 +40,14 @@ export interface RetailerSubmission {
 
 export interface RetailerAccountNotification {
   to: "chandler@bourbonsignal.com";
+  replyTo: string;
+  subject: string;
+  text: string;
+  idempotencyKey: string;
+}
+
+export interface RetailerDecisionNotification {
+  to: string;
   replyTo: string;
   subject: string;
   text: string;
@@ -73,6 +86,14 @@ export function safeRetailerRedirect(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/retailers/portal";
   const path = value.split("#", 1)[0];
   return /^\/retailers\/(?:portal|onboarding)(?:[/?]|$)/.test(path) ? path : "/retailers/portal";
+}
+
+export function normalizeRetailerTermsAcceptance(input: unknown): Result<RetailerTermsAcceptance> {
+  const row = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  if (text(row.termsAccepted, 20) !== "yes" || text(row.termsVersion, 40) !== CURRENT_RETAILER_TERMS_VERSION) {
+    return { ok: false, error: "Read the retailer terms and select I understand to continue." };
+  }
+  return { ok: true, value: { termsVersion: CURRENT_RETAILER_TERMS_VERSION } };
 }
 
 export function normalizeRetailerApplication(input: unknown): Result<RetailerApplication> {
@@ -203,5 +224,45 @@ export function buildRetailerAccountNotification(input: {
       "The account is pending. Verify the applicant through a phone number or business email sourced independently before approving access.",
       "Review: https://www.bourbonsignal.com/admin/retailers",
     ].join("\n"),
+  };
+}
+
+export function buildRetailerDecisionNotification(input: {
+  userId: string;
+  email: string;
+  firstName?: string | null;
+  storeName: string;
+  status: "verified" | "rejected";
+  decisionAt: string;
+}): RetailerDecisionNotification {
+  const approved = input.status === "verified";
+  const greeting = input.firstName?.trim() ? `Hi ${input.firstName.trim()},` : "Hello,";
+  const appUrl = "https://www.bourbonsignal.com";
+  return {
+    to: input.email.trim().toLowerCase(),
+    replyTo: "support@bourbonsignal.com",
+    subject: approved
+      ? `Your Bourbon Signal retailer account is approved — ${input.storeName}`
+      : `Your Bourbon Signal retailer account was not approved — ${input.storeName}`,
+    idempotencyKey: `retailer-decision-${input.userId}-${input.status}-${input.decisionAt}`,
+    text: approved
+      ? [
+          greeting,
+          "",
+          `Your retailer account for ${input.storeName} is approved.`,
+          "You can now submit bottle availability, barrel picks, tastings, and lotteries directly to Bourbon Signal.",
+          "",
+          `Open the retailer portal: ${appUrl}/retailers/portal`,
+          "",
+          "Bourbon Signal Retailer Support",
+        ].join("\n")
+      : [
+          greeting,
+          "",
+          `We could not approve the retailer account request for ${input.storeName}.`,
+          "If the store or contact details need to be corrected, reply to this email and we will help review the request.",
+          "",
+          "Bourbon Signal Retailer Support",
+        ].join("\n"),
   };
 }

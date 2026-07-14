@@ -3,9 +3,12 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   buildRetailerAccountNotification,
+  buildRetailerDecisionNotification,
+  CURRENT_RETAILER_TERMS_VERSION,
   normalizeRetailerApplication,
   normalizeRetailerStatus,
   normalizeRetailerSubmission,
+  normalizeRetailerTermsAcceptance,
   retailerSubmissionLifecycle,
   safeRetailerRedirect,
 } from "../src/lib/retailer-portal.ts";
@@ -13,7 +16,7 @@ import { isRetailerAdminEmail, RETAILER_ADMIN_EMAIL } from "../src/lib/retailer-
 import { toIsoDate } from "../src/lib/retailer-repository.ts";
 import { retailerSignalFieldConfig } from "../src/lib/retailer-signal-fields.ts";
 import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice, zonedLocalDateTimeToIso } from "../src/lib/retailer-time-zone.ts";
-import { retailerSignalSnapshot, retailerSubmissionToDrop, retailerSubmissionToEvent, retailerStateCode } from "../src/lib/retailer-signal-feed.ts";
+import { retailerFeedSnapshot, retailerSignalSnapshot, retailerSubmissionToDrop, retailerSubmissionToEvent, retailerSubmissionToFeedCard, retailerStateCode } from "../src/lib/retailer-signal-feed.ts";
 
 const timestamp = new Date("2026-07-13T21:00:00.000Z");
 assert.equal(toIsoDate(timestamp), "2026-07-13T21:00:00.000Z");
@@ -51,6 +54,11 @@ const application = normalizeRetailerApplication(validApplication);
 assert.equal(application.ok, true);
 assert.equal(application.value?.storeName, "All American Liquor");
 assert.equal(application.value?.website, "https://www.aalmauldin.com/");
+assert.equal(CURRENT_RETAILER_TERMS_VERSION, "2026-07-01");
+assert.equal(normalizeRetailerTermsAcceptance({ termsAccepted: "yes", termsVersion: CURRENT_RETAILER_TERMS_VERSION }).ok, true);
+const missingTerms = normalizeRetailerTermsAcceptance({ termsAccepted: "", termsVersion: CURRENT_RETAILER_TERMS_VERSION });
+assert.equal(missingTerms.ok, false);
+assert.match(missingTerms.error || "", /understand/i);
 
 const missingStore = normalizeRetailerApplication({ ...validApplication, storeName: "" });
 assert.equal(missingStore.ok, false);
@@ -162,6 +170,8 @@ assert.equal(
   retailerSignalSnapshot([{ ...scheduledRecord, kind: "tasting" }], signalNow),
   retailerSignalSnapshot([], signalNow),
 );
+assert.notEqual(retailerFeedSnapshot([scheduledRecord], signalNow), retailerFeedSnapshot([], signalNow));
+assert.notEqual(retailerFeedSnapshot([{ ...scheduledRecord, kind: "tasting" }], signalNow), retailerFeedSnapshot([], signalNow));
 assert.notEqual(
   retailerSignalSnapshot([scheduledRecord], signalNow),
   retailerSignalSnapshot([scheduledRecord], new Date("2026-07-15T14:00:00.000Z")),
@@ -172,6 +182,18 @@ assert.equal(liveRetailerDrop?.source, "verified-retailer");
 assert.equal(liveRetailerDrop?.state, "SC");
 assert.equal(liveRetailerDrop?.storeName, "Test Bottle Shop");
 assert.equal(retailerSubmissionToDrop(scheduledRecord, new Date("2026-07-16T14:00:00.000Z")), null);
+const upcomingRetailerCard = retailerSubmissionToFeedCard(scheduledRecord, signalNow, "allocated");
+assert.equal(upcomingRetailerCard?.retailerSignalKind, "drop");
+assert.equal(upcomingRetailerCard?.retailerSignalState, "upcoming");
+assert.equal(upcomingRetailerCard?.tier, "allocated");
+assert.equal(upcomingRetailerCard?.canAlertAsInventory, false);
+const retailerTastingCard = retailerSubmissionToFeedCard(
+  { ...scheduledRecord, kind: "tasting", startsAt: "", expiresAt: "2026-07-20T22:00:00.000Z", title: "Summer tasting" },
+  signalNow,
+  "limited",
+);
+assert.equal(retailerTastingCard?.retailerSignalKind, "tasting");
+assert.equal(retailerTastingCard?.type, "verified_retailer_tasting");
 
 const tastingWithoutDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting" });
 assert.equal(tastingWithoutDate.ok, false);
@@ -229,12 +251,28 @@ assert.match(notice.text, /owner@example\.com/);
 assert.doesNotMatch(`${notice.subject}\n${notice.text}`, /blue beacon/i);
 assert.equal(notice.idempotencyKey, "retailer-account-created-user_123");
 
+const approvedNotice = buildRetailerDecisionNotification({
+  userId: "user_123",
+  email: "owner@example.com",
+  firstName: "Morgan",
+  storeName: "All American Liquor",
+  status: "verified",
+  decisionAt: "2026-07-14T14:00:00.000Z",
+});
+assert.equal(approvedNotice.to, "owner@example.com");
+assert.match(approvedNotice.subject, /approved/i);
+assert.match(approvedNotice.text, /retailers\/portal/);
+assert.equal(approvedNotice.idempotencyKey, "retailer-decision-user_123-verified-2026-07-14T14:00:00.000Z");
+const declinedNotice = buildRetailerDecisionNotification({ ...approvedNotice, userId: "user_123", email: "owner@example.com", firstName: "Morgan", storeName: "All American Liquor", status: "rejected", decisionAt: "2026-07-14T15:00:00.000Z" });
+assert.match(declinedNotice.subject, /not approved/i);
+
 const root = process.cwd();
 const read = (file: string) => readFileSync(path.join(root, file), "utf8");
 for (const file of [
   "src/app/retailers/page.tsx",
   "src/app/retailers/register/[[...register]]/page.tsx",
   "src/app/retailers/onboarding/page.tsx",
+  "src/app/retailers/onboarding/RetailerTermsGate.tsx",
   "src/app/retailers/login/[[...login]]/page.tsx",
   "src/app/retailers/portal/page.tsx",
   "src/app/retailers/portal/RetailerSignalForm.tsx",
@@ -288,10 +326,16 @@ assert.match(repository, /payload->>'kind' IN \('bottle_drop', 'barrel_pick'\)/)
 assert.match(repository, /listPublicSubmissions/);
 assert.match(repository, /applications\.status = 'verified'/);
 assert.match(repository, /submissions\.status = 'reviewed'/);
+assert.match(repository, /terms_accepted_at TIMESTAMPTZ/);
+assert.match(repository, /terms_version TEXT/);
+assert.match(repository, /decision_notified_status TEXT/);
+assert.match(repository, /updateApplicationProfile/);
+assert.match(repository, /markDecisionNotificationSent/);
 
 const dropsApi = read("src/app/api/drops/route.ts");
-assert.match(dropsApi, /retailerSubmissionToDrop/);
-assert.match(dropsApi, /retailerSignalSnapshot/);
+assert.match(dropsApi, /retailerSubmissionToFeedCard/);
+assert.match(dropsApi, /getBourbonBible/);
+assert.match(dropsApi, /retailerFeedSnapshot/);
 assert.match(dropsApi, /isVerifiedRetailerDrop/);
 const eventsApi = read("src/app/api/events/route.ts");
 assert.match(eventsApi, /retailerSubmissionToEvent/);
@@ -313,6 +357,9 @@ assert.match(portal, /markRetailerSignalSoldOut/);
 assert.match(portal, /retailerSubmissionLifecycle/);
 assert.match(portal, /Mark sold out/);
 assert.match(portal, /Cancel scheduled signal/);
+assert.match(portal, /updateStoreProfile/);
+assert.match(portal, /tab=profile/);
+assert.match(portal, /Store profile/);
 assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
 
 const register = read("src/app/retailers/register/[[...register]]/page.tsx");
@@ -328,12 +375,22 @@ const onboarding = read("src/app/retailers/onboarding/page.tsx");
 assert.match(onboarding, /upsertPendingApplication/);
 assert.match(onboarding, /emailAddress\.verification\?\.status !== "verified"/);
 assert.match(onboarding, /redirect\("\/retailers\/portal\?applied=1"\)/);
-assert.match(onboarding, /ageConfirmed/);
+assert.match(onboarding, /normalizeRetailerTermsAcceptance/);
+assert.match(onboarding, /RetailerTermsGate/);
+const termsGate = read("src/app/retailers/onboarding/RetailerTermsGate.tsx");
+assert.match(termsGate, />I understand<\/button>/);
+assert.match(termsGate, /termsAccepted/);
+assert.match(termsGate, /signal accuracy/i);
 
 const login = read("src/app/retailers/login/[[...login]]/page.tsx");
 assert.match(login, /safeRetailerRedirect/);
 assert.match(login, /redirect_url/);
 assert.match(login, /authPanel/);
+assert.match(login, /Submit signals to Bourbon Signal and manage your store profile\./);
+assert.match(login, /headerSubtitle:[\s\S]*marginTop: "12px"/);
+assert.doesNotMatch(login, /styles\.panel\} \$\{styles\.authPanel/);
+const retailerLanding = read("src/app/retailers/page.tsx");
+assert.match(retailerLanding, /Retailer signals are published to the feed instantly or at set time\./);
 
 assert.match(layout, /rootBox:[\s\S]*justifyContent: "center"/);
 assert.match(layout, /cardBox:[\s\S]*maxWidth: "400px"/);
@@ -386,10 +443,24 @@ assert.match(admin, /verificationMethod/);
 assert.match(admin, /verificationContact/);
 assert.match(admin, /removeRetailerAccess/);
 assert.match(admin, /removeRetailerSubmission/);
+assert.match(admin, /notifyRetailerDecision/);
+assert.match(admin, /resendRetailerDecisionNotification/);
+assert.match(admin, /Decision email pending/);
+const retailerNotifications = read("src/lib/retailer-notifications.ts");
+assert.match(retailerNotifications, /notifyRetailerDecision/);
+assert.match(retailerNotifications, /idempotencyKey/);
 assert.match(admin, /submission\.status === "rejected" \? "removed" : "retailer signal"/);
 assert.match(admin, /submission\.kind === "other"/);
 assert.doesNotMatch(admin, /reviewSubmission|>Approve<\/button>|>Reject<\/button>|pending review/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
+
+const dropFeed = read("src/components/sections/DropFeed.tsx");
+assert.match(dropFeed, /retailerSignalKind/);
+assert.match(dropFeed, /Verified retailer/);
+assert.match(dropFeed, /retailerCardAppearance/);
+assert.match(dropFeed, /lottery:/);
+assert.match(dropFeed, /tasting:/);
+assert.match(dropFeed, /drop:/);
 
 const settings = read("src/app/settings/page.tsx");
 assert.match(settings, /isRetailerAdminEmail/);

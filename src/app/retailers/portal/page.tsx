@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
-import { normalizeRetailerSubmission, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
+import { normalizeRetailerApplication, normalizeRetailerSubmission, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice } from "@/lib/retailer-time-zone";
 import RetailerSignalForm from "./RetailerSignalForm";
 import RetailerSignalTime from "./RetailerSignalTime";
@@ -31,6 +31,22 @@ async function retryRetailerNotification() {
   if (!application.notificationSentAt) await sendApplicationNotification(application);
   revalidatePath("/retailers/portal");
   redirect("/retailers/portal?notified=1");
+}
+
+async function updateStoreProfile(formData: FormData) {
+  "use server";
+  const { userId } = await auth();
+  if (!userId) redirect("/retailers/login?redirect_url=%2Fretailers%2Fportal%3Ftab%3Dprofile");
+  const normalized = normalizeRetailerApplication(Object.fromEntries(formData.entries()));
+  if (!normalized.ok) redirect(`/retailers/portal?tab=profile&error=${encodeURIComponent(normalized.error)}`);
+  const repository = getRetailerRepository();
+  const before = await repository.getApplication(userId);
+  if (!before) redirect("/retailers/onboarding");
+  const updated = await repository.updateApplicationProfile({ userId, application: normalized.value });
+  if (!updated) redirect("/retailers/onboarding");
+  revalidatePath("/retailers/portal");
+  if (before.status === "verified" && updated.status === "pending") redirect("/retailers/portal?profileUpdated=review");
+  redirect("/retailers/portal?tab=profile&profileUpdated=1");
 }
 
 async function submitRetailerUpdate(formData: FormData) {
@@ -84,6 +100,8 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   const { userId } = await auth();
   if (!userId) redirect("/retailers/login");
   const params = await searchParams;
+  const activeTab = params.tab === "profile" ? "profile" : "signals";
+  const profileUpdated = typeof params.profileUpdated === "string" ? params.profileUpdated : "";
   const repository = getRetailerRepository();
   const application = await repository.getApplication(userId);
   if (!application) redirect("/retailers/onboarding");
@@ -111,6 +129,8 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
         {params.notified === "1" ? <p className={styles.notice}>The review team has been notified.</p> : null}
         {params.submitted === "1" ? <p className={styles.notice}>Signal submitted. No additional approval is required.</p> : null}
         {params.ended === "1" ? <p className={styles.notice}>The availability signal has ended.</p> : null}
+        {profileUpdated === "1" ? <p className={styles.notice}>Store profile updated.</p> : null}
+        {profileUpdated === "review" ? <p className={styles.notice}>Store profile updated. Changes to the store identity are being re-verified.</p> : null}
 
         {retailerStatus === "pending" ? (
           <section className={styles.statusPanel}>
@@ -126,6 +146,28 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
             <p className={styles.muted}>Email <a href="mailto:chandler@bourbonsignal.com">chandler@bourbonsignal.com</a> if ownership or management details have changed.</p>
           </section>
         ) : (
+          <>
+            <nav className={styles.portalTabs} aria-label="Retailer portal">
+              <a className={activeTab === "signals" ? styles.portalTabActive : styles.portalTab} href="/retailers/portal">Signals</a>
+              <a className={activeTab === "profile" ? styles.portalTabActive : styles.portalTab} href="/retailers/portal?tab=profile">Store profile</a>
+            </nav>
+            {activeTab === "profile" ? (
+              <section className={styles.statusPanel}>
+                <p className={styles.eyebrow}>Store profile</p>
+                <h2>Edit store information</h2>
+                <p className={styles.muted}>Website and role changes publish immediately. Changes to the store name, address, or public phone require a quick re-verification.</p>
+                <form action={updateStoreProfile} className={styles.formGrid}>
+                  <div className={styles.field}><label htmlFor="profileStoreName">Store name</label><input id="profileStoreName" name="storeName" autoComplete="organization" defaultValue={application.storeName} required maxLength={120} /></div>
+                  <div className={styles.field}><label htmlFor="profileStoreAddress">Store address</label><input id="profileStoreAddress" name="storeAddress" autoComplete="street-address" defaultValue={application.storeAddress} required maxLength={240} /></div>
+                  <div className={`${styles.formGrid} ${styles.twoColumns}`}>
+                    <div className={styles.field}><label htmlFor="profileListedPhone">Publicly listed phone</label><input id="profileListedPhone" name="listedPhone" autoComplete="tel" defaultValue={application.listedPhone} required maxLength={40} /></div>
+                    <div className={styles.field}><label htmlFor="profileApplicantRole">Your role</label><input id="profileApplicantRole" name="applicantRole" defaultValue={application.applicantRole} required maxLength={80} /></div>
+                  </div>
+                  <div className={styles.field}><label htmlFor="profileWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="profileWebsite" name="website" type="url" defaultValue={application.website} placeholder="https://" maxLength={240} /></div>
+                  <button className={styles.primaryButton} type="submit">Save store profile</button>
+                </form>
+              </section>
+            ) : (
           <div className={styles.portalGrid}>
             <section className={styles.statusPanel}>
               <div className={styles.statusLine}><span className={styles.status}>Retailer verified</span></div>
@@ -169,6 +211,8 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
               </div>
             </section>
           </div>
+            )}
+          </>
         )}
       </div>
     </main>

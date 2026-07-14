@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
 import { normalizeRetailerStatus } from "@/lib/retailer-portal";
+import { notifyRetailerDecision } from "@/lib/retailer-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,23 @@ async function requireRetailerAdmin() {
   return { client, admin };
 }
 
+async function deliverRetailerDecision(application: RetailerApplicationRecord) {
+  if (application.status !== "verified" && application.status !== "rejected") return;
+  const notification = await notifyRetailerDecision({
+    userId: application.userId,
+    email: application.email,
+    firstName: application.firstName,
+    storeName: application.storeName,
+    status: application.status,
+    decisionAt: application.updatedAt,
+  });
+  await getRetailerRepository().markDecisionNotificationSent({
+    userId: application.userId,
+    status: application.status,
+    messageId: notification.messageId,
+  });
+}
+
 async function updateRetailerStatus(formData: FormData) {
   "use server";
   const { admin } = await requireRetailerAdmin();
@@ -31,7 +49,17 @@ async function updateRetailerStatus(formData: FormData) {
   const verificationContact = String(formData.get("verificationContact") || "").trim().slice(0, 240);
   if (!targetUserId || !["pending", "verified", "rejected"].includes(nextStatus)) return;
   if (nextStatus === "verified" && (!["public_phone", "business_email"].includes(verificationMethod) || !verificationContact)) return;
-  const application = await getRetailerRepository().updateApplicationStatus({
+  const repository = getRetailerRepository();
+  const existing = await repository.getApplication(targetUserId);
+  if (!existing) return;
+  if (existing.status === nextStatus) {
+    if ((nextStatus === "verified" || nextStatus === "rejected") && existing.decisionNotifiedStatus !== nextStatus) {
+      try { await deliverRetailerDecision(existing); } catch (error) { console.error("Retailer decision email failed", error); }
+    }
+    revalidatePath("/admin/retailers");
+    return;
+  }
+  const application = await repository.updateApplicationStatus({
     userId: targetUserId,
     status: nextStatus as "pending" | "verified" | "rejected",
     reviewedBy: admin.id,
@@ -39,8 +67,22 @@ async function updateRetailerStatus(formData: FormData) {
     verificationContact: nextStatus === "verified" ? verificationContact : null,
   });
   if (!application) return;
+  if (application.status === "verified" || application.status === "rejected") {
+    try { await deliverRetailerDecision(application); } catch (error) { console.error("Retailer decision email failed", error); }
+  }
   revalidatePath("/admin/retailers");
   revalidatePath("/retailers/portal");
+}
+
+async function resendRetailerDecisionNotification(formData: FormData) {
+  "use server";
+  await requireRetailerAdmin();
+  const targetUserId = String(formData.get("userId") || "");
+  if (!targetUserId) return;
+  const application = await getRetailerRepository().getApplication(targetUserId);
+  if (!application || (application.status !== "verified" && application.status !== "rejected")) return;
+  try { await deliverRetailerDecision(application); } catch (error) { console.error("Retailer decision email retry failed", error); }
+  revalidatePath("/admin/retailers");
 }
 
 async function removeRetailerSubmission(formData: FormData) {
@@ -111,6 +153,7 @@ export default async function RetailerAdminPage() {
                       <div><dt className="font-mono text-[10px] uppercase">Website</dt><dd>{application?.website || "Not provided"}</dd></div>
                       <div className="sm:col-span-2"><dt className="font-mono text-[10px] uppercase">Address</dt><dd>{application?.storeAddress || "Not provided"}</dd></div>
                       <div className="sm:col-span-2"><dt className="font-mono text-[10px] uppercase">Review notice</dt><dd>{application.notificationSentAt ? `Sent ${new Date(application.notificationSentAt).toLocaleString()}` : "Pending delivery"}</dd></div>
+                      {retailerStatus === "verified" || retailerStatus === "rejected" ? <div className="sm:col-span-2"><dt className="font-mono text-[10px] uppercase">Decision email</dt><dd>{application.decisionNotifiedStatus === retailerStatus && application.decisionNotificationSentAt ? `Sent ${new Date(application.decisionNotificationSentAt).toLocaleString()}` : "Decision email pending"}</dd></div> : null}
                     </dl>
                   </div>
                   <div className="grid min-w-[260px] gap-2 lg:w-72">
@@ -125,6 +168,12 @@ export default async function RetailerAdminPage() {
                       <form action={updateRetailerStatus} className="flex-1"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="status" value="pending" /><button className="w-full border border-amber-600/50 bg-amber-950/30 px-4 py-2 text-sm text-amber-100" type="submit">Keep pending</button></form>
                       <form action={updateRetailerStatus} className="flex-1"><input type="hidden" name="userId" value={application.userId} /><input type="hidden" name="status" value="rejected" /><button className="w-full border border-red-600/50 bg-red-950/30 px-4 py-2 text-sm text-red-100" type="submit">Reject access</button></form>
                     </div>
+                    {(retailerStatus === "verified" || retailerStatus === "rejected") && application.decisionNotifiedStatus !== retailerStatus ? (
+                      <form action={resendRetailerDecisionNotification}>
+                        <input type="hidden" name="userId" value={application.userId} />
+                        <button className="w-full border border-sky-600/50 bg-sky-950/20 px-4 py-2 text-sm text-sky-100" type="submit">Resend decision email</button>
+                      </form>
+                    ) : null}
                     <details className="border border-red-600/30 bg-red-950/10 p-3 text-sm">
                       <summary className="cursor-pointer text-red-200">Remove retailer access</summary>
                       <form action={removeRetailerAccess} className="mt-3 grid gap-2">

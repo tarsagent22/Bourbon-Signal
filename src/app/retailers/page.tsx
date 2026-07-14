@@ -41,7 +41,7 @@ export default function RetailersPage() {
           <article className={styles.feature}>
             <span className={styles.featureNumber}>03 / REACH</span>
             <h2>Reach local hunters</h2>
-            <p>Bourbon Signal reviews retailer updates before they appear and directs them to members tracking the relevant market.</p>
+            <p>Retailer signals are published to the feed instantly or at set time.</p>
           </article>
         </section>
       </main>

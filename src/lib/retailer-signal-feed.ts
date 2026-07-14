@@ -7,6 +7,9 @@ const STATE_CODES = new Set([
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
 ]);
 
+export type RetailerFeedTier = "unicorn" | "allocated" | "limited" | "standard" | "unknown";
+export type RetailerFeedSignalKind = "drop" | "barrel_pick" | "tasting" | "lottery";
+
 export function retailerStateCode(address: string) {
   const candidates = address.toUpperCase().match(/\b[A-Z]{2}\b/g) || [];
   return candidates.reverse().find((candidate) => STATE_CODES.has(candidate)) || "";
@@ -110,6 +113,73 @@ export function retailerSignalSnapshot(submissions: RetailerSubmissionRecord[], 
       submission.expiresAt,
       submission.soldOutAt,
     ].join(":"))
+    .sort()
+    .join("|");
+  return value ? createHash("sha256").update(value).digest("hex").slice(0, 16) : "none";
+}
+
+export function retailerSubmissionToFeedCard(
+  submission: RetailerSubmissionRecord,
+  now = new Date(),
+  tier: RetailerFeedTier = "unknown",
+) {
+  if (submission.status === "rejected" || submission.soldOutAt || submission.kind === "other") return null;
+  const availabilityKind = submission.kind === "bottle_drop" || submission.kind === "barrel_pick";
+  const lifecycle = retailerSubmissionLifecycle(submission, now);
+  if (availabilityKind && lifecycle !== "live" && lifecycle !== "upcoming") return null;
+  const eventDate = availabilityKind ? submission.startsAt : submission.expiresAt;
+  if (!availabilityKind && (!eventDate || new Date(eventDate).getTime() <= now.getTime())) return null;
+
+  const retailerSignalKind: RetailerFeedSignalKind = submission.kind === "bottle_drop" ? "drop" : submission.kind;
+  const retailerSignalState = availabilityKind ? lifecycle : "upcoming";
+  const type = `verified_retailer_${retailerSignalKind}`;
+  return {
+    id: `retailer:${submission.id}`,
+    bottle_id: submission.bottleId || undefined,
+    bottleId: submission.bottleId || undefined,
+    bottle_name: submission.title,
+    bottleName: submission.title,
+    canonicalName: submission.title,
+    bourbonName: submission.title,
+    brand_name: submission.title,
+    type,
+    source: "verified-retailer",
+    source_type: "verified_retailer",
+    retailerReported: true,
+    retailerSignalKind,
+    retailerSignalState,
+    canAlertAsInventory: availabilityKind && lifecycle === "live",
+    tier,
+    rarity_tier: tier,
+    state: retailerStateCode(submission.storeAddress),
+    region: retailerStateCode(submission.storeAddress),
+    location: submission.locationDetails
+      ? `${submission.storeName} · ${submission.locationDetails}`
+      : submission.storeName,
+    storeName: submission.storeName,
+    storeAddress: submission.storeAddress,
+    locationDetails: submission.locationDetails,
+    locationPrecision: "store_level",
+    observedAt: submission.createdAt,
+    timestamp: submission.createdAt,
+    created_at: submission.createdAt,
+    eventDate: eventDate || undefined,
+    startsAt: submission.startsAt || undefined,
+    expiresAt: submission.expiresAt || undefined,
+    summary: submission.notes || (availabilityKind ? "Availability reported directly by this retailer." : "Event submitted directly by this retailer."),
+    availability: submission.availability,
+    price: submission.price,
+    signal: "exact",
+    signal_status: availabilityKind && lifecycle === "live" ? "live" : "upcoming",
+    status: availabilityKind && lifecycle === "live" ? "confirmed" : "upcoming",
+  };
+}
+
+export function retailerFeedSnapshot(submissions: RetailerSubmissionRecord[], now = new Date()) {
+  const value = submissions
+    .map((submission) => retailerSubmissionToFeedCard(submission, now))
+    .filter((card): card is NonNullable<typeof card> => Boolean(card))
+    .map((card) => [card.id, card.retailerSignalKind, card.retailerSignalState, card.startsAt || "", card.expiresAt || ""].join(":"))
     .sort()
     .join("|");
   return value ? createHash("sha256").update(value).digest("hex").slice(0, 16) : "none";

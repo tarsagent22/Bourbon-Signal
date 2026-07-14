@@ -43,6 +43,18 @@ interface DropsResponse {
 
 const KENTUCKY_RELEASE_WATCH_SOURCE_COUNT = 8;
 
+const RETAILER_SIGNAL_CARDS = {
+  drop: { label: "Bottle availability", border: "rgba(52,211,153,0.38)", background: "linear-gradient(115deg, rgba(16,185,129,0.14), rgba(9,9,9,0.94) 48%)" },
+  barrel_pick: { label: "Barrel pick", border: "rgba(251,191,36,0.38)", background: "linear-gradient(115deg, rgba(217,119,6,0.15), rgba(9,9,9,0.94) 48%)" },
+  tasting: { label: "Tasting", border: "rgba(56,189,248,0.38)", background: "linear-gradient(115deg, rgba(14,165,233,0.14), rgba(9,9,9,0.94) 48%)" },
+  lottery: { label: "Lottery", border: "rgba(167,139,250,0.38)", background: "linear-gradient(115deg, rgba(139,92,246,0.15), rgba(9,9,9,0.94) 48%)" },
+} as const;
+
+function retailerCardAppearance(drop: GroupedDrop) {
+  if (!drop.retailerReported || !drop.retailerSignalKind) return null;
+  return RETAILER_SIGNAL_CARDS[drop.retailerSignalKind];
+}
+
 const tickerNumberFormatter = new Intl.NumberFormat("en-US");
 
 function formatTickerNumber(value?: number) {
@@ -741,9 +753,12 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const primaryLocation = drop.locations[0]?.label || description;
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
   const primaryMeta = distilleryMeta?.primaryLine || getPrimarySignalMeta(drop, locationSummary, stateLabel);
-  const signalLabel = drop.signalLabel || "Bottle drop";
+  const retailerAppearance = retailerCardAppearance(drop);
+  const signalLabel = retailerAppearance ? `Verified retailer · ${retailerAppearance.label}` : (drop.signalLabel || "Bottle drop");
   const signalTrust = getSignalTrust(drop);
-  const signalTime = distilleryMeta?.checkedLabel || formatDropTime(drop);
+  const signalTime = drop.retailerSignalState === "upcoming" && drop.eventDate
+    ? `Starts ${formatDropTime({ ...drop, timestamp: drop.eventDate })}`
+    : (distilleryMeta?.checkedLabel || formatDropTime(drop));
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
@@ -837,9 +852,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           marginBottom: "12px",
           padding: "15px 15px 14px",
           borderRadius: "22px",
-          border: `1px solid ${distilleryMeta ? "rgba(196,148,58,0.22)" : "rgba(245,237,214,0.085)"}`,
+          border: `1px solid ${retailerAppearance ? retailerAppearance.border : distilleryMeta ? "rgba(196,148,58,0.22)" : "rgba(245,237,214,0.085)"}`,
           background:
-            distilleryMeta
+            retailerAppearance
+              ? retailerAppearance.background
+              : distilleryMeta
               ? "linear-gradient(145deg, rgba(196,148,58,0.11) 0%, rgba(31,22,12,0.94) 42%, rgba(11,9,7,0.96) 100%)"
               : hasTopCardAccent
               ? "linear-gradient(145deg, rgba(196,148,58,0.14) 0%, rgba(31,22,12,0.94) 42%, rgba(12,10,7,0.96) 100%)"
@@ -858,6 +875,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
             ) : (
               <>
                 <TierBadge tier={drop.rarity_tier} />
+                {retailerAppearance ? (
+                  <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "8px", fontWeight: 850, letterSpacing: "0.07em", color: "rgba(245,237,214,0.84)", border: `1px solid ${retailerAppearance.border}`, padding: "3px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
+                    Verified retailer · {retailerAppearance.label}
+                  </span>
+                ) : null}
                 <span
                   style={{
                     fontFamily: "var(--font-jetbrains)",
@@ -993,7 +1015,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
         style={{
           padding: "16px 20px",
           cursor: hasDetails ? "pointer" : "default",
-          background: hovered ? "rgba(196, 148, 58, 0.08)" : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : "transparent",
+          background: hovered ? "rgba(196, 148, 58, 0.08)" : retailerAppearance ? retailerAppearance.background : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : "transparent",
+          borderLeft: retailerAppearance ? `2px solid ${retailerAppearance.border}` : undefined,
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
           transition: "all 200ms ease",
@@ -1023,6 +1046,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           </button>
           <div className="flex items-center gap-2" style={{ marginTop: "2px", flexWrap: "wrap" }}>
             <TierBadge tier={drop.rarity_tier} />
+            {retailerAppearance ? (
+              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 850, letterSpacing: "0.07em", color: "rgba(245,237,214,0.84)", border: `1px solid ${retailerAppearance.border}`, padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
+                Verified retailer · {retailerAppearance.label}
+              </span>
+            ) : null}
             {distilleryMeta ? (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 850, letterSpacing: "0.08em", color: "rgba(232,201,122,0.95)", background: "rgba(196,148,58,0.10)", border: "1px solid rgba(196,148,58,0.22)", padding: "2px 6px", borderRadius: "999px", textTransform: "uppercase" }}>
                 {distilleryMeta.trustChip}
@@ -1052,7 +1080,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                 {stateLabel}
               </span>
             )}
-            {!distilleryMeta && !isUserSighting ? (
+            {!distilleryMeta && !isUserSighting && !retailerAppearance ? (
               <span
                 style={{
                   fontFamily: "var(--font-jetbrains)",

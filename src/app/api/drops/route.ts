@@ -7,7 +7,8 @@ import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { getRetailerRepository } from "@/lib/retailer-repository";
-import { isVerifiedRetailerDrop, retailerSignalSnapshot, retailerSubmissionToDrop } from "@/lib/retailer-signal-feed";
+import { getBourbonBible } from "@/lib/bourbonBible";
+import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -19,6 +20,14 @@ const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
+
+function retailerTierForAvailability(availability: string | undefined): RetailerFeedTier {
+  if (availability === "highly_allocated") return "unicorn";
+  if (availability === "allocated") return "allocated";
+  if (availability === "limited" || availability === "regional" || availability === "seasonal") return "limited";
+  if (availability === "common") return "standard";
+  return "unknown";
+}
 
 function dropRarityTier(drop: Record<string, unknown>) {
   return String(drop.rarity_tier ?? drop.tier ?? "").toLowerCase();
@@ -128,6 +137,14 @@ function maxAgeForDrop(drop: Record<string, unknown>) {
 }
 
 function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.now()) {
+  if (isVerifiedRetailerDrop(drop)) {
+    const expiresAt = Date.parse(String(drop.expiresAt ?? ""));
+    if (drop.retailerSignalState === "upcoming") {
+      const eventAt = Date.parse(String(drop.eventDate ?? drop.startsAt ?? drop.expiresAt ?? ""));
+      return Number.isFinite(eventAt) && eventAt > now;
+    }
+    if (drop.retailerSignalState === "live") return Number.isFinite(expiresAt) && expiresAt > now;
+  }
   const timestamp = dropFreshnessTime(drop);
   if (!Number.isFinite(timestamp)) return false;
   if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
@@ -244,15 +261,21 @@ export async function GET(request: Request) {
   const tierFilter = parseTierFilter(url);
 
   try {
-    const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
+    const [[dropResult, statsResult], retailerSubmissions, bourbonBible] = await Promise.all([
       readSiteExportResults(["drops", "stats"]),
       publicRetailerSubmissions(),
+      getBourbonBible(),
     ]);
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
+    const bibleById = new Map(bourbonBible.map((bottle) => [bottle.id, bottle]));
+    const bibleByName = new Map(bourbonBible.map((bottle) => [normalizedDropText(bottle.canonicalName), bottle]));
     const retailerDrops = retailerSubmissions
-      .map((submission) => retailerSubmissionToDrop(submission))
+      .map((submission) => {
+        const bottle = (submission.bottleId ? bibleById.get(submission.bottleId) : undefined) || bibleByName.get(normalizedDropText(submission.title));
+        return retailerSubmissionToFeedCard(submission, new Date(), retailerTierForAvailability(bottle?.availability));
+      })
       .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
     const normalizedDrops = [...rawDrops, ...retailerDrops].map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
     let drops = [...normalizedDrops];
@@ -272,7 +295,7 @@ export async function GET(request: Request) {
       // Do not blank the customer feed solely because the aggregate engine timestamp
       // crossed 24 hours. Every row is still checked against its stricter type-specific
       // freshness window below, so recent inventory survives while expired rows fail closed.
-      filtered = filtered.filter((drop) => isUserFacingDropSignal(drop));
+      filtered = filtered.filter((drop) => isVerifiedRetailerDrop(drop as Record<string, unknown>) || isUserFacingDropSignal(drop));
       filtered = filtered.filter((drop) => {
         const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
         return !isBlockedWarehouseDrop(drop as Record<string, unknown>) && (!options.filterDegradedStates || !degradedStates.has(dropState));
@@ -349,7 +372,7 @@ export async function GET(request: Request) {
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
     const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
-    const snapshot = `${engineSnapshot}:retailer:${retailerSignalSnapshot(retailerSubmissions)}`;
+    const snapshot = `${engineSnapshot}:retailer:${retailerFeedSnapshot(retailerSubmissions)}`;
     const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 

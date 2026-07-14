@@ -53,6 +53,11 @@ export interface DropEvent {
   display_location?: string;
   locationName?: string;
   is_user_facing_drop?: boolean;
+  retailerReported?: boolean;
+  retailerSignalKind?: "drop" | "barrel_pick" | "tasting" | "lottery";
+  retailerSignalState?: "upcoming" | "live";
+  startsAt?: string;
+  expiresAt?: string;
   online_orderable_quantity?: number | null;
   online_in_stock_quantity?: number | null;
   online_stock_status?: string | null;
@@ -90,6 +95,11 @@ export interface GroupedDrop {
   locationPrecision?: string;
   canAlertAsInventory?: boolean;
   signalCategory?: string;
+  retailerReported?: boolean;
+  retailerSignalKind?: "drop" | "barrel_pick" | "tasting" | "lottery";
+  retailerSignalState?: "upcoming" | "live";
+  startsAt?: string;
+  expiresAt?: string;
   displayState?: string;
   producer?: string;
   source?: string;
@@ -445,6 +455,11 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         locationPrecision: event.location_precision,
         canAlertAsInventory: event.can_alert_as_inventory && hasExactStoreDetails(event),
         signalCategory: event.signal_category,
+        retailerReported: event.retailerReported,
+        retailerSignalKind: event.retailerSignalKind,
+        retailerSignalState: event.retailerSignalState,
+        startsAt: event.startsAt,
+        expiresAt: event.expiresAt,
         displayState: event.display_state || formatStateLabel(event.state || event.state_code),
         producer: event.producer,
         source: event.source,

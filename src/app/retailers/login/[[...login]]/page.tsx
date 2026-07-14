@@ -14,9 +14,10 @@ export default function RetailerLoginPage() {
       <section className={styles.card}>
         <a className={styles.eyebrow} href="/retailers">← Bourbon Signal for retailers</a>
         <h1>Retailer login</h1>
-        <p className={styles.lede}>Manage your store profile and submit updates for Bourbon Signal review.</p>
-        <div className={`${styles.panel} ${styles.authPanel}`}>
+        <p className={styles.lede}>Submit signals to Bourbon Signal and manage your store profile.</p>
+        <div className={styles.authPanel}>
           <SignIn
+            appearance={{ elements: { headerSubtitle: { marginTop: "12px" } } }}
             routing="path"
             path="/retailers/login"
             forceRedirectUrl={destination}

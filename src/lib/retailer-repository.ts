@@ -17,6 +17,11 @@ export interface RetailerApplicationRecord extends RetailerApplication {
   verificationContact?: string | null;
   notificationSentAt?: string;
   notificationMessageId?: string;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
+  decisionNotifiedStatus?: "verified" | "rejected";
+  decisionNotificationSentAt?: string;
+  decisionNotificationMessageId?: string;
 }
 
 export interface RetailerSubmissionRecord extends RetailerSubmission {
@@ -59,6 +64,11 @@ function applicationFromRow(row: Record<string, unknown>): RetailerApplicationRe
     verificationContact: asString(row.verification_contact) || null,
     notificationSentAt: row.notification_sent_at ? toIsoDate(row.notification_sent_at) : undefined,
     notificationMessageId: asString(row.notification_message_id) || undefined,
+    termsAcceptedAt: row.terms_accepted_at ? toIsoDate(row.terms_accepted_at) : undefined,
+    termsVersion: asString(row.terms_version) || undefined,
+    decisionNotifiedStatus: (asString(row.decision_notified_status) || undefined) as RetailerApplicationRecord["decisionNotifiedStatus"],
+    decisionNotificationSentAt: row.decision_notification_sent_at ? toIsoDate(row.decision_notification_sent_at) : undefined,
+    decisionNotificationMessageId: asString(row.decision_notification_message_id) || undefined,
   };
 }
 
@@ -114,12 +124,22 @@ export class RetailerRepository {
             verified_by TEXT,
             notification_sent_at TIMESTAMPTZ,
             notification_message_id TEXT,
+            terms_accepted_at TIMESTAMPTZ,
+            terms_version TEXT,
+            decision_notified_status TEXT CHECK (decision_notified_status IN ('verified', 'rejected')),
+            decision_notification_sent_at TIMESTAMPTZ,
+            decision_notification_message_id TEXT,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           )
         `);
         await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS notification_sent_at TIMESTAMPTZ`);
         await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS notification_message_id TEXT`);
+        await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ`);
+        await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS terms_version TEXT`);
+        await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS decision_notified_status TEXT`);
+        await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS decision_notification_sent_at TIMESTAMPTZ`);
+        await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS decision_notification_message_id TEXT`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_applications_status_idx ON retailer_applications (status, created_at DESC)`);
         await this.query.query(`
           CREATE TABLE IF NOT EXISTS retailer_submissions (
@@ -158,12 +178,13 @@ export class RetailerRepository {
     email: string;
     firstName?: string | null;
     application: RetailerApplication;
+    termsVersion?: string;
   }) {
     await this.ensureSchema();
     const rows = await this.query.query(`
       INSERT INTO retailer_applications (
-        user_id, account_email, first_name, store_name, store_address, website, listed_phone, applicant_role
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        user_id, account_email, first_name, store_name, store_address, website, listed_phone, applicant_role, terms_accepted_at, terms_version
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CASE WHEN $9::text <> '' THEN NOW() ELSE NULL END, NULLIF($9, ''))
       ON CONFLICT (user_id) DO UPDATE SET
         account_email = EXCLUDED.account_email,
         first_name = EXCLUDED.first_name,
@@ -172,9 +193,11 @@ export class RetailerRepository {
         website = CASE WHEN retailer_applications.status = 'pending' THEN EXCLUDED.website ELSE retailer_applications.website END,
         listed_phone = CASE WHEN retailer_applications.status = 'pending' THEN EXCLUDED.listed_phone ELSE retailer_applications.listed_phone END,
         applicant_role = CASE WHEN retailer_applications.status = 'pending' THEN EXCLUDED.applicant_role ELSE retailer_applications.applicant_role END,
+        terms_accepted_at = COALESCE(retailer_applications.terms_accepted_at, EXCLUDED.terms_accepted_at),
+        terms_version = COALESCE(retailer_applications.terms_version, EXCLUDED.terms_version),
         updated_at = NOW()
       RETURNING *
-    `, [input.userId, input.email, input.firstName || "", input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, input.application.applicantRole]);
+    `, [input.userId, input.email, input.firstName || "", input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, input.application.applicantRole, input.termsVersion || ""]);
     return applicationFromRow(rows[0] as Record<string, unknown>);
   }
 
@@ -203,6 +226,68 @@ export class RetailerRepository {
     return rows.map((row) => applicationFromRow(row as Record<string, unknown>));
   }
 
+  async updateApplicationProfile(input: { userId: string; application: RetailerApplication }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      UPDATE retailer_applications SET
+        status = CASE
+          WHEN status = 'verified' AND (
+            store_name IS DISTINCT FROM $2 OR
+            store_address IS DISTINCT FROM $3 OR
+            listed_phone IS DISTINCT FROM $5
+          ) THEN 'pending'
+          ELSE status
+        END,
+        verification_method = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE verification_method
+        END,
+        verification_contact = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE verification_contact
+        END,
+        verified_by = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE verified_by
+        END,
+        decision_notified_status = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE decision_notified_status
+        END,
+        decision_notification_sent_at = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE decision_notification_sent_at
+        END,
+        decision_notification_message_id = CASE
+          WHEN store_name IS DISTINCT FROM $2 OR store_address IS DISTINCT FROM $3 OR listed_phone IS DISTINCT FROM $5 THEN NULL
+          ELSE decision_notification_message_id
+        END,
+        store_name = $2,
+        store_address = $3,
+        website = $4,
+        listed_phone = $5,
+        applicant_role = $6,
+        updated_at = NOW()
+      WHERE user_id = $1
+      RETURNING *
+    `, [input.userId, input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, input.application.applicantRole]);
+    return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
+  async markDecisionNotificationSent(input: { userId: string; status: "verified" | "rejected"; messageId?: string | null }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      UPDATE retailer_applications
+      SET decision_notified_status = $2,
+          decision_notification_sent_at = NOW(),
+          decision_notification_message_id = $3,
+          updated_at = NOW()
+      WHERE user_id = $1 AND status = $2
+      RETURNING *
+    `, [input.userId, input.status, input.messageId || null]);
+    return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
   async updateApplicationStatus(input: {
     userId: string;
     status: Exclude<RetailerVerificationStatus, "not_started">;
@@ -217,6 +302,9 @@ export class RetailerRepository {
         verification_method = CASE WHEN $2 = 'verified' THEN $3 ELSE NULL END,
         verification_contact = CASE WHEN $2 = 'verified' THEN $4 ELSE NULL END,
         verified_by = $5,
+        decision_notified_status = NULL,
+        decision_notification_sent_at = NULL,
+        decision_notification_message_id = NULL,
         updated_at = NOW()
       WHERE user_id = $1
       RETURNING *
