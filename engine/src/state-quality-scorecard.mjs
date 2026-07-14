@@ -137,6 +137,8 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     const priorDrops = number(before.input?.dropCount ?? before.dropCount);
     const currentDrops = number(state.input?.dropCount ?? state.dropCount);
     const currentStatus = String(state.input?.status || '');
+    const preservedFallback = /quality_fallback/iu.test(currentStatus)
+      && currentDrops >= Math.floor(priorDrops * minDropRatio);
     const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
     const hardSourceFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness))
       || /stale|failed|degraded/iu.test(currentStatus);
@@ -148,14 +150,12 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     }
     if (before.releaseEligible === true && state.releaseEligible !== true) {
       const hardFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness));
-      if (hardFailure) failures.push(`${state.state}: changed from release eligible to blocked.`);
-      else warnings.push(`${state.state}: release score crossed below threshold without a hard source failure.`);
+      if (hardFailure && !preservedFallback) failures.push(`${state.state}: changed from release eligible to blocked.`);
+      else if (!preservedFallback) warnings.push(`${state.state}: release score crossed below threshold without a hard source failure.`);
     }
     const beforeDegraded = /stale|failed|degraded/iu.test(String(before.input?.status || ''));
-    const currentDegraded = /stale|failed|degraded/iu.test(String(state.input?.status || ''));
+    const currentDegraded = /stale|failed|degraded/iu.test(currentStatus);
     if (!beforeDegraded && currentDegraded) {
-      const preservedFallback = /quality_fallback/iu.test(String(state.input?.status || ''))
-        && currentDrops >= Math.floor(priorDrops * minDropRatio);
       if (preservedFallback) warnings.push(`${state.state}: preserved fallback is serving the last good rows while collection retries.`);
       else failures.push(`${state.state}: state status became degraded (${state.input?.status || 'unknown'}).`);
     }

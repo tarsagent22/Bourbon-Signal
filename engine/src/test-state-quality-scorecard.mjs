@@ -88,6 +88,13 @@ const hardEligibilityRegression = compareStateQuality(
 assert.equal(hardEligibilityRegression.ok, false);
 assert.ok(hardEligibilityRegression.failures.some((failure) => failure.includes('release eligible')));
 
+const preservedFallbackEligibility = compareStateQuality(
+  { states: [{ state: 'SC', score: 66, releaseEligible: true, input: { dropCount: 51, status: 'useful' } }] },
+  { states: [{ state: 'SC', score: 58, releaseEligible: false, weaknesses: ['degraded_state_status'], input: { dropCount: 51, status: 'stale_useful_quality_fallback' } }] },
+);
+assert.equal(preservedFallbackEligibility.ok, true, 'a labeled last-good fallback must not block a whole-site refresh when its public rows are preserved');
+assert.ok(preservedFallbackEligibility.warnings.some((warning) => warning.includes('preserved fallback')));
+
 const healthyLargeInventoryChurn = compareStateQuality(
   { states: [{ state: 'TX', score: 84, releaseEligible: true, input: { dropCount: 138, status: 'useful' } }] },
   { states: [{ state: 'TX', score: 78, releaseEligible: true, weaknesses: [], input: { dropCount: 67, status: 'useful' } }] },
