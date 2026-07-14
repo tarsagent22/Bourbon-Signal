@@ -124,7 +124,7 @@ export function buildStateQualityScorecard(inputs, { generatedAt = new Date().to
   };
 }
 
-export function compareStateQuality(previous, current, { maxScoreDrop = 15, minDropRatio = 0.5 } = {}) {
+export function compareStateQuality(previous, current, { maxScoreDrop = 15, minDropRatio = 0.5, severeDropRatio = 0.4 } = {}) {
   const failures = [];
   const warnings = [];
   const previousByState = new Map((previous?.states || []).map((state) => [state.state, state]));
@@ -136,11 +136,17 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     }
     const priorDrops = number(before.input?.dropCount ?? before.dropCount);
     const currentDrops = number(state.input?.dropCount ?? state.dropCount);
+    const currentStatus = String(state.input?.status || '');
+    const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
+    const hardSourceFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness))
+      || /stale|failed|degraded/iu.test(currentStatus);
     if (priorDrops >= 5 && currentDrops < Math.floor(priorDrops * minDropRatio)) {
-      failures.push(`${state.state}: public drops fell from ${priorDrops} to ${currentDrops}.`);
+      const dropRatio = priorDrops > 0 ? currentDrops / priorDrops : 0;
+      const message = `${state.state}: public drops fell from ${priorDrops} to ${currentDrops}.`;
+      if (dropRatio < severeDropRatio || hardSourceFailure) failures.push(message);
+      else warnings.push(`${message} Healthy source status preserved the fresh snapshot while the next run confirms inventory churn.`);
     }
     if (before.releaseEligible === true && state.releaseEligible !== true) {
-      const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
       const hardFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness));
       if (hardFailure) failures.push(`${state.state}: changed from release eligible to blocked.`);
       else warnings.push(`${state.state}: release score crossed below threshold without a hard source failure.`);

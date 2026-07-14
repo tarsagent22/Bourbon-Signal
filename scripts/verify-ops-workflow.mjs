@@ -56,6 +56,16 @@ if (!/BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == ''\s*\|\|\s*vars\.BOURBON_SIGNAL_A
 if (/guarded refresh dispatched/.test(engineWatchdogWorkflow)) {
   fail('Engine watchdog must not claim recovery was dispatched when the kill switch may have skipped that step.');
 }
+if (!/id:\s*recovery/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog recovery step must expose an outcome so notification escalation can distinguish recovery from failure.');
+}
+if (/Fail loudly after stale production snapshot/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must not mark a self-healing stale snapshot as a failed workflow run.');
+}
+if (!/steps\.recovery\.outcome == 'failure'/.test(engineWatchdogWorkflow)
+  || !/vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '0'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog should fail only when automatic recovery fails or is explicitly disabled.');
+}
 
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
 const customerStates = new Set(stateLifecycleConfig.activeStates || []);

@@ -88,4 +88,19 @@ const hardEligibilityRegression = compareStateQuality(
 assert.equal(hardEligibilityRegression.ok, false);
 assert.ok(hardEligibilityRegression.failures.some((failure) => failure.includes('release eligible')));
 
+const healthyLargeInventoryChurn = compareStateQuality(
+  { states: [{ state: 'TX', score: 84, releaseEligible: true, input: { dropCount: 138, status: 'useful' } }] },
+  { states: [{ state: 'TX', score: 78, releaseEligible: true, weaknesses: [], input: { dropCount: 67, status: 'useful' } }] },
+);
+assert.equal(healthyLargeInventoryChurn.ok, true, 'healthy inventory churn above the severe-collapse floor must not block the entire production refresh');
+assert.ok(healthyLargeInventoryChurn.warnings.some((warning) => warning.includes('public drops fell')));
+
+const severeInventoryCollapse = compareStateQuality(
+  { states: [{ state: 'TX', score: 84, releaseEligible: true, input: { dropCount: 138, status: 'useful' } }] },
+  { states: [{ state: 'TX', score: 70, releaseEligible: true, weaknesses: [], input: { dropCount: 30, status: 'useful' } }] },
+  { maxScoreDrop: 20 },
+);
+assert.equal(severeInventoryCollapse.ok, false);
+assert.ok(severeInventoryCollapse.failures.some((failure) => failure.includes('public drops fell')));
+
 console.log('State quality scorecard tests passed.');
