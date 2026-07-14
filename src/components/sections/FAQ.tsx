@@ -1,71 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fadeUpVariant, staggerContainer } from "@/lib/animations";
 import ScrollReveal from "@/components/ScrollReveal";
+import { getFaqItems, type FaqItem, type FaqVariant } from "@/lib/faq-content";
 
-interface FAQItem {
-  question: string;
-  answer: string;
-}
+function AccordionItem({ item, isOpen, onToggle }: { item: FaqItem; isOpen: boolean; onToggle: () => void }) {
+  const id = useId();
+  const triggerId = `faq-trigger-${id}`;
+  const panelId = `faq-panel-${id}`;
 
-const faqs: FAQItem[] = [
-  {
-    question: "Which states are covered right now?",
-    answer:
-      "Bourbon Signal currently tracks North Carolina, Virginia, Pennsylvania, Iowa, Idaho, Alabama, Illinois, Indiana, Tennessee, South Carolina, Kentucky, and Maryland starting with Montgomery County. Coverage quality varies by state: some markets have store-level inventory, some have official delivery or board-level leads, and some are broader release/watch signals. We add states only when the public data is strong enough to label honestly.",
-  },
-  {
-    question: "What can I do as a free member?",
-    answer:
-      "Free accounts get a real preview: limited Drop Feed rows, demo access to member tools, and 3 Bottle Checks. Saving alerts, Member Sightings, collection data, and personalized recommendations requires a paid membership.",
-  },
-  {
-    question: "How do alert areas work?",
-    answer:
-      "An alert area is a market you want watched — a state, ABC board, city, county, or supported store-level area depending on the data available in that state. Standard includes 5 specific areas. Barrel and Bottled in Bond remove the area limit.",
-  },
-  {
-    question: "Are Drop Feed signals guaranteed inventory?",
-    answer:
-      "No. Bourbon Signal surfaces fresh public signals and source-backed leads, but inventory can move quickly. Store-level signals are the most actionable; board or area-level signals should be treated as leads to verify before driving.",
-  },
-  {
-    question: "What is Bottle Check?",
-    answer:
-      "Bottle Check helps you quickly evaluate a bottle — rarity, MSRP context, whether it is worth chasing, and how it fits your bourbon preferences. Free accounts get 3 checks; paid members get unlimited checks.",
-  },
-  {
-    question: "How do My Collection and recommendations work?",
-    answer:
-      "My Collection is where you save bottles you own or have tasted. As you rate bottles, Bourbon Signal builds a simple Bourbon DNA profile and recommends bottles that better match your taste, proof range, and hunting priorities.",
-  },
-  {
-    question: "What is different about Bottled in Bond?",
-    answer:
-      "Bottled in Bond is the limited founder pass: one-time lifetime access to current and future paid Bourbon Signal features, plus founder-only perks like a profile badge, founder number, and numbered glass while the 100 founder spots are available.",
-  },
-];
-
-function AccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
   return (
-    <motion.div
-      variants={fadeUpVariant}
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-      }}
-    >
+    <motion.div variants={fadeUpVariant} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <button
+        id={triggerId}
+        type="button"
         onClick={onToggle}
         className="flex items-center justify-between w-full text-left"
-        style={{
-          padding: "20px 0",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          gap: "16px",
-        }}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        style={{ padding: "20px 0", background: "none", border: "none", cursor: "pointer", gap: "16px" }}
       >
         <span
           style={{
@@ -82,6 +37,7 @@ function AccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: bool
           className="shrink-0"
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
+          aria-hidden="true"
           style={{
             color: "var(--color-accent-amber)",
             fontSize: "22px",
@@ -99,8 +55,11 @@ function AccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: bool
       </button>
 
       <AnimatePresence>
-        {isOpen && (
+        {isOpen ? (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={triggerId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -120,14 +79,22 @@ function AccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: bool
               {item.answer}
             </p>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </motion.div>
   );
 }
 
-export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+export default function FAQ({
+  variant = "product",
+  founderSpotsRemaining = null,
+}: {
+  variant?: FaqVariant;
+  founderSpotsRemaining?: number | null;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const faqs = getFaqItems(variant, { founderSpotsRemaining });
+  const heading = variant === "pricing" ? "Membership Questions" : "Before You Hunt";
 
   return (
     <section
@@ -141,7 +108,7 @@ export default function FAQ() {
     >
       <div
         style={{
-          maxWidth: "680px",
+          maxWidth: "760px",
           margin: "0 auto",
           paddingLeft: "clamp(20px, 5vw, 48px)",
           paddingRight: "clamp(20px, 5vw, 48px)",
@@ -158,7 +125,7 @@ export default function FAQ() {
               marginBottom: "32px",
             }}
           >
-            Before You Hunt
+            {heading}
           </h2>
         </ScrollReveal>
 
@@ -167,16 +134,14 @@ export default function FAQ() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-          }}
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
         >
-          {faqs.map((faq, i) => (
+          {faqs.map((faq, index) => (
             <AccordionItem
-              key={i}
+              key={faq.question}
               item={faq}
-              isOpen={openIndex === i}
-              onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+              isOpen={openIndex === index}
+              onToggle={() => setOpenIndex(openIndex === index ? null : index)}
             />
           ))}
         </motion.div>

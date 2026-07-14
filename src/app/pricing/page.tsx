@@ -317,7 +317,7 @@ function PricingPageContent() {
           </div>
         </section>
 
-        <FAQ />
+        <FAQ variant="pricing" founderSpotsRemaining={founderSpots?.remaining ?? null} />
       </motion.main>
       <Footer />
     </>

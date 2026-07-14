@@ -80,7 +80,7 @@ export default function Home() {
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
         <HowWeHunt />
         <div style={{ height: 24, background: "var(--color-bg-primary)" }} />
-        <FAQ />
+        <FAQ variant="product" />
       </motion.main>
       <Footer />
       <ScrollToTopButton />
