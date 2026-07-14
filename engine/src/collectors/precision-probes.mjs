@@ -892,8 +892,11 @@ const TX_CITYHIVE_SOURCES = [
 const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|bardstown|holladay|single barrel|barrel pick|rare|allocated/i;
 
 const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
-const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 3);
-const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
+// One bourbon category page per selected merchant currently yields broad SC coverage while
+// avoiding the request amplification that caused blocked refreshes. Inventory cache reuse is
+// capped at six hours so positive Myrtle Beach rows remain inside the public freshness window.
+const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 1);
+const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_ALL_AMERICAN_BASE_URL = 'https://www.aalmauldin.com';
 const SC_ALL_AMERICAN_SOURCE_LABEL = 'All American Liquor Mauldin WooCommerce in-store availability';

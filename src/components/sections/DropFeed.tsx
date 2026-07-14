@@ -24,6 +24,7 @@ import { useStores, type Store } from "@/hooks/useStores";
 import { useStats } from "@/lib/useEngineData";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
+import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -316,7 +317,7 @@ function dropAreaFilterValues(drop: GroupedDrop) {
 function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
   const wanted = areaQueryFromFilter(filterValue);
   if (!wanted) return true;
-  return areaLabelsForDrop(drop).some((label) => locationLabelsMatch(label, wanted));
+  return areaLabelsForDrop(drop).some((label) => coveredAreaLabelsMatch(label, wanted));
 }
 
 function ncStoreAreaKind(store: Store): "store" | "board" | "store-group" | null {
@@ -1572,7 +1573,10 @@ export default function DropFeed() {
     if (dropState === "OH" && areaPrefs.ohCities.length > 0) return matchesAnyLocationPreference(areaPrefs.ohCities);
     if (dropState === "IA" && areaPrefs.iaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.iaCities);
     if (dropState === "ID" && areaPrefs.idCities.length > 0) return matchesAnyLocationPreference(areaPrefs.idCities);
-    if (dropState === "SC" && areaPrefs.scAreas.length > 0) return matchesAnyLocationPreference(areaPrefs.scAreas);
+    if (dropState === "SC" && areaPrefs.scAreas.length > 0) {
+      const labels = areaLabelsForDrop(drop);
+      return areaPrefs.scAreas.some((area) => labels.some((label) => coveredAreaLabelsMatch(label, area)));
+    }
 
     // PA city/store filter
     if (dropState === "PA" && areaPrefs.paCounties.length > 0) return matchesAnyLocationPreference(areaPrefs.paCounties);
@@ -1620,6 +1624,10 @@ export default function DropFeed() {
         rank,
       });
     };
+
+    if (selectedState) {
+      for (const area of getCoveredAreaOptionsForState(selectedState)) addOption(selectedState, area, true, null);
+    }
 
     for (const store of stores) {
       const state = String(store.state || "").toUpperCase();

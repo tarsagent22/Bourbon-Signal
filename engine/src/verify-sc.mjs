@@ -37,6 +37,21 @@ const fresh = alertable.filter((row) => {
 const sources = unique(alertable.map((row) => row.sourceLabel || row.source)).sort();
 const stores = unique(alertable.map((row) => `${row.storeName || row.locationName || row.storeId}|${row.storeAddress || ''}`));
 const cities = unique(alertable.map((row) => norm(row.city))).sort();
+const myrtleInventory = stateSignals.filter((row) =>
+  inventoryTypes.has(row.eventType || row.type || '')
+  && row.canAlertAsInventory
+  && Number(row.quantity || 0) > 0
+  && row.locationPrecision === 'store_level'
+  && norm(row.city) === 'myrtle beach'
+);
+const myrtleStores = unique(myrtleInventory.map((row) => `${row.storeName || row.locationName || row.storeId}|${row.storeAddress || ''}`));
+const myrtleSources = unique(myrtleInventory.map((row) => row.sourceLabel || row.source));
+const myrtleFresh = myrtleInventory.filter((row) => {
+  const observed = asTime(row.observedAt || row.lastConfirmedAt || row.firstSeenAt);
+  return observed && Date.now() - observed <= 36 * 60 * 60 * 1000;
+});
+const exportedMyrtleDrops = exportedDrops.filter((row) => norm(row.city || row.store_city) === 'myrtle beach');
+const exportedMyrtleStores = unique(exportedMyrtleDrops.map((row) => `${row.storeName || row.store_name || row.locationName || row.storeId}|${row.storeAddress || row.store_address || ''}`));
 
 if (alertable.length < 60) throw new Error(`SC alertable inventory rows below 90+ threshold: ${alertable.length}`);
 if (fresh.length < 55) throw new Error(`SC fresh inventory rows below threshold: ${fresh.length}`);
@@ -46,6 +61,13 @@ if (cities.length < 10) throw new Error(`SC positive inventory city coverage too
 if (!sources.some((source) => /Green's Beverage/i.test(source))) throw new Error('Missing Green\'s Beverage SC CityHive inventory rows');
 if (!sources.some((source) => /Wine & Bourbon Barn/i.test(source))) throw new Error('Missing Wine & Bourbon Barn CityHive inventory rows');
 if (!sources.some((source) => /Da Brown Bag|Clover/i.test(source))) throw new Error('Missing Da Brown Bag Clover inventory rows');
+if (myrtleInventory.length < 10) throw new Error(`Myrtle Beach inventory rows below threshold: ${myrtleInventory.length}`);
+if (myrtleFresh.length < 10) throw new Error(`Myrtle Beach fresh inventory rows below threshold: ${myrtleFresh.length}`);
+if (myrtleStores.length < 2) throw new Error(`Myrtle Beach inventory store coverage too low: ${myrtleStores.length}`);
+if (!myrtleSources.some((source) => /Green's Beverage/i.test(source))) throw new Error('Missing Green\'s Beverage Myrtle Beach inventory rows');
+if (!myrtleSources.some((source) => /Beach Discount Beverages/i.test(source))) throw new Error('Missing Beach Discount Beverages Myrtle Beach inventory rows');
+if (exportedMyrtleDrops.length < 5) throw new Error(`Myrtle Beach exported drops below threshold: ${exportedMyrtleDrops.length}`);
+if (exportedMyrtleStores.length < 2) throw new Error(`Myrtle Beach exported store coverage too low: ${exportedMyrtleStores.length}`);
 
 const nonScAddress = alertable.find((row) => !/,\s*SC\s+\d{5}/i.test(String(row.storeAddress || '')));
 if (nonScAddress) throw new Error(`SC inventory row has non-SC/missing address: ${nonScAddress.sourceLabel || nonScAddress.source} ${nonScAddress.storeAddress || '(missing)'}`);

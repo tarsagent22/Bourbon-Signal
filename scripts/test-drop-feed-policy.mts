@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
+import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "../src/lib/feed-area-options.ts";
 
 assert.equal(resolveDropLimit("40", false, 7), 40);
 assert.equal(resolveDropLimit("200", false, 7), 200, "paid watchlist requests must remain compatible");
@@ -20,5 +22,14 @@ assert.equal(dropFreshnessTime({
   timestamp: firstSeen,
   last_confirmed_at: lastConfirmed,
 }), Date.parse(firstSeen), "context events stay anchored to their public event timestamp");
+
+assert.deepEqual(getCoveredAreaOptionsForState(null), [], "all-state feed should not preload every configured area");
+assert.ok(getCoveredAreaOptionsForState("SC").includes("Myrtle Beach"), "South Carolina feed must keep Myrtle Beach selectable even between signal refreshes");
+assert.equal(coveredAreaLabelsMatch("Myrtle Beach", "Myrtle Beach"), true);
+assert.equal(coveredAreaLabelsMatch("North Myrtle Beach", "Myrtle Beach"), false, "Myrtle Beach must not absorb North Myrtle Beach");
+assert.equal(coveredAreaLabelsMatch("North Charleston", "Charleston"), false, "Charleston must not absorb North Charleston");
+assert.equal(coveredAreaLabelsMatch("Mecklenburg ABC Board", "Mecklenburg"), true, "board suffix normalization must remain supported");
+const dropFeedSource = readFileSync(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8");
+assert.match(dropFeedSource, /getCoveredAreaOptionsForState\(selectedState\)/, "DropFeed must merge configured covered areas for the selected state");
 
 console.log("Drop feed policy tests passed.");
