@@ -34,6 +34,9 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(workflow, /engine\/out\/snapshots/);
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
+  const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
+  assert.match(runner, /degraded_previous_report_retry/);
+  assert.match(runner, /previousReport\.stale === true/);
   const verifier = await readFile(new URL('../src/verify-site-contract.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(verifier, /should not include TX|contains TX customer-facing|contains TX in states array/);
   const blobReader = await readFile(new URL('../../src/lib/vercel-blob-snapshot-storage.ts', import.meta.url), 'utf8');

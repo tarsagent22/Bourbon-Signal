@@ -535,9 +535,15 @@ async function main() {
     }
   }
   for (const entry of schedule) {
-    if (!entry.run && stateControls.get(entry.id)?.collect && !(await readJson(path.join(STATES_OUT, `${entry.id}.json`), null))) {
-      entry.run = true;
-      entry.decision = 'missing_previous_report';
+    if (!entry.run && stateControls.get(entry.id)?.collect) {
+      const previousReport = await readJson(path.join(STATES_OUT, `${entry.id}.json`), null);
+      if (!previousReport) {
+        entry.run = true;
+        entry.decision = 'missing_previous_report';
+      } else if (previousReport.stale === true || /^(?:stale_|failed_)/u.test(String(previousReport.status || ''))) {
+        entry.run = true;
+        entry.decision = 'degraded_previous_report_retry';
+      }
     }
   }
   const runnable = schedule.filter((entry) => entry.run).map((entry) => entry.config);
