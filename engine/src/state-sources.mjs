@@ -422,14 +422,16 @@ const BASE_STATE_SOURCES = [
       { name: 'MDP Liquor Kissimmee Shopify inventory', label: 'MDP Liquor Kissimmee Shopify inventory', url: 'https://mdpliquorfl.com/products.json?limit=250&page=1', precisionOnly: true },
       { name: 'Target Florida RedSky fulfillment', label: 'Target Florida RedSky fulfillment', url: 'https://www.target.com/sl/orlando-millenia/1518', precisionOnly: true },
       { name: 'ABC Fine Wine & Spirits public bourbon search', label: 'ABC Fine Wine & Spirits public bourbon search', url: 'https://abcfws.com/spirits/shop-by-type/bourbon/', precisionOnly: true },
-      { name: 'Luekens Wine & Spirits Shopify and location inventory', label: 'Luekens Wine & Spirits Shopify and location inventory', url: 'https://www.luekensliquors.com/collections/bourbon', precisionOnly: true },
+      { name: 'Luekens Wine & Spirits Shopify store pickup inventory', label: 'Luekens Wine & Spirits Shopify store pickup inventory', url: 'https://www.luekensliquors.com/collections/bourbon', precisionOnly: true },
       { name: "Jensen's Liquors Shopify pickup inventory", label: "Jensen's Liquors Shopify pickup inventory", url: 'https://jensensliquors.com/collections/american-bourbons', precisionOnly: true },
       { name: 'Total Wine Florida store inventory discovery', label: 'Total Wine Florida store inventory discovery', url: 'https://www.totalwine.com/store-finder/browse/FL', precisionOnly: true },
       { name: '1001 Liquors / My Florida Liquors bourbon catalog', label: '1001 Liquors / My Florida Liquors bourbon catalog', url: 'https://myfloridaliquors.com/shop/?subtype=Bourbon' },
       { name: 'Florida Plaza Liquors bourbon catalog', label: 'Florida Plaza Liquors bourbon catalog', url: 'https://www.floridaplazaliquors.com/s-11422/c-2/buy-liquor/t-11/buy-bourbon-whiskey' },
-      { name: 'Liquor Depot Tampa private barrel picks', label: 'Liquor Depot Tampa private barrel picks', url: 'https://www.liquordepottampa.com/shop-picks' },
+      { name: 'Liquor Depot Tampa online quantity watch', label: 'Liquor Depot Tampa online quantity watch', url: 'https://www.liquordepottampa.com/shop-picks', precisionOnly: true },
       { name: 'Paradise / Fubar Liquors Florida catalog', label: 'Paradise / Fubar Liquors Florida catalog', url: 'https://shopparadiseliquor.com/shop/?subtype=Bourbon' },
-      { name: "Gaspar's Liquor Shoppe bourbon catalog", label: "Gaspar's Liquor Shoppe bourbon catalog", url: 'https://www.gasparsliquorshoppe.com/bourbon/' }
+      { name: 'Balm Liquor Riverview CityHive store inventory', label: 'Balm Liquor Riverview CityHive store inventory', url: 'https://balmliquor.com/shop/?subtype=Bourbon', precisionOnly: true },
+      { name: 'Sunshine Food & Spirits Clearwater CityHive store inventory', label: 'Sunshine Food & Spirits Clearwater CityHive store inventory', url: 'https://sunshineliquorsclearwater.com/shop/?subtype=Bourbon', precisionOnly: true },
+      { name: "Gaspar's Liquor Shoppe Lightspeed store inventory", label: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: 'https://www.gasparsliquorshoppe.com/bourbon/', precisionOnly: true }
     ],
     apiCandidates: []
   }

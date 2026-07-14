@@ -111,8 +111,8 @@ test('Florida registry includes the second-wave retailer discovery sources', () 
   for (const expected of [
     '1001 Liquors / My Florida Liquors bourbon catalog',
     'Florida Plaza Liquors bourbon catalog',
-    'Liquor Depot Tampa private barrel picks',
+    'Liquor Depot Tampa online quantity watch',
     'Paradise / Fubar Liquors Florida catalog',
-    "Gaspar's Liquor Shoppe bourbon catalog",
+    "Gaspar's Liquor Shoppe Lightspeed store inventory",
   ]) assert.ok(labels.includes(expected), `Missing Florida source: ${expected}`);
 });

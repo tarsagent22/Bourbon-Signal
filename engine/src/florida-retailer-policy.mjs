@@ -1,8 +1,21 @@
-const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376']);
+import { FLORIDA_LUEKENS_STORES, FLORIDA_TAMPA_TARGET_STORE_IDS } from './collectors/florida-tampa-surfaces.mjs';
+
+const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376', ...FLORIDA_TAMPA_TARGET_STORE_IDS]);
 
 const FLORIDA_CITYHIVE_IDENTITIES = new Map([
   ['1001 Liquors / My Florida Liquors CityHive store inventory', { chain: 'my-florida-liquors', hostname: 'myfloridaliquors.com' }],
   ['Paradise / Fubar Liquors Florida CityHive store inventory', { chain: 'paradise-fubar-liquors', hostname: 'shopparadiseliquor.com' }],
+  ['Balm Liquor Riverview CityHive store inventory', { chain: 'balm-liquor', hostname: 'balmliquor.com' }],
+  ['Sunshine Food & Spirits Clearwater CityHive store inventory', { chain: 'sunshine-food-spirits', hostname: 'sunshineliquorsclearwater.com' }],
+]);
+
+const FLORIDA_WATCH_IDENTITIES = new Map([
+  ['Liquor Depot Tampa online quantity watch', {
+    chain: 'liquor-depot-tampa',
+    hostname: 'liquordepottampa.com',
+    merchant: 'squarespace:63cf346e2314cb29f072d816',
+    locationPrecision: 'store_aggregate',
+  }],
 ]);
 
 const FLORIDA_RETAILER_IDENTITIES = new Map([
@@ -17,6 +30,18 @@ const FLORIDA_RETAILER_IDENTITIES = new Map([
     hostname: 'jensensliquors.com',
     merchants: new Set(['jensens-miami-shopify']),
     stores: new Set(['jensens-liquors:1646-sw-27th']),
+  }],
+  ['Luekens Wine & Spirits Shopify store pickup inventory', {
+    chain: 'luekens',
+    hostname: 'luekensliquors.com',
+    merchants: new Set(['luekens-shopify']),
+    stores: new Set(FLORIDA_LUEKENS_STORES.map((store) => store.id)),
+  }],
+  ["Gaspar's Liquor Shoppe Lightspeed store inventory", {
+    chain: 'gaspars-liquor-shoppe',
+    hostname: 'gasparsliquorshoppe.com',
+    merchants: new Set(['lightspeed:640576']),
+    stores: new Set(['gaspars-liquor-shoppe:tampa-56th']),
   }],
 ]);
 
@@ -33,6 +58,16 @@ export function isFloridaRetailerSignalIdentity(signal) {
       && sourceHostname === 'target.com'
       && TARGET_FLORIDA_STORE_IDS.has(merchantId)
       && storeId === `target:${merchantId}`;
+  }
+
+  const watchIdentity = FLORIDA_WATCH_IDENTITIES.get(source);
+  if (watchIdentity) {
+    return chain === watchIdentity.chain
+      && sourceHostname === watchIdentity.hostname
+      && merchantId === watchIdentity.merchant
+      && signal.locationPrecision === watchIdentity.locationPrecision
+      && signal.canAlertAsInventory !== true
+      && !storeId;
   }
 
   const cityHiveIdentity = FLORIDA_CITYHIVE_IDENTITIES.get(source);

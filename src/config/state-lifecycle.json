@@ -183,11 +183,32 @@
     "FL": {
       "customerLabel": "Florida",
       "sourceLabel": "Florida retailer inventory watch",
+      "customerAreaLabel": "Florida retailer areas",
+      "areaOptions": [
+        "Tampa",
+        "Clearwater",
+        "Largo",
+        "Saint Petersburg",
+        "Pinellas Park",
+        "Brandon",
+        "Riverview",
+        "Wesley Chapel",
+        "Lutz",
+        "Dunedin",
+        "Oldsmar",
+        "Palm Harbor",
+        "Seminole",
+        "Tarpon Springs",
+        "Orlando",
+        "Kissimmee",
+        "Miami",
+        "Pensacola"
+      ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city_store",
-      "customerSummary": "Whitelisted Florida retailer storefront and store-fulfillment signals, with store-specific identity and verify-before-driving caveats. Costco warehouse observations remain included where verified."
+      "customerSummary": "Guarded first-party Florida retailer inventory with expanded Tampa Bay store coverage, exact store identity, and verify-before-driving caveats."
     },
     "TX": {
       "customerLabel": "Texas",

@@ -7,6 +7,15 @@ import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import {
+  FLORIDA_TAMPA_TARGET_STORES,
+  parseLightspeedCatalogEntries,
+  parseLightspeedProductInventory,
+  parseLuekensPickupAvailability,
+  parseSquarespaceInventoryItems,
+  isUsefulBourbonSize,
+  isAllowedHttpsHost,
+} from './florida-tampa-surfaces.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -805,8 +814,8 @@ const FL_MDP_MAX_PAGES = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGN
 const FL_MDP_DELAY_MS = Math.max(300, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_MDP_DELAY_MS) || 600));
 const FL_SHOPIFY_RETAILERS = [
   {
-    id: 'luekens', chain: 'luekens', label: 'Luekens Wine & Spirits Shopify inventory', host: 'www.luekensliquors.com',
-    productsUrl: 'https://www.luekensliquors.com/products.json?limit=250', maxPages: 3, store: null
+    id: 'luekens', chain: 'luekens', label: 'Luekens Wine & Spirits Shopify store pickup inventory', host: 'www.luekensliquors.com',
+    productsUrl: 'https://www.luekensliquors.com/products.json?limit=250', maxPages: 3, pickupStores: true
   },
   {
     id: 'jensens-miami', chain: 'jensens-liquors', label: "Jensen's Liquors Miami Shopify pickup inventory", host: 'jensensliquors.com',
@@ -821,15 +830,24 @@ const FL_TARGET_STORES = new Map([
   ['650', { name: 'Target Orlando Sand Lake Rd', address: '880 Sand Lake Rd, Orlando, FL 32809', city: 'Orlando', zip: '32809' }],
   ['1518', { name: 'Target Orlando Millenia', address: '4750 Millenia Plaza Way, Orlando, FL 32839', city: 'Orlando', zip: '32839' }],
   ['1760', { name: 'Target Waterford Lakes', address: '325 N Alafaya Trl, Orlando, FL 32828', city: 'Orlando', zip: '32828' }],
-  ['2376', { name: 'Target Orlando Sodo', address: '120 W Grant St, Orlando, FL 32806', city: 'Orlando', zip: '32806' }]
+  ['2376', { name: 'Target Orlando Sodo', address: '120 W Grant St, Orlando, FL 32806', city: 'Orlando', zip: '32806' }],
+  ...FLORIDA_TAMPA_TARGET_STORES,
 ]);
-const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 2));
+const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 4));
+const FL_TARGET_ROTATION_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_TARGET_ROTATION_MS) || 6 * 60 * 60_000);
 const FL_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_PAGES) || 1));
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
 const FL_CITYHIVE_SOURCES = [
   { id: 'my-florida-liquors', chainName: '1001 Liquors / My Florida Liquors', sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory', baseUrl: 'https://myfloridaliquors.com', urls: ['https://myfloridaliquors.com/shop/?subtype=Bourbon'] },
   { id: 'paradise-fubar-liquors', chainName: 'Paradise / Fubar Liquors', sourceLabel: 'Paradise / Fubar Liquors Florida CityHive store inventory', baseUrl: 'https://shopparadiseliquor.com', urls: ['https://shopparadiseliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'balm-liquor', chainName: 'Balm Liquor Riverview', sourceLabel: 'Balm Liquor Riverview CityHive store inventory', baseUrl: 'https://balmliquor.com', urls: ['https://balmliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'sunshine-food-spirits', chainName: 'Sunshine Food & Spirits Clearwater', sourceLabel: 'Sunshine Food & Spirits Clearwater CityHive store inventory', baseUrl: 'https://sunshineliquorsclearwater.com', urls: ['https://sunshineliquorsclearwater.com/shop/?subtype=Bourbon'] },
 ];
+const FL_GASPARS_BOURBON_URL = 'https://www.gasparsliquorshoppe.com/bourbon/';
+const FL_GASPARS_MAX_PAGES = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_MAX_PAGES) || 40));
+const FL_GASPARS_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_DELAY_MS) || 500));
+const FL_GASPARS_STORE = { id: 'gaspars-liquor-shoppe:tampa-56th', name: "Gaspar's Liquor Shoppe", address: '8448 N 56th St, Tampa, FL 33617', city: 'Tampa', zip: '33617' };
+const FL_LIQUOR_DEPOT_URL = 'https://www.liquordepottampa.com/shop-picks';
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_INVENTORY_CACHE_PATH = 'out/cache/tx-cityhive-inventory.json';
@@ -1118,7 +1136,7 @@ async function textFetch(url, options = {}) {
   const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
   try {
     const res = await fetch(url, {
-      redirect: 'follow',
+      redirect: options.redirect || 'follow',
       headers: { 'user-agent': 'Mozilla/5.0 (BourbonSignal research)', accept: 'text/html,application/json,text/csv,*/*', ...(options.headers || {}) },
       method: options.method || 'GET',
       body: options.body,
@@ -3485,13 +3503,12 @@ async function collectFloridaMdp(config, bible, observedAt) {
     for (const product of products) {
       const rawName = htmlToText(product?.title || '');
       if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s|old fitz|michter'?s|four roses/i.test(rawName)) continue;
-      const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
-      const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
-      if (sizeMl != null && sizeMl < 375) continue;
+      if (!isUsefulBourbonSize(rawName)) continue;
       const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record) continue;
       for (const variant of product?.variants || []) {
         if (variant?.available !== true || seenVariants.has(String(variant.id))) continue;
+        if (!isUsefulBourbonSize([variant?.title, variant?.option1, variant?.option2, variant?.option3].filter(Boolean).join(' '))) continue;
         seenVariants.add(String(variant.id));
         const price = Number(variant?.price || 0) || null;
         signals.push({
@@ -3521,9 +3538,8 @@ async function collectFloridaTarget(config, bible, observedAt) {
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
   const storeEntries = [...FL_TARGET_STORES.entries()];
-  const cohortCount = Math.ceil(storeEntries.length / FL_TARGET_COHORT_SIZE);
-  const cohortIndex = Math.floor(Date.now() / 86_400_000) % cohortCount;
-  const cohort = storeEntries.slice(cohortIndex * FL_TARGET_COHORT_SIZE, (cohortIndex + 1) * FL_TARGET_COHORT_SIZE);
+  const cohort = rotatingSourceCohort(storeEntries, observedAt, FL_TARGET_COHORT_SIZE, FL_TARGET_ROTATION_MS);
+  const cohortIndex = Math.floor(new Date(observedAt).getTime() / FL_TARGET_ROTATION_MS);
   const [seedStoreId] = cohort[0] || storeEntries[0];
   const searchParams = new URLSearchParams({ key: FL_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: seedStoreId, store_ids: seedStoreId, visitor_id: visitorId });
   const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
@@ -3603,13 +3619,38 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt) {
       productCount += products.length;
       for (const product of products) {
         const rawName = htmlToText(product?.title || '');
+        if (!isUsefulBourbonSize(rawName)) continue;
         if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s|old fitz|michter|willett|1792|elijah craig/i.test(rawName)) continue;
         const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
         if (!record) continue;
-        const variant = (product.variants || []).find((row) => row?.available === true);
+        const variant = (product.variants || []).find((row) => row?.available === true && isUsefulBourbonSize([row?.title, row?.option1, row?.option2, row?.option3].filter(Boolean).join(' ')));
         if (!variant) continue;
         const sourceUrl = `https://${retailer.host}/products/${product.handle}`;
         const price = Number(variant.price || 0) || null;
+        if (retailer.pickupStores) {
+          const pickupUrl = `https://${retailer.host}/variants/${variant.id}/?section_id=pickup-availability`;
+          const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+          if (!pickup.ok) {
+            roadblocks.push({ state: 'FL', source: retailer.label, url: pickupUrl, status: pickup.status || 0, error: pickup.error || `HTTP ${pickup.status}`, nextRoute: 'Retry the public Shopify pickup-availability section at low cadence.' });
+            continue;
+          }
+          for (const store of parseLuekensPickupAvailability(pickup.text)) {
+            signals.push({
+              id: stableId(['FL', retailer.id, store.id, variant.id]), state: 'FL', sourceLabel: retailer.label, sourceUrl,
+              sourceChain: retailer.chain, merchantId: 'luekens-shopify', rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+              confidence: Math.max(0.82, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+              locationName: store.name, storeName: store.name, storeId: store.id, storeAddress: store.address,
+              city: store.city, stateCode: 'FL', postalCode: store.zip, zip: store.zip,
+              quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Shopify reports pickup available', sourceAvailabilityVerified: true,
+              observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
+              inventorySemantics: 'Luekens public Shopify pickup response reports this bottle available at the named store. Exact on-hand quantity is not published; verify before driving.',
+              evidence: `${retailer.label} reports pickup available for ${rawName} at ${store.address}.`,
+              raw: { chain: retailer.chain, merchantId: 'luekens-shopify', productId: product.id, variant: { id: variant.id, sku: variant.sku, available: true }, pickupVerified: true, pickupAddress: store.observedAddress }
+            });
+          }
+          await sleep(500);
+          continue;
+        }
         if (!retailer.store) {
           signals.push(floridaRetailerWatch(config, record, match, { label: retailer.label, url: sourceUrl, chain: retailer.chain, merchantId: `${retailer.id}-shopify`, retailer: 'Luekens Wine & Spirits', rawName, price, variantId: variant.id, sku: variant.sku, observedAt }));
           continue;
@@ -3714,15 +3755,18 @@ async function collectFloridaCityHive(config, bible, observedAt) {
               if (!merchantId || seenProductOptions.has(key)) continue;
               const fullAddress = String(option.full_address || '');
               if (!/,\s*FL\s+\d{5}/i.test(fullAddress)) continue;
+              const sizeQuantity = Number(option.option_params?.size?.quantity || 0) || 0;
+              const sizeMeasure = String(option.option_params?.size?.measure || '').toLowerCase();
+              const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
+              if (sizeMl != null && sizeMl <= 375) continue;
               const rawName = option.option_display_data?.name || product.name;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
-              const reportedQuantity = Number(option.quantity || 0) || 0;
+              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
               if (reportedQuantity <= 0) continue;
               seenProductOptions.add(key);
               const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress.match(/\bFL\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
-              const quantity = 0;
               signals.push({
                 id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, option.option_id, reportedQuantity, option.price]), state: config.id,
                 sourceLabel: source.sourceLabel, sourceUrl: new URL(option.product_url || url, source.baseUrl).href, sourceChain: source.id, merchantId,
@@ -3731,9 +3775,9 @@ async function collectFloridaCityHive(config, bible, observedAt) {
                 locationName: option.merchant_name || source.chainName, storeName: option.merchant_name || source.chainName,
                 storeId: `${source.id}:${merchantId}`, storeAddress: fullAddress, city, stateCode: 'FL', postalCode: zip, zip,
                 lat: Number(option.coordinates?.[1]) || null, lng: Number(option.coordinates?.[0]) || null,
-                quantity, price: Number(option.price || 0) || null, availabilityStatus: 'in_stock', availabilityLabel: quantity > 0 ? `Retailer reports ${quantity} available` : 'Retailer reports available',
+                quantity, price: Number(option.price || 0) || null, availabilityStatus: 'in_stock', availabilityLabel: binaryAvailability ? 'Retailer reports available' : `Retailer reports ${quantity} available`,
                 sourceAvailabilityVerified: true, observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
-                inventorySemantics: reportedQuantity === 100 ? `${source.chainName} CityHive uses 100 as an availability sentinel; this is binary orderability, not exact shelf quantity.` : `${source.chainName} CityHive publishes positive store-level product-option quantity and price. Verify directly before driving.`,
+                inventorySemantics: reportedQuantity >= 100 ? `${source.chainName} CityHive uses a high quantity sentinel as binary availability; this is orderability, not exact shelf quantity.` : `${source.chainName} CityHive publishes positive store-level product-option quantity and price. Verify directly before driving.`,
                 evidence: `${source.chainName} CityHive reports ${rawName} available at ${option.merchant_name || source.chainName}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
                 raw: { chain: source.id, merchantId, sourceAvailabilityVerified: true, reportedQuantity, product: { id: product.id, name: product.name }, option, matchGuard: unsafeReason }
               });
@@ -3747,6 +3791,86 @@ async function collectFloridaCityHive(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+async function collectFloridaGaspars(config, bible, observedAt) {
+  const signals = [];
+  const roadblocks = [];
+  const seenProducts = new Set();
+  let catalogRows = 0;
+  for (let page = 1; page <= FL_GASPARS_MAX_PAGES; page += 1) {
+    const url = page === 1 ? FL_GASPARS_BOURBON_URL : `${FL_GASPARS_BOURBON_URL}page${page}.html`;
+    const res = await textFetch(url, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+    if (!res.ok) {
+      if (page === 1) roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Lightspeed bourbon catalog at low cadence.' });
+      break;
+    }
+    const entries = parseLightspeedCatalogEntries(res.text);
+    if (!entries.length) break;
+    catalogRows += entries.length;
+    for (const entry of entries) {
+      if (seenProducts.has(entry.jsonUrl)) continue;
+      seenProducts.add(entry.jsonUrl);
+      const initial = cityHiveSafeBottleMatch(entry.title, bible);
+      if (!initial.record) continue;
+      if (!isAllowedHttpsHost(entry.jsonUrl, 'gasparsliquorshoppe.com')) {
+        roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: FL_GASPARS_BOURBON_URL, status: 'rejected_off_domain_product_url', error: `Rejected product JSON outside the first-party Gaspar's hostname.`, nextRoute: 'Inspect the first-party catalog markup without following the off-domain URL.' });
+        continue;
+      }
+      const detail = await textFetch(entry.jsonUrl, { redirect: 'manual', headers: { accept: 'application/json,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      if (!detail.ok || !isAllowedHttpsHost(detail.url, 'gasparsliquorshoppe.com')) {
+        roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: entry.jsonUrl, status: detail.status || 0, error: detail.error || `HTTP ${detail.status}`, nextRoute: 'Retry the public product JSON at low cadence.' });
+        continue;
+      }
+      let inventory = null;
+      try { inventory = parseLightspeedProductInventory(JSON.parse(detail.text)); } catch {}
+      if (!inventory || !isUsefulBourbonSize(inventory.rawName)) continue;
+      const { match, record } = cityHiveSafeBottleMatch(inventory.rawName || entry.title, bible);
+      if (!record) continue;
+      const sourceUrl = new URL(inventory.path || entry.jsonUrl.replace(/\?format=json$/i, ''), FL_GASPARS_BOURBON_URL).href;
+      signals.push({
+        id: stableId(['FL', 'gaspars-lightspeed', FL_GASPARS_STORE.id, inventory.productId]), state: 'FL',
+        sourceLabel: "Gaspar's Liquor Shoppe Lightspeed store inventory", sourceUrl, sourceChain: 'gaspars-liquor-shoppe', merchantId: 'lightspeed:640576',
+        rawName: inventory.rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+        confidence: Math.max(0.84, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+        locationName: FL_GASPARS_STORE.name, storeName: FL_GASPARS_STORE.name, storeId: FL_GASPARS_STORE.id,
+        storeAddress: FL_GASPARS_STORE.address, city: FL_GASPARS_STORE.city, stateCode: 'FL', postalCode: FL_GASPARS_STORE.zip, zip: FL_GASPARS_STORE.zip,
+        quantity: inventory.quantity, price: inventory.price, availabilityStatus: 'in_stock', availabilityLabel: `Retailer reports ${inventory.quantity} in stock`,
+        sourceAvailabilityVerified: true, observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
+        inventorySemantics: 'Gaspar\'s public Lightspeed product JSON publishes an exact positive stock level for its single Tampa storefront. Verify before driving.',
+        evidence: `Gaspar's Lightspeed storefront reports ${inventory.rawName} with ${inventory.quantity} in stock${inventory.price ? ` at $${inventory.price.toFixed(2)}` : ''}.`,
+        raw: { chain: 'gaspars-liquor-shoppe', merchantId: 'lightspeed:640576', productId: inventory.productId, sku: inventory.sku, reportedQuantity: inventory.quantity }
+      });
+      await sleep(350);
+    }
+    await sleep(FL_GASPARS_DELAY_MS);
+  }
+  if (!catalogRows) roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: FL_GASPARS_BOURBON_URL, status: 'reachable_no_products', error: 'No Lightspeed bourbon product cards were parsed.', nextRoute: 'Inspect the public category response shape without weakening identity guards.' });
+  return { signals, roadblocks };
+}
+
+async function collectFloridaLiquorDepot(config, bible, observedAt) {
+  const res = await textFetch(FL_LIQUOR_DEPOT_URL, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  if (!res.ok) return { signals: [], roadblocks: [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Squarespace shop-picks page at low cadence.' }] };
+  const signals = [];
+  for (const item of parseSquarespaceInventoryItems(res.text)) {
+    if (!isUsefulBourbonSize(item.title)) continue;
+    const { match, record } = cityHiveSafeBottleMatch(item.title, bible);
+    if (!record) continue;
+    const signal = floridaRetailerWatch(config, record, match, {
+      label: 'Liquor Depot Tampa online quantity watch', url: new URL(item.path || FL_LIQUOR_DEPOT_URL, FL_LIQUOR_DEPOT_URL).href,
+      chain: 'liquor-depot-tampa', merchantId: 'squarespace:63cf346e2314cb29f072d816', retailer: 'Liquor Depot Tampa',
+      rawName: item.title, price: item.price, variantId: item.variantId, sku: item.sku, reportedQuantity: item.quantity, observedAt,
+    });
+    signal.locationPrecision = 'store_aggregate';
+    signal.locationName = 'Liquor Depot Tampa online inventory (six stores)';
+    signal.availabilityLabel = `Online inventory reports ${item.quantity} available; physical store not established`;
+    signal.inventorySemantics = 'Liquor Depot publishes a positive Squarespace commerce quantity for its shared online inventory. The response does not identify which of six Tampa stores holds it, so this is watch-only and never an exact-store alert.';
+    signal.evidence = `Liquor Depot Tampa reports ${item.title} with an online quantity of ${item.quantity}${item.price ? ` at $${item.price.toFixed(2)}` : ''}; verify the pickup location directly.`;
+    signal.raw.reportedQuantity = item.quantity;
+    signals.push(signal);
+  }
+  return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive online quantity rows.', nextRoute: 'Retain the page as catalog evidence and retry without mapping chain inventory to a physical store.' }] };
+}
+
 async function collectFlorida(config, bible) {
   const observedAt = new Date().toISOString();
   const mdp = await collectFloridaMdp(config, bible, observedAt);
@@ -3754,7 +3878,12 @@ async function collectFlorida(config, bible) {
   const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt);
   const abc = await collectFloridaAbc(config, bible, observedAt);
   const cityHive = await collectFloridaCityHive(config, bible, observedAt);
-  return { signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals, ...cityHive.signals], roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks] };
+  const gaspars = await collectFloridaGaspars(config, bible, observedAt);
+  const liquorDepot = await collectFloridaLiquorDepot(config, bible, observedAt);
+  return {
+    signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...gaspars.signals, ...liquorDepot.signals],
+    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
+  };
 }
 
 async function collectArizona(config, bible) {

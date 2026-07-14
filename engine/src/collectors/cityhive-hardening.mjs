@@ -8,7 +8,8 @@ export function rotatingSourceCohort(sources, observedAt, cohortSize, rotationMs
 }
 
 export function normalizeCityHiveReportedQuantity(value) {
-  const reportedQuantity = Number(value || 0) || 0;
-  const binaryAvailability = reportedQuantity === 100;
+  const parsed = Number(value);
+  const reportedQuantity = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  const binaryAvailability = reportedQuantity >= 100;
   return { reportedQuantity, binaryAvailability, quantity: binaryAvailability ? 1 : reportedQuantity };
 }
