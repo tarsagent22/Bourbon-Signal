@@ -912,8 +912,7 @@ const SC_CITYHIVE_SOURCES = [
     sourceLabel: "Green's Beverage South Carolina CityHive store inventory",
     baseUrl: 'https://www.greensbeverages.com',
     urls: [
-      'https://www.greensbeverages.com/shop/?subtype=bourbon',
-      'https://www.greensbeverages.com/shop/?subtype=whiskey'
+      'https://greensbeb2c6efe1.sites.cityhive.app/shop/?subtype=bourbon'
     ],
     merchantIds: [
       '61dc4ab6a1d5721307e9c20e',
@@ -961,8 +960,7 @@ const SC_CITYHIVE_SOURCES = [
     sourceLabel: 'Beach Discount Beverages South Carolina CityHive store inventory',
     baseUrl: 'https://beachdiscountbeverages.com',
     urls: [
-      'https://beachdiscountbeverages.com/shop/?subtype=bourbon',
-      'https://beachdiscountbeverages.com/shop/?subtype=whiskey'
+      'https://beachdis0402bdcd.sites.cityhive.app/shop/?subtype=bourbon'
     ],
     merchantIds: ['6144e1c2085a5f20a622a15f']
   },

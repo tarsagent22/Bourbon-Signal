@@ -23,7 +23,8 @@ test('Myrtle Beach CityHive inventory refresh stays inside the public freshness 
 });
 
 test('Myrtle Beach live inventory remains a South Carolina release contract', () => {
-  assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*merchantIds: \['6144e1c2085a5f20a622a15f'\]/);
+  assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*baseUrl: 'https:\/\/beachdiscountbeverages\.com'[\s\S]*https:\/\/beachdis0402bdcd\.sites\.cityhive\.app\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6144e1c2085a5f20a622a15f'\]/);
+  assert.match(collector, /id: 'greens-beverage'[\s\S]*https:\/\/greensbeb2c6efe1\.sites\.cityhive\.app\/shop\/\?subtype=bourbon/, "Green's should use the CityHive-hosted first-party storefront route that works from scheduled runners");
   assert.match(collector, /'61e1d04c823936166693c7f3'/, "Green's Myrtle Beach merchant must remain selected");
   assert.match(verifier, /Myrtle Beach inventory rows below threshold/);
   assert.match(verifier, /Myrtle Beach fresh inventory rows below threshold/);
