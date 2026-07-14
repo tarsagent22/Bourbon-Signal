@@ -17,23 +17,34 @@ type SuggestionResponse = {
   suggestions?: BottleSuggestion[];
 };
 
-type RetailerSignalFormProps = {
-  action: (formData: FormData) => void | Promise<void>;
+type RetailerSignalStore = {
+  id: string;
+  storeName: string;
+  storeAddress: string;
   defaultTimeZone: RetailerTimeZone | "";
 };
 
-export default function RetailerSignalForm({ action, defaultTimeZone }: RetailerSignalFormProps) {
+type RetailerSignalFormProps = {
+  action: (formData: FormData) => void | Promise<void>;
+  stores: RetailerSignalStore[];
+};
+
+export default function RetailerSignalForm({ action, stores }: RetailerSignalFormProps) {
+  const initialStoreId = stores.length === 1 ? stores[0].id : "";
+  const initialStore = stores.find((store) => store.id === initialStoreId);
+  const [storeId, setStoreId] = useState(initialStoreId);
   const [kind, setKind] = useState<RetailerSignalKind>("bottle_drop");
   const [availabilityTiming, setAvailabilityTiming] = useState<"now" | "scheduled">("now");
   const [startsAtLocal, setStartsAtLocal] = useState("");
   const [expiresAtLocal, setExpiresAtLocal] = useState("");
-  const [timeZone, setTimeZone] = useState<RetailerTimeZone | "">(defaultTimeZone);
+  const [timeZone, setTimeZone] = useState<RetailerTimeZone | "">(initialStore?.defaultTimeZone || "");
   const [title, setTitle] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState("");
   const [suggestions, setSuggestions] = useState<BottleSuggestion[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const fieldConfig = retailerSignalFieldConfig(kind);
+  const selectedStore = stores.find((store) => store.id === storeId);
 
   useEffect(() => {
     const query = title.trim();
@@ -86,10 +97,10 @@ export default function RetailerSignalForm({ action, defaultTimeZone }: Retailer
         required
         value={timeZone}
       >
-        {defaultTimeZone ? null : <option disabled value="">Choose time zone</option>}
+        {selectedStore?.defaultTimeZone ? null : <option disabled value="">Choose time zone</option>}
         {RETAILER_TIME_ZONES.map((zone) => <option key={zone.value} value={zone.value}>{zone.label}</option>)}
       </select>
-      <p className={styles.fieldHelp}>{defaultTimeZone ? "Used for the date and time above. Change it only if needed." : "Choose the time zone used at your store."}</p>
+      <p className={styles.fieldHelp}>{selectedStore?.defaultTimeZone ? "Used for the selected store. Change it only if needed." : "Choose the time zone used at this store."}</p>
     </div>
   );
 
@@ -104,6 +115,28 @@ export default function RetailerSignalForm({ action, defaultTimeZone }: Retailer
   return (
     <form action={action} className={`${styles.formGrid} ${styles.signalForm}`}>
       <input name="bottleId" type="hidden" value={selectedBottleId} />
+      <div className={styles.field}>
+        <label htmlFor="storeId">Signal store</label>
+        <select
+          className={styles.signalInput}
+          id="storeId"
+          name="storeId"
+          onChange={(event) => {
+            const nextStoreId = event.target.value;
+            const nextStore = stores.find((store) => store.id === nextStoreId);
+            setStoreId(nextStoreId);
+            setTimeZone(nextStore?.defaultTimeZone || "");
+          }}
+          required
+          value={storeId}
+        >
+          {stores.length > 1 || !storeId ? <option disabled value="">Choose a store</option> : null}
+          {stores.map((store) => (
+            <option key={store.id} value={store.id}>{store.storeName} — {store.storeAddress}</option>
+          ))}
+        </select>
+        <p className={styles.fieldHelp}>This signal will use the selected location’s store name and address.</p>
+      </div>
       <div className={styles.field}>
         <label htmlFor="kind">Signal type</label>
         <select

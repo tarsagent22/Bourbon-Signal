@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import type {
   RetailerApplication,
+  RetailerStore,
   RetailerSubmission,
   RetailerSubmissionStatus,
   RetailerVerificationStatus,
@@ -22,6 +23,15 @@ export interface RetailerApplicationRecord extends RetailerApplication {
   decisionNotifiedStatus?: "verified" | "rejected";
   decisionNotificationSentAt?: string;
   decisionNotificationMessageId?: string;
+}
+
+export interface RetailerStoreRecord extends RetailerStore {
+  id: string;
+  userId: string;
+  status: "verified" | "rejected";
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface RetailerSubmissionRecord extends RetailerSubmission {
@@ -72,6 +82,21 @@ function applicationFromRow(row: Record<string, unknown>): RetailerApplicationRe
   };
 }
 
+function storeFromRow(row: Record<string, unknown>): RetailerStoreRecord {
+  return {
+    id: asString(row.id),
+    userId: asString(row.user_id),
+    storeName: asString(row.store_name),
+    storeAddress: asString(row.store_address),
+    website: asString(row.website),
+    listedPhone: asString(row.listed_phone),
+    status: asString(row.status) as RetailerStoreRecord["status"],
+    isPrimary: row.is_primary === true,
+    createdAt: toIsoDate(row.created_at),
+    updatedAt: toIsoDate(row.updated_at),
+  };
+}
+
 function submissionFromRow(row: Record<string, unknown>): RetailerSubmissionRecord {
   const payload = row.payload && typeof row.payload === "object" ? row.payload as Record<string, unknown> : {};
   return {
@@ -79,6 +104,7 @@ function submissionFromRow(row: Record<string, unknown>): RetailerSubmissionReco
     userId: asString(row.user_id),
     storeName: asString(row.store_name),
     storeAddress: asString(row.store_address),
+    storeId: asString(row.store_id) || asString(payload.storeId),
     kind: asString(payload.kind) as RetailerSubmissionRecord["kind"],
     bottleId: asString(payload.bottleId),
     title: asString(payload.title),
@@ -142,9 +168,35 @@ export class RetailerRepository {
         await this.query.query(`ALTER TABLE retailer_applications ADD COLUMN IF NOT EXISTS decision_notification_message_id TEXT`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_applications_status_idx ON retailer_applications (status, created_at DESC)`);
         await this.query.query(`
+          CREATE TABLE IF NOT EXISTS retailer_stores (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES retailer_applications(user_id) ON DELETE CASCADE,
+            store_name TEXT NOT NULL,
+            store_address TEXT NOT NULL,
+            website TEXT NOT NULL DEFAULT '',
+            listed_phone TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'verified' CHECK (status IN ('verified', 'rejected')),
+            is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            UNIQUE (user_id, store_address)
+          )
+        `);
+        await this.query.query(`CREATE UNIQUE INDEX IF NOT EXISTS retailer_stores_primary_user_idx ON retailer_stores (user_id) WHERE is_primary`);
+        await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_stores_user_status_idx ON retailer_stores (user_id, status, created_at)`);
+        await this.query.query(`
+          INSERT INTO retailer_stores (id, user_id, store_name, store_address, website, listed_phone, status, is_primary)
+          SELECT 'primary:' || user_id, user_id, store_name, store_address, website, listed_phone,
+                 CASE WHEN status = 'rejected' THEN 'rejected' ELSE 'verified' END,
+                 TRUE
+          FROM retailer_applications
+          ON CONFLICT (id) DO NOTHING
+        `);
+        await this.query.query(`
           CREATE TABLE IF NOT EXISTS retailer_submissions (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL REFERENCES retailer_applications(user_id) ON DELETE CASCADE,
+            store_id TEXT REFERENCES retailer_stores(id) ON DELETE RESTRICT,
             store_name TEXT NOT NULL,
             store_address TEXT NOT NULL,
             payload JSONB NOT NULL,
@@ -154,6 +206,26 @@ export class RetailerRepository {
             reviewed_by TEXT
           )
         `);
+        await this.query.query(`ALTER TABLE retailer_submissions ADD COLUMN IF NOT EXISTS store_id TEXT`);
+        await this.query.query(`
+          UPDATE retailer_submissions submissions
+          SET store_id = stores.id,
+              payload = jsonb_set(submissions.payload, '{storeId}', to_jsonb(stores.id), true)
+          FROM retailer_stores stores
+          WHERE submissions.store_id IS NULL
+            AND stores.user_id = submissions.user_id
+            AND stores.is_primary = TRUE
+        `);
+        await this.query.query(`ALTER TABLE retailer_submissions ALTER COLUMN store_id SET NOT NULL`);
+        await this.query.query(`
+          DO $$ BEGIN
+            ALTER TABLE retailer_submissions
+              ADD CONSTRAINT retailer_submissions_store_id_fkey
+              FOREIGN KEY (store_id) REFERENCES retailer_stores(id) ON DELETE RESTRICT;
+          EXCEPTION WHEN duplicate_object THEN NULL;
+          END $$
+        `);
+        await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_submissions_store_created_idx ON retailer_submissions (store_id, created_at DESC)`);
         await this.query.query(`ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_submissions_user_created_idx ON retailer_submissions (user_id, created_at DESC)`);
         await this.query.query(`CREATE INDEX IF NOT EXISTS retailer_submissions_status_created_idx ON retailer_submissions (status, created_at DESC)`);
@@ -198,7 +270,18 @@ export class RetailerRepository {
         updated_at = NOW()
       RETURNING *
     `, [input.userId, input.email, input.firstName || "", input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, input.application.applicantRole, input.termsVersion || ""]);
-    return applicationFromRow(rows[0] as Record<string, unknown>);
+    const application = applicationFromRow(rows[0] as Record<string, unknown>);
+    await this.query.query(`
+      INSERT INTO retailer_stores (id, user_id, store_name, store_address, website, listed_phone, status, is_primary)
+      VALUES ('primary:' || $1, $1, $2, $3, $4, $5, CASE WHEN $6 = 'rejected' THEN 'rejected' ELSE 'verified' END, TRUE)
+      ON CONFLICT (id) DO UPDATE SET
+        store_name = EXCLUDED.store_name,
+        store_address = EXCLUDED.store_address,
+        website = EXCLUDED.website,
+        listed_phone = EXCLUDED.listed_phone,
+        updated_at = NOW()
+    `, [input.userId, application.storeName, application.storeAddress, application.website, application.listedPhone, application.status]);
+    return application;
   }
 
   async markNotificationSent(userId: string, messageId?: string | null) {
@@ -218,6 +301,39 @@ export class RetailerRepository {
     await this.ensureSchema();
     const rows = await this.query.query(`SELECT * FROM retailer_applications WHERE user_id = $1 LIMIT 1`, [userId]);
     return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
+  async listStores(userId: string) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      SELECT * FROM retailer_stores
+      WHERE user_id = $1 AND status = 'verified'
+      ORDER BY is_primary DESC, created_at ASC
+    `, [userId]);
+    return rows.map((row) => storeFromRow(row as Record<string, unknown>));
+  }
+
+  async getStore(input: { userId: string; storeId: string }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      SELECT * FROM retailer_stores
+      WHERE user_id = $1 AND id = $2 AND status = 'verified'
+      LIMIT 1
+    `, [input.userId, input.storeId]);
+    return rows[0] ? storeFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
+  async createStore(input: { id: string; userId: string; store: RetailerStore }) {
+    await this.ensureSchema();
+    const rows = await this.query.query(`
+      INSERT INTO retailer_stores (id, user_id, store_name, store_address, website, listed_phone, status, is_primary)
+      SELECT $1, applications.user_id, $3, $4, $5, $6, 'verified', FALSE
+      FROM retailer_applications applications
+      WHERE applications.user_id = $2 AND applications.status = 'verified'
+      ON CONFLICT (user_id, store_address) DO NOTHING
+      RETURNING *
+    `, [input.id, input.userId, input.store.storeName, input.store.storeAddress, input.store.website, input.store.listedPhone]);
+    return rows[0] ? storeFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
   async listApplications(limit = 100, offset = 0) {
@@ -271,6 +387,18 @@ export class RetailerRepository {
       WHERE user_id = $1
       RETURNING *
     `, [input.userId, input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, input.application.applicantRole]);
+    if (rows[0]) {
+      await this.query.query(`
+        UPDATE retailer_stores SET
+          store_name = $2,
+          store_address = $3,
+          website = $4,
+          listed_phone = $5,
+          status = CASE WHEN $6 = 'rejected' THEN 'rejected' ELSE 'verified' END,
+          updated_at = NOW()
+        WHERE user_id = $1 AND is_primary = TRUE
+      `, [input.userId, input.application.storeName, input.application.storeAddress, input.application.website, input.application.listedPhone, asString((rows[0] as Record<string, unknown>).status)]);
+    }
     return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
@@ -309,22 +437,37 @@ export class RetailerRepository {
       WHERE user_id = $1
       RETURNING *
     `, [input.userId, input.status, input.verificationMethod || null, input.verificationContact || null, input.reviewedBy]);
+    if (rows[0]) {
+      await this.query.query(`
+        UPDATE retailer_stores
+        SET status = CASE WHEN $2 = 'rejected' THEN 'rejected' ELSE 'verified' END,
+            updated_at = NOW()
+        WHERE user_id = $1
+      `, [input.userId, input.status]);
+    }
     return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
   async createSubmission(input: {
     id: string;
     userId: string;
+    storeId: string;
     submission: RetailerSubmission;
   }) {
     await this.ensureSchema();
+    const payload = { ...input.submission, storeId: input.storeId };
     const rows = await this.query.query(`
-      INSERT INTO retailer_submissions (id, user_id, store_name, store_address, payload, status, reviewed_at, reviewed_by)
-      SELECT $1, user_id, store_name, store_address, $3::jsonb, 'reviewed', NOW(), 'retailer_direct'
-      FROM retailer_applications
-      WHERE user_id = $2 AND status = 'verified'
+      INSERT INTO retailer_submissions (id, user_id, store_id, store_name, store_address, payload, status, reviewed_at, reviewed_by)
+      SELECT $1, applications.user_id, stores.id, stores.store_name, stores.store_address, $4::jsonb, 'reviewed', NOW(), 'retailer_direct'
+      FROM retailer_applications applications
+      INNER JOIN retailer_stores stores ON stores.user_id = applications.user_id
+      WHERE applications.user_id = $2
+        AND stores.user_id = $2
+        AND stores.id = $3
+        AND applications.status = 'verified'
+        AND stores.status = 'verified'
       RETURNING *
-    `, [input.id, input.userId, JSON.stringify(input.submission)]);
+    `, [input.id, input.userId, input.storeId, JSON.stringify(payload)]);
     return rows[0] ? submissionFromRow(rows[0] as Record<string, unknown>) : null;
   }
 

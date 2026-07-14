@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
-import { normalizeRetailerApplication, normalizeRetailerSubmission, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
+import { normalizeRetailerApplication, normalizeRetailerStore, normalizeRetailerSubmission, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice } from "@/lib/retailer-time-zone";
 import RetailerSignalForm from "./RetailerSignalForm";
 import RetailerSignalTime from "./RetailerSignalTime";
@@ -49,6 +49,21 @@ async function updateStoreProfile(formData: FormData) {
   redirect("/retailers/portal?tab=profile&profileUpdated=1");
 }
 
+async function addRetailerStore(formData: FormData) {
+  "use server";
+  const { userId } = await auth();
+  if (!userId) redirect("/retailers/login?redirect_url=%2Fretailers%2Fportal%3Ftab%3Dprofile");
+  const normalized = normalizeRetailerStore(Object.fromEntries(formData.entries()));
+  if (!normalized.ok) redirect(`/retailers/portal?tab=profile&error=${encodeURIComponent(normalized.error)}`);
+  const repository = getRetailerRepository();
+  const application = await repository.getApplication(userId);
+  if (application?.status !== "verified") redirect("/retailers/portal?error=Retailer%20verification%20required");
+  const store = await repository.createStore({ id: randomUUID(), userId, store: normalized.value });
+  if (!store) redirect("/retailers/portal?tab=profile&error=Store%20could%20not%20be%20added");
+  revalidatePath("/retailers/portal");
+  redirect("/retailers/portal?tab=profile&storeAdded=1");
+}
+
 async function submitRetailerUpdate(formData: FormData) {
   "use server";
   const { userId } = await auth();
@@ -58,21 +73,25 @@ async function submitRetailerUpdate(formData: FormData) {
   if (application?.status !== "verified") redirect("/retailers/portal?error=Retailer%20verification%20required");
 
   const submitted = Object.fromEntries(formData.entries());
+  const storeId = String(submitted.storeId || "");
+  const store = storeId ? await repository.getStore({ userId, storeId }) : null;
+  if (!store) redirect("/retailers/portal?error=Choose%20a%20valid%20store%20for%20this%20signal");
   const usesLocalTime = Boolean(submitted.startsAt || submitted.expiresAt);
-  if (!submitted.timeZone && usesLocalTime && retailerTimeZoneNeedsChoice(application.storeAddress)) {
-    redirect("/retailers/portal?error=Choose%20your%20store%20time%20zone");
+  if (!submitted.timeZone && usesLocalTime && retailerTimeZoneNeedsChoice(store.storeAddress)) {
+    redirect("/retailers/portal?error=Choose%20the%20selected%20store%20time%20zone");
   }
-  if (!submitted.timeZone && !retailerTimeZoneNeedsChoice(application.storeAddress)) {
-    submitted.timeZone = inferRetailerTimeZone(application.storeAddress);
+  if (!submitted.timeZone && !retailerTimeZoneNeedsChoice(store.storeAddress)) {
+    submitted.timeZone = inferRetailerTimeZone(store.storeAddress);
   }
   const normalized = normalizeRetailerSubmission(submitted);
   if (!normalized.ok) redirect(`/retailers/portal?error=${encodeURIComponent(normalized.error)}`);
   const created = await repository.createSubmission({
     id: randomUUID(),
     userId,
+    storeId,
     submission: normalized.value,
   });
-  if (!created) redirect("/retailers/portal?error=Retailer%20verification%20required");
+  if (!created) redirect("/retailers/portal?error=Choose%20a%20valid%20store%20for%20this%20signal");
   revalidatePath("/retailers/portal");
   redirect("/retailers/portal?submitted=1");
 }
@@ -105,6 +124,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   const repository = getRetailerRepository();
   const application = await repository.getApplication(userId);
   if (!application) redirect("/retailers/onboarding");
+  const stores = await repository.listStores(userId);
   const submissions = (await repository.listSubmissions(userId)).filter((submission) => submission.status !== "rejected");
   const retailerStatus = application.status;
   const storeName = application.storeName;
@@ -130,6 +150,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
         {params.submitted === "1" ? <p className={styles.notice}>Signal submitted. No additional approval is required.</p> : null}
         {params.ended === "1" ? <p className={styles.notice}>The availability signal has ended.</p> : null}
         {profileUpdated === "1" ? <p className={styles.notice}>Store profile updated.</p> : null}
+        {params.storeAdded === "1" ? <p className={styles.notice}>Store location added. You can now select it when posting a signal.</p> : null}
         {profileUpdated === "review" ? <p className={styles.notice}>Store profile updated. Changes to the store identity are being re-verified.</p> : null}
 
         {retailerStatus === "pending" ? (
@@ -153,9 +174,9 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
             </nav>
             {activeTab === "profile" ? (
               <section className={styles.statusPanel}>
-                <p className={styles.eyebrow}>Store profile</p>
-                <h2>Edit store information</h2>
-                <p className={styles.muted}>Website and role changes publish immediately. Changes to the store name, address, or public phone require a quick re-verification.</p>
+                <p className={styles.eyebrow}>Store locations</p>
+                <h2>Manage your locations</h2>
+                <p className={styles.muted}>Update your primary location below or add another store to this retailer account. Every signal is tied to the location you select.</p>
                 <form action={updateStoreProfile} className={styles.formGrid}>
                   <div className={styles.field}><label htmlFor="profileStoreName">Store name</label><input id="profileStoreName" name="storeName" autoComplete="organization" defaultValue={application.storeName} required maxLength={120} /></div>
                   <div className={styles.field}><label htmlFor="profileStoreAddress">Store address</label><input id="profileStoreAddress" name="storeAddress" autoComplete="street-address" defaultValue={application.storeAddress} required maxLength={240} /></div>
@@ -164,7 +185,27 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
                     <div className={styles.field}><label htmlFor="profileApplicantRole">Your role</label><input id="profileApplicantRole" name="applicantRole" defaultValue={application.applicantRole} required maxLength={80} /></div>
                   </div>
                   <div className={styles.field}><label htmlFor="profileWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="profileWebsite" name="website" type="url" defaultValue={application.website} placeholder="https://" maxLength={240} /></div>
-                  <button className={styles.primaryButton} type="submit">Save store profile</button>
+                  <button className={styles.primaryButton} type="submit">Save primary location</button>
+                </form>
+                <div className={styles.submissions}>
+                  {stores.map((store) => (
+                    <article className={styles.submissionCard} key={store.id}>
+                      <div className={styles.statusLine}><span className={styles.status}>{store.isPrimary ? "Primary" : "Location"}</span><strong>{store.storeName}</strong></div>
+                      <p className={styles.muted}>{store.storeAddress}</p>
+                      <div className={styles.submissionMeta}><span>{store.listedPhone}</span>{store.website ? <span>{store.website}</span> : null}</div>
+                    </article>
+                  ))}
+                </div>
+                <h3>Add another location</h3>
+                <p className={styles.muted}>Added locations belong to this verified retailer account and become available in the signal form immediately.</p>
+                <form action={addRetailerStore} className={styles.formGrid}>
+                  <div className={styles.field}><label htmlFor="newStoreName">Store name</label><input id="newStoreName" name="storeName" autoComplete="organization" required maxLength={120} /></div>
+                  <div className={styles.field}><label htmlFor="newStoreAddress">Full store address</label><input id="newStoreAddress" name="storeAddress" autoComplete="street-address" required maxLength={240} /></div>
+                  <div className={`${styles.formGrid} ${styles.twoColumns}`}>
+                    <div className={styles.field}><label htmlFor="newStorePhone">Publicly listed phone</label><input id="newStorePhone" name="listedPhone" autoComplete="tel" required maxLength={40} /></div>
+                    <div className={styles.field}><label htmlFor="newStoreWebsite">Official website <span className={styles.muted}>(optional)</span></label><input id="newStoreWebsite" name="website" type="url" placeholder="https://" maxLength={240} /></div>
+                  </div>
+                  <button className={styles.primaryButton} type="submit">Add store location</button>
                 </form>
               </section>
             ) : (
@@ -175,7 +216,12 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
               <p className={styles.muted}>Share live or scheduled bottle availability, barrel picks, tastings, and lotteries directly. Verified retailers do not wait for per-signal approval.</p>
               <RetailerSignalForm
                 action={submitRetailerUpdate}
-                defaultTimeZone={retailerTimeZoneNeedsChoice(application.storeAddress) ? "" : inferRetailerTimeZone(application.storeAddress)}
+                stores={stores.map((store) => ({
+                  id: store.id,
+                  storeName: store.storeName,
+                  storeAddress: store.storeAddress,
+                  defaultTimeZone: retailerTimeZoneNeedsChoice(store.storeAddress) ? "" : inferRetailerTimeZone(store.storeAddress),
+                }))}
               />
             </section>
 

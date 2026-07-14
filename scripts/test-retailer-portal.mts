@@ -7,6 +7,7 @@ import {
   CURRENT_RETAILER_TERMS_VERSION,
   normalizeRetailerApplication,
   normalizeRetailerStatus,
+  normalizeRetailerStore,
   normalizeRetailerSubmission,
   normalizeRetailerTermsAcceptance,
   retailerSubmissionLifecycle,
@@ -68,11 +69,29 @@ const unsafeWebsite = normalizeRetailerApplication({ ...validApplication, websit
 assert.equal(unsafeWebsite.ok, false);
 assert.match(unsafeWebsite.error || "", /website/i);
 
+const validStore = normalizeRetailerStore({
+  storeName: "All American Liquor — Greenville",
+  storeAddress: "500 Main St, Greenville, SC 29601",
+  website: "https://www.aalmauldin.com/locations/greenville",
+  listedPhone: "864-555-0199",
+});
+assert.equal(validStore.ok, true);
+assert.equal(validStore.value?.storeName, "All American Liquor — Greenville");
+assert.equal(validStore.value?.storeAddress, "500 Main St, Greenville, SC 29601");
+const invalidStore = normalizeRetailerStore({ storeName: "Second location", storeAddress: "", listedPhone: "864-555-0199" });
+assert.equal(invalidStore.ok, false);
+assert.match(invalidStore.error || "", /address/i);
+
 assert.equal(normalizeRetailerStatus("verified"), "verified");
 assert.equal(normalizeRetailerStatus("pending"), "pending");
 assert.equal(normalizeRetailerStatus("verified_by_client"), "not_started");
 
+const missingStoreSelection = normalizeRetailerSubmission({ storeId: "", kind: "bottle_drop", title: "Elijah Craig private barrel" });
+assert.equal(missingStoreSelection.ok, false);
+assert.match(missingStoreSelection.error || "", /store/i);
+
 const submission = normalizeRetailerSubmission({
+  storeId: "store-primary",
   kind: "bottle_drop",
   title: "  Elijah Craig private barrel  ",
   locationDetails: "Front counter",
@@ -81,12 +100,13 @@ const submission = normalizeRetailerSubmission({
   notes: "Limit one per customer.",
 });
 assert.equal(submission.ok, true);
+assert.equal(submission.value?.storeId, "store-primary");
 assert.equal(submission.value?.title, "Elijah Craig private barrel");
 assert.equal(submission.value?.status, "reviewed");
 
 const signalNow = new Date("2026-07-13T21:00:00.000Z");
 const availableNow = normalizeRetailerSubmission(
-  { kind: "bottle_drop", title: "Blanton's", availabilityTiming: "now" },
+  { storeId: "store-primary", kind: "bottle_drop", title: "Blanton's", availabilityTiming: "now" },
   signalNow,
 );
 assert.equal(availableNow.ok, true);
@@ -97,6 +117,7 @@ assert.equal(availableNow.value?.timeZone, "");
 
 const scheduledAvailability = normalizeRetailerSubmission(
   {
+    storeId: "store-primary",
     kind: "bottle_drop",
     title: "E.H. Taylor Small Batch",
     availabilityTiming: "scheduled",
@@ -111,14 +132,14 @@ assert.equal(scheduledAvailability.value?.expiresAt, "2026-07-16T14:00:00.000Z")
 assert.equal(scheduledAvailability.value?.timeZone, "America/New_York");
 
 const missingScheduledTime = normalizeRetailerSubmission(
-  { kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled" },
+  { storeId: "store-primary", kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled" },
   signalNow,
 );
 assert.equal(missingScheduledTime.ok, false);
 assert.match(missingScheduledTime.error || "", /go-live date/i);
 
 const scheduledWithoutTimeZone = normalizeRetailerSubmission(
-  { kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled", startsAt: "2026-07-15T10:00" },
+  { storeId: "store-primary", kind: "bottle_drop", title: "Weller 12", availabilityTiming: "scheduled", startsAt: "2026-07-15T10:00" },
   signalNow,
 );
 assert.equal(scheduledWithoutTimeZone.ok, false);
@@ -126,6 +147,7 @@ assert.match(scheduledWithoutTimeZone.error || "", /time zone/i);
 
 const pastScheduledTime = normalizeRetailerSubmission(
   {
+    storeId: "store-primary",
     kind: "barrel_pick",
     title: "Store pick",
     availabilityTiming: "scheduled",
@@ -151,7 +173,7 @@ assert.equal(
   "ended",
 );
 assert.equal(
-  retailerSubmissionLifecycle({ kind: "bottle_drop", startsAt: "", expiresAt: "", soldOutAt: "" }, signalNow),
+  retailerSubmissionLifecycle({ storeId: "store-primary", kind: "bottle_drop", startsAt: "", expiresAt: "", soldOutAt: "" }, signalNow),
   "ended",
 );
 
@@ -181,6 +203,7 @@ const liveRetailerDrop = retailerSubmissionToDrop(scheduledRecord, new Date("202
 assert.equal(liveRetailerDrop?.source, "verified-retailer");
 assert.equal(liveRetailerDrop?.state, "SC");
 assert.equal(liveRetailerDrop?.storeName, "Test Bottle Shop");
+assert.equal(liveRetailerDrop?.storeId, "store-primary");
 assert.equal(retailerSubmissionToDrop(scheduledRecord, new Date("2026-07-16T14:00:00.000Z")), null);
 const upcomingRetailerCard = retailerSubmissionToFeedCard(scheduledRecord, signalNow, "allocated");
 assert.equal(upcomingRetailerCard?.retailerSignalKind, "drop");
@@ -195,16 +218,16 @@ const retailerTastingCard = retailerSubmissionToFeedCard(
 assert.equal(retailerTastingCard?.retailerSignalKind, "tasting");
 assert.equal(retailerTastingCard?.type, "verified_retailer_tasting");
 
-const tastingWithoutDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting" });
+const tastingWithoutDate = normalizeRetailerSubmission({ storeId: "store-primary", kind: "tasting", title: "Summer tasting" });
 assert.equal(tastingWithoutDate.ok, false);
 assert.match(tastingWithoutDate.error || "", /event date/i);
-const lotteryWithoutDeadline = normalizeRetailerSubmission({ kind: "lottery", title: "Van Winkle lottery" });
+const lotteryWithoutDeadline = normalizeRetailerSubmission({ storeId: "store-primary", kind: "lottery", title: "Van Winkle lottery" });
 assert.equal(lotteryWithoutDeadline.ok, false);
 assert.match(lotteryWithoutDeadline.error || "", /entry deadline/i);
-const tastingWithInvalidDate = normalizeRetailerSubmission({ kind: "tasting", title: "Summer tasting", expiresAt: "tomorrow night" });
+const tastingWithInvalidDate = normalizeRetailerSubmission({ storeId: "store-primary", kind: "tasting", title: "Summer tasting", expiresAt: "tomorrow night" });
 assert.equal(tastingWithInvalidDate.ok, false);
 assert.match(tastingWithInvalidDate.error || "", /valid event date/i);
-const otherWithHiddenMetadata = normalizeRetailerSubmission({ kind: "other", title: "Holiday hours", price: "$50", availability: "10 bottles" });
+const otherWithHiddenMetadata = normalizeRetailerSubmission({ storeId: "store-primary", kind: "other", title: "Holiday hours", price: "$50", availability: "10 bottles" });
 assert.equal(otherWithHiddenMetadata.ok, true);
 assert.equal(otherWithHiddenMetadata.value?.price, "");
 assert.equal(otherWithHiddenMetadata.value?.availability, "");
@@ -309,12 +332,21 @@ assert.match(webhook, /upsertPendingApplication[\s\S]*notifyRetailerAccountCreat
 
 const repository = read("src/lib/retailer-repository.ts");
 assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_applications/);
+assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_stores/);
+assert.match(repository, /INSERT INTO retailer_stores[\s\S]*SELECT[\s\S]*FROM retailer_applications/);
+assert.match(repository, /ALTER TABLE retailer_submissions ADD COLUMN IF NOT EXISTS store_id TEXT/);
+assert.match(repository, /ALTER TABLE retailer_submissions ALTER COLUMN store_id SET NOT NULL/);
+assert.match(repository, /FOREIGN KEY \(store_id\) REFERENCES retailer_stores\(id\) ON DELETE RESTRICT/);
+assert.match(repository, /ON CONFLICT \(user_id, store_address\) DO NOTHING/);
 assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_submissions/);
+assert.match(repository, /async createStore/);
+assert.match(repository, /async listStores/);
+assert.match(repository, /INNER JOIN retailer_stores stores[\s\S]*stores\.user_id = \$2[\s\S]*stores\.id = \$3[\s\S]*stores\.status = 'verified'/);
 assert.match(repository, /ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'/);
-assert.match(repository, /INSERT INTO retailer_submissions \(id, user_id, store_name, store_address, payload, status, reviewed_at, reviewed_by\)/);
+assert.match(repository, /INSERT INTO retailer_submissions \(id, user_id, store_id, store_name, store_address, payload, status, reviewed_at, reviewed_by\)/);
 assert.match(repository, /'reviewed', NOW\(\), 'retailer_direct'/);
 assert.match(repository, /UPDATE retailer_submissions[\s\S]*status = 'reviewed'[\s\S]*WHERE status = 'pending_review'/);
-assert.match(repository, /WHERE user_id = \$2 AND status = 'verified'/);
+assert.match(repository, /applications\.status = 'verified'/);
 assert.match(repository, /store_name TEXT NOT NULL/);
 assert.match(repository, /deleteApplication/);
 assert.match(repository, /DELETE FROM retailer_applications WHERE user_id = \$1/);
@@ -358,6 +390,9 @@ assert.match(portal, /retailerSubmissionLifecycle/);
 assert.match(portal, /Mark sold out/);
 assert.match(portal, /Cancel scheduled signal/);
 assert.match(portal, /updateStoreProfile/);
+assert.match(portal, /addRetailerStore/);
+assert.match(portal, /repository\.listStores\(userId\)/);
+assert.match(portal, /stores=\{stores\.map/);
 assert.match(portal, /tab=profile/);
 assert.match(portal, /Store profile/);
 assert.doesNotMatch(portal, /upsertPendingApplication|unsafeMetadata|retailerSubmissions:/);
@@ -425,6 +460,10 @@ assert.match(signalForm, /name="startsAt"/);
 assert.match(signalForm, /name="expiresAt"/);
 assert.match(signalForm, /name="timeZone"/);
 assert.match(signalForm, /name="bottleId"/);
+assert.match(signalForm, /name="storeId"/);
+assert.match(signalForm, /<label htmlFor="storeId">Signal store<\/label>/);
+assert.match(signalForm, /stores\.length > 1[\s\S]*Choose a store/);
+assert.match(signalForm, /name="storeId"[\s\S]*required/);
 assert.match(signalForm, /Store time zone/);
 assert.match(signalForm, /24 hours after it goes live/);
 assert.match(signalForm, /<option value="bottle_drop">Bottle availability<\/option>/);

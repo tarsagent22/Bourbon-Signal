@@ -19,8 +19,16 @@ export interface RetailerApplication {
   applicantRole: string;
 }
 
+export interface RetailerStore {
+  storeName: string;
+  storeAddress: string;
+  website: string;
+  listedPhone: string;
+}
+
 export interface RetailerSubmission {
   id?: string;
+  storeId: string;
   kind: RetailerSubmissionKind;
   bottleId: string;
   title: string;
@@ -113,6 +121,21 @@ export function normalizeRetailerApplication(input: unknown): Result<RetailerApp
   return { ok: true, value };
 }
 
+export function normalizeRetailerStore(input: unknown): Result<RetailerStore> {
+  const row = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const value: RetailerStore = {
+    storeName: text(row.storeName, 120),
+    storeAddress: text(row.storeAddress, 240),
+    website: text(row.website, 240),
+    listedPhone: text(row.listedPhone, 40),
+  };
+  if (!value.storeName) return { ok: false, error: "Store name is required." };
+  if (!value.storeAddress) return { ok: false, error: "Store address is required." };
+  if (!value.listedPhone) return { ok: false, error: "The store's publicly listed phone is required." };
+  if (!validHttpUrl(value.website)) return { ok: false, error: "Website must be a valid http or https URL." };
+  return { ok: true, value };
+}
+
 export function normalizeRetailerStatus(value: unknown): RetailerVerificationStatus {
   return value === "pending" || value === "verified" || value === "rejected" ? value : "not_started";
 }
@@ -160,6 +183,7 @@ export function normalizeRetailerSubmission(input: unknown, now = new Date()): R
   }
 
   const value: RetailerSubmission = {
+    storeId: text(row.storeId, 160),
     kind,
     bottleId: kind === "bottle_drop" || kind === "barrel_pick" || kind === "lottery" ? text(row.bottleId, 120) : "",
     title: text(row.title, 160),
@@ -174,6 +198,7 @@ export function normalizeRetailerSubmission(input: unknown, now = new Date()): R
     expiresAt,
     status: "reviewed",
   };
+  if (!value.storeId) return { ok: false, error: "Choose the store for this signal." };
   if (!value.title) return { ok: false, error: "A bottle, event, or promotion title is required." };
   if (value.kind === "tasting" && !value.expiresAt) return { ok: false, error: "An event date and time is required for tastings." };
   if (value.kind === "lottery" && !value.expiresAt) return { ok: false, error: "An entry deadline is required for lotteries." };
