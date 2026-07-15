@@ -95,6 +95,13 @@ const preservedFallbackEligibility = compareStateQuality(
 assert.equal(preservedFallbackEligibility.ok, true, 'a labeled last-good fallback must not block a whole-site refresh when its public rows are preserved');
 assert.ok(preservedFallbackEligibility.warnings.some((warning) => warning.includes('preserved fallback')));
 
+const preservedFallbackScoreDrop = compareStateQuality(
+  { states: [{ state: 'CA', score: 84, releaseEligible: true, input: { dropCount: 20, status: 'useful' } }] },
+  { states: [{ state: 'CA', score: 64, releaseEligible: false, weaknesses: ['degraded_state_status'], input: { dropCount: 20, status: 'stale_useful_quality_fallback' } }] },
+);
+assert.equal(preservedFallbackScoreDrop.ok, true, 'a score penalty caused only by a labeled last-good fallback must not block unrelated fresh state publication');
+assert.ok(preservedFallbackScoreDrop.warnings.some((warning) => warning.includes('quality score fell')));
+
 const healthyLargeInventoryChurn = compareStateQuality(
   { states: [{ state: 'TX', score: 84, releaseEligible: true, input: { dropCount: 138, status: 'useful' } }] },
   { states: [{ state: 'TX', score: 78, releaseEligible: true, weaknesses: [], input: { dropCount: 67, status: 'useful' } }] },

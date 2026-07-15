@@ -131,14 +131,15 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
   for (const state of current?.states || []) {
     const before = previousByState.get(state.state);
     if (!before) continue;
-    if (number(before.score) - number(state.score) > maxScoreDrop) {
-      failures.push(`${state.state}: quality score fell from ${before.score} to ${state.score}.`);
-    }
     const priorDrops = number(before.input?.dropCount ?? before.dropCount);
     const currentDrops = number(state.input?.dropCount ?? state.dropCount);
     const currentStatus = String(state.input?.status || '');
     const preservedFallback = /quality_fallback/iu.test(currentStatus)
       && currentDrops >= Math.floor(priorDrops * minDropRatio);
+    if (number(before.score) - number(state.score) > maxScoreDrop) {
+      if (preservedFallback) warnings.push(`${state.state}: quality score fell from ${before.score} to ${state.score} while the last-good rows remain preserved.`);
+      else failures.push(`${state.state}: quality score fell from ${before.score} to ${state.score}.`);
+    }
     const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
     const hardSourceFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness))
       || /stale|failed|degraded/iu.test(currentStatus);
