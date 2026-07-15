@@ -1446,7 +1446,7 @@ export default function DropFeed() {
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "CA" || feedStateParam === "NV" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
@@ -1747,7 +1747,7 @@ export default function DropFeed() {
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "CA" || feedStateParam === "NV" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
