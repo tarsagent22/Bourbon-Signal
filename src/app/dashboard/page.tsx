@@ -25,6 +25,7 @@ import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
+import { californiaAreaMatchesFields } from "@/lib/california-area";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -34,12 +35,13 @@ const EMPTY_PREFS: AreaPreferences = {
   iaCities: [],
   idCities: [],
   scAreas: [],
+  caAreas: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 const SC_ALERT_AREA_SEEDS = [
   "Myrtle Beach",
@@ -225,9 +227,11 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
               ? areaPrefs.idCities.length
               : state === "SC"
                 ? areaPrefs.scAreas.length
-                : state === "PA"
-                  ? areaPrefs.paCounties.length + areaPrefs.paStores.length
-                  : 0;
+                : state === "CA"
+                  ? areaPrefs.caAreas.length
+                  : state === "PA"
+                    ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                    : 0;
     return count + Math.max(1, detailCount);
   }, 0);
 }
@@ -586,6 +590,16 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "ID" && areaPrefs.idCities.length) return areaPrefs.idCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "SC" && areaPrefs.scAreas.length) return areaPrefs.scAreas.some((area) => location.includes(normalizeLocationText(area)));
+  if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([
+    dropLocationLabel(drop),
+    drop.board_name,
+    drop.store_city,
+    drop.store_county,
+    drop.store_address,
+    drop.store_name,
+    ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
+    ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
+  ], areaPrefs.caAreas);
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -1359,7 +1373,15 @@ export default function DashboardPage() {
       selectedCount: localPrefs.scAreas.length,
       totalCount: citiesByState.SC?.length ?? 0,
     },
-  ]), [citiesByState, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
+    {
+      stateCode: "CA",
+      label: "California",
+      detailLabel: "areas",
+      summary: "California alerts currently focus on verified San Diego store pickup availability.",
+      selectedCount: localPrefs.caAreas.length,
+      totalCount: citiesByState.CA?.length ?? 0,
+    },
+  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1601,6 +1623,7 @@ export default function DashboardPage() {
           iaCities: state === "IA" ? prev.iaCities : [],
           idCities: state === "ID" ? prev.idCities : [],
           scAreas: state === "SC" ? prev.scAreas : [],
+          caAreas: state === "CA" ? prev.caAreas : [],
           paCounties: state === "PA" ? prev.paCounties : [],
           paStores: state === "PA" ? prev.paStores : [],
         };
@@ -1614,6 +1637,7 @@ export default function DashboardPage() {
         iaCities: state === "IA" && removing ? [] : prev.iaCities,
         idCities: state === "ID" && removing ? [] : prev.idCities,
         scAreas: state === "SC" && removing ? [] : prev.scAreas,
+        caAreas: state === "CA" && removing ? [] : prev.caAreas,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1668,6 +1692,14 @@ export default function DashboardPage() {
         return {
           ...prev,
           scAreas: has ? prev.scAreas.filter((item) => item !== value) : [...prev.scAreas, value],
+        };
+      }
+      if (state === "CA") {
+        const has = prev.caAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          caAreas: has ? prev.caAreas.filter((item) => item !== value) : [...prev.caAreas, value],
         };
       }
       if (state === "PA") {
@@ -2520,16 +2552,18 @@ export default function DashboardPage() {
                       ? localPrefs.ohCities
                       : activeState === "SC"
                         ? localPrefs.scAreas
-                        : activeState === "PA"
-                          ? localPrefs.paCounties
+                        : activeState === "CA"
+                          ? localPrefs.caAreas
+                          : activeState === "PA"
+                            ? localPrefs.paCounties
                           : customerAreaLabel
                             ? [customerAreaLabel]
                             : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
-              const detailLabel = activeState === "NC" ? "boards" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
+              const detailLabel = activeState === "NC" ? "boards" : activeState === "CA" ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 

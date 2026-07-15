@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite } from "@/lib/site-engine-contract";
+import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
+  const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
+  if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
+    return NextResponse.json({ stores: [], locations: [], total: 0, error: "Unsupported California area" }, { status: 400 });
+  }
 
   try {
     const storesPayload = await readSiteExport("stores");
@@ -19,6 +24,17 @@ export async function GET(request: Request) {
       stores = stores.filter((store) => {
         const record = store as Record<string, unknown>;
         return String(record.state ?? record.state_code ?? "").toUpperCase() === state;
+      });
+    }
+    if (state === "CA" && californiaArea.areas.length) {
+      stores = stores.filter((store) => {
+        const record = store as Record<string, unknown>;
+        return californiaAreaMatchesFields([
+          record.city,
+          record.address,
+          record.name,
+          record.displayLabel,
+        ], californiaArea.areas);
       });
     }
 

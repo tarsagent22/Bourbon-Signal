@@ -15,6 +15,7 @@ const EMPTY_PREFS: UserAlertPreferences = {
     iaCities: [],
     idCities: [],
     scAreas: [],
+    caAreas: [],
     paCounties: [],
     paStores: [],
   },

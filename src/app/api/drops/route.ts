@@ -9,6 +9,7 @@ import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
+import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -257,6 +258,10 @@ export async function GET(request: Request) {
   const state = normalizeStateCodeParam(url.searchParams.get("state"));
   const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
+  const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
+  if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
+    return NextResponse.json({ drops: [], total: 0, error: "Unsupported California area" }, { status: 400 });
+  }
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
   const tierFilter = parseTierFilter(url);
 
@@ -311,6 +316,14 @@ export async function GET(request: Request) {
 
     if (state) {
       drops = drops.filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
+    }
+    if (state === "CA" && californiaArea.areas.length) {
+      drops = drops.filter((drop) => californiaAreaMatchesFields([
+        drop.store_city,
+        drop.store_address,
+        drop.display_location,
+        (drop as Record<string, unknown>).locationName,
+      ], californiaArea.areas));
     }
 
     if (tierFilter.size > 0) {

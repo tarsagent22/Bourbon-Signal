@@ -13,6 +13,7 @@ import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
 import { createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
 import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
+import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 
 export interface AreaPreferences {
   states: string[];
@@ -22,6 +23,7 @@ export interface AreaPreferences {
   iaCities: string[];
   idCities: string[];
   scAreas: string[];
+  caAreas: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -106,6 +108,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
     iaCities: toStrings(source.iaCities),
     idCities: toStrings(source.idCities),
     scAreas: toStrings(source.scAreas),
+    caAreas: normalizeCaliforniaAreas(source.caAreas),
     paCounties: toStrings(source.paCounties),
     paStores: toStrings(source.paStores),
   };
@@ -185,6 +188,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "IA" && areaPrefs.iaCities.length) return locationMatchesAny(locationFields, areaPrefs.iaCities);
   if (state === "ID" && areaPrefs.idCities.length) return locationMatchesAny(locationFields, areaPrefs.idCities);
   if (state === "SC" && areaPrefs.scAreas.length) return locationMatchesAny(locationFields, areaPrefs.scAreas);
+  if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields(locationFields, areaPrefs.caAreas);
   if (state === "PA" && areaPrefs.paCounties.length) return locationMatchesAny(locationFields, areaPrefs.paCounties);
   if (state === "PA" && areaPrefs.paStores.length) return locationMatchesAny([asString(candidate.storeId), asString(candidate.store_id), ...locationFields], areaPrefs.paStores);
   return true;
@@ -219,6 +223,7 @@ function hasSavedAreaPreferences(areaPrefs: AreaPreferences) {
     areaPrefs.iaCities.length ||
     areaPrefs.idCities.length ||
     areaPrefs.scAreas.length ||
+    areaPrefs.caAreas.length ||
     areaPrefs.paCounties.length ||
     areaPrefs.paStores.length
   );
@@ -568,6 +573,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
   if (state === "ID" && areaPrefs.idCities.length) return matchedLocationFromOptions(candidate, areaPrefs.idCities) || locationName || stateLabel(state);
   if (state === "SC" && areaPrefs.scAreas.length) return matchedLocationFromOptions(candidate, areaPrefs.scAreas) || locationName || stateLabel(state);
+  if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paStores.length) return matchedLocationFromOptions(candidate, areaPrefs.paStores) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;

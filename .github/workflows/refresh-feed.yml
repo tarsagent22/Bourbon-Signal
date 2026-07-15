@@ -80,6 +80,10 @@ jobs:
         working-directory: engine
         run: npm run verify:site
 
+      - name: Verify California San Diego release gate
+        working-directory: engine
+        run: npm run verify:ca
+
       - name: Publish and atomically activate encrypted snapshot
         working-directory: engine
         run: node src/data-plane/publish-site-snapshot.mjs --site-dir out/site
