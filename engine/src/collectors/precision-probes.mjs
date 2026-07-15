@@ -6106,17 +6106,7 @@ async function collectCalifornia(config, bible) {
   if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
     return {
       signals: cachedCaliforniaSignals(cache),
-      roadblocks: [
-        ...(cache.roadblocks || []),
-        {
-          state: config.id,
-          source: 'California San Diego first-party Shopify cache reuse',
-          url: CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH,
-          status: 200,
-          error: `Using ${cache.signals.length} fresh cached San Diego retailer rows from ${cache.generatedAt}; set BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE=1 for a bounded live refresh.`,
-          nextRoute: 'Keep retailer requests low-cadence and force live only for source verification or scheduled refresh windows.',
-        },
-      ],
+      roadblocks: cache.roadblocks || [],
     };
   }
 

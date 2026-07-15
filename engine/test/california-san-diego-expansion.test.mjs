@@ -141,6 +141,11 @@ test('California collector retries transient first-party policy and product fail
   assert.match(collectorSource, /retryCaliforniaFetch\(\(\) => fetchCaliforniaShopifySource\(source\)\)/);
 });
 
+test('fresh California cache reuse is not reported as a collection roadblock', async () => {
+  const collectorSource = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(collectorSource, /source:\s*['"]California San Diego first-party Shopify cache reuse['"]/);
+});
+
 function californiaSignal(overrides = {}) {
   return {
     state: 'CA',

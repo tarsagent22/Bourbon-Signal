@@ -55,8 +55,14 @@ if (vercelConfig.git?.deploymentEnabled?.main !== true || vercelConfig.git?.depl
 }
 
 const engineWatchdogWorkflow = read('.github/workflows/engine-watchdog.yml');
-if (!/BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == ''\s*\|\|\s*vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog recovery must default on when BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED is unset; GitHub treats a missing variable as null-like in workflow expressions.');
+if (!/BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED:\s*\$\{\{\s*vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED\s*\|\|\s*'1'\s*\}\}/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must normalize an unset auto-recovery variable to 1 before any equality checks.');
+}
+if (/vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '0'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must not compare an unset GitHub variable directly with 0 because loose expression coercion treats an empty value as zero.');
+}
+if (!/env\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog recovery must use the normalized auto-recovery value.');
 }
 if (/guarded refresh dispatched/.test(engineWatchdogWorkflow)) {
   fail('Engine watchdog must not claim recovery was dispatched when the kill switch may have skipped that step.');
@@ -68,7 +74,7 @@ if (/Fail loudly after stale production snapshot/.test(engineWatchdogWorkflow)) 
   fail('Engine watchdog must not mark a self-healing stale snapshot as a failed workflow run.');
 }
 if (!/steps\.recovery\.outcome == 'failure'/.test(engineWatchdogWorkflow)
-  || !/vars\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '0'/.test(engineWatchdogWorkflow)) {
+  || !/env\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '0'/.test(engineWatchdogWorkflow)) {
   fail('Engine watchdog should fail only when automatic recovery fails or is explicitly disabled.');
 }
 
