@@ -26,6 +26,7 @@ import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
+import { nevadaAreaMatchesFields, SUPPORTED_NEVADA_AREAS } from "@/lib/nevada-area";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -36,12 +37,13 @@ const EMPTY_PREFS: AreaPreferences = {
   idCities: [],
   scAreas: [],
   caAreas: [],
+  nvAreas: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA", "NV"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 const SC_ALERT_AREA_SEEDS = [
   "Myrtle Beach",
@@ -229,9 +231,11 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
                 ? areaPrefs.scAreas.length
                 : state === "CA"
                   ? areaPrefs.caAreas.length
-                  : state === "PA"
-                    ? areaPrefs.paCounties.length + areaPrefs.paStores.length
-                    : 0;
+                  : state === "NV"
+                    ? areaPrefs.nvAreas.length
+                    : state === "PA"
+                      ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                      : 0;
     return count + Math.max(1, detailCount);
   }, 0);
 }
@@ -600,6 +604,16 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
     ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
     ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
   ], areaPrefs.caAreas);
+  if (state === "NV" && areaPrefs.nvAreas.length) return nevadaAreaMatchesFields([
+    dropLocationLabel(drop),
+    drop.board_name,
+    drop.store_city,
+    drop.store_county,
+    drop.store_address,
+    drop.store_name,
+    ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
+    ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
+  ], areaPrefs.nvAreas);
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -1381,7 +1395,15 @@ export default function DashboardPage() {
       selectedCount: localPrefs.caAreas.length,
       totalCount: citiesByState.CA?.length ?? 0,
     },
-  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
+    {
+      stateCode: "NV",
+      label: "Nevada",
+      detailLabel: "areas",
+      summary: "Nevada alerts cover verified store availability in Las Vegas Valley and Reno–Sparks.",
+      selectedCount: localPrefs.nvAreas.length,
+      totalCount: SUPPORTED_NEVADA_AREAS.length,
+    },
+  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.nvAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1624,6 +1646,7 @@ export default function DashboardPage() {
           idCities: state === "ID" ? prev.idCities : [],
           scAreas: state === "SC" ? prev.scAreas : [],
           caAreas: state === "CA" ? prev.caAreas : [],
+          nvAreas: state === "NV" ? prev.nvAreas : [],
           paCounties: state === "PA" ? prev.paCounties : [],
           paStores: state === "PA" ? prev.paStores : [],
         };
@@ -1638,6 +1661,7 @@ export default function DashboardPage() {
         idCities: state === "ID" && removing ? [] : prev.idCities,
         scAreas: state === "SC" && removing ? [] : prev.scAreas,
         caAreas: state === "CA" && removing ? [] : prev.caAreas,
+        nvAreas: state === "NV" && removing ? [] : prev.nvAreas,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1700,6 +1724,14 @@ export default function DashboardPage() {
         return {
           ...prev,
           caAreas: has ? prev.caAreas.filter((item) => item !== value) : [...prev.caAreas, value],
+        };
+      }
+      if (state === "NV") {
+        const has = prev.nvAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          nvAreas: has ? prev.nvAreas.filter((item) => item !== value) : [...prev.nvAreas, value],
         };
       }
       if (state === "PA") {
@@ -2554,16 +2586,18 @@ export default function DashboardPage() {
                         ? localPrefs.scAreas
                         : activeState === "CA"
                           ? localPrefs.caAreas
-                          : activeState === "PA"
-                            ? localPrefs.paCounties
-                          : customerAreaLabel
-                            ? [customerAreaLabel]
-                            : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+                          : activeState === "NV"
+                            ? localPrefs.nvAreas
+                            : activeState === "PA"
+                              ? localPrefs.paCounties
+                              : customerAreaLabel
+                                ? [customerAreaLabel]
+                                : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
-              const detailLabel = activeState === "NC" ? "boards" : activeState === "CA" ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
-              const cityOptions = citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "PA" ? localPrefs.paCounties : [];
+              const detailLabel = activeState === "NC" ? "boards" : activeState === "CA" || activeState === "NV" ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
+              const cityOptions = activeState === "NV" ? [...SUPPORTED_NEVADA_AREAS] : citiesByState[activeState] ?? [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 

@@ -392,10 +392,18 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'NV', label: 'Nevada Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Nevada Costco warehouses, especially major metro/travel markets, are useful bourbon signals where verified.',
-    rareSignalTarget: false,
-    sources: [],
+    id: 'NV', label: 'Nevada first-party retailer inventory and Costco watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Exact-store first-party pickup/orderability from Liquor World, Liquor Box, Albertsons, Vons, and Safeway across Las Vegas Valley and Reno–Sparks. Binary availability remains distinct from exact quantity; Costco stays a separate warehouse watch lane.',
+    rareSignalTarget: true,
+    sources: [
+      { kind: 'retailer', url: 'https://liquorworldlv.com/shop/?subtype=Bourbon', label: 'Liquor World CityHive Las Vegas store orderability', precisionOnly: true },
+      { kind: 'retailer', url: 'https://theliquorboxlv.com/collections/1000-plus-whiskey-varieties', label: 'Liquor Box POS360 Las Vegas pickup orderability', precisionOnly: true },
+      { kind: 'api', url: 'https://www.albertsons.com/abs/pub/xapi/search/substitute', label: 'Albertsons Nevada XAPI store inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://www.vons.com/abs/pub/xapi/search/substitute', label: 'Vons Nevada XAPI store inventory', precisionOnly: true },
+      { kind: 'api', url: 'https://www.safeway.com/abs/pub/xapi/search/substitute', label: 'Safeway Nevada XAPI store inventory', precisionOnly: true },
+      { kind: 'retailer', url: 'https://liquorlineup.com/products.json?limit=250', label: 'Liquor Lineup Shopify Nevada catalog watch', precisionOnly: true },
+      { kind: 'retailer', url: 'https://crystalliquor.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100', label: 'Crystal Liquor WooCommerce Nevada catalog watch', precisionOnly: true }
+    ],
     apiCandidates: []
   },
   {

@@ -26,6 +26,7 @@ import { makeSightingId, type MemberSighting, type SignalReportKind, type Sighti
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
+import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -319,6 +320,7 @@ function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
   const wanted = areaQueryFromFilter(filterValue);
   if (!wanted) return true;
   if (drop.state === "CA") return californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
+  if (drop.state === "NV") return nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   return areaLabelsForDrop(drop).some((label) => coveredAreaLabelsMatch(label, wanted));
 }
 
@@ -1444,7 +1446,7 @@ export default function DropFeed() {
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "CA" || feedStateParam === "NV" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();
@@ -1581,6 +1583,9 @@ export default function DropFeed() {
     }
     if (dropState === "CA" && areaPrefs.caAreas.length > 0) {
       return californiaAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.caAreas);
+    }
+    if (dropState === "NV" && areaPrefs.nvAreas.length > 0) {
+      return nevadaAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nvAreas);
     }
 
     // PA city/store filter
@@ -1742,7 +1747,7 @@ export default function DropFeed() {
         if (feedStateParam) query.set("state", feedStateParam);
         if (activeTierParam) query.set("tier", activeTierParam);
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "CA" || feedStateParam === "NV" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
         if (!res.ok) throw new Error("fetch failed");
         const json: DropsResponse = await res.json();

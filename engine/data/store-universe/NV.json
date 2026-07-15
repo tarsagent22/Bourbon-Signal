@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-07-15T02:39:02Z",
+  "state": "NV",
+  "model": "Bourbon Signal national store universe v0.1",
+  "caveat": "Known-store coverage is not equivalent to live bottle inventory. Live rows require a fresh, exact-store first-party availability response; catalog and blocked sources remain non-inventory.",
+  "summary": {
+    "seedCount": 6,
+    "probedCount": 6,
+    "knownStoreCount": 6,
+    "currentStoreCount": 6,
+    "probeDiscoveredStoreCount": 0,
+    "directorySeedStoreCount": 0,
+    "directoryUrlStoreCount": 0,
+    "byStatus": { "live-inventory": 5, "catalog-store-selector": 1 },
+    "cityCount": 3,
+    "byCity": { "Las Vegas": 4, "Henderson": 1, "Reno": 1 }
+  },
+  "stores": [
+    {
+      "id": "liquor-world:4795-dean-martin", "name": "Liquor World", "address": "4795 Dean Martin Drive, Las Vegas, NV 89103", "city": "Las Vegas", "state": "NV", "zip": "89103", "area": "Las Vegas Valley",
+      "website": "https://liquorworldlv.com/shop/?subtype=Bourbon", "ecommercePlatform": "CityHive", "inventoryStatus": "live-inventory", "discoverySource": "first-party-storefront", "sourceLabels": ["Liquor World CityHive Las Vegas store orderability"], "key": "liquor-world-las-vegas-89103"
+    },
+    {
+      "id": "liquor-box:7161-hualapai", "name": "Liquor Box", "address": "7161 N Hualapai Way, Las Vegas, NV 89166", "city": "Las Vegas", "state": "NV", "zip": "89166", "area": "Las Vegas Valley",
+      "website": "https://theliquorboxlv.com/collections/1000-plus-whiskey-varieties", "ecommercePlatform": "POS360", "inventoryStatus": "live-inventory", "discoverySource": "first-party-storefront", "sourceLabels": ["Liquor Box POS360 Las Vegas pickup orderability"], "key": "liquor-box-las-vegas-89166"
+    },
+    {
+      "id": "albertsons:662", "name": "Albertsons #662", "address": "2885 E Desert Inn Rd, Las Vegas, NV 89121", "city": "Las Vegas", "state": "NV", "zip": "89121", "area": "Las Vegas Valley",
+      "website": "https://local.albertsons.com/nv/las-vegas/2885-e-desert-inn-rd/Beer-Wine-Liquor.html", "ecommercePlatform": "Albertsons Companies XAPI", "inventoryStatus": "live-inventory", "discoverySource": "first-party-storefront-and-xapi", "sourceLabels": ["Albertsons Nevada XAPI store inventory"], "key": "albertsons-662-las-vegas-89121"
+    },
+    {
+      "id": "vons:2511", "name": "Vons #2511 Anthem Village", "address": "2667 E Windmill Pkwy, Henderson, NV 89052", "city": "Henderson", "state": "NV", "zip": "89052", "area": "Las Vegas Valley",
+      "website": "https://local.vons.com/nv/henderson/2667-e-windmill-pkwy/Beer-Wine-Liquor.html", "ecommercePlatform": "Albertsons Companies XAPI", "inventoryStatus": "live-inventory", "discoverySource": "first-party-storefront-and-xapi", "sourceLabels": ["Vons Nevada XAPI store inventory"], "key": "vons-2511-henderson-89052"
+    },
+    {
+      "id": "safeway:1210", "name": "Safeway #1210", "address": "5150 Mae Anne Ave, Reno, NV 89523", "city": "Reno", "state": "NV", "zip": "89523", "area": "Reno–Sparks",
+      "website": "https://local.safeway.com/safeway/nv/reno/5150-mae-anne-ave/Beer-Wine-Liquor.html", "ecommercePlatform": "Albertsons Companies XAPI", "inventoryStatus": "live-inventory", "discoverySource": "first-party-storefront-and-xapi", "sourceLabels": ["Safeway Nevada XAPI store inventory"], "key": "safeway-1210-reno-89523"
+    },
+    {
+      "id": "crystal-liquor:3655-s-durango", "name": "Crystal Liquor", "address": "3655 S Durango Dr, Suite 21, Las Vegas, NV 89147", "city": "Las Vegas", "state": "NV", "zip": "89147", "area": "Las Vegas Valley",
+      "website": "https://crystalliquor.com/", "ecommercePlatform": "WooCommerce", "inventoryStatus": "catalog-store-selector", "discoverySource": "first-party-storefront", "sourceLabels": ["Crystal Liquor WooCommerce Nevada catalog watch"], "key": "crystal-liquor-las-vegas-89147"
+    }
+  ]
+}

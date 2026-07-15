@@ -321,12 +321,13 @@
     },
     "NV": {
       "customerLabel": "Nevada",
-      "sourceLabel": "Nevada Costco warehouse bourbon watch",
+      "sourceLabel": "Nevada first-party retailer inventory + Costco watch",
       "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Nevada warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "area",
+      "areaOptions": ["Las Vegas Valley", "Reno–Sparks"],
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
     },
     "WA": {
       "customerLabel": "Washington",
