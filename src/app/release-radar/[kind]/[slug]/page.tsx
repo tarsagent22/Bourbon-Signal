@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { JsonLd, RadarNav } from "@/components/release-radar/RadarPrimitives";
-import { getRadarEntryByPath, radarEntries, radarPath, radarPathKinds } from "@/lib/release-radar";
+import { getRadarEntryByPath, radarEntries, radarPath, radarPathKinds, stateGuides } from "@/lib/release-radar";
 
 export function generateStaticParams() {
   return radarEntries.map((entry) => {
@@ -32,7 +32,8 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   const entry = getRadarEntryByPath(kind, slug);
   if (!entry) notFound();
   const canonical = `https://www.bourbonsignal.com${radarPath(entry)}`;
-  const isScheduled = entry.kind === "event" || entry.kind === "lottery";
+  const isScheduled = Boolean(entry.calendar) && (entry.kind === "event" || entry.kind === "lottery");
+  const relatedState = stateGuides.find((guide) => entry.states.includes(guide.state));
   const eventBase = {
     name: entry.title,
     description: entry.summary,
@@ -57,7 +58,7 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
       : entry.location ? { "@type": "Place", name: entry.location } : undefined,
   } : {
     "@context": "https://schema.org", "@type": "Article", headline: entry.title, description: entry.summary,
-    dateModified: entry.updatedAt, mainEntityOfPage: canonical,
+    datePublished: entry.startDate, dateModified: entry.updatedAt, mainEntityOfPage: canonical,
     publisher: { "@type": "Organization", name: "Bourbon Signal", url: "https://www.bourbonsignal.com" },
     citation: entry.sources.map((source) => source.url),
   };
@@ -95,11 +96,12 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
               <h2>Primary sources</h2>
               {entry.sources.map((source) => <a className="radar-source-link" href={source.url} target="_blank" rel="noreferrer" key={source.url}><span>{source.label}</span><ArrowUpRight size={14} /></a>)}
               <p className="radar-updated">Verified {entry.updatedAt}</p>
+              {relatedState && <Link className="radar-context-link" href={`/release-radar/states/${relatedState.slug}`}>{relatedState.state} hunting guide <ArrowRight size={13}/></Link>}
             </aside>
           </div>
           <div className="radar-cta">
             <div><h2>Turn release context into a live hunt.</h2><p>Check current signals, monitor your markets, and keep the official source close.</p></div>
-            <Link href="/#drops">Open live signals <ArrowRight size={14} style={{ display: "inline", marginLeft: 6 }} /></Link>
+            <div className="radar-cta-links"><Link href="/release-radar">View calendar</Link><Link href="/#drops">Open live signals <ArrowRight size={14} style={{ display: "inline", marginLeft: 6 }} /></Link></div>
           </div>
         </article>
       </div>

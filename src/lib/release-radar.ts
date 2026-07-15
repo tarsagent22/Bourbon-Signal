@@ -1,5 +1,7 @@
 export type RadarKind = "release" | "lottery" | "event" | "bottle";
 
+export const releaseRadarUpdatedAt = "2026-07-15";
+
 export interface RadarSource {
   label: string;
   url: string;

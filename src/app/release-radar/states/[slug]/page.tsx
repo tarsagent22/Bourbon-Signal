@@ -36,14 +36,14 @@ export default async function StateGuidePage({ params }: { params: Promise<{ slu
       }, {
         "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
           { "@type": "ListItem", position: 1, name: "Release Radar", item: "https://www.bourbonsignal.com/release-radar" },
-          { "@type": "ListItem", position: 2, name: "State guides", item: "https://www.bourbonsignal.com/release-radar#states" },
+          { "@type": "ListItem", position: 2, name: "State guides", item: "https://www.bourbonsignal.com/release-radar/states" },
           { "@type": "ListItem", position: 3, name: guide.state, item: canonical },
         ],
       }]} />
       <div className="radar-shell">
         <RadarNav active="states" />
         <article className="radar-detail">
-          <div className="radar-breadcrumbs"><Link href="/release-radar">Release Radar</Link><span>/</span><Link href="/release-radar#states">State guides</Link><span>/</span><span>{guide.state}</span></div>
+          <div className="radar-breadcrumbs"><Link href="/release-radar">Release Radar</Link><span>/</span><Link href="/release-radar/states">State guides</Link><span>/</span><span>{guide.state}</span></div>
           <div className="radar-detail__hero">
             <div>
               <p className="radar-detail__eyebrow">{guide.model}</p>

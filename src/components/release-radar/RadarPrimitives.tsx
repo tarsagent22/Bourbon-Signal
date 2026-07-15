@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, CalendarDays, MapPinned, Radar, ShieldCheck } from "lucide-react";
 import type { RadarEntry } from "@/lib/release-radar";
 import { radarPath } from "@/lib/release-radar";
+import { RadarTabs, type RadarTab } from "@/components/release-radar/RadarTabs";
 
 export function RadarMasthead({ compact = false }: { compact?: boolean }) {
   return (
@@ -21,20 +22,9 @@ export function RadarMasthead({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function RadarNav({ active = "overview" }: { active?: string }) {
-  const links = [
-    ["overview", "Overview", "/release-radar"],
-    ["calendar", "Calendar", "/release-radar#calendar"],
-    ["releases", "Releases", "/release-radar#releases"],
-    ["lotteries", "Lotteries", "/release-radar#lotteries"],
-    ["states", "State guides", "/release-radar#states"],
-    ["bottles", "Bottle guides", "/release-radar#bottles"],
-  ];
-  return (
-    <nav className="radar-subnav" aria-label="Release Radar sections">
-      {links.map(([id, label, href]) => <Link key={id} className={active === id ? "is-active" : ""} href={href}>{label}</Link>)}
-    </nav>
-  );
+export function RadarNav({ active = "calendar" }: { active?: string }) {
+  const tab: RadarTab = active === "states" ? "states" : active === "bottles" || active === "bottle" ? "bottles" : active === "overview" || active === "calendar" ? "calendar" : "briefings";
+  return <RadarTabs active={tab} />;
 }
 
 export function RadarCard({ entry, index, featured = false }: { entry: RadarEntry; index?: number; featured?: boolean }) {

@@ -8,10 +8,12 @@ import {
   getUpcomingEntries,
   getEntriesByKind,
   getStateGuide,
+  releaseRadarUpdatedAt,
 } from "../src/lib/release-radar.ts";
 import { getAgendaOccurrences, getCalendarOccurrences, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 8, "Release Radar should launch with at least eight sourced records");
+assert.equal(releaseRadarUpdatedAt, "2026-07-15", "public Radar freshness should match the final review date");
 assert.equal(new Set(radarEntries.map((entry) => entry.slug)).size, radarEntries.length, "record slugs must be unique");
 assert.ok(radarEntries.every((entry) => entry.sources.length > 0), "every record needs a source");
 assert.ok(radarEntries.every((entry) => entry.sources.every((source) => source.url.startsWith("https://"))), "sources must use HTTPS");
@@ -55,14 +57,20 @@ assert.ok(stateGuides.every((guide) => guide.sections.length >= 3), "state guide
 assert.ok(getStateGuide(stateGuides[0].slug), "state guides must be retrievable by slug");
 
 const nav = readFileSync(resolve("src/components/Navigation.tsx"), "utf8");
-assert.doesNotMatch(nav, /Release Radar/, "preview must not appear in primary navigation");
+assert.doesNotMatch(nav, /Release Radar/, "Release Radar must stay out of primary navigation");
+
+const footer = readFileSync(resolve("src/components/Footer.tsx"), "utf8");
+assert.match(footer, /Release Radar/, "public discovery belongs in the footer");
 
 const sitemap = readFileSync(resolve("src/app/sitemap.ts"), "utf8");
-assert.doesNotMatch(sitemap, /radarEntries|stateGuides/, "preview routes must not be discoverable through sitemap");
+assert.match(sitemap, /radarEntries/);
+assert.match(sitemap, /stateGuides/);
+assert.match(sitemap, /radarPath/);
 
 const radarLayout = readFileSync(resolve("src/app/release-radar/layout.tsx"), "utf8");
-assert.match(radarLayout, /index:\s*false/);
-assert.match(radarLayout, /follow:\s*false/);
+assert.doesNotMatch(radarLayout, /index:\s*false|follow:\s*false/);
+assert.match(radarLayout, /index:\s*true/);
+assert.match(radarLayout, /follow:\s*true/);
 
 assert.match(hubSource, /CalendarExplorer/);
 assert.match(hubSource, /RadarTabs/);
@@ -109,6 +117,22 @@ assert.match(bottlesSource, /entry\.facts/, "bottle cards need bottle facts, not
 assert.doesNotMatch(bottlesSource, /limited editions under watch|Evidence standard/, "bottle index should avoid decorative counts and repeated manifestos");
 assert.doesNotMatch(tabsSource, /index:|<small>/, "section tabs should use plain labels without decorative numbering");
 assert.doesNotMatch(hubSource, /rr-hero-metrics|Dated records|Primary sources|Watch windows/, "calendar hero should not use decorative coverage statistics");
+assert.match(hubSource, /Bourbon Release/);
+assert.match(hubSource, /<time dateTime=/, "freshness must be machine-readable and human-readable");
+assert.match(hubSource, /entry\.calendar/, "only records with supported date precision belong in the calendar");
+
+const detailPageSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
+assert.match(detailPageSource, /Boolean\(entry\.calendar\)/, "non-calendar briefings must not emit misleading Event schema");
+assert.match(detailPageSource, /datePublished:\s*entry\.startDate/);
+
+const stateDetailSource = readFileSync(resolve("src/app/release-radar/states/[slug]/page.tsx"), "utf8");
+assert.match(stateDetailSource, /\/release-radar\/states/);
+assert.doesNotMatch(stateDetailSource, /\/release-radar#states/);
+
+const cssSource = readFileSync(resolve("src/app/release-radar/release-radar.css"), "utf8");
+assert.equal((cssSource.match(/@media\s*\(max-width:\s*820px\)/g) || []).length, 1, "mobile styles should be consolidated into one layer");
+assert.match(cssSource, /env\(safe-area-inset-bottom\)/, "mobile pages need safe-area padding");
+assert.match(cssSource, /prefers-reduced-motion:\s*reduce/, "radar motion must respect reduced-motion preferences");
 
 for (const route of [
   "src/app/release-radar/page.tsx",
