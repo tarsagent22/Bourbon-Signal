@@ -263,12 +263,16 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "CA": {
       "customerLabel": "California",
-      "sourceLabel": "California Costco warehouse bourbon watch",
+      "sourceLabel": "California first-party retailer availability + Costco warehouse watch",
+      "customerAreaLabel": "California retailer areas",
+      "areaOptions": [
+        "San Diego"
+      ],
       "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for California warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "area",
+      "customerSummary": "First-party San Diego retailer pickup availability with exact store identity and verify-before-driving caveats. Online catalog-only sources remain watch-only; Costco warehouse signals stay a separate fast-moving availability lane."
     },
     "MI": {
       "customerLabel": "Michigan",

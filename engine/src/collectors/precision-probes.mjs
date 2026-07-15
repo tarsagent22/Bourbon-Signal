@@ -17,6 +17,13 @@ import {
   isAllowedHttpsHost,
 } from './florida-tampa-surfaces.mjs';
 import {
+  CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
+  filterFreshCaliforniaSignals,
+  mergeCaliforniaSourceCacheSignals,
+  parseCaliforniaShopifyProducts,
+  verifyCaliforniaFulfillmentPolicy,
+} from './california-san-diego-surfaces.mjs';
+import {
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
   indianaCityHivePriorityRank,
@@ -30,6 +37,11 @@ import {
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
 const execFileAsync = promisify(execFile);
+
+const CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH = 'out/browser/CA-san-diego-shopify.json';
+const CA_SAN_DIEGO_SHOPIFY_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_CA_SHOPIFY_CACHE_MAX_AGE_MS || 4 * 60 * 60_000);
+const CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS = Math.max(250, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_CA_SHOPIFY_SOURCE_DELAY_MS) || 750));
+
 
 const TRACKED_TERMS = {
   OH: ['Eagle Rare'],
@@ -6008,6 +6020,230 @@ async function collectKentuckyReleaseWatchPages(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+async function readCaliforniaSanDiegoShopifyCache() {
+  try {
+    const cache = JSON.parse(await readFile(CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH, 'utf8'));
+    const signals = filterFreshCaliforniaSignals(cache?.signals, Date.now(), CA_SAN_DIEGO_SHOPIFY_CACHE_MAX_AGE_MS)
+      .filter((signal) => signal.eventType !== 'retailer_store_inventory_result' || signal.raw?.fulfillmentPolicyVerified === true);
+    if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) return null;
+    return { ...cache, signals, roadblocks: Array.isArray(cache?.roadblocks) ? cache.roadblocks : [] };
+  } catch {
+    return null;
+  }
+}
+
+async function writeCaliforniaSanDiegoShopifyCache(signals, roadblocks) {
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    source: 'California San Diego first-party Shopify cache',
+    cacheMaxAgeMs: CA_SAN_DIEGO_SHOPIFY_CACHE_MAX_AGE_MS,
+    signalCount: signals.length,
+    inventorySignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result').length,
+    sourceChains: [...new Set(signals.map((signal) => signal.sourceChain).filter(Boolean))].sort(),
+    signals,
+    roadblocks,
+  };
+  await mkdir(path.dirname(CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH), { recursive: true });
+  await writeFile(CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+}
+
+function cachedCaliforniaSignals(cache) {
+  return (cache?.signals || []).map((signal) => ({
+    ...signal,
+    raw: {
+      ...(signal.raw || {}),
+      cacheFallback: true,
+      cacheGeneratedAt: cache.generatedAt,
+      artifactPath: CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH,
+    },
+  }));
+}
+
+async function fetchCaliforniaShopifySource(source) {
+  const products = [];
+  for (let page = 1; page <= source.maxPages; page++) {
+    const separator = source.productsUrl.includes('?') ? '&' : '?';
+    const url = `${source.productsUrl}${separator}page=${page}`;
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000 });
+    if (!res.ok) return { ...res, url };
+    let payload;
+    try { payload = JSON.parse(res.text); } catch (error) {
+      return { ok: false, status: res.status || 0, error: error instanceof Error ? error.message : String(error), text: res.text, url };
+    }
+    if (!Array.isArray(payload?.products)) return { ok: false, status: res.status || 0, error: 'Shopify response did not contain a products array.', text: res.text, url };
+    products.push(...payload.products);
+    if (payload.products.length < 250) break;
+    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+  }
+  return { ok: true, status: 200, text: JSON.stringify({ products }), error: null, url: source.productsUrl };
+}
+
+async function collectCalifornia(config, bible) {
+  const observedAt = new Date().toISOString();
+  const cache = await readCaliforniaSanDiegoShopifyCache();
+  if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
+    return {
+      signals: cachedCaliforniaSignals(cache),
+      roadblocks: [
+        ...(cache.roadblocks || []),
+        {
+          state: config.id,
+          source: 'California San Diego first-party Shopify cache reuse',
+          url: CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH,
+          status: 200,
+          error: `Using ${cache.signals.length} fresh cached San Diego retailer rows from ${cache.generatedAt}; set BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE=1 for a bounded live refresh.`,
+          nextRoute: 'Keep retailer requests low-cadence and force live only for source verification or scheduled refresh windows.',
+        },
+      ],
+    };
+  }
+
+  const liveSignals = [];
+  const roadblocks = [];
+  const completedSourceIds = new Set();
+  for (const source of CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES) {
+    let fulfillmentPolicyVerified = false;
+    if (source.inventoryEligible) {
+      const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000 });
+      fulfillmentPolicyVerified = policyRes.ok && verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
+      if (!fulfillmentPolicyVerified) {
+        roadblocks.push({
+          state: config.id,
+          source: source.sourceLabel,
+          url: source.fulfillmentPolicyUrl,
+          status: policyRes.status || (policyRes.ok ? 'missing_fulfillment_evidence' : 0),
+          error: policyRes.ok ? 'First-party page no longer proves in-store pickup/collection for online orders.' : (policyRes.error || `HTTP ${policyRes.status}`),
+          nextRoute: 'Fail closed and re-audit the first-party fulfillment policy; do not infer pickup from catalog availability alone.',
+        });
+        await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+        continue;
+      }
+    }
+    const res = await fetchCaliforniaShopifySource(source);
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.productsUrl,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Retry the public first-party product feed at low cadence; do not bypass retailer controls or promote catalog presence.',
+      });
+      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+      continue;
+    }
+    let payload;
+    try { payload = JSON.parse(res.text); } catch (error) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.productsUrl,
+        status: res.status || 0,
+        error: error instanceof Error ? error.message : String(error),
+        nextRoute: 'Inspect the public Shopify response shape; malformed reachable responses fail closed.',
+      });
+      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+      continue;
+    }
+    if (!Array.isArray(payload?.products)) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.productsUrl,
+        status: 'malformed_reachable_payload',
+        error: 'Shopify response did not contain a products array.',
+        nextRoute: 'Inspect the public response shape without weakening source or inventory guards.',
+      });
+      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+      continue;
+    }
+    completedSourceIds.add(source.id);
+    const parsedRows = parseCaliforniaShopifyProducts(payload);
+    for (const row of parsedRows) {
+      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(row.title, bible);
+      if (!record) continue;
+      const eventType = source.inventoryEligible ? 'retailer_store_inventory_result' : 'retailer_catalog_availability';
+      const productUrl = row.handle ? `https://${source.host}/products/${encodeURIComponent(row.handle)}` : source.productsUrl;
+      liveSignals.push({
+        id: stableId([config.id, 'san-diego-shopify', source.id, row.productId, row.variantId]),
+        state: config.id,
+        stateCode: 'CA',
+        sourceLabel: source.sourceLabel,
+        sourceUrl: productUrl,
+        sourceChain: source.id,
+        merchantId: source.merchantId,
+        productId: row.productId,
+        variantId: row.variantId,
+        rawName: row.title,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        tier: record.tier,
+        confidence: Math.max(source.inventoryEligible ? 0.82 : 0.7, Math.min(0.92, match?.confidence || 0.7)),
+        eventType,
+        locationPrecision: source.inventoryEligible ? 'store_level' : 'store_aggregate',
+        locationName: source.store.name,
+        storeName: source.store.name,
+        storeId: source.store.id,
+        storeAddress: source.store.address,
+        city: source.store.city,
+        stateCode: source.store.stateCode,
+        postalCode: source.store.zip,
+        zip: source.store.zip,
+        quantity: 0,
+        price: row.price,
+        availabilityStatus: source.inventoryEligible ? 'in_stock' : 'retailer_online_available',
+        availabilityLabel: source.inventoryEligible ? 'Available for retailer pickup/order' : 'Available online; local pickup not verified',
+        sourceAvailabilityVerified: true,
+        observedAt,
+        canAlertAsInventory: source.inventoryEligible,
+        canAlertAsWatch: true,
+        inventorySemantics: row.inventorySemantics,
+        evidence: source.inventoryEligible
+          ? `${source.chainName} marks ${row.title} available on its first-party storefront and its separately fetched first-party policy publishes pickup/order fulfillment for the named San Diego premises. Exact quantity is not published.`
+          : `${source.chainName} marks ${row.title} available online. Exact San Diego pickup availability is not established, so this remains watch-only.`,
+        caveat: source.inventoryEligible
+          ? 'Binary first-party retailer availability, not an exact shelf count. Verify pickup availability before driving.'
+          : 'Online catalog availability only; local pickup is not verified.',
+        raw: {
+          chain: source.id,
+          merchantId: source.merchantId,
+          product: { id: row.productId, handle: row.handle, type: row.productType, tags: row.tags },
+          variant: { id: row.variantId, sku: row.sku, size: row.size, available: true, price: row.price },
+          fulfillmentPolicyUrl: source.fulfillmentPolicyUrl,
+          fulfillmentPolicyVerified,
+          matchGuard: unsafeReason,
+        },
+      });
+    }
+    if (!liveSignals.some((signal) => signal.sourceChain === source.id)) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.productsUrl,
+        status: 'reachable_no_safe_inventory_rows',
+        error: `Shopify returned ${payload.products.length} products but no safely matched available bourbon rows survived source, size, format, and bottle guards.`,
+        nextRoute: 'Inspect product titles and variant availability without weakening bottle, format, or premises guards.',
+      });
+    }
+    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
+  }
+
+  const cachedFresh = cachedCaliforniaSignals(cache);
+  const signals = mergeCaliforniaSourceCacheSignals(liveSignals, cachedFresh, completedSourceIds);
+  if (completedSourceIds.size > 0) await writeCaliforniaSanDiegoShopifyCache(signals, roadblocks);
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    roadblocks.push({
+      state: config.id,
+      source: 'California San Diego first-party retailer availability',
+      url: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((source) => source.productsUrl).join(', '),
+      status: 'reachable_no_inventory_rows',
+      error: 'No fresh, identity-bound San Diego pickup availability rows survived the guarded collector.',
+      nextRoute: 'Keep California unpromoted until qualified first-party pickup rows are runner-reachable; do not substitute catalog or marketplace presence.',
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function collectKentucky(config, bible) {
   const observedAt = new Date().toISOString();
   const availability = await collectKentuckyBuffaloTraceAvailability(config, bible, observedAt);
@@ -6031,6 +6267,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
   if (config.id === 'AZ') return collectArizona(config, bible);
+  if (config.id === 'CA') return collectCalifornia(config, bible);
   if (config.id === 'FL') return collectFlorida(config, bible);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);

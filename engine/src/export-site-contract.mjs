@@ -293,6 +293,8 @@ function publicSignal(signal, bible, freshness = null) {
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
+    productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    variantId: signal.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     sourceIdentity: signal.raw?.source || null,
     observedAt: signal.observedAt,
     releaseDate: signal.releaseDate || signal.eventDate || null,
@@ -315,6 +317,7 @@ function publicSignal(signal, bible, freshness = null) {
     quantity: signal.quantity || signal.storeQty || 0,
     availabilityStatus: signal.availabilityStatus,
     availabilityLabel: signal.availabilityLabel,
+    sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
@@ -333,8 +336,10 @@ function publicSignal(signal, bible, freshness = null) {
         ? 'Official distillery release-watch intelligence only; not retailer store inventory or a store shipment alert.'
       : ohioFeedStaleCaveat(signal)
         ? 'Stale OHLQ store-status signal. OHLQ collection is currently blocked/stale, so this is the latest cached status; verify on OHLQ or call the store before driving.'
+        : signal.state === 'CA' && canAlertAsInventory
+          ? 'First-party product orderability plus a separately fetched first-party pickup/collection policy for this single-location San Diego retailer. Exact shelf quantity is not published; verify pickup before driving.'
         : canAlertAsInventory && signal.locationPrecision === 'store_level'
-        ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
+          ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
         : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
           ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
           : 'Informational/watch data only; not live shelf inventory.',
@@ -1017,14 +1022,14 @@ function alertChannelPolicy(candidate) {
   const within = (channel) => hasFreshness && freshnessHours <= maxFreshnessForActionability(actionabilityClass, channel);
 
   const eligibleForOnSite = !blocked && within('onSite');
-  const eligibleForEmail = eligibleForOnSite && within('email') && (
+  const eligibleForEmail = candidate.eligibleForEmail !== false && eligibleForOnSite && within('email') && (
     actionabilityClass === 'store_inventory' ||
     actionabilityClass === 'store_delivery_lead' ||
     (actionabilityClass === 'board_or_county_lead' && (major || unicorn)) ||
     actionabilityClass === 'distillery_release_watch' ||
     (actionabilityClass === 'retailer_warehouse_watch' && (major || unicorn))
   );
-  const eligibleForSms = eligibleForEmail && within('sms') && (
+  const eligibleForSms = candidate.eligibleForSms !== false && eligibleForEmail && within('sms') && (
     (actionabilityClass === 'store_inventory' && (major || unicorn)) ||
     (actionabilityClass === 'store_delivery_lead' && unicorn) ||
     (actionabilityClass === 'board_or_county_lead' && major) ||
@@ -1083,10 +1088,16 @@ function buildAlerts(alerts) {
     eventType: c.eventType,
     source: c.sourceLabel,
     sourceUrl: c.sourceUrl,
+    sourceChain: c.sourceChain || null,
+    merchantId: c.merchantId || null,
+    productId: c.productId || null,
+    variantId: c.variantId || null,
     locationPrecision: c.locationPrecision,
     locationName: c.locationName,
     storeName: c.storeName,
+    storeId: c.storeId || null,
     storeAddress: c.storeAddress,
+    city: c.city || null,
     quantity: c.quantity || 0,
     availabilityStatus: c.availabilityStatus,
     availabilityLabel: c.availabilityLabel,
@@ -1180,6 +1191,13 @@ function ohioFeedStaleCaveat(signal) {
 
 function dropHasPositiveAlertInventory(drop) {
   if (Number(drop?.quantity || 0) > 0) return true;
+  if (drop?.state === 'CA') {
+    return String(drop?.type || drop?.eventType || '') === 'retailer_store_inventory_result'
+      && drop?.sourceAvailabilityVerified === true
+      && ['del-mesa-liquor', 'mission-trails-wine-spirits'].includes(String(drop?.sourceChain || ''))
+      && Boolean(drop?.merchantId && drop?.productId && drop?.variantId && drop?.storeId)
+      && String(drop?.availabilityStatus || '').toLowerCase() === 'in_stock';
+  }
   return drop?.state === 'OH'
     && /^browser_assisted_store_inventory_(limited_supply|in_stock)$/i.test(String(drop?.type || drop?.eventType || ''))
     && ['limited_supply', 'in_stock'].includes(String(drop?.availabilityStatus || '').toLowerCase());
@@ -1199,18 +1217,18 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: true,
-      eligibleForSms: ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForEmail: drop.state === 'CA' ? false : true,
+      eligibleForSms: drop.state === 'CA' ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
       actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
-      sendRecommendation: 'send_to_matching_testers',
+      sendRecommendation: drop.state === 'CA' ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
       freshnessHours: Number(dropAgeHours(drop).toFixed(1)),
       bootstrap: false,
       changeType: 'current_inventory_signal',
       dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
-      gates: ['current_public_drop', 'store_level', 'positive_quantity'],
+      gates: ['current_public_drop', 'store_level', drop.state === 'CA' ? 'verified_binary_orderability' : 'positive_quantity'],
       blockers: [],
       cautions: ['verify_before_driving'],
       state: drop.state,
@@ -1219,10 +1237,16 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       eventType: drop.type,
       source: drop.source,
       sourceUrl: drop.sourceUrl,
+      sourceChain: drop.sourceChain || null,
+      merchantId: drop.merchantId || null,
+      productId: drop.productId || null,
+      variantId: drop.variantId || null,
       locationPrecision: drop.locationPrecision,
       locationName: drop.locationName,
       storeName: drop.storeName,
+      storeId: drop.storeId || null,
       storeAddress: drop.storeAddress,
+      city: drop.city || null,
       quantity: drop.quantity || 0,
       availabilityStatus: drop.availabilityStatus,
       availabilityLabel: drop.availabilityLabel,
@@ -1231,7 +1255,9 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       confidence: drop.confidence,
       policyMode: drop.policyMode,
       inventorySemantics: safeString(drop.inventorySemantics, 700),
-      reason: 'Current source-backed store-level drop eligible for member alert matching.',
+      reason: drop.state === 'CA'
+        ? 'Current first-party binary retailer orderability plus separately verified pickup/collection policy eligible for San Diego member matching.'
+        : 'Current source-backed store-level drop eligible for member alert matching.',
       evidence: safeString(drop.evidence, 700)
     }));
 }

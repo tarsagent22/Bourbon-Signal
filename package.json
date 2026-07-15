@@ -42,9 +42,10 @@
     "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
     "test:release-radar": "node --experimental-strip-types scripts/test-release-radar.mts",
     "test:retailer-portal": "node --experimental-strip-types scripts/test-retailer-portal.mts",
+    "test:california-area": "node --experimental-strip-types scripts/test-california-area.mts",
     "test:faq-content": "node --no-warnings --experimental-strip-types scripts/test-faq-content.mts",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run test:faq-content && npm run test:retailer-portal && npm run test:release-radar && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
+    "verify:ci": "npm run test:faq-content && npm run test:retailer-portal && npm run test:release-radar && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",

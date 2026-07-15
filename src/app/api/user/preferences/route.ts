@@ -9,6 +9,7 @@ import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements } from "@/lib/entitlements";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
+import { normalizeCaliforniaAreas } from "@/lib/california-area";
 
 export interface AreaPreferences {
   states: string[];
@@ -18,6 +19,7 @@ export interface AreaPreferences {
   iaCities: string[];
   idCities: string[];
   scAreas: string[];
+  caAreas: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -60,6 +62,7 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   iaCities: [],
   idCities: [],
   scAreas: [],
+  caAreas: [],
   paCounties: [],
   paStores: [],
 };
@@ -99,6 +102,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     iaCities: toStringArray(source.iaCities),
     idCities: toStringArray(source.idCities),
     scAreas: toStringArray(source.scAreas),
+    caAreas: normalizeCaliforniaAreas(source.caAreas),
     paCounties: toStringArray(source.paCounties),
     paStores: toStringArray(source.paStores),
   };
@@ -107,7 +111,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
 function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
   if (limit === null) return areaPreferences;
-  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], paCounties: [], paStores: [] };
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], paCounties: [], paStores: [] };
 
   let remaining = limit;
   const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
@@ -126,6 +130,7 @@ function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: num
     else if (state === "IA") next.iaCities = takeDetails(areaPreferences.iaCities);
     else if (state === "ID") next.idCities = takeDetails(areaPreferences.idCities);
     else if (state === "SC") next.scAreas = takeDetails(areaPreferences.scAreas);
+    else if (state === "CA") next.caAreas = takeDetails(areaPreferences.caAreas);
     else if (state === "PA") {
       const paDetails = [...areaPreferences.paCounties, ...areaPreferences.paStores].slice(0, remaining);
       next.paCounties = areaPreferences.paCounties.filter((value) => paDetails.includes(value));

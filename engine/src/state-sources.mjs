@@ -361,10 +361,14 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'CA', label: 'California Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. California is one of the strongest Costco whiskey/bourbon markets; treat observations as fast-moving warehouse signals.',
-    rareSignalTarget: false,
-    sources: [],
+    id: 'CA', label: 'California first-party retailer availability + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'San Diego first-party retailer pickup availability with exact premises identity and binary orderability semantics; online catalog-only sources remain watch-only. Costco stays a separate warehouse lane.',
+    rareSignalTarget: true,
+    sources: [
+      { kind: 'api', url: 'https://www.delmesaliquor.com/products.json?limit=250', label: 'Del Mesa Liquor Shopify San Diego pickup availability', precisionOnly: true },
+      { kind: 'api', url: 'https://missiontrailswineandspirits.com/products.json?limit=250', label: 'Mission Trails Wine & Spirits Shopify San Diego pickup availability', precisionOnly: true },
+      { kind: 'api', url: 'https://chipsliquor.com/products.json?limit=250', label: 'Chips Liquor Shopify online catalog watch', precisionOnly: true }
+    ],
     apiCandidates: []
   },
   {

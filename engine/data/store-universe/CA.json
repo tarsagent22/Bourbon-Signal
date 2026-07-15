@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-07-15T00:55:33Z",
+  "state": "CA",
+  "model": "Bourbon Signal national store universe v0.1",
+  "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates exact pickup-capable sources from online catalog watch sources.",
+  "summary": {
+    "seedCount": 3,
+    "probedCount": 3,
+    "knownStoreCount": 3,
+    "currentStoreCount": 3,
+    "probeDiscoveredStoreCount": 0,
+    "directorySeedStoreCount": 0,
+    "directoryUrlStoreCount": 0,
+    "byStatus": {
+      "live-inventory": 2,
+      "catalog-store-selector": 1
+    },
+    "cityCount": 1,
+    "byCity": {
+      "San Diego": 3
+    }
+  },
+  "stores": [
+    {
+      "id": "del-mesa-liquor:6090-friars",
+      "name": "Del Mesa Liquor",
+      "address": "6090 Friars Road, San Diego, CA 92108-1002",
+      "city": "San Diego",
+      "state": "CA",
+      "zip": "92108-1002",
+      "website": "https://www.delmesaliquor.com/",
+      "ecommercePlatform": "Shopify",
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-storefront",
+      "sourceLabels": [
+        "Del Mesa Liquor Shopify San Diego pickup availability"
+      ],
+      "key": "del-mesa-liquor-san-diego-92108"
+    },
+    {
+      "id": "mission-trails-wine-spirits:8181-mission-gorge",
+      "name": "Mission Trails Wine & Spirits",
+      "address": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+      "city": "San Diego",
+      "state": "CA",
+      "zip": "92120",
+      "website": "https://missiontrailswineandspirits.com/",
+      "ecommercePlatform": "Shopify",
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-storefront",
+      "sourceLabels": [
+        "Mission Trails Wine & Spirits Shopify San Diego pickup availability"
+      ],
+      "key": "mission-trails-wine-spirits-san-diego-92120"
+    },
+    {
+      "id": "chips-liquor:1926-garnet",
+      "name": "Chips Liquor",
+      "address": "1926 Garnet Ave, San Diego, CA 92109",
+      "city": "San Diego",
+      "state": "CA",
+      "zip": "92109",
+      "website": "https://chipsliquor.com/pages/location",
+      "ecommercePlatform": "Shopify",
+      "inventoryStatus": "catalog-store-selector",
+      "discoverySource": "first-party-storefront",
+      "sourceLabels": [
+        "Chips Liquor Shopify online catalog watch"
+      ],
+      "key": "chips-liquor-san-diego-92109"
+    }
+  ]
+}

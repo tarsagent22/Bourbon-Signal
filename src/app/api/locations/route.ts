@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
+import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.toLowerCase().trim() : "";
@@ -89,6 +90,10 @@ function hasActionableLocationDrop(drop: Record<string, unknown>) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
+  const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
+  if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
+    return NextResponse.json({ locations: [], stores: [], total: 0, error: "Unsupported California area" }, { status: 400 });
+  }
 
   try {
     const [locationsPayload, storesPayload, dropsPayload] = await Promise.all([
@@ -150,6 +155,17 @@ export async function GET(request: Request) {
       locations = locations.filter((location) => {
         const record = location as Record<string, unknown>;
         return String(record.state ?? record.state_code ?? "").toUpperCase() === state;
+      });
+    }
+    if (state === "CA" && californiaArea.areas.length) {
+      locations = locations.filter((location) => {
+        const record = location as Record<string, unknown>;
+        return californiaAreaMatchesFields([
+          record.city,
+          record.address,
+          record.name,
+          record.displayLabel,
+        ], californiaArea.areas);
       });
     }
 

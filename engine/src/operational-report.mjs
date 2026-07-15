@@ -5,6 +5,7 @@ import { BourbonBible } from './core/bible.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
+import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -73,7 +74,9 @@ function canonicalizeSignal(signal, bible) {
     sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
-    merchantId: signal.merchantId || signal.raw?.option?.merchant_id || null,
+    merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
+    productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    variantId: signal.variantId || signal.raw?.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     observedAt: observedAt(signal),
     sourceEventAt: signal.sourceEventAt || null,
     eventDate: signal.eventDate || signal.releaseDate || signal.raw?.eventDate || signal.raw?.releaseDate || null,
@@ -184,6 +187,7 @@ function reliabilityForCandidate(change, sig, score) {
   const precisionScore = precisionRank(precision);
   const confidence = Number(sig.confidence || 0);
   const quantity = quantityValue(sig);
+  const hasPositiveAvailability = hasPositiveInventoryEvidence(sig, quantity);
   const isInventory = Boolean(sig.canAlertAsInventory);
   const isWatch = Boolean(sig.canAlertAsWatch) && !isInventory;
   const eventType = String(sig.eventType || '').toLowerCase();
@@ -239,7 +243,7 @@ function reliabilityForCandidate(change, sig, score) {
 
   const majorTier = sig.tier === 'unicorn' || sig.tier === 'allocated';
   const hasFreshPositiveInventory = isInventory
-    && quantity > 0
+    && (quantity > 0 || hasPositiveAvailability)
     && ageHours != null
     && ageHours <= 72
     && confidence >= 0.62;
@@ -294,10 +298,16 @@ function candidateFromChange(change, bootstrap = false) {
     eventType: sig.eventType,
     sourceLabel: sig.sourceLabel,
     sourceUrl: sig.sourceUrl,
+    sourceChain: sig.sourceChain,
+    merchantId: sig.merchantId,
+    productId: sig.productId,
+    variantId: sig.variantId,
     locationPrecision: sig.locationPrecision,
     locationName: sig.locationName,
     storeName: sig.storeName,
+    storeId: sig.storeId,
     storeAddress: sig.storeAddress,
+    city: sig.city,
     quantity: sig.quantity,
     availabilityStatus: sig.availabilityStatus,
     availabilityLabel: sig.availabilityLabel,
