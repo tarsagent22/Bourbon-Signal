@@ -1507,8 +1507,8 @@ async function main() {
   const currentDrops = buildDrops(signals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
   const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
-  const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(drops);
-  const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(drops);
+  const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(currentDrops);
+  const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(currentDrops);
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
     .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
@@ -219,4 +220,13 @@ test('California registry and lifecycle expose one truthful San Diego customer a
   assert.equal(lifecycle.coverageTier, 'live_store_inventory');
   assert.equal(lifecycle.refinementLevel, 'area');
   assert.deepEqual(lifecycle.areaOptions, ['San Diego']);
+});
+
+test('current inventory alert projection uses the current snapshot rather than historical rows', async () => {
+  const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
+  assert.match(
+    exporter,
+    /const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops\(currentDrops\);/,
+    'fresh current inventory must drive baseline on-site candidates and state-quality alertability',
+  );
 });
