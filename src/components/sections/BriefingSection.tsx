@@ -13,6 +13,13 @@ interface BriefingItem {
 
 const briefingItems: BriefingItem[] = [
   {
+    title: "Yellowstone’s 2026 Limited Edition enters the August hunt",
+    summary: "Yellowstone’s 2026 Limited Edition blends 7- and 14-year Kentucky bourbons finished separately in ruby and tawny port casks, then marries them at 101 proof.",
+    note: "Actionable release radar: the $99 bottle is available now at Limestone Branch Distillery and is scheduled to reach select retailers nationwide in August.",
+    href: "https://www.prnewswire.com/news-releases/yellowstone-bourbon-unveils-2026-limited-edition-bourbon-finished-in-ruby-and-tawny-port-casks-302825541.html",
+    source: "Yellowstone Bourbon",
+  },
+  {
     title: "Kentucky Bourbon Trail expands its 2026 map",
     summary: "The Kentucky Bourbon Trail has added ten distillery and tasting experiences for 2026, spanning new craft destinations, established Kentucky names, and satellite experiences across the state.",
     note: "Useful trip-planning intelligence: the expansion creates more official stops to pair with release calendars, distillery-only bottles, and destination events before planning a Kentucky run.",
@@ -26,6 +33,9 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/barton-1792-distillery-adds-two-landmark-expressions-to-its-whiskey-lineup-1792-kentucky-straight-rye-whiskey-and-1792-xv",
     source: "Barton 1792 Distillery",
   },
+];
+
+const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Virginia ABC opens July 13–16 whiskey lottery",
     summary: "Virginia ABC's next online lottery gives hunters a short entry window for limited bourbon and rye bottles, including Black Maple Hill 16 Year Bourbon, Rare Character, Pride of Anderson County, and Hurst Knoll rye.",
@@ -33,9 +43,6 @@ const briefingItems: BriefingItem[] = [
     href: "https://www.abc.virginia.gov/products/limited-availability/lottery",
     source: "Virginia ABC",
   },
-];
-
-const additionalBriefingItems: BriefingItem[] = [
   {
     title: "Buffalo Trace turns bourbon education into summer camp",
     summary: "Camp Buffalo Trace debuts August 29 and September 5 as an adults-only distillery experience pairing bourbon education and camp-style programming with a limited overnight glamping option.",

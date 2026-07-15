@@ -1,7 +1,14 @@
 {
-  "updatedAt": "2026-07-12T10:15:00-04:00",
+  "updatedAt": "2026-07-15T11:25:00-04:00",
   "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
   "reportedStories": [
+    {
+      "title": "Yellowstone’s 2026 Limited Edition enters the August hunt",
+      "source": "Yellowstone Bourbon / PRNewswire",
+      "url": "https://www.prnewswire.com/news-releases/yellowstone-bourbon-unveils-2026-limited-edition-bourbon-finished-in-ruby-and-tawny-port-casks-302825541.html",
+      "firstReportedAt": "2026-07-15",
+      "status": "homepage-visible"
+    },
     {
       "title": "Kentucky Bourbon Trail expands its 2026 map",
       "source": "Kentucky Bourbon Trail",
@@ -14,7 +21,7 @@
       "source": "Buffalo Trace Distillery",
       "url": "https://www.buffalotracedistillery.com/camp/",
       "firstReportedAt": "2026-07-10",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "1792 adds its first rye and oldest bourbon yet",
@@ -28,7 +35,7 @@
       "source": "Virginia ABC",
       "url": "https://www.abc.virginia.gov/products/limited-availability/lottery",
       "firstReportedAt": "2026-07-07",
-      "status": "homepage-visible"
+      "status": "member-hidden"
     },
     {
       "title": "NC ABC opens comment window on statewide liquor pricing",
