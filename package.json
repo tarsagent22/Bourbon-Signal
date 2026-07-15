@@ -39,7 +39,7 @@
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
     "backup:alert-queue": "node scripts/alert-queue-backup.mjs backup",
     "verify:alert-queue-backup": "node scripts/alert-queue-backup.mjs verify",
-    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs",
+    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs && node --no-warnings --experimental-strip-types scripts/test-company-control-room.mts",
     "test:release-radar": "node --experimental-strip-types scripts/test-release-radar.mts",
     "test:retailer-portal": "node --experimental-strip-types scripts/test-retailer-portal.mts",
     "test:california-area": "node --experimental-strip-types scripts/test-california-area.mts",
