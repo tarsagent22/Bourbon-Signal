@@ -33,12 +33,12 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 const AUDIENCE_ID = process.env.RESEND_DIGEST_AUDIENCE_ID || '5ae51e44-6c4d-4312-ae1b-f353dc723899';
 const UNSUBSCRIBE_SECRET = process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || process.env.RESEND_API_KEY || '';
-const SUBJECT = 'Your free account is only showing part of Bourbon Signal';
+const SUBJECT = 'A quick note about your Bourbon Signal account';
 const FROM = 'Chandler Todd <chandler@bourbonsignal.com>';
 const REPLY_TO = 'chandler@bourbonsignal.com';
 const SITE_URL = 'https://www.bourbonsignal.com';
 const TEMPLATE_PATH = 'emails/newsletters/outbox/2026-07-15-free-member-conversion-preview.html';
-const CAMPAIGN_ID = 'free-member-conversion-2026-07-15';
+const CAMPAIGN_ID = 'free-member-conversion-2026-07-15-v2';
 const EXCLUDED_EMAILS = new Set(['chandler@bourbonsignal.com', 'chandlertodd22@gmail.com']);
 const EXCLUDED_ROLES = new Set(['admin', 'retailer', 'vendor']);
 
