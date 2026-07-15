@@ -75,6 +75,7 @@ assert.match(radarLayout, /PersistentRadarInstrument/, "one layout-owned radar s
 const persistentRadarSource = readFileSync(resolve("src/components/release-radar/PersistentRadarInstrument.tsx"), "utf8");
 for (const route of ["/release-radar", "/release-radar/briefings", "/release-radar/states"]) assert.match(persistentRadarSource, new RegExp(route.replaceAll("/", "\\/")));
 assert.doesNotMatch(persistentRadarSource, /RADAR\s*<br|RADAR 26|>26</, "the radar center must remain unlabelled");
+assert.equal((persistentRadarSource.match(/className="rr-blip /g) || []).length, 2, "the persistent radar should carry exactly two sweep-reactive blips");
 
 assert.match(hubSource, /CalendarExplorer/);
 assert.match(hubSource, /RadarTabs/);
@@ -146,6 +147,9 @@ assert.match(cssSource, /prefers-reduced-motion:\s*reduce/, "radar motion must r
 assert.match(cssSource, /\.rr-sweep\s*\{[\s\S]*?inset:\s*3%[\s\S]*?border-radius:\s*50%[\s\S]*?conic-gradient\(from 0deg,\s*transparent 0 76%/, "restore the original circular sweep instead of a triangular wedge");
 assert.doesNotMatch(cssSource, /\.rr-hero-instrument\s*>\s*b/, "removed center copy should not retain dead styles");
 assert.match(cssSource, /grid-template-columns:\s*repeat\(3,\s*1fr\)/, "three Radar tabs should share the available width");
+assert.match(cssSource, /@keyframes rrBlipScan/, "radar blips need a sweep-synchronized blink sequence");
+assert.match(cssSource, /\.rr-blip--one[\s\S]*?animation-delay:\s*1\.85s/, "first blip timing should match its angular position");
+assert.match(cssSource, /\.rr-blip--two[\s\S]*?animation-delay:\s*5\.1s/, "second blip timing should match its angular position");
 
 for (const route of [
   "src/app/release-radar/page.tsx",

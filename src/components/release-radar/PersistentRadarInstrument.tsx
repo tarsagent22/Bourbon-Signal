@@ -17,6 +17,8 @@ export function PersistentRadarInstrument() {
       <span className="rr-orbit rr-orbit--one" />
       <span className="rr-orbit rr-orbit--two" />
       <span className="rr-sweep" />
+      <span className="rr-blip rr-blip--one" />
+      <span className="rr-blip rr-blip--two" />
       <i />
     </div>
   );

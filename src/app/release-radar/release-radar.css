@@ -136,6 +136,21 @@
   filter: blur(0.2px);
 }
 
+.rr-blip {
+  position: absolute;
+  z-index: 1;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f6d178;
+  opacity: 0.12;
+  transform: translate(-50%, -50%) scale(0.72);
+  box-shadow: 0 0 0 0 rgba(246, 209, 120, 0), 0 0 5px rgba(246, 209, 120, 0.25);
+  animation: rrBlipScan 6s linear infinite;
+}
+.rr-blip--one { left: 70%; top: 58%; animation-delay: 1.85s; }
+.rr-blip--two { left: 31%; top: 36%; animation-delay: 5.1s; }
+
 .rr-hero-instrument > i {
   position: absolute;
   top: 28%;
@@ -149,6 +164,11 @@
 }
 
 @keyframes rrSweep { to { transform: rotate(360deg); } }
+@keyframes rrBlipScan {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 1px rgba(246, 209, 120, 0.74), 0 0 13px rgba(246, 209, 120, 0.9); }
+  4% { opacity: 0.82; transform: translate(-50%, -50%) scale(1.9); box-shadow: 0 0 0 4px rgba(246, 209, 120, 0.1), 0 0 10px rgba(246, 209, 120, 0.62); }
+  11%, 100% { opacity: 0.12; transform: translate(-50%, -50%) scale(0.72); box-shadow: 0 0 0 0 rgba(246, 209, 120, 0), 0 0 5px rgba(246, 209, 120, 0.25); }
+}
 @keyframes rrPulse { 50% { opacity: 0.42; transform: scale(0.75); } }
 @keyframes rrRise { from { opacity: 0; transform: translateY(10px); } }
 
@@ -575,8 +595,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rr-sweep,
+  .rr-blip,
   .rr-hero-instrument > i,
   .rr-timeline-item { animation: none; }
+  .rr-blip { opacity: 0.28; }
   .rr-tabs a,
   .rr-day-event { transition: none; }
 }
