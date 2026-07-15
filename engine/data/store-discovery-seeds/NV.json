@@ -1,0 +1,25 @@
+{
+  "state": "NV",
+  "generatedFrom": "Brave-first Nevada discovery plus one-pass direct first-party platform/store probes on 2026-07-15",
+  "notes": "Exact-store inventory promotion is fail-closed. Directory, catalog, marketplace, and challenged entries remain discovery inputs until first-party store-bound availability is proven.",
+  "platformSeeds": [
+    { "name": "Liquor World", "url": "https://liquorworldlv.com/shop/?subtype=Bourbon", "city": "Las Vegas", "source": "first-party CityHive merchant/store schema and product InStock offers", "inventoryStatus": "live-store-orderability" },
+    { "name": "Liquor Box", "url": "https://theliquorboxlv.com/collections/1000-plus-whiskey-varieties", "city": "Las Vegas", "source": "first-party POS360 product variants with PICKUP availability", "inventoryStatus": "live-store-pickup" },
+    { "name": "Albertsons #662", "url": "https://local.albertsons.com/nv/las-vegas/2885-e-desert-inn-rd/Beer-Wine-Liquor.html", "city": "Las Vegas", "source": "official store identity plus first-party XAPI in-store channel", "inventoryStatus": "live-store-inventory" },
+    { "name": "Vons #2511", "url": "https://local.vons.com/nv/henderson/2667-e-windmill-pkwy/Beer-Wine-Liquor.html", "city": "Henderson", "source": "official store identity plus first-party XAPI in-store channel", "inventoryStatus": "live-store-inventory" },
+    { "name": "Safeway #1210", "url": "https://local.safeway.com/safeway/nv/reno/5150-mae-anne-ave/Beer-Wine-Liquor.html", "city": "Reno", "source": "official store identity plus first-party XAPI in-store channel", "inventoryStatus": "live-store-inventory" },
+    { "name": "Crystal Liquor", "url": "https://crystalliquor.com/", "city": "Las Vegas", "source": "first-party WooCommerce catalog; local pickup semantics unresolved", "inventoryStatus": "catalog-watch" },
+    { "name": "Liquor Lineup", "url": "https://liquorlineup.com/", "city": "North Las Vegas", "source": "Shopify catalog and indexed pickup language; current premises status unresolved", "inventoryStatus": "catalog-watch" },
+    { "name": "Lee's Discount Liquor", "url": "https://shop.leesdiscountliquor.com/", "city": "Nevada", "source": "official shop returned access challenge", "inventoryStatus": "blocked-probeable" },
+    { "name": "Total Wine & More", "url": "https://www.totalwine.com/store-info/nevada-las-vegas-summerlin/1201", "city": "Las Vegas", "source": "official store page; conflicting embedded store identifier", "inventoryStatus": "storefront-probeable" },
+    { "name": "Costco Same-Day", "url": "https://sameday.costco.com/", "city": "Nevada", "source": "Instacart-powered marketplace; address/store selection required", "inventoryStatus": "aggregator-watch" }
+  ],
+  "directorySeeds": [
+    { "name": "Albertsons #662", "url": "https://local.albertsons.com/nv/las-vegas/2885-e-desert-inn-rd.html", "city": "Las Vegas", "address": "2885 E Desert Inn Rd, Las Vegas, NV 89121", "inventoryStatus": "live-store-inventory" },
+    { "name": "Vons #2511 Anthem Village", "url": "https://local.vons.com/nv/henderson/2667-e-windmill-pkwy.html", "city": "Henderson", "address": "2667 E Windmill Pkwy, Henderson, NV 89052", "inventoryStatus": "live-store-inventory" },
+    { "name": "Safeway #1210", "url": "https://local.safeway.com/safeway/nv/reno/5150-mae-anne-ave.html", "city": "Reno", "address": "5150 Mae Anne Ave, Reno, NV 89523", "inventoryStatus": "live-store-inventory" },
+    { "name": "Total Wine Las Vegas Summerlin 1201", "url": "https://www.totalwine.com/store-info/nevada-las-vegas-summerlin/1201", "city": "Las Vegas", "inventoryStatus": "storefront-probeable" },
+    { "name": "Total Wine Henderson 1202", "url": "https://www.totalwine.com/store-info/nevada-henderson/1202", "city": "Henderson", "address": "501 N Stephanie Street, Henderson, NV 89014", "inventoryStatus": "storefront-probeable" },
+    { "name": "Total Wine Reno 1203", "url": "https://www.totalwine.com/store-info/nevada-reno/1203", "city": "Reno", "address": "6671 S Virginia Street, Reno, NV 89511", "inventoryStatus": "storefront-probeable" }
+  ]
+}

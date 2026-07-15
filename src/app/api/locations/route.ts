@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
+import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.toLowerCase().trim() : "";
@@ -91,8 +92,12 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.toUpperCase();
   const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
+  const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ locations: [], stores: [], total: 0, error: "Unsupported California area" }, { status: 400 });
+  }
+  if (state === "NV" && nevadaArea.requested && !nevadaArea.valid) {
+    return NextResponse.json({ locations: [], stores: [], total: 0, error: "Unsupported Nevada area" }, { status: 400 });
   }
 
   try {
@@ -166,6 +171,12 @@ export async function GET(request: Request) {
           record.name,
           record.displayLabel,
         ], californiaArea.areas);
+      });
+    }
+    if (state === "NV" && nevadaArea.areas.length) {
+      locations = locations.filter((location) => {
+        const record = location as Record<string, unknown>;
+        return nevadaAreaMatchesFields([record.city, record.address, record.name, record.displayLabel], nevadaArea.areas);
       });
     }
 

@@ -3,6 +3,7 @@ import type { AreaPreferences } from "@/app/api/user/preferences/route";
 import type { DropEvent } from "@/lib/drops";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
+import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -92,6 +93,13 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
     return californiaAreaMatchesFields(fields, prefs.caAreas)
       ? { matched: true, matchedState: state, matchedArea: "San Diego" }
       : { matched: false };
+  }
+
+  if (state === "NV") {
+    const fields = [drop.locationName, drop.display_location, drop.store_name, drop.store_address, drop.store_city, drop.store_county, drop.board_name];
+    if (prefs.nvAreas.length === 0) return { matched: true, matchedState: state, matchedArea: drop.store_city || "Nevada" };
+    const matchedArea = prefs.nvAreas.find((area) => nevadaAreaMatchesFields(fields, [area]));
+    return matchedArea ? { matched: true, matchedState: state, matchedArea } : { matched: false };
   }
 
   if (state === "VA" || state === "OH" || state === "IA" || state === "ID" || state === "SC") {
