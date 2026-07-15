@@ -23,7 +23,7 @@ export function RadarMasthead({ compact = false }: { compact?: boolean }) {
 }
 
 export function RadarNav({ active = "calendar" }: { active?: string }) {
-  const tab: RadarTab = active === "states" ? "states" : active === "bottles" || active === "bottle" ? "bottles" : active === "overview" || active === "calendar" ? "calendar" : "briefings";
+  const tab: RadarTab = active === "states" ? "states" : active === "overview" || active === "calendar" || active === "bottles" || active === "bottle" ? "calendar" : "briefings";
   return <RadarTabs active={tab} />;
 }
 

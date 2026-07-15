@@ -67,7 +67,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
     const requestedKind = params.get("type");
     if (requestedMonth && isValidMonth(requestedMonth)) setMonth(requestedMonth);
     if (requestedState) setState(requestedState);
-    if (requestedKind && ["release", "lottery", "event"].includes(requestedKind)) setKind(requestedKind);
+    if (requestedKind && ["release", "lottery", "event", "bottle"].includes(requestedKind)) setKind(requestedKind);
   }, []);
 
   useEffect(() => {
@@ -82,21 +82,22 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
   const states = useMemo(() => [...new Set(entries.flatMap((entry) => entry.states))].sort(), [entries]);
   const matchingEntries = useMemo(() => entries.filter((entry) => {
     const inState = state === "all" || entry.states.includes(state) || entry.states.includes("Nationwide");
-    return inState && (kind === "all" || entry.kind === kind);
+    const inKind = kind === "all" || (kind === "bottle" ? Boolean(entry.bottle) : entry.kind === kind);
+    return inState && inKind;
   }), [entries, kind, state]);
 
   const gridOccurrences = useMemo(() => matchingEntries
-    .filter((entry) => entry.status !== "watch")
+    .filter((entry) => entry.calendar === true)
     .flatMap((entry) => getCalendarOccurrences(entry, month).map((occurrence) => ({ entry, occurrence })))
     .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date)), [matchingEntries, month]);
 
   const agendaOccurrences = useMemo(() => matchingEntries
-    .filter((entry) => entry.status !== "watch")
+    .filter((entry) => entry.calendar === true)
     .flatMap((entry) => getAgendaOccurrences(entry, month).map((occurrence) => ({ entry, occurrence })))
     .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date)), [matchingEntries, month]);
 
   const watchEntries = useMemo(() => matchingEntries
-    .filter((entry) => entry.status === "watch" && entry.startDate.startsWith(`${month}-`)), [matchingEntries, month]);
+    .filter((entry) => entry.calendar !== true && (entry.kind === "release" || entry.kind === "bottle") && entry.startDate.startsWith(`${month}-`)), [matchingEntries, month]);
 
   const [year, monthNumber] = month.split("-").map(Number);
   const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
@@ -124,7 +125,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
 
         <div className="rr-filters" aria-label="Calendar filters">
           <label><b>State</b><select value={state} onChange={(event) => setState(event.target.value)}><option value="all">All states</option>{states.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><b>Type</b><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All types</option><option value="release">Releases</option><option value="lottery">Lotteries</option><option value="event">Events</option></select></label>
+          <label><b>Type</b><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All types</option><option value="bottle">Bottle releases</option><option value="lottery">Lotteries</option><option value="event">Events</option></select></label>
           {filtersActive && <button type="button" className="rr-clear" onClick={() => { setState("all"); setKind("all"); }}>Clear</button>}
         </div>
       </div>
@@ -149,7 +150,7 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
               <div className="rr-timeline-date" aria-label={`${date.month} ${date.day}, ${date.weekday}`}><span>{date.month}</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
               <div className="rr-timeline-node" aria-hidden><i /></div>
               <div className="rr-timeline-card">
-                <div className="rr-card-signal"><span>{typeLabels[entry.kind]}</span><b>{statusLabel(entry)}</b></div>
+                <div className="rr-card-signal"><span>{entry.bottle ? "Bottle release" : typeLabels[entry.kind]}</span><b>{statusLabel(entry)}</b></div>
                 <Link className="rr-card-title" href={radarPath(entry)}><h4>{entry.title}</h4><ArrowUpRight size={19} aria-hidden /></Link>
                 <p>{entry.dek}</p>
                 <div className="rr-card-facts">

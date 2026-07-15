@@ -85,6 +85,21 @@
 .rr-updated { margin-top: 22px; color: var(--rr-muted); }
 .rr-updated time { color: var(--rr-paper); }
 
+.rr-radar-layout { position: relative; }
+
+.rr-persistent-radar.rr-hero-instrument {
+  position: absolute;
+  z-index: 2;
+  top: 94px;
+  right: max(24px, calc((100vw - 1180px) / 2));
+  pointer-events: none;
+}
+
+.rr-persistent-radar--subpage.rr-hero-instrument {
+  top: 78px;
+  width: 210px;
+}
+
 .rr-hero-instrument {
   position: relative;
   justify-self: end;
@@ -114,12 +129,11 @@
 
 .rr-sweep {
   position: absolute;
-  inset: 50% 50% 50% 50%;
-  width: 47%;
-  height: 47%;
-  transform-origin: 0 0;
-  background: conic-gradient(from 225deg, rgba(239, 189, 82, 0.58), transparent 31deg);
+  inset: 3%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 76%, rgba(214, 163, 67, 0.22) 92%, rgba(241, 198, 107, 0.55) 99%, transparent 100%);
   animation: rrSweep 6s linear infinite;
+  filter: blur(0.2px);
 }
 
 .rr-hero-instrument > i {
@@ -134,17 +148,6 @@
   animation: rrPulse 2s ease-in-out infinite;
 }
 
-.rr-hero-instrument > b {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  color: rgba(245, 236, 217, 0.75);
-  font: 600 10px/1.4 var(--font-dm-sans);
-  letter-spacing: 0.24em;
-  text-align: center;
-}
-
 @keyframes rrSweep { to { transform: rotate(360deg); } }
 @keyframes rrPulse { 50% { opacity: 0.42; transform: scale(0.75); } }
 @keyframes rrRise { from { opacity: 0; transform: translateY(10px); } }
@@ -152,7 +155,7 @@
 /* Shared section navigation */
 .rr-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   border: 1px solid var(--rr-rule-strong);
   background: rgba(12, 10, 7, 0.72);
 }
@@ -349,9 +352,10 @@
   align-items: end;
   gap: 60px;
   min-height: 232px;
-  padding: 44px 0 32px;
+  padding: 44px 290px 32px 0;
 }
-.rr-editorial-head h1 { margin: 0; font: 500 clamp(50px, 7vw, 78px)/0.98 var(--font-playfair); letter-spacing: -0.05em; }
+.rr-editorial-head h1 { position: relative; z-index: 3; margin: 0; font: 500 clamp(50px, 7vw, 78px)/0.98 var(--font-playfair); letter-spacing: -0.05em; }
+.rr-editorial-intro { position: relative; z-index: 3; }
 .rr-editorial-intro p { margin: 0; color: var(--rr-paper); font: 400 16px/1.55 var(--font-dm-sans); }
 
 /* Briefings */
@@ -467,7 +471,9 @@
   .rr-hero-copy > p { max-width: 350px; font-size: 13px; line-height: 1.5; }
   .rr-updated { margin-top: 15px; font-size: 8px; }
   .rr-hero-label { font-size: 8px; }
-  .rr-hero-instrument { position: absolute; top: 30px; right: -55px; width: 160px; opacity: 0.46; }
+  .rr-persistent-radar.rr-hero-instrument { top: 94px; right: -38px; width: 160px; opacity: 0.46; }
+  .rr-persistent-radar--subpage.rr-hero-instrument { top: 88px; right: -30px; width: 140px; }
+  .rr-hero-instrument:not(.rr-persistent-radar) { position: absolute; top: 30px; right: -55px; width: 160px; opacity: 0.46; }
 
   .rr-tabs { margin-right: -16px; margin-left: -16px; border-right: 0; border-left: 0; }
   .rr-tabs a { min-height: 48px; font-size: 11px; }
@@ -510,7 +516,7 @@
   .rr-utility { display: grid; padding-top: 22px; }
   .rr-utility > div { display: grid; grid-template-columns: 1fr 1fr; }
 
-  .rr-editorial-head { display: block; min-height: 190px; padding: 34px 0 24px; }
+  .rr-editorial-head { display: block; min-height: 190px; padding: 34px 74px 24px 0; }
   .rr-editorial-head h1 { font-size: 49px; }
   .rr-editorial-intro p { max-width: 360px; margin-top: 15px; font-size: 13px; }
 

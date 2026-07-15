@@ -9,7 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${origin}/release-radar`, lastModified: radarUpdated, changeFrequency: "weekly", priority: 0.8 },
     { url: `${origin}/release-radar/briefings`, lastModified: radarUpdated, changeFrequency: "weekly", priority: 0.7 },
     { url: `${origin}/release-radar/states`, lastModified: radarUpdated, changeFrequency: "monthly", priority: 0.65 },
-    { url: `${origin}/release-radar/bottles`, lastModified: radarUpdated, changeFrequency: "weekly", priority: 0.7 },
   ];
   const radarDetails: MetadataRoute.Sitemap = radarEntries.map((entry) => ({
     url: `${origin}${radarPath(entry)}`,

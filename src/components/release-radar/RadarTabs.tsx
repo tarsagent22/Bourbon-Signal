@@ -1,12 +1,11 @@
 import Link from "next/link";
 
-export type RadarTab = "calendar" | "briefings" | "states" | "bottles";
+export type RadarTab = "calendar" | "briefings" | "states";
 
 const tabs: Array<{ id: RadarTab; label: string; href: string }> = [
   { id: "calendar", label: "Calendar", href: "/release-radar" },
   { id: "briefings", label: "Briefings", href: "/release-radar/briefings" },
   { id: "states", label: "States", href: "/release-radar/states" },
-  { id: "bottles", label: "Bottles", href: "/release-radar/bottles" },
 ];
 
 export function RadarTabs({ active }: { active: RadarTab }) {

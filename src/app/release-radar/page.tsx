@@ -5,7 +5,7 @@ import { RadarTabs } from "@/components/release-radar/RadarTabs";
 import { radarEntries, radarPath, releaseRadarUpdatedAt } from "@/lib/release-radar";
 
 export default function ReleaseRadarPage() {
-  const calendarEntries = radarEntries.filter((entry) => entry.calendar === true || (entry.kind === "release" && entry.status === "watch")).sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const calendarEntries = radarEntries.filter((entry) => entry.calendar === true || entry.kind === "bottle" || (entry.kind === "release" && entry.status === "watch")).sort((a, b) => a.startDate.localeCompare(b.startDate));
   const checked = releaseRadarUpdatedAt;
   const checkedLabel = checked ? new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${checked}T00:00:00Z`)) : "";
   const initialMonth = checked.slice(0, 7);
@@ -35,9 +35,6 @@ export default function ReleaseRadarPage() {
           <h1>Bourbon Release <em>Calendar</em></h1>
           <p>Confirmed release dates, lottery deadlines, and bourbon events—linked to official sources and separated from live shelf inventory.</p>
           <div className="rr-updated">Updated <time dateTime={checked}>{checkedLabel}</time></div>
-        </div>
-        <div className="rr-hero-instrument" aria-hidden>
-          <span className="rr-orbit rr-orbit--one"/><span className="rr-orbit rr-orbit--two"/><span className="rr-sweep"/><i/><b>RADAR<br/>26</b>
         </div>
       </header>
 

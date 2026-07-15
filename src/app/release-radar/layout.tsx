@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { PersistentRadarInstrument } from "@/components/release-radar/PersistentRadarInstrument";
 import "./release-radar.css";
 
 export const metadata: Metadata = {
@@ -27,5 +28,5 @@ export const metadata: Metadata = {
 };
 
 export default function ReleaseRadarLayout({ children }: { children: React.ReactNode }) {
-  return <><Navigation />{children}<Footer /></>;
+  return <div className="rr-radar-layout"><Navigation /><PersistentRadarInstrument />{children}<Footer /></div>;
 }

@@ -71,6 +71,10 @@ const radarLayout = readFileSync(resolve("src/app/release-radar/layout.tsx"), "u
 assert.doesNotMatch(radarLayout, /index:\s*false|follow:\s*false/);
 assert.match(radarLayout, /index:\s*true/);
 assert.match(radarLayout, /follow:\s*true/);
+assert.match(radarLayout, /PersistentRadarInstrument/, "one layout-owned radar should persist while switching tabs");
+const persistentRadarSource = readFileSync(resolve("src/components/release-radar/PersistentRadarInstrument.tsx"), "utf8");
+for (const route of ["/release-radar", "/release-radar/briefings", "/release-radar/states"]) assert.match(persistentRadarSource, new RegExp(route.replaceAll("/", "\\/")));
+assert.doesNotMatch(persistentRadarSource, /RADAR\s*<br|RADAR 26|>26</, "the radar center must remain unlabelled");
 
 assert.match(hubSource, /CalendarExplorer/);
 assert.match(hubSource, /RadarTabs/);
@@ -78,17 +82,23 @@ assert.doesNotMatch(hubSource, /ActionNow|ReleaseTimeline|ReleaseLedger|LotteryB
 assert.doesNotMatch(hubSource, /RadarCard/, "hub must not fall back to repeated editorial cards");
 
 const tabsSource = readFileSync(resolve("src/components/release-radar/RadarTabs.tsx"), "utf8");
-for (const label of ["Calendar", "Briefings", "States", "Bottles"]) {
+for (const label of ["Calendar", "Briefings", "States"]) {
   assert.match(tabsSource, new RegExp(label), `route-backed tabs must include ${label}`);
 }
-for (const href of ["/release-radar", "/release-radar/briefings", "/release-radar/states", "/release-radar/bottles"]) {
+for (const href of ["/release-radar", "/release-radar/briefings", "/release-radar/states"]) {
   assert.match(tabsSource, new RegExp(`href: \\"${href.replaceAll("/", "\\/")}\\"`), `tab must link to ${href}`);
 }
+assert.doesNotMatch(tabsSource, /Bottles|\/release-radar\/bottles/, "bottles belong on the calendar rather than in a separate tab");
 
 const calendarSource = readFileSync(resolve("src/components/release-radar/CalendarExplorer.tsx"), "utf8");
 assert.match(calendarSource, /use client/);
 assert.match(calendarSource, /All states/);
 assert.match(calendarSource, /All types/);
+assert.match(calendarSource, /Bottle releases/);
+assert.match(calendarSource, /requestedKind[^;]+"bottle"/s, "bottle filters must survive direct calendar links");
+assert.match(calendarSource, /entry\.calendar === true/, "only source-backed exact dates belong in calendar cells");
+assert.match(calendarSource, /entry\.kind === "bottle"/, "broad bottle windows must remain visible below the calendar");
+assert.match(calendarSource, /kind === "bottle" \? Boolean\(entry\.bottle\)/, "bottle filter must include both exact dated releases and broad bottle windows");
 assert.match(calendarSource, /Previous month/);
 assert.match(calendarSource, /Next month/);
 assert.match(calendarSource, /radarPath\(entry\)/, "calendar events must link to their associated editorial pages");
@@ -100,7 +110,7 @@ assert.match(calendarSource, /rr-watch-deck/, "uncertain watch windows must be s
 assert.match(calendarSource, /getAgendaOccurrences/, "agenda should consolidate multi-day windows");
 assert.doesNotMatch(calendarSource, /rr-agenda-row/, "overhaul must replace the repetitive legacy text-row treatment");
 
-for (const route of ["briefings", "bottles", "states"]) {
+for (const route of ["briefings", "states"]) {
   const indexSource = readFileSync(resolve(`src/app/release-radar/${route}/page.tsx`), "utf8");
   assert.match(indexSource, new RegExp(`canonical: \\"/release-radar/${route}\\"`), `${route} index needs its own canonical URL`);
 }
@@ -112,14 +122,14 @@ assert.match(statesSource, /rr-state-atlas/, "state guides need a geographic atl
 assert.match(statesSource, /guide\.model/, "state cards must retain the release-system model");
 assert.doesNotMatch(statesSource, /systems mapped in depth|Why states matter/, "state index should avoid decorative metrics and repeated explanation");
 const bottlesSource = readFileSync(resolve("src/app/release-radar/bottles/page.tsx"), "utf8");
-assert.match(bottlesSource, /rr-bottle-vault/, "bottle guides need a differentiated collector-vault composition");
-assert.match(bottlesSource, /entry\.facts/, "bottle cards need bottle facts, not only prose links");
-assert.doesNotMatch(bottlesSource, /limited editions under watch|Evidence standard/, "bottle index should avoid decorative counts and repeated manifestos");
+assert.match(bottlesSource, /permanentRedirect\("\/release-radar\?type=bottle"\)/, "the retired bottles index should preserve discovery through the calendar");
+assert.doesNotMatch(sitemap, /`\$\{origin\}\/release-radar\/bottles`/, "the retired bottles index must leave the sitemap");
 assert.doesNotMatch(tabsSource, /index:|<small>/, "section tabs should use plain labels without decorative numbering");
 assert.doesNotMatch(hubSource, /rr-hero-metrics|Dated records|Primary sources|Watch windows/, "calendar hero should not use decorative coverage statistics");
 assert.match(hubSource, /Bourbon Release/);
 assert.match(hubSource, /<time dateTime=/, "freshness must be machine-readable and human-readable");
-assert.match(hubSource, /entry\.calendar/, "only records with supported date precision belong in the calendar");
+assert.match(hubSource, /entry\.calendar/, "only records with supported date precision belong in exact calendar cells");
+assert.match(hubSource, /entry\.kind === "bottle"/, "bottle releases must feed the calendar surface");
 
 const detailPageSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailPageSource, /Boolean\(entry\.calendar\)/, "non-calendar briefings must not emit misleading Event schema");
@@ -133,11 +143,13 @@ const cssSource = readFileSync(resolve("src/app/release-radar/release-radar.css"
 assert.equal((cssSource.match(/@media\s*\(max-width:\s*820px\)/g) || []).length, 1, "mobile styles should be consolidated into one layer");
 assert.match(cssSource, /env\(safe-area-inset-bottom\)/, "mobile pages need safe-area padding");
 assert.match(cssSource, /prefers-reduced-motion:\s*reduce/, "radar motion must respect reduced-motion preferences");
+assert.match(cssSource, /\.rr-sweep\s*\{[\s\S]*?inset:\s*3%[\s\S]*?border-radius:\s*50%[\s\S]*?conic-gradient\(from 0deg,\s*transparent 0 76%/, "restore the original circular sweep instead of a triangular wedge");
+assert.doesNotMatch(cssSource, /\.rr-hero-instrument\s*>\s*b/, "removed center copy should not retain dead styles");
+assert.match(cssSource, /grid-template-columns:\s*repeat\(3,\s*1fr\)/, "three Radar tabs should share the available width");
 
 for (const route of [
   "src/app/release-radar/page.tsx",
   "src/app/release-radar/briefings/page.tsx",
-  "src/app/release-radar/bottles/page.tsx",
   "src/app/release-radar/states/page.tsx",
   "src/app/release-radar/[kind]/[slug]/page.tsx",
   "src/app/release-radar/states/[slug]/page.tsx",
