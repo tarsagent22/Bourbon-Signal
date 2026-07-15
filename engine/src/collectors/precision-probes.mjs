@@ -6091,6 +6091,15 @@ async function fetchCaliforniaShopifySource(source) {
   return { ok: true, status: 200, text: JSON.stringify({ products }), error: null, url: source.productsUrl };
 }
 
+async function retryCaliforniaFetch(fetcher, { attempts = 3, accept = (result) => result.ok } = {}) {
+  let result = await fetcher();
+  for (let attempt = 1; attempt < attempts && !accept(result); attempt++) {
+    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS * attempt);
+    result = await fetcher();
+  }
+  return result;
+}
+
 async function collectCalifornia(config, bible) {
   const observedAt = new Date().toISOString();
   const cache = await readCaliforniaSanDiegoShopifyCache();
@@ -6117,7 +6126,10 @@ async function collectCalifornia(config, bible) {
   for (const source of CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES) {
     let fulfillmentPolicyVerified = false;
     if (source.inventoryEligible) {
-      const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000 });
+      const policyRes = await retryCaliforniaFetch(
+        () => textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000 }),
+        { accept: (result) => result.ok && verifyCaliforniaFulfillmentPolicy(source, result.text) },
+      );
       fulfillmentPolicyVerified = policyRes.ok && verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
       if (!fulfillmentPolicyVerified) {
         roadblocks.push({
@@ -6132,7 +6144,7 @@ async function collectCalifornia(config, bible) {
         continue;
       }
     }
-    const res = await fetchCaliforniaShopifySource(source);
+    const res = await retryCaliforniaFetch(() => fetchCaliforniaShopifySource(source));
     if (!res.ok) {
       roadblocks.push({
         state: config.id,

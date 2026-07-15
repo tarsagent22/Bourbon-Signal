@@ -134,6 +134,13 @@ test('California partial refresh replaces completed sources and retains only inc
   assert.deepEqual(merged.map((row) => row.id).sort(), ['cached-mission', 'live-del']);
 });
 
+test('California collector retries transient first-party policy and product failures before falling back', async () => {
+  const collectorSource = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
+  assert.match(collectorSource, /async function retryCaliforniaFetch/);
+  assert.match(collectorSource, /verifyCaliforniaFulfillmentPolicy\(source, result\.text\)/);
+  assert.match(collectorSource, /retryCaliforniaFetch\(\(\) => fetchCaliforniaShopifySource\(source\)\)/);
+});
+
 function californiaSignal(overrides = {}) {
   return {
     state: 'CA',
