@@ -14,6 +14,8 @@ import {
   followRadarRelease,
   normalizeRadarPreferences,
 } from "../src/lib/release-radar-preferences.ts";
+import { dropMatchesBottle } from "../src/lib/bottleIdentity.ts";
+import { resolveRadarMarketInitialization } from "../src/lib/release-radar-market.ts";
 
 assert.ok(radarEntries.every((entry) => entry.availabilitySemantics === "announcement_only"), "Radar records must stay in the announcement lane");
 assert.ok(radarEntries.every((entry) => !isRadarEntryAlertGrade(entry)), "no Radar announcement may become alert-grade availability");
@@ -24,6 +26,36 @@ assert.ok(radarEntries.every((entry) => entry.calendar === (entry.datePrecision 
 assert.ok(radarEntries.every((entry) => entry.followEligibility.release || entry.followEligibility.bottle), "every acquisition record needs a follow or track action");
 assert.ok(radarEntries.filter((entry) => entry.followEligibility.bottle).every((entry) => getTrackableBottleRelation(entry)), "trackable records need a canonical bottle relation");
 assert.equal(new Set(radarEntries.flatMap((entry) => entry.bottleRelations.map((relation) => relation.canonicalId))).has(""), false, "canonical bottle ids cannot be empty");
+
+const bottleCatalogPayload = JSON.parse(readFileSync(resolve("engine/out/site/bottles.json"), "utf8")) as {
+  bottles?: Array<{
+    id: string;
+    canonical_id?: string;
+    name: string;
+    canonical_name?: string;
+    canonical_key?: string;
+    aliases?: string[];
+  }>;
+};
+const bottleCatalog = bottleCatalogPayload.bottles || [];
+const bottleCatalogById = new Map(bottleCatalog.flatMap((bottle) => [bottle.id, bottle.canonical_id]
+  .filter((id): id is string => Boolean(id))
+  .map((id) => [id, bottle] as const)));
+for (const entry of radarEntries.filter((candidate) => candidate.followEligibility.bottle)) {
+  assert.ok(getTrackableBottleRelation(entry), `${entry.slug} needs a trackable relation`);
+  for (const relation of entry.bottleRelations) {
+    const catalogBottle = bottleCatalogById.get(relation.canonicalId);
+    assert.ok(catalogBottle, `${entry.slug} relation ${relation.canonicalId} must resolve through the /api/bottles engine catalog`);
+    assert.equal(relation.canonicalName, catalogBottle.canonical_name || catalogBottle.name, `${entry.slug} must use the catalog's canonical display name`);
+    assert.equal(dropMatchesBottle({
+      bottle_id: relation.canonicalId,
+      canonical_id: relation.canonicalId,
+      canonical_name: relation.canonicalName,
+      brand_name: relation.canonicalName,
+      tracked_brand_name: relation.canonicalName,
+    }, catalogBottle), true, `${entry.slug} watch identity must match a later canonical drop`);
+  }
+}
 
 const nationwideBottle = radarEntries.find((entry) => entry.markets.some((market) => market.code === "US") && getTrackableBottleRelation(entry));
 assert.ok(nationwideBottle, "fixture needs a nationwide bottle handoff");
@@ -60,6 +92,38 @@ assert.deepEqual(followed.followedReleases[0], {
   followedAt: "2026-07-16T12:00:00.000Z",
 }, "following again should merge markets without fabricating a new follow timestamp");
 
+const waitingForPreferences = resolveRadarMarketInitialization({
+  state: { market: "NC", initialized: false },
+  preferencesReady: false,
+  preferredMarket: "VA",
+  fallbackMarket: "NC",
+  userSelected: false,
+});
+assert.deepEqual(waitingForPreferences, { market: "NC", initialized: false }, "market initialization must wait for async preferences");
+const initializedFromPreferences = resolveRadarMarketInitialization({
+  state: waitingForPreferences,
+  preferencesReady: true,
+  preferredMarket: "VA",
+  fallbackMarket: "NC",
+  userSelected: false,
+});
+assert.deepEqual(initializedFromPreferences, { market: "VA", initialized: true }, "saved preferences should initialize the market once they arrive");
+assert.deepEqual(resolveRadarMarketInitialization({
+  state: initializedFromPreferences,
+  preferencesReady: true,
+  preferredMarket: "PA",
+  fallbackMarket: "NC",
+  userSelected: false,
+}), initializedFromPreferences, "later preference changes must not reinitialize the market");
+const userChoiceDuringLoad = resolveRadarMarketInitialization({
+  state: { market: "TX", initialized: false },
+  preferencesReady: true,
+  preferredMarket: "VA",
+  fallbackMarket: "NC",
+  userSelected: true,
+});
+assert.deepEqual(userChoiceDuringLoad, { market: "TX", initialized: true }, "a user choice made before preferences arrive must win");
+
 const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailSource, /RadarEntryActions/, "detail pages should expose follow/track acquisition actions");
 const actionSource = readFileSync(resolve("src/components/release-radar/RadarEntryActions.tsx"), "utf8");
@@ -68,6 +132,8 @@ assert.match(actionSource, /Track bottle/);
 assert.match(actionSource, /aria-live="polite"/, "action status must be announced accessibly");
 assert.match(actionSource, /useWatchlistStore/, "bottle tracking should reuse the existing watchlist");
 assert.match(actionSource, /radarPreferences/, "release follows should reuse account preferences");
+assert.match(actionSource, /resolveRadarMarketInitialization/, "market selection should use the one-shot initialization contract");
+assert.match(actionSource, /ready:\s*preferencesReady/, "market initialization must wait for resolved saved preferences, not the pre-fetch defaults");
 assert.doesNotMatch(actionSource, /\/pricing|checkout|upgrade/i, "public Radar acquisition actions must not add a paywall");
 
 const routeSource = readFileSync(resolve("src/app/release-radar/calendar.ics/route.ts"), "utf8");

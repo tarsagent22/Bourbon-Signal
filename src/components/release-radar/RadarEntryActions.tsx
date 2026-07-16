@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bookmark, Check, MapPinned, Radio } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
 import { canonicalBottleKey } from "@/lib/bottleIdentity";
@@ -13,6 +13,7 @@ import {
   type RadarEntry,
 } from "@/lib/release-radar";
 import { followRadarRelease } from "@/lib/release-radar-preferences";
+import { resolveRadarMarketInitialization } from "@/lib/release-radar-market";
 import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useWatchlistStore } from "@/lib/watchlist";
 
@@ -25,18 +26,33 @@ function marketOptions(entry: RadarEntry) {
 
 export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
   const { isLoaded, isSignedIn, signIn, entitlements } = useAuth();
-  const { prefs, loading, savePreferences } = useAreaPreferences();
+  const { prefs, loading, ready: preferencesReady, savePreferences } = useAreaPreferences();
   const setSelectedStates = useStatePreferences((state) => state.setSelectedStates);
   const addBottle = useWatchlistStore((state) => state.addBottle);
   const isWatching = useWatchlistStore((state) => state.isWatching);
   const bottle = getTrackableBottleRelation(entry);
   const options = useMemo(() => marketOptions(entry), [entry]);
   const preferredMarket = prefs.areaPreferences.states.find((code) => options.some((option) => option.code === code));
-  const [market, setMarket] = useState(preferredMarket || options[0]?.code || "US");
+  const fallbackMarket = options[0]?.code || "US";
+  const [market, setMarket] = useState(fallbackMarket);
+  const [marketInitialized, setMarketInitialized] = useState(false);
+  const userSelectedMarket = useRef(false);
   const [saving, setSaving] = useState<"follow" | "track" | null>(null);
   const [message, setMessage] = useState("");
   const followed = prefs.radarPreferences.followedReleases.some((follow) => follow.releaseSlug === entry.slug && follow.marketCodes.includes(market));
   const tracked = bottle ? isWatching(bottle.canonicalId) : false;
+
+  useEffect(() => {
+    const next = resolveRadarMarketInitialization({
+      state: { market, initialized: marketInitialized },
+      preferencesReady,
+      preferredMarket,
+      fallbackMarket,
+      userSelected: userSelectedMarket.current,
+    });
+    if (next.market !== market) setMarket(next.market);
+    if (next.initialized !== marketInitialized) setMarketInitialized(next.initialized);
+  }, [fallbackMarket, market, marketInitialized, preferredMarket, preferencesReady]);
 
   async function followRelease() {
     if (!isLoaded || loading || saving) return;
@@ -118,7 +134,7 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
     </div>
     <div className="radar-acquisition__controls">
       <label htmlFor={`radar-market-${entry.slug}`}>Market</label>
-      <select id={`radar-market-${entry.slug}`} value={market} onChange={(event) => { setMarket(event.target.value); setMessage(""); }}>
+      <select id={`radar-market-${entry.slug}`} value={market} onChange={(event) => { userSelectedMarket.current = true; setMarket(event.target.value); setMessage(""); }}>
         {options.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
       </select>
       <div className="radar-acquisition__buttons">

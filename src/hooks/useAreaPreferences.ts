@@ -28,17 +28,12 @@ const EMPTY_PREFS: UserAlertPreferences = {
   },
   notificationPreferences: getDefaultNotificationPreferences(),
   alertMode: "anything_notable",
-  bottleAlertPreferences: {
-    bottleNames: [],
-    bottleKeys: [],
-  },
-  collectionPreferences: {
-    bottles: [],
-  },
-  radarPreferences: {
-    followedReleases: [],
-  },
+  bottleAlertPreferences: { bottleNames: [], bottleKeys: [] },
+  collectionPreferences: { bottles: [] },
+  radarPreferences: { followedReleases: [] },
 };
+
+type PreferenceResolution = "preview" | "signed-in" | "signed-out" | null;
 
 export function useAreaPreferences() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -50,18 +45,27 @@ export function useAreaPreferences() {
     qaPreview ? QA_PREVIEW_PREFERENCES : getCachedAreaPreferences(userId) ?? EMPTY_PREFS
   ));
   const [loading, setLoading] = useState(false);
+  const [resolvedFor, setResolvedFor] = useState<PreferenceResolution>(() => {
+    if (qaPreview) return "preview";
+    if (userId && getCachedAreaPreferences(userId)) return "signed-in";
+    if (isLoaded && !isSignedIn) return "signed-out";
+    return null;
+  });
 
   const fetchPrefs = useCallback(async () => {
     if (qaPreview) {
       setPrefs(QA_PREVIEW_PREFERENCES);
+      setResolvedFor("preview");
       return;
     }
     const requestedUserId = userId;
     if (!requestedUserId) {
       setPrefs(EMPTY_PREFS);
+      setResolvedFor(isLoaded && !isSignedIn ? "signed-out" : null);
       return;
     }
     setLoading(true);
+    setResolvedFor(null);
     try {
       const res = await fetch("/api/user/preferences");
       if (res.ok) {
@@ -74,33 +78,56 @@ export function useAreaPreferences() {
     } catch {
       if (activeUserIdRef.current === requestedUserId) setPrefs(EMPTY_PREFS);
     } finally {
-      if (activeUserIdRef.current === requestedUserId) setLoading(false);
+      if (activeUserIdRef.current === requestedUserId) {
+        setLoading(false);
+        setResolvedFor("signed-in");
+      }
     }
-  }, [qaPreview, userId]);
+  }, [isLoaded, isSignedIn, qaPreview, userId]);
 
   useEffect(() => {
     if (qaPreview) {
       clearCachedAreaPreferences();
       setPrefs(QA_PREVIEW_PREFERENCES);
+      setLoading(false);
+      setResolvedFor("preview");
       return;
     }
 
     invalidateAreaPreferencesCacheForUser(userId);
+    if (!isLoaded) {
+      setLoading(false);
+      setResolvedFor(null);
+      return;
+    }
     if (!userId) {
       setPrefs(EMPTY_PREFS);
       setLoading(false);
+      setResolvedFor("signed-out");
       return;
     }
 
     const cached = getCachedAreaPreferences(userId);
     if (cached) {
       setPrefs(cached);
+      setLoading(false);
+      setResolvedFor("signed-in");
       return;
     }
 
     setPrefs(EMPTY_PREFS);
+    setResolvedFor(null);
     void fetchPrefs();
-  }, [fetchPrefs, qaPreview, userId]);
+  }, [fetchPrefs, isLoaded, qaPreview, userId]);
+
+  const expectedResolution: PreferenceResolution = qaPreview
+    ? "preview"
+    : !isLoaded
+      ? null
+      : isSignedIn
+        ? "signed-in"
+        : "signed-out";
+  const ready = expectedResolution !== null && resolvedFor === expectedResolution;
 
   const savePreferences = useCallback(async (newPrefs: Partial<UserAlertPreferences>) => {
     const requestedUserId = userId;
@@ -129,5 +156,5 @@ export function useAreaPreferences() {
     }
   }, [fetchPrefs, prefs, qaPreview, userId]);
 
-  return { prefs, loading, savePreferences };
+  return { prefs, loading, ready, savePreferences };
 }

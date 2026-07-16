@@ -526,48 +526,48 @@ const STATE_MARKETS: Record<string, RadarMarket> = {
 
 const CANONICAL_BOTTLES: Record<string, RadarBottleRelation[]> = {
   "four-roses-anthology-chapter-one-origin": [{
-    canonicalId: "four-roses-anthology-chapter-one-origin",
+    canonicalId: "bb_c4536a79e74352d9",
     canonicalName: "Four Roses Anthology Chapter One: Origin",
     relationship: "featured",
   }],
   "heaven-hill-heritage-collection-22-year-2026": [{
-    canonicalId: "heaven-hill-heritage-collection-22-year",
-    canonicalName: "Heaven Hill Heritage Collection 22 Year",
+    canonicalId: "bb_216abc00853a667f",
+    canonicalName: "Heaven Hill Heritage Collection",
     relationship: "featured",
   }],
   "old-fitzgerald-bottled-in-bond-spring-2026": [{
-    canonicalId: "old-fitzgerald-bottled-in-bond-10y-spring-26-decanter",
-    canonicalName: "Old Fitzgerald Bottled in Bond 10Y Spring 26 Decanter",
+    canonicalId: "bb_a85df59577c72709",
+    canonicalName: "Old Fitzgerald Bottled-in-Bond Decanter Series",
     relationship: "featured",
   }],
   "elijah-craig-21-year-single-barrel-2026": [{
-    canonicalId: "elijah-craig-21-year-old-single-barrel",
+    canonicalId: "bb_7bb808afdb3c6530",
     canonicalName: "Elijah Craig 21-Year-Old Single Barrel",
     relationship: "featured",
   }],
   "lost-lantern-united-states-of-bourbon-1776": [{
-    canonicalId: "lost-lantern-united-states-of-bourbon-1776-edition",
-    canonicalName: "United States of Bourbon 1776 Edition",
+    canonicalId: "bb_33af7fce81b3c599",
+    canonicalName: "Lost Lantern United States of Bourbon: 1776 Edition",
     relationship: "featured",
   }],
   "frey-ranch-10-year-bourbon-batch-one": [{
-    canonicalId: "frey-ranch-10-year-old-bourbon-batch-1",
-    canonicalName: "Frey Ranch 10-Year-Old Bourbon Batch #1",
+    canonicalId: "bb_f8bbbae868f9f21f",
+    canonicalName: "Frey Ranch 10-Year-Old Bourbon Batch 1",
     relationship: "featured",
   }],
   "heaven-hill-grain-to-glass-year-of-wheat-2026": [{
-    canonicalId: "heaven-hill-grain-to-glass-3rd-ed-wheated-bbn",
-    canonicalName: "Heaven Hill Grain to Glass 3rd Ed Wheated Bbn",
+    canonicalId: "bb_f2af0db35c8d2aea",
+    canonicalName: "Heaven Hill Grain to Glass Third Edition Wheated Bourbon",
     relationship: "featured",
   }],
   "rittenhouse-250th-anniversary-10-year-2026": [{
-    canonicalId: "rittenhouse-rye-america-250th-ed",
-    canonicalName: "Rittenhouse Rye America 250th Ed.",
+    canonicalId: "bb_4f13269581f5a14b",
+    canonicalName: "Rittenhouse United States 250th Anniversary 10 Year",
     relationship: "featured",
   }],
   "four-roses-single-barrel-collection-2026": [{
-    canonicalId: "four-roses-single-barrel-collection-2026",
-    canonicalName: "Four Roses Single Barrel Collection 2026 Release",
+    canonicalId: "bb_1035b7107992dc95",
+    canonicalName: "Four Roses Single Barrel Collection 2026",
     relationship: "featured",
   }],
 };
