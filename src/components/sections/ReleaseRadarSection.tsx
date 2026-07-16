@@ -30,21 +30,6 @@ export default function ReleaseRadarSection() {
           </Link>
           <small>Updated as credible release information becomes available.</small>
         </div>
-
-        <div className={c("release-radar-promo-visual")} aria-hidden="true">
-          <div className={c("release-radar-promo-status")}><span>Live</span><b>Release Radar</b></div>
-          <div className={c("release-radar-promo-instrument")}>
-            <span className={c("release-radar-promo-ring", "release-radar-promo-ring--outer")} />
-            <span className={c("release-radar-promo-ring", "release-radar-promo-ring--inner")} />
-            <span className={c("release-radar-promo-axis", "release-radar-promo-axis--horizontal")} />
-            <span className={c("release-radar-promo-axis", "release-radar-promo-axis--vertical")} />
-            <span className={c("release-radar-promo-sweep")} />
-            <span className={c("release-radar-promo-blip", "release-radar-promo-blip--one")} />
-            <span className={c("release-radar-promo-blip", "release-radar-promo-blip--two")} />
-            <i />
-          </div>
-          <div className={c("release-radar-promo-index")}><span>Calendar</span><span>Briefings</span><span>States</span></div>
-        </div>
       </div>
     </section>
   );

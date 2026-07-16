@@ -7,7 +7,7 @@ This backbone turns existing aggregate operating signals into a bounded GitHub I
 - Every new command defaults to dry-run.
 - GitHub issue creation, edits, closing, and reopening require `--apply`.
 - Writing a scorecard, daily brief, weekly review, or Radar finding report requires `--apply`.
-- Creating an objective lock and its branch requires `--apply` and a clean worktree.
+- Creating an objective lock and its branch requires `--apply` and a clean base worktree. Production automation supplies `--worktree` so the objective branch is isolated instead of switching the canonical checkout.
 - No command sends messages, deploys code, changes a schedule, or writes production data.
 - The scorecard selects aggregate counters from the Control Room snapshot. It never carries email addresses, user IDs, or per-member records.
 
@@ -101,6 +101,8 @@ npm run operator:findings -- update --id bsf-0123456789abcdef --status resolved 
 
 Repository labels referenced by the issue form and upsert command must already exist: `operator-finding`, `area:*`, `severity:*`, and `status:*`.
 
+The repository milestone `Bourbon Signal Operating Backlog` is the canonical human-readable board, and the backlog index issue links the all, selected, in-progress, blocked, approval-required, and resolved views. A GitHub Project may mirror those issues when the authenticated token has Projects v2 scope, but Project membership is presentation only: issue bodies and lifecycle labels remain authoritative.
+
 ## Single-objective policy
 
 Only one lock may exist. An existing `selected` or `in-progress` finding retains the objective regardless of new rank; more than one active finding is a contract failure. Otherwise selection excludes resolved, dismissed, and blocked findings and chooses the highest deterministic rank. The branch is always `operator/<finding-id>-<title-slug>`.
@@ -108,12 +110,12 @@ Only one lock may exist. An existing `selected` or `in-progress` finding retains
 ```bash
 npm run operator:objective -- status
 npm run operator:objective -- select --file ranked-or-canonical-findings.json
-npm run operator:objective -- select --file ranked-or-canonical-findings.json --issue-number 123 --apply
+npm run operator:objective -- select --file ranked-or-canonical-findings.json --issue-number 123 --worktree ../Bourbon-Signal-operator-current --apply
 npm run operator:objective -- release
-npm run operator:objective -- release --apply
+npm run operator:objective -- release --worktree ../Bourbon-Signal-operator-current --apply
 ```
 
-Dry-run selection does not write `.operator/objective-lock.json` and does not create or switch branches. Applied selection refuses a dirty worktree, an existing lock, or an existing objective branch. Objective branches start from `main` by default; `--base release/<name>` is the only alternate base policy. Release must run from the locked branch and requires `--apply` to delete the lock.
+Dry-run selection does not write `.operator/objective-lock.json` and does not create or switch branches. Applied selection refuses a dirty base worktree, an existing lock, or an existing objective branch. With `--worktree`, the objective branch starts from `main` in that isolated path and the canonical checkout stays on `main`; omitting it retains the manual branch-switch behavior. `--base release/<name>` is the only alternate base policy. Release validates the locked branch in the supplied objective worktree and requires `--apply` to delete the lock.
 
 ## Verification
 

@@ -36,12 +36,12 @@ async function findingsFrom(file) {
   });
 }
 
-async function git(args) {
-  const { stdout = '' } = await execFileAsync('git', args, { encoding: 'utf8', windowsHide: true });
+async function git(args, cwd = process.cwd()) {
+  const { stdout = '' } = await execFileAsync('git', args, { cwd, encoding: 'utf8', windowsHide: true });
   return stdout.trim();
 }
 
-async function applyLock(lock, lockFile) {
+async function applyLock(lock, lockFile, worktreeDir) {
   const dirty = await git(['status', '--porcelain']);
   if (dirty) throw new Error('Refusing to start an objective from a dirty worktree.');
   try {
@@ -53,7 +53,8 @@ async function applyLock(lock, lockFile) {
   await mkdir(path.dirname(lockFile), { recursive: true });
   await writeFile(lockFile, `${JSON.stringify(lock, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
   try {
-    await git(['switch', '-c', lock.branch, lock.baseBranch]);
+    if (worktreeDir) await git(['worktree', 'add', '-b', lock.branch, worktreeDir, lock.baseBranch]);
+    else await git(['switch', '-c', lock.branch, lock.baseBranch]);
   } catch (error) {
     await rm(lockFile, { force: true });
     throw error;
@@ -64,6 +65,7 @@ export async function main(argv = process.argv.slice(2)) {
   const [command] = argv;
   const apply = argv.includes('--apply');
   const lockFile = path.resolve(option(argv, 'lock') || DEFAULT_LOCK);
+  const worktreeDir = option(argv, 'worktree') ? path.resolve(option(argv, 'worktree')) : null;
   const existingLock = await maybeJson(lockFile);
 
   if (command === 'status') {
@@ -82,15 +84,20 @@ export async function main(argv = process.argv.slice(2)) {
       existingLock,
       baseBranch: option(argv, 'base') || 'main',
     });
-    const result = { mode: apply ? 'apply' : 'dry-run', lock, mutations: apply ? ['write-lock', 'create-branch', 'switch-branch'] : [] };
-    if (apply) await applyLock(lock, lockFile);
+    const result = {
+      mode: apply ? 'apply' : 'dry-run',
+      lock,
+      worktree: worktreeDir,
+      mutations: apply ? ['write-lock', 'create-branch', worktreeDir ? 'create-worktree' : 'switch-branch'] : [],
+    };
+    if (apply) await applyLock(lock, lockFile, worktreeDir);
     console.log(JSON.stringify(result, null, 2));
     return result;
   }
 
   if (command === 'release') {
     if (!existingLock) throw new Error('No objective lock exists.');
-    const branch = await git(['branch', '--show-current']);
+    const branch = await git(['branch', '--show-current'], worktreeDir || process.cwd());
     if (branch !== existingLock.branch) throw new Error(`Release the objective from ${existingLock.branch}; current branch is ${branch || 'detached'}.`);
     const result = { mode: apply ? 'apply' : 'dry-run', action: 'release', objectiveId: existingLock.objectiveId, lockFile };
     if (apply) await rm(lockFile);
@@ -98,7 +105,7 @@ export async function main(argv = process.argv.slice(2)) {
     return result;
   }
 
-  throw new Error('Usage: operator-objective.mjs status | select --file FILE [--issue-number N] [--base main] [--apply] | release [--apply]');
+  throw new Error('Usage: operator-objective.mjs status | select --file FILE [--issue-number N] [--base main] [--worktree PATH] [--apply] | release [--worktree PATH] [--apply]');
 }
 
 const invoked = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';

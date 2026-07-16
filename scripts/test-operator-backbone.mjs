@@ -256,6 +256,7 @@ assert.match(cliSource, /--apply/);
 const objectiveCliSource = readFileSync(new URL('./operator-objective.mjs', import.meta.url), 'utf8');
 assert.match(objectiveCliSource, /dry-run/);
 assert.match(objectiveCliSource, /--apply/);
+assert.match(objectiveCliSource, /\['worktree', 'add'/, 'objective application must create an isolated git worktree');
 for (const [file, adapter] of [
   ['../automation/bourbon-signal/daily-reliability.mjs', 'findingsFromDailyReliability'],
   ['../automation/bourbon-signal/weekly-engine-brief.mjs', 'findingsFromWeeklyEngineBrief'],

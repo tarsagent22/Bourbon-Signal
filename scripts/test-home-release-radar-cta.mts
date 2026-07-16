@@ -24,6 +24,8 @@ assert.match(radarCtaStyles, /\.release-radar-promo-button/);
 assert.match(radarCtaStyles, /background: var\(--promo-brass-bright\)/);
 assert.match(radarCtaStyles, /prefers-reduced-motion/);
 assert.match(radarCtaStyles, /:focus-visible/);
+assert.doesNotMatch(radarCta, /release-radar-promo-visual|release-radar-promo-instrument|release-radar-promo-sweep/);
+assert.doesNotMatch(radarCtaStyles, /promoRadarSweep|promoRadarBlip|release-radar-promo-visual|release-radar-promo-instrument/);
 assert.doesNotMatch(radarCta, /Daily Briefing|Yellowstone|Kentucky Bourbon Trail|1792 adds/);
 
 assert.equal((footer.match(/label: "Release Radar"/g) || []).length, 1);
