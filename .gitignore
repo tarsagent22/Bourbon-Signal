@@ -7,4 +7,5 @@ PROMPT*.md
 .env.local
 .hermes/
 .operator/
+data/retailer-acquisition/
 .env*.local
