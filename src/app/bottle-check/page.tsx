@@ -317,13 +317,11 @@ export default function BottleCheckPage() {
           ...prefs.areaPreferences,
           states: Array.from(new Set([...prefs.areaPreferences.states, ...selectedStates])),
         },
-        notificationPreferences: prefs.notificationPreferences,
         alertMode: "specific_bottles",
         bottleAlertPreferences: {
           bottleNames: Array.from(new Set([...prefs.bottleAlertPreferences.bottleNames, bottle.canonicalName])),
           bottleKeys: Array.from(new Set([...prefs.bottleAlertPreferences.bottleKeys, bottleKey].filter(Boolean))),
         },
-        collectionPreferences: prefs.collectionPreferences,
       });
       setTrackSaved(true);
     } catch (error) {

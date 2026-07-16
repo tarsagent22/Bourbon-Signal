@@ -21,6 +21,7 @@ export interface PreparedMemberWeeklyDelivery {
 
 export interface MemberWeeklyDeliveryRunnerDependencies {
   prepare(user: MemberWeeklyServerUser): Promise<PreparedMemberWeeklyDelivery>;
+  refreshUser(memberId: string): Promise<MemberWeeklyServerUser>;
   recipientMasterUnsubscribed(recipient: string): Promise<boolean>;
   reserveMemberWeek(user: MemberWeeklyServerUser, entry: MemberWeeklyDeliveryLedgerEntry): Promise<boolean>;
   send(prepared: PreparedMemberWeeklyDelivery, input: { idempotencyKey: string }): Promise<{ messageId: string }>;
@@ -48,6 +49,20 @@ export interface MemberWeeklyDeliveryRunResult {
   sent: number;
   errors: number;
   results: Array<{ memberId: string; status: MemberWeeklyMemberResultStatus }>;
+}
+
+function currentMemberBlockStatus(user: MemberWeeklyServerUser): MemberWeeklyMemberResultStatus | null {
+  const publicMetadata = user.publicMetadata || {};
+  const privateMetadata = user.privateMetadata || {};
+  const weeklyPreference = normalizeNotificationPreferences(publicMetadata.notificationPreferences).weeklyIntelligence;
+  if (!isPaidTier(publicMetadata)) return "skipped_ineligible_member";
+  if (masterUnsubscribed(publicMetadata, privateMetadata)) return "skipped_master_unsubscribed";
+  if (explicitOptIn(weeklyPreference)) return null;
+  return weeklyPreference.unsubscribedAt
+    ? "skipped_unsubscribed"
+    : weeklyPreference.emailEnabled
+      ? "skipped_missing_explicit_opt_in"
+      : "skipped_not_opted_in";
 }
 
 export async function executeMemberWeeklyDeliveryRun(input: {
@@ -84,24 +99,9 @@ export async function executeMemberWeeklyDeliveryRun(input: {
     for (const user of batch) {
       summary.membersConsidered += 1;
       try {
-        const publicMetadata = user.publicMetadata || {};
-        const privateMetadata = user.privateMetadata || {};
-        const weeklyPreference = normalizeNotificationPreferences(publicMetadata.notificationPreferences).weeklyIntelligence;
-        if (!isPaidTier(publicMetadata)) {
-          summary.results.push({ memberId: user.id, status: "skipped_ineligible_member" });
-          continue;
-        }
-        if (masterUnsubscribed(publicMetadata, privateMetadata)) {
-          summary.results.push({ memberId: user.id, status: "skipped_master_unsubscribed" });
-          continue;
-        }
-        if (!explicitOptIn(weeklyPreference)) {
-          const status: MemberWeeklyMemberResultStatus = weeklyPreference.unsubscribedAt
-            ? "skipped_unsubscribed"
-            : weeklyPreference.emailEnabled
-              ? "skipped_missing_explicit_opt_in"
-              : "skipped_not_opted_in";
-          summary.results.push({ memberId: user.id, status });
+        const initialBlockStatus = currentMemberBlockStatus(user);
+        if (initialBlockStatus) {
+          summary.results.push({ memberId: user.id, status: initialBlockStatus });
           continue;
         }
         const prepared = await input.dependencies.prepare(user);
@@ -124,6 +124,13 @@ export async function executeMemberWeeklyDeliveryRun(input: {
           continue;
         }
 
+        const currentBeforeReservation = await input.dependencies.refreshUser(user.id);
+        const preReservationBlockStatus = currentMemberBlockStatus(currentBeforeReservation);
+        if (preReservationBlockStatus) {
+          summary.results.push({ memberId: user.id, status: preReservationBlockStatus });
+          continue;
+        }
+
         const reservedAt = new Date(input.now).toISOString();
         const reservation: MemberWeeklyDeliveryLedgerEntry = {
           memberId: user.id,
@@ -134,9 +141,19 @@ export async function executeMemberWeeklyDeliveryRun(input: {
           deliveredAt: null,
           providerMessageId: null,
         };
-        const reserved = await input.dependencies.reserveMemberWeek(user, reservation);
+        const reserved = await input.dependencies.reserveMemberWeek(currentBeforeReservation, reservation);
         if (!reserved) {
           summary.results.push({ memberId: user.id, status: "reserved_elsewhere" });
+          continue;
+        }
+        if (await input.dependencies.recipientMasterUnsubscribed(prepared.recipient)) {
+          summary.results.push({ memberId: user.id, status: "skipped_master_unsubscribed" });
+          continue;
+        }
+        const currentBeforeSend = await input.dependencies.refreshUser(user.id);
+        const preSendBlockStatus = currentMemberBlockStatus(currentBeforeSend);
+        if (preSendBlockStatus) {
+          summary.results.push({ memberId: user.id, status: preSendBlockStatus });
           continue;
         }
         const sent = await input.dependencies.send(prepared, { idempotencyKey: `member-weekly-${reservation.dedupeKey}` });

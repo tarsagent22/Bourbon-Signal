@@ -78,6 +78,7 @@ const dryRun = await executeMemberWeeklyDeliveryRun({
   config,
   dependencies: {
     prepare: async (member) => { prepareCalls += 1; return prepared(member.id); },
+    refreshUser: async (memberId) => user(memberId),
     recipientMasterUnsubscribed: async (recipient) => recipient.startsWith("member_g@"),
     reserveMemberWeek: async () => { reserveCalls += 1; return true; },
     send: async () => { sendCalls += 1; return { messageId: "must-not-send" }; },
@@ -107,6 +108,7 @@ const live = await executeMemberWeeklyDeliveryRun({
   config: { ...config, maxEmailsPerRun: 10, batchSize: 1 },
   dependencies: {
     prepare: async (member) => prepared(member.id),
+    refreshUser: async (memberId) => user(memberId),
     recipientMasterUnsubscribed: async () => false,
     reserveMemberWeek: async (_member, entry) => entry.status === "reserved",
     send: async (_delivery, input) => { idempotencyKeys.push(input.idempotencyKey); return { messageId: `fake-${input.idempotencyKey}` }; },
@@ -121,6 +123,33 @@ assert.deepEqual(delivered, ["member_a", "member_c"], "the ledger is marked only
 assert.ok(sleepDurations.includes(config.minSendIntervalMs), "live sends are rate limited");
 assert.ok(sleepDurations.includes(config.batchPauseMs), "live sends pause between batches");
 
+let currentRaceUser = user("member_race");
+let raceSendCalls = 0;
+const unsubscribeDuringRun = await executeMemberWeeklyDeliveryRun({
+  users: [currentRaceUser],
+  now,
+  requestLive: true,
+  config: { ...config, maxEmailsPerRun: 10 },
+  dependencies: {
+    prepare: async (member) => prepared(member.id),
+    refreshUser: async () => currentRaceUser,
+    recipientMasterUnsubscribed: async () => false,
+    reserveMemberWeek: async () => {
+      currentRaceUser = user("member_race", {
+        emailEnabled: false,
+        optedInAt: optedIn.optedInAt,
+        unsubscribedAt: "2026-07-16T14:00:01.000Z",
+      });
+      return true;
+    },
+    send: async () => { raceSendCalls += 1; return { messageId: "must-not-send" }; },
+    markMemberWeekDelivered: async () => undefined,
+    sleep: async () => undefined,
+  },
+});
+assert.deepEqual(unsubscribeDuringRun.results, [{ memberId: "member_race", status: "skipped_unsubscribed" }], "current Clerk consent is re-read after reservation and before the provider call");
+assert.equal(raceSendCalls, 0, "an unsubscribe during a live run wins without a provider send");
+
 let blockedPrepareCalls = 0;
 const blocked = await executeMemberWeeklyDeliveryRun({
   users: [user("member_a")],
@@ -129,6 +158,7 @@ const blocked = await executeMemberWeeklyDeliveryRun({
   config: { ...config, liveSendAuthorized: false },
   dependencies: {
     prepare: async (member) => { blockedPrepareCalls += 1; return prepared(member.id); },
+    refreshUser: async (memberId) => user(memberId),
     recipientMasterUnsubscribed: async () => false,
     reserveMemberWeek: async () => true,
     send: async () => ({ messageId: "must-not-send" }),

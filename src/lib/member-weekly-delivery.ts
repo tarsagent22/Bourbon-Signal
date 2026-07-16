@@ -1,5 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
-import type { WeeklyIntelligencePreference } from "./notification-preferences.ts";
+import {
+  weeklyIntelligenceExplicitlyEnabled,
+  type WeeklyIntelligencePreference,
+} from "./notification-preferences.ts";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -101,9 +104,7 @@ export function isMemberWeeklyDeliveryWindowOpen(now: string, config: MemberWeek
 }
 
 export function explicitOptIn(preference: WeeklyIntelligencePreference) {
-  return preference.emailEnabled === true
-    && Boolean(preference.optedInAt && Number.isFinite(Date.parse(preference.optedInAt)))
-    && !preference.unsubscribedAt;
+  return weeklyIntelligenceExplicitlyEnabled(preference);
 }
 
 export function masterUnsubscribed(publicMetadata: unknown, privateMetadata: unknown) {

@@ -5,6 +5,14 @@ export interface WeeklyIntelligencePreference {
   emailEnabled: boolean;
   optedInAt: string | null;
   unsubscribedAt: string | null;
+  version: number;
+}
+
+export type WeeklyIntelligencePreferenceAction = "subscribe" | "unsubscribe";
+
+export interface WeeklyIntelligencePreferenceActionRequest {
+  action: WeeklyIntelligencePreferenceAction;
+  expectedVersion: number;
 }
 
 export interface NotificationPreferences {
@@ -26,6 +34,30 @@ export interface NotificationPreferences {
     enabled: boolean;
   };
   weeklyIntelligence: WeeklyIntelligencePreference;
+}
+
+export interface NotificationPreferencesPatch {
+  onSite?: Partial<NotificationPreferences["onSite"]>;
+  email?: Partial<NotificationPreferences["email"]>;
+  sms?: Partial<NotificationPreferences["sms"]>;
+  sightings?: Partial<NotificationPreferences["sightings"]>;
+  weeklyIntelligence?: Partial<WeeklyIntelligencePreference> & Partial<WeeklyIntelligencePreferenceActionRequest>;
+}
+
+export type NotificationPreferencesMetadataPatch = {
+  [Key in Exclude<keyof NotificationPreferences, "weeklyIntelligence">]?: NotificationPreferences[Key];
+} & {
+  weeklyIntelligence?: Partial<WeeklyIntelligencePreference>;
+};
+
+export class WeeklyIntelligencePreferenceConflict extends Error {
+  readonly currentVersion: number;
+
+  constructor(currentVersion: number) {
+    super("Weekly intelligence preference changed; refresh before trying again.");
+    this.name = "WeeklyIntelligencePreferenceConflict";
+    this.currentVersion = currentVersion;
+  }
 }
 
 export interface MemberAlertRecord {
@@ -53,7 +85,7 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   email: { enabled: false, mode: "major_only" },
   sms: { enabled: false, available: true, mode: "major_only", verified: false },
   sightings: { enabled: false },
-  weeklyIntelligence: { emailEnabled: false, optedInAt: null, unsubscribedAt: null },
+  weeklyIntelligence: { emailEnabled: false, optedInAt: null, unsubscribedAt: null, version: 0 },
 };
 
 export function getDefaultNotificationPreferences(): NotificationPreferences {
@@ -72,6 +104,13 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const mode = email.mode === "all" || email.mode === "major_only"
     ? email.mode
     : DEFAULT_NOTIFICATION_PREFERENCES.email.mode;
+  const optedInAt = typeof weeklyIntelligence.optedInAt === "string" ? weeklyIntelligence.optedInAt : null;
+  const unsubscribedAt = typeof weeklyIntelligence.unsubscribedAt === "string" ? weeklyIntelligence.unsubscribedAt : null;
+  const optedInTime = optedInAt ? Date.parse(optedInAt) : Number.NaN;
+  const unsubscribedTime = unsubscribedAt ? Date.parse(unsubscribedAt) : Number.NaN;
+  const emailEnabled = unsubscribedAt
+    ? Number.isFinite(optedInTime) && Number.isFinite(unsubscribedTime) && optedInTime > unsubscribedTime
+    : weeklyIntelligence.emailEnabled === true;
 
   return {
     onSite: {
@@ -94,42 +133,112 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
       enabled: typeof sightings.enabled === "boolean" ? sightings.enabled : DEFAULT_NOTIFICATION_PREFERENCES.sightings.enabled,
     },
     weeklyIntelligence: {
-      emailEnabled: weeklyIntelligence.emailEnabled === true,
-      optedInAt: typeof weeklyIntelligence.optedInAt === "string" ? weeklyIntelligence.optedInAt : null,
-      unsubscribedAt: typeof weeklyIntelligence.unsubscribedAt === "string" ? weeklyIntelligence.unsubscribedAt : null,
+      emailEnabled,
+      optedInAt,
+      unsubscribedAt,
+      version: Number.isInteger(weeklyIntelligence.version) && Number(weeklyIntelligence.version) >= 0
+        ? Number(weeklyIntelligence.version)
+        : 0,
     },
   };
 }
 
 export function applyWeeklyIntelligencePreferenceTransition(input: {
   existing: WeeklyIntelligencePreference;
-  requested: Partial<WeeklyIntelligencePreference>;
+  requested: WeeklyIntelligencePreferenceActionRequest;
   now: string;
 }): WeeklyIntelligencePreference {
-  const emailEnabled = input.requested.emailEnabled === true;
-  if (emailEnabled) {
+  if (!Number.isInteger(input.requested.expectedVersion) || input.requested.expectedVersion !== input.existing.version) {
+    throw new WeeklyIntelligencePreferenceConflict(input.existing.version);
+  }
+  if (input.requested.action === "subscribe") {
     return {
       emailEnabled: true,
-      optedInAt: input.existing.optedInAt || input.now,
-      unsubscribedAt: null,
+      optedInAt: input.now,
+      unsubscribedAt: input.existing.unsubscribedAt,
+      version: input.existing.version + 1,
     };
   }
-  return {
-    emailEnabled: false,
-    optedInAt: input.existing.optedInAt,
-    unsubscribedAt: input.existing.emailEnabled ? input.now : input.existing.unsubscribedAt,
-  };
+  return applyWeeklyIntelligenceUnsubscribe(input.existing, input.now);
+}
+
+export function weeklyIntelligenceExplicitlyEnabled(preference: WeeklyIntelligencePreference) {
+  const optedInAt = preference.optedInAt ? Date.parse(preference.optedInAt) : Number.NaN;
+  if (!Number.isFinite(optedInAt)) return false;
+  if (!preference.unsubscribedAt) return preference.emailEnabled === true;
+  const unsubscribedAt = Date.parse(preference.unsubscribedAt);
+  return Number.isFinite(unsubscribedAt) && optedInAt > unsubscribedAt;
 }
 
 export function applyWeeklyIntelligenceUnsubscribe(
   existing: WeeklyIntelligencePreference,
-  issuedAt: string,
+  occurredAt: string,
 ): WeeklyIntelligencePreference {
+  if (existing.unsubscribedAt && !weeklyIntelligenceExplicitlyEnabled(existing)) return existing;
   return {
     ...existing,
     emailEnabled: false,
-    unsubscribedAt: existing.unsubscribedAt || issuedAt,
+    unsubscribedAt: occurredAt,
+    version: existing.version + 1,
   };
+}
+
+function nestedRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function supplied(source: Record<string, unknown>, field: string) {
+  return Object.prototype.hasOwnProperty.call(source, field) && nestedRecord(source[field]) !== null;
+}
+
+export function applyNotificationPreferencesPatch(input: {
+  existing: NotificationPreferences;
+  requested: NotificationPreferencesPatch | unknown;
+  now: string;
+}) {
+  const existing = normalizeNotificationPreferences(input.existing);
+  const source = nestedRecord(input.requested) || {};
+  const merged = {
+    ...existing,
+    onSite: { ...existing.onSite, ...(nestedRecord(source.onSite) || {}) },
+    email: { ...existing.email, ...(nestedRecord(source.email) || {}) },
+    sms: { ...existing.sms, ...(nestedRecord(source.sms) || {}) },
+    sightings: { ...existing.sightings, ...(nestedRecord(source.sightings) || {}) },
+    weeklyIntelligence: existing.weeklyIntelligence,
+  };
+  let preferences = normalizeNotificationPreferences(merged);
+  const metadataPatch: NotificationPreferencesMetadataPatch = {};
+
+  if (supplied(source, "onSite")) metadataPatch.onSite = preferences.onSite;
+  if (supplied(source, "email")) metadataPatch.email = preferences.email;
+  if (supplied(source, "sms")) metadataPatch.sms = preferences.sms;
+  if (supplied(source, "sightings")) metadataPatch.sightings = preferences.sightings;
+
+  const weeklyRequest = nestedRecord(source.weeklyIntelligence);
+  if (weeklyRequest && (weeklyRequest.action === "subscribe" || weeklyRequest.action === "unsubscribe")) {
+    const weeklyIntelligence = applyWeeklyIntelligencePreferenceTransition({
+      existing: existing.weeklyIntelligence,
+      requested: {
+        action: weeklyRequest.action,
+        expectedVersion: typeof weeklyRequest.expectedVersion === "number" ? weeklyRequest.expectedVersion : Number.NaN,
+      },
+      now: input.now,
+    });
+    preferences = { ...preferences, weeklyIntelligence };
+    metadataPatch.weeklyIntelligence = weeklyRequest.action === "subscribe"
+      ? {
+          emailEnabled: true,
+          optedInAt: weeklyIntelligence.optedInAt,
+          version: weeklyIntelligence.version,
+        }
+      : {
+          emailEnabled: false,
+          unsubscribedAt: weeklyIntelligence.unsubscribedAt,
+          version: weeklyIntelligence.version,
+        };
+  }
+
+  return { preferences, metadataPatch };
 }
 
 export function buildAlertId(userId: string, dedupeKey: string, createdAt: string) {

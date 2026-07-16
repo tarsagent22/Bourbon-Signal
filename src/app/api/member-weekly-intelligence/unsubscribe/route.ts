@@ -54,13 +54,16 @@ export async function POST(request: NextRequest) {
     const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
     const weeklyIntelligence = applyWeeklyIntelligenceUnsubscribe(
       notificationPreferences.weeklyIntelligence,
-      new Date(issuedAt).toISOString(),
+      new Date().toISOString(),
     );
     await client.users.updateUserMetadata(memberId, {
       publicMetadata: {
         notificationPreferences: {
-          ...notificationPreferences,
-          weeklyIntelligence,
+          weeklyIntelligence: {
+            emailEnabled: weeklyIntelligence.emailEnabled,
+            unsubscribedAt: weeklyIntelligence.unsubscribedAt,
+            version: weeklyIntelligence.version,
+          },
         },
       },
     });

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import {
   getDefaultNotificationPreferences,
-  applyWeeklyIntelligencePreferenceTransition,
+  applyNotificationPreferencesPatch,
   normalizeNotificationPreferences,
+  WeeklyIntelligencePreferenceConflict,
+  type NotificationPreferencesPatch,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
@@ -76,6 +78,10 @@ export interface UserAlertPreferences {
   sightingsPreferences?: SightingsPreferences;
   activation?: ReturnType<typeof deriveMemberActivation>;
 }
+
+export type UserAlertPreferencePatch = Omit<Partial<UserAlertPreferences>, "notificationPreferences"> & {
+  notificationPreferences?: NotificationPreferencesPatch;
+};
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   states: [],
@@ -419,16 +425,34 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
+  const payload = (await req.json().catch(() => ({}))) as UserAlertPreferencePatch;
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const existing = buildResponseFromMetadata(user);
 
   let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
-  let notificationPreferences = normalizeNotificationPreferences(
-    payload.notificationPreferences ?? existing.notificationPreferences ?? getDefaultNotificationPreferences()
-  );
+  let notificationPreferences = existing.notificationPreferences ?? getDefaultNotificationPreferences();
+  let notificationPreferencesMetadataPatch: Record<string, unknown> = {};
   if (payload.notificationPreferences !== undefined) {
+    let appliedNotificationPatch: ReturnType<typeof applyNotificationPreferencesPatch>;
+    try {
+      appliedNotificationPatch = applyNotificationPreferencesPatch({
+        existing: notificationPreferences,
+        requested: payload.notificationPreferences,
+        now: new Date().toISOString(),
+      });
+    } catch (error) {
+      if (error instanceof WeeklyIntelligencePreferenceConflict) {
+        return NextResponse.json({
+          error: error.message,
+          code: "weekly_intelligence_version_conflict",
+          currentVersion: error.currentVersion,
+        }, { status: 409 });
+      }
+      throw error;
+    }
+    notificationPreferences = appliedNotificationPatch.preferences;
+    notificationPreferencesMetadataPatch = appliedNotificationPatch.metadataPatch;
     const existingSms = existing.notificationPreferences?.sms;
     const savedPhone = notificationPreferences.sms.phone?.trim();
     const samePhone = Boolean(savedPhone && existingSms?.phone === savedPhone);
@@ -445,22 +469,7 @@ export async function POST(req: NextRequest) {
         verified: smsConsentedOnSave || Boolean(samePhone && existingSms?.verified),
       },
     };
-    const requestedNotificationPreferences = payload.notificationPreferences as unknown as Record<string, unknown>;
-    if (requestedNotificationPreferences.weeklyIntelligence !== undefined) {
-      notificationPreferences = {
-        ...notificationPreferences,
-        weeklyIntelligence: applyWeeklyIntelligencePreferenceTransition({
-          existing: existing.notificationPreferences.weeklyIntelligence,
-          requested: notificationPreferences.weeklyIntelligence,
-          now: new Date().toISOString(),
-        }),
-      };
-    } else {
-      notificationPreferences = {
-        ...notificationPreferences,
-        weeklyIntelligence: existing.notificationPreferences.weeklyIntelligence,
-      };
-    }
+    if (notificationPreferencesMetadataPatch.sms) notificationPreferencesMetadataPatch.sms = notificationPreferences.sms;
   }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
@@ -479,6 +488,7 @@ export async function POST(req: NextRequest) {
       ...notificationPreferences,
       sms: { ...notificationPreferences.sms, enabled: false },
     };
+    if (notificationPreferencesMetadataPatch.sms) notificationPreferencesMetadataPatch.sms = notificationPreferences.sms;
   }
 
   if (!entitlements.canReceiveSightingsAlerts) {
@@ -486,6 +496,7 @@ export async function POST(req: NextRequest) {
       ...notificationPreferences,
       sightings: { enabled: false },
     };
+    if (notificationPreferencesMetadataPatch.sightings) notificationPreferencesMetadataPatch.sightings = notificationPreferences.sightings;
   }
 
   areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
@@ -511,7 +522,7 @@ export async function POST(req: NextRequest) {
   if (activation.complete) milestones.push("paid_activation_completed");
   const publicMetadataPatch = buildSuppliedPreferenceMetadataPatch(payload, {
     areaPreferences,
-    notificationPreferences,
+    notificationPreferences: notificationPreferencesMetadataPatch,
     alertMode,
     bottleAlertPreferences,
     collectionPreferences,

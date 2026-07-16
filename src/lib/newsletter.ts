@@ -1,42 +1,20 @@
-import * as crypto from "crypto";
 import { getResendClient } from "@/lib/email-alerts";
+import { isValidNewsletterEmail, normalizeNewsletterEmail } from "./newsletter-preference-token";
+
+export {
+  isValidNewsletterEmail,
+  issueNewsletterResubscribeConfirmation,
+  newsletterSignatureFor,
+  newsletterSigningSecret,
+  newsletterUnsubscribeUrl,
+  normalizeNewsletterEmail,
+  verifyNewsletterPreferenceAuthorization,
+  verifyNewsletterSignature,
+  type NewsletterPreferenceAction,
+  type NewsletterResubscribeConfirmation,
+} from "./newsletter-preference-token";
 
 export const NEWSLETTER_AUDIENCE_ID = process.env.RESEND_DIGEST_AUDIENCE_ID;
-
-export function normalizeNewsletterEmail(value: string | undefined | null) {
-  return (value || "").trim().toLowerCase();
-}
-
-export function isValidNewsletterEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-export function newsletterSigningSecret() {
-  return process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || process.env.RESEND_API_KEY || "";
-}
-
-export function newsletterSignatureFor(email: string) {
-  const secret = newsletterSigningSecret();
-  if (!secret) return "";
-  return crypto.createHmac("sha256", secret).update(normalizeNewsletterEmail(email)).digest("hex");
-}
-
-export function verifyNewsletterSignature(email: string, signature: string) {
-  const expected = newsletterSignatureFor(email);
-  if (!expected || !signature) return false;
-  const left = Buffer.from(expected);
-  const right = Buffer.from(signature);
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-export function newsletterUnsubscribeUrl(email: string, baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com") {
-  const normalizedEmail = normalizeNewsletterEmail(email);
-  const params = new URLSearchParams({
-    email: normalizedEmail,
-    sig: newsletterSignatureFor(normalizedEmail),
-  });
-  return `${baseUrl.replace(/\/$/, "")}/unsubscribe?${params.toString()}`;
-}
 
 function resendErrorMessage(error: unknown) {
   if (!error || typeof error !== "object") return "Unknown Resend error";

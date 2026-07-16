@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-import type { UserAlertPreferences } from "@/app/api/user/preferences/route";
+import type { UserAlertPreferencePatch, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import {
   clearCachedAreaPreferences,
   getCachedAreaPreferences,
@@ -34,6 +34,28 @@ const EMPTY_PREFS: UserAlertPreferences = {
 };
 
 type PreferenceResolution = "preview" | "signed-in" | "signed-out" | null;
+
+function mergePreferencePatch(base: UserAlertPreferences, patch: UserAlertPreferencePatch): UserAlertPreferences {
+  const notificationPatch = patch.notificationPreferences;
+  const weeklyAction = notificationPatch?.weeklyIntelligence?.action;
+  const notificationPreferences = notificationPatch
+    ? {
+        ...base.notificationPreferences,
+        ...(notificationPatch.onSite ? { onSite: { ...base.notificationPreferences.onSite, ...notificationPatch.onSite } } : {}),
+        ...(notificationPatch.email ? { email: { ...base.notificationPreferences.email, ...notificationPatch.email } } : {}),
+        ...(notificationPatch.sms ? { sms: { ...base.notificationPreferences.sms, ...notificationPatch.sms } } : {}),
+        ...(notificationPatch.sightings ? { sightings: { ...base.notificationPreferences.sightings, ...notificationPatch.sightings } } : {}),
+        weeklyIntelligence: weeklyAction
+          ? { ...base.notificationPreferences.weeklyIntelligence, emailEnabled: weeklyAction === "subscribe" }
+          : base.notificationPreferences.weeklyIntelligence,
+      }
+    : base.notificationPreferences;
+  return {
+    ...base,
+    ...patch,
+    notificationPreferences,
+  } as UserAlertPreferences;
+}
 
 export function useAreaPreferences() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -129,10 +151,10 @@ export function useAreaPreferences() {
         : "signed-out";
   const ready = expectedResolution !== null && resolvedFor === expectedResolution;
 
-  const savePreferences = useCallback(async (newPrefs: Partial<UserAlertPreferences>) => {
+  const savePreferences = useCallback(async (newPrefs: UserAlertPreferencePatch) => {
     const requestedUserId = userId;
-    const merged = { ...(getCachedAreaPreferences(requestedUserId) || prefs || EMPTY_PREFS), ...newPrefs };
-    setPrefs((current) => ({ ...current, ...newPrefs }));
+    const merged = mergePreferencePatch(getCachedAreaPreferences(requestedUserId) || prefs || EMPTY_PREFS, newPrefs);
+    setPrefs((current) => mergePreferencePatch(current, newPrefs));
     if (requestedUserId) setCachedAreaPreferences(requestedUserId, merged);
     if (qaPreview) return;
 

@@ -15,13 +15,17 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStats } from "@/lib/useEngineData";
 import { useSightings } from "@/hooks/useSightings";
 import type { Bottle } from "@/data/bottles";
-import type { AlertMode, AreaPreferences, UserAlertPreferences } from "@/app/api/user/preferences/route";
+import type { AlertMode, AreaPreferences, UserAlertPreferencePatch, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { WeeklyIntelligenceCard } from "@/components/dashboard/WeeklyIntelligenceCard";
-import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
+import {
+  getDefaultNotificationPreferences,
+  type NotificationPreferences,
+  type WeeklyIntelligencePreferenceActionRequest,
+} from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
@@ -819,6 +823,7 @@ export default function DashboardPage() {
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
+  const [weeklyIntelligenceAction, setWeeklyIntelligenceAction] = useState<WeeklyIntelligencePreferenceActionRequest | null>(null);
   const [alertMode, setAlertMode] = useState<AlertMode>("anything_notable");
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
@@ -864,6 +869,7 @@ export default function DashboardPage() {
       setLoadedSignedOutDefaults(false);
       setLocalPrefs(prefs.areaPreferences);
       setNotificationPrefs(prefs.notificationPreferences);
+      setWeeklyIntelligenceAction(null);
       setAlertMode(prefs.alertMode ?? "anything_notable");
       return;
     }
@@ -1434,16 +1440,7 @@ export default function DashboardPage() {
     setSavingCollection(false);
     setSavedCollection(true);
     setCollectionError(null);
-    const nextPrefs = {
-      areaPreferences: localPrefs,
-      notificationPreferences: notificationPrefs,
-      alertMode,
-      bottleAlertPreferences: {
-        bottleNames: watchedBottleOptions.map((option) => option.label),
-        bottleKeys: Array.from(selectedCanonicalKeys),
-      },
-      collectionPreferences: { bottles: entries },
-    };
+    const nextPrefs = { collectionPreferences: { bottles: entries } };
     void savePreferences(nextPrefs)
       .catch((error) => {
         setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
@@ -1588,14 +1585,11 @@ export default function DashboardPage() {
     setAlertMode("specific_bottles");
     setCollectionError(null);
     void savePreferences({
-      areaPreferences: localPrefs,
-      notificationPreferences: notificationPrefs,
       alertMode: "specific_bottles",
       bottleAlertPreferences: {
         bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
         bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
       },
-      collectionPreferences: prefs.collectionPreferences,
     }).catch((error) => {
       setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
     });
@@ -1829,16 +1823,20 @@ export default function DashboardPage() {
     }
     setSavingLocations(true);
     setCollectionError(null);
-    const nextPrefs: UserAlertPreferences = {
+    const nextPrefs: UserAlertPreferencePatch = {
       areaPreferences: localPrefs,
-      notificationPreferences: notificationPrefs,
+      notificationPreferences: {
+        onSite: notificationPrefs.onSite,
+        email: notificationPrefs.email,
+        sms: notificationPrefs.sms,
+        sightings: notificationPrefs.sightings,
+        ...(weeklyIntelligenceAction ? { weeklyIntelligence: weeklyIntelligenceAction } : {}),
+      },
       alertMode,
       bottleAlertPreferences: {
         bottleNames: watchedBottleOptions.map((option) => option.label),
         bottleKeys: Array.from(selectedCanonicalKeys),
       },
-      collectionPreferences: prefs.collectionPreferences,
-      radarPreferences: prefs.radarPreferences,
     };
     void savePreferences(nextPrefs)
       .then(() => {
@@ -3024,12 +3022,16 @@ export default function DashboardPage() {
                           ? "Email is opted in. The owner-controlled delivery pilot remains inactive until it is separately authorized."
                           : "Opt in to a separate weekly brief built from saved markets, tracked bottles, Radar, fresh eligible alerts, and coverage. Opt-in alone does not activate the delivery pilot."}
                         checked={notificationPrefs.weeklyIntelligence.emailEnabled}
-                        onCheckedChange={(checked) =>
+                        onCheckedChange={(checked) => {
+                          setWeeklyIntelligenceAction({
+                            action: checked ? "subscribe" : "unsubscribe",
+                            expectedVersion: notificationPrefs.weeklyIntelligence.version,
+                          });
                           setNotificationPrefs((prev) => ({
                             ...prev,
                             weeklyIntelligence: { ...prev.weeklyIntelligence, emailEnabled: checked },
-                          }))
-                        }
+                          }));
+                        }}
                       />
 
                       <div style={{ width: "100%", borderRadius: "18px", border: smsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)", background: smsActive ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)" : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)", boxShadow: smsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)", padding: "18px", display: "grid", gap: "12px", position: "relative", overflow: "hidden" }}>

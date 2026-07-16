@@ -73,9 +73,11 @@ assert.ok(newsletterUnsubscribe.includes('method="post"'), "newsletter GET rende
 for (const phrase of ["export async function POST", "verifyNewsletterSignature", "unsubscribeNewsletterContact", "emailSuppression", "updateUserMetadata"]) {
   assert.ok(newsletterPreferenceRoute.includes(phrase), `newsletter POST route must enforce ${phrase}`);
 }
+assert.ok(newsletterPreferenceRoute.includes("verifyNewsletterPreferenceAuthorization"), "newsletter preference actions must be purpose-bound");
+assert.equal(/action === "resubscribe"[^]*verifyNewsletterSignature/.test(newsletterPreferenceRoute), false, "legacy unsubscribe signatures cannot authorize resubscribe");
 
 assert.ok(middleware.includes('"/api/member-weekly-intelligence(.*)"'), "weekly API surface is protected by middleware too");
-assert.ok(preferencesRoute.includes("applyWeeklyIntelligencePreferenceTransition"), "preference writes must timestamp explicit opt-in and unsubscribe transitions");
+assert.ok(preferencesRoute.includes("applyNotificationPreferencesPatch"), "preference writes must use nested notification patch semantics");
 
 for (const forbidden of ["getResendClient", "resend.emails", "sendTwilioSms", "emails.send", "sms.send"]) {
   assert.equal(weeklyFiles.includes(forbidden), false, `weekly preview-only code must not contain ${forbidden}`);
@@ -89,6 +91,7 @@ for (const phrase of ["assertMemberWeeklyDeliveryAuthorized", "runMemberWeeklyDe
 for (const phrase of ["getUserList", 'orderBy: "+created_at"', ".sort(", "explicitOptIn", "masterUnsubscribed", "batchSize", "maxEmailsPerRun", "minSendIntervalMs", "idempotencyKey", "reserveMemberWeek", "markMemberWeekDelivered"]) {
   assert.ok(`${deliveryServer}\n${deliveryRunner}`.includes(phrase), `weekly sender must enforce ${phrase}`);
 }
+assert.ok(deliveryRunner.includes("refreshUser"), "live delivery re-reads current Clerk consent before provider send");
 assert.ok(deliveryServer.includes("MemberWeeklyIntelligenceEmail"), "live sender uses the reviewed weekly template");
 assert.ok(deliveryServer.includes("getResendClient"), "provider access is isolated to the live sender module");
 assert.ok(middleware.includes('url.pathname === "/api/member-weekly-intelligence/deliver"'), "delivery route reaches its own secret authorization");

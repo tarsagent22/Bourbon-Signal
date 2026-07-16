@@ -1,6 +1,9 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { MemberWeeklyIntelligence } from "./member-weekly-intelligence.ts";
-import type { WeeklyIntelligencePreference } from "./notification-preferences.ts";
+import {
+  weeklyIntelligenceExplicitlyEnabled,
+  type WeeklyIntelligencePreference,
+} from "./notification-preferences.ts";
 
 export const MEMBER_WEEKLY_UNSUBSCRIBE_PURPOSE = "weekly-intelligence-unsubscribe";
 export const MEMBER_WEEKLY_UNSUBSCRIBE_VERSION = "1";
@@ -55,9 +58,17 @@ export function buildWeeklyIntelligenceDryRun(input: {
   const dedupeKey = buildMemberWeekDedupeKey(input.memberId, input.report.weekKey);
   let status: MemberWeeklyDryRunStatus = "would_send";
 
-  if (!input.preferences.emailEnabled) status = "skipped_not_opted_in";
-  else if (input.preferences.unsubscribedAt) status = "skipped_unsubscribed";
-  else if (!input.preferences.optedInAt || !Number.isFinite(Date.parse(input.preferences.optedInAt))) status = "skipped_missing_explicit_opt_in";
+  if (!weeklyIntelligenceExplicitlyEnabled(input.preferences)) {
+    const optedInAt = input.preferences.optedInAt ? Date.parse(input.preferences.optedInAt) : Number.NaN;
+    const unsubscribedAt = input.preferences.unsubscribedAt ? Date.parse(input.preferences.unsubscribedAt) : Number.NaN;
+    if (input.preferences.unsubscribedAt && (!Number.isFinite(optedInAt) || !Number.isFinite(unsubscribedAt) || unsubscribedAt >= optedInAt)) {
+      status = "skipped_unsubscribed";
+    } else if (input.preferences.emailEnabled && !Number.isFinite(optedInAt)) {
+      status = "skipped_missing_explicit_opt_in";
+    } else {
+      status = "skipped_not_opted_in";
+    }
+  }
   else if (input.suppression.suppressed) status = "skipped_suppressed";
   else if (input.report.isEmpty) status = "skipped_empty_week";
   else if (input.suppression.deliveredMemberWeeks.includes(dedupeKey)) status = "skipped_member_week_duplicate";

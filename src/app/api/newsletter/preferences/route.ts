@@ -5,7 +5,9 @@ import {
   normalizeNewsletterEmail,
   subscribeNewsletterContact,
   unsubscribeNewsletterContact,
+  verifyNewsletterPreferenceAuthorization,
   verifyNewsletterSignature,
+  type NewsletterResubscribeConfirmation,
 } from "@/lib/newsletter";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +50,18 @@ export async function POST(request: NextRequest) {
   const email = normalizeNewsletterEmail(String(form?.get("email") || ""));
   const signature = String(form?.get("sig") || "");
   const action: NewsletterAction = form?.get("action") === "resubscribe" ? "resubscribe" : "unsubscribe";
-  if (!isValidNewsletterEmail(email) || !verifyNewsletterSignature(email, signature)) {
+  const confirmation: NewsletterResubscribeConfirmation = {
+    purpose: String(form?.get("confirmationPurpose") || "") as NewsletterResubscribeConfirmation["purpose"],
+    version: String(form?.get("confirmationVersion") || "") as NewsletterResubscribeConfirmation["version"],
+    action: String(form?.get("confirmationAction") || "") as NewsletterResubscribeConfirmation["action"],
+    issuedAt: String(form?.get("confirmationIssuedAt") || ""),
+    expiresAt: String(form?.get("confirmationExpiresAt") || ""),
+    signature: String(form?.get("confirmationSignature") || ""),
+  };
+  const authorized = action === "unsubscribe"
+    ? verifyNewsletterSignature(email, signature)
+    : verifyNewsletterPreferenceAuthorization({ action, email, unsubscribeSignature: signature, confirmation });
+  if (!isValidNewsletterEmail(email) || !authorized) {
     return redirectResult(request, email, signature, "invalid");
   }
 

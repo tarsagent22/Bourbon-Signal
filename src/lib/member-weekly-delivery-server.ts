@@ -133,6 +133,7 @@ export async function runMemberWeeklyDelivery(input: {
     config,
     dependencies: {
       prepare: async (user) => buildWeeklyIntelligencePreviewFromSources({ user, sources, now, appUrl }),
+      refreshUser: async (memberId) => client.users.getUser(memberId),
       recipientMasterUnsubscribed,
       reserveMemberWeek: async (_user, entry) => reserveMemberWeek(client, entry, config.reservationTtlMinutes),
       send: async (prepared, { idempotencyKey }) => {

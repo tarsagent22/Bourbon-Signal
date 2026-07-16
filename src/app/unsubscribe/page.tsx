@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { isValidNewsletterEmail, normalizeNewsletterEmail, verifyNewsletterSignature } from "@/lib/newsletter";
+import {
+  isValidNewsletterEmail,
+  issueNewsletterResubscribeConfirmation,
+  normalizeNewsletterEmail,
+  verifyNewsletterSignature,
+} from "@/lib/newsletter";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +52,10 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
         : state === "error"
           ? "Please try again in a minute, or reply to the email and we’ll handle it manually."
           : "The link may be malformed or missing its signature.";
+  const formAction = state === "unsubscribed" ? "resubscribe" : requestedAction;
+  const resubscribeConfirmation = valid && formAction === "resubscribe"
+    ? issueNewsletterResubscribeConfirmation({ email })
+    : null;
 
   return (
     <main style={{ minHeight: "100vh", background: "#120d09", color: "#f5edd6", display: "grid", placeItems: "center", padding: "32px 18px" }}>
@@ -60,7 +69,17 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
           <form method="post" action="/api/newsletter/preferences" style={{ marginTop: 24 }}>
             <input type="hidden" name="email" value={email} />
             <input type="hidden" name="sig" value={signature} />
-            <input type="hidden" name="action" value={state === "unsubscribed" ? "resubscribe" : requestedAction} />
+            <input type="hidden" name="action" value={formAction} />
+            {resubscribeConfirmation ? (
+              <>
+                <input type="hidden" name="confirmationPurpose" value={resubscribeConfirmation.purpose} />
+                <input type="hidden" name="confirmationVersion" value={resubscribeConfirmation.version} />
+                <input type="hidden" name="confirmationAction" value={resubscribeConfirmation.action} />
+                <input type="hidden" name="confirmationIssuedAt" value={resubscribeConfirmation.issuedAt} />
+                <input type="hidden" name="confirmationExpiresAt" value={resubscribeConfirmation.expiresAt} />
+                <input type="hidden" name="confirmationSignature" value={resubscribeConfirmation.signature} />
+              </>
+            ) : null}
             <button type="submit" style={{ border: 0, padding: "12px 18px", borderRadius: 999, background: "linear-gradient(135deg, #c4943a, #e8c97a)", color: "#120d09", fontFamily: "var(--font-dm-sans)", fontWeight: 900, cursor: "pointer" }}>
               {state === "unsubscribed" || requestedAction === "resubscribe" ? "Confirm resubscribe" : "Confirm unsubscribe"}
             </button>

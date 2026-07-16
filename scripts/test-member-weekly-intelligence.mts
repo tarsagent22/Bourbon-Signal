@@ -250,20 +250,32 @@ assert.equal(normalizedLegacy.weeklyIntelligence.emailEnabled, false, "real-time
 
 const optedIn = applyWeeklyIntelligencePreferenceTransition({
   existing: defaultNotifications.weeklyIntelligence,
-  requested: { emailEnabled: true },
+  requested: { action: "subscribe", expectedVersion: 0 },
   now,
 });
-assert.deepEqual(optedIn, { emailEnabled: true, optedInAt: now, unsubscribedAt: null });
+assert.deepEqual(optedIn, { emailEnabled: true, optedInAt: now, unsubscribedAt: null, version: 1 });
 const optedOutAt = "2026-07-17T10:00:00.000Z";
-const optedOut = applyWeeklyIntelligencePreferenceTransition({ existing: optedIn, requested: { emailEnabled: false }, now: optedOutAt });
-assert.deepEqual(optedOut, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt });
+const optedOut = applyWeeklyIntelligencePreferenceTransition({ existing: optedIn, requested: { action: "unsubscribe", expectedVersion: 1 }, now: optedOutAt });
+assert.deepEqual(optedOut, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt, version: 2 });
 const signedUnsubscribe = applyWeeklyIntelligenceUnsubscribe(optedIn, optedOutAt);
-assert.deepEqual(signedUnsubscribe, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt });
+assert.deepEqual(signedUnsubscribe, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt, version: 2 });
 assert.deepEqual(
   applyWeeklyIntelligenceUnsubscribe(signedUnsubscribe, "2026-07-18T10:00:00.000Z"),
   signedUnsubscribe,
   "unsubscribe POST replay preserves the first signed unsubscribe time",
 );
+const resubscribedAt = "2026-07-18T10:00:00.000Z";
+const resubscribed = applyWeeklyIntelligencePreferenceTransition({
+  existing: signedUnsubscribe,
+  requested: { action: "subscribe", expectedVersion: 2 },
+  now: resubscribedAt,
+});
+assert.deepEqual(resubscribed, {
+  emailEnabled: true,
+  optedInAt: resubscribedAt,
+  unsubscribedAt: optedOutAt,
+  version: 3,
+}, "resubscribe retains monotonic suppression history and records newer explicit consent");
 
 const weekDedupeKey = buildMemberWeekDedupeKey("member_123", "2026-07-13");
 assert.equal(weekDedupeKey, buildMemberWeekDedupeKey("member_123", "2026-07-13"));
@@ -282,6 +294,11 @@ assert.equal(wouldSend.status, "would_send");
 assert.equal(wouldSend.sendAttempted, false);
 assert.equal(wouldSend.liveSendSupported, false, "the feature has no live-send capability");
 assert.equal(wouldSend.dedupeKey, weekDedupeKey);
+assert.equal(buildWeeklyIntelligenceDryRun({
+  ...dryRunBase,
+  preferences: resubscribed,
+  killSwitchActive: false,
+}).status, "would_send", "newer explicit consent can reactivate delivery without deleting suppression history");
 
 assert.equal(buildWeeklyIntelligenceDryRun({
   ...dryRunBase,
@@ -307,7 +324,7 @@ assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, report: empty, killS
 assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, killSwitchActive: true }).status, "blocked_kill_switch");
 assert.equal(buildWeeklyIntelligenceDryRun({
   ...dryRunBase,
-  preferences: { emailEnabled: true, optedInAt: null, unsubscribedAt: null },
+  preferences: { emailEnabled: true, optedInAt: null, unsubscribedAt: null, version: 0 },
   killSwitchActive: false,
 }).status, "skipped_missing_explicit_opt_in", "a boolean copied from another channel is not explicit weekly consent");
 
