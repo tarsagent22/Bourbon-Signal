@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { findingsFromDailyReliability } from '../../scripts/lib/finding-adapters.mjs';
 
 const ROOT = path.resolve(new URL('../../', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const REPORT_DIR = path.join(ROOT, 'automation', 'bourbon-signal', 'reports');
@@ -256,6 +257,7 @@ async function main() {
     issues,
     recommendation,
   };
+  result.findings = findingsFromDailyReliability(result);
 
   const stamp = generatedAt.replace(/[:.]/g, '-');
   const jsonPath = path.join(REPORT_DIR, `daily-reliability-${stamp}.json`);

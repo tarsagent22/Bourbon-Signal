@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import {
   aggregateGrowthFunnels,
   aggregateLifecycleCohorts,
+  buildCompanyScorecard,
   classifyCompanyMember,
   extractEngineControlRoomMetrics,
   summarizeMemberships,
@@ -229,8 +230,9 @@ export async function getCompanyControlRoomSnapshot() {
     readRetailerFunnel(),
   ]);
 
-  return {
-    checkedAt: new Date().toISOString(),
+  const checkedAt = new Date().toISOString();
+  const snapshot = {
+    checkedAt,
     memberships,
     founder: {
       limit: FOUNDER_SPOT_LIMIT,
@@ -261,5 +263,9 @@ export async function getCompanyControlRoomSnapshot() {
       counts: heartbeat?.counts || {},
     },
     release: health.release,
+  };
+  return {
+    ...snapshot,
+    scorecard: buildCompanyScorecard(snapshot, checkedAt),
   };
 }

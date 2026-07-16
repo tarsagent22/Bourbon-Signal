@@ -154,3 +154,9 @@ Do not include in these automations unless Chandler separately asks:
 - Pricing/legal changes without approval
 - Alert-readiness scoring
 - Treating catalog/watch/shipment data as live inventory
+
+## Structured operator backbone
+
+Daily reliability, weekly engine, and source ROI JSON reports also contain a bounded canonical `findings` array. Radar findings, the aggregate-only company scorecard, the exact-section daily company brief, the weekly strategy review, GitHub backlog operations, and the single-objective lock/branch policy are documented in [`docs/OPERATOR_BACKBONE.md`](../../docs/OPERATOR_BACKBONE.md).
+
+All new artifact and mutation commands are dry-run by default. `--apply` is required to write generated artifacts, mutate GitHub issues, or create/release an objective lock and branch. None of these commands sends, deploys, publishes, changes production, or changes a cron.

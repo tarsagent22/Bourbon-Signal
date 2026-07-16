@@ -1,0 +1,54 @@
+name: Operator finding
+description: Record one bounded, machine-readable Bourbon Signal operating finding.
+title: "[Finding] "
+labels:
+  - operator-finding
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One issue represents one finding. The JSON payload below is canonical and must pass `npm run operator:findings -- validate --file <file>` before it is selected.
+  - type: textarea
+    id: contract_marker
+    attributes:
+      label: Contract marker
+      description: Do not edit or remove this marker; backlog readers use it to identify canonical findings.
+      value: "<!-- bourbon-signal-finding:v1 -->"
+    validations:
+      required: true
+  - type: textarea
+    id: finding_contract
+    attributes:
+      label: Finding contract
+      description: Paste a generated canonical finding. The scaffold is illustrative and will not validate until every value, including the derived ID, is replaced.
+      render: json
+      value: |
+        {
+          "contractVersion": "bourbon-signal/finding@1",
+          "id": "bsf-0000000000000000",
+          "source": "company-scorecard",
+          "sourceKey": "replace-me",
+          "area": "decision",
+          "severity": "medium",
+          "title": "Replace with a bounded title",
+          "summary": "Replace with the aggregate finding.",
+          "evidence": [],
+          "recommendedAction": "Replace with one safe action.",
+          "impact": 3,
+          "urgency": 3,
+          "confidence": 0.8,
+          "effort": 3,
+          "status": "backlog",
+          "observedAt": "2026-01-01T00:00:00.000Z"
+        }
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety boundary
+      options:
+        - label: This finding contains aggregate operating evidence only and no member PII.
+          required: true
+        - label: This issue does not authorize sending, deploying, publishing, or changing production.
+          required: true

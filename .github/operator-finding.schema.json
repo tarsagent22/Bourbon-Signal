@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bourbon-signal:schema:operator-finding:1",
+  "title": "Bourbon Signal operator finding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "id",
+    "source",
+    "sourceKey",
+    "area",
+    "severity",
+    "title",
+    "summary",
+    "evidence",
+    "recommendedAction",
+    "impact",
+    "urgency",
+    "confidence",
+    "effort",
+    "status",
+    "observedAt"
+  ],
+  "properties": {
+    "contractVersion": { "const": "bourbon-signal/finding@1" },
+    "id": { "type": "string", "pattern": "^bsf-[a-f0-9]{16}$" },
+    "source": {
+      "enum": ["daily-reliability", "weekly-engine-brief", "source-roi", "release-radar", "company-scorecard"]
+    },
+    "sourceKey": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "area": { "enum": ["company", "product", "data", "shipping", "decision"] },
+    "severity": { "enum": ["critical", "high", "medium", "low"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "evidence": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+    },
+    "recommendedAction": { "type": "string", "minLength": 1, "maxLength": 400 },
+    "impact": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "urgency": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "effort": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "status": { "enum": ["backlog", "selected", "in-progress", "blocked", "resolved", "dismissed"] },
+    "observedAt": { "type": "string", "format": "date-time" }
+  }
+}

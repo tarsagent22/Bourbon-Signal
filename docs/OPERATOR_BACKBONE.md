@@ -1,0 +1,121 @@
+# Bourbon Signal operating backbone
+
+This backbone turns existing aggregate operating signals into a bounded GitHub Issues backlog and chooses one objective at a time. It is observational by default. It does not authorize publishing, sending, deploying, production changes, or cron changes.
+
+## Safety model
+
+- Every new command defaults to dry-run.
+- GitHub issue creation, edits, closing, and reopening require `--apply`.
+- Writing a scorecard, daily brief, weekly review, or Radar finding report requires `--apply`.
+- Creating an objective lock and its branch requires `--apply` and a clean worktree.
+- No command sends messages, deploys code, changes a schedule, or writes production data.
+- The scorecard selects aggregate counters from the Control Room snapshot. It never carries email addresses, user IDs, or per-member records.
+
+## Canonical finding contract
+
+One finding is one possible unit of operator work. The contract version is `bourbon-signal/finding@1`; a report contains at most eight findings, and each finding contains at most five evidence strings. IDs are deterministic SHA-256-derived identifiers over `source` plus `sourceKey`, so repeated observations upsert the same issue.
+
+Required fields:
+
+- `id`: `bsf-` plus 16 lowercase hexadecimal characters
+- `source`: `daily-reliability`, `weekly-engine-brief`, `source-roi`, `release-radar`, or `company-scorecard`
+- `sourceKey`: stable identity within that source
+- `area`: `company`, `product`, `data`, `shipping`, or `decision`
+- `severity`: `critical`, `high`, `medium`, or `low`
+- bounded `title`, `summary`, `evidence`, and `recommendedAction`
+- integer `impact`, `urgency`, and `effort` from 1–5
+- numeric `confidence` from 0–1
+- `status`: `backlog`, `selected`, `in-progress`, `blocked`, `resolved`, or `dismissed`
+- `observedAt`: an ISO date-time
+
+The JSON fenced block following `<!-- bourbon-signal-finding:v1 -->` is canonical in GitHub. `.github/operator-finding.schema.json` is the machine-readable schema, and the issue form at `.github/ISSUE_TEMPLATE/operator-finding.yml` uses the same shape.
+
+Rank score is deterministic:
+
+```text
+impact*40 + urgency*30 + confidence*20 + severityWeight - effort*10
+```
+
+Ties sort by finding ID.
+
+## Signal adapters
+
+The existing commands retain their current reports and now add a top-level, bounded `findings` array:
+
+- `npm run ops:daily`
+- `npm run ops:weekly`
+- `npm run ops:source-roi`
+
+Radar scouting has an isolated adapter:
+
+```bash
+npm run ops:radar-findings
+npm run ops:radar-findings -- --apply
+```
+
+Only stories in the scouting ledger with status `reported` become findings. The adapter never changes Release Radar content or publishes a story.
+
+## Company scorecard
+
+The Control Room server snapshot now includes `scorecard`. For offline generation, provide an aggregate Control Room snapshot:
+
+```bash
+npm run ops:scorecard -- --input path/to/control-room-snapshot.json
+npm run ops:scorecard -- --input path/to/control-room-snapshot.json --apply
+```
+
+The machine-readable scorecard has Company, Product, Data, Shipping, and Decision dimensions. `--apply` writes timestamped and `latest` JSON under the ignored automation reports directory.
+
+## Daily and weekly operating records
+
+The daily generator emits exactly these Markdown sections in this order: Company, Product, Data, Shipping, Decision, Today.
+
+```bash
+npm run operator:daily-brief -- --scorecard path/to/scorecard.json --findings path/to/findings.json
+npm run operator:daily-brief -- --scorecard path/to/scorecard.json --findings path/to/findings.json --apply
+
+npm run operator:weekly-review -- --scorecard path/to/scorecard.json --findings path/to/findings.json
+npm run operator:weekly-review -- --scorecard path/to/scorecard.json --findings path/to/findings.json --apply
+```
+
+When `--findings` is omitted, the generators read the latest daily reliability, weekly engine, source ROI, and Radar reports. Missing finding reports are allowed; the scorecard is required.
+
+## GitHub backlog commands
+
+All GitHub access uses the authenticated `gh` CLI. Read and rank are read-only. Upsert and update print a deterministic plan unless `--apply` is present.
+
+```bash
+npm run operator:findings -- validate --file findings.json
+npm run operator:findings -- read --repo OWNER/REPO
+npm run operator:findings -- rank --repo OWNER/REPO
+npm run operator:findings -- rank --file findings.json
+npm run operator:findings -- upsert --file findings.json --repo OWNER/REPO
+npm run operator:findings -- upsert --file findings.json --repo OWNER/REPO --apply
+npm run operator:findings -- update --id bsf-0123456789abcdef --status resolved --repo OWNER/REPO
+npm run operator:findings -- update --id bsf-0123456789abcdef --status resolved --repo OWNER/REPO --apply
+```
+
+Repository labels referenced by the issue form and upsert command must already exist: `operator-finding`, `area:*`, `severity:*`, and `status:*`.
+
+## Single-objective policy
+
+Only one lock may exist. An existing `selected` or `in-progress` finding retains the objective regardless of new rank; more than one active finding is a contract failure. Otherwise selection excludes resolved, dismissed, and blocked findings and chooses the highest deterministic rank. The branch is always `operator/<finding-id>-<title-slug>`.
+
+```bash
+npm run operator:objective -- status
+npm run operator:objective -- select --file ranked-or-canonical-findings.json
+npm run operator:objective -- select --file ranked-or-canonical-findings.json --issue-number 123 --apply
+npm run operator:objective -- release
+npm run operator:objective -- release --apply
+```
+
+Dry-run selection does not write `.operator/objective-lock.json` and does not create or switch branches. Applied selection refuses a dirty worktree, an existing lock, or an existing objective branch. Objective branches start from `main` by default; `--base release/<name>` is the only alternate base policy. Release must run from the locked branch and requires `--apply` to delete the lock.
+
+## Verification
+
+```bash
+npm run test:operator-backbone
+npm run test:operations-dashboard
+```
+
+The operator test covers contract rejection, stable IDs, bounded adapters, issue body round-tripping, `gh` dry-run safety, aggregate-only scorecards, exact daily sections, weekly objective ranking, and lock/branch policy.

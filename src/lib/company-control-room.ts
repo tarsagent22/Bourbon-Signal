@@ -250,3 +250,159 @@ export function summarizeMemberships(users: CompanyMemberUser[]) {
     estimatedLifetimeGrossCents,
   };
 }
+
+type ScorecardStatus = "healthy" | "watch" | "critical" | "unknown";
+
+interface ScorecardSection {
+  status: ScorecardStatus;
+  headline: string;
+  metrics: Record<string, string | number | boolean | null>;
+  attention?: string[];
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function scorecardNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function nullableScorecardNumber(value: unknown) {
+  if (value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function scorecardString(value: unknown, fallback = "unknown") {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function healthStatus(value: unknown): ScorecardStatus {
+  const normalized = scorecardString(value).toLowerCase();
+  if (["healthy", "ok", "current", "ready"].includes(normalized)) return "healthy";
+  if (["failed", "critical", "error", "unhealthy"].includes(normalized)) return "critical";
+  if (["degraded", "stale", "warning", "watch", "delayed"].includes(normalized)) return "watch";
+  return "unknown";
+}
+
+/**
+ * Produces an aggregate-only operating record. It intentionally selects known
+ * counters instead of serializing the source snapshot, which keeps member and
+ * provider identifiers out of machine-readable operator artifacts.
+ */
+export function buildCompanyScorecard(snapshot: Record<string, unknown>, generatedAt?: string) {
+  const memberships = record(snapshot.memberships);
+  const memberCounts = record(memberships.counts);
+  const revenue = record(snapshot.revenue);
+  const audience = record(snapshot.audience);
+  const growth = record(snapshot.growth);
+  const days7 = record(growth.days7);
+  const days30 = record(growth.days30);
+  const lifecycle = record(snapshot.lifecycle);
+  const retailer = record(snapshot.retailer);
+  const engine = record(snapshot.engine);
+  const alerts = record(snapshot.alerts);
+  const release = record(snapshot.release);
+
+  const pastDue = scorecardNumber(memberCounts.pastDue);
+  const freeNoValue = scorecardNumber(lifecycle.freeNoValue);
+  const activatedNoFirstAlert = scorecardNumber(lifecycle.activatedNoFirstAlert);
+  const engineFailed = scorecardNumber(engine.failedStates);
+  const engineDegraded = scorecardNumber(engine.degradedStates);
+  const engineStale = scorecardNumber(engine.staleStates);
+  const alertStatus = healthStatus(alerts.status);
+  const releaseStatus = healthStatus(release.status);
+  const engineBaseStatus = healthStatus(engine.status);
+  const attention: string[] = [];
+  if (pastDue > 0) attention.push(`${pastDue} paid membership account(s) are past due.`);
+  if (freeNoValue > 0) attention.push(`${freeNoValue} free member(s) have not reached first value.`);
+  if (activatedNoFirstAlert > 0) attention.push(`${activatedNoFirstAlert} activated member(s) have not created a first alert.`);
+  if (engineFailed > 0) attention.push(`${engineFailed} engine state(s) are failed.`);
+  if (engineDegraded > 0 || engineStale > 0) attention.push(`${engineDegraded} engine state(s) are degraded and ${engineStale} are stale.`);
+  if (alertStatus !== "healthy") attention.push(`Alert execution status is ${alertStatus}.`);
+  if (releaseStatus !== "healthy") attention.push(`Release status is ${releaseStatus}.`);
+
+  const companyStatus: ScorecardStatus = revenue.source !== "stripe" ? "unknown" : pastDue > 0 ? "watch" : "healthy";
+  const productStatus: ScorecardStatus = freeNoValue > 0 || activatedNoFirstAlert > 0 ? "watch" : "healthy";
+  const dataStatus: ScorecardStatus = engineFailed > 0 || engineBaseStatus === "critical"
+    ? "critical"
+    : engineDegraded > 0 || engineStale > 0 || engineBaseStatus === "watch" ? "watch" : engineBaseStatus;
+  const shippingStatus: ScorecardStatus = alertStatus === "critical" || releaseStatus === "critical"
+    ? "critical"
+    : alertStatus === "watch" || releaseStatus === "watch" ? "watch"
+      : alertStatus === "healthy" && releaseStatus === "healthy" ? "healthy" : "unknown";
+
+  const sections: Record<"company" | "product" | "data" | "shipping" | "decision", ScorecardSection> = {
+    company: {
+      status: companyStatus,
+      headline: companyStatus === "healthy" ? "Company aggregates are within their operating guardrails." : "Company aggregates need review.",
+      metrics: {
+        members: scorecardNumber(memberCounts.total),
+        paidMembers: scorecardNumber(memberCounts.paid),
+        pastDueMembers: pastDue,
+        monthlyRecurringCents: nullableScorecardNumber(revenue.monthlyRecurringCents ?? memberships.estimatedMonthlyRecurringCents),
+        collectedLast30DaysCents: nullableScorecardNumber(revenue.collectedLast30DaysCents),
+        reachableFreeMembers: nullableScorecardNumber(audience.reachableFreeMembers),
+      },
+    },
+    product: {
+      status: productStatus,
+      headline: productStatus === "healthy" ? "Activation flow has no flagged aggregate cohort." : "Activation cohorts contain measurable friction.",
+      metrics: {
+        accounts7d: scorecardNumber(days7.accounts),
+        freeValueReached7d: scorecardNumber(days7.freeValueReached),
+        paidActivationCompleted7d: scorecardNumber(days7.paidActivationCompleted),
+        firstAlerts7d: scorecardNumber(days7.firstAlertCreated),
+        accounts30d: scorecardNumber(days30.accounts),
+        freeNoValue,
+        activatedNoFirstAlert,
+      },
+    },
+    data: {
+      status: dataStatus,
+      headline: dataStatus === "healthy" ? "Engine data is current and healthy." : "Engine data health needs attention.",
+      metrics: {
+        activeStates: scorecardNumber(engine.activeStates),
+        inventoryStates: scorecardNumber(engine.inventoryStates),
+        stores: scorecardNumber(engine.stores),
+        signals: scorecardNumber(engine.signals),
+        alertCandidates: scorecardNumber(engine.alertCandidates),
+        ageMinutes: nullableScorecardNumber(engine.ageMinutes),
+        failedStates: engineFailed,
+        degradedStates: engineDegraded,
+        staleStates: engineStale,
+      },
+    },
+    shipping: {
+      status: shippingStatus,
+      headline: shippingStatus === "healthy" ? "Alert and release execution are healthy." : "Execution health needs review before shipping changes.",
+      metrics: {
+        alertStatus: scorecardString(alerts.status),
+        alertAgeMinutes: nullableScorecardNumber(alerts.ageMinutes),
+        onSiteEnabled: alerts.onSiteEnabled === true,
+        emailEnabled: alerts.emailEnabled === true,
+        smsEnabled: alerts.smsEnabled === true,
+        releaseStatus: scorecardString(release.status),
+        retailerLiveSignals: nullableScorecardNumber(retailer.liveSignals),
+        verifiedRetailerStores: nullableScorecardNumber(retailer.verifiedStores),
+      },
+    },
+    decision: {
+      status: attention.some((item) => /failed|critical/.test(item)) ? "critical" : attention.length ? "watch" : "healthy",
+      headline: attention[0] || "No aggregate operating constraint requires a decision.",
+      metrics: {
+        attentionCount: attention.length,
+        primaryConstraint: attention[0] || "none",
+      },
+      attention: attention.slice(0, 8),
+    },
+  };
+
+  return {
+    contractVersion: "bourbon-signal/company-scorecard@1" as const,
+    generatedAt: generatedAt || scorecardString(snapshot.checkedAt, new Date(0).toISOString()),
+    sections,
+  };
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { findingsFromSourceRoi } from '../../scripts/lib/finding-adapters.mjs';
 
 const ROOT = path.resolve(new URL('../../', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const REPORT_DIR = path.join(ROOT, 'automation', 'bourbon-signal', 'reports');
@@ -84,6 +85,7 @@ async function main() {
   }).sort((a, b) => b.score - a.score);
 
   const report = { generatedAt: new Date().toISOString(), count: rows.length, top: rows.slice(0, 30), recommendations: rows.reduce((acc, row) => { acc[row.recommendation] = (acc[row.recommendation] || 0) + 1; return acc; }, {}) };
+  report.findings = findingsFromSourceRoi(report);
   const lines = [`# Bourbon Signal Source ROI Ranker — ${report.generatedAt.slice(0, 10)}`, '', '## Top source investments', '', '| Score | State | Source | Recommendation | Alerts | Store-level | Bottles | Cities | Roadblocks |', '|---:|---|---|---|---:|---:|---:|---:|---:|'];
   for (const row of report.top.slice(0, 25)) lines.push(`| ${row.score} | ${row.state} | ${row.source.replace(/\|/g, '/')} | ${row.recommendation} | ${row.alerts} | ${row.storeLevel} | ${row.uniqueBottles} | ${row.uniqueCities} | ${row.roadblocks} |`);
   lines.push('', '## How to use', '', '- `repair_high_value_source`: fix breakage first.', '- `protect_and_expand`: keep guarded and add targets/markets.', '- `expand_target_mesh`: good inventory spine; add allocated/unicorn matching.', '- `demote_or_tighten_noise`: likely high-volume low-value rows.');

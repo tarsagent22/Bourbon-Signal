@@ -6,4 +6,5 @@ next-env.d.ts
 PROMPT*.md
 .env.local
 .hermes/
+.operator/
 .env*.local
