@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { isAggregateScorecard } from '../../src/lib/ops-auth.ts';
+import { fileURLToPath } from 'node:url';
+import { getDedicatedScorecardReadSecret, isAggregateScorecard } from '../../src/lib/ops-auth.ts';
 
-const ROOT = path.resolve(new URL('../../', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REPORT_DIR = path.join(ROOT, 'automation', 'bourbon-signal', 'reports');
+const SCORECARD_FEED_PATH = '/api/ops/company-scorecard';
+const SCORECARD_ALLOWED_ORIGINS = new Set([
+  'https://www.bourbonsignal.com',
+  'https://bourbonsignal.com',
+  'https://localhost:3000',
+  'https://127.0.0.1:3000',
+  'https://[::1]:3000',
+]);
 
 function option(args, name, fallback = null) {
   const inline = args.find((arg) => arg.startsWith(`--${name}=`));
@@ -13,13 +22,36 @@ function option(args, name, fallback = null) {
   return index >= 0 ? args[index + 1] : fallback;
 }
 
-async function main() {
-  const apply = process.argv.includes('--apply');
-  const baseUrl = String(option(process.argv, 'url', process.env.BOURBON_SIGNAL_BASE_URL || 'https://www.bourbonsignal.com')).replace(/\/$/, '');
-  const secret = process.env.CRON_SECRET;
-  if (!secret) throw new Error('CRON_SECRET is required.');
-  const response = await fetch(`${baseUrl}/api/ops/company-scorecard`, {
+export function resolveScorecardFeedUrl(input) {
+  let url;
+  try {
+    url = new URL(String(input));
+  } catch {
+    throw new Error('Scorecard URL must be an allowlisted HTTPS origin.');
+  }
+  const originOnly = url.pathname === '/' && !url.search && !url.hash && !url.username && !url.password;
+  if (url.protocol !== 'https:' || !originOnly || !SCORECARD_ALLOWED_ORIGINS.has(url.origin)) {
+    throw new Error('Scorecard URL must be an allowlisted HTTPS origin.');
+  }
+  return `${url.origin}${SCORECARD_FEED_PATH}`;
+}
+
+export function readScorecardSecret(env = process.env) {
+  const configured = env.COMPANY_SCORECARD_READ_SECRET;
+  if (typeof configured !== 'string' || !configured.trim()) throw new Error('COMPANY_SCORECARD_READ_SECRET is required.');
+  const secret = getDedicatedScorecardReadSecret(env);
+  if (!secret) throw new Error('COMPANY_SCORECARD_READ_SECRET must be distinct from CRON_SECRET.');
+  return secret;
+}
+
+export async function fetchCompanyScorecard({ args = process.argv, env = process.env, fetchImpl = fetch } = {}) {
+  const apply = args.includes('--apply');
+  const baseUrl = option(args, 'url', env.BOURBON_SIGNAL_BASE_URL || 'https://www.bourbonsignal.com');
+  const feedUrl = resolveScorecardFeedUrl(baseUrl);
+  const secret = readScorecardSecret(env);
+  const response = await fetchImpl(feedUrl, {
     headers: { Authorization: `Bearer ${secret}` },
+    redirect: 'error',
     signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) throw new Error(`Company scorecard feed returned ${response.status}.`);
@@ -36,4 +68,6 @@ async function main() {
   console.log(JSON.stringify({ mode: apply ? 'apply' : 'dry-run', ...scorecard }, null, 2));
 }
 
-main().catch((error) => { console.error(error.message); process.exitCode = 1; });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  fetchCompanyScorecard().catch((error) => { console.error(error.message); process.exitCode = 1; });
+}

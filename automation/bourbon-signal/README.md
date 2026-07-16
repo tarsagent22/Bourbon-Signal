@@ -176,4 +176,6 @@ Do not include in these automations unless Chandler separately asks:
 
 Daily reliability, weekly engine, and source ROI JSON reports also contain a bounded canonical `findings` array. Radar findings, the aggregate-only company scorecard, the exact-section daily company brief, the weekly strategy review, GitHub backlog operations, and the single-objective lock/branch policy are documented in [`docs/OPERATOR_BACKBONE.md`](../../docs/OPERATOR_BACKBONE.md).
 
+Live scorecard reads use only `COMPANY_SCORECARD_READ_SECRET` and an exact HTTPS origin allowlist. They never fall back to `CRON_SECRET`. The documented `ops:scorecard:fetch` and cron commands reject HTTP, paths, redirects, and unlisted hosts before attaching credentials.
+
 All new artifact and mutation commands are dry-run by default. `--apply` is required to write generated artifacts, mutate GitHub issues, or create/release an objective lock and branch. None of these commands sends, deploys, publishes, changes production, or changes a cron.

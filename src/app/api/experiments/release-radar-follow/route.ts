@@ -4,7 +4,7 @@ import { classifyCompanyMember } from "@/lib/company-control-room";
 import {
   EXPERIMENT_PARTICIPATION_METADATA_KEY,
   buildExperimentApiResponse,
-  recordExperimentParticipation,
+  recordExperimentExposure,
 } from "@/lib/experiment-participation";
 import {
   RELEASE_RADAR_FOLLOW_CTA_LABELS,
@@ -32,8 +32,7 @@ export async function POST(request: NextRequest) {
 
   if (isExperimentKillSwitchEnabled() || !isExperimentProductionHost(request.nextUrl.hostname)) return disabled();
   const payload = await request.json().catch(() => ({})) as { action?: unknown };
-  const action = payload.action;
-  if (action !== "exposure" && action !== "conversion") return json({ error: "Invalid action" }, 400);
+  if (payload.action !== "exposure") return json({ error: "Invalid action" }, 400);
 
   const experiment = getActiveExperiment();
   if (!experiment || experiment.id !== RELEASE_RADAR_FOLLOW_EXPERIMENT_ID) return disabled();
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
 
   const assignment = assignActiveExperiment(userId);
   if (!assignment) return disabled();
-  const update = recordExperimentParticipation(user.privateMetadata || {}, experiment, assignment, action);
+  const update = recordExperimentExposure(user.privateMetadata || {}, experiment, assignment);
   if (update.changed) {
     await client.users.updateUserMetadata(userId, {
       privateMetadata: {

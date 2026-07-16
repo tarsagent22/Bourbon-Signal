@@ -68,6 +68,21 @@ npm run ops:scorecard -- --input path/to/control-room-snapshot.json --apply
 
 The machine-readable scorecard has Company, Product, Data, Shipping, and Decision dimensions. `--apply` writes timestamped and `latest` JSON under the ignored automation reports directory.
 
+To read the live aggregate scorecard, configure a dedicated `COMPANY_SCORECARD_READ_SECRET` on the web app and in the read job. This secret authorizes only `GET /api/ops/company-scorecard`; do not reuse `CRON_SECRET` or any delivery/send-capable credential. The command is a dry run unless `--apply` is supplied:
+
+```bash
+npm run ops:scorecard:fetch
+npm run ops:scorecard:fetch -- --apply
+```
+
+The fetcher accepts only these exact HTTPS origins: `https://www.bourbonsignal.com`, `https://bourbonsignal.com`, `https://localhost:3000`, `https://127.0.0.1:3000`, and `https://[::1]:3000`. `--url` and `BOURBON_SIGNAL_BASE_URL` may select one of them, but paths, credentials, HTTP, redirects, and all other origins are rejected before the Authorization header is created.
+
+For cron, keep the secret in a permission-restricted environment file rather than the crontab. The environment file can also set the allowlisted production origin with `BOURBON_SIGNAL_BASE_URL=https://www.bourbonsignal.com`. A cron-compatible command is:
+
+```cron
+17 6 * * * cd /srv/bourbon-signal && /usr/bin/node --env-file=/etc/bourbon-signal/scorecard.env --no-warnings --experimental-strip-types automation/bourbon-signal/fetch-company-scorecard.mjs --apply >> /var/log/bourbon-signal-scorecard.log 2>&1
+```
+
 ## Daily and weekly operating records
 
 The daily generator emits exactly these Markdown sections in this order: Company, Product, Data, Shipping, Decision, Today.

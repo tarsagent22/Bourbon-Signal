@@ -128,7 +128,9 @@ const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/p
 assert.match(detailSource, /RadarEntryActions/, "detail pages should expose follow/track acquisition actions");
 const actionSource = readFileSync(resolve("src/components/release-radar/RadarEntryActions.tsx"), "utf8");
 assert.match(actionSource, /ctaLabel/, "the follow action should use the controlled experiment label");
-assert.match(actionSource, /recordConversion/, "a successful follow should record the experiment conversion");
+assert.doesNotMatch(actionSource, /recordConversion/, "the client must not assert the experiment conversion");
+const preferenceRouteSource = readFileSync(resolve("src/app/api/user/preferences/route.ts"), "utf8");
+assert.match(preferenceRouteSource, /recordExperimentConversion/, "the persisted follow mutation should record the experiment conversion server-side");
 assert.match(actionSource, /Track bottle/);
 assert.match(actionSource, /aria-live="polite"/, "action status must be announced accessibly");
 assert.match(actionSource, /useWatchlistStore/, "bottle tracking should reuse the existing watchlist");

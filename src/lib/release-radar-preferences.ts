@@ -71,3 +71,18 @@ export function followRadarRelease(
     followedReleases: [next, ...normalized.followedReleases.filter((follow) => follow.releaseSlug !== slug)].slice(0, 100),
   };
 }
+
+export function hasNewRadarFollow(
+  current: RadarPreferences,
+  next: RadarPreferences,
+  eligible: (releaseSlug: string, marketCode: string) => boolean = () => true,
+) {
+  const currentPreferences = normalizeRadarPreferences(current);
+  const nextPreferences = normalizeRadarPreferences(next);
+  const currentPairs = new Set(currentPreferences.followedReleases.flatMap((follow) => (
+    follow.marketCodes.map((market) => `${follow.releaseSlug}:${market}`)
+  )));
+  return nextPreferences.followedReleases.some((follow) => (
+    follow.marketCodes.some((market) => !currentPairs.has(`${follow.releaseSlug}:${market}`) && eligible(follow.releaseSlug, market))
+  ));
+}

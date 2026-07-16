@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { RELEASE_RADAR_FOLLOW_CTA_LABELS } from "@/lib/growth-experiments";
 
 interface ExperimentResponse {
@@ -8,11 +8,11 @@ interface ExperimentResponse {
   ctaLabel?: string;
 }
 
-async function record(action: "exposure" | "conversion") {
+async function recordExposure() {
   const response = await fetch("/api/experiments/release-radar-follow", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify({ action: "exposure" }),
     cache: "no-store",
   });
   if (!response.ok) return null;
@@ -28,7 +28,7 @@ export function useReleaseRadarFollowExperiment(eligible: boolean) {
       return;
     }
     let active = true;
-    record("exposure")
+    recordExposure()
       .then((result) => {
         if (active && result?.enabled && result.ctaLabel) setCtaLabel(result.ctaLabel);
       })
@@ -36,10 +36,5 @@ export function useReleaseRadarFollowExperiment(eligible: boolean) {
     return () => { active = false; };
   }, [eligible]);
 
-  const recordConversion = useCallback(async () => {
-    if (!eligible) return;
-    await record("conversion").catch(() => null);
-  }, [eligible]);
-
-  return { ctaLabel, recordConversion };
+  return { ctaLabel };
 }

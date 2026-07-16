@@ -13,8 +13,19 @@ import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES
 import { normalizeCaliforniaAreas } from "@/lib/california-area";
 import { normalizeNevadaAreas } from "@/lib/nevada-area";
 import { deriveMemberActivation, mergeActivationMilestones, type ActivationMilestone } from "@/lib/member-activation";
+import { classifyCompanyMember } from "@/lib/company-control-room";
+import { recordExperimentConversion } from "@/lib/experiment-participation";
+import {
+  RELEASE_RADAR_FOLLOW_EXPERIMENT_ID,
+  assignActiveExperiment,
+  getActiveExperiment,
+  isExperimentKillSwitchEnabled,
+  isExperimentProductionHost,
+} from "@/lib/growth-experiments";
+import { radarEntries } from "@/lib/release-radar";
 import {
   EMPTY_RADAR_PREFERENCES,
+  hasNewRadarFollow,
   normalizeRadarPreferences,
   type RadarPreferences,
 } from "@/lib/release-radar-preferences";
@@ -361,6 +372,30 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
   };
 }
 
+function buildFollowExperimentMetadataPatch(
+  req: NextRequest,
+  user: Parameters<typeof classifyCompanyMember>[0],
+  current: RadarPreferences,
+  next: RadarPreferences,
+) {
+  const eligibleFollow = (releaseSlug: string, marketCode: string) => {
+    const entry = radarEntries.find((candidate) => candidate.slug === releaseSlug);
+    if (!entry?.followEligibility.release) return false;
+    return entry.markets.some((market) => market.code === marketCode)
+      || (entry.markets.some((market) => market.code === "US") && ACTIVE_ENGINE_STATE_CODES.includes(marketCode));
+  };
+  if (!hasNewRadarFollow(current, next, eligibleFollow)
+    || isExperimentKillSwitchEnabled()
+    || !isExperimentProductionHost(req.nextUrl.hostname)) return {};
+  const experiment = getActiveExperiment();
+  if (!experiment || experiment.id !== RELEASE_RADAR_FOLLOW_EXPERIMENT_ID) return {};
+  const member = classifyCompanyMember(user);
+  if (member.isOwner || member.isRetailer || !user.id) return {};
+  const assignment = assignActiveExperiment(user.id);
+  if (!assignment) return {};
+  return recordExperimentConversion(user.privateMetadata || {}, experiment, assignment).privateMetadataPatch;
+}
+
 export async function GET(req: NextRequest) {
   if (isQaPreviewRequest(req)) return NextResponse.json(buildQaPreviewResponse(req));
   const { userId } = await auth();
@@ -483,7 +518,15 @@ export async function POST(req: NextRequest) {
     radarPreferences,
     sightingsPreferences,
   });
-  if (Object.keys(publicMetadataPatch).length > 0) {
+  const experimentMetadataPatch = payload.radarPreferences === undefined
+    ? {}
+    : buildFollowExperimentMetadataPatch(req, user, existing.radarPreferences, radarPreferences);
+  if (Object.keys(experimentMetadataPatch).length > 0) {
+    await client.users.updateUserMetadata(userId, {
+      publicMetadata: publicMetadataPatch,
+      privateMetadata: experimentMetadataPatch,
+    });
+  } else if (Object.keys(publicMetadataPatch).length > 0) {
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
   }
   try {

@@ -9,10 +9,17 @@ function constantTimeEqual(left: string, right: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export function authorizeOpsBearer(header: string | null, secret: string | undefined, environment = process.env.NODE_ENV) {
-  if (!secret) return environment !== "production";
+export function authorizeOpsBearer(header: string | null, secret: string | undefined) {
+  if (!secret) return false;
   if (!header?.startsWith("Bearer ")) return false;
   return constantTimeEqual(header.slice(7), secret);
+}
+
+export function getDedicatedScorecardReadSecret(env: NodeJS.ProcessEnv = process.env) {
+  const readSecret = env.COMPANY_SCORECARD_READ_SECRET;
+  if (typeof readSecret !== "string" || !readSecret.trim()) return undefined;
+  if (env.CRON_SECRET && constantTimeEqual(readSecret, env.CRON_SECRET)) return undefined;
+  return readSecret;
 }
 
 function containsPrivateKey(value: unknown): boolean {

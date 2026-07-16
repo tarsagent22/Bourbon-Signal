@@ -42,7 +42,7 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
   const [message, setMessage] = useState("");
   const followed = prefs.radarPreferences.followedReleases.some((follow) => follow.releaseSlug === entry.slug && follow.marketCodes.includes(market));
   const tracked = bottle ? isWatching(bottle.canonicalId) : false;
-  const { ctaLabel, recordConversion } = useReleaseRadarFollowExperiment(
+  const { ctaLabel } = useReleaseRadarFollowExperiment(
     Boolean(isLoaded && isSignedIn && !loading && !followed && entry.followEligibility.release),
   );
 
@@ -70,7 +70,6 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
     try {
       const radarPreferences = followRadarRelease(prefs.radarPreferences, entry.slug, [market]);
       await savePreferences({ radarPreferences });
-      await recordConversion();
       setMessage("Release followed. This saves the announcement only; it cannot create an availability alert.");
       trackRadarGrowthEvent("radar_release_followed", {
         surface: "release_radar",

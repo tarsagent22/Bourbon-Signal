@@ -8,10 +8,14 @@ import {
   validateExperimentRegistry,
 } from "../src/lib/growth-experiments.ts";
 import {
+  EXPERIMENT_CONVERSION_METADATA_KEY,
   EXPERIMENT_PARTICIPATION_METADATA_KEY,
   buildExperimentApiResponse,
-  recordExperimentParticipation,
+  readExperimentParticipation,
+  recordExperimentConversion,
+  recordExperimentExposure,
 } from "../src/lib/experiment-participation.ts";
+import { hasNewRadarFollow } from "../src/lib/release-radar-preferences.ts";
 import {
   buildEligibleExperimentTelemetry,
   buildOwnerExperimentAggregate,
@@ -41,23 +45,46 @@ assert.ok(assignment);
 assert.deepEqual(assignActiveExperiment("clerk_subject_123", EXPERIMENT_REGISTRY, false), assignment, "assignment must remain stable");
 assert.equal(assignActiveExperiment("clerk_subject_123", EXPERIMENT_REGISTRY, true), null, "kill switch must disable assignment");
 
-const firstExposure = recordExperimentParticipation({}, active, assignment, "exposure");
+const firstExposure = recordExperimentExposure({}, active, assignment);
 assert.equal(firstExposure.changed, true);
-const repeatedExposure = recordExperimentParticipation(firstExposure.privateMetadata, active, assignment, "exposure");
+const repeatedExposure = recordExperimentExposure(firstExposure.privateMetadata, active, assignment);
 assert.equal(repeatedExposure.changed, false, "a repeated exposure must not create another record");
 assert.deepEqual(repeatedExposure.privateMetadata, firstExposure.privateMetadata);
 
-const firstConversion = recordExperimentParticipation(firstExposure.privateMetadata, active, assignment, "conversion");
+const firstConversion = recordExperimentConversion(firstExposure.privateMetadata, active, assignment);
 assert.equal(firstConversion.changed, true);
-const repeatedConversion = recordExperimentParticipation(firstConversion.privateMetadata, active, assignment, "conversion");
+const repeatedConversion = recordExperimentConversion(firstConversion.privateMetadata, active, assignment);
 assert.equal(repeatedConversion.changed, false, "a repeated conversion must not create another record");
 assert.deepEqual(repeatedConversion.privateMetadata, firstConversion.privateMetadata);
 assert.deepEqual(firstConversion.privateMetadata[EXPERIMENT_PARTICIPATION_METADATA_KEY], {
   [active.id]: { variant: assignment.variant, exposed: true, converted: true },
 });
+assert.deepEqual(firstConversion.privateMetadata[EXPERIMENT_CONVERSION_METADATA_KEY], {
+  [active.id]: { variant: assignment.variant, converted: true },
+});
+
+const concurrentExposure = recordExperimentExposure({}, active, assignment);
+const concurrentConversion = recordExperimentConversion({}, active, assignment);
+const conversionThenLateExposure = {
+  ...concurrentConversion.privateMetadataPatch,
+  ...concurrentExposure.privateMetadataPatch,
+};
+const exposureThenConversion = {
+  ...concurrentExposure.privateMetadataPatch,
+  ...concurrentConversion.privateMetadataPatch,
+};
+assert.equal(readExperimentParticipation(conversionThenLateExposure, active)?.converted, true, "a late exposure write must not revert a conversion");
+assert.equal(readExperimentParticipation(exposureThenConversion, active)?.converted, true, "conversion must remain true in either concurrent write order");
+
+const beforeFollow = { followedReleases: [{ releaseSlug: "existing-release", marketCodes: ["VA"], followedAt: "2026-07-15T00:00:00.000Z" }] };
+const sameFollow = { followedReleases: [{ releaseSlug: "existing-release", marketCodes: ["VA"], followedAt: "2026-07-15T00:00:00.000Z" }] };
+const addedMarket = { followedReleases: [{ releaseSlug: "existing-release", marketCodes: ["NC", "VA"], followedAt: "2026-07-15T00:00:00.000Z" }] };
+assert.equal(hasNewRadarFollow(beforeFollow, sameFollow), false, "re-saving an existing follow is not a conversion");
+assert.equal(hasNewRadarFollow(beforeFollow, addedMarket), true, "persisting a new release/market follow is a conversion");
+assert.equal(hasNewRadarFollow(beforeFollow, addedMarket, () => false), false, "an ineligible client-shaped follow must not count as a conversion");
 
 const privateMetadataJson = JSON.stringify(firstConversion.privateMetadata);
-for (const forbidden of ["clerk_subject_123", "member@example.com", "https://", "occurredAt", "visited", "history", "path", "timestamp"]) {
+for (const forbidden of ["clerk_subject_123", "member@example.com", "https://", "releaseSlug", "marketCodes", "occurredAt", "visited", "history", "path", "timestamp"]) {
   assert.equal(privateMetadataJson.includes(forbidden), false, `private metadata must exclude ${forbidden}`);
 }
 const apiResponse = buildExperimentApiResponse(active, assignment);
@@ -109,9 +136,16 @@ const routeSource = readFileSync(new URL("../src/app/api/experiments/release-rad
 assert.match(routeSource, /auth\(\)/, "experiment API must authenticate through Clerk");
 assert.match(routeSource, /privateMetadata/, "experiment API must persist only private metadata");
 assert.ok(routeSource.indexOf("isExperimentKillSwitchEnabled()") < routeSource.lastIndexOf("updateUserMetadata"), "kill switch must gate the Clerk write");
+assert.doesNotMatch(routeSource, /conversion/, "experiment API must not accept a client-asserted conversion");
 assert.doesNotMatch(routeSource, /console\.|emailAddresses.*NextResponse|send|Resend|message/i, "experiment API must not log identities or message customers");
 const actionSource = readFileSync(new URL("../src/components/release-radar/RadarEntryActions.tsx", import.meta.url), "utf8");
 assert.match(actionSource, /useReleaseRadarFollowExperiment/);
-assert.match(actionSource, /recordConversion/);
+assert.doesNotMatch(actionSource, /recordConversion|action:\s*["']conversion["']/, "the client must not assert experiment conversion");
+const preferencesRouteSource = readFileSync(new URL("../src/app/api/user/preferences/route.ts", import.meta.url), "utf8");
+assert.match(preferencesRouteSource, /hasNewRadarFollow/, "the preference server must verify that a follow was newly persisted");
+assert.match(preferencesRouteSource, /radarEntries/, "the preference server must verify the persisted follow against eligible Radar entries");
+assert.match(preferencesRouteSource, /recordExperimentConversion/, "the persisted follow mutation must record conversion server-side");
+assert.match(preferencesRouteSource, /publicMetadata:\s*publicMetadataPatch[\s\S]*privateMetadata:\s*experimentMetadataPatch/, "follow and conversion must share one Clerk mutation");
+assert.doesNotMatch(preferencesRouteSource, /releaseSlug.*productExperiment|marketCodes.*productExperiment/, "experiment metadata must not collect follow details");
 
 console.log("Release Radar follow CTA experiment contracts passed.");

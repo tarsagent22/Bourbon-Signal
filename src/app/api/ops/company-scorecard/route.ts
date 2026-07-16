@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
-import { authorizeOpsBearer, isAggregateScorecard } from "@/lib/ops-auth";
+import { authorizeOpsBearer, getDedicatedScorecardReadSecret, isAggregateScorecard } from "@/lib/ops-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  if (!authorizeOpsBearer(request.headers.get("authorization"), process.env.CRON_SECRET)) {
+  if (!authorizeOpsBearer(request.headers.get("authorization"), getDedicatedScorecardReadSecret())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
