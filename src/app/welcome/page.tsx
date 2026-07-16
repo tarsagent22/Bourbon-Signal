@@ -1,7 +1,27 @@
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import styles from "./welcome.module.css";
 
 export default function WelcomePage() {
-  return <><Navigation /><main className="min-h-screen px-5 pb-20 pt-32 text-[var(--color-cream)]"><section className="mx-auto max-w-3xl border border-[rgba(196,148,58,.25)] bg-[rgba(255,255,255,.03)] p-7 sm:p-10"><p className="font-mono text-xs uppercase tracking-[.18em] text-[var(--color-accent-amber)]">Free member access</p><h1 className="mt-3 font-serif text-5xl">Start where the signal is useful.</h1><p className="mt-4 max-w-xl text-[var(--color-text-secondary)]">Browse live availability, what is coming next, or check the bottle already on your mind. Membership is there when you are ready to act on a signal.</p><div className="mt-8 grid gap-3 sm:grid-cols-3"><Link href="/drops" className="border border-white/10 p-4 hover:border-[rgba(196,148,58,.6)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-amber)]">See bottles showing up now</Link><Link href="/release-radar" className="border border-white/10 p-4 hover:border-[rgba(196,148,58,.6)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-amber)]">See what is coming</Link><Link href="/bottle-check" className="border border-white/10 p-4 hover:border-[rgba(196,148,58,.6)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-amber)]">Check a bottle</Link></div></section></main><Footer /></>;
+  return (
+    <>
+      <Navigation />
+      <main className={styles.page}>
+        <section className={styles.panel}>
+          <p className={styles.eyebrow}>Free member access</p>
+          <h1 className={styles.title}>Start where the signal is useful.</h1>
+          <p className={styles.copy}>
+            Browse live availability, what is coming next, or check the bottle already on your mind. Membership is there when you are ready to act on a signal.
+          </p>
+          <div className={styles.actions}>
+            <Link href="/drops" className={styles.action}>See bottles showing up now</Link>
+            <Link href="/release-radar" className={styles.action}>See what is coming</Link>
+            <Link href="/bottle-check" className={styles.action}>Check a bottle</Link>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
 }
