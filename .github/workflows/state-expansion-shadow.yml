@@ -1,0 +1,58 @@
+name: Rotating state expansion shadow collection
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+    inputs:
+      states:
+        description: "Optional comma-separated shadowEligible non-active state IDs"
+        required: false
+        default: ""
+      limit:
+        description: "Maximum eligible states to collect"
+        required: false
+        default: "5"
+
+concurrency:
+  group: state-expansion-shadow
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect-shadow-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: "0"
+      ALERT_ONSITE_DELIVERY_ENABLED: "0"
+      ALERT_EMAIL_DELIVERY_ENABLED: "0"
+      ALERT_SMS_DELIVERY_ENABLED: "0"
+      BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install engine dependencies
+        run: npm ci --prefix engine
+
+      - name: Collect bounded shadow evidence only
+        working-directory: engine
+        run: npm run shadow:expansion -- --states="${{ inputs.states }}" --limit="${{ inputs.limit || '5' }}"
+
+      - name: Preserve isolated shadow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-expansion-shadow-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: engine/out/shadow

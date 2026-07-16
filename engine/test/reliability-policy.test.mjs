@@ -47,5 +47,10 @@ test('new active states require staged promotion evidence', () => {
   assert.match(invalid.failures.join('\n'), /ZZ.*promotionStage.*active/i);
   config.states.ZZ.promotionStage = 'active';
   config.states.ZZ.promotionEvidence = { shadowRuns: 3, canaryRuns: 2, verifiedAt: '2026-07-13T00:00:00.000Z' };
+  assert.equal(validateExpansionLifecycle(config).ok, false);
+  assert.match(validateExpansionLifecycle(config).failures.join('\n'), /vertical-slice manifest/i);
+  config.states.ZZ.promotionEvidence.verticalSliceManifest = 'engine/data/state-integration/ZZ.json';
+  config.states.ZZ.promotionEvidence.fixtureContract = 'engine/data/state-fixtures/ZZ.json';
+  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://preview.example.test';
   assert.equal(validateExpansionLifecycle(config).ok, true);
 });

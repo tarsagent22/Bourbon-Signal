@@ -61,6 +61,11 @@
     "score:sc": "node src/score-sc-user-reach.mjs",
     "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states && npm run test:data-plane",
     "verify:reliability": "node src/verify-reliability.mjs",
+    "verify:state-integration": "node src/verify-state-integration.mjs",
+    "verify:state-fixtures": "node src/verify-state-fixtures.mjs",
+    "shadow:expansion": "node src/run-expansion-shadow.mjs",
+    "canary:state": "node src/build-state-canary-preview.mjs",
+    "promote:state": "node src/promote-state.mjs",
     "drill:recovery": "node src/run-recovery-drill.mjs",
     "verify:pa:automation": "node src/verify-pa-automation.mjs && node src/test-fwgs-artifact-policy.mjs",
     "store:identity": "node src/build-store-identity.mjs"

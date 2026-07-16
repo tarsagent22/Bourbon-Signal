@@ -21,6 +21,11 @@ const capacity = evaluateCapacityBudget({
 if (!capacity.ok) failures.push(capacity.reason);
 if (Number(policy.refreshIntervalMs) !== 30 * 60_000) failures.push('Reliability refresh interval must remain 30 minutes.');
 if (Number(policy.refreshSafetyMarginMs) < 5 * 60_000) failures.push('Reliability refresh safety margin must be at least 5 minutes.');
+if (Number(policy.promotionPolicy?.minShadowRuns) < 3) failures.push('State promotion policy must require at least three shadow runs.');
+if (Number(policy.promotionPolicy?.minCanaryRuns) < 2) failures.push('State promotion policy must require at least two canary runs.');
+for (const key of ['requireVerticalSliceManifest', 'requireFixtureContract', 'requireCanaryPreviewUrl']) {
+  if (policy.promotionPolicy?.[key] !== true) failures.push(`State promotion policy must keep ${key} enabled.`);
+}
 
 const payload = {
   ok: failures.length === 0,

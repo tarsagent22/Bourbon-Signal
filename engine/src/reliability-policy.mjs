@@ -8,6 +8,14 @@ export const DEFAULT_RELIABILITY_SLO = Object.freeze({
   refreshSafetyMarginMs: 5 * MINUTE,
 });
 
+export const DEFAULT_EXPANSION_PROMOTION_POLICY = Object.freeze({
+  minShadowRuns: 3,
+  minCanaryRuns: 2,
+  requireVerticalSliceManifest: true,
+  requireFixtureContract: true,
+  requireCanaryPreviewUrl: true,
+});
+
 function stateSet(value = '') {
   return new Set(String(value).split(',').map((item) => item.trim().toUpperCase()).filter(Boolean));
 }
@@ -47,6 +55,7 @@ export function evaluateCapacityBudget({ stateExpectedRunMs = [], concurrency = 
 export function validateExpansionLifecycle(config = {}) {
   const activeStates = Array.isArray(config.activeStates) ? config.activeStates : [];
   const grandfathered = new Set(config.reliabilityPolicy?.grandfatheredActiveStates || []);
+  const promotionPolicy = { ...DEFAULT_EXPANSION_PROMOTION_POLICY, ...(config.reliabilityPolicy?.promotionPolicy || {}) };
   const failures = [];
   for (const state of activeStates) {
     const lifecycle = config.states?.[state];
@@ -57,9 +66,12 @@ export function validateExpansionLifecycle(config = {}) {
     if (grandfathered.has(state)) continue;
     if (lifecycle.promotionStage !== 'active') failures.push(`${state}: promotionStage must be active after shadow and canary.`);
     const evidence = lifecycle.promotionEvidence;
-    if (!evidence || Number(evidence.shadowRuns || 0) < 1 || Number(evidence.canaryRuns || 0) < 1 || !Number.isFinite(Date.parse(evidence.verifiedAt))) {
-      failures.push(`${state}: promotionEvidence requires shadowRuns, canaryRuns, and verifiedAt.`);
+    if (!evidence || Number(evidence.shadowRuns || 0) < Number(promotionPolicy.minShadowRuns) || Number(evidence.canaryRuns || 0) < Number(promotionPolicy.minCanaryRuns) || !Number.isFinite(Date.parse(evidence.verifiedAt))) {
+      failures.push(`${state}: promotionEvidence requires ${promotionPolicy.minShadowRuns} shadowRuns, ${promotionPolicy.minCanaryRuns} canaryRuns, and verifiedAt.`);
     }
+    if (promotionPolicy.requireVerticalSliceManifest !== false && !evidence?.verticalSliceManifest) failures.push(`${state}: promotionEvidence requires a vertical-slice manifest reference.`);
+    if (promotionPolicy.requireFixtureContract !== false && !evidence?.fixtureContract) failures.push(`${state}: promotionEvidence requires a golden fixture contract reference.`);
+    if (promotionPolicy.requireCanaryPreviewUrl !== false && !evidence?.canaryPreviewUrl) failures.push(`${state}: promotionEvidence requires a canary preview URL.`);
   }
   return { ok: failures.length === 0, failures };
 }

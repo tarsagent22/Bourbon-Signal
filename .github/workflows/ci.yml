@@ -29,5 +29,8 @@ jobs:
       - name: Verify engine reliability and expansion capacity
         run: npm --prefix engine run verify:reliability
 
+      - name: Verify generated lifecycle configuration has no drift
+        run: npm run verify:state-lifecycle-drift
+
       - name: Build and verify
         run: npm run verify:ci

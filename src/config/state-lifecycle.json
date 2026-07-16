@@ -31,6 +31,13 @@
     "refreshSafetyMarginMs": 300000,
     "defaultExpectedStateRunMs": 90000,
     "workerConcurrency": 4,
+    "promotionPolicy": {
+      "minShadowRuns": 3,
+      "minCanaryRuns": 2,
+      "requireVerticalSliceManifest": true,
+      "requireFixtureContract": true,
+      "requireCanaryPreviewUrl": true
+    },
     "grandfatheredActiveStates": [
       "NC", "VA", "PA", "OH", "IA", "ID", "AL", "IL", "IN", "TN", "SC", "MD-MONTGOMERY", "KY", "AZ", "CA", "FL", "TX", "GA", "MI", "MN", "MO", "NV", "WA", "WI"
     ],
@@ -145,6 +152,7 @@
       "refinementLevel": "statewide",
       "inventoryAlertable": false,
       "watchAlertable": false,
+      "shadowEligible": true,
       "customerSummary": "DABS product locator, warehouse/store aggregate, allocated, and barrel-selection watch data. Not exact per-store shelf inventory yet."
     },
     "MD-MONTGOMERY": {
@@ -166,6 +174,7 @@
       "customerLabel": "Oregon",
       "sourceLabel": "Oregon OLCC / Oregon Liquor Search",
       "publicStatus": "research_only",
+      "shadowEligible": true,
       "lifecycle": "blocked_store_inventory_research",
       "coverageTier": "blocked",
       "refinementLevel": "store",
@@ -175,6 +184,7 @@
       "customerLabel": "New Hampshire",
       "sourceLabel": "New Hampshire Liquor & Wine Outlets",
       "publicStatus": "research_only",
+      "shadowEligible": true,
       "lifecycle": "blocked_catalog_research",
       "coverageTier": "blocked",
       "refinementLevel": "store",
