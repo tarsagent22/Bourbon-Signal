@@ -1,7 +1,21 @@
 {
-  "updatedAt": "2026-07-15T11:25:00-04:00",
+  "updatedAt": "2026-07-16T10:17:17-04:00",
   "purpose": "Deduplication log for Bourbon Signal Release Radar story scouting. Story jobs must avoid re-reporting these items unless there is a genuinely material new development, and new approved stories belong in the appropriate Release Radar calendar, release-window, briefing, or state-guide surface.",
   "reportedStories": [
+    {
+      "title": "Ohio opens a one-week Augusta and Buckner’s release window",
+      "source": "Ohio Liquor",
+      "url": "https://www.ohlq.com/events-calendar?eventtypes=bottle-releases&filter=true",
+      "firstReportedAt": "2026-07-16",
+      "status": "reported"
+    },
+    {
+      "title": "Heaven Hill pairs two mashbills in a nine-year bonded bourbon",
+      "source": "Heaven Hill Distillery / Breaking Bourbon",
+      "url": "https://www.breakingbourbon.com/bourbon-whiskey-press-releases/heaven-hill-distillery-rewrites-bottled-in-bond-tradition-with-first-of-its-kind-double-mash-bourbon",
+      "firstReportedAt": "2026-07-16",
+      "status": "reported"
+    },
     {
       "title": "Yellowstone’s 2026 Limited Edition enters the August hunt",
       "source": "Yellowstone Bourbon / PRNewswire",
