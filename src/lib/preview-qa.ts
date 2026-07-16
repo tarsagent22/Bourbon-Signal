@@ -34,6 +34,9 @@ export const QA_PREVIEW_PREFERENCES = {
   collectionPreferences: {
     bottles: [],
   },
+  radarPreferences: {
+    followedReleases: [],
+  },
   sightingsPreferences: {
     submittedSightings: [],
     signalReports: [],

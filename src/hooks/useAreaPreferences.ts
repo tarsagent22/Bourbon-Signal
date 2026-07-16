@@ -29,6 +29,9 @@ const EMPTY_PREFS: UserAlertPreferences = {
   collectionPreferences: {
     bottles: [],
   },
+  radarPreferences: {
+    followedReleases: [],
+  },
 };
 
 let cachedPrefs: UserAlertPreferences | null = null;
@@ -82,17 +85,29 @@ export function useAreaPreferences() {
     fetchPrefs();
   }, [fetchPrefs, isSignedIn, qaPreview]);
 
-  const savePreferences = useCallback(async (newPrefs: UserAlertPreferences) => {
-    setPrefs(newPrefs);
-    cachedPrefs = newPrefs;
+  const savePreferences = useCallback(async (newPrefs: Partial<UserAlertPreferences>) => {
+    const merged = { ...(cachedPrefs || EMPTY_PREFS), ...newPrefs };
+    setPrefs((current) => ({ ...current, ...newPrefs }));
+    cachedPrefs = merged;
     if (isQaPreviewMode()) return;
     const res = await fetch("/api/user/preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newPrefs),
     });
-    if (!res.ok) throw new Error("Failed to save preferences");
-  }, []);
+    if (!res.ok) {
+      cachedPrefs = null;
+      await fetchPrefs();
+      throw new Error("Failed to save preferences");
+    }
+    const saved = await res.json().catch(() => null) as UserAlertPreferences | null;
+    if (saved) {
+      cachedPrefs = saved;
+      setPrefs(saved);
+    } else {
+      setPrefs(merged);
+    }
+  }, [fetchPrefs]);
 
   return { prefs, loading, savePreferences };
 }

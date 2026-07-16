@@ -1,4 +1,23 @@
 export type RadarKind = "release" | "lottery" | "event" | "bottle";
+export type RadarVerificationStatus = "official" | "verified";
+export type RadarDatePrecision = "exact" | "window";
+
+export interface RadarMarket {
+  code: string;
+  label: string;
+  scope: "national" | "state";
+}
+
+export interface RadarBottleRelation {
+  canonicalId: string;
+  canonicalName: string;
+  relationship: "featured" | "included" | "related";
+}
+
+export interface RadarRelationship {
+  targetSlug: string;
+  relationship: "related" | "same_series";
+}
 
 export const releaseRadarUpdatedAt = "2026-07-15";
 
@@ -30,11 +49,31 @@ export interface RadarEntry {
   availability?: string;
   featured?: boolean;
   calendar?: boolean;
+  datePrecision: RadarDatePrecision;
+  verificationStatus: RadarVerificationStatus;
+  availabilitySemantics: "announcement_only";
+  followEligibility: {
+    release: boolean;
+    bottle: boolean;
+  };
+  markets: RadarMarket[];
+  bottleRelations: RadarBottleRelation[];
+  relationships: RadarRelationship[];
   updatedAt: string;
   facts: Array<{ label: string; value: string }>;
   sections: Array<{ heading: string; body: string }>;
   sources: RadarSource[];
 }
+
+type RadarEntrySeed = Omit<RadarEntry,
+  "datePrecision" |
+  "verificationStatus" |
+  "availabilitySemantics" |
+  "followEligibility" |
+  "markets" |
+  "bottleRelations" |
+  "relationships"
+>;
 
 export interface StateGuide {
   slug: string;
@@ -49,7 +88,7 @@ export interface StateGuide {
   sources: RadarSource[];
 }
 
-export const radarEntries: RadarEntry[] = [
+const radarEntrySeeds: RadarEntrySeed[] = [
   {
     kind: "lottery",
     slug: "virginia-abc-rare-character-july-2026",
@@ -477,6 +516,94 @@ export const radarEntries: RadarEntry[] = [
   },
 ];
 
+const STATE_MARKETS: Record<string, RadarMarket> = {
+  Kentucky: { code: "KY", label: "Kentucky", scope: "state" },
+  Nevada: { code: "NV", label: "Nevada", scope: "state" },
+  Pennsylvania: { code: "PA", label: "Pennsylvania", scope: "state" },
+  Virginia: { code: "VA", label: "Virginia", scope: "state" },
+  Nationwide: { code: "US", label: "Nationwide", scope: "national" },
+};
+
+const CANONICAL_BOTTLES: Record<string, RadarBottleRelation[]> = {
+  "four-roses-anthology-chapter-one-origin": [{
+    canonicalId: "four-roses-anthology-chapter-one-origin",
+    canonicalName: "Four Roses Anthology Chapter One: Origin",
+    relationship: "featured",
+  }],
+  "heaven-hill-heritage-collection-22-year-2026": [{
+    canonicalId: "heaven-hill-heritage-collection-22-year",
+    canonicalName: "Heaven Hill Heritage Collection 22 Year",
+    relationship: "featured",
+  }],
+  "old-fitzgerald-bottled-in-bond-spring-2026": [{
+    canonicalId: "old-fitzgerald-bottled-in-bond-10y-spring-26-decanter",
+    canonicalName: "Old Fitzgerald Bottled in Bond 10Y Spring 26 Decanter",
+    relationship: "featured",
+  }],
+  "elijah-craig-21-year-single-barrel-2026": [{
+    canonicalId: "elijah-craig-21-year-old-single-barrel",
+    canonicalName: "Elijah Craig 21-Year-Old Single Barrel",
+    relationship: "featured",
+  }],
+  "lost-lantern-united-states-of-bourbon-1776": [{
+    canonicalId: "lost-lantern-united-states-of-bourbon-1776-edition",
+    canonicalName: "United States of Bourbon 1776 Edition",
+    relationship: "featured",
+  }],
+  "frey-ranch-10-year-bourbon-batch-one": [{
+    canonicalId: "frey-ranch-10-year-old-bourbon-batch-1",
+    canonicalName: "Frey Ranch 10-Year-Old Bourbon Batch #1",
+    relationship: "featured",
+  }],
+  "heaven-hill-grain-to-glass-year-of-wheat-2026": [{
+    canonicalId: "heaven-hill-grain-to-glass-3rd-ed-wheated-bbn",
+    canonicalName: "Heaven Hill Grain to Glass 3rd Ed Wheated Bbn",
+    relationship: "featured",
+  }],
+  "rittenhouse-250th-anniversary-10-year-2026": [{
+    canonicalId: "rittenhouse-rye-america-250th-ed",
+    canonicalName: "Rittenhouse Rye America 250th Ed.",
+    relationship: "featured",
+  }],
+  "four-roses-single-barrel-collection-2026": [{
+    canonicalId: "four-roses-single-barrel-collection-2026",
+    canonicalName: "Four Roses Single Barrel Collection 2026 Release",
+    relationship: "featured",
+  }],
+};
+
+const ENTRY_RELATIONSHIPS: Record<string, RadarRelationship[]> = {
+  "four-roses-anthology-chapter-one-origin": [{ targetSlug: "four-roses-single-barrel-collection-2026", relationship: "related" }],
+  "four-roses-single-barrel-collection-2026": [{ targetSlug: "four-roses-anthology-chapter-one-origin", relationship: "related" }],
+  "camp-buffalo-trace-2026": [{ targetSlug: "buffalo-trace-bourbon-backyard-2026", relationship: "related" }],
+  "buffalo-trace-bourbon-backyard-2026": [{ targetSlug: "camp-buffalo-trace-2026", relationship: "related" }],
+  "heaven-hill-heritage-collection-22-year-2026": [{ targetSlug: "old-fitzgerald-bottled-in-bond-spring-2026", relationship: "related" }],
+  "old-fitzgerald-bottled-in-bond-spring-2026": [{ targetSlug: "heaven-hill-heritage-collection-22-year-2026", relationship: "related" }],
+};
+
+const VERIFIED_ENTRY_SLUGS = new Set([
+  "bourbon-women-siposium-2026",
+  "kentucky-bourbon-festival-2026",
+]);
+
+export const radarEntries: RadarEntry[] = radarEntrySeeds.map((entry) => {
+  const bottleRelations = CANONICAL_BOTTLES[entry.slug] || [];
+  return {
+    ...entry,
+    calendar: entry.calendar === true,
+    datePrecision: entry.calendar === true ? "exact" : "window",
+    verificationStatus: VERIFIED_ENTRY_SLUGS.has(entry.slug) ? "verified" : "official",
+    availabilitySemantics: "announcement_only",
+    followEligibility: {
+      release: entry.kind !== "bottle",
+      bottle: bottleRelations.length > 0,
+    },
+    markets: entry.states.map((state) => STATE_MARKETS[state]).filter((market): market is RadarMarket => Boolean(market)),
+    bottleRelations,
+    relationships: ENTRY_RELATIONSHIPS[entry.slug] || [],
+  };
+});
+
 export const stateGuides: StateGuide[] = [
   {
     slug: "virginia",
@@ -617,4 +744,26 @@ export function getStateGuide(slug: string) {
 
 export function radarPathKinds() {
   return Object.keys(pathKinds);
+}
+
+export function isRadarEntryAlertGrade(_entry: RadarEntry) {
+  return false;
+}
+
+export function getTrackableBottleRelation(entry: RadarEntry) {
+  if (!entry.followEligibility.bottle) return null;
+  return entry.bottleRelations.find((relation) => relation.relationship === "featured") || entry.bottleRelations[0] || null;
+}
+
+export function getMarketHandoffHref(entry: RadarEntry, marketCode: string) {
+  const market = marketCode.toUpperCase().replace(/[^A-Z-]/g, "").slice(0, 20);
+  const bottle = getTrackableBottleRelation(entry);
+  if (bottle) {
+    const params = new URLSearchParams({ q: bottle.canonicalName, source: "release_radar" });
+    if (market && market !== "US") params.set("state", market);
+    return `/bottle-check?${params.toString()}`;
+  }
+  const params = new URLSearchParams({ source: "release_radar" });
+  if (market && market !== "US") params.set("state", market);
+  return `/?${params.toString()}#drops`;
 }

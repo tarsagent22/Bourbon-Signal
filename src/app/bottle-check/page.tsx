@@ -147,6 +147,17 @@ export default function BottleCheckPage() {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const handoffQuery = params.get("q")?.trim() || "";
+    const handoffState = params.get("state")?.toUpperCase() || "";
+    if (handoffQuery) setQuery(handoffQuery);
+    if (activeStates.some((item) => item.code === handoffState)) {
+      setState(handoffState);
+      setTrackingStates([handoffState]);
+    }
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     async function load() {
       const q = submittedQuery.trim();

@@ -1425,13 +1425,13 @@ export default function DropFeed() {
   const activeAreaParam = useMemo(() => canUseDropFeedFilters ? areaQueryFromFilter(countyFilter) : "", [canUseDropFeedFilters, countyFilter]);
   const activeBottleParam = canUseBottleSearch ? bottleSearch.trim() : "";
 
-  const feedStateParam = canUseStateFilter
-    ? urlStateFilter || (hasSelectedStates && preferredStates.length === 1
+  const feedStateParam = urlStateFilter || (canUseStateFilter
+    ? (hasSelectedStates && preferredStates.length === 1
       ? preferredStates[0]
       : !hasSelectedStates && isSignedIn && areaPrefs.states.length === 1
         ? areaPrefs.states[0]
         : null)
-    : null;
+    : null);
 
   const fetchDrops = useCallback(async () => {
     try {

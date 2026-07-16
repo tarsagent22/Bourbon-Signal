@@ -33,6 +33,7 @@ export default function WatchlistDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const watchedBottles = useWatchlistStore((s) => s.watchedBottles);
+  const watchedBottleNames = useWatchlistStore((s) => s.watchedBottleNames);
   const { bottles } = useBottles();
   const { drops } = useDrops({ limit: 200 });
 
@@ -50,7 +51,10 @@ export default function WatchlistDropdown() {
 
   const watchedItems = useMemo(() => watchedBottles.map((id) => {
     const bottle = bottles.find((b) => b.id === id || b.canonical_id === id);
-    if (!bottle) return null;
+    if (!bottle) {
+      const savedName = watchedBottleNames[id];
+      return savedName ? { id, name: savedName, tier: "limited", lastDrop: null, hasNewDrop: false } : null;
+    }
 
     const matchingDrops = drops.filter((d) => dropMatchesBottle(d, bottle));
     const latestDrop = matchingDrops.length > 0
@@ -72,7 +76,7 @@ export default function WatchlistDropdown() {
     tier: string;
     lastDrop: string | null;
     hasNewDrop: boolean;
-  }[], [watchedBottles, bottles, drops]);
+  }[], [watchedBottles, watchedBottleNames, bottles, drops]);
 
   const newDropCount = watchedItems.filter((w) => w.hasNewDrop).length;
 

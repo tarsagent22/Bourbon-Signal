@@ -1837,6 +1837,7 @@ export default function DashboardPage() {
         bottleKeys: Array.from(selectedCanonicalKeys),
       },
       collectionPreferences: prefs.collectionPreferences,
+      radarPreferences: prefs.radarPreferences,
     };
     void savePreferences(nextPrefs)
       .then(() => {

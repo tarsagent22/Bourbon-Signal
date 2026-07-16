@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { JsonLd, RadarNav } from "@/components/release-radar/RadarPrimitives";
+import { RadarEntryActions } from "@/components/release-radar/RadarEntryActions";
 import { getRadarEntryByPath, radarEntries, radarPath, radarPathKinds, stateGuides } from "@/lib/release-radar";
 
 export function generateStaticParams() {
@@ -34,6 +35,9 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   const canonical = `https://www.bourbonsignal.com${radarPath(entry)}`;
   const isScheduled = Boolean(entry.calendar) && (entry.kind === "event" || entry.kind === "lottery");
   const relatedState = stateGuides.find((guide) => entry.states.includes(guide.state));
+  const relatedEntries = entry.relationships
+    .map((relationship) => radarEntries.find((candidate) => candidate.slug === relationship.targetSlug))
+    .filter((candidate): candidate is (typeof radarEntries)[number] => Boolean(candidate));
   const eventBase = {
     name: entry.title,
     description: entry.summary,
@@ -81,7 +85,7 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
               <p className="radar-detail__eyebrow"><span className={`radar-status radar-status--${entry.status}`}>{entry.status}</span> {entry.eyebrow}</p>
               <h1>{entry.title}</h1>
               <p className="radar-detail__dek">{entry.dek}</p>
-              <p className="radar-detail__source-note">Source-backed intelligence · Availability can change · Last checked {entry.updatedAt}</p>
+              <p className="radar-detail__source-note">{entry.verificationStatus === "official" ? "Official source" : "Source verified"} · Announcement only · Last checked {entry.updatedAt}</p>
             </div>
             <aside className="radar-fact-panel" aria-label="Key details">
               {entry.facts.map((fact) => <div className="radar-fact" key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
@@ -97,8 +101,10 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
               {entry.sources.map((source) => <a className="radar-source-link" href={source.url} target="_blank" rel="noreferrer" key={source.url}><span>{source.label}</span><ArrowUpRight size={14} /></a>)}
               <p className="radar-updated">Verified {entry.updatedAt}</p>
               {relatedState && <Link className="radar-context-link" href={`/release-radar/states/${relatedState.slug}`}>{relatedState.state} hunting guide <ArrowRight size={13}/></Link>}
+              {relatedEntries.map((related) => <Link className="radar-context-link" href={radarPath(related)} key={related.slug}>{related.title} <ArrowRight size={13}/></Link>)}
             </aside>
           </div>
+          <RadarEntryActions entry={entry} />
           <div className="radar-cta">
             <div><h2>Turn release context into a live hunt.</h2><p>Check current signals, monitor your markets, and keep the official source close.</p></div>
             <div className="radar-cta-links"><Link href="/release-radar">View calendar</Link><Link href="/#drops">Open live signals <ArrowRight size={14} style={{ display: "inline", marginLeft: 6 }} /></Link></div>

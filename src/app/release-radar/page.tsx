@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarExplorer } from "@/components/release-radar/CalendarExplorer";
 import { JsonLd } from "@/components/release-radar/RadarPrimitives";
 import { RadarTabs } from "@/components/release-radar/RadarTabs";
+import { RadarCalendarDownload } from "@/components/release-radar/RadarCalendarDownload";
 import { radarEntries, radarPath, releaseRadarUpdatedAt } from "@/lib/release-radar";
 
 export default function ReleaseRadarPage() {
@@ -41,7 +42,7 @@ export default function ReleaseRadarPage() {
       <RadarTabs active="calendar" />
       <CalendarExplorer entries={calendarEntries} initialMonth={initialMonth} />
 
-      <footer className="rr-utility"><p>Release dates are not live shelf inventory.</p><div><Link href="/bottle-check">Check a bottle</Link><Link href="/#drops">View live signals</Link></div></footer>
+      <footer className="rr-utility"><p>Release dates are not live shelf inventory.</p><div><RadarCalendarDownload /><Link href="/bottle-check">Check a bottle</Link><Link href="/#drops">View live signals</Link></div></footer>
     </div>
   </main>;
 }

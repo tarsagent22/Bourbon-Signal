@@ -12,6 +12,11 @@ import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES
 import { normalizeCaliforniaAreas } from "@/lib/california-area";
 import { normalizeNevadaAreas } from "@/lib/nevada-area";
 import { deriveMemberActivation, mergeActivationMilestones, type ActivationMilestone } from "@/lib/member-activation";
+import {
+  EMPTY_RADAR_PREFERENCES,
+  normalizeRadarPreferences,
+  type RadarPreferences,
+} from "@/lib/release-radar-preferences";
 
 export interface AreaPreferences {
   states: string[];
@@ -54,6 +59,7 @@ export interface UserAlertPreferences {
   collectionPreferences: {
     bottles: CollectionBottlePreference[];
   };
+  radarPreferences: RadarPreferences;
   sightingsPreferences?: SightingsPreferences;
   activation?: ReturnType<typeof deriveMemberActivation>;
 }
@@ -281,6 +287,7 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
     alertMode,
     bottleAlertPreferences,
     collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
+    radarPreferences: normalizeRadarPreferences(user.publicMetadata?.radarPreferences),
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
     activation: deriveMemberActivation({
       tier: entitlements.tier,
@@ -300,6 +307,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
   const alertMode = payload.alertMode === undefined ? QA_PREVIEW_PREFERENCES.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? QA_PREVIEW_PREFERENCES.bottleAlertPreferences);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? QA_PREVIEW_PREFERENCES.collectionPreferences);
+  const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? QA_PREVIEW_PREFERENCES.radarPreferences);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? QA_PREVIEW_PREFERENCES.sightingsPreferences);
 
   if (entitlements.alertAreaLimit === 0) {
@@ -346,6 +354,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     alertMode,
     bottleAlertPreferences,
     collectionPreferences,
+    radarPreferences,
     sightingsPreferences,
   };
 }
@@ -403,6 +412,7 @@ export async function POST(req: NextRequest) {
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
+  const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? existing.radarPreferences ?? EMPTY_RADAR_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
   const entitlements = getEntitlements(user.publicMetadata);
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
@@ -447,7 +457,7 @@ export async function POST(req: NextRequest) {
   if (notificationPreferences.onSite.enabled || notificationPreferences.email.enabled || notificationPreferences.sms.enabled) milestones.push("notification_channel_enabled");
   if (activation.complete) milestones.push("paid_activation_completed");
   await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences },
+    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences },
   });
   try {
     const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
@@ -456,5 +466,5 @@ export async function POST(req: NextRequest) {
     console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
   }
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences });
 }

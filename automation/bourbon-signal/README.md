@@ -146,6 +146,18 @@ When Chandler approves an improvement from the weekly brief:
 9. Verify production.
 10. Summarize what changed, how it was verified, and remaining risk.
 
+## Release Radar Silent Scout
+
+Command:
+
+```bash
+npm run ops:radar-scout -- --input=path/to/candidates.json --draft-pr=path/to/draft.md
+```
+
+The scout accepts local structured candidate data, writes a machine-readable review artifact, and can prepare a draft pull-request body. It is silent unless `--print` is supplied. It does not fetch live sources, change public Radar data, open a pull request, or run on a schedule. Every candidate remains `announcement_only`, is ineligible for alert-grade availability, and requires human review.
+
+Candidate input uses `{ "candidates": [...] }`. Each candidate can include `title`, `kind`, `sourceUrl`, `sourceType`, `datePrecision`, `startDate`, market codes, canonical bottle relations, and related Radar slugs. Missing or invalid evidence is preserved as a review issue rather than promoted.
+
 ## Hard boundaries
 
 Do not include in these automations unless Chandler separately asks:
@@ -158,6 +170,7 @@ Do not include in these automations unless Chandler separately asks:
 - Pricing/legal changes without approval
 - Alert-readiness scoring
 - Treating catalog/watch/shipment data as live inventory
+- Installing the Release Radar scout as a live cron or automatic publishing job
 
 ## Structured operator backbone
 
