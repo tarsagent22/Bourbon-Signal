@@ -2,6 +2,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { findingsFromDailyReliability } from '../../scripts/lib/finding-adapters.mjs';
+import { isProtectedDashboardResponse } from './production-checks.mjs';
 
 const ROOT = path.resolve(new URL('../../', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const REPORT_DIR = path.join(ROOT, 'automation', 'bourbon-signal', 'reports');
@@ -157,7 +158,7 @@ async function main() {
   const productionSpecs = [
     ['homepage', '/', ({ res }) => res.status === 200],
     ['signup age gate', '/sign-up', ({ res, body }) => res.status === 200 && /21|older|Age confirmation/i.test(body)],
-    ['dashboard locked', '/dashboard', ({ res }) => [301, 302, 307, 308].includes(res.status) && /sign-up/.test(res.headers.get('location') || '')],
+    ['dashboard locked', '/dashboard', ({ res }) => isProtectedDashboardResponse(res.status, res.headers.get('location'))],
     ['stats api', '/api/stats', ({ res, body }) => res.status === 200 && /stateCount|signalCount/.test(body)],
     ['drops preview api', '/api/drops?limit=50', ({ res, body }) => {
       if (res.status !== 200) return false;
