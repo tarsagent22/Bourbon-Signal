@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 
 import HeroSection from "@/components/sections/HeroSection";
 import DropFeed from "@/components/sections/DropFeed";
-import BriefingSection from "@/components/sections/BriefingSection";
+import ReleaseRadarSection from "@/components/sections/ReleaseRadarSection";
 import HowWeHunt from "@/components/sections/HowWeHunt";
 import FAQ from "@/components/sections/FAQ";
 
@@ -76,7 +76,7 @@ export default function Home() {
           <DropFeed />
         </motion.div>
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
-        <BriefingSection />
+        <ReleaseRadarSection />
         <div style={{ height: 22, background: "var(--color-bg-primary)" }} />
         <HowWeHunt />
         <div style={{ height: 24, background: "var(--color-bg-primary)" }} />

@@ -2,7 +2,6 @@
 
 const footerLinks = [
   { label: "FAQ", href: "/#faq" },
-  { label: "Daily Briefing", href: "/#briefing" },
   { label: "Release Radar", href: "/release-radar" },
   { label: "Privacy", href: "/legal/privacy" },
   { label: "Terms", href: "/legal/terms" },

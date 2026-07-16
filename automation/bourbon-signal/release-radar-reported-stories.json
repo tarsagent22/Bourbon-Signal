@@ -1,6 +1,6 @@
 {
   "updatedAt": "2026-07-15T11:25:00-04:00",
-  "purpose": "Deduplication log for Bourbon Signal Daily Briefing story scouting. Morning briefing jobs must avoid re-reporting these stories unless there is a genuinely material new development.",
+  "purpose": "Deduplication log for Bourbon Signal Release Radar story scouting. Story jobs must avoid re-reporting these items unless there is a genuinely material new development, and new approved stories belong in the appropriate Release Radar calendar, release-window, briefing, or state-guide surface.",
   "reportedStories": [
     {
       "title": "Yellowstone’s 2026 Limited Edition enters the August hunt",

@@ -65,7 +65,7 @@ const paidTiers: PricingTier[] = [
       "Up to 15 tracked bottles",
       "Full Drop Feed access with filter-by-state only",
       "Unlimited Bottle Check access",
-      "Full Daily Briefing access",
+      "Public Release Radar access",
       "Member Sightings",
       "No advanced feed filters or Sightings alerts",
     ],
@@ -114,7 +114,7 @@ const paidTiers: PricingTier[] = [
 
 const comparisonRows = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Daily Briefing", "Limited", "Full", "Full", "Full"],
+  ["Release Radar", "Full", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Member Sightings", "Limited", "✓", "✓", "✓"],
   ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
