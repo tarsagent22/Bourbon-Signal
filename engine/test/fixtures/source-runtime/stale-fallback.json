@@ -1,0 +1,8 @@
+{
+  "scenario": "stale-fallback",
+  "value": {
+    "signals": [{ "id": "retained-precision-signal", "observedAt": "2026-07-15T12:00:00.000Z", "fetchedAt": "2026-07-15T12:00:00.000Z", "canAlertAsInventory": true, "canAlertAsWatch": true }],
+    "roadblocks": []
+  },
+  "expected": { "status": "transient_error" }
+}

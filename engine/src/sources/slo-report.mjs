@@ -10,17 +10,20 @@ function validTime(value) {
   return Number.isFinite(time) ? time : null;
 }
 
-function observationFromResult(result, now) {
-  const observedAt = result.finishedAt || result.checkedAt || now;
+function observationFromResult(result, now, attempt = null, attemptIndex = 0) {
+  const observedAt = attempt?.finishedAt || result.finishedAt || result.checkedAt || now;
   const sourceId = String(result.sourceId || '').trim();
   if (!sourceId || validTime(observedAt) == null) return null;
-  const outcome = String(result.status || 'failed');
+  const outcome = result.quarantined ? 'quarantined' : String(attempt?.outcome || result.status || 'failed');
+  const attemptNumber = Number(attempt?.attempt || (attempt ? attemptIndex + 1 : 0));
   return {
-    id: `${sourceId}|${result.startedAt || observedAt}|${observedAt}|${outcome}`,
+    id: `${sourceId}|${result.startedAt || observedAt}|${attemptNumber}|${observedAt}|${outcome}`,
     sourceId,
     observedAt,
     outcome,
-    attemptCount: Number(result.attemptCount || 0),
+    attemptCount: attempt ? 1 : Number(result.attemptCount || 0),
+    ...(attempt?.error?.kind || result.error?.kind ? { errorKind: attempt?.error?.kind || result.error?.kind } : {}),
+    ...(result.sourceMetadata?.stateId ? { stateId: String(result.sourceMetadata.stateId) } : {}),
   };
 }
 
@@ -29,8 +32,11 @@ export function appendSourceSloObservations(history, results, options = {}) {
   const prior = history?.contractVersion === SOURCE_SLO_HISTORY_CONTRACT_VERSION ? history : null;
   const combined = new Map((prior?.observations || []).map((item) => [item.id, item]));
   for (const result of results || []) {
-    const observation = observationFromResult(result, now);
-    if (observation) combined.set(observation.id, observation);
+    const attempts = Array.isArray(result?.attempts) && result.attempts.length ? result.attempts : [null];
+    attempts.forEach((attempt, index) => {
+      const observation = observationFromResult(result, now, attempt, index);
+      if (observation) combined.set(observation.id, observation);
+    });
   }
   const retentionMs = Math.max(SEVEN_DAY_WINDOW_MS, Number(options.retentionMs ?? 8 * 24 * 60 * 60_000));
   const cutoff = Date.parse(now) - retentionMs;
@@ -69,11 +75,24 @@ export function buildSevenDaySourceSloReport(history, options = {}) {
   const sources = sourceIds.map((sourceId) => {
     const sourceObservations = allWindow.filter((item) => item.sourceId === sourceId && !EXCLUDED_OUTCOMES.has(item.outcome));
     const successes = sourceObservations.filter((item) => SUCCESS_OUTCOMES.has(item.outcome)).length;
+    const stateIds = [...new Set(sourceObservations.map((item) => item.stateId).filter(Boolean))];
     return {
       sourceId,
       observedSampleCount: sourceObservations.length,
       successfulSampleCount: successes,
       availabilityRatio: sourceObservations.length ? successes / sourceObservations.length : null,
+      ...(stateIds.length === 1 ? { stateId: stateIds[0] } : {}),
+    };
+  });
+  const stateIds = [...new Set(eligible.map((item) => item.stateId).filter(Boolean))].sort();
+  const states = stateIds.map((stateId) => {
+    const stateObservations = eligible.filter((item) => item.stateId === stateId);
+    const successes = stateObservations.filter((item) => SUCCESS_OUTCOMES.has(item.outcome)).length;
+    return {
+      stateId,
+      observedSampleCount: stateObservations.length,
+      successfulSampleCount: successes,
+      availabilityRatio: stateObservations.length ? successes / stateObservations.length : null,
     };
   });
   return {
@@ -92,6 +111,7 @@ export function buildSevenDaySourceSloReport(history, options = {}) {
     metTarget,
     status: historyComplete ? (metTarget ? 'met' : 'missed') : 'insufficient_history',
     sources,
+    states,
   };
 }
 

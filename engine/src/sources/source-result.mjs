@@ -40,7 +40,7 @@ export function statusForSourceError(error) {
   }[error?.kind] || 'failed';
 }
 
-export function createSourceSuccessResult({ adapter, value, startedAt, finishedAt, attemptCount, quarantined = false, schedule = null }) {
+export function createSourceSuccessResult({ adapter, value, startedAt, finishedAt, attemptCount, attempts = [], quarantined = false, schedule = null }) {
   const reason = quarantined ? `Source ${adapter.id} is quarantined` : null;
   return {
     contractVersion: SOURCE_RESULT_CONTRACT_VERSION,
@@ -48,7 +48,7 @@ export function createSourceSuccessResult({ adapter, value, startedAt, finishedA
     sourceLabel: adapter.label,
     sourceUrl: adapter.url,
     status: quarantined ? 'quarantined' : 'success',
-    ok: true,
+    ok: !quarantined,
     stale: false,
     quarantined,
     alertable: !quarantined,
@@ -59,11 +59,13 @@ export function createSourceSuccessResult({ adapter, value, startedAt, finishedA
     lastGoodAt: finishedAt,
     value: quarantined ? markSourceValueNonAlertable(value, reason) : value,
     error: null,
+    sourceMetadata: adapter.metadata,
+    attempts,
     schedule,
   };
 }
 
-export function createSourceFailureResult({ adapter, error, previous = null, startedAt, finishedAt, attemptCount, schedule = null, quarantined = false }) {
+export function createSourceFailureResult({ adapter, error, previous = null, startedAt, finishedAt, attemptCount, attempts = [], schedule = null, quarantined = false }) {
   const serialized = serializeSourceError(error);
   const fallbackAvailable = previous?.value !== undefined && previous?.value !== null && Boolean(previous?.lastGoodAt);
   const reason = quarantined
@@ -86,6 +88,8 @@ export function createSourceFailureResult({ adapter, error, previous = null, sta
     lastGoodAt: fallbackAvailable ? previous.lastGoodAt : null,
     value: fallbackAvailable ? markSourceValueNonAlertable(previous.value, reason, { stale: true }) : null,
     error: serialized,
+    sourceMetadata: adapter.metadata,
+    attempts,
     schedule,
   };
 }
@@ -115,6 +119,8 @@ export function createSourceSkippedResult({ adapter, previous = null, status, no
     lastGoodAt: previous?.lastGoodAt || null,
     value: nonAlertable && retained ? markSourceValueNonAlertable(previous.value, reason, { stale: circuitOpen || quarantined }) : previous?.value ?? null,
     error: error ? serializeSourceError(error) : null,
+    sourceMetadata: adapter.metadata,
+    attempts: [],
     schedule,
   };
 }

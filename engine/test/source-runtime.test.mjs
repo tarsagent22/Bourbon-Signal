@@ -116,9 +116,28 @@ test('last-good provenance remains unchanged and stale or quarantined data is no
     adapter('quarantined', async () => fixture('healthy-b.json')),
   ], {}, { quarantinedSourceIds: new Set(['quarantined']) })).results;
   assert.equal(quarantined.status, 'quarantined');
-  assert.equal(quarantined.ok, true);
+  assert.equal(quarantined.ok, false, 'a configured quarantine is public non-success even when its diagnostic probe succeeds');
   assert.equal(quarantined.alertable, false);
   assert.equal(quarantined.value.signals[0].canAlertAsInventory, false);
+});
+
+test('result history retains every bounded attempt with sanitized standardized errors', async () => {
+  let calls = 0;
+  const [result] = (await runSourceAdapters([
+    adapter('attempt-history', async () => {
+      calls += 1;
+      if (calls === 1) throw new TransientSourceError('GET https://user:secret@example.test/catalog?api_key=super-secret failed');
+      return fixture('healthy-a.json');
+    }),
+  ], {}, { maxAttempts: 2, retryDelayMs: 0, timeoutMs: 100 })).results;
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.attemptCount, 2);
+  assert.equal(result.attempts.length, 2);
+  assert.deepEqual(result.attempts.map((attempt) => attempt.outcome), ['transient_error', 'success']);
+  assert.equal(result.attempts[0].error.kind, 'transient');
+  assert.doesNotMatch(result.attempts[0].error.message, /secret|api_key/i);
+  assert.match(result.attempts[0].error.message, /https:\/\/example\.test\/catalog/);
 });
 
 test('configured quarantine survives timeout and failure outcomes', async () => {

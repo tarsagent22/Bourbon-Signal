@@ -12,6 +12,7 @@ import {
   createSourceFailureResult,
   createSourceSkippedResult,
   createSourceSuccessResult,
+  statusForSourceError,
 } from './source-result.mjs';
 
 function previousMap(value) {
@@ -121,24 +122,46 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
     const startedAt = nowIso(now);
     let attemptCount = 0;
     let lastError = null;
+    const attempts = [];
     while (attemptCount < maxAttempts) {
       attemptCount += 1;
+      const attemptStartedAt = nowIso(now);
       try {
         const candidate = validateSourceValue(adapter, await executeWithTimeout(adapter, context, signal, attemptCount, timeoutMs));
         const collapsed = collapseError(adapter, previous, candidate);
         if (collapsed) throw collapsed;
+        const attemptFinishedAt = nowIso(now);
+        attempts.push({
+          attempt: attemptCount,
+          startedAt: attemptStartedAt,
+          finishedAt: attemptFinishedAt,
+          outcome: 'success',
+          error: null,
+        });
         circuitBreaker.recordSuccess(adapter.id);
         return createSourceSuccessResult({
           adapter,
           value: candidate,
           startedAt,
-          finishedAt: nowIso(now),
+          finishedAt: attemptFinishedAt,
           attemptCount,
+          attempts,
           quarantined: sourceQuarantined,
           schedule,
         });
       } catch (error) {
         lastError = normalizeSourceError(error);
+        attempts.push({
+          attempt: attemptCount,
+          startedAt: attemptStartedAt,
+          finishedAt: nowIso(now),
+          outcome: statusForSourceError(lastError),
+          error: {
+            kind: lastError.kind,
+            code: lastError.code,
+            message: lastError.message,
+          },
+        });
         if (!lastError.transient || attemptCount >= maxAttempts) break;
         await sleep(retryDelayMs * attemptCount);
       }
@@ -151,6 +174,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       startedAt,
       finishedAt: nowIso(now),
       attemptCount,
+      attempts,
       schedule,
       quarantined: sourceQuarantined,
     });

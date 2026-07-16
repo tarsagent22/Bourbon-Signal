@@ -1,0 +1,6 @@
+{
+  "scenario": "volume-collapse",
+  "previousRecordCount": 10,
+  "value": { "signals": [{ "id": "only-current-record" }] },
+  "expected": { "status": "collapsed", "retryable": false }
+}

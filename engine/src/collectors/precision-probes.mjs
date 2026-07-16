@@ -11,6 +11,7 @@ import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
+import { legacyPrecisionSourceId, runLegacyPrecisionSource } from '../sources/legacy-precision-runtime.mjs';
 import {
   FLORIDA_TAMPA_TARGET_STORES,
   parseLightspeedCatalogEntries,
@@ -6208,6 +6209,7 @@ function previousCaliforniaSourceResults(cache) {
       stale: false,
       alertable: true,
       lastGoodAt,
+      sourceMetadata: { stateId: 'CA', lane: 'california_retailer' },
       value: { signals, roadblocks: [] },
     }];
   }));
@@ -6246,13 +6248,17 @@ async function collectCalifornia(config, bible, options = {}) {
     id: `ca:${source.id}`,
     label: source.sourceLabel,
     url: source.productsUrl,
+    metadata: { stateId: config.id, lane: 'california_retailer' },
     execute: (_context, { signal }) => collectCaliforniaSource(config, bible, source, observedAt, signal),
     validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks) ? true : 'California source result is malformed',
     recordCount: (value) => value.signals.length,
   }));
   const isolated = await runSourceAdapters(californiaAdapters, {}, {
     ...options.sourceRunnerOptions,
-    previousResults: previousCaliforniaSourceResults(cache),
+    previousResults: {
+      ...(options.previousSourceResults || {}),
+      ...Object.fromEntries(Object.entries(previousCaliforniaSourceResults(cache)).filter(([, result]) => result.lastGoodAt)),
+    },
     circuitBreaker: options.sourceCircuitBreaker,
     concurrency: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.length,
     perDomain: 1,
@@ -6510,7 +6516,17 @@ async function collectKentucky(config, bible) {
   };
 }
 
-export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
+const LEGACY_PRECISION_RUNTIME_STATES = new Set([
+  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY',
+]);
+
+function precisionRuntimeUrl(config) {
+  return (config.sources || []).find((source) => source.precisionOnly && source.url)?.url
+    || config.sources?.[0]?.url
+    || null;
+}
+
+async function collectPrecisionProbesDirect(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'KY') return collectKentucky(config, bible);
   if (config.id === 'OH') return collectOhio(config, bible);
   if (config.id === 'OR') return collectOregon(config, bible);
@@ -6532,6 +6548,28 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
   return { signals: [], roadblocks: [] };
+}
+
+export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
+  if (config.id === 'CA') return collectCalifornia(config, bible, options);
+  if (!LEGACY_PRECISION_RUNTIME_STATES.has(config.id)) {
+    return collectPrecisionProbesDirect(config, bible, existingSignals, options);
+  }
+  const sourceRunnerOptions = options.sourceRunnerOptions || {};
+  return runLegacyPrecisionSource({
+    sourceId: legacyPrecisionSourceId(config.id),
+    stateId: config.id,
+    label: `${config.label} precision collector`,
+    url: precisionRuntimeUrl(config),
+    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, existingSignals, { ...options, signal }),
+    previousResults: options.previousSourceResults,
+    circuitBreaker: options.sourceCircuitBreaker,
+    sourceRunnerOptions: {
+      ...sourceRunnerOptions,
+      timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || 120_000),
+      maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || 2),
+    },
+  });
 }
 
 async function binnysAlgoliaQuery(indexName, params) {

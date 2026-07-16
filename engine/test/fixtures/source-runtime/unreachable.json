@@ -1,0 +1,4 @@
+{
+  "scenario": "unreachable",
+  "expected": { "status": "timeout", "retryable": true }
+}
