@@ -327,12 +327,9 @@ export async function GET(request: Request) {
   if (!bottle) {
     captureSearchEvent({
       surface: "bottle-check",
-      query,
       state,
       outcome: "unmatched",
       suggestionCount: suggestions.length,
-      localScore: null,
-      scoreStatus: "unmatched",
     });
 
     return NextResponse.json(
@@ -355,15 +352,10 @@ export async function GET(request: Request) {
 
   captureSearchEvent({
     surface: "bottle-check",
-    query: query || bottle.canonicalName,
     state,
     outcome: "matched",
-    matchedBottleId: bottle.id,
-    matchedBottleName: bottle.canonicalName,
+    canonicalBottleId: bottle.id,
     suggestionCount: suggestions.length,
-    confidence: localSignal.confidence,
-    localScore: localSignal.localScore,
-    scoreStatus: localSignal.scoreStatus,
   });
 
   return NextResponse.json(

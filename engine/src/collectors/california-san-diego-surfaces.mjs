@@ -152,6 +152,16 @@ export function mergeCaliforniaSourceCacheSignals(liveSignals, cachedSignals, co
   return merged;
 }
 
+export function buildCaliforniaSourceCacheSignals(sourceResults, completedSourceIds = new Set()) {
+  const results = Array.isArray(sourceResults) ? sourceResults : [];
+  const liveSignals = results
+    .filter((result) => result?.ok === true)
+    .flatMap((result) => Array.isArray(result?.value?.signals) ? result.value.signals : []);
+  const isolatedResultSignals = results
+    .flatMap((result) => Array.isArray(result?.value?.signals) ? result.value.signals : []);
+  return mergeCaliforniaSourceCacheSignals(liveSignals, isolatedResultSignals, completedSourceIds);
+}
+
 export function filterFreshCaliforniaSignals(signals, nowMs = Date.now(), maxAgeMs) {
   if (!Array.isArray(signals) || !Number.isFinite(nowMs) || !Number.isFinite(maxAgeMs) || maxAgeMs < 0) return [];
   return signals.filter((signal) => {

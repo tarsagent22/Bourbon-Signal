@@ -1,4 +1,4 @@
-const DEFAULT_MIN_COHORT = 5;
+const DEFAULT_MIN_EVENT_COUNT = 5;
 const EMAIL_SHAPE = /\b[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+\b/i;
 const URL_SHAPE = /(?:\bhttps?:\/\/|\bwww\.|\b[a-z0-9-]+\.(?:com|net|org|io|co|us|info|biz)(?:\b|\/))/i;
 const PHONE_SHAPE = /(?:\+?\d[\s().-]*){7,}/;
@@ -42,7 +42,7 @@ function buildCatalog(catalog) {
 }
 
 export function buildPrivacySafeSearchDemand(events, options) {
-  const minCohortSize = Math.max(DEFAULT_MIN_COHORT, Math.floor(options?.minCohortSize || DEFAULT_MIN_COHORT));
+  const minimumEventCount = Math.max(DEFAULT_MIN_EVENT_COUNT, Math.floor(options?.minimumEventCount || DEFAULT_MIN_EVENT_COUNT));
   const approvedStates = new Set((options?.approvedStateCodes || []).map((state) => clean(state, 32).toUpperCase()).filter(Boolean));
   const catalog = buildCatalog(options?.catalog || []);
   const bottleCounts = new Map();
@@ -52,12 +52,12 @@ export function buildPrivacySafeSearchDemand(events, options) {
 
   for (const raw of Array.isArray(events) ? events.slice(0, 100_000) : []) {
     const event = raw && typeof raw === 'object' ? raw : {};
-    if (containsSensitiveSearchInput(event.query)) {
+    if ([event.query, event.matchedBottleName].some(containsSensitiveSearchInput)) {
       rejectedSensitiveEvents += 1;
       continue;
     }
     acceptedEvents += 1;
-    const idKey = lookupKey(event.matchedBottleId);
+    const idKey = lookupKey(event.canonicalBottleId || event.matchedBottleId);
     const nameKey = lookupKey(event.matchedBottleName);
     const canonical = catalog.get(idKey) || catalog.get(nameKey) || null;
     if (canonical) {
@@ -70,23 +70,29 @@ export function buildPrivacySafeSearchDemand(events, options) {
   }
 
   const bottles = [...bottleCounts.values()]
-    .filter((item) => item.eventCount >= minCohortSize)
+    .filter((item) => item.eventCount >= minimumEventCount)
     .map((item) => ({ ...item, weightedDemand: item.eventCount }))
     .sort((a, b) => b.weightedDemand - a.weightedDemand || a.canonicalBottleName.localeCompare(b.canonicalBottleName));
   const geographies = [...geographyCounts.entries()]
-    .filter(([, eventCount]) => eventCount >= minCohortSize)
+    .filter(([, eventCount]) => eventCount >= minimumEventCount)
     .map(([state, eventCount]) => ({ state, eventCount, weightedDemand: eventCount }))
     .sort((a, b) => b.weightedDemand - a.weightedDemand || a.state.localeCompare(b.state));
 
   return {
-    privacy: { minCohortSize, containsPii: false, containsRawHistory: false },
+    privacy: {
+      minimumEventCount,
+      aggregationUnit: 'event',
+      distinctSubjectsMeasured: false,
+      containsPii: false,
+      containsRawHistory: false,
+    },
     acceptedEvents,
     rejectedSensitiveEvents,
     bottles,
     geographies,
     suppressed: {
-      bottleCohorts: [...bottleCounts.values()].filter((item) => item.eventCount < minCohortSize).length,
-      geographyCohorts: [...geographyCounts.values()].filter((eventCount) => eventCount < minCohortSize).length,
+      bottleBuckets: [...bottleCounts.values()].filter((item) => item.eventCount < minimumEventCount).length,
+      geographyBuckets: [...geographyCounts.values()].filter((eventCount) => eventCount < minimumEventCount).length,
     },
   };
 }

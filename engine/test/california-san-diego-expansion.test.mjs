@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
+  buildCaliforniaSourceCacheSignals,
   filterFreshCaliforniaSignals,
   mergeCaliforniaSourceCacheSignals,
   parseCaliforniaShopifyProducts,
@@ -13,6 +14,8 @@ import {
   isCaliforniaRetailerInventory,
   isCaliforniaRetailerSignalIdentity,
 } from '../src/california-retailer-policy.mjs';
+import { createSourceFailureResult } from '../src/sources/source-result.mjs';
+import { TransientSourceError } from '../src/sources/source-error.mjs';
 import { hasPositiveInventoryEvidence } from '../src/operational-candidate-policy.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
@@ -140,6 +143,52 @@ test('California partial refresh replaces completed sources and retains only inc
   ];
   const merged = mergeCaliforniaSourceCacheSignals(live, cached, new Set(['del-mesa-liquor', 'chips-liquor']));
   assert.deepEqual(merged.map((row) => row.id).sort(), ['cached-mission', 'live-del']);
+});
+
+test('California cache persistence retains source-runtime stale and non-alertable fallback markers', () => {
+  const observedAt = '2026-07-16T01:00:00.000Z';
+  const rawCachedFallback = californiaSignal({
+    id: 'cached-mission',
+    sourceChain: 'mission-trails-wine-spirits',
+    sourceRuntimeId: 'ca:mission-trails-wine-spirits',
+    observedAt,
+  });
+  const failedResult = createSourceFailureResult({
+    adapter: {
+      id: 'ca:mission-trails-wine-spirits',
+      label: 'Mission Trails Wine & Spirits Shopify San Diego orderability with pickup policy',
+      url: 'https://missiontrailswineandspirits.com/products.json',
+    },
+    error: new TransientSourceError('temporary upstream failure'),
+    previous: {
+      value: { signals: [rawCachedFallback], roadblocks: [] },
+      lastGoodAt: observedAt,
+    },
+    startedAt: '2026-07-16T02:00:00.000Z',
+    finishedAt: '2026-07-16T02:00:01.000Z',
+    attemptCount: 2,
+  });
+  const liveSignal = californiaSignal({
+    id: 'live-del',
+    sourceChain: 'del-mesa-liquor',
+    sourceRuntimeId: 'ca:del-mesa-liquor',
+    observedAt: '2026-07-16T02:00:00.000Z',
+  });
+  const successfulResult = { ok: true, value: { signals: [liveSignal], roadblocks: [] } };
+
+  const persisted = buildCaliforniaSourceCacheSignals(
+    [successfulResult, failedResult],
+    new Set(['del-mesa-liquor']),
+  );
+  const fallback = persisted.find((signal) => signal.id === 'cached-mission');
+  assert.ok(fallback);
+  assert.equal(fallback.stale, true);
+  assert.equal(fallback.canAlertAsInventory, false);
+  assert.equal(fallback.canAlertAsWatch, false);
+  assert.equal(fallback.alertable, false);
+  assert.equal(fallback.raw.sourceRuntimeNonAlertable, true);
+  assert.equal(fallback.raw.staleFallback, true);
+  assert.equal(rawCachedFallback.stale, undefined, 'the isolated result is used without mutating or rebuilding the raw cached row');
 });
 
 test('California collector delegates bounded transient-only retries to the shared source runner', async () => {

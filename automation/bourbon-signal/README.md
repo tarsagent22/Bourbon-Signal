@@ -94,11 +94,11 @@ npm run ops:demand -- --since=24h
 
 Purpose: turn recent Bottle Check and Finder searches into demand aggregates. This is an operator-invoked report, not a cron.
 
-The capture boundary rejects email-, phone-, and URL-shaped values. The report then keeps only:
+The capture boundary does not log query text or any other arbitrary free text. The report keeps only:
 
 - catalog-resolved canonical bottle ID/name counts
 - state codes present in the active state lifecycle allowlist
-- cohort-suppressed counts and demand weights
+- event-thresholded counts and demand weights
 
 Outputs:
 
@@ -106,7 +106,7 @@ Outputs:
 - `automation/bourbon-signal/reports/search-events-latest.json`
 - `automation/bourbon-signal/reports/search-demand-latest.json` (source ROI input)
 
-Raw queries, event timestamps, member identifiers, and timestamped event-history files are not written. Cohorts below five are omitted. Use the aggregate to rank bottle coverage and approved geography investment without reconstructing individual behavior.
+Raw queries, event timestamps, member identifiers, and timestamped event-history files are not written. Event buckets below five are omitted. Counts are searches, not distinct people, and no per-user history or subject evidence is collected. Use the aggregate to rank bottle coverage and approved geography investment without reconstructing individual behavior.
 
 ## Demand-weighted Source ROI
 

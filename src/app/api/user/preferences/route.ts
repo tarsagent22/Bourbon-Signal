@@ -18,6 +18,7 @@ import {
   normalizeRadarPreferences,
   type RadarPreferences,
 } from "@/lib/release-radar-preferences";
+import { buildSuppliedPreferenceMetadataPatch } from "@/lib/user-preference-patch";
 
 export interface AreaPreferences {
   states: string[];
@@ -473,9 +474,18 @@ export async function POST(req: NextRequest) {
   if (alertMode === "anything_notable" || bottleAlertPreferences.bottleKeys.length) milestones.push("watchlist_saved");
   if (notificationPreferences.onSite.enabled || notificationPreferences.email.enabled || notificationPreferences.sms.enabled) milestones.push("notification_channel_enabled");
   if (activation.complete) milestones.push("paid_activation_completed");
-  await client.users.updateUserMetadata(userId, {
-    publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences },
+  const publicMetadataPatch = buildSuppliedPreferenceMetadataPatch(payload, {
+    areaPreferences,
+    notificationPreferences,
+    alertMode,
+    bottleAlertPreferences,
+    collectionPreferences,
+    radarPreferences,
+    sightingsPreferences,
   });
+  if (Object.keys(publicMetadataPatch).length > 0) {
+    await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
+  }
   try {
     const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
     await client.users.updateUserMetadata(userId, { privateMetadata: { activation: milestoneMetadata.activation } });

@@ -22,8 +22,8 @@ import {
 } from './florida-tampa-surfaces.mjs';
 import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
+  buildCaliforniaSourceCacheSignals,
   filterFreshCaliforniaSignals,
-  mergeCaliforniaSourceCacheSignals,
   parseCaliforniaShopifyProducts,
   verifyCaliforniaFulfillmentPolicy,
 } from './california-san-diego-surfaces.mjs';
@@ -6263,14 +6263,12 @@ async function collectCalifornia(config, bible, options = {}) {
   const roadblocks = [];
   const signals = [];
   const completedSourceIds = new Set();
-  const liveSignals = [];
   for (const [index, result] of isolated.results.entries()) {
     const source = CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES[index];
     signals.push(...(result.value?.signals || []));
     roadblocks.push(...(result.value?.roadblocks || []));
     if (result.ok) {
       completedSourceIds.add(source.id);
-      liveSignals.push(...(result.value?.signals || []));
     } else {
       roadblocks.push({
         state: config.id,
@@ -6284,7 +6282,7 @@ async function collectCalifornia(config, bible, options = {}) {
     }
   }
   if (completedSourceIds.size > 0) {
-    const artifactSignals = mergeCaliforniaSourceCacheSignals(liveSignals, cachedCaliforniaSignals(cache), completedSourceIds);
+    const artifactSignals = buildCaliforniaSourceCacheSignals(isolated.results, completedSourceIds);
     await writeCaliforniaSanDiegoShopifyCache(artifactSignals, roadblocks);
   }
   if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {

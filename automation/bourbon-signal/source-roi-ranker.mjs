@@ -45,7 +45,7 @@ async function main() {
     '',
     '## How to use',
     '',
-    '- Demand is accepted only from cohort-suppressed canonical bottle and active-state aggregates.',
+    '- Search demand is accepted only from thresholded canonical-bottle and active-state event aggregates; it does not claim distinct people.',
     '- `repair_high_value_source`: fix breakage first.',
     '- `protect_and_expand`: keep guarded and add targets/markets.',
     '- `expand_target_mesh`: good inventory spine; add allocated/unicorn matching.',

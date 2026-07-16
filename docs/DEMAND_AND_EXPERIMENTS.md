@@ -15,8 +15,9 @@ Demand uses two bounded inputs:
 2. Operator-invoked search reporting.
    - Accepted catalog-resolved search: weight 1.
    - Only canonical bottle IDs/names from the current engine bottle export and state codes from the active lifecycle allowlist survive.
+   - Search counts are events, not distinct people; no subject identifier or per-user history is collected.
 
-The minimum cohort is five. Smaller bottle, geography, and experiment-variant cohorts are omitted; only the number of suppressed cohort buckets is disclosed. Output never contains member IDs, email addresses, phone numbers, URLs, raw queries, per-member rows, event timestamps, or raw history. Email-, phone-, and URL-shaped search values are rejected before logging and again before reporting.
+Member-preference and experiment output retain a minimum distinct-subject cohort of five. Search output uses a minimum of five events only as a reporting threshold and never presents that threshold as distinct-person evidence. Output never contains member IDs, email addresses, phone numbers, URLs, raw queries, per-member rows, event timestamps, or raw history. Search capture never logs query text or other arbitrary free text; legacy sensitive-shaped log events are rejected again during reporting.
 
 `npm run ops:demand -- --since=24h` builds the search aggregate manually. It does not install a cron or send anything. `npm run ops:source-roi` consumes the latest aggregate if available and adds canonical-bottle plus approved-state demand to the existing source value/repair score. Without that file, source ROI remains operational-only.
 

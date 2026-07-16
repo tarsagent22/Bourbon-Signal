@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import type { UserAlertPreferences } from "@/app/api/user/preferences/route";
+import {
+  clearCachedAreaPreferences,
+  getCachedAreaPreferences,
+  invalidateAreaPreferencesCacheForUser,
+  setCachedAreaPreferences,
+} from "@/lib/area-preferences-cache";
 import { getDefaultNotificationPreferences } from "@/lib/notification-preferences";
 import { isQaPreviewMode, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 
@@ -34,21 +40,24 @@ const EMPTY_PREFS: UserAlertPreferences = {
   },
 };
 
-let cachedPrefs: UserAlertPreferences | null = null;
-
 export function useAreaPreferences() {
-  const { isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const qaPreview = isQaPreviewMode();
-  const [prefs, setPrefs] = useState<UserAlertPreferences>(cachedPrefs ?? (qaPreview ? QA_PREVIEW_PREFERENCES : EMPTY_PREFS));
+  const userId = isLoaded && isSignedIn ? user.id : null;
+  const activeUserIdRef = useRef(userId);
+  activeUserIdRef.current = userId;
+  const [prefs, setPrefs] = useState<UserAlertPreferences>(() => (
+    qaPreview ? QA_PREVIEW_PREFERENCES : getCachedAreaPreferences(userId) ?? EMPTY_PREFS
+  ));
   const [loading, setLoading] = useState(false);
 
   const fetchPrefs = useCallback(async () => {
     if (qaPreview) {
-      cachedPrefs = QA_PREVIEW_PREFERENCES;
       setPrefs(QA_PREVIEW_PREFERENCES);
       return;
     }
-    if (!isSignedIn) {
+    const requestedUserId = userId;
+    if (!requestedUserId) {
       setPrefs(EMPTY_PREFS);
       return;
     }
@@ -57,57 +66,68 @@ export function useAreaPreferences() {
       const res = await fetch("/api/user/preferences");
       if (res.ok) {
         const data: UserAlertPreferences = await res.json();
-        cachedPrefs = data;
-        setPrefs(data);
+        if (activeUserIdRef.current === requestedUserId) {
+          setCachedAreaPreferences(requestedUserId, data);
+          setPrefs(data);
+        }
       }
     } catch {
-      setPrefs(EMPTY_PREFS);
+      if (activeUserIdRef.current === requestedUserId) setPrefs(EMPTY_PREFS);
     } finally {
-      setLoading(false);
+      if (activeUserIdRef.current === requestedUserId) setLoading(false);
     }
-  }, [isSignedIn, qaPreview]);
+  }, [qaPreview, userId]);
 
   useEffect(() => {
     if (qaPreview) {
-      cachedPrefs = QA_PREVIEW_PREFERENCES;
+      clearCachedAreaPreferences();
       setPrefs(QA_PREVIEW_PREFERENCES);
       return;
     }
-    if (!isSignedIn) {
-      cachedPrefs = null;
+
+    invalidateAreaPreferencesCacheForUser(userId);
+    if (!userId) {
       setPrefs(EMPTY_PREFS);
+      setLoading(false);
       return;
     }
-    if (cachedPrefs !== null) {
-      setPrefs(cachedPrefs);
+
+    const cached = getCachedAreaPreferences(userId);
+    if (cached) {
+      setPrefs(cached);
       return;
     }
-    fetchPrefs();
-  }, [fetchPrefs, isSignedIn, qaPreview]);
+
+    setPrefs(EMPTY_PREFS);
+    void fetchPrefs();
+  }, [fetchPrefs, qaPreview, userId]);
 
   const savePreferences = useCallback(async (newPrefs: Partial<UserAlertPreferences>) => {
-    const merged = { ...(cachedPrefs || EMPTY_PREFS), ...newPrefs };
+    const requestedUserId = userId;
+    const merged = { ...(getCachedAreaPreferences(requestedUserId) || prefs || EMPTY_PREFS), ...newPrefs };
     setPrefs((current) => ({ ...current, ...newPrefs }));
-    cachedPrefs = merged;
-    if (isQaPreviewMode()) return;
+    if (requestedUserId) setCachedAreaPreferences(requestedUserId, merged);
+    if (qaPreview) return;
+
     const res = await fetch("/api/user/preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newPrefs),
     });
     if (!res.ok) {
-      cachedPrefs = null;
-      await fetchPrefs();
+      if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
+      if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
       throw new Error("Failed to save preferences");
     }
     const saved = await res.json().catch(() => null) as UserAlertPreferences | null;
-    if (saved) {
-      cachedPrefs = saved;
+    if (activeUserIdRef.current !== requestedUserId) return;
+    if (saved && requestedUserId) {
+      setCachedAreaPreferences(requestedUserId, saved);
       setPrefs(saved);
     } else {
       setPrefs(merged);
     }
-  }, [fetchPrefs]);
+  }, [fetchPrefs, prefs, qaPreview, userId]);
 
   return { prefs, loading, savePreferences };
 }

@@ -33,9 +33,9 @@ function markdown(report) {
     `# Bourbon Signal Privacy-safe Search Demand — last ${SINCE}`,
     '',
     `Accepted bounded events: **${report.acceptedEvents}**`,
-    `Sensitive-shaped events rejected before aggregation: **${report.rejectedSensitiveEvents}**`,
+    `Sensitive-shaped legacy events rejected before aggregation: **${report.rejectedSensitiveEvents}**`,
     '',
-    'Only catalog-resolved bottles and active state codes meeting the minimum cohort are shown. Raw queries and event history are never written.',
+    'Only catalog-resolved bottles and active state codes meeting the minimum event threshold are shown. Counts are searches, not distinct people. Raw queries and event history are never written.',
     '',
     '## Canonical bottle demand',
     '',
@@ -45,11 +45,11 @@ function markdown(report) {
   for (const item of report.bottles) {
     lines.push(`| ${item.eventCount} | ${item.weightedDemand} | ${item.canonicalBottleName.replace(/\|/g, '/')} | ${item.canonicalBottleId} |`);
   }
-  if (!report.bottles.length) lines.push('| — | — | No cohort met the threshold | — |');
+  if (!report.bottles.length) lines.push('| — | — | No event bucket met the threshold | — |');
   lines.push('', '## Approved geography demand', '', '| Searches | Weight | State |', '|---:|---:|---|');
   for (const item of report.geographies) lines.push(`| ${item.eventCount} | ${item.weightedDemand} | ${item.state} |`);
-  if (!report.geographies.length) lines.push('| — | — | No cohort met the threshold |');
-  lines.push('', `Suppressed cohort buckets: ${report.suppressed.bottleCohorts} bottle · ${report.suppressed.geographyCohorts} geography.`);
+  if (!report.geographies.length) lines.push('| — | — | No event bucket met the threshold |');
+  lines.push('', `Suppressed event buckets: ${report.suppressed.bottleBuckets} bottle · ${report.suppressed.geographyBuckets} geography.`);
   return lines.join('\n');
 }
 

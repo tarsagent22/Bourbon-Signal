@@ -9,9 +9,9 @@ const report = rankSourceInvestments({
   alerts: [],
   sourceHealth: { states: [] },
   demand: {
-    privacy: { minCohortSize: 5, containsPii: false, containsRawHistory: false },
-    geographies: [{ state: 'NC', weightedDemand: 40, memberCount: 10 }],
-    bottles: [{ canonicalBottleId: 'weller-12', canonicalBottleName: 'Weller 12 Year', weightedDemand: 60, memberCount: 15 }],
+    privacy: { minimumEventCount: 5, aggregationUnit: 'event', distinctSubjectsMeasured: false, containsPii: false, containsRawHistory: false },
+    geographies: [{ state: 'NC', weightedDemand: 40, eventCount: 40 }],
+    bottles: [{ canonicalBottleId: 'weller-12', canonicalBottleName: 'Weller 12 Year', weightedDemand: 60, eventCount: 60 }],
   },
   generatedAt: '2026-07-16T00:00:00.000Z',
 });
@@ -34,5 +34,25 @@ const unsafe = rankSourceInvestments({
 });
 assert.equal(unsafe.demandWeighted, false);
 assert.equal(unsafe.top[0].demandScore, 0);
+
+const falselyDistinct = rankSourceInvestments({
+  drops: [{ state: 'NC', source: 'source-a', bottle_id: 'weller-12', bottle: 'Weller 12 Year' }],
+  demand: {
+    privacy: { minimumEventCount: 5, aggregationUnit: 'event', distinctSubjectsMeasured: true, containsPii: false, containsRawHistory: false },
+    geographies: [{ state: 'NC', weightedDemand: 10_000 }],
+    bottles: [],
+  },
+});
+assert.equal(falselyDistinct.demandWeighted, false);
+
+const legacyEventCohortClaim = rankSourceInvestments({
+  drops: [{ state: 'NC', source: 'source-a', bottle_id: 'weller-12', bottle: 'Weller 12 Year' }],
+  demand: {
+    privacy: { minCohortSize: 5, containsPii: false, containsRawHistory: false },
+    geographies: [{ state: 'NC', weightedDemand: 10_000 }],
+    bottles: [],
+  },
+});
+assert.equal(legacyEventCohortClaim.demandWeighted, false, 'legacy event counts without distinct-subject evidence are rejected');
 
 console.log('Demand-weighted source ROI contract passed.');

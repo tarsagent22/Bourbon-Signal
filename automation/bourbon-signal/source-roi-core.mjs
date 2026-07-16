@@ -60,9 +60,12 @@ export function rankSourceInvestments({ drops = [], alerts = [], sourceHealth = 
     }
   }
 
+  const hasSafeAggregationFloor = Number(demand?.privacy?.minimumEventCount) >= 5
+    && demand?.privacy?.aggregationUnit === 'event'
+    && demand?.privacy?.distinctSubjectsMeasured === false;
   const privacySafeDemand = demand?.privacy?.containsPii === false
     && demand?.privacy?.containsRawHistory === false
-    && Number(demand?.privacy?.minCohortSize) >= 5
+    && hasSafeAggregationFloor
     && Array.isArray(demand?.geographies)
     && Array.isArray(demand?.bottles)
     ? demand
