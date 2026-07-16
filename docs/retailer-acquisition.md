@@ -8,7 +8,7 @@ The normal path is:
 
 `discovered → qualified → contact_verified → draft_ready → awaiting_approval → approved → contacted → follow_up_due → contacted → interested → onboarding → verified → first_signal_live`
 
-`paused`, `declined`, and `invalid` are explicit off-ramps. A prospect can only enter `contact_verified` when verified official-contact evidence exists. `approved` is only entered by approving one exact immutable draft version.
+`paused`, `declined`, and `invalid` are explicit off-ramps. Destination invariants still apply when work resumes from `paused`: contact-gated states require verified official-contact evidence, approval-gated states require the packet-backed approved version, and contacted or later states require a recorded initial contact. `approved` is only entered by approving one exact immutable draft version, approval review is only entered by submitting one exact draft, and `contacted` is only entered by recording manual outreach completed elsewhere.
 
 ## Safety boundaries
 
@@ -90,13 +90,21 @@ The audit path is created exclusively so a prior audit cannot be overwritten. Ap
 
 ## Controlled schema migration
 
-Request-time repository code contains no `CREATE`, `ALTER`, or function-definition SQL. Apply the reviewed schema with a privileged deployment identity before serving the admin route or running an apply import:
+Request-time repository code contains no `CREATE`, `ALTER`, or function-definition SQL. The migration command is a read-only local schema plan by default and does not open a database connection:
 
 ```powershell
 npm run migrate:retailer-acquisition
 ```
 
-The migration creates or upgrades the prospect tables, regulator authority registry, channel constraints, transaction functions, and migration ledger, then verifies each required object. Runtime performs a read-only availability check and fails with an instruction to run this command when any required schema object is absent. All subsequent repository operations are queries and DML only.
+Applying the plan is intentionally separate. Load the privileged connection URL into `BOURBON_QUEUE_DATABASE_URL_UNPOOLED` through the operator's secret-management workflow, then supply the expected non-secret target identity from that URL as `<hostname>/<database>`. Do not put the URL, username, or password in the command, documentation, shell history, or audit output:
+
+```powershell
+npm run migrate:retailer-acquisition:apply -- --target "<hostname>/<database>"
+```
+
+Apply mode is the only mode that can mutate the schema. It does not accept `DATABASE_URL`, `BOURBON_QUEUE_DATABASE_URL`, or another fallback, and it refuses to connect unless `--target` exactly matches the configured URL's hostname, optional port, and database name. Errors and success output identify only that sanitized target and never print credentials.
+
+The apply command creates or upgrades the prospect tables, regulator authority registry, channel constraints, transaction functions, and migration ledger, then verifies each required object. Runtime performs a read-only availability check and points to the plan and explicit apply commands when a required schema object is absent. All subsequent repository operations are queries and DML only.
 
 ## Owner console
 

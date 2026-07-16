@@ -97,10 +97,35 @@ const missingCoverageScore = scoreRetailerProspect({
 assert.equal(missingCoverageScore.total, 0);
 
 assert.doesNotThrow(() => assertProspectTransition("discovered", "qualified"));
-assert.doesNotThrow(() => assertProspectTransition("awaiting_approval", "approved", { hasApprovedVersion: true }));
+assert.doesNotThrow(() => assertProspectTransition("awaiting_approval", "approved", { hasOfficialContact: true, hasApprovedVersion: true }));
 assert.throws(() => assertProspectTransition("discovered", "contacted"), /transition/i);
 assert.throws(() => assertProspectTransition("contact_verified", "draft_ready", { hasOfficialContact: false }), /official contact/i);
-assert.throws(() => assertProspectTransition("awaiting_approval", "approved", { hasApprovedVersion: false }), /approved version/i);
+assert.throws(() => assertProspectTransition("awaiting_approval", "approved", { hasOfficialContact: true, hasApprovedVersion: false }), /approved version/i);
+assert.throws(
+  () => assertProspectTransition("paused", "awaiting_approval", { hasOfficialContact: true, hasDraftVersion: false }),
+  /exact draft/i,
+);
+assert.throws(
+  () => assertProspectTransition("paused", "contacted", { hasOfficialContact: true, hasApprovedVersion: false, initialContactCount: 1 }),
+  /approved version/i,
+);
+assert.throws(
+  () => assertProspectTransition("paused", "contacted", { hasOfficialContact: false, hasApprovedVersion: true, initialContactCount: 1 }),
+  /official contact/i,
+);
+assert.throws(
+  () => assertProspectTransition("paused", "verified", { hasOfficialContact: true, hasApprovedVersion: true, initialContactCount: 0 }),
+  /recorded initial contact/i,
+);
+assert.throws(
+  () => assertProspectTransition("paused", "verified", { hasOfficialContact: true, hasApprovedVersion: false, initialContactCount: 1 }),
+  /approved version/i,
+);
+assert.doesNotThrow(() => assertProspectTransition("paused", "verified", {
+  hasOfficialContact: true,
+  hasApprovedVersion: true,
+  initialContactCount: 1,
+}));
 
 const draft = draftProspectOutreach({
   prospectId: "prospect-1",
@@ -201,6 +226,8 @@ assert.match(packageJson.scripts["acquisition:rank"], /rank/);
 assert.match(packageJson.scripts["acquisition:draft"], /draft/);
 assert.match(packageJson.scripts["acquisition:import"], /import/);
 assert.match(packageJson.scripts["migrate:retailer-acquisition"], /migrate-retailer-acquisition/);
+assert.doesNotMatch(packageJson.scripts["migrate:retailer-acquisition"], /--apply/);
+assert.match(packageJson.scripts["migrate:retailer-acquisition:apply"], /migrate-retailer-acquisition.*--apply/);
 
 const cliDirectory = mkdtempSync(path.join(tmpdir(), "bourbon-signal-acquisition-test-"));
 try {

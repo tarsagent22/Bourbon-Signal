@@ -2,9 +2,61 @@
 import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
-const connectionString = process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
-  || process.env.BOURBON_QUEUE_DATABASE_URL
-  || process.env.DATABASE_URL;
+const DATABASE_ENVIRONMENT_VARIABLE = "BOURBON_QUEUE_DATABASE_URL_UNPOOLED";
+const MIGRATION_VERSION = "retailer-acquisition-v3";
+
+function option(args, name) {
+  const exactIndex = args.indexOf(name);
+  const inline = args.find((argument) => argument.startsWith(`${name}=`));
+  if (exactIndex >= 0 && inline) throw new Error(`${name} may only be supplied once.`);
+  if (exactIndex >= 0) {
+    const value = args[exactIndex + 1] || "";
+    if (!value || value.startsWith("--")) throw new Error(`${name} requires a value.`);
+    return value;
+  }
+  return inline?.slice(name.length + 1) || "";
+}
+
+function normalizedTarget(value) {
+  const target = value.trim();
+  if (!target) throw new Error("Apply mode requires --target <hostname>/<database>.");
+  if (/:\/\/|@|[?#]/.test(target)) {
+    throw new Error("--target must contain only <hostname>/<database>; do not pass a connection URL or credentials.");
+  }
+  const separator = target.indexOf("/");
+  if (separator <= 0 || separator === target.length - 1 || target.indexOf("/", separator + 1) >= 0) {
+    throw new Error("--target must use the exact <hostname>/<database> format.");
+  }
+  const host = target.slice(0, separator).trim().toLowerCase();
+  const database = target.slice(separator + 1).trim();
+  if (!host || !database || /\s/.test(host) || /\s/.test(database)) {
+    throw new Error("--target must use the exact <hostname>/<database> format.");
+  }
+  return `${host}/${database}`;
+}
+
+function configuredTarget(connectionString) {
+  let parsed;
+  try {
+    parsed = new URL(connectionString);
+  } catch {
+    throw new Error(`${DATABASE_ENVIRONMENT_VARIABLE} must be a valid PostgreSQL connection URL.`);
+  }
+  if (!["postgres:", "postgresql:"].includes(parsed.protocol) || !parsed.hostname) {
+    throw new Error(`${DATABASE_ENVIRONMENT_VARIABLE} must be a valid PostgreSQL connection URL.`);
+  }
+  let database = "";
+  try {
+    database = decodeURIComponent(parsed.pathname.replace(/^\/+|\/+$/g, ""));
+  } catch {
+    throw new Error(`${DATABASE_ENVIRONMENT_VARIABLE} must identify a database with a valid URL-encoded name.`);
+  }
+  if (!database || database.includes("/")) {
+    throw new Error(`${DATABASE_ENVIRONMENT_VARIABLE} must identify one explicit database name.`);
+  }
+  const host = `${parsed.hostname.toLowerCase()}${parsed.port ? `:${parsed.port}` : ""}`;
+  return `${host}/${database}`;
+}
 
 function splitSqlStatements(source) {
   const statements = [];
@@ -86,17 +138,42 @@ function splitSqlStatements(source) {
 
 const schema = await readFile(new URL("../src/lib/retailer-prospect-schema.sql", import.meta.url), "utf8");
 const statements = splitSqlStatements(schema);
-if (process.argv.includes("--check")) {
+const args = process.argv.slice(2);
+const apply = args.includes("--apply");
+const check = args.includes("--check");
+const targetArgument = option(args, "--target");
+const recognizedArguments = new Set(["--apply", "--check", "--target"]);
+for (let index = 0; index < args.length; index += 1) {
+  const argument = args[index];
+  if (argument === "--target") {
+    index += 1;
+    continue;
+  }
+  if (argument.startsWith("--target=")) continue;
+  if (!recognizedArguments.has(argument)) throw new Error(`Unknown migration argument: ${argument}.`);
+}
+if (apply && check) throw new Error("Choose either --check or --apply; schema mutation requires --apply only.");
+if (!apply) {
+  if (targetArgument) throw new Error("--target is only used with --apply.");
   console.log(JSON.stringify({
     ok: true,
+    mode: "plan",
     checkOnly: true,
+    migration: MIGRATION_VERSION,
     schemaStatements: statements.length,
     functionStatements: statements.filter((statement) => /CREATE OR REPLACE FUNCTION/i.test(statement)).length,
-  }));
+    applyCommand: "npm run migrate:retailer-acquisition:apply -- --target <hostname>/<database>",
+  }, null, 2));
   process.exit(0);
 }
+const requestedTarget = normalizedTarget(targetArgument);
+const connectionString = process.env[DATABASE_ENVIRONMENT_VARIABLE];
 if (!connectionString) {
-  throw new Error("Missing BOURBON_QUEUE_DATABASE_URL_UNPOOLED, BOURBON_QUEUE_DATABASE_URL, or DATABASE_URL.");
+  throw new Error(`Apply mode requires ${DATABASE_ENVIRONMENT_VARIABLE}; generic database URL fallbacks are not accepted.`);
+}
+const actualTarget = configuredTarget(connectionString);
+if (requestedTarget !== actualTarget) {
+  throw new Error(`Requested target ${requestedTarget} does not match configured target ${actualTarget}.`);
 }
 const sql = neon(connectionString);
 await sql.transaction((transaction) => [
@@ -105,7 +182,7 @@ await sql.transaction((transaction) => [
     INSERT INTO retailer_acquisition_migrations (version)
     VALUES ($1)
     ON CONFLICT (version) DO NOTHING
-  `, ["retailer-acquisition-v2"]),
+  `, [MIGRATION_VERSION]),
 ]);
 
 const verification = await sql.query(`
@@ -124,4 +201,4 @@ const result = verification[0] || {};
 const missing = Object.entries(result).filter(([, value]) => !value).map(([key]) => key);
 if (missing.length) throw new Error(`Retailer acquisition schema verification failed: missing ${missing.join(", ")}.`);
 
-console.log(JSON.stringify({ ok: true, migration: "retailer-acquisition-v2", schemaStatements: statements.length }, null, 2));
+console.log(JSON.stringify({ ok: true, mode: "apply", migration: MIGRATION_VERSION, target: actualTarget, schemaStatements: statements.length }, null, 2));

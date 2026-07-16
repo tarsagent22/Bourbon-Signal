@@ -336,18 +336,43 @@ const STANDARD_TRANSITIONS: Record<RetailerProspectState, RetailerProspectState[
   invalid: [],
 };
 
+const OFFICIAL_CONTACT_DESTINATIONS = new Set<RetailerProspectState>([
+  "contact_verified", "draft_ready", "awaiting_approval", "approved", "contacted",
+  "follow_up_due", "interested", "onboarding", "verified", "first_signal_live",
+]);
+const EXACT_DRAFT_DESTINATIONS = new Set<RetailerProspectState>(["draft_ready", "awaiting_approval"]);
+const APPROVED_VERSION_DESTINATIONS = new Set<RetailerProspectState>([
+  "approved", "contacted", "follow_up_due", "interested", "onboarding", "verified", "first_signal_live",
+]);
+const RECORDED_CONTACT_DESTINATIONS = new Set<RetailerProspectState>([
+  "contacted", "follow_up_due", "interested", "onboarding", "verified", "first_signal_live",
+]);
+
 export function assertProspectTransition(
   current: RetailerProspectState,
   next: RetailerProspectState,
-  context: { hasOfficialContact?: boolean; hasApprovedVersion?: boolean; followUpCount?: number } = {},
+  context: {
+    hasOfficialContact?: boolean;
+    hasDraftVersion?: boolean;
+    hasApprovedVersion?: boolean;
+    initialContactCount?: number;
+    followUpCount?: number;
+  } = {},
 ) {
   if (current === next) return;
   if (!STANDARD_TRANSITIONS[current]?.includes(next)) throw new Error(`Invalid retailer prospect transition: ${current} -> ${next}.`);
-  if ((next === "contact_verified" || next === "draft_ready") && context.hasOfficialContact !== true) {
+  if (OFFICIAL_CONTACT_DESTINATIONS.has(next) && context.hasOfficialContact !== true) {
     throw new Error("Verified official contact evidence is required for this transition.");
   }
-  if (next === "approved" && context.hasApprovedVersion !== true) throw new Error("An approved version is required before approval.");
-  if (next === "contacted" && current === "approved" && context.hasApprovedVersion === false) throw new Error("An approved version is required before contact.");
+  if (EXACT_DRAFT_DESTINATIONS.has(next) && context.hasDraftVersion !== true) {
+    throw new Error("An exact draft version is required for this transition.");
+  }
+  if (APPROVED_VERSION_DESTINATIONS.has(next) && context.hasApprovedVersion !== true) {
+    throw new Error("An approved version is required for this transition.");
+  }
+  if (RECORDED_CONTACT_DESTINATIONS.has(next) && finiteCount(context.initialContactCount || 0) < 1) {
+    throw new Error("A recorded initial contact is required for this transition.");
+  }
   if (next === "follow_up_due" && finiteCount(context.followUpCount || 0) >= 1) throw new Error("Only one follow-up is allowed.");
 }
 

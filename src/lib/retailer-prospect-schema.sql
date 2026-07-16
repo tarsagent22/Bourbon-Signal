@@ -336,8 +336,11 @@ BEGIN
   FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Prospect was not found'; END IF;
 
-  SELECT * INTO approved_message
+  SELECT message_versions.* INTO approved_message
     FROM retailer_prospect_message_versions message_versions
+    INNER JOIN retailer_prospect_approval_packets packets
+      ON packets.message_version_id = message_versions.id
+      AND packets.prospect_id = message_versions.prospect_id
     WHERE message_versions.id = target_message_version_id
       AND message_versions.prospect_id = target_prospect_id
       AND message_versions.status = 'approved';

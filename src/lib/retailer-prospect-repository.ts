@@ -205,7 +205,7 @@ export class RetailerProspectRepository {
         const schema = rows[0] || {};
         const required = ["prospects", "authorities", "evidence", "messages", "packets", "outreach", "migrations", "approve_function", "outreach_function"];
         if (required.some((key) => !schema[key])) {
-          throw new Error("Retailer acquisition schema is unavailable. Run `npm run migrate:retailer-acquisition` before serving acquisition requests.");
+          throw new Error("Retailer acquisition schema is unavailable. Plan with `npm run migrate:retailer-acquisition`, then apply to a validated target with `npm run migrate:retailer-acquisition:apply -- --target <hostname>/<database>`.");
         }
       })().catch((error) => {
         this.schemaAvailable = null;
@@ -313,15 +313,28 @@ export class RetailerProspectRepository {
 
   async transition(input: { prospectId: string; state: RetailerProspectState; outcome?: string | null }) {
     if (input.state === "approved") throw new Error("Approve an exact message version to enter the approved state.");
+    if (input.state === "awaiting_approval") throw new Error("Submit an exact draft version to enter approval review.");
+    if (input.state === "contacted") throw new Error("Record manual outreach to enter the contacted state.");
     const prospect = await this.getProspect(input.prospectId);
     if (!prospect) throw new Error("Retailer prospect was not found.");
-    const [evidenceRows, approvedRows] = await Promise.all([
+    const [evidenceRows, draftRows, approvedRows] = await Promise.all([
       this.query.query(`SELECT 1 FROM retailer_prospect_contact_evidence WHERE prospect_id = $1 AND verified_at IS NOT NULL LIMIT 1`, [input.prospectId]),
-      this.query.query(`SELECT 1 FROM retailer_prospect_message_versions WHERE prospect_id = $1 AND status = 'approved' LIMIT 1`, [input.prospectId]),
+      this.query.query(`SELECT 1 FROM retailer_prospect_message_versions WHERE prospect_id = $1 AND status = 'draft' LIMIT 1`, [input.prospectId]),
+      this.query.query(`
+        SELECT 1
+        FROM retailer_prospect_message_versions messages
+        INNER JOIN retailer_prospect_approval_packets packets
+          ON packets.message_version_id = messages.id
+          AND packets.prospect_id = messages.prospect_id
+        WHERE messages.prospect_id = $1 AND messages.status = 'approved'
+        LIMIT 1
+      `, [input.prospectId]),
     ]);
     assertProspectTransition(prospect.prospectState, input.state, {
       hasOfficialContact: evidenceRows.length > 0,
+      hasDraftVersion: draftRows.length > 0,
       hasApprovedVersion: approvedRows.length > 0,
+      initialContactCount: prospect.initialContactCount,
       followUpCount: prospect.followUpCount,
     });
     const outcome = input.outcome?.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) || null;
