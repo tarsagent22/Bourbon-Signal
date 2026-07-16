@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
-import { normalizeRetailerApplication, normalizeRetailerStore, normalizeRetailerSubmission, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
+import { normalizeRetailerApplication, normalizeRetailerStore, normalizeRetailerSubmission, retailerNextAction, retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 import { inferRetailerTimeZone, retailerTimeZoneNeedsChoice } from "@/lib/retailer-time-zone";
 import RetailerSignalForm from "./RetailerSignalForm";
 import RetailerSignalTime from "./RetailerSignalTime";
@@ -127,6 +127,12 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   const stores = await repository.listStores(userId);
   const submissions = (await repository.listSubmissions(userId)).filter((submission) => submission.status !== "rejected");
   const retailerStatus = application.status;
+  const liveSignalCount = submissions.filter((submission) => retailerSubmissionLifecycle(submission) === "live").length;
+  const nextAction = retailerNextAction({
+    status: retailerStatus,
+    stores: stores.length,
+    liveSignals: liveSignalCount,
+  });
   const storeName = application.storeName;
   const error = typeof params.error === "string" ? params.error : "";
 
@@ -142,6 +148,14 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
             <a className={styles.secondaryButton} href="/">View Bourbon Signal</a>
           </div>
         </header>
+
+        {retailerStatus !== "rejected" ? (
+          <section className={styles.statusPanel} aria-label="Retailer next action">
+            <p className={styles.eyebrow}>Next action</p>
+            <h2>{nextAction}</h2>
+            <p className={styles.muted}>Complete this step to keep your store profile and availability signals current.</p>
+          </section>
+        ) : null}
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
         {params.applied === "1" ? <p className={styles.notice}>Application received. We’ll verify your relationship with the store before enabling submissions.</p> : null}

@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { FOUNDER_SPOT_LIMIT, isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { nextFounderNumber, type FounderAllocationUser } from "@/lib/founder-allocation";
+import { mergeGrowthMilestoneMetadata } from "@/lib/growth-events";
 
 type ClerkMembershipUser = {
   id: string;
@@ -80,6 +81,7 @@ export async function activateMembership(userId: string, input: {
         stripePlan: input.plan,
         stripeMembershipStatus: status,
         stripeMembershipUpdatedAt: now,
+        activation: mergeGrowthMilestoneMetadata(user.privateMetadata || {}, "membership_activated", now).activation,
       },
     });
   } catch (error) {

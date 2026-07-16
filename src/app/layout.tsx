@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
@@ -7,6 +8,7 @@ import "./globals.css";
 import ToastContainer from "@/components/Toast";
 import PreviewTierSwitcher from "@/components/PreviewTierSwitcher";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
+import GrowthAnalytics from "@/components/analytics/GrowthAnalytics";
 
 const siteTitle = "Bourbon Signal — Premium Bourbon Drop Alerts";
 const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Release Radar, Bottle Check, and member tools for covered control and retailer markets.";
@@ -185,6 +187,7 @@ export default function RootLayout({
           <PreviewTierSwitcher />
           <ToastContainer />
           <Analytics />
+          <Suspense fallback={null}><GrowthAnalytics /></Suspense>
         </body>
       </html>
     </ClerkProvider>

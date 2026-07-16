@@ -1,0 +1,18 @@
+{
+  "mode": "draft-only",
+  "sending": false,
+  "approvalRequired": true,
+  "cohorts": [
+    "new_free_no_value",
+    "free_value_no_pricing",
+    "checkout_not_activated",
+    "paid_setup_incomplete",
+    "activated_no_first_alert"
+  ],
+  "safety": {
+    "recipientSelection": "read-only",
+    "idempotencyRequired": true,
+    "unsubscribeSecret": "dedicated-secret-required",
+    "personalDataRenderedInControlRoom": false
+  }
+}

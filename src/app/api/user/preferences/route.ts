@@ -11,6 +11,7 @@ import { getEntitlements } from "@/lib/entitlements";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 import { normalizeCaliforniaAreas } from "@/lib/california-area";
 import { normalizeNevadaAreas } from "@/lib/nevada-area";
+import { deriveMemberActivation, mergeActivationMilestones, type ActivationMilestone } from "@/lib/member-activation";
 
 export interface AreaPreferences {
   states: string[];
@@ -54,6 +55,7 @@ export interface UserAlertPreferences {
     bottles: CollectionBottlePreference[];
   };
   sightingsPreferences?: SightingsPreferences;
+  activation?: ReturnType<typeof deriveMemberActivation>;
 }
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -268,13 +270,25 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
 }
 
 function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
+  const areaPreferences = normalizeAreaPreferences(user.publicMetadata?.areaPreferences);
+  const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
+  const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
+  const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
+  const entitlements = getEntitlements(user.publicMetadata);
   return {
-    areaPreferences: normalizeAreaPreferences(user.publicMetadata?.areaPreferences),
-    notificationPreferences: normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences),
-    alertMode: normalizeAlertMode(user.publicMetadata?.alertMode),
-    bottleAlertPreferences: normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences),
+    areaPreferences,
+    notificationPreferences,
+    alertMode,
+    bottleAlertPreferences,
     collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
+    activation: deriveMemberActivation({
+      tier: entitlements.tier,
+      areas: areaPreferences.states,
+      bottleKeys: bottleAlertPreferences.bottleKeys,
+      alertMode,
+      channels: { onSite: notificationPreferences.onSite.enabled, email: notificationPreferences.email.enabled, sms: notificationPreferences.sms.enabled },
+    }),
   };
 }
 
@@ -420,9 +434,27 @@ export async function POST(req: NextRequest) {
     };
   }
 
+  const activation = deriveMemberActivation({
+    tier: entitlements.tier,
+    areas: areaPreferences.states,
+    bottleKeys: bottleAlertPreferences.bottleKeys,
+    alertMode,
+    channels: { onSite: notificationPreferences.onSite.enabled, email: notificationPreferences.email.enabled, sms: notificationPreferences.sms.enabled },
+  });
+  const milestones: ActivationMilestone[] = [];
+  if (areaPreferences.states.length) milestones.push("alert_area_saved");
+  if (alertMode === "anything_notable" || bottleAlertPreferences.bottleKeys.length) milestones.push("watchlist_saved");
+  if (notificationPreferences.onSite.enabled || notificationPreferences.email.enabled || notificationPreferences.sms.enabled) milestones.push("notification_channel_enabled");
+  if (activation.complete) milestones.push("paid_activation_completed");
   await client.users.updateUserMetadata(userId, {
     publicMetadata: { areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences },
   });
+  try {
+    const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
+    await client.users.updateUserMetadata(userId, { privateMetadata: { activation: milestoneMetadata.activation } });
+  } catch (error) {
+    console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
+  }
 
   return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences });
 }

@@ -53,7 +53,7 @@ export default async function CompanyControlRoomPage() {
   if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
 
   const snapshot = await getCompanyControlRoomSnapshot();
-  const { memberships, founder, revenue, audience, engine, alerts, release } = snapshot;
+  const { memberships, founder, revenue, audience, growth, lifecycle, retailer, engine, alerts, release } = snapshot;
   const deliveryCounts = alerts.counts as Record<string, number>;
 
   return (
@@ -76,6 +76,8 @@ export default async function CompanyControlRoomPage() {
           <a href="#members">Members</a>
           <a href="#revenue">Revenue</a>
           <a href="#campaign">Campaign</a>
+          <a href="#growth">Growth funnel</a>
+          <a href="#retailers">Retailers</a>
           <a href="#engine">Engine</a>
           <a href="#alerts">Alerts</a>
         </nav>
@@ -128,6 +130,39 @@ export default async function CompanyControlRoomPage() {
             </dl>
           </div>
           <p className="cr-note">This view reports counts only. Customer email addresses are never rendered into the dashboard.</p>
+        </section>
+
+        <section id="growth" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Activation</p><h2>Growth funnel</h2></div>
+            <span>days7 · days30 cohorts</span>
+          </div>
+          <div className="cr-metrics four">
+            <Metric label="Accounts · 7 days" value={growth.days7.accounts} detail={`${growth.days7.freeValueReached} reached free value`} />
+            <Metric label="Checkout starts · 7 days" value={growth.days7.checkoutStarted} detail={`${growth.days7.membershipActivated} memberships activated`} accent />
+            <Metric label="Paid setup · 30 days" value={growth.days30.paidActivationCompleted} detail={`${growth.days30.firstAlertCreated} received a first signal`} />
+            <Metric label="Unknown source · 30 days" value={growth.days30.unknownAttribution} detail={`${growth.days30.accounts} account cohort`} />
+          </div>
+          <dl className="cr-run-counts">
+            <div><dt>Free · no first value</dt><dd>{lifecycle.freeNoValue}</dd></div>
+            <div><dt>Checkout · not activated</dt><dd>{lifecycle.checkoutNotActivated}</dd></div>
+            <div><dt>Paid · setup incomplete</dt><dd>{lifecycle.paidSetupIncomplete}</dd></div>
+            <div><dt>Ready · no first alert</dt><dd>{lifecycle.activatedNoFirstAlert}</dd></div>
+          </dl>
+          <p className="cr-note">First-touch sources and milestone timestamps are private, bounded metadata. No customer identities are rendered here.</p>
+        </section>
+
+        <section id="retailers" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Supply network</p><h2>Retailer participation</h2></div>
+            <span className={`cr-status ${statusTone(retailer.source)}`}>{retailer.source === "database" ? "Database connected" : "Unavailable"}</span>
+          </div>
+          <div className="cr-metrics four">
+            <Metric label="Applications" value={count(retailer.applications)} detail={`${count(retailer.pendingApplications)} pending review`} />
+            <Metric label="Verified stores" value={count(retailer.verifiedStores)} detail="Verified primary retailer locations" />
+            <Metric label="Stores live now" value={count(retailer.storesWithLiveSignals)} detail="Unique verified retailers with a live signal" accent />
+            <Metric label="Live signals" value={count(retailer.liveSignals)} detail={retailer.partial ? "Partial application window" : "Current active submissions"} />
+          </div>
         </section>
 
         <section id="engine" className="cr-section">

@@ -223,6 +223,13 @@ export function retailerSubmissionLifecycle(
   return "live";
 }
 
+export function retailerNextAction(input: { status: RetailerVerificationStatus; stores: number; liveSignals: number }) {
+  if (input.status !== "verified") return input.status === "rejected" ? "Contact support about verification" : "Await verification";
+  if (input.stores < 1) return "Add or select a store";
+  if (input.liveSignals < 1) return "Publish your first Bottle availability signal";
+  return "Your Bottle availability signal is live";
+}
+
 export function buildRetailerAccountNotification(input: {
   userId: string;
   email: string;

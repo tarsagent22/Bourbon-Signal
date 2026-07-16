@@ -15,6 +15,7 @@ import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/del
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
+import { firstAlertCreatedMetadata } from "@/lib/member-activation";
 
 export interface AreaPreferences {
   states: string[];
@@ -1373,6 +1374,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }
         }
 
+        let createdRealAlert = newRecords.length > 0;
         if (newOnSiteAlerts.length) {
           let onSiteInboxWritten = false;
           const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
@@ -1385,6 +1387,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                   recent: nextOnSiteAlerts,
                   lastSyncedAt: now,
                 },
+                // Record first_alert_created only in the same successful write that commits a real on-site alert.
+                activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
               },
             });
             onSiteInboxWritten = true;
@@ -1401,6 +1405,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     lastSyncedAt: now,
                     compactionReason: "onsite_alert_metadata_retry",
                   },
+                  // Record first_alert_created only in the same successful write that commits a real on-site alert.
+                activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
                 },
               });
               onSiteInboxWritten = true;
@@ -1408,12 +1414,22 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               summary.errors.push({ userId, message: `On-site alert metadata update failed after compaction retry: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}` });
             }
           }
+          if (onSiteInboxWritten) createdRealAlert = true;
           for (const queuedCandidate of onSiteQueueCandidates) {
             if (onSiteInboxWritten && queueRepository) {
               await queueRepository.markDelivered(queuedCandidate.id, `clerk:${userId}:${queuedCandidate.id}`, now);
             } else {
               await failQueuedIntent(queuedCandidate, new Error("Clerk on-site inbox write failed"));
             }
+          }
+        }
+        if (createdRealAlert) {
+          try {
+            await client.users.updateUserMetadata(userId, {
+              privateMetadata: { activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation },
+            });
+          } catch (error) {
+            summary.errors.push({ userId, message: `first_alert_created milestone update failed after delivery: ${error instanceof Error ? error.message : String(error)}` });
           }
         }
       }

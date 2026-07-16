@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 
-const DEFAULT_ONBOARDING_REDIRECT = "/alerts?welcome=1";
+const DEFAULT_ONBOARDING_REDIRECT = "/welcome";
 
 function safeRedirectUrl(value: string | null) {
   if (!value) return DEFAULT_ONBOARDING_REDIRECT;
@@ -79,7 +79,7 @@ export default function SignUpPage() {
 
       {confirmedAge ? (
         redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-          <SignUp forceRedirectUrl="/alerts?welcome=1" signInForceRedirectUrl="/alerts?welcome=1" signInUrl="/sign-in?redirect_url=%2Falerts%3Fwelcome%3D1" />
+          <SignUp forceRedirectUrl="/welcome" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
         ) : (
           <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} signInUrl={`/sign-in?redirect_url=${encodedRedirect}`} />
         )

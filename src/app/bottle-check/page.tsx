@@ -161,6 +161,13 @@ export default function BottleCheckPage() {
         }
         setResult(data);
         setHasSearched(true);
+        if (res.ok && data.bottle) {
+          void fetch("/api/growth/attribution", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ surface: "bottle_check", event: "free_value_reached" }),
+          }).catch(() => undefined);
+        }
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setResult({ bottle: null, message: "Bottle Check is temporarily unavailable. Try again in a minute." });

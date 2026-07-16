@@ -28,8 +28,8 @@ const checkoutPlanTiers: Record<PaidPlanId, MembershipTier> = {
   bib_lifetime: "bottled-in-bond",
 };
 
-function checkoutContinueUrl(plan: PaidPlanId) {
-  return `/checkout/continue?plan=${plan}`;
+function checkoutContinueUrl(plan: PaidPlanId, source = "unknown") {
+  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}`;
 }
 
 type PricingTier = {
@@ -140,6 +140,7 @@ function PricingPageContent() {
 
   const currentTierRank = tierRank[memberTier];
   const checkoutParam = searchParams.get("checkout") as PaidPlanId | null;
+  const source = searchParams.get("source") || "unknown";
 
   useEffect(() => {
     let cancelled = false;
@@ -175,7 +176,7 @@ function PricingPageContent() {
       return;
     }
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=${encodeURIComponent(checkoutContinueUrl(plan))}`);
+      router.push(`/sign-up?redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source))}`);
       return;
     }
 
@@ -184,7 +185,7 @@ function PricingPageContent() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, source }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) throw new Error(data.error || "Checkout is not available.");

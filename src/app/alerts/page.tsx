@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { useMemberAlerts } from "@/hooks/useMemberAlerts";
 import { useMemo, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { ActivationChecklist } from "@/components/onboarding/ActivationChecklist";
 
 const tabs = [
   { key: "unread", label: "Unread" },
@@ -14,18 +15,17 @@ const tabs = [
 
 export default function AlertsPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("unread");
-  const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
+  const [activation, setActivation] = useState<{ eligible: boolean; complete: boolean; remaining: string[] } | null>(null);
   const { isSignedIn } = useAuth();
   const { alerts, unreadCount, loading, isEligible, markRead, markAllRead, archive } = useMemberAlerts(false);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get("welcome") !== "1") return;
-    const key = "bourbon-signal-alerts-welcome-seen";
-    if (localStorage.getItem(key) === "1") return;
-    setShowWelcomePrompt(true);
-    localStorage.setItem(key, "1");
-  }, []);
+    if (!isEligible) return;
+    void fetch("/api/user/preferences", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setActivation(payload?.activation || null))
+      .catch(() => undefined);
+  }, [isEligible]);
 
   const visibleAlerts = useMemo(() => {
     if (tab === "unread") return alerts.filter((alert) => !alert.readAt && !alert.archivedAt);
@@ -36,19 +36,6 @@ export default function AlertsPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
       <Navigation />
-      {showWelcomePrompt ? (
-        <div style={{ position: "fixed", inset: 0, zIndex: 80, display: "grid", placeItems: "center", padding: "18px", background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)" }}>
-          <div style={{ width: "min(460px, 100%)", borderRadius: "22px", border: "1px solid rgba(196,148,58,0.32)", background: "linear-gradient(180deg, rgba(30,22,14,0.98), rgba(12,9,6,0.99))", boxShadow: "0 26px 80px rgba(0,0,0,0.55)", padding: "24px" }}>
-            <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: "10px" }}>Recommended first step</div>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "30px" }}>Set your alert preferences first.</h2>
-            <p style={{ margin: "12px 0 18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.65 }}>Setting your alert preferences before doing anything else is highly recommended for the best experience.</p>
-            <div style={{ display: "grid", gap: "10px" }}>
-              <a href="/dashboard?section=alerts" onClick={() => setShowWelcomePrompt(false)} style={{ textAlign: "center", textDecoration: "none", width: "100%", borderRadius: "999px", border: "1px solid rgba(196,148,58,0.36)", background: "linear-gradient(135deg, rgba(196,148,58,0.24), rgba(196,148,58,0.1))", color: "var(--color-cream)", padding: "12px 16px", fontFamily: "var(--font-dm-sans)", fontWeight: 800, cursor: "pointer" }}>Set alert preferences</a>
-              <button type="button" onClick={() => setShowWelcomePrompt(false)} style={{ width: "100%", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", padding: "11px 16px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, cursor: "pointer" }}>I’ll do this later</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
       <main style={{ maxWidth: "960px", margin: "0 auto", padding: "118px 24px 80px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", flexWrap: "wrap", marginBottom: "28px" }}>
           <div>
@@ -82,6 +69,7 @@ export default function AlertsPage() {
           </div>
         ) : (
           <>
+            {activation?.eligible ? <ActivationChecklist remaining={activation.remaining} complete={activation.complete} /> : null}
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "22px" }}>
               {tabs.map((item) => {
                 const active = item.key === tab;

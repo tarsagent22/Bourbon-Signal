@@ -40,13 +40,20 @@
     "backup:alert-queue": "node scripts/alert-queue-backup.mjs backup",
     "verify:alert-queue-backup": "node scripts/alert-queue-backup.mjs verify",
     "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs && node --no-warnings --experimental-strip-types scripts/test-company-control-room.mts",
+    "test:growth-events": "node --no-warnings --experimental-strip-types scripts/test-growth-events.mts",
+    "test:member-activation": "node --no-warnings --experimental-strip-types scripts/test-member-activation.mts",
+    "test:member-welcome": "node --no-warnings --experimental-strip-types scripts/test-member-welcome.mts",
+    "test:checkout-attribution": "node --no-warnings --experimental-strip-types scripts/test-checkout-attribution.mts",
+    "test:growth-funnels": "node --no-warnings --experimental-strip-types scripts/test-growth-funnels.mts && node --no-warnings --experimental-strip-types scripts/test-retailer-growth.mts",
+    "test:first-alert-created": "node --no-warnings --experimental-strip-types scripts/test-first-alert-created.mts",
+    "test:sprint4-contracts": "node --no-warnings --experimental-strip-types scripts/test-sprint4-contracts.mts",
     "test:release-radar": "node --experimental-strip-types scripts/test-release-radar.mts",
     "test:retailer-portal": "node --experimental-strip-types scripts/test-retailer-portal.mts",
     "test:california-area": "node --experimental-strip-types scripts/test-california-area.mts",
     "test:faq-content": "node --no-warnings --experimental-strip-types scripts/test-faq-content.mts",
     "test:home-release-radar": "node --no-warnings --experimental-strip-types scripts/test-home-release-radar-cta.mts",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run test:faq-content && npm run test:home-release-radar && npm run test:retailer-portal && npm run test:release-radar && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
+    "verify:ci": "npm run test:growth-events && npm run test:member-welcome && npm run test:member-activation && npm run test:checkout-attribution && npm run test:growth-funnels && npm run test:first-alert-created && npm run test:sprint4-contracts && npm run test:faq-content && npm run test:home-release-radar && npm run test:retailer-portal && npm run test:release-radar && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run verify:site && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",

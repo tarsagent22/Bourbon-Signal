@@ -2,6 +2,8 @@ import "server-only";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import {
+  aggregateGrowthFunnels,
+  aggregateLifecycleCohorts,
   classifyCompanyMember,
   extractEngineControlRoomMetrics,
   summarizeMemberships,
@@ -10,6 +12,8 @@ import {
 import { buildOpsHealth, readAlertDeliveryHeartbeat } from "@/lib/ops-health";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { FOUNDER_SPOT_LIMIT } from "@/lib/entitlements";
+import { getRetailerRepository } from "@/lib/retailer-repository";
+import { retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 
 interface RevenueSnapshot {
   source: "stripe" | "unavailable";
@@ -152,11 +156,59 @@ async function readAudience(users: CompanyMemberUser[]): Promise<AudienceSnapsho
   };
 }
 
+async function readRetailerFunnel() {
+  try {
+    const repository = getRetailerRepository();
+    const applications: Awaited<ReturnType<typeof repository.listApplications>> = [];
+    const pageSize = 200;
+    for (let offset = 0; offset < 10_000; offset += pageSize) {
+      const page = await repository.listApplications(pageSize, offset);
+      applications.push(...page);
+      if (page.length < pageSize) break;
+    }
+    const submissions = await repository.listSubmissions();
+    const verifiedApplications = applications.filter((application) => application.status === "verified");
+    const liveSubmissions = submissions.filter((submission) => retailerSubmissionLifecycle(submission) === "live");
+    return {
+      source: "database" as const,
+      partial: applications.length >= 10_000,
+      applications: applications.length,
+      pendingApplications: applications.filter((application) => application.status === "pending").length,
+      verifiedStores: verifiedApplications.length,
+      storesWithLiveSignals: new Set(liveSubmissions.map((submission) => submission.userId)).size,
+      liveSignals: liveSubmissions.length,
+    };
+  } catch {
+    return {
+      source: "unavailable" as const,
+      partial: false,
+      applications: null,
+      pendingApplications: null,
+      verifiedStores: null,
+      storesWithLiveSignals: null,
+      liveSignals: null,
+    };
+  }
+}
+
+async function listAllCompanyUsers(client: Awaited<ReturnType<typeof clerkClient>>) {
+  const users: CompanyMemberUser[] = [];
+  const limit = 500;
+  for (let offset = 0; offset < 10_000; offset += limit) {
+    const result = await client.users.getUserList({ limit, offset });
+    const page = (Array.isArray(result) ? result : result.data) as CompanyMemberUser[];
+    users.push(...page);
+    if (page.length < limit) break;
+  }
+  return users;
+}
+
 export async function getCompanyControlRoomSnapshot() {
   const client = await clerkClient();
-  const result = await client.users.getUserList({ limit: 500 });
-  const users = (Array.isArray(result) ? result : result.data) as CompanyMemberUser[];
+  const users = await listAllCompanyUsers(client);
   const memberships = summarizeMemberships(users);
+  const growth = aggregateGrowthFunnels(users);
+  const lifecycle = aggregateLifecycleCohorts(users);
   const stats = await readSiteExport("stats") as Record<string, unknown> | null;
   const heartbeat = await readAlertDeliveryHeartbeat();
   const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
@@ -171,9 +223,10 @@ export async function getCompanyControlRoomSnapshot() {
     currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
   });
   const engineMetrics = extractEngineControlRoomMetrics(stats);
-  const [revenue, audience] = await Promise.all([
+  const [revenue, audience, retailer] = await Promise.all([
     readStripeRevenue(),
     readAudience(users),
+    readRetailerFunnel(),
   ]);
 
   return {
@@ -186,6 +239,9 @@ export async function getCompanyControlRoomSnapshot() {
     },
     revenue,
     audience,
+    growth,
+    lifecycle,
+    retailer,
     engine: {
       status: health.engine.status,
       ageMinutes: health.engine.ageMinutes,

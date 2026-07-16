@@ -6,6 +6,7 @@ import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
 import { activateMembership } from "@/lib/membership-server";
+import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,19 @@ function hasCanceledFreeMembershipHold(publicMetadata: Record<string, unknown> |
   const plan = stringValue(publicMetadata?.plan) || stringValue(publicMetadata?.billingPlan);
   const status = stringValue(publicMetadata?.membershipStatus);
   return status === "canceled" && (tier === "free" || plan === "free");
+}
+
+async function recordCheckoutStarted(
+  client: Awaited<ReturnType<typeof clerkClient>>,
+  userId: string,
+  privateMetadata: Record<string, unknown>,
+) {
+  try {
+    const next = mergeGrowthMilestoneMetadata(privateMetadata, "checkout_started", new Date().toISOString());
+    await client.users.updateUserMetadata(userId, { privateMetadata: { activation: next.activation } });
+  } catch (error) {
+    console.warn("checkout milestone update failed", error instanceof Error ? error.message : "unknown error");
+  }
 }
 
 async function checkoutSessionMatchesPlan(stripe: Stripe, session: Stripe.Checkout.Session, planId: BillingPlanId, priceId: string) {
@@ -89,7 +103,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Stripe checkout is not configured." }, { status: 503 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { plan?: string };
+  const body = (await req.json().catch(() => ({}))) as { plan?: string; source?: string };
+  const source = normalizeCheckoutSource(body.source);
   const planId = normalizeBillingPlan(body.plan);
   if (!planId) {
     return NextResponse.json({ error: "Choose a valid Bourbon Signal membership plan." }, { status: 400 });
@@ -118,6 +133,7 @@ export async function POST(req: NextRequest) {
   const reusableSession = await findReusableCheckoutSession(stripe, userId, planId, priceId);
   const skipCompletedRecovery = hasCanceledFreeMembershipHold(user.publicMetadata);
   if (reusableSession) {
+    await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
     const completedPaidSession = reusableSession.status === "complete" && (reusableSession.payment_status === "paid" || reusableSession.payment_status === "no_payment_required");
     if (completedPaidSession && !skipCompletedRecovery) {
       let membershipStatus = "active";
@@ -152,6 +168,7 @@ export async function POST(req: NextRequest) {
     tier: plan.tier,
     plan: plan.id,
     source: "bourbon_signal_launch",
+    attributionSurface: source,
   };
 
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -172,6 +189,7 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await stripe.checkout.sessions.create(sessionConfig);
+  await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
   return NextResponse.json({ url: session.url });
 }
 
