@@ -38,7 +38,7 @@ function sleep(milliseconds: number) {
 }
 
 async function recipientMasterUnsubscribed(recipient: string) {
-  if (!NEWSLETTER_AUDIENCE_ID) return false;
+  if (!NEWSLETTER_AUDIENCE_ID) throw new Error("Provider suppression verification is unavailable");
   const result = await getResendClient().contacts.get({ audienceId: NEWSLETTER_AUDIENCE_ID, email: recipient });
   if (result.error) {
     const error = record(result.error);

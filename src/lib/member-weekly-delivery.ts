@@ -10,13 +10,15 @@ export type MemberWeeklyDeliveryBlockReason =
   | "kill_switch"
   | "delivery_disabled"
   | "live_not_supported"
-  | "live_not_authorized";
+  | "live_not_authorized"
+  | "suppression_unavailable";
 
 export interface MemberWeeklyDeliveryConfig {
   killSwitchActive: boolean;
   deliveryEnabled: boolean;
   liveSendSupported: boolean;
   liveSendAuthorized: boolean;
+  providerSuppressionConfigured: boolean;
   timeZone: string;
   deliveryWeekday: number;
   startHour: number;
@@ -58,6 +60,7 @@ export function buildMemberWeeklyDeliveryConfig(env: NodeJS.ProcessEnv = process
     deliveryEnabled: env.WEEKLY_INTELLIGENCE_DELIVERY_ENABLED === "1",
     liveSendSupported: env.WEEKLY_INTELLIGENCE_LIVE_SEND_SUPPORTED === "1",
     liveSendAuthorized: env.WEEKLY_INTELLIGENCE_LIVE_SEND_AUTHORIZED === "1",
+    providerSuppressionConfigured: Boolean(env.NEWSLETTER_AUDIENCE_ID?.trim()),
     timeZone: env.WEEKLY_INTELLIGENCE_DELIVERY_TIME_ZONE || "America/New_York",
     deliveryWeekday: boundedInteger(env.WEEKLY_INTELLIGENCE_DELIVERY_WEEKDAY, 4, 0, 6),
     startHour: boundedInteger(env.WEEKLY_INTELLIGENCE_DELIVERY_START_HOUR, 9, 0, 23),
@@ -80,6 +83,7 @@ export function resolveMemberWeeklyDeliveryMode(input: {
   if (!input.config.deliveryEnabled) return { mode: "blocked", reason: "delivery_disabled" };
   if (!input.config.liveSendSupported) return { mode: "blocked", reason: "live_not_supported" };
   if (!input.config.liveSendAuthorized) return { mode: "blocked", reason: "live_not_authorized" };
+  if (!input.config.providerSuppressionConfigured) return { mode: "blocked", reason: "suppression_unavailable" };
   return { mode: "live", reason: null };
 }
 

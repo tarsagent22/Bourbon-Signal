@@ -209,3 +209,25 @@ test('source scheduler reuses a retained result without probing or inventing a n
   assert.equal(notDue.alertable, true);
   assert.equal(notDue.value.signals[0].canAlertAsInventory, true);
 });
+
+test('quarantine overrides scheduler short-circuits and retained alertability', async () => {
+  const scheduled = adapter('scheduled-quarantine', async () => fixture('healthy-b.json'));
+  const [previous] = (await runSourceAdapters([scheduled], {}, {
+    now: () => '2026-07-15T12:00:00.000Z',
+  })).results;
+  const [notDue] = (await runSourceAdapters([scheduled], {}, {
+    previousResults: { 'scheduled-quarantine': previous },
+    quarantinedSourceIds: new Set(['scheduled-quarantine']),
+    sourceMetrics: { 'scheduled-quarantine': { probes: 1, lastProbeAt: '2026-07-15T12:00:00.000Z' } },
+    baseCadenceMs: 60_000,
+    minCadenceMs: 60_000,
+    maxCadenceMs: 60_000,
+    now: () => '2026-07-15T12:00:30.000Z',
+  })).results;
+
+  assert.equal(notDue.status, 'quarantined');
+  assert.equal(notDue.quarantined, true);
+  assert.equal(notDue.alertable, false);
+  assert.equal(notDue.stale, true);
+  assert.equal(notDue.value.signals[0].canAlertAsInventory, false);
+});

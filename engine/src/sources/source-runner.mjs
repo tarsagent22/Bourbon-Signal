@@ -104,17 +104,18 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
   const poolResults = await runBoundedPool(tasks, async (task, { signal }) => {
     const { adapter, schedule } = task;
     const previous = prior.get(adapter.id) || null;
+    const sourceQuarantined = quarantined.has(adapter.id);
     if (schedule.decision === 'disabled') {
-      return createSourceSkippedResult({ adapter, previous, status: 'disabled', now: nowIso(now), schedule });
+      return createSourceSkippedResult({ adapter, previous, status: 'disabled', now: nowIso(now), schedule, quarantined: sourceQuarantined });
     }
     if (schedule.decision === 'wait' && previous?.value != null) {
-      return createSourceSkippedResult({ adapter, previous, status: 'not_due', now: nowIso(now), schedule });
+      return createSourceSkippedResult({ adapter, previous, status: 'not_due', now: nowIso(now), schedule, quarantined: sourceQuarantined });
     }
     if (schedule.decision === 'wait') schedule.decision = 'probe_now_missing_previous';
     const circuit = circuitBreaker.canExecute(adapter.id);
     if (!circuit.allowed) {
       const error = new CircuitOpenSourceError(adapter.id, { details: circuit });
-      return createSourceSkippedResult({ adapter, previous, status: 'circuit_open', now: nowIso(now), schedule, error });
+      return createSourceSkippedResult({ adapter, previous, status: 'circuit_open', now: nowIso(now), schedule, error, quarantined: sourceQuarantined });
     }
 
     const startedAt = nowIso(now);
@@ -133,7 +134,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
           startedAt,
           finishedAt: nowIso(now),
           attemptCount,
-          quarantined: quarantined.has(adapter.id),
+          quarantined: sourceQuarantined,
           schedule,
         });
       } catch (error) {
@@ -151,7 +152,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       finishedAt: nowIso(now),
       attemptCount,
       schedule,
-      quarantined: quarantined.has(adapter.id),
+      quarantined: sourceQuarantined,
     });
   }, {
     concurrency: Math.max(1, Math.floor(Number(options.concurrency ?? 4))),

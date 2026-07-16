@@ -119,16 +119,6 @@ async function preflightSelection({ git, lock, worktreeDir }) {
 
 async function rollbackSelection({ git, findingService, lock, lockFile, worktreeDir, repo, remote, canonicalClaimed, remoteClaimed, fs }) {
   const errors = [];
-  try {
-    const worktrees = parseWorktreeList(await git(['worktree', 'list', '--porcelain'], process.cwd()));
-    if (worktrees.some((entry) => samePath(entry.path, worktreeDir))) {
-      await git(['worktree', 'remove', '--force', worktreeDir], process.cwd());
-    }
-  } catch (error) { errors.push(error); }
-  try {
-    if (await localBranchExists(git, lock.branch)) await git(['branch', '-D', lock.branch], process.cwd());
-  } catch (error) { errors.push(error); }
-  try { await fs.rm(lockFile, { force: true }); } catch (error) { errors.push(error); }
   if (canonicalClaimed) {
     try {
       await findingService.update({
@@ -139,11 +129,25 @@ async function rollbackSelection({ git, findingService, lock, lockFile, worktree
         expectedStatuses: ['selected', 'in-progress'],
         expectedIssueNumber: lock.issueNumber,
       });
-    } catch (error) { errors.push(error); }
+    } catch (error) {
+      // Preserve every claim artifact when canonical rollback fails so an operator can recover safely.
+      return [error];
+    }
   }
+  try {
+    const worktrees = parseWorktreeList(await git(['worktree', 'list', '--porcelain'], process.cwd()));
+    if (worktrees.some((entry) => samePath(entry.path, worktreeDir))) {
+      await git(['worktree', 'remove', '--force', worktreeDir], process.cwd());
+    }
+  } catch (error) { errors.push(error); }
+  try {
+    if (await localBranchExists(git, lock.branch)) await git(['branch', '-D', lock.branch], process.cwd());
+  } catch (error) { errors.push(error); }
+  if (errors.length) return errors;
   if (remoteClaimed) {
-    try { await git(['push', remote, '--delete', lock.branch], process.cwd()); } catch (error) { errors.push(error); }
+    try { await git(['push', remote, '--delete', lock.branch], process.cwd()); } catch (error) { return [error]; }
   }
+  try { await fs.rm(lockFile, { force: true }); } catch (error) { errors.push(error); }
   return errors;
 }
 
@@ -221,7 +225,15 @@ async function releaseSafety({ git, lock, worktreeDir, remote }) {
   }
 
   if (!(await localBranchExists(git, lock.branch))) {
-    return { registered, merged: true, archived: false, head: null, branchExists: false };
+    const remoteOutput = await git(['ls-remote', '--heads', remote, `refs/heads/${lock.branch}`], process.cwd());
+    const remoteHead = archivedRemoteHead(remoteOutput, lock.branch);
+    if (!remoteHead) throw new Error(`Objective branch ${lock.branch} is missing locally and on ${remote}; refusing release.`);
+    await git(['fetch', '--no-tags', remote, `refs/heads/${lock.branch}`], process.cwd());
+    const fetchedHead = await git(['rev-parse', 'FETCH_HEAD'], process.cwd());
+    if (fetchedHead.toLowerCase() !== remoteHead) throw new Error(`Remote objective branch ${lock.branch} changed during release verification.`);
+    const merged = await isAncestor(git, 'FETCH_HEAD', lock.baseBranch);
+    if (!merged) throw new Error(`Remote objective branch ${lock.branch} is not merged into ${lock.baseBranch}; preserving archive.`);
+    return { registered, merged: true, archived: false, head: remoteHead, branchExists: false };
   }
   const head = await git(['rev-parse', lock.branch], process.cwd());
   const merged = await isAncestor(git, lock.branch, lock.baseBranch);
@@ -252,7 +264,7 @@ async function applyRelease({ git, findingService, lock, lockFile, worktreeDir, 
   }
   if (safety.merged) {
     const remoteOutput = await git(['ls-remote', '--heads', remote, `refs/heads/${lock.branch}`], process.cwd());
-    if (archivedRemoteHead(remoteOutput, lock.branch)) await git(['push', remote, '--delete', lock.branch], process.cwd());
+    if (archivedRemoteHead(remoteOutput, lock.branch) === safety.head) await git(['push', remote, '--delete', lock.branch], process.cwd());
   }
   await fs.rm(lockFile);
   return safety;

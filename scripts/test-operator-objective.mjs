@@ -111,6 +111,7 @@ function gitHarness(events = [], remoteClaims = new Set()) {
         return `worktree ${state.registeredWorktree}\nHEAD ${state.head}\nbranch refs/heads/${state.branch}\n`;
       }
       if (args[0] === 'rev-parse') return state.head;
+      if (args[0] === 'fetch') return '';
       if (args[0] === 'merge-base') {
         if (!state.merged) throw failure('not merged');
         return '';
@@ -254,6 +255,45 @@ try {
   assert.equal(rollbackGithub.status(), 'backlog', 'failed lock/worktree creation rolls the canonical claim back');
   assert.equal(existsSync(rollbackLock), false);
   assert.equal(rollbackRemoteClaims.size, 0, 'failed selection also releases the atomic remote claim');
+
+  const remoteOnlyLock = path.join(fixtureDir, 'remote-only-lock.json');
+  const remoteOnlyWorktree = path.join(fixtureDir, 'remote-only-worktree');
+  const remoteOnlyGithub = githubHarness();
+  const remoteOnlyClaims = new Set();
+  const remoteOnlyGit = gitHarness([], remoteOnlyClaims);
+  await objectiveMain([
+    'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${remoteOnlyLock}`, `--worktree=${remoteOnlyWorktree}`,
+    `--at=${observedAt}`, '--apply',
+  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {} });
+  remoteOnlyGit.state.registeredWorktree = null;
+  remoteOnlyGit.state.branch = null;
+  remoteOnlyGit.state.archived = true;
+  await assert.rejects(() => objectiveMain([
+    'release', `--lock=${remoteOnlyLock}`, '--repo=owner/repo', '--disposition=blocked', '--apply',
+  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {} }), /not merged.*preserving archive/i);
+  assert.equal(remoteOnlyClaims.size, 1, 'a remote-only unmerged objective archive cannot be deleted');
+  assert.equal(existsSync(remoteOnlyLock), true);
+
+  const rollbackFailureLock = path.join(fixtureDir, 'rollback-failure-lock.json');
+  const rollbackFailureWorktree = path.join(fixtureDir, 'rollback-failure-worktree');
+  const rollbackFailureGithub = githubHarness();
+  const rollbackFailureClaims = new Set();
+  const rollbackFailureGit = gitHarness([], rollbackFailureClaims);
+  rollbackFailureGit.state.failWorktreeAdd = true;
+  const failingRollbackGh = async (args) => {
+    const bodyIndex = args.indexOf('--body');
+    if (args[0] === 'issue' && args[1] === 'edit' && bodyIndex >= 0 && parseFindingIssueBody(args[bodyIndex + 1]).status === 'backlog') {
+      throw new Error('fixture canonical rollback failure');
+    }
+    return rollbackFailureGithub.runGh(args);
+  };
+  await assert.rejects(() => objectiveMain([
+    'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${rollbackFailureLock}`, `--worktree=${rollbackFailureWorktree}`,
+    `--at=${observedAt}`, '--apply',
+  ], { runGh: failingRollbackGh, runGit: rollbackFailureGit.runGit, log: () => {} }), /objective rollback also failed/i);
+  assert.equal(rollbackFailureGithub.status(), 'selected');
+  assert.equal(existsSync(rollbackFailureLock), true, 'failed canonical rollback preserves the local recovery lock');
+  assert.equal(rollbackFailureClaims.size, 1, 'failed canonical rollback preserves the remote claim');
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

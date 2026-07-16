@@ -90,28 +90,30 @@ export function createSourceFailureResult({ adapter, error, previous = null, sta
   };
 }
 
-export function createSourceSkippedResult({ adapter, previous = null, status, now, schedule = null, error = null }) {
+export function createSourceSkippedResult({ adapter, previous = null, status, now, schedule = null, error = null, quarantined = false }) {
   const retained = previous?.value !== undefined && previous?.value !== null;
   const circuitOpen = status === 'circuit_open';
   const disabled = status === 'disabled';
-  const nonAlertable = circuitOpen || disabled;
-  const reason = circuitOpen ? `Source ${adapter.id} circuit is open` : `Source ${adapter.id} was ${status}`;
+  const nonAlertable = circuitOpen || disabled || quarantined;
+  const reason = quarantined
+    ? `Source ${adapter.id} is quarantined`
+    : circuitOpen ? `Source ${adapter.id} circuit is open` : `Source ${adapter.id} was ${status}`;
   return {
     contractVersion: SOURCE_RESULT_CONTRACT_VERSION,
     sourceId: adapter.id,
     sourceLabel: adapter.label,
     sourceUrl: adapter.url,
-    status,
+    status: quarantined ? 'quarantined' : status,
     ok: false,
-    stale: circuitOpen && retained,
-    quarantined: false,
+    stale: (circuitOpen || quarantined) && retained,
+    quarantined,
     alertable: !nonAlertable && previous?.alertable === true,
     attemptCount: 0,
     startedAt: now,
     finishedAt: now,
-    checkedAt: circuitOpen ? now : previous?.checkedAt || null,
+    checkedAt: circuitOpen || quarantined ? now : previous?.checkedAt || null,
     lastGoodAt: previous?.lastGoodAt || null,
-    value: nonAlertable && retained ? markSourceValueNonAlertable(previous.value, reason, { stale: circuitOpen }) : previous?.value ?? null,
+    value: nonAlertable && retained ? markSourceValueNonAlertable(previous.value, reason, { stale: circuitOpen || quarantined }) : previous?.value ?? null,
     error: error ? serializeSourceError(error) : null,
     schedule,
   };

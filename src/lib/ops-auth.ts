@@ -18,7 +18,9 @@ export function authorizeOpsBearer(header: string | null, secret: string | undef
 export function getDedicatedScorecardReadSecret(env: NodeJS.ProcessEnv = process.env) {
   const readSecret = env.COMPANY_SCORECARD_READ_SECRET;
   if (typeof readSecret !== "string" || !readSecret.trim()) return undefined;
-  if (env.CRON_SECRET && constantTimeEqual(readSecret, env.CRON_SECRET)) return undefined;
+  const mutationSecrets = [env.CRON_SECRET, env.ALERT_DELIVERY_SECRET, env.WEEKLY_INTELLIGENCE_DELIVERY_SECRET]
+    .filter((secret): secret is string => typeof secret === "string" && Boolean(secret));
+  if (mutationSecrets.some((secret) => constantTimeEqual(readSecret, secret))) return undefined;
   return readSecret;
 }
 

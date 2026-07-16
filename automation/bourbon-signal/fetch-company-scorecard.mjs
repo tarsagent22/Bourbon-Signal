@@ -40,7 +40,7 @@ export function readScorecardSecret(env = process.env) {
   const configured = env.COMPANY_SCORECARD_READ_SECRET;
   if (typeof configured !== 'string' || !configured.trim()) throw new Error('COMPANY_SCORECARD_READ_SECRET is required.');
   const secret = getDedicatedScorecardReadSecret(env);
-  if (!secret) throw new Error('COMPANY_SCORECARD_READ_SECRET must be distinct from CRON_SECRET.');
+  if (!secret) throw new Error('COMPANY_SCORECARD_READ_SECRET must be distinct from every mutation or delivery secret.');
   return secret;
 }
 

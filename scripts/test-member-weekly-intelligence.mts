@@ -417,6 +417,7 @@ const deliveryEnv = {
   WEEKLY_INTELLIGENCE_DELIVERY_ENABLED: "1",
   WEEKLY_INTELLIGENCE_LIVE_SEND_SUPPORTED: "1",
   WEEKLY_INTELLIGENCE_LIVE_SEND_AUTHORIZED: "1",
+  NEWSLETTER_AUDIENCE_ID: "audience_test",
   WEEKLY_INTELLIGENCE_DELIVERY_WEEKDAY: "4",
   WEEKLY_INTELLIGENCE_DELIVERY_START_HOUR: "9",
   WEEKLY_INTELLIGENCE_DELIVERY_END_HOUR: "17",
@@ -438,6 +439,7 @@ assert.equal(defaultDeliveryConfig.killSwitchActive, true);
 assert.equal(defaultDeliveryConfig.deliveryEnabled, false);
 assert.equal(defaultDeliveryConfig.liveSendSupported, false);
 assert.equal(defaultDeliveryConfig.liveSendAuthorized, false);
+assert.equal(defaultDeliveryConfig.providerSuppressionConfigured, false);
 assert.doesNotThrow(() => assertMemberWeeklyDeliveryAuthorized(
   new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer owner-secret" } }),
   { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "owner-secret" } as NodeJS.ProcessEnv,

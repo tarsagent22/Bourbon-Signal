@@ -75,6 +75,8 @@ class MemoryProspectQuery implements RetailerProspectQuery {
         packets: "retailer_prospect_approval_packets",
         outreach: "retailer_prospect_outreach",
         migrations: "retailer_acquisition_migrations",
+        v4_migration: true,
+        outreach_kind_column: true,
         approve_function: "approve_retailer_prospect_message",
         outreach_function: "record_retailer_prospect_outreach",
       }];
@@ -358,6 +360,8 @@ class FollowUpLifecycleQuery implements RetailerProspectQuery {
         packets: "retailer_prospect_approval_packets",
         outreach: "retailer_prospect_outreach",
         migrations: "retailer_acquisition_migrations",
+        v4_migration: true,
+        outreach_kind_column: true,
         approve_function: "approve_retailer_prospect_message",
         outreach_function: "record_retailer_prospect_outreach",
       }];
@@ -478,6 +482,8 @@ class PausedTransitionQuery implements RetailerProspectQuery {
         packets: "retailer_prospect_approval_packets",
         outreach: "retailer_prospect_outreach",
         migrations: "retailer_acquisition_migrations",
+        v4_migration: true,
+        outreach_kind_column: true,
         approve_function: "approve_retailer_prospect_message",
         outreach_function: "record_retailer_prospect_outreach",
       }];

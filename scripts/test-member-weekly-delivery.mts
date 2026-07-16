@@ -9,6 +9,7 @@ const config = buildMemberWeeklyDeliveryConfig({
   WEEKLY_INTELLIGENCE_DELIVERY_ENABLED: "1",
   WEEKLY_INTELLIGENCE_LIVE_SEND_SUPPORTED: "1",
   WEEKLY_INTELLIGENCE_LIVE_SEND_AUTHORIZED: "1",
+  NEWSLETTER_AUDIENCE_ID: "audience_test",
   WEEKLY_INTELLIGENCE_DELIVERY_WEEKDAY: "4",
   WEEKLY_INTELLIGENCE_DELIVERY_START_HOUR: "9",
   WEEKLY_INTELLIGENCE_DELIVERY_END_HOUR: "17",
@@ -169,5 +170,23 @@ const blocked = await executeMemberWeeklyDeliveryRun({
 assert.equal(blocked.mode, "blocked");
 assert.equal(blocked.reason, "live_not_authorized");
 assert.equal(blockedPrepareCalls, 0, "unauthorized live mode stops before composition or any sender work");
+
+const suppressionUnavailable = await executeMemberWeeklyDeliveryRun({
+  users: [user("member_a")],
+  now,
+  requestLive: true,
+  config: { ...config, providerSuppressionConfigured: false },
+  dependencies: {
+    prepare: async (member) => prepared(member.id),
+    refreshUser: async (memberId) => user(memberId),
+    recipientMasterUnsubscribed: async () => false,
+    reserveMemberWeek: async () => true,
+    send: async () => ({ messageId: "must-not-send" }),
+    markMemberWeekDelivered: async () => undefined,
+    sleep: async () => undefined,
+  },
+});
+assert.equal(suppressionUnavailable.mode, "blocked");
+assert.equal(suppressionUnavailable.reason, "suppression_unavailable", "live mode fails closed when provider suppression cannot be checked");
 
 console.log("Member weekly delivery sender contracts passed without sending email.");

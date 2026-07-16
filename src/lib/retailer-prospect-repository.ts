@@ -59,6 +59,11 @@ const REQUIRED_SCHEMA_QUERY = `
     to_regclass('public.retailer_prospect_approval_packets') AS packets,
     to_regclass('public.retailer_prospect_outreach') AS outreach,
     to_regclass('public.retailer_acquisition_migrations') AS migrations,
+    EXISTS (SELECT 1 FROM retailer_acquisition_migrations WHERE version = 'retailer-acquisition-v4') AS v4_migration,
+    EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'retailer_prospect_message_versions' AND column_name = 'outreach_kind'
+    ) AS outreach_kind_column,
     to_regprocedure('public.approve_retailer_prospect_message(text,integer,text,text,text)') AS approve_function,
     to_regprocedure('public.record_retailer_prospect_outreach(text,text,text,text,text,timestamptz,text)') AS outreach_function
 `;
@@ -233,7 +238,7 @@ export class RetailerProspectRepository {
       this.schemaAvailable = (async () => {
         const rows = await this.query.query(REQUIRED_SCHEMA_QUERY);
         const schema = rows[0] || {};
-        const required = ["prospects", "authorities", "evidence", "messages", "packets", "outreach", "migrations", "approve_function", "outreach_function"];
+        const required = ["prospects", "authorities", "evidence", "messages", "packets", "outreach", "migrations", "v4_migration", "outreach_kind_column", "approve_function", "outreach_function"];
         if (required.some((key) => !schema[key])) {
           throw new Error("Retailer acquisition schema is unavailable. Plan with `npm run migrate:retailer-acquisition`, then apply to a validated target with `npm run migrate:retailer-acquisition:apply -- --target <hostname>/<database>`.");
         }

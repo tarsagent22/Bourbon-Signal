@@ -31,7 +31,13 @@ for (const unsafeUrl of [
 }
 assert.equal(readScorecardSecret({ COMPANY_SCORECARD_READ_SECRET: "read-only", CRON_SECRET: "send-capable" }), "read-only");
 assert.throws(() => readScorecardSecret({ CRON_SECRET: "send-capable" }), /COMPANY_SCORECARD_READ_SECRET/, "a send-capable cron secret must never be reused");
-assert.throws(() => readScorecardSecret({ COMPANY_SCORECARD_READ_SECRET: "same", CRON_SECRET: "same" }), /distinct from CRON_SECRET/, "the read-only secret must be distinct, not just differently named");
+for (const mutationSecret of ["CRON_SECRET", "ALERT_DELIVERY_SECRET", "WEEKLY_INTELLIGENCE_DELIVERY_SECRET"] as const) {
+  assert.throws(
+    () => readScorecardSecret({ COMPANY_SCORECARD_READ_SECRET: "same", [mutationSecret]: "same" }),
+    /distinct from every mutation or delivery secret/,
+    `the read-only secret must be distinct from ${mutationSecret}`,
+  );
+}
 
 const aggregate = { contractVersion: "bourbon-signal/company-scorecard@1", generatedAt: "2026-07-16T00:00:00.000Z", sections: { company: {}, product: {}, data: {}, shipping: {}, decision: {} } };
 let authenticatedRequest: { url: string; init: RequestInit } | null = null;

@@ -194,6 +194,11 @@ const verification = await sql.query(`
     to_regclass('public.retailer_prospect_approval_packets') AS packets,
     to_regclass('public.retailer_prospect_outreach') AS outreach,
     to_regclass('public.retailer_acquisition_migrations') AS migrations,
+    EXISTS (SELECT 1 FROM retailer_acquisition_migrations WHERE version = '${MIGRATION_VERSION}') AS v4_migration,
+    EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'retailer_prospect_message_versions' AND column_name = 'outreach_kind'
+    ) AS outreach_kind_column,
     to_regprocedure('public.approve_retailer_prospect_message(text,integer,text,text,text)') AS approve_function,
     to_regprocedure('public.record_retailer_prospect_outreach(text,text,text,text,text,timestamptz,text)') AS outreach_function
 `);
