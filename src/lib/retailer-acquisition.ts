@@ -22,6 +22,25 @@ export type ProspectOutreachKind = "initial" | "follow_up";
 export type ProspectContactChannel = "email" | "phone" | "contact_form";
 export type OfficialContactEvidenceKind = "official_website_email" | "official_website_phone" | "official_contact_form" | "regulator_listing";
 
+export interface RegulatorAuthorityMetadata {
+  id: string;
+  name: string;
+  domain: string;
+}
+
+export const OFFICIAL_REGULATOR_AUTHORITIES = [
+  {
+    id: "sc-dor-abl",
+    name: "South Carolina Department of Revenue Alcohol Beverage Licensing",
+    domain: "dor.sc.gov",
+  },
+  {
+    id: "nc-abc-commission",
+    name: "North Carolina Alcoholic Beverage Control Commission",
+    domain: "abc.nc.gov",
+  },
+] as const satisfies readonly RegulatorAuthorityMetadata[];
+
 export interface RetailerProspectInput {
   name?: unknown;
   address?: unknown;
@@ -49,6 +68,7 @@ export interface OfficialContactEvidence {
   contactValue: string;
   capturedAt: string;
   verifiedAt?: string;
+  regulatorAuthority?: RegulatorAuthorityMetadata;
 }
 
 export interface RetailerProspectScoreInput {
@@ -229,6 +249,11 @@ export function isOfficialContactEvidence(evidence: OfficialContactEvidence, bus
   }
 
   if (evidence.kind === "regulator_listing") {
+    const suppliedAuthority = evidence.regulatorAuthority;
+    const allowedAuthority = OFFICIAL_REGULATOR_AUTHORITIES.find((authority) => authority.id === suppliedAuthority?.id);
+    if (!suppliedAuthority || !allowedAuthority) return false;
+    if (suppliedAuthority.name !== allowedAuthority.name || suppliedAuthority.domain.toLowerCase() !== allowedAuthority.domain) return false;
+    if (!sameOrSubdomain(sourceHost, allowedAuthority.domain)) return false;
     return Boolean(normalizePhone(evidence.contactValue) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(evidence.contactValue.trim().toLowerCase()));
   }
   if (!expectedDomain) return false;
@@ -387,11 +412,16 @@ export function buildApprovalPacket(input: {
 export function canRecordOutreach(input: {
   prospectState: RetailerProspectState;
   messageStatus: ProspectMessageStatus;
+  approvedMessageChannel: ProspectContactChannel;
+  outreachChannel: ProspectContactChannel;
   kind: ProspectOutreachKind;
   initialContactCount: number;
   followUpCount: number;
 }): { allowed: true } | { allowed: false; reason: string } {
   if (input.messageStatus !== "approved") return { allowed: false, reason: "Outreach requires an approved message version." };
+  if (input.outreachChannel !== input.approvedMessageChannel) {
+    return { allowed: false, reason: "Outreach channel must match the approved message version channel." };
+  }
   if (input.kind === "initial") {
     if (input.prospectState !== "approved") return { allowed: false, reason: "Initial outreach requires an approved prospect." };
     if (finiteCount(input.initialContactCount) > 0) return { allowed: false, reason: "Initial outreach was already recorded." };

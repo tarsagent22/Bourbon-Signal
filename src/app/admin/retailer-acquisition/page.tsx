@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import {
   RETAILER_PROSPECT_STATES,
+  OFFICIAL_REGULATOR_AUTHORITIES,
   draftProspectOutreach,
   type OfficialContactEvidenceKind,
   type ProspectContactChannel,
@@ -65,6 +66,11 @@ async function addOfficialContact(formData: FormData) {
   const prospectId = String(formData.get("prospectId") || "");
   const kind = String(formData.get("kind") || "") as OfficialContactEvidenceKind;
   if (!prospectId || !["official_website_email", "official_website_phone", "official_contact_form", "regulator_listing"].includes(kind)) return;
+  const authorityId = String(formData.get("regulatorAuthorityId") || "");
+  const regulatorAuthority = kind === "regulator_listing"
+    ? OFFICIAL_REGULATOR_AUTHORITIES.find((authority) => authority.id === authorityId)
+    : undefined;
+  if (kind === "regulator_listing" && !regulatorAuthority) return;
   await getRetailerProspectRepository().addOfficialContactEvidence({
     prospectId,
     verifiedBy: owner.id,
@@ -74,6 +80,7 @@ async function addOfficialContact(formData: FormData) {
       contactValue: String(formData.get("contactValue") || "").trim(),
       capturedAt: new Date().toISOString(),
       verifiedAt: new Date().toISOString(),
+      regulatorAuthority,
     },
   });
   revalidatePath("/admin/retailer-acquisition");
@@ -139,14 +146,12 @@ async function recordManualOutreach(formData: FormData) {
   const prospectId = String(formData.get("prospectId") || "");
   const messageVersionId = String(formData.get("messageVersionId") || "");
   const kind = String(formData.get("kind") || "") === "follow_up" ? "follow_up" : "initial";
-  const channel = String(formData.get("channel") || "email") as ProspectContactChannel;
   const timestamp = new Date(String(formData.get("contactedAt") || ""));
-  if (!prospectId || !messageVersionId || Number.isNaN(timestamp.getTime()) || !["email", "phone", "contact_form"].includes(channel)) return;
+  if (!prospectId || !messageVersionId || Number.isNaN(timestamp.getTime())) return;
   await getRetailerProspectRepository().recordManualOutreach({
     prospectId,
     messageVersionId,
     kind,
-    channel,
     recordedBy: owner.id,
     contactedAt: timestamp.toISOString(),
     note: String(formData.get("note") || ""),
@@ -222,14 +227,15 @@ export default async function RetailerAcquisitionPage() {
                 <div className={styles.workbench}>
                   <section className={styles.section}>
                     <h3>Official-contact evidence</h3>
-                    <p className={styles.sectionIntro}>Only a business-controlled website or regulator source qualifies. Directory contact details are not enough.</p>
-                    <div className={styles.evidenceList}>{verifiedEvidence.length ? verifiedEvidence.map((item) => <div className={styles.evidence} key={item.id}><strong>{item.kind.replaceAll("_", " ")}</strong><br />{item.contactValue}<br />{item.sourceUrl}</div>) : <div className={styles.evidence}>No verified official contact.</div>}</div>
+                    <p className={styles.sectionIntro}>Only a business-controlled website or an explicitly allowlisted regulator authority qualifies. Directory contact details are not enough.</p>
+                    <div className={styles.evidenceList}>{verifiedEvidence.length ? verifiedEvidence.map((item) => <div className={styles.evidence} key={item.id}><strong>{item.kind.replaceAll("_", " ")}</strong><br />{item.contactValue}<br />{item.sourceUrl}{item.regulatorAuthority ? <><br />{item.regulatorAuthority.name} · {item.regulatorAuthority.domain}</> : null}</div>) : <div className={styles.evidence}>No verified official contact.</div>}</div>
                     {["qualified", "contact_verified"].includes(prospect.prospectState) ? <form action={addOfficialContact} className={styles.form}>
                       <input name="prospectId" type="hidden" value={prospect.id} />
                       <div className={styles.formGrid}>
                         <label>Evidence type<select className={styles.select} name="kind" defaultValue="official_website_email"><option value="official_website_email">Official website email</option><option value="official_website_phone">Official website phone</option><option value="official_contact_form">Official contact form</option><option value="regulator_listing">Regulator listing</option></select></label>
                         <label>Contact value<input className={styles.input} name="contactValue" required /></label>
                       </div>
+                      <label>Regulator authority (required for regulator listings)<select className={styles.select} name="regulatorAuthorityId" defaultValue=""><option value="">Not a regulator listing</option>{OFFICIAL_REGULATOR_AUTHORITIES.map((authority) => <option key={authority.id} value={authority.id}>{authority.name} · {authority.domain}</option>)}</select></label>
                       <label>Exact source URL<input className={styles.input} name="sourceUrl" type="url" required /></label>
                       <button className={styles.button} type="submit">Verify evidence</button>
                     </form> : null}
@@ -260,7 +266,7 @@ export default async function RetailerAcquisitionPage() {
                     <p className={styles.sectionIntro}>This records work completed elsewhere. It does not contact the retailer.</p>
                     <form action={recordManualOutreach} className={styles.form}>
                       <input name="prospectId" type="hidden" value={prospect.id} /><input name="messageVersionId" type="hidden" value={approvedMessage.id} /><input name="kind" type="hidden" value={outreachKind} />
-                      <div className={styles.formGrid}><label>Channel<select className={styles.select} name="channel" defaultValue={approvedMessage.channel}><option value="email">Email</option><option value="phone">Phone</option><option value="contact_form">Contact form</option></select></label><label>Completed at<input className={styles.input} name="contactedAt" type="datetime-local" required /></label></div>
+                      <div className={styles.formGrid}><label>Approved channel<input className={styles.input} readOnly value={approvedMessage.channel} /></label><label>Completed at<input className={styles.input} name="contactedAt" type="datetime-local" required /></label></div>
                       <label>Private note<input className={styles.input} name="note" maxLength={500} /></label>
                       <button className={styles.button} type="submit">Record {outreachKind.replaceAll("_", " ")}</button>
                     </form>
@@ -268,7 +274,7 @@ export default async function RetailerAcquisitionPage() {
                 </div>
               </article>
             );
-          }) : <p className={styles.empty}>No prospects yet. Run the local discovery and rank scripts, review the artifact, then import approved records through the repository.</p>}
+          }) : <p className={styles.empty}>No prospects yet. Run discovery and ranking, review the artifact, then use the owner-only acquisition import command. It is a dry run unless --apply is explicit.</p>}
         </section>
       </div>
     </main>

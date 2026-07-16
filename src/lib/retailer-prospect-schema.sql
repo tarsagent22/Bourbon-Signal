@@ -35,6 +35,20 @@ CREATE INDEX IF NOT EXISTS retailer_prospects_location_key_idx
 CREATE INDEX IF NOT EXISTS retailer_prospects_domain_key_idx
   ON retailer_prospects (domain_key) WHERE domain_key <> '';
 
+CREATE TABLE IF NOT EXISTS retailer_regulator_authorities (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  domain TEXT NOT NULL UNIQUE,
+  UNIQUE (id, name, domain)
+);
+
+INSERT INTO retailer_regulator_authorities (id, name, domain) VALUES
+  ('sc-dor-abl', 'South Carolina Department of Revenue Alcohol Beverage Licensing', 'dor.sc.gov'),
+  ('nc-abc-commission', 'North Carolina Alcoholic Beverage Control Commission', 'abc.nc.gov')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  domain = EXCLUDED.domain;
+
 CREATE TABLE IF NOT EXISTS retailer_prospect_contact_evidence (
   id TEXT PRIMARY KEY,
   prospect_id TEXT NOT NULL REFERENCES retailer_prospects(id) ON DELETE CASCADE,
@@ -46,9 +60,97 @@ CREATE TABLE IF NOT EXISTS retailer_prospect_contact_evidence (
   captured_at TIMESTAMPTZ NOT NULL,
   verified_at TIMESTAMPTZ,
   verified_by TEXT,
+  regulator_authority_id TEXT,
+  regulator_authority_name TEXT,
+  regulator_authority_domain TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT retailer_prospect_regulator_authority_fk FOREIGN KEY (
+    regulator_authority_id, regulator_authority_name, regulator_authority_domain
+  ) REFERENCES retailer_regulator_authorities (id, name, domain) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT retailer_prospect_regulator_authority_check CHECK (
+    (
+      kind <> 'regulator_listing'
+      AND regulator_authority_id IS NULL
+      AND regulator_authority_name IS NULL
+      AND regulator_authority_domain IS NULL
+    ) OR (
+      kind = 'regulator_listing'
+      AND (
+        verified_at IS NULL OR (
+          regulator_authority_id <> ''
+          AND regulator_authority_name <> ''
+          AND regulator_authority_domain <> ''
+        )
+      )
+    )
+  ),
   UNIQUE (prospect_id, kind, contact_value)
 );
+
+ALTER TABLE retailer_prospect_contact_evidence
+  ADD COLUMN IF NOT EXISTS regulator_authority_id TEXT;
+ALTER TABLE retailer_prospect_contact_evidence
+  ADD COLUMN IF NOT EXISTS regulator_authority_name TEXT;
+ALTER TABLE retailer_prospect_contact_evidence
+  ADD COLUMN IF NOT EXISTS regulator_authority_domain TEXT;
+
+UPDATE retailer_prospect_contact_evidence evidence
+SET verified_at = NULL,
+    verified_by = NULL,
+    regulator_authority_id = NULL,
+    regulator_authority_name = NULL,
+    regulator_authority_domain = NULL
+WHERE evidence.kind = 'regulator_listing'
+  AND NOT EXISTS (
+    SELECT 1 FROM retailer_regulator_authorities authority
+    WHERE authority.id = evidence.regulator_authority_id
+      AND authority.name = evidence.regulator_authority_name
+      AND authority.domain = evidence.regulator_authority_domain
+  );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'retailer_prospect_regulator_authority_check'
+      AND conrelid = 'retailer_prospect_contact_evidence'::regclass
+  ) THEN
+    ALTER TABLE retailer_prospect_contact_evidence
+      ADD CONSTRAINT retailer_prospect_regulator_authority_check CHECK (
+        (
+          kind <> 'regulator_listing'
+          AND regulator_authority_id IS NULL
+          AND regulator_authority_name IS NULL
+          AND regulator_authority_domain IS NULL
+        ) OR (
+          kind = 'regulator_listing'
+          AND (
+            verified_at IS NULL OR (
+              regulator_authority_id <> ''
+              AND regulator_authority_name <> ''
+              AND regulator_authority_domain <> ''
+            )
+          )
+        )
+      );
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'retailer_prospect_regulator_authority_fk'
+      AND conrelid = 'retailer_prospect_contact_evidence'::regclass
+  ) THEN
+    ALTER TABLE retailer_prospect_contact_evidence
+      ADD CONSTRAINT retailer_prospect_regulator_authority_fk FOREIGN KEY (
+        regulator_authority_id, regulator_authority_name, regulator_authority_domain
+      ) REFERENCES retailer_regulator_authorities (id, name, domain) ON UPDATE CASCADE ON DELETE RESTRICT;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE INDEX IF NOT EXISTS retailer_prospect_contact_evidence_prospect_idx
   ON retailer_prospect_contact_evidence (prospect_id, verified_at DESC);
@@ -65,11 +167,14 @@ CREATE TABLE IF NOT EXISTS retailer_prospect_message_versions (
   approved_by TEXT,
   approved_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (prospect_id, version)
+  UNIQUE (prospect_id, version),
+  UNIQUE (id, channel)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS retailer_prospect_one_approved_message_idx
   ON retailer_prospect_message_versions (prospect_id) WHERE status = 'approved';
+CREATE UNIQUE INDEX IF NOT EXISTS retailer_prospect_message_channel_idx
+  ON retailer_prospect_message_versions (id, channel);
 
 CREATE TABLE IF NOT EXISTS retailer_prospect_approval_packets (
   id TEXT PRIMARY KEY,
@@ -91,8 +196,30 @@ CREATE TABLE IF NOT EXISTS retailer_prospect_outreach (
   contacted_at TIMESTAMPTZ NOT NULL,
   note TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT retailer_prospect_outreach_message_channel_fk FOREIGN KEY (message_version_id, channel)
+    REFERENCES retailer_prospect_message_versions (id, channel) ON DELETE RESTRICT,
   UNIQUE (prospect_id, kind)
 );
+
+UPDATE retailer_prospect_outreach outreach
+SET channel = messages.channel
+FROM retailer_prospect_message_versions messages
+WHERE messages.id = outreach.message_version_id
+  AND outreach.channel <> messages.channel;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'retailer_prospect_outreach_message_channel_fk'
+      AND conrelid = 'retailer_prospect_outreach'::regclass
+  ) THEN
+    ALTER TABLE retailer_prospect_outreach
+      ADD CONSTRAINT retailer_prospect_outreach_message_channel_fk FOREIGN KEY (message_version_id, channel)
+      REFERENCES retailer_prospect_message_versions (id, channel) ON DELETE RESTRICT;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- PostgreSQL functions are transactions: every guard and write below commits together or rolls back together.
 CREATE OR REPLACE FUNCTION approve_retailer_prospect_message(
@@ -157,7 +284,15 @@ BEGIN
         SELECT jsonb_agg(jsonb_build_object(
           'kind', evidence.kind, 'sourceUrl', evidence.source_url,
           'contactValue', evidence.contact_value, 'capturedAt', evidence.captured_at,
-          'verifiedAt', evidence.verified_at
+          'verifiedAt', evidence.verified_at,
+          'regulatorAuthority', CASE
+            WHEN evidence.regulator_authority_id IS NULL THEN NULL
+            ELSE jsonb_build_object(
+              'id', evidence.regulator_authority_id,
+              'name', evidence.regulator_authority_name,
+              'domain', evidence.regulator_authority_domain
+            )
+          END
         ) ORDER BY evidence.captured_at DESC)
         FROM retailer_prospect_contact_evidence evidence
         WHERE evidence.prospect_id = prospects.id AND evidence.verified_at IS NOT NULL
@@ -178,18 +313,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS record_retailer_prospect_outreach(
+  TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, TEXT
+);
+
 CREATE OR REPLACE FUNCTION record_retailer_prospect_outreach(
   outreach_id TEXT,
   target_prospect_id TEXT,
   target_message_version_id TEXT,
   outreach_kind TEXT,
-  outreach_channel TEXT,
   owner_id TEXT,
   contact_time TIMESTAMPTZ,
   outreach_note TEXT
 ) RETURNS retailer_prospect_outreach AS $$
 DECLARE
   prospect retailer_prospects;
+  approved_message retailer_prospect_message_versions;
   recorded retailer_prospect_outreach;
 BEGIN
   SELECT * INTO prospect FROM retailer_prospects
@@ -197,12 +336,12 @@ BEGIN
   FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Prospect was not found'; END IF;
 
-  IF NOT EXISTS (
-    SELECT 1 FROM retailer_prospect_message_versions message_versions
+  SELECT * INTO approved_message
+    FROM retailer_prospect_message_versions message_versions
     WHERE message_versions.id = target_message_version_id
       AND message_versions.prospect_id = target_prospect_id
-      AND message_versions.status = 'approved'
-  ) THEN
+      AND message_versions.status = 'approved';
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'Outreach requires an approved message version';
   END IF;
 
@@ -224,7 +363,7 @@ BEGIN
     id, prospect_id, message_version_id, kind, channel, recorded_by, contacted_at, note
   ) VALUES (
     outreach_id, target_prospect_id, target_message_version_id, outreach_kind,
-    outreach_channel, owner_id, contact_time, outreach_note
+    approved_message.channel, owner_id, contact_time, outreach_note
   ) RETURNING * INTO recorded;
 
   UPDATE retailer_prospects
@@ -236,3 +375,8 @@ BEGIN
   RETURN recorded;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TABLE IF NOT EXISTS retailer_acquisition_migrations (
+  version TEXT PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

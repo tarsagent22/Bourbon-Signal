@@ -128,10 +128,10 @@ assert.equal(packet.officialContactEvidence.length, 1);
 assert.match(packet.guardrails.join(" "), /approval/i);
 assert.throws(() => buildApprovalPacket({ ...packet, prospect: { id: "prospect-1", ...normalized.value! }, score, contactEvidence: [], draft }), /official contact/i);
 
-assert.deepEqual(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", kind: "initial", initialContactCount: 0, followUpCount: 0 }), { allowed: true });
-assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "draft", kind: "initial", initialContactCount: 0, followUpCount: 0 }).reason || "", /approved message version/i);
-assert.match(canRecordOutreach({ prospectState: "follow_up_due", messageStatus: "approved", kind: "follow_up", initialContactCount: 1, followUpCount: 1 }).reason || "", /one follow-up/i);
-assert.match(canRecordOutreach({ prospectState: "contacted", messageStatus: "approved", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }).reason || "", /follow-up due/i);
+assert.deepEqual(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }), { allowed: true });
+assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "draft", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }).reason || "", /approved message version/i);
+assert.match(canRecordOutreach({ prospectState: "follow_up_due", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 1 }).reason || "", /one follow-up/i);
+assert.match(canRecordOutreach({ prospectState: "contacted", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }).reason || "", /follow-up due/i);
 
 const outcomes = aggregateProspectOutcomes([
   { state: "contacted", outcome: "no_response" },
@@ -153,6 +153,8 @@ for (const file of [
   "scripts/retailer-acquisition/discover.mts",
   "scripts/retailer-acquisition/rank.mts",
   "scripts/retailer-acquisition/draft.mts",
+  "scripts/retailer-acquisition/import.mts",
+  "scripts/migrate-retailer-acquisition.mjs",
   "docs/retailer-acquisition.md",
 ]) {
   assert.equal(existsSync(path.join(root, file)), true, `Missing ${file}`);
@@ -170,10 +172,11 @@ assert.match(schema, /UNIQUE\s*\(prospect_id,\s*kind\)/i);
 
 const repository = read("src/lib/retailer-prospect-repository.ts");
 assert.match(repository, /message_versions[\s\S]*status = 'approved'/);
-assert.match(repository, /kind = 'follow_up'[\s\S]*follow_up_count < 1/);
-assert.match(repository, /BEGIN/);
-assert.match(repository, /FOR UPDATE/);
+assert.match(schema, /outreach_kind = 'follow_up'[\s\S]*follow_up_count >= 1/);
 assert.match(repository, /record_retailer_prospect_outreach/);
+assert.doesNotMatch(repository, /\bCREATE\s+(?:TABLE|INDEX|OR\s+REPLACE\s+FUNCTION)/i);
+assert.match(schema, /BEGIN/);
+assert.match(schema, /FOR UPDATE/);
 assert.doesNotMatch(repository, /resend|sendgrid|postmark|nodemailer/i);
 
 const admin = read("src/app/admin/retailer-acquisition/page.tsx");
@@ -196,12 +199,15 @@ assert.match(packageJson.scripts["test:retailer-acquisition"], /test-retailer-ac
 assert.match(packageJson.scripts["acquisition:discover"], /discover/);
 assert.match(packageJson.scripts["acquisition:rank"], /rank/);
 assert.match(packageJson.scripts["acquisition:draft"], /draft/);
+assert.match(packageJson.scripts["acquisition:import"], /import/);
+assert.match(packageJson.scripts["migrate:retailer-acquisition"], /migrate-retailer-acquisition/);
 
 const cliDirectory = mkdtempSync(path.join(tmpdir(), "bourbon-signal-acquisition-test-"));
 try {
   const candidateFile = path.join(cliDirectory, "candidates.json");
   const discoveredFile = path.join(cliDirectory, "discovered.json");
   const rankedFile = path.join(cliDirectory, "ranked.json");
+  const importAuditFile = path.join(cliDirectory, "import-audit.json");
   const verifiedFile = path.join(cliDirectory, "verified.json");
   const draftFile = path.join(cliDirectory, "drafts.json");
   writeFileSync(candidateFile, JSON.stringify({ state: "SC", retailers: [
@@ -217,6 +223,16 @@ try {
   assert.equal(rankRun.status, 0, rankRun.stderr);
   const rankedArtifact = JSON.parse(readFileSync(rankedFile, "utf8")) as { ranked: Array<{ score: RetailerProspectScore }> };
   assert.equal(rankedArtifact.ranked[0]?.score.total, 0);
+  const importRun = runCli("scripts/retailer-acquisition/import.mts", [
+    "--input", rankedFile,
+    "--audit", importAuditFile,
+    "--owner", "chandlertodd22@gmail.com",
+  ]);
+  assert.equal(importRun.status, 0, importRun.stderr);
+  const importAudit = JSON.parse(readFileSync(importAuditFile, "utf8")) as { ok: boolean; mode: string; summary: { validated: number; wouldUpsert: number } };
+  assert.equal(importAudit.ok, true);
+  assert.equal(importAudit.mode, "dry-run");
+  assert.deepEqual(importAudit.summary, { validated: 2, wouldUpsert: 2, inserted: 0, deduplicated: 0 });
   writeFileSync(verifiedFile, JSON.stringify({ prospects: [{
     ...discoveredArtifact.prospects[0],
     id: "prospect-cli-1",
