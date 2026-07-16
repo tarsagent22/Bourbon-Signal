@@ -26,6 +26,7 @@ for (const candidate of envCandidates) {
 }
 
 const APPLY = process.argv.includes('--apply');
+const VERIFY = process.argv.includes('--verify');
 const TEST_EMAIL = argValue('--test').trim().toLowerCase();
 const LIMIT_VALUE = Number(argValue('--limit') || '0');
 const LIMIT = Number.isFinite(LIMIT_VALUE) && LIMIT_VALUE > 0 ? LIMIT_VALUE : Infinity;
@@ -38,7 +39,7 @@ const FROM = 'Chandler Todd <chandler@bourbonsignal.com>';
 const REPLY_TO = 'chandler@bourbonsignal.com';
 const SITE_URL = 'https://www.bourbonsignal.com';
 const TEMPLATE_PATH = 'emails/newsletters/outbox/2026-07-15-free-member-conversion-preview.html';
-const CAMPAIGN_ID = 'free-member-conversion-2026-07-15-v2';
+const CAMPAIGN_ID = 'free-member-conversion-2026-07-15-v3';
 const EXCLUDED_EMAILS = new Set(['chandler@bourbonsignal.com', 'chandlertodd22@gmail.com']);
 const EXCLUDED_ROLES = new Set(['admin', 'retailer', 'vendor']);
 
@@ -115,15 +116,21 @@ function textFromHtml(html, unsubscribe) {
 }
 
 async function apiFetch(url, options = {}) {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  let payload = null;
-  try { payload = text ? JSON.parse(text) : null; } catch { payload = text; }
-  if (!response.ok) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const response = await fetch(url, options);
+    const text = await response.text();
+    let payload = null;
+    try { payload = text ? JSON.parse(text) : null; } catch { payload = text; }
+    if (response.ok) return payload;
+    if (response.status === 429 && attempt < 4) {
+      const retryAfter = Number(response.headers.get('retry-after') || '0');
+      await new Promise((resolve) => setTimeout(resolve, Math.max(350, retryAfter * 1000)));
+      continue;
+    }
     const safeMessage = typeof payload === 'string' ? payload.slice(0, 300) : JSON.stringify(payload).slice(0, 300);
     throw new Error(`${options.method || 'GET'} ${new URL(url).pathname} failed ${response.status}: ${safeMessage}`);
   }
-  return payload;
+  throw new Error(`${options.method || 'GET'} ${new URL(url).pathname} exhausted retries`);
 }
 
 async function allClerkUsers() {
@@ -236,6 +243,7 @@ for (const user of users) {
 const recipients = [...freeMembers].filter((email) => activeAudience.has(email)).sort().slice(0, LIMIT);
 const summary = {
   apply: APPLY,
+  verify: VERIFY,
   campaign: CAMPAIGN_ID,
   subject: SUBJECT,
   clerkUsers: users.length,
@@ -254,14 +262,37 @@ if (!APPLY) {
   process.exit(0);
 }
 
+const providerMessageIds = [];
 for (let index = 0; index < recipients.length; index += 1) {
   try {
-    await sendOne(recipients[index], template, founderRemaining, 'full');
+    const result = await sendOne(recipients[index], template, founderRemaining, 'full');
+    if (result?.id) providerMessageIds.push(result.id);
     summary.sent += 1;
   } catch (error) {
     summary.failed += 1;
     console.error(`recipient ${index + 1} failed: ${error instanceof Error ? error.message : String(error)}`);
   }
+  await new Promise((resolve) => setTimeout(resolve, 125));
 }
+
+if (VERIFY && providerMessageIds.length > 0) {
+  const events = {};
+  let checkFailed = 0;
+  for (const id of providerMessageIds) {
+    try {
+      const message = await apiFetch(`https://api.resend.com/emails/${id}`, {
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+      });
+      const event = String(message?.last_event || 'unknown');
+      events[event] = (events[event] || 0) + 1;
+    } catch {
+      checkFailed += 1;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 550));
+  }
+  summary.providerEvents = events;
+  summary.providerChecksFailed = checkFailed;
+}
+
 console.log(JSON.stringify(summary, null, 2));
-if (summary.failed > 0) process.exit(1);
+if (summary.failed > 0 || (VERIFY && summary.providerChecksFailed > 0)) process.exit(1);
