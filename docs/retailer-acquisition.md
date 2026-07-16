@@ -20,6 +20,7 @@ The normal path is:
 - The owner UI says “record” because it logs work completed elsewhere; it never sends.
 - Outcome reporting is grouped in SQL by state and outcome. It returns counts only, with no retailer or contact identities.
 - Draft copy contains no audience-size, reach, impression, or performance claims. Measured demand can inform rank but is not inserted into outreach copy.
+- Outreach drafting is limited to prospects explicitly qualified as small independent retailers. Large chains and unknown chain status remain research-only until Chandler changes that policy.
 
 ## Normalization and dedupe
 

@@ -297,14 +297,22 @@ try {
     ...discoveredArtifact.prospects[0],
     id: "prospect-cli-1",
     prospectState: "contact_verified",
+    fit: { independent: true },
     officialContact: { verified: true, channel: "email", evidenceId: "evidence-cli-1" },
+  }, {
+    ...discoveredArtifact.prospects[1],
+    id: "prospect-cli-chain",
+    prospectState: "contact_verified",
+    fit: { independent: false },
+    officialContact: { verified: true, channel: "email", evidenceId: "evidence-cli-chain" },
   }] }));
   const draftRun = runCli("scripts/retailer-acquisition/draft.mts", ["--input", verifiedFile, "--output", draftFile]);
   assert.equal(draftRun.status, 0, draftRun.stderr);
-  const draftArtifact = JSON.parse(readFileSync(draftFile, "utf8")) as { drafts: Array<{ status: string; approvalRequired: boolean }> };
+  const draftArtifact = JSON.parse(readFileSync(draftFile, "utf8")) as { drafts: Array<{ status: string; approvalRequired: boolean }>; skipped: Array<{ reason: string }> };
   assert.equal(draftArtifact.drafts.length, 1);
   assert.equal(draftArtifact.drafts[0]?.status, "draft");
   assert.equal(draftArtifact.drafts[0]?.approvalRequired, true);
+  assert.match(draftArtifact.skipped[0]?.reason || "", /small independent/i, "large or unverified-chain prospects must stay out of outreach drafts");
 } finally {
   rmSync(cliDirectory, { recursive: true, force: true });
 }

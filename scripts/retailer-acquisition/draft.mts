@@ -22,6 +22,13 @@ const drafts: Array<Record<string, unknown>> = [];
 
 for (const [index, value] of candidates.entries()) {
   const prospect = record(value);
+  const directFit = record(prospect.fit);
+  const scoredFit = record(record(record(prospect.score).inputs).fit);
+  const isSmallIndependent = directFit.independent === true || scoredFit.independent === true;
+  if (!isSmallIndependent) {
+    skipped.push({ index, reason: "Small independent retailer qualification is required; large chains and unverified chain status are held from outreach." });
+    continue;
+  }
   const contact = record(prospect.officialContact);
   const channel = String(contact.channel || "") as ProspectContactChannel;
   const verified = prospect.prospectState === "contact_verified" && contact.verified === true;
