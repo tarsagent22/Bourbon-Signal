@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import {
   getDefaultNotificationPreferences,
+  applyWeeklyIntelligencePreferenceTransition,
   normalizeNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
@@ -408,6 +409,22 @@ export async function POST(req: NextRequest) {
         verified: smsConsentedOnSave || Boolean(samePhone && existingSms?.verified),
       },
     };
+    const requestedNotificationPreferences = payload.notificationPreferences as unknown as Record<string, unknown>;
+    if (requestedNotificationPreferences.weeklyIntelligence !== undefined) {
+      notificationPreferences = {
+        ...notificationPreferences,
+        weeklyIntelligence: applyWeeklyIntelligencePreferenceTransition({
+          existing: existing.notificationPreferences.weeklyIntelligence,
+          requested: notificationPreferences.weeklyIntelligence,
+          now: new Date().toISOString(),
+        }),
+      };
+    } else {
+      notificationPreferences = {
+        ...notificationPreferences,
+        weeklyIntelligence: existing.notificationPreferences.weeklyIntelligence,
+      };
+    }
   }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);

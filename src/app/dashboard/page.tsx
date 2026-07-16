@@ -20,6 +20,7 @@ import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
+import { WeeklyIntelligenceCard } from "@/components/dashboard/WeeklyIntelligenceCard";
 import { getDefaultNotificationPreferences, type NotificationPreferences } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
@@ -2549,6 +2550,7 @@ export default function DashboardPage() {
           <div className="dashboard-workspace">
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
+          <WeeklyIntelligenceCard isSignedIn={isSignedIn} />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
             {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
               <div key={item.label} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", background: "rgba(10,8,5,0.42)", padding: "12px" }}>
@@ -3012,6 +3014,18 @@ export default function DashboardPage() {
                           setNotificationPrefs((prev) => ({
                             ...prev,
                             email: { ...prev.email, enabled: checked },
+                          }))
+                        }
+                      />
+
+                      <NotificationChannelCard
+                        title="Weekly intelligence email"
+                        description="A separate, optional weekly brief built from your saved markets, tracked bottles, Radar, fresh eligible alerts, and coverage."
+                        checked={notificationPrefs.weeklyIntelligence.emailEnabled}
+                        onCheckedChange={(checked) =>
+                          setNotificationPrefs((prev) => ({
+                            ...prev,
+                            weeklyIntelligence: { ...prev.weeklyIntelligence, emailEnabled: checked },
                           }))
                         }
                       />

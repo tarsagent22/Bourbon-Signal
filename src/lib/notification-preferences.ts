@@ -1,6 +1,12 @@
 export type EmailAlertMode = "all" | "major_only";
 export type SmsAlertMode = "major_only" | "specific_bottles";
 
+export interface WeeklyIntelligencePreference {
+  emailEnabled: boolean;
+  optedInAt: string | null;
+  unsubscribedAt: string | null;
+}
+
 export interface NotificationPreferences {
   onSite: {
     enabled: boolean;
@@ -19,6 +25,7 @@ export interface NotificationPreferences {
   sightings: {
     enabled: boolean;
   };
+  weeklyIntelligence: WeeklyIntelligencePreference;
 }
 
 export interface MemberAlertRecord {
@@ -46,6 +53,7 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   email: { enabled: false, mode: "major_only" },
   sms: { enabled: false, available: true, mode: "major_only", verified: false },
   sightings: { enabled: false },
+  weeklyIntelligence: { emailEnabled: false, optedInAt: null, unsubscribedAt: null },
 };
 
 export function getDefaultNotificationPreferences(): NotificationPreferences {
@@ -58,6 +66,7 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const email = (source.email && typeof source.email === "object" ? source.email : {}) as Record<string, unknown>;
   const sms = (source.sms && typeof source.sms === "object" ? source.sms : {}) as Record<string, unknown>;
   const sightings = (source.sightings && typeof source.sightings === "object" ? source.sightings : {}) as Record<string, unknown>;
+  const weeklyIntelligence = (source.weeklyIntelligence && typeof source.weeklyIntelligence === "object" ? source.weeklyIntelligence : {}) as Record<string, unknown>;
 
   const legacyDailyRoundup = email.mode === "daily_roundup";
   const mode = email.mode === "all" || email.mode === "major_only"
@@ -84,6 +93,31 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
     sightings: {
       enabled: typeof sightings.enabled === "boolean" ? sightings.enabled : DEFAULT_NOTIFICATION_PREFERENCES.sightings.enabled,
     },
+    weeklyIntelligence: {
+      emailEnabled: weeklyIntelligence.emailEnabled === true,
+      optedInAt: typeof weeklyIntelligence.optedInAt === "string" ? weeklyIntelligence.optedInAt : null,
+      unsubscribedAt: typeof weeklyIntelligence.unsubscribedAt === "string" ? weeklyIntelligence.unsubscribedAt : null,
+    },
+  };
+}
+
+export function applyWeeklyIntelligencePreferenceTransition(input: {
+  existing: WeeklyIntelligencePreference;
+  requested: Partial<WeeklyIntelligencePreference>;
+  now: string;
+}): WeeklyIntelligencePreference {
+  const emailEnabled = input.requested.emailEnabled === true;
+  if (emailEnabled) {
+    return {
+      emailEnabled: true,
+      optedInAt: input.existing.optedInAt || input.now,
+      unsubscribedAt: null,
+    };
+  }
+  return {
+    emailEnabled: false,
+    optedInAt: input.existing.optedInAt,
+    unsubscribedAt: input.existing.emailEnabled ? input.now : input.existing.unsubscribedAt,
   };
 }
 

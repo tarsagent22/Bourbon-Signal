@@ -25,6 +25,7 @@ export const QA_PREVIEW_PREFERENCES = {
     email: { enabled: true, mode: "major_only" as const },
     sms: { enabled: false, available: true, mode: "major_only" as const, verified: false },
     sightings: { enabled: false },
+    weeklyIntelligence: { emailEnabled: true, optedInAt: "2026-07-13T00:00:00.000Z", unsubscribedAt: null },
   },
   alertMode: "anything_notable" as const,
   bottleAlertPreferences: {
