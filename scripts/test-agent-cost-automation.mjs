@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildAutomationCostReport, sanitizeAutomationRun } from '../automation/bourbon-signal/automation-cost-report.mjs';
 import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourbon-signal/bottle-queue-autoprocess.mjs';
-import { buildSourceExpansionCollection } from '../automation/bourbon-signal/source-expansion-collector.mjs';
+import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
 import { collectReleaseRadarLeads } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
 import { classifyExpansionAutonomy } from '../automation/bourbon-signal/autonomy-threshold.mjs';
 import { rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
@@ -19,6 +19,16 @@ const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
 assert.equal(registry.schemaVersion, 1);
 assert.ok(registry.automations.some((entry) => entry.id === 'github-engine-watchdog' && entry.executionClass === 'script_only'));
 assert.ok(registry.automations.some((entry) => entry.id === 'hermes-bottle-queue' && entry.executionClass === 'script_only'));
+assert.equal(engineStageInvocation('discovery').executable, process.execPath);
+assert.ok(engineStageInvocation('discovery').script.endsWith(join('engine', 'src', 'discovery', 'state-source-discovery.mjs')));
+assert.ok(engineStageInvocation('probe').script.endsWith(join('engine', 'src', 'discovery', 'state-source-probe.mjs')));
+assert.throws(() => engineStageInvocation('publish'), /Unknown source-expansion stage/);
+assert.deepEqual(summarizeStageOutput([{ candidateCount: 3 }, { candidateCount: 4 }]), { candidates: 7, probeable: 0, blocked: 0 });
+assert.deepEqual(resolveScheduledStates({ states: [
+  { state: 'AA', lifecycleStage: 'active', lastDiscoveryAt: null },
+  { state: 'BB', lifecycleStage: 'discovery', lastDiscoveryAt: null },
+  { state: 'CC', lifecycleStage: 'probeable', lastDiscoveryAt: '2026-07-15T00:00:00Z' },
+] }, '2026-07-16T00:00:00Z'), ['BB', 'CC']);
 execFileSync(process.execPath, ['scripts/verify-automation-registry.mjs'], { cwd: root, stdio: 'pipe' });
 
 const cost = buildAutomationCostReport({
@@ -94,6 +104,15 @@ assert.equal(leadCollection.leads.length, 1);
 assert.equal(leadCollection.leads[0].status, 'new');
 assert.equal(leadCollection.leads[0].url, 'https://distillery.example/releases');
 assert.equal(leadCollection.leads[0].availabilitySemantics, 'announcement_only');
+assert.equal(leadCollection.summary.new, 1);
+const repeatedLeadCollection = await collectReleaseRadarLeads({
+  results: [
+    { title: 'Official new release', url: 'https://distillery.example/releases', description: 'Seen again.' },
+  ],
+  existingLedger: leadCollection,
+  generatedAt: '2026-07-17T12:00:00.000Z',
+});
+assert.equal(repeatedLeadCollection.summary.new, 0, 'repeat observations must not be reported as newly discovered leads');
 
 const safeAutonomy = classifyExpansionAutonomy({
   sourceAuthority: 'official', termsStatus: 'clear', authentication: 'none', identity: 'exact_store', availabilitySemantics: 'honest', verticalSlice: 'complete', shadowRuns: 3, canaryRuns: 2, withinBudget: true, reversible: true, outboundChange: false, pricingOrEntitlementChange: false, legalUncertainty: false,

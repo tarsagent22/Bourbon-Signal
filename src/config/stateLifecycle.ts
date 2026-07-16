@@ -25,7 +25,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "MO",
     "NV",
     "WA",
-    "WI"
+    "WI",
+    "UT"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -171,14 +172,25 @@ export const STATE_LIFECYCLE_CONFIG = {
     "UT": {
       "customerLabel": "Utah",
       "sourceLabel": "Utah DABS",
-      "publicStatus": "research_only",
+      "publicStatus": "active",
       "lifecycle": "aggregate_inventory_watch",
       "coverageTier": "aggregate_inventory_watch",
       "refinementLevel": "statewide",
       "inventoryAlertable": false,
       "watchAlertable": false,
       "shadowEligible": true,
-      "customerSummary": "DABS product locator, warehouse/store aggregate, allocated, and barrel-selection watch data. Not exact per-store shelf inventory yet."
+      "customerSummary": "DABS product locator, warehouse/store aggregate, allocated, and barrel-selection watch data. Not exact per-store shelf inventory yet.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-16T22:51:48.328Z",
+        "shadowArtifact": "engine/out/shadow/UT (three successful bounded runs on 2026-07-16; alerts disabled and production untouched)",
+        "canaryArtifact": "engine/out/canary/UT/site (two coherent local canary builds with Utah partition and zero Utah delivery alerts)",
+        "canaryPreviewUrl": "https://bourbonsignal.com",
+        "verticalSliceManifest": "engine/data/state-integration/UT.json",
+        "fixtureContract": "engine/data/state-fixtures/UT.json"
+      }
     },
     "MD-MONTGOMERY": {
       "customerLabel": "Maryland",

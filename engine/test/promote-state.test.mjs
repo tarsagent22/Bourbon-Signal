@@ -4,6 +4,7 @@ import test from 'node:test';
 import { prepareStatePromotion, rollbackPromotionFiles } from '../src/promote-state.mjs';
 
 function promotionInput() {
+  const hash = 'a'.repeat(64);
   const config = {
     activeStates: ['AA'],
     reliabilityPolicy: {
@@ -22,16 +23,26 @@ function promotionInput() {
     storeIdentity: { mode: 'exact_store', addressRequired: true, proof: 'proof' },
     sourceSemantics: { availability: 'binary', inventoryAlertable: true, watchAlertable: true },
     customerPaths: Object.fromEntries(['stateFilter', 'areaFilter', 'preferences', 'dashboard', 'dropFeedApi', 'finder', 'alerts', 'monitoring', 'export'].map((key) => [key, { status: 'verified', assertion: key }])),
-    evidence: { shadow: { runs: 3, artifact: 'shadow.json' }, canary: { runs: 2, artifact: 'canary.json' }, production: { url: 'https://preview.example.test', assertion: 'ok' } },
+    evidence: {
+      shadow: { runs: 3, artifact: 'shadow.json' },
+      canary: { runs: 2, artifact: 'canary.json' },
+      production: { url: 'https://preview.example.test', assertion: 'ok' },
+      immutablePromotionEvidence: {
+        schemaVersion: 1, state: 'ZZ', generatedAt: '2026-07-16T00:00:00.000Z', sourceConfigHash: hash,
+        previewUrl: 'https://preview.example.test',
+        shadowRuns: [1, 2, 3].map((index) => ({ runId: `shadow-${index}`, status: 'success', artifactHash: hash })),
+        canaryRuns: [1, 2].map((index) => ({ runId: `canary-${index}`, status: 'success', artifactHash: hash })),
+      },
+    },
   };
   const fixtures = { schemaVersion: 1, state: 'ZZ', cases: [
-    { id: 'positive', kind: 'positive_bottle_match', expected: { matches: true } },
-    { id: 'ordinary', kind: 'ordinary_vs_rare_negative', expected: { matches: false } },
-    { id: 'rye', kind: 'rye_cream_liqueur_rtd_exclusion', expected: { matches: false } },
-    { id: 'size', kind: 'size_or_multipack_exclusion', expected: { matches: false } },
-    { id: 'availability', kind: 'availability_semantics', expected: { quantity: null } },
-    { id: 'identity', kind: 'store_identity', expected: { storeId: 'zz-1' } },
-    { id: 'timestamp', kind: 'timestamp_freshness', expected: { freshness: 'fresh' } },
+    { id: 'positive', kind: 'positive_bottle_match', input: { rawName: 'test' }, expected: { matches: true } },
+    { id: 'ordinary', kind: 'ordinary_vs_rare_negative', input: { rawName: 'test' }, expected: { matches: false } },
+    { id: 'rye', kind: 'rye_cream_liqueur_rtd_exclusion', input: { rawName: 'test' }, expected: { matches: false } },
+    { id: 'size', kind: 'size_or_multipack_exclusion', input: { rawName: 'test' }, expected: { matches: false } },
+    { id: 'availability', kind: 'availability_semantics', input: { locationPrecision: 'store_level' }, expected: { quantity: null } },
+    { id: 'identity', kind: 'store_identity', input: { storeId: 'zz-1' }, expected: { storeId: 'zz-1' } },
+    { id: 'timestamp', kind: 'timestamp_freshness', input: { fetchedAt: '2026-07-16T00:00:00Z' }, expected: { freshness: 'fresh' } },
   ] };
   return { config, manifest, fixtures };
 }

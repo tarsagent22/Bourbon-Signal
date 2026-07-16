@@ -1,28 +1,28 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-12T00:25:38.623Z",
-  "totalCount": 6597,
-  "stateCount": 23,
+  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "totalCount": 4758,
+  "stateCount": 25,
   "states": [
     {
       "state": "AL",
       "file": "states/AL/drops.json",
-      "count": 1184
+      "count": 1551
     },
     {
       "state": "AZ",
       "file": "states/AZ/drops.json",
-      "count": 21
+      "count": 0
     },
     {
       "state": "CA",
       "file": "states/CA/drops.json",
-      "count": 0
+      "count": 20
     },
     {
       "state": "FL",
       "file": "states/FL/drops.json",
-      "count": 0
+      "count": 28
     },
     {
       "state": "GA",
@@ -32,27 +32,27 @@
     {
       "state": "IA",
       "file": "states/IA/drops.json",
-      "count": 1303
+      "count": 1548
     },
     {
       "state": "ID",
       "file": "states/ID/drops.json",
-      "count": 140
+      "count": 135
     },
     {
       "state": "IL",
       "file": "states/IL/drops.json",
-      "count": 181
+      "count": 199
     },
     {
       "state": "IN",
       "file": "states/IN/drops.json",
-      "count": 73
+      "count": 72
     },
     {
       "state": "KY",
       "file": "states/KY/drops.json",
-      "count": 0
+      "count": 1
     },
     {
       "state": "MD-MONTGOMERY",
@@ -77,37 +77,47 @@
     {
       "state": "NC",
       "file": "states/NC/drops.json",
-      "count": 530
+      "count": 727
     },
     {
       "state": "NV",
       "file": "states/NV/drops.json",
-      "count": 0
+      "count": 22
     },
     {
       "state": "OH",
       "file": "states/OH/drops.json",
-      "count": 560
+      "count": 399
     },
     {
       "state": "PA",
       "file": "states/PA/drops.json",
-      "count": 9
+      "count": 2
     },
     {
       "state": "SC",
       "file": "states/SC/drops.json",
-      "count": 77
+      "count": 3
     },
     {
       "state": "TN",
       "file": "states/TN/drops.json",
-      "count": 94
+      "count": 29
+    },
+    {
+      "state": "TX",
+      "file": "states/TX/drops.json",
+      "count": 4
+    },
+    {
+      "state": "UT",
+      "file": "states/UT/drops.json",
+      "count": 9
     },
     {
       "state": "VA",
       "file": "states/VA/drops.json",
-      "count": 2416
+      "count": 0
     },
     {
       "state": "WA",
@@ -119,5 +129,7 @@
       "file": "states/WI/drops.json",
       "count": 0
     }
-  ]
+  ],
+  "runId": "a7401de0a51cca45",
+  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
 }

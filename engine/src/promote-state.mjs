@@ -66,9 +66,10 @@ export function prepareStatePromotion({ state, config, manifest, fixtures, now =
         verifiedAt: now,
         shadowArtifact: manifest?.evidence?.shadow?.artifact || null,
         canaryArtifact: manifest?.evidence?.canary?.artifact || null,
-        canaryPreviewUrl: manifest?.evidence?.production?.url || null,
+        canaryPreviewUrl: manifest?.evidence?.immutablePromotionEvidence?.previewUrl || null,
         verticalSliceManifest: `engine/data/state-integration/${normalized}.json`,
         fixtureContract: `engine/data/state-fixtures/${normalized}.json`,
+        immutableEvidence: manifest?.evidence?.immutablePromotionEvidence || null,
       },
     };
   }
@@ -132,6 +133,8 @@ export async function rollbackPromotionFiles(transaction) {
 }
 
 function argValue(flag) {
+  const inline = process.argv.find((value) => value.startsWith(`${flag}=`));
+  if (inline) return inline.slice(flag.length + 1);
   const index = process.argv.indexOf(flag);
   return index >= 0 ? process.argv[index + 1] : null;
 }

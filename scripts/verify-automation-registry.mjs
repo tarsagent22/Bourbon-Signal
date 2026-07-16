@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 const ROOT = process.cwd();
 const REGISTRY_PATH = path.join(ROOT, 'automation', 'bourbon-signal', 'automation-registry.json');
 const SCHEMA_PATH = path.join(ROOT, 'automation', 'bourbon-signal', 'automation-registry.schema.json');
-const KNOWN_HERMES_JOB_IDS = new Set(['3244b5822d87', '59eb8dd6ad07', '00f56edff2e9', 'bf9e05209184', 'a7e40e29f603', '8143c08618e6']);
+const HERMES_JOBS_PATH = path.join(ROOT, 'automation', 'bourbon-signal', 'hermes-jobs.json');
 const OWNER_LAYERS = new Set(['deterministic', 'sensor', 'operator', 'brief']);
 const EXECUTION_CLASSES = new Set(['script_only', 'script_then_agent', 'agent']);
 const MUTATION_CLASSES = new Set(['none', 'internal_state', 'snapshot_activation']);
@@ -23,7 +23,7 @@ function activeWorkflowPaths() {
     .sort();
 }
 
-export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkflowPaths() } = {}) {
+export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkflowPaths(), hermesJobs = JSON.parse(readFileSync(HERMES_JOBS_PATH, 'utf8')) } = {}) {
   const failures = [];
   if (!isPlainObject(registry) || registry.schemaVersion !== 1 || !Array.isArray(registry.automations)) {
     return { ok: false, failures: ['Registry must be an object with schemaVersion 1 and an automations array.'] };
@@ -31,6 +31,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
   const ids = new Set();
   const githubPaths = new Set();
   const hermesIds = new Set();
+  const liveHermesJobs = new Map((Array.isArray(hermesJobs?.jobs) ? hermesJobs.jobs : []).map((job) => [job.jobId, job]));
   for (const entry of registry.automations) {
     if (!isPlainObject(entry)) { fail(failures, 'Every registry entry must be an object.'); continue; }
     const prefix = `Registry entry ${String(entry.id || 'unknown')}`;
@@ -57,14 +58,22 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
       if (typeof entry.workflowPath !== 'string' || !workflowPaths.includes(entry.workflowPath)) fail(failures, `${prefix} points at a missing active GitHub workflow.`);
       githubPaths.add(entry.workflowPath);
     } else if (entry.platform === 'hermes_job') {
-      if (!KNOWN_HERMES_JOB_IDS.has(entry.hermesJobId)) fail(failures, `${prefix} has an unknown Hermes job id.`);
+      const liveJob = liveHermesJobs.get(entry.hermesJobId);
+      if (!liveJob) fail(failures, `${prefix} has an unknown Hermes job id.`);
+      else {
+        const expectsNoAgent = entry.executionClass === 'script_only';
+        if (liveJob.noAgent !== expectsNoAgent) fail(failures, `${prefix} executionClass does not match live no_agent=${liveJob.noAgent}.`);
+        if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script_only job is missing a live scheduler script.`);
+        if (String(liveJob.workdir || '').split(/[\\/]/).filter(Boolean).pop() !== path.basename(ROOT)) fail(failures, `${prefix} live scheduler workdir drifted from the repository root.`);
+        if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script_only job must expose its live cron pause kill switch.`);
+      }
       hermesIds.add(entry.hermesJobId);
     } else fail(failures, `${prefix} has an invalid platform.`);
     if (/watchdog/i.test(String(entry.id)) && entry.executionClass !== 'script_only') fail(failures, `${prefix} watchdogs must be script_only.`);
   }
   for (const workflowPath of workflowPaths) if (!githubPaths.has(workflowPath)) fail(failures, `Active GitHub workflow is unclassified: ${workflowPath}.`);
   for (const workflowPath of githubPaths) if (!workflowPaths.includes(workflowPath)) fail(failures, `Registry workflow is not active: ${workflowPath}.`);
-  for (const hermesJobId of KNOWN_HERMES_JOB_IDS) if (!hermesIds.has(hermesJobId)) fail(failures, `Known Hermes job is unclassified: ${hermesJobId}.`);
+  for (const hermesJobId of liveHermesJobs.keys()) if (!hermesIds.has(hermesJobId)) fail(failures, `Exported Hermes job is unclassified: ${hermesJobId}.`);
   return { ok: failures.length === 0, failures };
 }
 
@@ -72,6 +81,7 @@ function main() {
   const failures = [];
   if (!existsSync(REGISTRY_PATH)) failures.push('Missing automation/bourbon-signal/automation-registry.json.');
   if (!existsSync(SCHEMA_PATH)) failures.push('Missing automation/bourbon-signal/automation-registry.schema.json.');
+  if (!existsSync(HERMES_JOBS_PATH)) failures.push('Missing automation/bourbon-signal/hermes-jobs.json scheduler export.');
   if (failures.length) return { ok: false, failures };
   let registry;
   try { registry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf8')); } catch { return { ok: false, failures: ['Automation registry is not valid JSON.'] }; }

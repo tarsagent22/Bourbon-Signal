@@ -51,6 +51,21 @@ test('new active states require staged promotion evidence', () => {
   assert.match(validateExpansionLifecycle(config).failures.join('\n'), /vertical-slice manifest/i);
   config.states.ZZ.promotionEvidence.verticalSliceManifest = 'engine/data/state-integration/ZZ.json';
   config.states.ZZ.promotionEvidence.fixtureContract = 'engine/data/state-fixtures/ZZ.json';
-  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://preview.example.test';
+  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://preview-zz.vercel.app';
+  assert.equal(validateExpansionLifecycle(config).ok, false, 'self-declared counters and paths are not immutable evidence');
+  assert.match(validateExpansionLifecycle(config).failures.join('\n'), /immutable promotion evidence/i);
+  const hash = 'a'.repeat(64);
+  config.states.ZZ.promotionEvidence.immutableEvidence = {
+    schemaVersion: 1,
+    state: 'ZZ',
+    generatedAt: '2026-07-13T00:00:00.000Z',
+    sourceConfigHash: hash,
+    previewUrl: 'https://preview-zz.vercel.app',
+    shadowRuns: [1, 2, 3].map((index) => ({ runId: `shadow-${index}`, status: 'success', artifactHash: hash })),
+    canaryRuns: [1, 2].map((index) => ({ runId: `canary-${index}`, status: 'success', artifactHash: hash })),
+  };
   assert.equal(validateExpansionLifecycle(config).ok, true);
+  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://bourbonsignal.com';
+  config.states.ZZ.promotionEvidence.immutableEvidence.previewUrl = 'https://bourbonsignal.com';
+  assert.equal(validateExpansionLifecycle(config).ok, false, 'production origin cannot masquerade as an isolated canary preview');
 });

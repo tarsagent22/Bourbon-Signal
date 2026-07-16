@@ -130,6 +130,8 @@ async function loadSite(siteDir, state) {
 }
 
 function argValue(flag) {
+  const inline = process.argv.find((value) => value.startsWith(`${flag}=`));
+  if (inline) return inline.slice(flag.length + 1);
   const index = process.argv.indexOf(flag);
   return index >= 0 ? process.argv[index + 1] : null;
 }

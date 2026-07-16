@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { selectRotatingStateCohort } from '../../engine/src/discovery/state-source-discovery.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const execFile = promisify(execFileCallback);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, '../..');
 const DEFAULT_OUTPUT = path.join(SCRIPT_DIR, 'reports', 'source-expansion-collector-latest.json');
+const CANDIDATE_REGISTRY = path.join(ROOT, 'engine', 'data', 'state-expansion-candidates.json');
 const STATE_PATTERN = /^(?:[A-Z]{2}|MD-MONTGOMERY)$/;
 const MAX_STATES_PER_RUN = 5;
 
@@ -30,7 +32,20 @@ export function normalizeStates(value) {
 
 function nonNegative(value) { return Math.max(0, Math.min(1_000_000, Math.floor(Number(value) || 0))); }
 
-function stageSummary(result) {
+export function resolveScheduledStates(registry, at = new Date().toISOString()) {
+  const candidates = (Array.isArray(registry?.states) ? registry.states : [])
+    .filter((state) => !['active', 'alert_grade'].includes(state?.lifecycleStage));
+  return selectRotatingStateCohort(candidates, { now: at, cohortSize: MAX_STATES_PER_RUN }).map((state) => state.state);
+}
+
+export function summarizeStageOutput(result) {
+  if (Array.isArray(result)) {
+    return {
+      candidates: result.reduce((total, row) => total + nonNegative(row?.candidateCount ?? row?.summary?.candidates), 0),
+      probeable: result.reduce((total, row) => total + nonNegative(row?.summary?.probeable), 0),
+      blocked: result.reduce((total, row) => total + nonNegative(row?.summary?.blocked), 0),
+    };
+  }
   const summary = result?.summary && typeof result.summary === 'object' ? result.summary : {};
   return { candidates: nonNegative(summary.candidates), probeable: nonNegative(summary.probeable), blocked: nonNegative(summary.blocked) };
 }
@@ -77,9 +92,21 @@ function collectExpansionCandidates(stages) {
   return [...candidates.values()].sort((left, right) => left.state.localeCompare(right.state) || left.source.localeCompare(right.source)).slice(0, 100);
 }
 
+export function engineStageInvocation(stage) {
+  const relative = stage === 'discovery'
+    ? 'src/discovery/state-source-discovery.mjs'
+    : stage === 'probe'
+      ? 'src/discovery/state-source-probe.mjs'
+      : null;
+  if (!relative) throw new Error(`Unknown source-expansion stage ${stage}.`);
+  return { executable: process.execPath, script: path.join(ROOT, 'engine', relative) };
+}
+
 async function runEngineStage({ stage, states }) {
-  const script = stage === 'discovery' ? 'discover:sources' : 'probe:sources';
-  const { stdout = '' } = await execFile('npm', ['--prefix', 'engine', 'run', script, '--', `--states=${states.join(',')}`], { cwd: ROOT, maxBuffer: 200_000 });
+  const invocation = engineStageInvocation(stage);
+  const args = [invocation.script, `--states=${states.join(',')}`];
+  if (stage === 'discovery') args.push(`--max-queries=${MAX_STATES_PER_RUN * 4}`);
+  const { stdout = '' } = await execFile(invocation.executable, args, { cwd: path.join(ROOT, 'engine'), maxBuffer: 200_000 });
   let parsed = {};
   try { parsed = JSON.parse(stdout); } catch { /* Engine artifacts are the authority; console output is optional. */ }
   const candidateRows = Array.isArray(parsed?.expansionCandidates) ? parsed.expansionCandidates : Array.isArray(parsed?.candidates) ? parsed.candidates : [];
@@ -88,7 +115,7 @@ async function runEngineStage({ stage, states }) {
     states,
     ok: true,
     artifact: stage === 'discovery' ? 'engine/out/discovery/<STATE>.json' : 'engine/out/probes/<STATE>.json',
-    summary: stageSummary(parsed),
+    summary: summarizeStageOutput(parsed),
     expansionCandidates: candidateRows,
   };
 }
@@ -124,10 +151,13 @@ export async function buildSourceExpansionCollection({ states, execute = false, 
 }
 
 export async function main(argv = process.argv.slice(2)) {
+  const at = option(argv, 'at') || new Date().toISOString();
+  const requestedStates = option(argv, 'states');
+  const states = requestedStates || resolveScheduledStates(JSON.parse(await readFile(CANDIDATE_REGISTRY, 'utf8')), at).join(',');
   const report = await buildSourceExpansionCollection({
-    states: option(argv, 'states'),
+    states,
     execute: argv.includes('--execute'),
-    generatedAt: option(argv, 'at') || new Date().toISOString(),
+    generatedAt: at,
   });
   if (argv.includes('--apply')) {
     const output = path.resolve(option(argv, 'output') || DEFAULT_OUTPUT);

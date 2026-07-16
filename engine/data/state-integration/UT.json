@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "state": "UT",
+  "lifecycle": {
+    "customerLabel": "Utah",
+    "publicStatus": "active",
+    "coverageTier": "aggregate_inventory_watch",
+    "refinementLevel": "statewide"
+  },
+  "collector": {
+    "sourceIds": [
+      "ut:configured:e8b79dfccb741688",
+      "ut:configured:97cd72794e623fd2",
+      "ut:configured:fedd445806269ff7",
+      "ut:precision:product-locator-datatables"
+    ],
+    "registration": "engine/src/state-sources.mjs and engine/src/precision-probes.mjs; bounded shared source runtime with official Utah DABS allowlisted sources"
+  },
+  "storeIdentity": {
+    "mode": "statewide_and_store_aggregate",
+    "addressRequired": false,
+    "proof": "Utah DABS aggregate rows retain statewide/store-aggregate precision and never invent exact store IDs, addresses, or shelf quantities."
+  },
+  "sourceSemantics": {
+    "availability": "Official allocated-release notices and board/warehouse aggregate context; not exact per-store shelf inventory.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": { "status": "verified", "assertion": "Lifecycle-backed state controls include Utah after promotion." },
+    "areaFilter": { "status": "not_applicable", "reason": "Current Utah precision is statewide/store aggregate, so no false city or store-area filter is exposed." },
+    "preferences": { "status": "verified", "assertion": "Preference validation derives supported states from active lifecycle configuration." },
+    "dashboard": { "status": "verified", "assertion": "Dashboard state selection derives from the active lifecycle and preserves the Utah caveat." },
+    "dropFeedApi": { "status": "verified", "assertion": "Utah rows are partitioned and filterable through the Drop Feed API while remaining informational and non-alertable." },
+    "finder": { "status": "not_applicable", "reason": "Finder requires verified store/address identity; aggregate Utah rows do not fabricate that identity." },
+    "alerts": { "status": "verified", "assertion": "Both lifecycle and row semantics force Utah inventory and watch alert delivery off." },
+    "monitoring": { "status": "verified", "assertion": "State coverage, source runtime history, SLO artifacts, quarantine, and watchdog partition checks include Utah." },
+    "export": { "status": "verified", "assertion": "Canary and production exporters create a Utah state partition with official provenance and original timestamps." }
+  },
+  "evidence": {
+    "shadow": { "runs": 3, "artifact": "engine/out/shadow/UT (three successful bounded runs on 2026-07-16; alerts disabled and production untouched)" },
+    "canary": { "runs": 2, "artifact": "engine/out/canary/UT/site (two coherent local canary builds with Utah partition and zero Utah delivery alerts)" },
+    "production": { "url": "https://bourbonsignal.com", "assertion": "Promotion remains non-deploying; guarded release and post-deploy smoke verification are required before completion." }
+  }
+}

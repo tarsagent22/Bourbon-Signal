@@ -4,7 +4,7 @@ import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs'
 import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
-import { getStateLifecycle } from './state-lifecycle.mjs';
+import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
@@ -246,7 +246,7 @@ function publicSignal(signal, bible, freshness = null) {
             : isInRetailerInventory
               ? 'Indiana is a private retail market. Identity-bound first-party retailer inventory and verified store-orderability rows may alert with a verify-before-driving caveat; binary availability is not an exact shelf count.'
               : signal.inventorySemantics;
-  const canAlertAsInventory = isCostcoWarehouseInventory
+  const policyCanAlertAsInventory = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
@@ -255,7 +255,7 @@ function publicSignal(signal, bible, freshness = null) {
         : signal.state === 'IN'
           ? (isInRetailerEvent ? isInRetailerInventory : Boolean(signal.canAlertAsInventory))
           : Boolean(signal.canAlertAsInventory) || isTnRetailerInventory || isScRetailerInventory;
-  const canAlertAsWatch = isCostcoWarehouseInventory
+  const policyCanAlertAsWatch = isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
@@ -264,6 +264,8 @@ function publicSignal(signal, bible, freshness = null) {
         : signal.state === 'IN'
           ? Boolean(signal.canAlertAsWatch) && (!isInRetailerEvent || isIndianaRetailerSignalIdentity(signal))
           : Boolean(signal.canAlertAsWatch) || isTnRetailerInventory || isScRetailerInventory;
+  const canAlertAsInventory = lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
+  const canAlertAsWatch = lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -506,11 +508,13 @@ function buildStores(signals) {
 }
 
 function signalCanAlertAsInventory(signal) {
+  if (!lifecycleAllowsInventoryAlert(signal.state)) return false;
   if (signal.state === 'AZ') return isArizonaRetailerInventory(signal);
   return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }
 
 function signalCanAlertAsWatch(signal) {
+  if (!lifecycleAllowsWatchAlert(signal.state)) return false;
   if (signal.state === 'AZ') return Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal);
   return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
 }

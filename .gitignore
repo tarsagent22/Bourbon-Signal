@@ -10,3 +10,6 @@ PROMPT*.md
 .state-promotion-transactions/
 data/retailer-acquisition/
 .env*.local
+.vercel/.env.*.local
+.vercel/output/
+/out/

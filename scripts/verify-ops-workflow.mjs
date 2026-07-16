@@ -129,10 +129,20 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
     && enginePackageJson.scripts?.['verify:fl']
     && /FLORIDA_RETAILER_IDENTITIES/.test(read('engine/src/florida-retailer-policy.mjs'))
     && /isFloridaRetailerInventory/.test(read('engine/src/export-site-contract.mjs'));
-  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory) continue;
-  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage, unless it is explicitly Costco-only.`);
+  const isHardenedUtahAggregateWatch = state === 'UT'
+    && customerStates.has('UT')
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.lifecycle === 'aggregate_inventory_watch'
+    && lifecycle?.coverageTier === 'aggregate_inventory_watch'
+    && lifecycle?.inventoryAlertable === false
+    && lifecycle?.watchAlertable === false
+    && enginePackageJson.scripts?.['verify:ut']
+    && existsSync(path.join(root, 'engine/data/state-integration/UT.json'))
+    && existsSync(path.join(root, 'engine/data/state-fixtures/UT.json'));
+  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedUtahAggregateWatch) continue;
+  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for its explicitly verified customer-facing coverage contract.`);
   if (lifecycle?.publicStatus !== 'research_only') {
-    fail(`${state} should have explicit research_only lifecycle status unless it is explicitly Costco-only.`);
+    fail(`${state} should have explicit research_only lifecycle status unless it has an explicitly verified customer-facing coverage contract.`);
   }
 }
 if (stateLifecycleConfig.states?.SC?.publicStatus !== 'active'
@@ -209,7 +219,7 @@ for (const phrase of ['aggregateOnly: true', 'containsPrompts: false', 'contains
   if (!automationCost.includes(phrase)) fail(`Automation cost report must keep aggregate-only telemetry: ${phrase}`);
 }
 const sourceExpansionCollector = read('automation/bourbon-signal/source-expansion-collector.mjs');
-for (const phrase of ['MAX_STATES_PER_RUN', "'discover:sources'", "'probe:sources'", 'canPromote: false', 'canPublish: false']) {
+for (const phrase of ['MAX_STATES_PER_RUN', 'state-source-discovery.mjs', 'state-source-probe.mjs', 'canPromote: false', 'canPublish: false']) {
   if (!sourceExpansionCollector.includes(phrase)) fail(`Source expansion collector is missing bounded deterministic contract: ${phrase}`);
 }
 const radarLeadCollector = read('automation/bourbon-signal/release-radar-lead-collector.mjs');

@@ -1,17 +1,216 @@
 {
   "schemaVersion": "bourbon-signal-browser-benchmark-v1",
   "purpose": "Compare agent browser support for exploratory investigation and visual QA only; deterministic CDP remains the production collector.",
-  "measurementFields": ["completed", "durationMs", "modelTokens", "screenshots", "toolCalls", "reproducibility", "userSessionDependence", "collectorConvertible"],
+  "measurementFields": [
+    "completed",
+    "durationMs",
+    "modelTokens",
+    "screenshots",
+    "toolCalls",
+    "reproducibility",
+    "userSessionDependence",
+    "collectorConvertible"
+  ],
   "tasks": [
-    { "id": "local-feed-visual", "category": "local_visual_qa", "description": "Verify the signed-out drop-feed loading, empty, and error treatments in a local build.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "local-filter-interaction", "category": "local_visual_qa", "description": "Change a state and area filter in the local product UI and verify visible result state.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "local-alert-preferences", "category": "local_visual_qa", "description": "Inspect local alert preference validation and disabled controls without submitting changes.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "mobile-feed-375", "category": "mobile_responsive", "description": "Check the drop feed at a 375px viewport and capture a reproducible screenshot.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "mobile-dashboard-768", "category": "mobile_responsive", "description": "Check the dashboard at a 768px viewport and verify no clipped primary controls.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "dynamic-endpoint-ohlq", "category": "dynamic_endpoint_discovery", "description": "Identify a first-party OHLQ endpoint from a bounded rendered page without retaining the page body.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "dynamic-endpoint-nh", "category": "dynamic_endpoint_discovery", "description": "Attempt New Hampshire endpoint discovery and record an honest access blocker if the official route is challenged.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "owner-only-navigation", "category": "authenticated_owner_navigation", "description": "Navigate one owner-only diagnostic route with a controlled owner session; do not use it for collection.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "source-identity-redirect", "category": "source_identity_redirect", "description": "Verify one retailer source identity and its bounded HTTPS redirect chain.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } },
-    { "id": "difficult-js-source", "category": "difficult_js_investigation", "description": "Investigate one JavaScript-rendered source and determine whether the finding can become a deterministic collector.", "measurements": { "codex_native": { "status": "pending", "reason": "No native browser binding was available in this environment.", "metrics": null }, "hermes_browser": { "status": "pending", "reason": "No Hermes browser execution or telemetry is available in this environment.", "metrics": null } } }
+    {
+      "id": "local-feed-visual",
+      "category": "local_visual_qa",
+      "description": "Verify the signed-out drop-feed loading, empty, and error treatments in a local build.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "Hermes browser is remote and had no safe local tunnel to the Windows development server; no local-only result was claimed.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "local-filter-interaction",
+      "category": "local_visual_qa",
+      "description": "Change a state and area filter in the local product UI and verify visible result state.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "Hermes browser is remote and had no safe local tunnel to the Windows development server; no local interaction result was claimed.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "local-alert-preferences",
+      "category": "local_visual_qa",
+      "description": "Inspect local alert preference validation and disabled controls without submitting changes.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "Hermes browser is remote and no controlled authenticated local session was available; no preferences were submitted.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "mobile-feed-375",
+      "category": "mobile_responsive",
+      "description": "Check the drop feed at a 375px viewport and capture a reproducible screenshot.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "The Hermes browser tool exposed no deterministic viewport-size control, so a 375px result was not fabricated.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "mobile-dashboard-768",
+      "category": "mobile_responsive",
+      "description": "Check the dashboard at a 768px viewport and verify no clipped primary controls.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "The Hermes browser tool exposed no deterministic viewport-size control, so a 768px result was not fabricated.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "dynamic-endpoint-ohlq",
+      "category": "dynamic_endpoint_discovery",
+      "description": "Identify a first-party OHLQ endpoint from a bounded rendered page without retaining the page body.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "completed",
+          "reason": "Real navigation reproduced the Cloudflare security-verification blocker; no endpoint or inventory claim was made. Existing isolated CDP remains the deterministic OHLQ collector.",
+          "metrics": {
+            "completed": true,
+            "durationMs": 15233,
+            "modelTokens": null,
+            "screenshots": 0,
+            "toolCalls": 1,
+            "reproducibility": 5,
+            "userSessionDependence": "none",
+            "collectorConvertible": true,
+            "result": "Real navigation reproduced the Cloudflare security-verification blocker; no endpoint or inventory claim was made. Existing isolated CDP remains the deterministic OHLQ collector."
+          }
+        }
+      }
+    },
+    {
+      "id": "dynamic-endpoint-nh",
+      "category": "dynamic_endpoint_discovery",
+      "description": "Attempt New Hampshire endpoint discovery and record an honest access blocker if the official route is challenged.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "completed",
+          "reason": "Real navigation reached the official NH catalog/stock surface. Two console endpoint-inspection attempts failed in the browser runtime, so no undocumented endpoint was claimed.",
+          "metrics": {
+            "completed": true,
+            "durationMs": 33411,
+            "modelTokens": null,
+            "screenshots": 0,
+            "toolCalls": 3,
+            "reproducibility": 4,
+            "userSessionDependence": "none",
+            "collectorConvertible": false,
+            "result": "Real navigation reached the official NH catalog/stock surface. Two console endpoint-inspection attempts failed in the browser runtime, so no undocumented endpoint was claimed."
+          }
+        }
+      }
+    },
+    {
+      "id": "owner-only-navigation",
+      "category": "authenticated_owner_navigation",
+      "description": "Navigate one owner-only diagnostic route with a controlled owner session; do not use it for collection.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "A real signed-out run reached the sign-in redirect in 12,946ms; a controlled owner session was unavailable and no credentials were typed.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "source-identity-redirect",
+      "category": "source_identity_redirect",
+      "description": "Verify one retailer source identity and its bounded HTTPS redirect chain.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "pending",
+          "reason": "The production apex redirect was measured in 11,396ms, but it is not a retailer-source redirect; the requested source-identity result remains pending.",
+          "metrics": null
+        }
+      }
+    },
+    {
+      "id": "difficult-js-source",
+      "category": "difficult_js_investigation",
+      "description": "Investigate one JavaScript-rendered source and determine whether the finding can become a deterministic collector.",
+      "measurements": {
+        "codex_native": {
+          "status": "pending",
+          "reason": "A real Codex native-browser invocation failed before navigation with OS error 2 (browser binding unavailable in this Windows background runtime).",
+          "metrics": null
+        },
+        "hermes_browser": {
+          "status": "completed",
+          "reason": "Real navigation reached the Oregon Liquor Search age-gated application shell; no repeatable inventory endpoint was proven and Oregon remains research-only.",
+          "metrics": {
+            "completed": true,
+            "durationMs": 38802,
+            "modelTokens": null,
+            "screenshots": 0,
+            "toolCalls": 1,
+            "reproducibility": 4,
+            "userSessionDependence": "none",
+            "collectorConvertible": false,
+            "result": "Real navigation reached the Oregon Liquor Search age-gated application shell; no repeatable inventory endpoint was proven and Oregon remains research-only."
+          }
+        }
+      }
+    }
   ]
 }

@@ -81,10 +81,12 @@ export async function fetchBraveReleaseRadarLeads({ apiKey, queries = DEFAULT_QU
 export async function collectReleaseRadarLeads({ results = [], existingLedger = { leads: [] }, generatedAt = new Date().toISOString() } = {}) {
   const existing = Array.isArray(existingLedger?.leads) ? existingLedger.leads : [];
   const byUrl = new Map(existing.map((lead) => [canonicalLeadUrl(lead?.url), lead]).filter(([url]) => Boolean(url)));
+  let newlyAdded = 0;
   for (const raw of Array.isArray(results) ? results.slice(0, 200) : []) {
     const lead = normalizeResult(raw);
     if (!lead) continue;
     const previous = byUrl.get(lead.url);
+    if (!previous) newlyAdded += 1;
     byUrl.set(lead.url, previous ? {
       ...previous,
       title: previous.title || lead.title,
@@ -107,7 +109,7 @@ export async function collectReleaseRadarLeads({ results = [], existingLedger = 
     canCreatePullRequest: false,
     canCreateAlerts: false,
     leads,
-    summary: { total: leads.length, new: leads.filter((lead) => lead.status === 'new').length, reviewRequired: leads.filter((lead) => lead.status !== 'dismissed').length },
+    summary: { total: leads.length, new: newlyAdded, reviewRequired: leads.filter((lead) => lead.status !== 'dismissed').length },
   };
 }
 

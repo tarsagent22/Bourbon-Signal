@@ -1,6 +1,7 @@
 {
   "schemaVersion": "bourbon-signal-state-expansion-pilots-v1",
-  "caveat": "This ledger records repository baselines only. No live discovery, collection, activation, alerting, or customer-visible state change was run for this change.",
+  "generatedAt": "2026-07-16T22:59:26.140Z",
+  "caveat": "Discovery and probe evidence is not inventory truth. Utah is the only customer-facing promotion in this pilot, and it remains aggregate, informational, and non-alertable.",
   "pilots": [
     {
       "state": "OR",
@@ -8,8 +9,8 @@
       "lifecycleStage": "discovery",
       "customerActivationChanged": false,
       "evidence": [
-        { "status": "unmeasured_repository_baseline", "reference": "engine/src/state-sources.mjs", "observation": "Oregon is disabled for production and described as research-only until reliable store-level rows exist." },
-        { "status": "unmeasured_repository_baseline", "reference": "src/config/state-lifecycle.json", "observation": "Oregon remains research-only in the customer lifecycle configuration." }
+        { "status": "measured", "reference": "https://www.oregonliquorsearch.com/", "observation": "Hermes browser reached the rendered Oregon Liquor Search surface; no repeatable current store-inventory endpoint was proven, so Oregon remains research-only." },
+        { "status": "measured", "reference": ".github/workflows/state-source-browser-probe.yml", "observation": "A bounded deterministic CDP lane now retries allowlisted dynamic source research twice weekly without publication or alert side effects." }
       ]
     },
     {
@@ -18,18 +19,31 @@
       "lifecycleStage": "discovery",
       "customerActivationChanged": false,
       "evidence": [
-        { "status": "unmeasured_repository_baseline", "reference": "src/config/state-lifecycle.json", "observation": "New Hampshire remains research-only until official data is accessible without Cloudflare or Turnstile failures." },
-        { "status": "unmeasured_repository_baseline", "reference": "engine/src/state-sources.mjs", "observation": "Existing official outlet/product source routes are retained as research inputs only." }
+        { "status": "measured", "reference": "https://www.liquorandwineoutlets.com/", "observation": "Hermes browser reached the official catalog surface, but no verified current store-inventory semantics were established; New Hampshire remains research-only." },
+        { "status": "measured", "reference": "engine/out/shadow/NH", "observation": "Three bounded shadow attempts retained isolated evidence with alert delivery disabled and no production publication." }
       ]
     },
     {
       "state": "CO",
       "sourceClass": "net_new_private_retailer_state_hybrid",
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "probeable",
       "customerActivationChanged": false,
       "evidence": [
-        { "status": "unmeasured_repository_baseline", "reference": "engine/data/state-expansion-candidates.json", "observation": "Colorado is an explicit private-market discovery candidate with no bounded factory run recorded." },
-        { "status": "unmeasured_repository_baseline", "reference": "engine/src/discovery/state-source-discovery.mjs", "observation": "The future run is constrained to compact discovery-only candidates and cannot promote inventory or activation." }
+        { "status": "measured", "reference": "engine/out/discovery/CO.json", "observation": "A bounded Brave run produced compact search-discovery candidates; all remained non-promoting and non-inventory evidence." },
+        { "status": "measured", "reference": "engine/out/probes/CO.json", "observation": "Eight HTTP-first candidate probes produced catalog, blocked, and browser-escalation classifications; no candidate was made customer-active or alert-grade." }
+      ]
+    },
+    {
+      "state": "UT",
+      "sourceClass": "official_control_board_aggregate_inventory_and_release_watch",
+      "lifecycleStage": "active",
+      "customerActivationChanged": true,
+      "alertGrade": false,
+      "evidence": [
+        { "status": "measured", "reference": "engine/out/shadow/UT", "observation": "Three successful shadow collections used official Utah DABS sources with alerts disabled and production untouched." },
+        { "status": "measured", "reference": "engine/out/canary/UT/site", "observation": "Two coherent canary builds produced a Utah partition and zero delivery-eligible Utah alerts." },
+        { "status": "measured", "reference": "engine/data/state-integration/UT.json", "observation": "Atomic promotion passed capacity, fixtures, vertical-slice, rollback, and coherent-site checks." },
+        { "status": "measured", "reference": "engine/out/site/states/UT/drops.json", "observation": "Full guarded refresh produced 9 informational Utah drops from 62 collected signals, with 0 delivery-eligible Utah alerts." }
       ]
     }
   ]

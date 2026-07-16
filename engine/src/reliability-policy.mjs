@@ -14,7 +14,38 @@ export const DEFAULT_EXPANSION_PROMOTION_POLICY = Object.freeze({
   requireVerticalSliceManifest: true,
   requireFixtureContract: true,
   requireCanaryPreviewUrl: true,
+  requireImmutableEvidence: true,
 });
+
+const SHA256_RE = /^[a-f0-9]{64}$/i;
+const PRODUCTION_HOSTS = new Set(['bourbonsignal.com', 'www.bourbonsignal.com']);
+
+function isIsolatedPreviewUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !PRODUCTION_HOSTS.has(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function validEvidenceRuns(runs, minimum) {
+  if (!Array.isArray(runs) || runs.length < minimum) return false;
+  const ids = new Set();
+  for (const run of runs) {
+    if (!run || run.status !== 'success' || typeof run.runId !== 'string' || !run.runId.trim() || !SHA256_RE.test(String(run.artifactHash || '')) || ids.has(run.runId)) return false;
+    ids.add(run.runId);
+  }
+  return true;
+}
+
+export function validateImmutablePromotionEvidence(state, evidence, policy = DEFAULT_EXPANSION_PROMOTION_POLICY) {
+  const manifest = evidence?.immutableEvidence;
+  if (!manifest || manifest.schemaVersion !== 1 || manifest.state !== state || !Number.isFinite(Date.parse(manifest.generatedAt)) || !SHA256_RE.test(String(manifest.sourceConfigHash || ''))) return false;
+  if (!isIsolatedPreviewUrl(evidence?.canaryPreviewUrl) || manifest.previewUrl !== evidence.canaryPreviewUrl) return false;
+  return validEvidenceRuns(manifest.shadowRuns, Number(policy.minShadowRuns))
+    && validEvidenceRuns(manifest.canaryRuns, Number(policy.minCanaryRuns));
+}
 
 function stateSet(value = '') {
   return new Set(String(value).split(',').map((item) => item.trim().toUpperCase()).filter(Boolean));
@@ -72,6 +103,7 @@ export function validateExpansionLifecycle(config = {}) {
     if (promotionPolicy.requireVerticalSliceManifest !== false && !evidence?.verticalSliceManifest) failures.push(`${state}: promotionEvidence requires a vertical-slice manifest reference.`);
     if (promotionPolicy.requireFixtureContract !== false && !evidence?.fixtureContract) failures.push(`${state}: promotionEvidence requires a golden fixture contract reference.`);
     if (promotionPolicy.requireCanaryPreviewUrl !== false && !evidence?.canaryPreviewUrl) failures.push(`${state}: promotionEvidence requires a canary preview URL.`);
+    if (promotionPolicy.requireImmutableEvidence !== false && !validateImmutablePromotionEvidence(state, evidence, promotionPolicy)) failures.push(`${state}: promotionEvidence requires immutable promotion evidence with unique successful shadow/canary run hashes and an isolated preview URL.`);
   }
   return { ok: failures.length === 0, failures };
 }
