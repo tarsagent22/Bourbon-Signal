@@ -194,8 +194,12 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "SC" && areaPrefs.scAreas.length) return locationMatchesAny(locationFields, areaPrefs.scAreas);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields(locationFields, areaPrefs.caAreas);
   if (state === "NV" && areaPrefs.nvAreas.length) return nevadaAreaMatchesFields(locationFields, areaPrefs.nvAreas);
-  if (state === "PA" && areaPrefs.paCounties.length) return locationMatchesAny(locationFields, areaPrefs.paCounties);
-  if (state === "PA" && areaPrefs.paStores.length) return locationMatchesAny([asString(candidate.storeId), asString(candidate.store_id), ...locationFields], areaPrefs.paStores);
+  if (state === "PA" && (areaPrefs.paCounties.length || areaPrefs.paStores.length)) {
+    const countyMatch = areaPrefs.paCounties.length > 0 && locationMatchesAny(locationFields, areaPrefs.paCounties);
+    const storeMatch = areaPrefs.paStores.length > 0
+      && locationMatchesAny([asString(candidate.storeId), asString(candidate.store_id)], areaPrefs.paStores);
+    return countyMatch || storeMatch;
+  }
   return true;
 }
 

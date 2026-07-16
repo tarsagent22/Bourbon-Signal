@@ -1,82 +1,52 @@
-import * as crypto from "crypto";
 import Link from "next/link";
-import { isValidNewsletterEmail, newsletterSignatureFor, unsubscribeNewsletterContact } from "@/lib/newsletter";
+import { isValidNewsletterEmail, normalizeNewsletterEmail, verifyNewsletterSignature } from "@/lib/newsletter";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-type SubscriptionState = "unsubscribed" | "resubscribed" | "invalid" | "error";
+type SubscriptionState = "confirm" | "unsubscribed" | "resubscribed" | "invalid" | "error";
 
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function normalizeEmail(value: string | undefined) {
-  return (value || "").trim().toLowerCase();
-}
-
-function signatureFor(email: string) {
-  return newsletterSignatureFor(email);
-}
-
-function safeEqual(a: string, b: string) {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-async function updateSubscription(email: string, unsubscribed: boolean) {
-  if (!unsubscribed) {
-    const { subscribeNewsletterContact } = await import("@/lib/newsletter");
-    await subscribeNewsletterContact(email);
-    return;
-  }
-  await unsubscribeNewsletterContact(email);
-}
-
-function resubscribeHref(email: string) {
-  const params = new URLSearchParams({
-    email,
-    sig: signatureFor(email),
-    action: "resubscribe",
-  });
-  return `/unsubscribe?${params.toString()}`;
-}
-
 export default async function UnsubscribePage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const email = normalizeEmail(firstValue(params.email));
-  const sig = firstValue(params.sig) || "";
-  const action = firstValue(params.action) === "resubscribe" ? "resubscribe" : "unsubscribe";
-  const expected = signatureFor(email);
-  let state: SubscriptionState = "invalid";
-
-  if (isValidNewsletterEmail(email) && expected && sig && safeEqual(sig, expected)) {
-    try {
-      await updateSubscription(email, action !== "resubscribe");
-      state = action === "resubscribe" ? "resubscribed" : "unsubscribed";
-    } catch (error) {
-      console.error("Newsletter unsubscribe update failed", error);
-      state = "error";
-    }
-  }
+  const email = normalizeNewsletterEmail(firstValue(params.email));
+  const signature = firstValue(params.sig) || "";
+  const result = firstValue(params.result);
+  const requestedAction = firstValue(params.action) === "resubscribe" ? "resubscribe" : "unsubscribe";
+  const valid = isValidNewsletterEmail(email) && verifyNewsletterSignature(email, signature);
+  const state: SubscriptionState = valid && result === "unsubscribed"
+    ? "unsubscribed"
+    : valid && result === "resubscribed"
+      ? "resubscribed"
+      : valid && result === "error"
+        ? "error"
+        : valid
+          ? "confirm"
+          : "invalid";
 
   const title = state === "resubscribed"
     ? "You’re back on the list."
     : state === "unsubscribed"
       ? "You’ve been unsubscribed."
-      : state === "error"
-        ? "We couldn’t update your subscription."
-        : "This unsubscribe link is invalid.";
-
+      : state === "confirm"
+        ? requestedAction === "resubscribe" ? "Resubscribe to updates?" : "Unsubscribe from updates?"
+        : state === "error"
+          ? "We couldn’t update your subscription."
+          : "This unsubscribe link is invalid.";
   const body = state === "resubscribed"
     ? "You’ll keep receiving Bourbon Signal updates."
     : state === "unsubscribed"
-      ? "You won’t receive Bourbon Signal update emails at this address unless you resubscribe."
-      : state === "error"
-        ? "Please try again in a minute, or reply to the email and we’ll handle it manually."
-        : "The link may be expired, malformed, or missing its signature.";
+      ? "You won’t receive Bourbon Signal update emails at this address unless you explicitly resubscribe."
+      : state === "confirm"
+        ? requestedAction === "resubscribe"
+          ? "Confirm below to resume Bourbon Signal update emails. Opening this page has not changed your subscription."
+          : "Confirm below to stop Bourbon Signal update emails. Opening this page has not changed your subscription."
+        : state === "error"
+          ? "Please try again in a minute, or reply to the email and we’ll handle it manually."
+          : "The link may be malformed or missing its signature.";
 
   return (
     <main style={{ minHeight: "100vh", background: "#120d09", color: "#f5edd6", display: "grid", placeItems: "center", padding: "32px 18px" }}>
@@ -84,21 +54,19 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
         <div style={{ color: "#e8c97a", fontFamily: "var(--font-jetbrains)", fontSize: 12, fontWeight: 900, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 14 }}>
           Bourbon Signal updates
         </div>
-        <h1 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "clamp(34px, 7vw, 54px)", lineHeight: 1, color: "#f5edd6" }}>
-          {title}
-        </h1>
-        <p style={{ margin: "18px 0 0", color: "#d9cdb2", fontFamily: "var(--font-dm-sans)", fontSize: 16, lineHeight: 1.7 }}>
-          {body}
-        </p>
-        {state === "unsubscribed" ? (
-          <p style={{ margin: "24px 0 0", color: "#d9cdb2", fontFamily: "var(--font-dm-sans)", fontSize: 15, lineHeight: 1.7 }}>
-            Was this a mistake?{" "}
-            <Link href={resubscribeHref(email)} style={{ color: "#e8c97a", fontWeight: 900 }}>
-              Click here to resubscribe to updates.
-            </Link>
-          </p>
+        <h1 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "clamp(34px, 7vw, 54px)", lineHeight: 1, color: "#f5edd6" }}>{title}</h1>
+        <p style={{ margin: "18px 0 0", color: "#d9cdb2", fontFamily: "var(--font-dm-sans)", fontSize: 16, lineHeight: 1.7 }}>{body}</p>
+        {state === "confirm" || state === "unsubscribed" ? (
+          <form method="post" action="/api/newsletter/preferences" style={{ marginTop: 24 }}>
+            <input type="hidden" name="email" value={email} />
+            <input type="hidden" name="sig" value={signature} />
+            <input type="hidden" name="action" value={state === "unsubscribed" ? "resubscribe" : requestedAction} />
+            <button type="submit" style={{ border: 0, padding: "12px 18px", borderRadius: 999, background: "linear-gradient(135deg, #c4943a, #e8c97a)", color: "#120d09", fontFamily: "var(--font-dm-sans)", fontWeight: 900, cursor: "pointer" }}>
+              {state === "unsubscribed" || requestedAction === "resubscribe" ? "Confirm resubscribe" : "Confirm unsubscribe"}
+            </button>
+          </form>
         ) : null}
-        <Link href="/" style={{ display: "inline-flex", marginTop: 28, borderRadius: 999, padding: "12px 18px", background: "linear-gradient(135deg, #c4943a, #e8c97a)", color: "#120d09", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>
+        <Link href="/" style={{ display: "inline-flex", marginTop: 28, borderRadius: 999, padding: "12px 18px", border: "1px solid rgba(232,201,122,0.25)", color: "#e8c97a", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>
           Back to Bourbon Signal
         </Link>
       </section>

@@ -20,6 +20,8 @@ Production storage is Resend Audiences. The route does **not** send email; it on
 - Validates basic email format.
 - Creates a Resend contact in `RESEND_DIGEST_AUDIENCE_ID`.
 - An explicit `/api/subscribe` request resubscribes an existing contact.
+- Opening `/unsubscribe` is read-only; a signed POST confirmation owns unsubscribe and explicit resubscribe mutations.
+- Newsletter unsubscribe also records master email suppression for the matching Clerk member so opted-in product briefs cannot override the broader choice.
 - Automatic Clerk account enrollment and the reconciliation script do not resubscribe existing contacts, preserving prior unsubscribe state.
 - Does not attach custom Resend contact properties yet because Resend requires properties to be pre-created before writes.
 - In non-production only, if `RESEND_DIGEST_AUDIENCE_ID` is missing, it falls back to local `data/subscribers.json` for development convenience.

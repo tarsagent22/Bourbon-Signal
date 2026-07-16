@@ -9,7 +9,8 @@ interface WeeklyPreviewResponse {
   report: MemberWeeklyIntelligence;
   dryRun: {
     status: string;
-    liveSendSupported: false;
+    liveSendSupported: boolean;
+    liveDeliveryAuthorized: boolean;
   };
 }
 
@@ -55,6 +56,7 @@ export function WeeklyIntelligenceCard({ isSignedIn }: { isSignedIn: boolean }) 
   }
 
   const { report } = preview;
+  const optedIn = !["skipped_not_opted_in", "skipped_missing_explicit_opt_in", "skipped_unsubscribed"].includes(preview.dryRun.status);
   return (
     <section className={styles.shell} aria-label="Weekly member intelligence">
       <div className={styles.topline}>
@@ -90,7 +92,13 @@ export function WeeklyIntelligenceCard({ isSignedIn }: { isSignedIn: boolean }) 
       {report.primaryAction ? (
         <Link className={styles.action} href={report.primaryAction.href}>{report.primaryAction.label}</Link>
       ) : null}
-      <p className={styles.dryRun}>Email is preview-only. Live weekly sending is disabled.</p>
+      <p className={styles.dryRun}>
+        {optedIn
+          ? preview.dryRun.liveDeliveryAuthorized
+            ? "Email is opted in and the owner-authorized delivery pilot is active."
+            : "Email is opted in. The delivery pilot is not active until owner authorization is enabled."
+          : "Weekly email is not opted in. This dashboard brief remains available as a preview."}
+      </p>
     </section>
   );
 }

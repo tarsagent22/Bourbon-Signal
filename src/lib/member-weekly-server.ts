@@ -19,6 +19,7 @@ import {
   weeklyIntelligenceEmailKillSwitchActive,
   weeklyIntelligenceUnsubscribeUrl,
 } from "@/lib/member-weekly-email";
+import { normalizeMemberWeeklyDeliveryLedger } from "@/lib/member-weekly-delivery";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
 import { radarEntries, radarPath } from "@/lib/release-radar";
 import { readSiteExportResults } from "@/lib/site-engine-contract";
@@ -117,6 +118,27 @@ function locationLabel(candidate: UnknownRecord) {
     || `${text(candidate.state, "Saved market")} signal`;
 }
 
+function deliveryMatchFields(candidate: UnknownRecord) {
+  return [
+    candidate.locationName,
+    candidate.displayLocation,
+    candidate.storeName,
+    candidate.storeAddress,
+    candidate.storeCity,
+    candidate.storeCounty,
+    candidate.boardName,
+    candidate.storeId,
+    candidate.location_name,
+    candidate.display_location,
+    candidate.store_name,
+    candidate.store_address,
+    candidate.store_city,
+    candidate.store_county,
+    candidate.board_name,
+    candidate.store_id,
+  ].filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
+}
+
 function adaptAlertCandidates(input: {
   candidates: UnknownRecord[];
   publicMetadata: UnknownRecord;
@@ -141,6 +163,8 @@ function adaptAlertCandidates(input: {
         bottleName: text(candidate.bottle, text(candidate.canonicalName, text(candidate.rawName, "Bottle signal"))),
         stateCode: text(candidate.state).toUpperCase(),
         locationLabel: locationLabel(candidate),
+        deliveryAreaMatched: true,
+        deliveryMatchFields: deliveryMatchFields(candidate),
         freshnessHours,
         freshnessPolicyHours: numberValue(policy.email, freshnessHours),
         eligibleForDelivery: candidate.eligibleForDelivery === true,
@@ -198,36 +222,57 @@ function primaryEmail(user: MemberWeeklyServerUser) {
 
 function suppressionFromMetadata(privateMetadata: UnknownRecord) {
   const delivery = record(privateMetadata.weeklyIntelligenceDelivery);
-  const deliveredMemberWeeks = Array.isArray(delivery.deliveredMemberWeeks)
+  const legacyDeliveredMemberWeeks = Array.isArray(delivery.deliveredMemberWeeks)
     ? delivery.deliveredMemberWeeks.flatMap((item) => {
       if (typeof item === "string") return [item];
       const dedupeKey = text(record(item).dedupeKey);
       return dedupeKey ? [dedupeKey] : [];
     })
     : [];
+  const ledgerMemberWeeks = normalizeMemberWeeklyDeliveryLedger(delivery).map((entry) => entry.dedupeKey);
   return {
     suppressed: delivery.suppressed === true || Boolean(text(delivery.suppressedAt)),
-    deliveredMemberWeeks,
+    deliveredMemberWeeks: Array.from(new Set([...legacyDeliveredMemberWeeks, ...ledgerMemberWeeks])),
   };
 }
 
-export async function buildWeeklyIntelligencePreview(input: {
-  user: MemberWeeklyServerUser;
-  now?: string;
-  appUrl?: string;
-}) {
-  const now = input.now || new Date().toISOString();
-  const publicMetadata = record(input.user.publicMetadata);
-  const privateMetadata = record(input.user.privateMetadata);
+export interface MemberWeeklySourceBundle {
+  alertPayload: UnknownRecord | null;
+  statsPayload: UnknownRecord | null;
+  snapshotId: string | null;
+  alertsFresh: boolean;
+  alertsFreshnessReason: string | null;
+  alertsGeneratedAt: string | null;
+  statsGeneratedAt: string | null;
+}
+
+export async function loadMemberWeeklySourceBundle(now: string): Promise<MemberWeeklySourceBundle> {
   const [alertResult, statsResult] = await readSiteExportResults(["alerts", "stats"]);
-  const alertPayload = alertResult.payload;
-  const statsPayload = statsResult.payload;
   const snapshotSafety = evaluateAlertSnapshotSafety({
     generatedAt: alertResult.generatedAt,
     now,
     maxAgeMinutes: Number(process.env.WEEKLY_INTELLIGENCE_ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45),
   });
-  const candidates = Array.isArray(alertPayload?.alerts) ? alertPayload.alerts.map(record) : [];
+  return {
+    alertPayload: alertResult.payload,
+    statsPayload: statsResult.payload,
+    snapshotId: alertResult.snapshotId,
+    alertsFresh: snapshotSafety.safe,
+    alertsFreshnessReason: snapshotSafety.reason,
+    alertsGeneratedAt: alertResult.generatedAt,
+    statsGeneratedAt: statsResult.generatedAt,
+  };
+}
+
+export function buildWeeklyIntelligencePreviewFromSources(input: {
+  user: MemberWeeklyServerUser;
+  sources: MemberWeeklySourceBundle;
+  now: string;
+  appUrl?: string;
+}) {
+  const publicMetadata = record(input.user.publicMetadata);
+  const privateMetadata = record(input.user.privateMetadata);
+  const candidates = Array.isArray(input.sources.alertPayload?.alerts) ? input.sources.alertPayload.alerts.map(record) : [];
   const notificationPreferences = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
   const report = buildMemberWeeklyIntelligence({
     member: {
@@ -237,10 +282,10 @@ export async function buildWeeklyIntelligencePreview(input: {
       trackedBottles: trackedBottlesFromMetadata(publicMetadata),
       alertMode: publicMetadata.alertMode === "specific_bottles" ? "specific_bottles" : "anything_notable",
     },
-    now,
-    alerts: adaptAlertCandidates({ candidates, publicMetadata, snapshotSafe: snapshotSafety.safe }),
+    now: input.now,
+    alerts: adaptAlertCandidates({ candidates, publicMetadata, snapshotSafe: input.sources.alertsFresh }),
     radar: adaptRadarCandidates(),
-    coverage: adaptCoverageCandidates(statsPayload),
+    coverage: adaptCoverageCandidates(input.sources.statsPayload),
   });
   const recipient = primaryEmail(input.user);
   const dryRun = buildWeeklyIntelligenceDryRun({
@@ -256,13 +301,23 @@ export async function buildWeeklyIntelligencePreview(input: {
     report,
     dryRun,
     recipient,
-    unsubscribeUrl: weeklyIntelligenceUnsubscribeUrl({ memberId: input.user.id, baseUrl: input.appUrl }),
+    unsubscribeUrl: weeklyIntelligenceUnsubscribeUrl({ memberId: input.user.id, baseUrl: input.appUrl, now: input.now }),
     source: {
-      snapshotId: alertResult.snapshotId,
-      alertsFresh: snapshotSafety.safe,
-      alertsFreshnessReason: snapshotSafety.reason,
-      alertsGeneratedAt: alertResult.generatedAt,
-      statsGeneratedAt: statsResult.generatedAt,
+      snapshotId: input.sources.snapshotId,
+      alertsFresh: input.sources.alertsFresh,
+      alertsFreshnessReason: input.sources.alertsFreshnessReason,
+      alertsGeneratedAt: input.sources.alertsGeneratedAt,
+      statsGeneratedAt: input.sources.statsGeneratedAt,
     },
   };
+}
+
+export async function buildWeeklyIntelligencePreview(input: {
+  user: MemberWeeklyServerUser;
+  now?: string;
+  appUrl?: string;
+}) {
+  const now = input.now || new Date().toISOString();
+  const sources = await loadMemberWeeklySourceBundle(now);
+  return buildWeeklyIntelligencePreviewFromSources({ ...input, now, sources });
 }

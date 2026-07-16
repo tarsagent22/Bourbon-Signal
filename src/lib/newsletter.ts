@@ -21,6 +21,14 @@ export function newsletterSignatureFor(email: string) {
   return crypto.createHmac("sha256", secret).update(normalizeNewsletterEmail(email)).digest("hex");
 }
 
+export function verifyNewsletterSignature(email: string, signature: string) {
+  const expected = newsletterSignatureFor(email);
+  if (!expected || !signature) return false;
+  const left = Buffer.from(expected);
+  const right = Buffer.from(signature);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
 export function newsletterUnsubscribeUrl(email: string, baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com") {
   const normalizedEmail = normalizeNewsletterEmail(email);
   const params = new URLSearchParams({

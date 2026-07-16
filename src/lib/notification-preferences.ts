@@ -121,6 +121,17 @@ export function applyWeeklyIntelligencePreferenceTransition(input: {
   };
 }
 
+export function applyWeeklyIntelligenceUnsubscribe(
+  existing: WeeklyIntelligencePreference,
+  issuedAt: string,
+): WeeklyIntelligencePreference {
+  return {
+    ...existing,
+    emailEnabled: false,
+    unsubscribedAt: existing.unsubscribedAt || issuedAt,
+  };
+}
+
 export function buildAlertId(userId: string, dedupeKey: string, createdAt: string) {
   return Buffer.from(`${userId}:${dedupeKey}:${createdAt}`).toString("base64url");
 }

@@ -3020,7 +3020,9 @@ export default function DashboardPage() {
 
                       <NotificationChannelCard
                         title="Weekly intelligence email"
-                        description="A separate, optional weekly brief built from your saved markets, tracked bottles, Radar, fresh eligible alerts, and coverage."
+                        description={notificationPrefs.weeklyIntelligence.emailEnabled
+                          ? "Email is opted in. The owner-controlled delivery pilot remains inactive until it is separately authorized."
+                          : "Opt in to a separate weekly brief built from saved markets, tracked bottles, Radar, fresh eligible alerts, and coverage. Opt-in alone does not activate the delivery pilot."}
                         checked={notificationPrefs.weeklyIntelligence.emailEnabled}
                         onCheckedChange={(checked) =>
                           setNotificationPrefs((prev) => ({

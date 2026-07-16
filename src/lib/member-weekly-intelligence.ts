@@ -24,6 +24,8 @@ export interface MemberWeeklyAlertCandidate {
   bottleName: string;
   stateCode: string;
   locationLabel: string;
+  deliveryAreaMatched?: boolean;
+  deliveryMatchFields?: string[];
   freshnessHours: number;
   freshnessPolicyHours: number;
   eligibleForDelivery: boolean;
@@ -134,10 +136,11 @@ function alertMatchesSavedArea(alert: MemberWeeklyAlertCandidate, member: Member
   const area = savedAreaForState(member, alert.stateCode);
   if (!area) return false;
   if (!area.labels.length) return true;
-  const location = normalizedText(alert.locationLabel);
+  if (alert.deliveryAreaMatched === true) return true;
+  const locations = [alert.locationLabel, ...(alert.deliveryMatchFields || [])].map(normalizedText).filter(Boolean);
   return area.labels.some((label) => {
     const wanted = normalizedText(label);
-    return Boolean(wanted) && (location.includes(wanted) || wanted.includes(location));
+    return Boolean(wanted) && locations.some((location) => location.includes(wanted) || wanted.includes(location));
   });
 }
 
@@ -166,7 +169,10 @@ function eligibleAlerts(input: MemberWeeklyIntelligenceInput) {
 
 function radarMatchesMember(candidate: MemberWeeklyRadarCandidate, member: MemberWeeklyProfile) {
   const savedStates = new Set(member.savedAreas.map((area) => normalizedState(area.stateCode)));
-  const stateMatch = candidate.stateCodes.some((state) => savedStates.has(normalizedState(state)));
+  const stateMatch = candidate.stateCodes.some((state) => {
+    const normalized = normalizedState(state);
+    return normalized === "NATIONWIDE" ? savedStates.size > 0 : savedStates.has(normalized);
+  });
   const candidateBottleKeys = candidate.bottleKeys.map(normalizedText).filter(Boolean);
   const title = normalizedText(candidate.title);
   const bottleMatch = member.trackedBottles.some((bottle) => {

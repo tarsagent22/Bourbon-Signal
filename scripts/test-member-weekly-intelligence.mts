@@ -9,9 +9,20 @@ import {
   buildWeeklyIntelligenceDryRun,
   signWeeklyIntelligenceUnsubscribe,
   verifyWeeklyIntelligenceUnsubscribe,
+  weeklyIntelligenceUnsubscribeUrl,
 } from "../src/lib/member-weekly-email.ts";
 import {
+  assertMemberWeeklyDeliveryAuthorized,
+  buildMemberWeeklyDeliveryConfig,
+  isMemberWeeklyDeliveryWindowOpen,
+  memberWeekReservationActive,
+  normalizeMemberWeeklyDeliveryLedger,
+  resolveMemberWeeklyDeliveryMode,
+  upsertMemberWeeklyDeliveryLedger,
+} from "../src/lib/member-weekly-delivery.ts";
+import {
   applyWeeklyIntelligencePreferenceTransition,
+  applyWeeklyIntelligenceUnsubscribe,
   getDefaultNotificationPreferences,
   normalizeNotificationPreferences,
 } from "../src/lib/notification-preferences.ts";
@@ -108,6 +119,22 @@ const input: MemberWeeklyIntelligenceInput = {
       score: 200,
       href: "/dashboard?section=alerts",
     },
+    {
+      id: "alert-canonical-city-match",
+      dedupeKey: "signal-canonical-city-match",
+      bottleName: "Weller Antique 107",
+      stateCode: "NC",
+      locationLabel: "Store 41",
+      deliveryAreaMatched: true,
+      deliveryMatchFields: ["Raleigh", "Wake County", "NC Board 17", "41"],
+      freshnessHours: 1,
+      freshnessPolicyHours: 2,
+      eligibleForDelivery: true,
+      eligibleForEmail: true,
+      priority: "standard",
+      score: 100,
+      href: "/dashboard?section=alerts",
+    },
   ],
   radar: [
     {
@@ -137,6 +164,15 @@ const input: MemberWeeklyIntelligenceInput = {
       bottleKeys: [],
       startDate: "2026-07-18",
       href: "/release-radar/events/kentucky",
+    },
+    {
+      id: "radar-nationwide",
+      title: "National bourbon release window",
+      summary: "Relevant in every saved market.",
+      stateCodes: ["NATIONWIDE"],
+      bottleKeys: [],
+      startDate: "2026-07-19",
+      href: "/release-radar/releases/national",
     },
   ],
   coverage: [
@@ -171,8 +207,8 @@ const report = buildMemberWeeklyIntelligence(input);
 assert.equal(report.weekKey, "2026-07-13");
 assert.equal(report.isEmpty, false);
 assert.deepEqual(report.sections.map((section) => section.kind), ["alerts", "radar", "coverage"]);
-assert.deepEqual(report.sections[0]?.items.map((item) => item.id), ["alert-z"], "only fresh, eligible, area + watchlist alert matches are included");
-assert.deepEqual(report.sections[1]?.items.map((item) => item.id), ["radar-va", "radar-bottle"], "Radar is personalized by saved market or tracked bottle");
+assert.deepEqual(report.sections[0]?.items.map((item) => item.id), ["alert-z", "alert-canonical-city-match"], "canonical delivery-area acceptance survives a lossy display label");
+assert.deepEqual(report.sections[1]?.items.map((item) => item.id), ["radar-va", "radar-bottle", "radar-nationwide"], "Radar treats NATIONWIDE as a saved-market wildcard");
 assert.deepEqual(report.sections[2]?.items.map((item) => item.id), ["coverage-NC"], "coverage only includes notable saved-market changes");
 assert.deepEqual(report.primaryAction, {
   kind: "alerts",
@@ -221,6 +257,13 @@ assert.deepEqual(optedIn, { emailEnabled: true, optedInAt: now, unsubscribedAt: 
 const optedOutAt = "2026-07-17T10:00:00.000Z";
 const optedOut = applyWeeklyIntelligencePreferenceTransition({ existing: optedIn, requested: { emailEnabled: false }, now: optedOutAt });
 assert.deepEqual(optedOut, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt });
+const signedUnsubscribe = applyWeeklyIntelligenceUnsubscribe(optedIn, optedOutAt);
+assert.deepEqual(signedUnsubscribe, { emailEnabled: false, optedInAt: now, unsubscribedAt: optedOutAt });
+assert.deepEqual(
+  applyWeeklyIntelligenceUnsubscribe(signedUnsubscribe, "2026-07-18T10:00:00.000Z"),
+  signedUnsubscribe,
+  "unsubscribe POST replay preserves the first signed unsubscribe time",
+);
 
 const weekDedupeKey = buildMemberWeekDedupeKey("member_123", "2026-07-13");
 assert.equal(weekDedupeKey, buildMemberWeekDedupeKey("member_123", "2026-07-13"));
@@ -262,11 +305,82 @@ assert.equal(buildWeeklyIntelligenceDryRun({
 }).status, "skipped_member_week_duplicate");
 assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, report: empty, killSwitchActive: false }).status, "skipped_empty_week");
 assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, killSwitchActive: true }).status, "blocked_kill_switch");
+assert.equal(buildWeeklyIntelligenceDryRun({
+  ...dryRunBase,
+  preferences: { emailEnabled: true, optedInAt: null, unsubscribedAt: null },
+  killSwitchActive: false,
+}).status, "skipped_missing_explicit_opt_in", "a boolean copied from another channel is not explicit weekly consent");
 
 const secret = "test-secret";
-const signature = signWeeklyIntelligenceUnsubscribe("member_123", secret);
-assert.equal(verifyWeeklyIntelligenceUnsubscribe("member_123", signature, secret), true);
-assert.equal(verifyWeeklyIntelligenceUnsubscribe("member_124", signature, secret), false);
-assert.equal(verifyWeeklyIntelligenceUnsubscribe("member_123", "bad-signature", secret), false);
+const unsubscribeExpiry = "2026-08-15T14:00:00.000Z";
+const signature = signWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, secret });
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, signature, secret, now }), true);
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_124", issuedAt: now, expiresAt: unsubscribeExpiry, signature, secret, now }), false);
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, signature: "bad-signature", secret, now }), false);
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, signature, secret, now: "2026-08-16T00:00:00.000Z" }), false, "expired links fail closed");
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, signature, secret, now, purpose: "newsletter-unsubscribe" }), false, "purpose cannot be substituted");
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: now, expiresAt: unsubscribeExpiry, signature, secret, now, version: "2" }), false, "unknown token versions fail closed");
+assert.equal(verifyWeeklyIntelligenceUnsubscribe({ memberId: "member_123", issuedAt: "2026-07-17T14:00:00.000Z", expiresAt: unsubscribeExpiry, signature, secret, now }), false, "future-issued links fail closed");
+const unsubscribeUrl = new URL(weeklyIntelligenceUnsubscribeUrl({ memberId: "member_123", baseUrl: "https://example.com", secret, now }));
+assert.equal(unsubscribeUrl.searchParams.get("purpose"), "weekly-intelligence-unsubscribe");
+assert.equal(unsubscribeUrl.searchParams.get("v"), "1");
+assert.equal(unsubscribeUrl.searchParams.get("iat"), now);
+assert.ok(unsubscribeUrl.searchParams.get("exp"));
+
+const deliveryEnv = {
+  WEEKLY_INTELLIGENCE_EMAIL_KILL_SWITCH: "0",
+  WEEKLY_INTELLIGENCE_DELIVERY_ENABLED: "1",
+  WEEKLY_INTELLIGENCE_LIVE_SEND_SUPPORTED: "1",
+  WEEKLY_INTELLIGENCE_LIVE_SEND_AUTHORIZED: "1",
+  WEEKLY_INTELLIGENCE_DELIVERY_WEEKDAY: "4",
+  WEEKLY_INTELLIGENCE_DELIVERY_START_HOUR: "9",
+  WEEKLY_INTELLIGENCE_DELIVERY_END_HOUR: "17",
+  WEEKLY_INTELLIGENCE_DELIVERY_TIME_ZONE: "America/New_York",
+  WEEKLY_INTELLIGENCE_MAX_EMAILS_PER_RUN: "20",
+  WEEKLY_INTELLIGENCE_BATCH_SIZE: "5",
+} as NodeJS.ProcessEnv;
+const deliveryConfig = buildMemberWeeklyDeliveryConfig(deliveryEnv);
+assert.equal(deliveryConfig.maxEmailsPerRun, 20);
+assert.equal(deliveryConfig.batchSize, 5);
+assert.equal(isMemberWeeklyDeliveryWindowOpen("2026-07-16T14:00:00.000Z", deliveryConfig), true, "Thursday 10am Eastern is inside the configured weekly window");
+assert.equal(isMemberWeeklyDeliveryWindowOpen("2026-07-17T14:00:00.000Z", deliveryConfig), false, "live delivery is cadence-gated to the configured weekday");
+assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: false, config: deliveryConfig }).mode, "dry_run", "dry-run is the default even when flags are enabled");
+assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: true, config: deliveryConfig }).mode, "live");
+assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: true, config: buildMemberWeeklyDeliveryConfig({ ...deliveryEnv, WEEKLY_INTELLIGENCE_EMAIL_KILL_SWITCH: "1" }) }).reason, "kill_switch");
+assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: true, config: buildMemberWeeklyDeliveryConfig({ ...deliveryEnv, WEEKLY_INTELLIGENCE_LIVE_SEND_AUTHORIZED: "0" }) }).reason, "live_not_authorized");
+const defaultDeliveryConfig = buildMemberWeeklyDeliveryConfig({});
+assert.equal(defaultDeliveryConfig.killSwitchActive, true);
+assert.equal(defaultDeliveryConfig.deliveryEnabled, false);
+assert.equal(defaultDeliveryConfig.liveSendSupported, false);
+assert.equal(defaultDeliveryConfig.liveSendAuthorized, false);
+assert.doesNotThrow(() => assertMemberWeeklyDeliveryAuthorized(
+  new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer owner-secret" } }),
+  { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "owner-secret" } as NodeJS.ProcessEnv,
+));
+assert.throws(() => assertMemberWeeklyDeliveryAuthorized(
+  new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer wrong" } }),
+  { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "owner-secret" } as NodeJS.ProcessEnv,
+));
+
+const reservedLedger = upsertMemberWeeklyDeliveryLedger([], {
+  memberId: "member_123",
+  weekKey: report.weekKey,
+  dedupeKey: weekDedupeKey,
+  status: "reserved",
+  reservedAt: now,
+  deliveredAt: null,
+  providerMessageId: null,
+});
+const deliveredLedger = upsertMemberWeeklyDeliveryLedger(reservedLedger, {
+  ...reservedLedger[0]!,
+  status: "delivered",
+  deliveredAt: "2026-07-16T14:00:01.000Z",
+  providerMessageId: "email_123",
+});
+assert.equal(deliveredLedger.length, 1, "member-week ledger upserts are replay-safe");
+assert.equal(deliveredLedger[0]?.status, "delivered");
+assert.deepEqual(normalizeMemberWeeklyDeliveryLedger({ deliveries: deliveredLedger }).map((entry) => entry.dedupeKey), [weekDedupeKey]);
+assert.equal(memberWeekReservationActive(reservedLedger[0]!, "2026-07-16T14:30:00.000Z", 60), true);
+assert.equal(memberWeekReservationActive(reservedLedger[0]!, "2026-07-16T16:00:00.000Z", 60), false, "stale pre-send reservations can recover while provider idempotency remains stable");
 
 console.log("Member weekly intelligence contracts passed.");
