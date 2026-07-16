@@ -1,6 +1,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { ALL_STATE_SOURCES } from './state-sources.mjs';
+import { createBoundedHttpClient } from './discovery/probe-http.mjs';
+import { fingerprintSource } from './discovery/platform-fingerprints.mjs';
+import { getStateName, normalizeStateId, stateMatchesText } from './discovery/state-name-registry.mjs';
 
 const OUT = path.resolve('out');
 const DATA = path.resolve('data');
@@ -10,6 +14,10 @@ const USER_AGENT = 'BourbonSignalStoreDiscovery/0.1 (+https://bourbonsignal.com;
 const DEFAULT_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DISCOVERY_TIMEOUT_MS || 18_000);
 const DEFAULT_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_DISCOVERY_MAX_PAGES || 2);
 const DEFAULT_DIRECTORY_LIMIT = Number(process.env.BOURBON_SIGNAL_DISCOVERY_DIRECTORY_LIMIT || 75);
+const DEFAULT_MAX_CONCURRENCY = Number(process.env.BOURBON_SIGNAL_DISCOVERY_CONCURRENCY || 2);
+const DEFAULT_PER_HOST_REQUEST_BUDGET = Number(process.env.BOURBON_SIGNAL_DISCOVERY_PER_HOST_REQUEST_BUDGET || 8);
+const DEFAULT_MIN_DELAY_MS = Number(process.env.BOURBON_SIGNAL_DISCOVERY_MIN_DELAY_MS || 250);
+let discoveryHttpClient;
 
 function slug(value) {
   return String(value || '')
@@ -43,13 +51,8 @@ function canonicalCity(value) {
   return aliases[city] || city || null;
 }
 
-const STATE_NAMES = {
-  SC: 'South Carolina',
-  TN: 'Tennessee'
-};
-
 function stateName(stateId) {
-  return STATE_NAMES[stateId] || stateId;
+  return getStateName(stateId) || stateId;
 }
 
 function escapeRegExp(value) {
@@ -77,24 +80,33 @@ async function readJson(file, fallback = null) {
 }
 
 async function fetchText(url, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        accept: 'text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.7',
-        'user-agent': USER_AGENT
-      }
+    discoveryHttpClient ||= createBoundedHttpClient({
+      timeoutMs,
+      maxBytes: Number(process.env.BOURBON_SIGNAL_DISCOVERY_MAX_PAYLOAD_BYTES || 512 * 1024),
+      maxRedirects: Number(process.env.BOURBON_SIGNAL_DISCOVERY_MAX_REDIRECTS || 2),
+      perHostRequestBudget: DEFAULT_PER_HOST_REQUEST_BUDGET,
+      maxConcurrency: DEFAULT_MAX_CONCURRENCY,
+      minDelayMs: DEFAULT_MIN_DELAY_MS,
+      userAgent: USER_AGENT
     });
-    const text = await res.text();
-    return { ok: res.ok, status: res.status, url: res.url || url, text };
+    return await discoveryHttpClient.get(url, { headers: { accept: 'text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.7' } });
   } catch (error) {
     return { ok: false, status: 0, url, text: '', error: error instanceof Error ? error.message : String(error) };
-  } finally {
-    clearTimeout(timer);
   }
+}
+
+export async function mapBounded(items, concurrency, work) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.max(1, Math.min(Number(concurrency) || 1, items.length || 1)) }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await work(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
 }
 
 function textOnly(html) {
@@ -225,6 +237,33 @@ function sourceUrlsForState(stateId) {
 
 function registeredSourceDomains(stateId) {
   return new Set(stateSourceRows(stateId).map((row) => domainFromUrl(row.url)).filter(Boolean));
+}
+
+export function buildStoreDiscoveryInput({ stateId, braveCandidates = [], existingSeeds = [] } = {}) {
+  const state = normalizeStateId(stateId);
+  if (!state) throw new Error(`Unknown candidate state ${stateId || 'missing'}.`);
+  const searchSeeds = braveCandidates
+    .filter((candidate) => candidate?.url && /^https:\/\//i.test(candidate.url))
+    .filter((candidate) => stateMatchesText(state, `${candidate.title || ''}\n${candidate.description || ''}\n${candidate.url || ''}`))
+    .map((candidate) => ({
+      name: candidate.title || candidate.domain || 'Brave discovery candidate',
+      url: candidate.url,
+      source: 'brave-search-discovery',
+      inventoryStatus: 'discovery-only',
+      promotionEligible: false,
+      platformHints: Array.isArray(candidate.platformHints) ? candidate.platformHints : fingerprintSource(candidate)
+    }));
+  const byDomain = new Map();
+  for (const seed of [...existingSeeds, ...searchSeeds]) {
+    const domain = domainFromUrl(seed?.url);
+    if (!domain || byDomain.has(domain)) continue;
+    byDomain.set(domain, seed);
+  }
+  return {
+    stateId: state,
+    stateName: stateName(state),
+    seeds: [...byDomain.values()]
+  };
 }
 
 function inventoryStatusForProbe(probe) {
@@ -459,20 +498,25 @@ function formatCityHiveSource(source) {
 }
 
 async function main() {
-  const stateId = String(process.argv.find((arg) => /^[A-Z]{2}(?:-[A-Z]+)?$/.test(arg)) || process.env.BOURBON_SIGNAL_DISCOVERY_STATE || 'TN').toUpperCase();
+  const requestedState = String(process.argv.find((arg) => /^[A-Z]{2}(?:-[A-Z]+)?$/.test(arg)) || process.env.BOURBON_SIGNAL_DISCOVERY_STATE || 'TN').toUpperCase();
+  const stateId = normalizeStateId(requestedState);
+  if (!stateId) throw new Error(`Unknown candidate state ${requestedState}.`);
   await mkdir(DISCOVERY_OUT, { recursive: true });
   await mkdir(UNIVERSE_DATA, { recursive: true });
   const seedFile = path.join(DATA, 'store-discovery-seeds', `${stateId}.json`);
   const seedData = await readJson(seedFile, { platformSeeds: [], directorySeeds: [] });
+  const braveDiscovery = await readJson(path.join(OUT, 'discovery', `${stateId}.json`), { candidates: [] });
   const stateReport = await readJson(path.join(OUT, 'states', `${stateId}.json`), { signals: [] });
-  const seeds = uniqueBy([
+  const discoveryInput = buildStoreDiscoveryInput({
+    stateId,
+    braveCandidates: braveDiscovery.candidates || [],
+    existingSeeds: [
     ...sourceUrlsForState(stateId),
     ...(seedData.platformSeeds || [])
-  ].filter((seed) => seed.url), (seed) => domainFromUrl(seed.url));
-  const probes = [];
-  for (const seed of seeds) {
-    probes.push(await probeStore(seed, stateId));
-  }
+    ]
+  });
+  const seeds = discoveryInput.seeds;
+  const probes = await mapBounded(seeds, DEFAULT_MAX_CONCURRENCY, (seed) => probeStore(seed, stateId));
   const currentStores = storesFromStateOutput(stateReport, stateId);
   const probeStores = probes.flatMap((probe) => storesFromProbe(probe, stateId));
   const directoryUrlStores = await storesFromDirectoryUrls(seedData.directoryUrls || [], stateId);
@@ -488,7 +532,7 @@ async function main() {
     discoverySource: seed.source || 'directory-seed',
     sourceLabels: [seed.source].filter(Boolean)
   }));
-  const statusRank = { 'directory-only': 1, 'platform-detected': 2, 'storefront-probeable': 3, 'catalog-or-inventory': 4, 'live-inventory': 5, 'alert-grade': 6 };
+  const statusRank = { 'discovery-only': 0, 'directory-only': 1, 'platform-detected': 2, 'storefront-probeable': 3, 'catalog-or-inventory': 4, 'live-inventory': 5, 'alert-grade': 6 };
   const storeMap = new Map();
   for (const row of [...currentStores, ...probeStores, ...directoryStores, ...directoryUrlStores]) {
     const key = `${norm(row.name)}|${norm(row.address)}|${norm(row.city)}`;
@@ -556,7 +600,9 @@ async function main() {
   }, null, 2));
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

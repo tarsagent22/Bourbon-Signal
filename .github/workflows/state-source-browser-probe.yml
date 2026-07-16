@@ -1,0 +1,55 @@
+name: State source browser probe
+
+on:
+  schedule:
+    - cron: "23 4 * * 2,5"
+  workflow_dispatch:
+    inputs:
+      states:
+        description: "Comma-separated registry state IDs with existing HTTPS source allowlists"
+        required: false
+        default: "OR,NH,PA"
+
+concurrency:
+  group: state-source-browser-probe
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  probe-rendered-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      BROWSER_DISCOVERY_CDP_URL: "http://127.0.0.1:18881"
+      BROWSER_DISCOVERY_MAX_STATES: "3"
+      BROWSER_DISCOVERY_MAX_SOURCES: "2"
+      BROWSER_DISCOVERY_MAX_PAGES: "6"
+      BROWSER_DISCOVERY_MAX_DURATION_MS: "480000"
+      BROWSER_HEADLESS: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install engine dependencies
+        run: npm ci --prefix engine
+
+      - name: Probe allowlisted dynamic source surfaces
+        working-directory: engine
+        env:
+          BROWSER_DISCOVERY_STATES: ${{ inputs.states || 'OR,NH,PA' }}
+        run: npm run browser:probe
+
+      - name: Retain compact endpoint evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-source-browser-probe-${{ github.run_id }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: engine/out/browser-probe

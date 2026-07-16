@@ -55,7 +55,6 @@ function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-background-networking',
-    '--disable-blink-features=AutomationControlled',
     '--lang=en-US,en',
     'about:blank'
   ];
@@ -65,7 +64,10 @@ function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
 }
 
 export async function ensureBrowserCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
-  if (await cdpReady(cdpUrl)) return { ok: true, cdpUrl, started: false };
+  if (await cdpReady(cdpUrl)) {
+    if (options.requireFresh) throw new Error(`CDP ${cdpUrl} is already in use; isolated browser discovery refuses to attach to an existing browser session.`);
+    return { ok: true, cdpUrl, started: false };
+  }
   const autoStart = options.autoStart ?? process.env.FWGS_AUTO_START_BROWSER !== '0';
   if (!autoStart) throw new Error(`CDP is not reachable at ${cdpUrl}; FWGS_AUTO_START_BROWSER=0 disables browser startup.`);
   const started = spawnBrowserForCdp(cdpUrl, options);

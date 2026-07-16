@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "bourbon-signal-state-expansion-pilots-v1",
+  "caveat": "This ledger records repository baselines only. No live discovery, collection, activation, alerting, or customer-visible state change was run for this change.",
+  "pilots": [
+    {
+      "state": "OR",
+      "sourceClass": "official_source_browser_session_challenge",
+      "lifecycleStage": "discovery",
+      "customerActivationChanged": false,
+      "evidence": [
+        { "status": "unmeasured_repository_baseline", "reference": "engine/src/state-sources.mjs", "observation": "Oregon is disabled for production and described as research-only until reliable store-level rows exist." },
+        { "status": "unmeasured_repository_baseline", "reference": "src/config/state-lifecycle.json", "observation": "Oregon remains research-only in the customer lifecycle configuration." }
+      ]
+    },
+    {
+      "state": "NH",
+      "sourceClass": "official_retailer_catalog_access_blocker",
+      "lifecycleStage": "discovery",
+      "customerActivationChanged": false,
+      "evidence": [
+        { "status": "unmeasured_repository_baseline", "reference": "src/config/state-lifecycle.json", "observation": "New Hampshire remains research-only until official data is accessible without Cloudflare or Turnstile failures." },
+        { "status": "unmeasured_repository_baseline", "reference": "engine/src/state-sources.mjs", "observation": "Existing official outlet/product source routes are retained as research inputs only." }
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceClass": "net_new_private_retailer_state_hybrid",
+      "lifecycleStage": "discovery",
+      "customerActivationChanged": false,
+      "evidence": [
+        { "status": "unmeasured_repository_baseline", "reference": "engine/data/state-expansion-candidates.json", "observation": "Colorado is an explicit private-market discovery candidate with no bounded factory run recorded." },
+        { "status": "unmeasured_repository_baseline", "reference": "engine/src/discovery/state-source-discovery.mjs", "observation": "The future run is constrained to compact discovery-only candidates and cannot promote inventory or activation." }
+      ]
+    }
+  ]
+}

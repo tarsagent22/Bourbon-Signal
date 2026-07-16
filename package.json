@@ -40,6 +40,7 @@
     "test:company-scorecard-feed": "node --no-warnings --experimental-strip-types scripts/test-company-scorecard-feed.mts",
     "ops:signal-calendar": "node automation/bourbon-signal/signal-calendar-prototype.mjs",
     "ops:bottle-queue": "node automation/bourbon-signal/bottle-queue-autoprocess.mjs",
+    "ops:browser-benchmark": "node automation/bourbon-signal/browser-benchmark.mjs",
     "ops:radar-scout": "node automation/bourbon-signal/release-radar-scout.mjs",
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "watchdog:engine": "node scripts/production-engine-watchdog.mjs",
