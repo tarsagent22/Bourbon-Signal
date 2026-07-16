@@ -134,7 +134,7 @@ export default async function RetailerAdminPage() {
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-7">
           <div><p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--color-accent-amber)]">Bourbon Signal operations</p><h1 className="mt-2 font-serif text-4xl">Retailer access</h1></div>
-          <a className="border border-white/15 px-4 py-2 text-sm" href="/admin/operations">Engine operations</a>
+          <nav className="flex flex-wrap gap-2"><a className="border border-white/15 px-4 py-2 text-sm" href="/admin/retailer-acquisition">Acquisition ledger</a><a className="border border-white/15 px-4 py-2 text-sm" href="/admin/operations">Engine operations</a></nav>
         </header>
 
         <section className="mt-8 grid gap-5">
