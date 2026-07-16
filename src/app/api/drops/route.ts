@@ -6,6 +6,7 @@ import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-nor
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { historicalDropFeedEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
@@ -153,6 +154,12 @@ function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.no
   return now - timestamp <= maxAgeForDrop(drop);
 }
 
+function isEligibleHistoricalPublicDrop(drop: Record<string, unknown>, now = Date.now()) {
+  if (isVerifiedRetailerDrop(drop)) return false;
+  const timestamp = dropFreshnessTime(drop);
+  return Number.isFinite(timestamp) && timestamp <= now + FUTURE_CLOCK_SKEW_MS;
+}
+
 function degradedEngineStates(statsPayload: Record<string, unknown> | null | undefined) {
   const refreshHealth = statsPayload?.refreshHealth;
   if (!refreshHealth || typeof refreshHealth !== "object") return new Set<string>();
@@ -270,6 +277,12 @@ export async function GET(request: Request) {
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
   const tierFilter = parseTierFilter(url);
+  const historicalMode = historicalDropFeedEnabled({
+    requested: url.searchParams.get("history") === "1",
+    isSignedIn,
+    canUseAdvancedFilters: entitlements.canUseAdvancedFilters,
+    tierCount: tierFilter.size,
+  });
 
   try {
     const [[dropResult, statsResult], retailerSubmissions, bourbonBible] = await Promise.all([
@@ -312,11 +325,16 @@ export async function GET(request: Request) {
         return !isBlockedWarehouseDrop(drop as Record<string, unknown>) && (!options.filterDegradedStates || !degradedStates.has(dropState));
       });
       filtered = filtered.filter((drop) => isDropFeedRarity(drop));
-      filtered = filtered.filter((drop) => isFreshEnoughForPublicFeed(drop as Record<string, unknown>));
+      filtered = selectDropFeedHistory(
+        filtered,
+        historicalMode,
+        (drop) => isFreshEnoughForPublicFeed(drop),
+        (drop) => isEligibleHistoricalPublicDrop(drop),
+      );
       return filtered;
     };
 
-    if (include !== "all") {
+    if (include !== "all" || historicalMode) {
       drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
     }
 
@@ -399,7 +417,7 @@ export async function GET(request: Request) {
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
     const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
-    const snapshot = `${engineSnapshot}:retailer:${retailerFeedSnapshot(retailerSubmissions)}`;
+    const snapshot = `${engineSnapshot}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}`;
     const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 
@@ -420,6 +438,7 @@ export async function GET(request: Request) {
         engineFresh,
         degradedStatesFiltered: Array.from(degradedStates),
         degradedStateFallback,
+        historicalMode,
       },
       {
         headers: {

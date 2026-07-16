@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
 import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
+import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
 
 const navLinks = [
   { label: "Feed", href: "/#drops" },
@@ -47,6 +48,7 @@ export default function Navigation() {
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
   const isFounderMember = memberTier === "bottled-in-bond";
   const canManageBilling = isSignedIn && memberTier !== "free";
+  const canSeeControlRoomNav = mounted && isSignedIn && controlRoomNavVisibleForUser(user);
 
   async function openBillingPortal() {
     if (billingPending) return;
@@ -481,6 +483,22 @@ export default function Navigation() {
                   >
                     {billingPending ? "Opening billing…" : "Manage billing"}
                   </button>
+                ) : null}
+                {canSeeControlRoomNav ? (
+                  <a
+                    href="/admin/control-room"
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "var(--color-accent-amber)",
+                      textDecoration: "none",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Control Room
+                  </a>
                 ) : null}
 
                 <button

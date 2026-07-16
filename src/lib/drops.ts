@@ -56,6 +56,7 @@ export interface DropEvent {
   retailerReported?: boolean;
   retailerSignalKind?: "drop" | "barrel_pick" | "tasting" | "lottery";
   retailerSignalState?: "upcoming" | "live";
+  historical?: boolean;
   startsAt?: string;
   expiresAt?: string;
   online_orderable_quantity?: number | null;
@@ -98,6 +99,7 @@ export interface GroupedDrop {
   retailerReported?: boolean;
   retailerSignalKind?: "drop" | "barrel_pick" | "tasting" | "lottery";
   retailerSignalState?: "upcoming" | "live";
+  historical?: boolean;
   startsAt?: string;
   expiresAt?: string;
   displayState?: string;
@@ -458,6 +460,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         retailerReported: event.retailerReported,
         retailerSignalKind: event.retailerSignalKind,
         retailerSignalState: event.retailerSignalState,
+        historical: event.historical,
         startsAt: event.startsAt,
         expiresAt: event.expiresAt,
         displayState: event.display_state || formatStateLabel(event.state || event.state_code),

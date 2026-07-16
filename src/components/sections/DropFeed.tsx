@@ -761,9 +761,10 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const retailerAppearance = retailerCardAppearance(drop);
   const signalLabel = retailerAppearance ? `Verified retailer · ${retailerAppearance.label}` : (drop.signalLabel || "Bottle drop");
   const signalTrust = getSignalTrust(drop);
-  const signalTime = drop.retailerSignalState === "upcoming" && drop.eventDate
+  const baseSignalTime = drop.retailerSignalState === "upcoming" && drop.eventDate
     ? `Starts ${formatDropTime({ ...drop, timestamp: drop.eventDate })}`
     : (distilleryMeta?.checkedLabel || formatDropTime(drop));
+  const signalTime = drop.historical ? `Historical · ${baseSignalTime}` : baseSignalTime;
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
@@ -1444,7 +1445,10 @@ export default function DropFeed() {
       for (let attempts = 0; attempts < 12; attempts += 1) {
         const query = new URLSearchParams({ limit: "40", offset: String(nextOffset) });
         if (feedStateParam) query.set("state", feedStateParam);
-        if (activeTierParam) query.set("tier", activeTierParam);
+        if (activeTierParam) {
+          query.set("tier", activeTierParam);
+          query.set("history", "1");
+        }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
         if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
@@ -1745,7 +1749,10 @@ export default function DropFeed() {
         if (cursor) query.set("cursor", cursor);
         else query.set("offset", String(nextOffset));
         if (feedStateParam) query.set("state", feedStateParam);
-        if (activeTierParam) query.set("tier", activeTierParam);
+        if (activeTierParam) {
+          query.set("tier", activeTierParam);
+          query.set("history", "1");
+        }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
         if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const res = await fetch(`/api/drops?${query.toString()}`);
