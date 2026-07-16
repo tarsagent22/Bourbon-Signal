@@ -37,7 +37,7 @@ if (packageJson.name !== 'bourbon-signal') {
 if (!packageJson.scripts?.['test:ops']) {
   fail('package.json should expose test:ops for workflow guardrails.');
 }
-for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path']) {
+for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:radar-leads', 'ops:source-expansion', 'ops:automation-cost', 'verify:automation', 'test:agent-cost-automation']) {
   if (!packageJson.scripts?.[scriptName]) fail(`package.json should expose ${scriptName} for Bourbon Signal self-improvement loops.`);
 }
 
@@ -190,8 +190,31 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
+for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'automation/bourbon-signal/release-radar-lead-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
   expectFile(requiredFile);
+}
+const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
+if (!automationRegistry.automations?.some((entry) => entry.id === 'github-engine-watchdog' && entry.executionClass === 'script_only')) {
+  fail('Automation registry must keep the deterministic production watchdog script-only.');
+}
+if (!automationRegistry.automations?.some((entry) => entry.id === 'hermes-bottle-queue' && entry.executionClass === 'script_only')) {
+  fail('Automation registry must classify the bottle queue routine path as script-only.');
+}
+const bottleQueue = read('automation/bourbon-signal/bottle-queue-autoprocess.mjs');
+if (!/compactAmbiguity/.test(bottleQueue) || !/payload\.ambiguity/.test(bottleQueue)) {
+  fail('Bottle queue automation must keep success silent and print only a compact ambiguity artifact.');
+}
+const automationCost = read('automation/bourbon-signal/automation-cost-report.mjs');
+for (const phrase of ['aggregateOnly: true', 'containsPrompts: false', 'containsPii: false', 'directHttpProbes', 'averageTokensPerUsefulFinding']) {
+  if (!automationCost.includes(phrase)) fail(`Automation cost report must keep aggregate-only telemetry: ${phrase}`);
+}
+const sourceExpansionCollector = read('automation/bourbon-signal/source-expansion-collector.mjs');
+for (const phrase of ['MAX_STATES_PER_RUN', "'discover:sources'", "'probe:sources'", 'canPromote: false', 'canPublish: false']) {
+  if (!sourceExpansionCollector.includes(phrase)) fail(`Source expansion collector is missing bounded deterministic contract: ${phrase}`);
+}
+const radarLeadCollector = read('automation/bourbon-signal/release-radar-lead-collector.mjs');
+for (const phrase of ['MAX_QUERIES', 'canPublish: false', 'canCreatePullRequest: false', 'canCreateAlerts: false', 'announcement_only']) {
+  if (!radarLeadCollector.includes(phrase)) fail(`Release Radar lead collector must remain non-publishing: ${phrase}`);
 }
 const alertCopyContract = read('scripts/verify-alert-copy-contract.mjs');
 for (const phrase of ['address unavailable; check source before driving', 'Board-level signal; check source before driving', 'Reply STOP to unsubscribe']) {

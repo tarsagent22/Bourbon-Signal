@@ -158,6 +158,41 @@ The scout accepts local structured candidate data, writes a machine-readable rev
 
 Candidate input uses `{ "candidates": [...] }`. Each candidate can include `title`, `kind`, `sourceUrl`, `sourceType`, `datePrecision`, `startDate`, market codes, canonical bottle relations, and related Radar slugs. Missing or invalid evidence is preserved as a review issue rather than promoted.
 
+## Script-first automation registry and cost telemetry
+
+`automation-registry.json` is the canonical checked-in inventory for every active GitHub workflow and known Bourbon Signal Hermes job. It declares the owner layer, execution class, expected frequency, agent model, bounded external API class, mutation/deployment capabilities, silence policy, kill switch, and artifact output. Verify it whenever a workflow or job changes:
+
+```bash
+npm run verify:automation
+```
+
+`npm run ops:automation-cost -- --input path/to/sanitized-run-events.json --apply` reduces known-job run counters into an aggregate-only cost report. It accepts only registered job IDs and keeps deterministic and agent classes separate. Prompts, member data, raw searches, URLs, timestamps, and tool logs are not copied into the report. The owner Control Room reads only a similarly sanitized `BOURBON_SIGNAL_AUTOMATION_COST_REPORT` JSON value; absent or invalid telemetry is shown as unavailable.
+
+## Token-free source and Radar collection
+
+The source-expansion collector is a bounded wrapper around engine discovery and probe artifacts. It does not activate a state, change lifecycle config, publish a snapshot, or send an alert:
+
+```bash
+npm run ops:source-expansion -- --states=CO,MA --apply
+npm run ops:source-expansion -- --states=CO,MA --execute --apply
+```
+
+`--execute` calls the engine's `discover:sources` and `probe:sources` commands after they are available; each run is capped at five states. Its report is an input to source ROI and the existing canonical findings system, not a separate operator backlog.
+
+Release Radar has an equally constrained lead lane:
+
+```bash
+npm run ops:radar-leads -- --input path/to/search-results.json --apply
+npm run ops:radar-leads -- --execute --apply
+npm run ops:radar-scout -- --lead-ledger automation/bourbon-signal/reports/release-radar-leads-latest.json
+```
+
+The collector uses direct Brave only with `--execute` and `BRAVE_SEARCH_API_KEY`, caps query count, deduplicates canonical HTTPS URLs, and writes unverified announcement-only leads. It cannot publish, open a PR, create alerts, or alter public Radar records. The scout keeps unverified leads in a review-required draft lane.
+
+## Autonomous expansion threshold
+
+`autonomy-threshold-contract.json` makes the boundary executable. A state may enter the safe autonomous lane only with an official/first-party public source, clear terms, no authentication, exact store identity, honest availability semantics, a complete customer vertical slice, at least three shadow and two canary runs, budget headroom, reversibility, and no outbound, pricing, entitlement, or legal-policy change. Anything else is `approval_required`, including anti-bot/terms ambiguity, login, identity ambiguity, non-reversible work, or a communication change. The contract classifies readiness only; it does not itself promote a state.
+
 ## Hard boundaries
 
 Do not include in these automations unless Chandler separately asks:

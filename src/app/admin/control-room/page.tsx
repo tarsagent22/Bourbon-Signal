@@ -53,7 +53,7 @@ export default async function CompanyControlRoomPage() {
   if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
 
   const snapshot = await getCompanyControlRoomSnapshot();
-  const { memberships, founder, revenue, audience, growth, lifecycle, demand, experiments, retailer, engine, alerts, release } = snapshot;
+  const { memberships, founder, revenue, audience, growth, lifecycle, demand, experiments, retailer, engine, alerts, release, automation } = snapshot;
   const deliveryCounts = alerts.counts as Record<string, number>;
 
   return (
@@ -81,6 +81,7 @@ export default async function CompanyControlRoomPage() {
           <a href="#experiments">Experiments</a>
           <a href="#retailers">Retailers</a>
           <a href="#engine">Engine</a>
+          <a href="#automation">Automation</a>
           <a href="#alerts">Alerts</a>
         </nav>
 
@@ -234,6 +235,20 @@ export default async function CompanyControlRoomPage() {
             <Metric label="State exceptions" value={engine.failedStates + engine.degradedStates + engine.staleStates} detail={`${engine.failedStates} failed · ${engine.degradedStates} degraded · ${engine.staleStates} stale`} />
           </div>
           <div className="cr-line"><span>Engine generated</span><strong>{dateTime(engine.generatedAt)}</strong></div>
+        </section>
+
+        <section id="automation" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Operating cost</p><h2>Automation mix</h2></div>
+            <span className={`cr-status ${automation.contractVersion ? "good" : "warn"}`}>{automation.contractVersion ? "Aggregate telemetry" : "Telemetry unavailable"}</span>
+          </div>
+          <div className="cr-metrics four">
+            <Metric label="Deterministic runs" value={count(automation.totals.deterministicRuns ?? null)} detail={`${count(automation.totals.agentRuns ?? null)} agent runs`} accent />
+            <Metric label="Failed runs" value={count(automation.totals.failedRuns ?? null)} detail={`${count(automation.totals.sourcesPromoted ?? null)} sources promoted`} />
+            <Metric label="Discovery work" value={count(automation.totals.sourcesDiscovered ?? null)} detail={`${count(automation.totals.braveQueries ?? null)} Brave queries · ${count(automation.totals.directHttpProbes ?? null)} HTTP probes`} />
+            <Metric label="Tracked tokens" value={count(automation.totals.tokens ?? null)} detail={`${count(automation.totals.averageTokensPerUsefulFinding ?? null)} per useful finding`} />
+          </div>
+          <p className="cr-note">Aggregate work and cost counters only. This view excludes prompts, member data, raw searches, URLs, and tool logs.</p>
         </section>
 
         <section id="alerts" className="cr-section">

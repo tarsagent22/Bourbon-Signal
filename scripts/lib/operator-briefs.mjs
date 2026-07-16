@@ -31,6 +31,18 @@ function boundedWithObjective(ranked, objective) {
   return bounded;
 }
 
+function compactContext(scorecard, ranked, objective) {
+  return {
+    contractVersion: 'bourbon-signal/brief-context@1',
+    scorecardGeneratedAt: scorecard.generatedAt,
+    scorecardStatuses: Object.fromEntries(Object.entries(scorecard.sections).map(([name, section]) => [name, section.status])),
+    findingCount: ranked.length,
+    findingIds: ranked.map((finding) => finding.id),
+    objectiveId: objective?.id || null,
+    maxFindings: MAX_FINDINGS_PER_REPORT,
+  };
+}
+
 export function buildDailyCompanyBrief({ scorecard, findings = [], generatedAt }) {
   if (scorecard?.contractVersion !== 'bourbon-signal/company-scorecard@1') throw new Error('A canonical company scorecard is required.');
   const allRanked = rankFindings(canonicalFindings(findings));
@@ -54,6 +66,7 @@ export function buildDailyCompanyBrief({ scorecard, findings = [], generatedAt }
     scorecardGeneratedAt: scorecard.generatedAt,
     sections,
     findingIds: ranked.map((finding) => finding.id),
+    context: compactContext(scorecard, ranked, top),
   };
 }
 
@@ -72,6 +85,10 @@ export function buildWeeklyStrategyReview({ scorecard, findings = [], generatedA
   const allRanked = rankFindings(canonicalFindings(findings));
   const top = objectiveFrom(allRanked);
   const ranked = boundedWithObjective(allRanked, top);
+  const context = {
+    ...compactContext(scorecard, ranked, top),
+    autonomyContract: 'bourbon-signal/autonomy-threshold@1',
+  };
   return {
     contractVersion: 'bourbon-signal/weekly-strategy-review@1',
     generatedAt,
@@ -80,6 +97,7 @@ export function buildWeeklyStrategyReview({ scorecard, findings = [], generatedA
     objective: top ? { findingId: top.id, title: top.title, action: top.recommendedAction, rankScore: top.rankScore } : null,
     findings: ranked.map((finding) => ({ id: finding.id, title: finding.title, area: finding.area, severity: finding.severity, rankScore: finding.rankScore })),
     decisions: scorecard.sections.decision?.attention || [],
+    context,
   };
 }
 
@@ -91,6 +109,7 @@ export function renderWeeklyStrategyReview(review) {
     '',
   ];
   for (const [name, status] of Object.entries(review.scorecardStatus)) lines.push(`- ${name}: ${status}`);
+  lines.push(`- Context: ${review.context.findingCount} bounded finding(s); autonomy contract ${review.context.autonomyContract}`);
   lines.push('', '## Ranked findings', '');
   if (review.findings.length) for (const item of review.findings) lines.push(`- ${item.rankScore} — ${item.title} (${item.id})`);
   else lines.push('- No eligible findings.');

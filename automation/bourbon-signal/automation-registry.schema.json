@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bourbonsignal.com/schemas/automation-registry.schema.json",
+  "title": "Bourbon Signal automation registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "automations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "automations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/automation" }
+    }
+  },
+  "$defs": {
+    "automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "platform", "active", "ownerLayer", "executionClass", "frequency", "agent", "externalApi", "customerMutation", "promotionDeployment", "silencePolicy", "killSwitch", "artifacts"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,100}$" },
+        "platform": { "enum": ["github_workflow", "hermes_job"] },
+        "workflowPath": { "type": "string", "pattern": "^\\.github/workflows/[a-z0-9-]+\\.yml$" },
+        "hermesJobId": { "type": "string", "pattern": "^[a-f0-9]{12}$" },
+        "active": { "const": true },
+        "ownerLayer": { "enum": ["deterministic", "sensor", "operator", "brief"] },
+        "executionClass": { "enum": ["script_only", "script_then_agent", "agent"] },
+        "frequency": { "type": "string", "minLength": 3, "maxLength": 80 },
+        "agent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "model"],
+          "properties": {
+            "provider": { "type": ["string", "null"] },
+            "model": { "type": ["string", "null"] }
+          }
+        },
+        "externalApi": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["classes", "maxRequestsPerRun"],
+          "properties": {
+            "classes": { "type": "array", "items": { "type": "string", "maxLength": 60 }, "maxItems": 8 },
+            "maxRequestsPerRun": { "type": "integer", "minimum": 0, "maximum": 100000 }
+          }
+        },
+        "customerMutation": { "enum": ["none", "internal_state", "snapshot_activation"] },
+        "promotionDeployment": { "enum": ["none", "guarded_recovery_dispatch", "snapshot_activation", "operator_only"] },
+        "silencePolicy": { "enum": ["quiet_on_success", "compact_exception_only", "report_output"] },
+        "killSwitch": { "type": "string", "minLength": 3, "maxLength": 120 },
+        "artifacts": { "type": "array", "items": { "type": "string", "maxLength": 200 }, "maxItems": 8 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "platform": { "const": "github_workflow" } } },
+          "then": { "required": ["workflowPath"] }
+        },
+        {
+          "if": { "properties": { "platform": { "const": "hermes_job" } } },
+          "then": { "required": ["hermesJobId"] }
+        }
+      ]
+    }
+  }
+}
