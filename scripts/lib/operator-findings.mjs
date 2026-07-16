@@ -8,6 +8,19 @@ const SOURCES = new Set(['daily-reliability', 'weekly-engine-brief', 'source-roi
 const AREAS = new Set(['company', 'product', 'data', 'shipping', 'decision']);
 const SEVERITIES = new Set(['critical', 'high', 'medium', 'low']);
 const STATUSES = new Set(['backlog', 'selected', 'in-progress', 'blocked', 'resolved', 'dismissed']);
+const UPSERT_REFRESH_FIELDS = [
+  'area',
+  'severity',
+  'title',
+  'summary',
+  'evidence',
+  'recommendedAction',
+  'impact',
+  'urgency',
+  'confidence',
+  'effort',
+  'observedAt',
+];
 const FIELDS = new Set([
   'contractVersion',
   'id',
@@ -59,6 +72,12 @@ function managedLabels(labels) {
 
 function sameStrings(left, right) {
   return JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
+}
+
+function refreshExistingFinding(current, observation) {
+  const refreshed = { ...current };
+  for (const field of UPSERT_REFRESH_FIELDS) refreshed[field] = observation[field];
+  return refreshed;
 }
 
 export function buildFinding(input) {
@@ -188,17 +207,17 @@ export function createFindingService({ runGh }) {
     }
     const existing = await read({ repo });
     const byId = new Map(existing.map((entry) => [entry.finding.id, entry]));
-    const actions = findings.map((finding) => {
-      const current = byId.get(finding.id);
-      if (!current) return { action: 'create', finding };
+    const actions = findings.map((observation) => {
+      const current = byId.get(observation.id);
+      if (!current) return { action: 'create', finding: observation };
+      const finding = refreshExistingFinding(current.finding, observation);
       const title = issueTitle(finding);
       const body = renderFindingIssueBody(finding);
       const labels = labelsFor(finding);
       const currentLabels = managedLabels(current.issue.labels);
       const unchanged = current.issue.title === title
         && current.issue.body === body
-        && sameStrings(currentLabels, labels)
-        && ((['resolved', 'dismissed'].includes(finding.status)) === (current.issue.state === 'CLOSED'));
+        && sameStrings(currentLabels, labels);
       return {
         action: unchanged ? 'noop' : 'update',
         finding,
@@ -218,16 +237,6 @@ export function createFindingService({ runGh }) {
         for (const label of action.removeLabels || []) args.push('--remove-label', label);
         if (repo) args.push('--repo', repo);
         await runGh(args);
-        if (action.action === 'update' && ['resolved', 'dismissed'].includes(finding.status) && action.issueState !== 'CLOSED') {
-          const closeArgs = ['issue', 'close', String(action.issueNumber), '--reason', finding.status === 'resolved' ? 'completed' : 'not planned'];
-          if (repo) closeArgs.push('--repo', repo);
-          await runGh(closeArgs);
-        }
-        if (action.action === 'update' && !['resolved', 'dismissed'].includes(finding.status) && action.issueState === 'CLOSED') {
-          const reopenArgs = ['issue', 'reopen', String(action.issueNumber)];
-          if (repo) reopenArgs.push('--repo', repo);
-          await runGh(reopenArgs);
-        }
       }
     }
     return { mode: apply ? 'apply' : 'dry-run', actions };

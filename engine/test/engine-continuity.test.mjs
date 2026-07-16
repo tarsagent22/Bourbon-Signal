@@ -26,8 +26,14 @@ test('state quality v2 uses a current-snapshot baseline', () => {
 
 test('scheduled refresh persists collector history, the actual scheduler state, and runs twice hourly', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const cacheStep = workflow.match(/- name: Restore collector artifacts and adaptive scheduler state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const diagnosticsStep = workflow.match(/- name: Preserve refresh diagnostics[\s\S]*$/)?.[0] || '';
   assert.match(workflow, /cron:\s*["']7,37 \* \* \* \*['"]/);
-  assert.match(workflow, /engine\/out\/optimization\/state-run-metrics\.json/);
+  assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
+  assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
+  assert.match(diagnosticsStep, /engine\/out\/optimization\/source-run-history\.json/);
+  assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.json/);
+  assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.md/);
   assert.match(workflow, /timeout-minutes:\s*28/);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
   assert.match(workflow, /verify:production-engine[\s\S]*?--rollback/);

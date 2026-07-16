@@ -58,6 +58,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
             engine/out/site
           key: inventory-refresh-${{ runner.os }}-${{ github.run_id }}
@@ -107,5 +108,8 @@ jobs:
             engine/out/reliability-status.json
             engine/out/source-health.json
             engine/out/operational-report.json
+            engine/out/source-slo-7d.json
+            engine/out/source-slo-7d.md
+            engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
             engine/out/states/TX.json

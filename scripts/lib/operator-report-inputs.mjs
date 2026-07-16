@@ -35,6 +35,25 @@ export async function collectFindings(files) {
   return [...byId.values()];
 }
 
+export async function readGithubBacklog(file) {
+  const payload = await maybeReadJson(file);
+  if (!payload || !Array.isArray(payload.findings) || payload.count !== payload.findings.length) {
+    throw new Error(`Canonical GitHub backlog export not found at ${file}`);
+  }
+  const findings = [];
+  for (const entry of payload.findings) {
+    if (!Number.isInteger(entry?.issueNumber) || !['OPEN', 'CLOSED'].includes(entry?.issueState) || !entry.finding) {
+      throw new Error(`Invalid canonical GitHub backlog entry in ${file}`);
+    }
+    const finding = { ...entry.finding };
+    delete finding.rankScore;
+    const validation = validateFinding(finding);
+    if (!validation.ok) throw new Error(`Invalid finding in ${file}: ${validation.errors.join('; ')}`);
+    findings.push(finding);
+  }
+  return findings;
+}
+
 export function option(args, name) {
   const inline = args.find((arg) => arg.startsWith(`--${name}=`));
   if (inline) return inline.slice(name.length + 3);

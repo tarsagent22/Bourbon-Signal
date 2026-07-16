@@ -15,6 +15,8 @@ This backbone turns existing aggregate operating signals into a bounded GitHub I
 
 One finding is one possible unit of operator work. The contract version is `bourbon-signal/finding@1`; a report contains at most eight findings, and each finding contains at most five evidence strings. IDs are deterministic SHA-256-derived identifiers over `source` plus `sourceKey`, so repeated observations upsert the same issue.
 
+Upsert recurrence is observational only. For an existing issue it refreshes the area, severity, title, summary, evidence, recommended action, rank inputs, and observation time. It preserves the operator-owned lifecycle status and the GitHub open/closed state for every status. In particular, a recurring `resolved` or `dismissed` finding stays terminal and closed; reopening requires an explicit `operator:findings update --status backlog|selected|in-progress --apply` action.
+
 Required fields:
 
 - `id`: `bsf-` plus 16 lowercase hexadecimal characters
@@ -73,12 +75,14 @@ The daily generator emits exactly these Markdown sections in this order: Company
 ```bash
 npm run operator:daily-brief -- --scorecard path/to/scorecard.json --findings path/to/findings.json
 npm run operator:daily-brief -- --scorecard path/to/scorecard.json --findings path/to/findings.json --apply
+npm run operator:daily-brief -- --scorecard path/to/scorecard.json --github-backlog path/to/operator-findings-read.json
 
 npm run operator:weekly-review -- --scorecard path/to/scorecard.json --findings path/to/findings.json
 npm run operator:weekly-review -- --scorecard path/to/scorecard.json --findings path/to/findings.json --apply
+npm run operator:weekly-review -- --scorecard path/to/scorecard.json --github-backlog path/to/operator-findings-read.json
 ```
 
-When `--findings` is omitted, the generators read the latest daily reliability, weekly engine, source ROI, and Radar reports. Missing finding reports are allowed; the scorecard is required.
+`--github-backlog` accepts the canonical JSON emitted by `operator:findings read` and is the preferred brief input after GitHub lifecycle changes. It preserves the one selected or in-progress objective even when that finding falls below the normal eight-item rank cutoff. `--github-backlog` and `--findings` are mutually exclusive. When both are omitted, the generators read the latest daily reliability, weekly engine, source ROI, and Radar reports. Missing finding reports are allowed; the scorecard is required.
 
 ## GitHub backlog commands
 

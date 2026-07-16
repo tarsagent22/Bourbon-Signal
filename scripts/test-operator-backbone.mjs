@@ -112,6 +112,57 @@ assert.equal(ghCalls.some((args) => args[0] === 'issue' && args[1] === 'close'),
 const statusEdit = ghCalls.findLast((args) => args[0] === 'issue' && args[1] === 'edit');
 assert.deepEqual(statusEdit.slice(statusEdit.indexOf('--remove-label'), statusEdit.indexOf('--remove-label') + 2), ['--remove-label', 'status:backlog']);
 
+const recurringObservation = {
+  ...finding,
+  area: 'shipping',
+  severity: 'high',
+  title: 'Restore failed engine states after recurrence',
+  summary: 'Three required states failed the latest refresh.',
+  evidence: ['NC, VA, and TX are failed', 'Latest export is 23 hours old'],
+  recommendedAction: 'Repair the current highest-value failure and rerun verification.',
+  impact: 4,
+  urgency: 4,
+  confidence: 0.9,
+  effort: 2,
+  status: 'backlog',
+  observedAt: '2026-07-16T13:00:00.000Z',
+};
+for (const lifecycleStatus of ['backlog', 'selected', 'in-progress', 'blocked', 'resolved', 'dismissed']) {
+  for (const issueState of ['OPEN', 'CLOSED']) {
+    const currentFinding = { ...finding, status: lifecycleStatus };
+    const matrixCalls = [];
+    const matrixIssue = {
+      ...existingIssue,
+      body: renderFindingIssueBody(currentFinding),
+      state: issueState,
+      labels: ['operator-finding', `area:${currentFinding.area}`, `severity:${currentFinding.severity}`, `status:${lifecycleStatus}`].map((name) => ({ name })),
+    };
+    const matrixService = createFindingService({
+      runGh: async (args) => {
+        matrixCalls.push(args);
+        if (args[0] === 'issue' && args[1] === 'list') return [matrixIssue];
+        return { ok: true };
+      },
+    });
+    const matrixResult = await matrixService.upsert({ findings: [recurringObservation], repo: 'owner/repo', apply: true });
+    const action = matrixResult.actions[0];
+    assert.equal(action.action, 'update', `${lifecycleStatus}/${issueState} refreshes the recurring observation`);
+    assert.equal(action.finding.status, lifecycleStatus, `${lifecycleStatus}/${issueState} preserves operator lifecycle`);
+    assert.equal(action.finding.observedAt, recurringObservation.observedAt);
+    assert.deepEqual(action.finding.evidence, recurringObservation.evidence);
+    assert.equal(action.finding.severity, recurringObservation.severity);
+    assert.equal(action.finding.impact, recurringObservation.impact);
+    assert.equal(action.finding.id, currentFinding.id);
+    assert.equal(action.finding.source, currentFinding.source);
+    assert.equal(action.finding.sourceKey, currentFinding.sourceKey);
+    assert.equal(matrixCalls.some((args) => args[0] === 'issue' && ['close', 'reopen'].includes(args[1])), false, `${lifecycleStatus}/${issueState} preserves issue state during recurrence`);
+    const edit = matrixCalls.find((args) => args[0] === 'issue' && args[1] === 'edit');
+    assert.ok(edit, `${lifecycleStatus}/${issueState} edits observation fields`);
+    assert.equal(edit.includes(`status:${lifecycleStatus}`), true, `${lifecycleStatus}/${issueState} retains its status label`);
+    assert.equal(parseFindingIssueBody(edit[edit.indexOf('--body') + 1]).status, lifecycleStatus);
+  }
+}
+
 const manyIssues = Array.from({ length: 20 }, (_, index) => ({
   severity: index === 0 ? 'critical' : 'warn',
   area: index % 2 ? 'production' : 'timestamp integrity',
@@ -218,15 +269,35 @@ try {
   const findingsFile = resolve(fixtureDir, 'findings.json');
   const rankedFindingsFile = resolve(fixtureDir, 'ranked-findings.json');
   const snapshotFile = resolve(fixtureDir, 'snapshot.json');
+  const githubBacklogFile = resolve(fixtureDir, 'github-backlog.json');
   const lockFile = resolve(fixtureDir, 'objective-lock.json');
   writeFileSync(scorecardFile, JSON.stringify(scorecard));
   writeFileSync(findingsFile, JSON.stringify({ findings: [finding, lowerRank] }));
   writeFileSync(rankedFindingsFile, JSON.stringify({ findings: ranked }));
   writeFileSync(snapshotFile, JSON.stringify(snapshot));
+  const activeFinding = { ...lowerRank, status: 'in-progress' };
+  const higherRankedBacklog = Array.from({ length: MAX_FINDINGS_PER_REPORT }, (_, index) => buildFinding({
+    ...sampleInput,
+    sourceKey: `higher-priority-${index}`,
+    title: `Higher ranked backlog finding ${index}`,
+  }));
+  writeFileSync(githubBacklogFile, JSON.stringify({
+    count: higherRankedBacklog.length + 1,
+    findings: [
+      { issueNumber: 77, issueState: 'OPEN', url: 'https://github.invalid/issues/77', finding: activeFinding },
+      ...higherRankedBacklog.map((item, index) => ({ issueNumber: 100 + index, issueState: 'OPEN', url: `https://github.invalid/issues/${100 + index}`, finding: item })),
+    ],
+  }));
   const run = (script, args = []) => execFileSync(process.execPath, ['--no-warnings', '--experimental-strip-types', script, ...args], { encoding: 'utf8' });
   const dailyDryRun = run('automation/bourbon-signal/daily-company-brief.mjs', [`--scorecard=${scorecardFile}`, `--findings=${findingsFile}`, `--at=${observedAt}`]);
   assert.deepEqual([...dailyDryRun.matchAll(/^## (.+)$/gm)].map((match) => match[1]), ['Company', 'Product', 'Data', 'Shipping', 'Decision', 'Today']);
   assert.match(run('automation/bourbon-signal/weekly-strategy-review.mjs', [`--scorecard=${scorecardFile}`, `--findings=${findingsFile}`, `--at=${observedAt}`]), /# Bourbon Signal Weekly Strategy Review/);
+  const dailyFromGithub = JSON.parse(run('automation/bourbon-signal/daily-company-brief.mjs', [`--scorecard=${scorecardFile}`, `--github-backlog=${githubBacklogFile}`, `--at=${observedAt}`, '--json']));
+  assert.equal(dailyFromGithub.findingIds.includes(activeFinding.id), true, 'daily brief retains the active objective from the canonical GitHub backlog');
+  assert.equal(dailyFromGithub.sections.find((section) => section.name === 'Today').bullets.includes(`Finding: ${activeFinding.id}`), true);
+  const weeklyFromGithub = JSON.parse(run('automation/bourbon-signal/weekly-strategy-review.mjs', [`--scorecard=${scorecardFile}`, `--github-backlog=${githubBacklogFile}`, `--at=${observedAt}`, '--json']));
+  assert.equal(weeklyFromGithub.objective.findingId, activeFinding.id, 'weekly review retains the one active objective from the canonical GitHub backlog');
+  assert.equal(weeklyFromGithub.findings.some((item) => item.id === activeFinding.id), true, 'bounded weekly findings retain the active objective');
   assert.match(run('automation/bourbon-signal/company-scorecard.mts', [`--input=${snapshotFile}`, `--at=${observedAt}`]), /"mode": "dry-run"/);
   assert.match(run('automation/bourbon-signal/radar-findings.mjs'), /"mode": "dry-run"/);
   assert.match(run('scripts/operator-findings.mjs', ['validate', `--file=${findingsFile}`]), /"ok": true/);
