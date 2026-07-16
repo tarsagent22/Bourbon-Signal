@@ -42,6 +42,7 @@ for (const [index, value] of candidates.entries()) {
       city: String(prospect.city || ""),
       state: String(prospect.state || ""),
       contactChannel: channel,
+      outreachKind: "initial",
     }),
     approvalRequired: true,
     officialContactEvidenceId: String(contact.evidenceId || ""),

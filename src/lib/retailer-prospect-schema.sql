@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS retailer_prospect_message_versions (
   prospect_id TEXT NOT NULL REFERENCES retailer_prospects(id) ON DELETE CASCADE,
   version INTEGER NOT NULL CHECK (version > 0),
   channel TEXT NOT NULL CHECK (channel IN ('email', 'phone', 'contact_form')),
+  outreach_kind TEXT NOT NULL DEFAULT 'initial' CHECK (outreach_kind IN ('initial', 'follow_up')),
   subject TEXT NOT NULL DEFAULT '',
   body TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'approved', 'superseded')),
@@ -170,6 +171,10 @@ CREATE TABLE IF NOT EXISTS retailer_prospect_message_versions (
   UNIQUE (prospect_id, version),
   UNIQUE (id, channel)
 );
+
+ALTER TABLE retailer_prospect_message_versions
+  ADD COLUMN IF NOT EXISTS outreach_kind TEXT NOT NULL DEFAULT 'initial'
+  CHECK (outreach_kind IN ('initial', 'follow_up'));
 
 CREATE UNIQUE INDEX IF NOT EXISTS retailer_prospect_one_approved_message_idx
   ON retailer_prospect_message_versions (prospect_id) WHERE status = 'approved';
@@ -230,9 +235,10 @@ CREATE OR REPLACE FUNCTION approve_retailer_prospect_message(
   owner_id TEXT
 ) RETURNS retailer_prospect_message_versions AS $$
 DECLARE
+  prospect retailer_prospects;
   approved_message retailer_prospect_message_versions;
 BEGIN
-  PERFORM 1 FROM retailer_prospects
+  SELECT * INTO prospect FROM retailer_prospects
   WHERE id = target_prospect_id AND state = 'awaiting_approval'
   FOR UPDATE;
   IF NOT FOUND THEN
@@ -261,6 +267,15 @@ BEGIN
     RAISE EXCEPTION 'Draft message version was not found';
   END IF;
 
+  IF approved_message.outreach_kind = 'initial'
+     AND (prospect.initial_contact_count <> 0 OR prospect.follow_up_count <> 0) THEN
+    RAISE EXCEPTION 'Initial approval is not allowed after outreach has been recorded';
+  END IF;
+  IF approved_message.outreach_kind = 'follow_up'
+     AND (prospect.initial_contact_count <> 1 OR prospect.follow_up_count <> 0) THEN
+    RAISE EXCEPTION 'Follow-up approval requires exactly one initial outreach and no recorded follow-up';
+  END IF;
+
   INSERT INTO retailer_prospect_approval_packets (
     id, prospect_id, message_version_id, packet, approved_by
   )
@@ -278,7 +293,8 @@ BEGIN
       'scoreRationale', prospects.score_rationale,
       'messageVersion', approved_message.version,
       'message', jsonb_build_object(
-        'channel', approved_message.channel, 'subject', approved_message.subject, 'body', approved_message.body
+        'channel', approved_message.channel, 'outreachKind', approved_message.outreach_kind,
+        'subject', approved_message.subject, 'body', approved_message.body
       ),
       'officialContactEvidence', COALESCE((
         SELECT jsonb_agg(jsonb_build_object(
@@ -329,6 +345,7 @@ CREATE OR REPLACE FUNCTION record_retailer_prospect_outreach(
 DECLARE
   prospect retailer_prospects;
   approved_message retailer_prospect_message_versions;
+  initial_outreach retailer_prospect_outreach;
   recorded retailer_prospect_outreach;
 BEGIN
   SELECT * INTO prospect FROM retailer_prospects
@@ -348,15 +365,34 @@ BEGIN
     RAISE EXCEPTION 'Outreach requires an approved message version';
   END IF;
 
+  IF NOT EXISTS (
+    SELECT 1 FROM retailer_prospect_contact_evidence
+    WHERE prospect_id = target_prospect_id AND verified_at IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'Verified official contact evidence is required';
+  END IF;
+
+  IF approved_message.outreach_kind <> outreach_kind THEN
+    RAISE EXCEPTION 'Outreach kind must match the approved message version';
+  END IF;
+
   IF outreach_kind = 'initial' THEN
     IF prospect.state <> 'approved' OR prospect.initial_contact_count <> 0 THEN
       RAISE EXCEPTION 'Initial outreach is not allowed';
     END IF;
   ELSIF outreach_kind = 'follow_up' THEN
-    IF prospect.state <> 'follow_up_due'
+    IF prospect.state <> 'approved'
        OR prospect.initial_contact_count <> 1
-       OR prospect.follow_up_count >= 1 THEN
-      RAISE EXCEPTION 'Only one follow-up is allowed when follow-up is due';
+       OR prospect.follow_up_count <> 0 THEN
+      RAISE EXCEPTION 'Only one approved follow-up is allowed after initial outreach';
+    END IF;
+    SELECT * INTO initial_outreach FROM retailer_prospect_outreach
+    WHERE prospect_id = target_prospect_id AND kind = 'initial';
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Follow-up outreach requires an initial outreach ledger entry';
+    END IF;
+    IF initial_outreach.message_version_id = approved_message.id THEN
+      RAISE EXCEPTION 'Follow-up outreach requires its own freshly approved message version';
     END IF;
   ELSE
     RAISE EXCEPTION 'Unknown outreach kind';

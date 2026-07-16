@@ -111,6 +111,7 @@ export interface ProspectMessageVersion {
   prospectId: string;
   version: number;
   channel: ProspectContactChannel;
+  outreachKind: ProspectOutreachKind;
   subject: string;
   body: string;
   status: ProspectMessageStatus;
@@ -326,7 +327,7 @@ const STANDARD_TRANSITIONS: Record<RetailerProspectState, RetailerProspectState[
   awaiting_approval: ["approved", "draft_ready", "paused", "declined", "invalid"],
   approved: ["contacted", "paused", "declined", "invalid"],
   contacted: ["follow_up_due", "interested", "onboarding", "paused", "declined", "invalid"],
-  follow_up_due: ["contacted", "interested", "onboarding", "paused", "declined", "invalid"],
+  follow_up_due: ["draft_ready", "interested", "onboarding", "paused", "declined", "invalid"],
   interested: ["onboarding", "paused", "declined", "invalid"],
   onboarding: ["verified", "paused", "declined", "invalid"],
   verified: ["first_signal_live", "paused", "declined", "invalid"],
@@ -373,7 +374,13 @@ export function assertProspectTransition(
   if (RECORDED_CONTACT_DESTINATIONS.has(next) && finiteCount(context.initialContactCount || 0) < 1) {
     throw new Error("A recorded initial contact is required for this transition.");
   }
+  if (current === "follow_up_due" && next === "draft_ready" && finiteCount(context.initialContactCount || 0) !== 1) {
+    throw new Error("A recorded initial contact is required before drafting a follow-up.");
+  }
   if (next === "follow_up_due" && finiteCount(context.followUpCount || 0) >= 1) throw new Error("Only one follow-up is allowed.");
+  if (current === "follow_up_due" && next === "draft_ready" && finiteCount(context.followUpCount || 0) >= 1) {
+    throw new Error("Only one follow-up is allowed.");
+  }
 }
 
 export function draftProspectOutreach(input: {
@@ -383,24 +390,40 @@ export function draftProspectOutreach(input: {
   city: string;
   state: string;
   contactChannel: ProspectContactChannel;
+  outreachKind: ProspectOutreachKind;
 }): ProspectMessageVersion {
   const retailerName = cleanText(input.retailerName, 160);
   const market = [titleCase(cleanText(input.city, 100)), normalizeState(input.state)].filter(Boolean).join(", ");
-  const subject = `A retailer signal channel for ${retailerName}`;
-  const body = [
-    `Hello ${retailerName} team,`,
-    "",
-    `Bourbon Signal helps people act on timely bottle availability and retailer events${market ? ` around ${market}` : ""}. We found your official business contact while reviewing stores that could improve local coverage.`,
-    "",
-    "Would you be open to a short conversation about publishing verified availability, barrel picks, tastings, or lotteries directly? There is no promise of audience size or sales; we would first confirm fit and walk through verification.",
-    "",
-    "Best,",
-    "Bourbon Signal",
-  ].join("\n");
+  const followUp = input.outreachKind === "follow_up";
+  const subject = followUp
+    ? `Following up: a retailer signal channel for ${retailerName}`
+    : `A retailer signal channel for ${retailerName}`;
+  const body = followUp
+    ? [
+      `Hello ${retailerName} team,`,
+      "",
+      "I wanted to follow up on our earlier note about Bourbon Signal and ask whether a short conversation would be useful.",
+      "",
+      "We can walk through verification and how retailers may publish availability, barrel picks, tastings, or lotteries directly. There is no promise of audience size or sales.",
+      "",
+      "Best,",
+      "Bourbon Signal",
+    ].join("\n")
+    : [
+      `Hello ${retailerName} team,`,
+      "",
+      `Bourbon Signal helps people act on timely bottle availability and retailer events${market ? ` around ${market}` : ""}. We found your official business contact while reviewing stores that could improve local coverage.`,
+      "",
+      "Would you be open to a short conversation about publishing verified availability, barrel picks, tastings, or lotteries directly? There is no promise of audience size or sales; we would first confirm fit and walk through verification.",
+      "",
+      "Best,",
+      "Bourbon Signal",
+    ].join("\n");
   return {
     prospectId: cleanText(input.prospectId, 120),
     version: Math.max(1, finiteCount(input.version)),
     channel: input.contactChannel,
+    outreachKind: input.outreachKind,
     subject,
     body,
     status: "draft",
@@ -437,6 +460,7 @@ export function buildApprovalPacket(input: {
 export function canRecordOutreach(input: {
   prospectState: RetailerProspectState;
   messageStatus: ProspectMessageStatus;
+  approvedMessageKind: ProspectOutreachKind;
   approvedMessageChannel: ProspectContactChannel;
   outreachChannel: ProspectContactChannel;
   kind: ProspectOutreachKind;
@@ -444,6 +468,9 @@ export function canRecordOutreach(input: {
   followUpCount: number;
 }): { allowed: true } | { allowed: false; reason: string } {
   if (input.messageStatus !== "approved") return { allowed: false, reason: "Outreach requires an approved message version." };
+  if (input.approvedMessageKind !== input.kind) {
+    return { allowed: false, reason: "Follow-up outreach requires a fresh exact follow-up message version and approval." };
+  }
   if (input.outreachChannel !== input.approvedMessageChannel) {
     return { allowed: false, reason: "Outreach channel must match the approved message version channel." };
   }
@@ -452,7 +479,7 @@ export function canRecordOutreach(input: {
     if (finiteCount(input.initialContactCount) > 0) return { allowed: false, reason: "Initial outreach was already recorded." };
     return { allowed: true };
   }
-  if (input.prospectState !== "follow_up_due") return { allowed: false, reason: "The prospect must be marked follow-up due." };
+  if (input.prospectState !== "approved") return { allowed: false, reason: "Follow-up outreach requires an approved follow-up draft." };
   if (finiteCount(input.initialContactCount) !== 1) return { allowed: false, reason: "A follow-up requires one recorded initial outreach." };
   if (finiteCount(input.followUpCount) >= 1) return { allowed: false, reason: "Only one follow-up may be recorded." };
   return { allowed: true };

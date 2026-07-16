@@ -126,6 +126,21 @@ assert.doesNotThrow(() => assertProspectTransition("paused", "verified", {
   hasApprovedVersion: true,
   initialContactCount: 1,
 }));
+assert.doesNotThrow(() => assertProspectTransition("follow_up_due", "draft_ready", {
+  hasOfficialContact: true,
+  hasDraftVersion: true,
+  initialContactCount: 1,
+  followUpCount: 0,
+}));
+assert.throws(
+  () => assertProspectTransition("follow_up_due", "draft_ready", {
+    hasOfficialContact: true,
+    hasDraftVersion: true,
+    initialContactCount: 0,
+    followUpCount: 0,
+  }),
+  /recorded initial contact/i,
+);
 
 const draft = draftProspectOutreach({
   prospectId: "prospect-1",
@@ -134,12 +149,28 @@ const draft = draftProspectOutreach({
   city: "Taylors",
   state: "SC",
   contactChannel: "email",
+  outreachKind: "initial",
 });
 assert.equal(draft.status, "draft");
 assert.equal(draft.version, 2);
+assert.equal(draft.outreachKind, "initial");
 assert.match(draft.body, /Example Spirits/);
 assert.doesNotMatch(draft.body, /\b\d+[,.]?\d*\s*(members|hunters|users|reach|impressions)\b/i);
 assert.doesNotMatch(draft.body, /guarantee|guaranteed/i);
+
+const followUpDraft = draftProspectOutreach({
+  prospectId: "prospect-1",
+  version: 3,
+  retailerName: "Example Spirits",
+  city: "Taylors",
+  state: "SC",
+  contactChannel: "email",
+  outreachKind: "follow_up",
+});
+assert.equal(followUpDraft.outreachKind, "follow_up");
+assert.match(followUpDraft.subject, /following up/i);
+assert.match(followUpDraft.body, /follow up/i);
+assert.notEqual(followUpDraft.body, draft.body);
 
 const packet = buildApprovalPacket({
   prospect: { id: "prospect-1", ...normalized.value! },
@@ -153,10 +184,12 @@ assert.equal(packet.officialContactEvidence.length, 1);
 assert.match(packet.guardrails.join(" "), /approval/i);
 assert.throws(() => buildApprovalPacket({ ...packet, prospect: { id: "prospect-1", ...normalized.value! }, score, contactEvidence: [], draft }), /official contact/i);
 
-assert.deepEqual(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }), { allowed: true });
-assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "draft", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }).reason || "", /approved message version/i);
-assert.match(canRecordOutreach({ prospectState: "follow_up_due", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 1 }).reason || "", /one follow-up/i);
-assert.match(canRecordOutreach({ prospectState: "contacted", messageStatus: "approved", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }).reason || "", /follow-up due/i);
+assert.deepEqual(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageKind: "initial", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }), { allowed: true });
+assert.deepEqual(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageKind: "follow_up", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }), { allowed: true });
+assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "draft", approvedMessageKind: "initial", approvedMessageChannel: "email", outreachChannel: "email", kind: "initial", initialContactCount: 0, followUpCount: 0 }).reason || "", /approved message version/i);
+assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageKind: "initial", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }).reason || "", /fresh.*follow-up.*version/i);
+assert.match(canRecordOutreach({ prospectState: "approved", messageStatus: "approved", approvedMessageKind: "follow_up", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 1 }).reason || "", /one follow-up/i);
+assert.match(canRecordOutreach({ prospectState: "follow_up_due", messageStatus: "approved", approvedMessageKind: "follow_up", approvedMessageChannel: "email", outreachChannel: "email", kind: "follow_up", initialContactCount: 1, followUpCount: 0 }).reason || "", /approved follow-up/i);
 
 const outcomes = aggregateProspectOutcomes([
   { state: "contacted", outcome: "no_response" },
@@ -197,7 +230,7 @@ assert.match(schema, /UNIQUE\s*\(prospect_id,\s*kind\)/i);
 
 const repository = read("src/lib/retailer-prospect-repository.ts");
 assert.match(repository, /message_versions[\s\S]*status = 'approved'/);
-assert.match(schema, /outreach_kind = 'follow_up'[\s\S]*follow_up_count >= 1/);
+assert.match(schema, /outreach_kind = 'follow_up'[\s\S]*follow_up_count <> 0/);
 assert.match(repository, /record_retailer_prospect_outreach/);
 assert.doesNotMatch(repository, /\bCREATE\s+(?:TABLE|INDEX|OR\s+REPLACE\s+FUNCTION)/i);
 assert.match(schema, /BEGIN/);

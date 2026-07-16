@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
 const DATABASE_ENVIRONMENT_VARIABLE = "BOURBON_QUEUE_DATABASE_URL_UNPOOLED";
-const MIGRATION_VERSION = "retailer-acquisition-v3";
+const MIGRATION_VERSION = "retailer-acquisition-v4";
 
 function option(args, name) {
   const exactIndex = args.indexOf(name);

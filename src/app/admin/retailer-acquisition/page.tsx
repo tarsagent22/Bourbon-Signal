@@ -94,6 +94,12 @@ async function createDraft(formData: FormData) {
   const repository = getRetailerProspectRepository();
   const prospect = await repository.getProspect(prospectId);
   if (!prospect || !["email", "phone", "contact_form"].includes(channel)) return;
+  const outreachKind = prospect.initialContactCount === 0 && prospect.followUpCount === 0
+    ? "initial" as const
+    : prospect.initialContactCount === 1 && prospect.followUpCount === 0
+      ? "follow_up" as const
+      : null;
+  if (!outreachKind) return;
   const versions = await repository.listMessageVersions(prospectId);
   const draft = draftProspectOutreach({
     prospectId,
@@ -102,6 +108,7 @@ async function createDraft(formData: FormData) {
     city: prospect.city,
     state: prospect.state,
     contactChannel: channel,
+    outreachKind,
   });
   await repository.createDraft({ prospectId, channel, subject: draft.subject, body: draft.body, createdBy: owner.id });
   revalidatePath("/admin/retailer-acquisition");
@@ -206,7 +213,6 @@ export default async function RetailerAcquisitionPage() {
             const approvedMessage = messages.find((message) => message.status === "approved");
             const verifiedEvidence = evidence.filter((item) => item.verifiedAt);
             const transitions = nextStates(prospect.prospectState, prospect.followUpCount);
-            const outreachKind = prospect.prospectState === "follow_up_due" ? "follow_up" : "initial";
             return (
               <article className={styles.prospect} key={prospect.id}>
                 <div className={styles.identity}>
@@ -244,9 +250,9 @@ export default async function RetailerAcquisitionPage() {
                   <section className={styles.section}>
                     <h3>Approval packet</h3>
                     <p className={styles.sectionIntro}>Score inputs, evidence, and copy travel together. Editing copy creates another version.</p>
-                    {prospect.prospectState === "contact_verified" ? <form action={createDraft} className={styles.form}><input name="prospectId" type="hidden" value={prospect.id} /><label>Contact channel<select className={styles.select} name="channel" defaultValue="email"><option value="email">Email</option><option value="phone">Phone</option><option value="contact_form">Contact form</option></select></label><button className={styles.button} type="submit">Create local draft</button></form> : null}
+                    {["contact_verified", "follow_up_due"].includes(prospect.prospectState) ? <form action={createDraft} className={styles.form}><input name="prospectId" type="hidden" value={prospect.id} /><label>Contact channel<select className={styles.select} name="channel" defaultValue="email"><option value="email">Email</option><option value="phone">Phone</option><option value="contact_form">Contact form</option></select></label><button className={styles.button} type="submit">Create {prospect.prospectState === "follow_up_due" ? "follow-up" : "initial"} draft</button></form> : null}
                     {currentDraft ? <div className={styles.draft}>
-                      <div className={styles.draftHeader}><strong>Version {currentDraft.version} · {currentDraft.status}</strong><span>{currentDraft.channel}</span></div>
+                      <div className={styles.draftHeader}><strong>Version {currentDraft.version} · {currentDraft.outreachKind.replaceAll("_", " ")} · {currentDraft.status}</strong><span>{currentDraft.channel}</span></div>
                       <pre>{currentDraft.subject}{"\n\n"}{currentDraft.body}</pre>
                       {prospect.prospectState === "draft_ready" ? <form action={saveDraftVersion} className={styles.form}>
                         <input name="prospectId" type="hidden" value={prospect.id} />
@@ -261,14 +267,14 @@ export default async function RetailerAcquisitionPage() {
                     {packet ? <details className={styles.packet}><summary>Approved packet · immutable snapshot</summary><pre>{JSON.stringify(packet.packet, null, 2)}</pre></details> : null}
                   </section>
 
-                  {approvedMessage && ["approved", "follow_up_due"].includes(prospect.prospectState) ? <section className={styles.section}>
+                  {approvedMessage && prospect.prospectState === "approved" ? <section className={styles.section}>
                     <h3>Record manual outreach</h3>
-                    <p className={styles.sectionIntro}>This records work completed elsewhere. It does not contact the retailer.</p>
+                    <p className={styles.sectionIntro}>This records work completed elsewhere against this exact approved version. It does not contact the retailer.</p>
                     <form action={recordManualOutreach} className={styles.form}>
-                      <input name="prospectId" type="hidden" value={prospect.id} /><input name="messageVersionId" type="hidden" value={approvedMessage.id} /><input name="kind" type="hidden" value={outreachKind} />
+                      <input name="prospectId" type="hidden" value={prospect.id} /><input name="messageVersionId" type="hidden" value={approvedMessage.id} /><input name="kind" type="hidden" value={approvedMessage.outreachKind} />
                       <div className={styles.formGrid}><label>Approved channel<input className={styles.input} readOnly value={approvedMessage.channel} /></label><label>Completed at<input className={styles.input} name="contactedAt" type="datetime-local" required /></label></div>
                       <label>Private note<input className={styles.input} name="note" maxLength={500} /></label>
-                      <button className={styles.button} type="submit">Record {outreachKind.replaceAll("_", " ")}</button>
+                      <button className={styles.button} type="submit">Record {approvedMessage.outreachKind.replaceAll("_", " ")}</button>
                     </form>
                   </section> : null}
                 </div>

@@ -63,6 +63,35 @@ const REQUIRED_SCHEMA_QUERY = `
     to_regprocedure('public.record_retailer_prospect_outreach(text,text,text,text,text,timestamptz,text)') AS outreach_function
 `;
 
+const REFRESH_EXISTING_PROSPECT_QUERY = `
+  UPDATE retailer_prospects /* retailer_prospect_discovery_refresh */
+  SET name = $2,
+      address = CASE WHEN $10 <> '' THEN $3 ELSE retailer_prospects.address END,
+      city = CASE WHEN $10 <> '' THEN $4 ELSE retailer_prospects.city END,
+      region = CASE WHEN $10 <> '' THEN $5 ELSE retailer_prospects.region END,
+      postal_code = CASE WHEN $10 <> '' THEN $6 ELSE retailer_prospects.postal_code END,
+      website = CASE WHEN $7 <> '' THEN $7 ELSE retailer_prospects.website END,
+      listed_phone = CASE WHEN $8 <> '' THEN $8 ELSE retailer_prospects.listed_phone END,
+      identity_key = CASE
+        WHEN NOT EXISTS (
+          SELECT 1 FROM retailer_prospects identity_conflict
+          WHERE identity_conflict.identity_key = $9
+            AND identity_conflict.id <> $1
+        ) THEN $9
+        ELSE retailer_prospects.identity_key
+      END,
+      location_key = CASE WHEN $10 <> '' THEN $10 ELSE retailer_prospects.location_key END,
+      domain_key = CASE WHEN $7 <> '' THEN $11 ELSE retailer_prospects.domain_key END,
+      discovery_source = $12,
+      source_url = CASE WHEN $13 <> '' THEN $13 ELSE retailer_prospects.source_url END,
+      score = $14,
+      score_components = $15::jsonb,
+      score_inputs = $16::jsonb,
+      score_rationale = $17::jsonb
+  WHERE id = $1
+  RETURNING *
+`;
+
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
   return env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.BOURBON_QUEUE_DATABASE_URL || env.DATABASE_URL || null;
 }
@@ -178,6 +207,7 @@ function messageFromRow(row: Record<string, unknown>): RetailerProspectMessageRe
     prospectId: asString(row.prospect_id),
     version: Number(row.version || 0),
     channel: asString(row.channel) as ProspectContactChannel,
+    outreachKind: (asString(row.outreach_kind) || "initial") as ProspectOutreachKind,
     subject: asString(row.subject),
     body: asString(row.body),
     status: asString(row.status) as ProspectMessageVersion["status"],
@@ -225,6 +255,18 @@ export class RetailerProspectRepository {
     const normalized = normalizeRetailerProspect(input.prospect);
     if (!normalized.ok || !normalized.value) throw new Error(normalized.error || "Invalid retailer prospect.");
     const keys = buildProspectDedupeKeys(normalized.value);
+    const refreshValues = (id: string) => [
+      id, normalized.value!.name, normalized.value!.address, normalized.value!.city,
+      normalized.value!.state, normalized.value!.postalCode, normalized.value!.website, normalized.value!.listedPhone,
+      keys.identityKey, keys.locationKey, keys.domainKey, input.discoverySource.trim().slice(0, 120),
+      (input.sourceUrl || "").trim().slice(0, 500), input.score.total,
+      JSON.stringify(input.score.components), JSON.stringify(input.score.inputs), JSON.stringify(input.score.rationale),
+    ];
+    const refreshExisting = async (row: Record<string, unknown>) => {
+      const rows = await this.query.query(REFRESH_EXISTING_PROSPECT_QUERY, refreshValues(asString(row.id)));
+      if (!rows[0]) throw new Error("Retailer prospect changed while discovery data was being refreshed.");
+      return { prospect: prospectFromRow(rows[0] as Record<string, unknown>), deduplicated: true };
+    };
     await this.assertSchemaAvailable();
     const duplicateRows = await this.query.query(`
       SELECT * FROM retailer_prospects
@@ -232,26 +274,28 @@ export class RetailerProspectRepository {
       ORDER BY CASE WHEN identity_key = $1 THEN 0 ELSE 1 END
       LIMIT 1
     `, [keys.identityKey, keys.locationKey]);
-    if (duplicateRows[0]) return { prospect: prospectFromRow(duplicateRows[0] as Record<string, unknown>), deduplicated: true };
+    if (duplicateRows[0]) return refreshExisting(duplicateRows[0] as Record<string, unknown>);
 
+    const insertedId = input.id || randomUUID();
     const rows = await this.query.query(`
       INSERT INTO retailer_prospects (
         id, name, address, city, region, postal_code, website, listed_phone,
         identity_key, location_key, domain_key, discovery_source, source_url,
         score, score_components, score_inputs, score_rationale
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16::jsonb, $17::jsonb)
-      ON CONFLICT (identity_key) DO UPDATE SET
-        source_url = CASE WHEN retailer_prospects.source_url = '' THEN EXCLUDED.source_url ELSE retailer_prospects.source_url END,
-        updated_at = NOW()
+      ON CONFLICT (identity_key) DO NOTHING
       RETURNING *
     `, [
-      input.id || randomUUID(), normalized.value.name, normalized.value.address, normalized.value.city,
+      insertedId, normalized.value.name, normalized.value.address, normalized.value.city,
       normalized.value.state, normalized.value.postalCode, normalized.value.website, normalized.value.listedPhone,
       keys.identityKey, keys.locationKey, keys.domainKey, input.discoverySource.trim().slice(0, 120),
       (input.sourceUrl || "").trim().slice(0, 500), input.score.total,
       JSON.stringify(input.score.components), JSON.stringify(input.score.inputs), JSON.stringify(input.score.rationale),
     ]);
-    return { prospect: prospectFromRow(rows[0] as Record<string, unknown>), deduplicated: false };
+    if (rows[0]) return { prospect: prospectFromRow(rows[0] as Record<string, unknown>), deduplicated: false };
+    const racedRows = await this.query.query(`SELECT * FROM retailer_prospects WHERE identity_key = $1 LIMIT 1`, [keys.identityKey]);
+    if (!racedRows[0]) throw new Error("Retailer prospect could not be inserted or refreshed.");
+    return refreshExisting(racedRows[0] as Record<string, unknown>);
   }
 
   async getProspect(id: string) {
@@ -354,8 +398,22 @@ export class RetailerProspectRepository {
     createdBy: string;
   }) {
     const prospect = await this.getProspect(input.prospectId);
-    if (!prospect || !["contact_verified", "draft_ready"].includes(prospect.prospectState)) throw new Error("Prospect must have verified contact before drafting.");
+    if (!prospect || !["contact_verified", "draft_ready", "follow_up_due"].includes(prospect.prospectState)) throw new Error("Prospect must have verified contact before drafting.");
     if (!input.body.trim()) throw new Error("Draft body is required.");
+    const evidenceRows = await this.query.query(`
+      SELECT 1 FROM retailer_prospect_contact_evidence
+      WHERE prospect_id = $1 AND verified_at IS NOT NULL
+      LIMIT 1
+    `, [input.prospectId]);
+    if (!evidenceRows.length) throw new Error("Verified official contact evidence is required before drafting.");
+    const outreachKind: ProspectOutreachKind = prospect.initialContactCount === 0 && prospect.followUpCount === 0
+      ? "initial"
+      : prospect.initialContactCount === 1 && prospect.followUpCount === 0
+        ? "follow_up"
+        : (() => { throw new Error("No additional retailer outreach may be drafted."); })();
+    if (prospect.prospectState === "follow_up_due" && outreachKind !== "follow_up") {
+      throw new Error("A follow-up draft requires one recorded initial outreach.");
+    }
     const rows = await this.query.query(`
       WITH next_version AS (
         SELECT COALESCE(MAX(version), 0) + 1 AS version
@@ -365,12 +423,15 @@ export class RetailerProspectRepository {
         WHERE prospect_id = $2 AND status = 'draft' RETURNING id
       )
       INSERT INTO retailer_prospect_message_versions (
-        id, prospect_id, version, channel, subject, body, status, created_by
-      ) SELECT $1, $2, next_version.version, $3, $4, $5, 'draft', $6 FROM next_version
+        id, prospect_id, version, channel, outreach_kind, subject, body, status, created_by
+      ) SELECT $1, $2, next_version.version, $3, $7, $4, $5, 'draft', $6 FROM next_version
       RETURNING *
-    `, [randomUUID(), input.prospectId, input.channel, input.subject.trim().slice(0, 240), input.body.trim().slice(0, 10_000), input.createdBy]);
+    `, [randomUUID(), input.prospectId, input.channel, input.subject.trim().slice(0, 240), input.body.trim().slice(0, 10_000), input.createdBy, outreachKind]);
     if (prospect.prospectState === "contact_verified") {
       await this.query.query(`UPDATE retailer_prospects SET state = 'draft_ready', updated_at = NOW() WHERE id = $1 AND state = 'contact_verified'`, [input.prospectId]);
+    }
+    if (prospect.prospectState === "follow_up_due") {
+      await this.query.query(`UPDATE retailer_prospects SET state = 'draft_ready', updated_at = NOW() WHERE id = $1 AND state = 'follow_up_due'`, [input.prospectId]);
     }
     return messageFromRow(rows[0] as Record<string, unknown>);
   }
