@@ -38,6 +38,13 @@ const EXPECTED_SOURCES = new Map([
   }],
 ]);
 
+test('California release verifier aligns alert expectations with the strict freshness window', async () => {
+  const verifier = await readFile(new URL('../src/verify-ca.mjs', import.meta.url), 'utf8');
+  assert.match(verifier, /CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS/);
+  assert.match(verifier, /freshInventory\.length/);
+  assert.match(verifier, /stale California inventory must not produce alert candidates/i);
+});
+
 function productFixture(overrides = {}) {
   return {
     products: [{

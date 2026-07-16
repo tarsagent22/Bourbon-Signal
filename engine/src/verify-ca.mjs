@@ -10,6 +10,14 @@ const siteAlerts = JSON.parse(await readFile('out/site/alerts.json', 'utf8'));
 const stateQuality = JSON.parse(await readFile('out/site/state-quality.json', 'utf8'));
 const signals = Array.isArray(state.signals) ? state.signals : [];
 const inventory = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
+const currentInventoryAlertMaxAgeHours = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
+const currentInventoryAlertMaxAgeMs = currentInventoryAlertMaxAgeHours * 60 * 60 * 1000;
+const freshInventory = inventory.filter((signal) => {
+  const observedAt = Date.parse(signal.observedAt || '');
+  return Number.isFinite(observedAt)
+    && Date.now() >= observedAt
+    && Date.now() - observedAt <= currentInventoryAlertMaxAgeMs;
+});
 
 assert.equal(state.state, 'CA');
 assert.equal(state.status, 'useful');
@@ -36,7 +44,11 @@ const exportedAlerts = (siteAlerts.alerts ?? []).filter((row) => row.state === '
 assert.ok(exportedStores.length >= 2, 'root store export must include both inventory-eligible San Diego stores');
 assert.ok(exportedLocations.length >= 3, 'root location export must include San Diego inventory and watch locations');
 assert.ok(exportedStores.every((row) => row.city === 'San Diego' && row.address), 'exported California stores require exact San Diego addresses');
-assert.ok(exportedAlerts.length >= 12, 'current California export must expose fresh on-site orderability alerts');
+if (freshInventory.length > 0) {
+  assert.ok(exportedAlerts.length >= Math.min(12, freshInventory.length), 'fresh California inventory must expose on-site orderability alerts');
+} else {
+  assert.equal(exportedAlerts.length, 0, 'stale California inventory must not produce alert candidates');
+}
 assert.ok(exportedAlerts.every((row) => row.sourceChain && row.merchantId && row.productId && row.variantId && row.storeId), 'California alerts must preserve source, product, variant, and store identity');
 assert.ok(exportedAlerts.filter((row) => row.changeType === 'current_inventory_signal').every((row) => row.eligibleForOnSite && !row.eligibleForEmail && !row.eligibleForSms), 'baseline/current California projections must remain on-site only until a real change is detected');
 
