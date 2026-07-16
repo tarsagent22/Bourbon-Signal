@@ -152,7 +152,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
   const allSightings = await getAggregateSightings(userId);
-  const previewLimit = entitlements.tier === "free" ? entitlements.feedPreviewLimit : null;
+  const previewLimit = entitlements.sightingsPreviewLimit;
   const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
   const client = await clerkClient();
   const user = await client.users.getUser(userId);

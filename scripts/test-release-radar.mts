@@ -10,7 +10,7 @@ import {
   getStateGuide,
   releaseRadarUpdatedAt,
 } from "../src/lib/release-radar.ts";
-import { getAgendaOccurrences, getCalendarOccurrences, isValidMonth } from "../src/lib/release-radar-calendar.ts";
+import { getAgendaOccurrences, getCalendarOccurrences, getInitialRadarMonth, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 8, "Release Radar should launch with at least eight sourced records");
 assert.equal(releaseRadarUpdatedAt, "2026-07-15", "public Radar freshness should match the final review date");
@@ -40,6 +40,8 @@ assert.deepEqual(getAgendaOccurrences(crossMonthWindow, "2026-08"), [{ date: "20
 assert.deepEqual(getCalendarOccurrences(camp, "2026-09"), [{ date: "2026-09-05", label: "Sep 5" }], "recurring events must expose the occurrence inside the selected month");
 assert.equal(isValidMonth("2026-12"), true);
 assert.equal(isValidMonth("2026-99"), false, "invalid query months must be rejected");
+assert.equal(getInitialRadarMonth(radarEntries, "2026-07-10", "2026-07"), "2026-07", "the current month should remain selected when its next event starts today");
+assert.equal(getInitialRadarMonth(radarEntries, "2026-07-17", "2026-07"), "2026-08", "the mobile-first calendar should advance to the month containing the next actionable date");
 const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailSource, /OnlineEventAttendanceMode/);
 assert.match(detailSource, /EventSeries/);
@@ -109,6 +111,9 @@ assert.match(calendarSource, /Official source/, "agenda must surface provenance 
 assert.match(calendarSource, /Updated/, "agenda must surface freshness");
 assert.match(calendarSource, /rr-watch-deck/, "uncertain watch windows must be separated from fixed calendar records");
 assert.match(calendarSource, /getAgendaOccurrences/, "agenda should consolidate multi-day windows");
+assert.match(calendarSource, /rangeEnd \|\| occurrence\.date/, "the upcoming timeline should exclude completed occurrences in the current month");
+assert.match(calendarSource, /entry\.startDate < today/, "ongoing windows that started in the past should follow genuinely upcoming events");
+assert.match(calendarSource, /today:/, "the server-selected calendar date must be passed into the client instead of using hydration-sensitive browser time");
 assert.doesNotMatch(calendarSource, /rr-agenda-row/, "overhaul must replace the repetitive legacy text-row treatment");
 
 for (const route of ["briefings", "states"]) {

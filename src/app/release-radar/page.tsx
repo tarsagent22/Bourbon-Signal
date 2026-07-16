@@ -4,12 +4,14 @@ import { JsonLd } from "@/components/release-radar/RadarPrimitives";
 import { RadarTabs } from "@/components/release-radar/RadarTabs";
 import { RadarCalendarDownload } from "@/components/release-radar/RadarCalendarDownload";
 import { radarEntries, radarPath, releaseRadarUpdatedAt } from "@/lib/release-radar";
+import { getInitialRadarMonth } from "@/lib/release-radar-calendar";
 
 export default function ReleaseRadarPage() {
   const calendarEntries = radarEntries.filter((entry) => entry.calendar === true || entry.kind === "bottle" || (entry.kind === "release" && entry.status === "watch")).sort((a, b) => a.startDate.localeCompare(b.startDate));
   const checked = releaseRadarUpdatedAt;
   const checkedLabel = checked ? new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${checked}T00:00:00Z`)) : "";
-  const initialMonth = checked.slice(0, 7);
+  const today = new Date().toISOString().slice(0, 10);
+  const initialMonth = getInitialRadarMonth(calendarEntries, today, checked.slice(0, 7));
 
 
   return <main className="rr-page">
@@ -40,7 +42,7 @@ export default function ReleaseRadarPage() {
       </header>
 
       <RadarTabs active="calendar" />
-      <CalendarExplorer entries={calendarEntries} initialMonth={initialMonth} />
+      <CalendarExplorer entries={calendarEntries} initialMonth={initialMonth} today={today} />
 
       <footer className="rr-utility"><p>Release dates are not live shelf inventory.</p><div><RadarCalendarDownload /><Link href="/bottle-check">Check a bottle</Link><Link href="/#drops">View live signals</Link></div></footer>
     </div>

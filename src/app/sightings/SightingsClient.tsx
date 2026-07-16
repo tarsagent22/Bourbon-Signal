@@ -180,7 +180,7 @@ export default function SightingsClient() {
   const { isLoaded: authLoaded, isSignedIn, signIn, entitlements } = useAuth();
   const canReadSightings = entitlements.canReadSightings;
   const canSubmitSightings = entitlements.canSubmitSightings;
-  const isLimitedFeedPreview = authLoaded && isSignedIn && entitlements.tier === "free" && entitlements.feedPreviewLimit !== null;
+  const isLimitedFeedPreview = authLoaded && isSignedIn && entitlements.tier === "free" && entitlements.sightingsPreviewLimit !== null;
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canSubmitSightings;
   const { bottles } = useBottles(optimisticMemberAccess);

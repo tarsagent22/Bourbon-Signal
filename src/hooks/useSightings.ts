@@ -117,7 +117,10 @@ export function useSightings(enabled: boolean = true) {
       const data = (await res.json().catch(() => ({}))) as SightingsFeedResponse & { sighting?: MemberSighting; error?: string };
       if (!res.ok) throw new Error(data.error || "Unable to save sighting");
       const savedSighting = data.sighting || sighting;
-      setSightings((current) => [savedSighting, ...current.filter((item) => item.id !== savedSighting.id)]);
+      setSightings((current) => {
+        const next = [savedSighting, ...current.filter((item) => item.id !== savedSighting.id)];
+        return previewLimit === null ? next : next.slice(0, previewLimit);
+      });
       if (data.rewards) setRewards(data.rewards);
       setTotalSightings((current) => (current === null ? current : current + (data.created ? 1 : 0)));
       return { sighting: savedSighting, created: data.created !== false };
@@ -129,7 +132,7 @@ export function useSightings(enabled: boolean = true) {
     } finally {
       setSaving(false);
     }
-  }, [refreshPreferences]);
+  }, [previewLimit]);
 
   const voteSighting = useCallback(async (sightingId: string, vote: SightingVoteKind) => {
     setSaving(true);

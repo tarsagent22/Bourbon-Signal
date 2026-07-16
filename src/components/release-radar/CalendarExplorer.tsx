@@ -55,7 +55,7 @@ function sourceType(entry: RadarEntry) {
   return entry.sources[0]?.type === "state" ? "State source" : "Official source";
 }
 
-export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntry[]; initialMonth: string }) {
+export function CalendarExplorer({ entries, initialMonth, today }: { entries: RadarEntry[]; initialMonth: string; today: string }) {
   const [month, setMonth] = useState(initialMonth);
   const [state, setState] = useState("all");
   const [kind, setKind] = useState("all");
@@ -94,7 +94,15 @@ export function CalendarExplorer({ entries, initialMonth }: { entries: RadarEntr
   const agendaOccurrences = useMemo(() => matchingEntries
     .filter((entry) => entry.calendar === true)
     .flatMap((entry) => getAgendaOccurrences(entry, month).map((occurrence) => ({ entry, occurrence })))
-    .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date)), [matchingEntries, month]);
+    .filter(({ occurrence }) => month !== today.slice(0, 7) || (occurrence.rangeEnd || occurrence.date) >= today)
+    .map(({ entry, occurrence }) => occurrence.rangeEnd && occurrence.date < today && occurrence.rangeEnd >= today
+      ? { entry, occurrence: { ...occurrence, date: today, label: `Open through ${dateParts(occurrence.rangeEnd).month} ${Number(occurrence.rangeEnd.slice(8, 10))}` } }
+      : { entry, occurrence })
+    .sort((a, b) => {
+      const aOngoing = a.entry.startDate < today ? 1 : 0;
+      const bOngoing = b.entry.startDate < today ? 1 : 0;
+      return aOngoing - bOngoing || a.occurrence.date.localeCompare(b.occurrence.date);
+    }), [matchingEntries, month, today]);
 
   const watchEntries = useMemo(() => matchingEntries
     .filter((entry) => entry.calendar !== true && (entry.kind === "release" || entry.kind === "bottle") && entry.startDate.startsWith(`${month}-`)), [matchingEntries, month]);

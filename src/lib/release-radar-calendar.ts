@@ -17,6 +17,18 @@ export function isValidMonth(value: string) {
   return month >= 1 && month <= 12;
 }
 
+export function getInitialRadarMonth(entries: RadarEntry[], today: string, fallbackMonth: string) {
+  const futureStartDates = entries
+    .filter((entry) => entry.calendar === true)
+    .flatMap((entry) => {
+      if (entry.occurrenceDates?.length) return entry.occurrenceDates.filter((date) => date >= today);
+      return entry.startDate >= today ? [entry.startDate] : [];
+    })
+    .sort();
+
+  return futureStartDates[0]?.slice(0, 7) || fallbackMonth;
+}
+
 export function getCalendarOccurrences(entry: RadarEntry, month: string): CalendarOccurrence[] {
   const dates = entry.occurrenceDates?.length
     ? entry.occurrenceDates.map((date) => ({ date, label: shortDate(date) }))

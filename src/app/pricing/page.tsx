@@ -133,7 +133,7 @@ function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSignedIn, memberTier } = useAuth();
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("annual");
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);

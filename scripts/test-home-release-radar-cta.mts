@@ -10,6 +10,8 @@ const faq = read("src/lib/faq-content.ts");
 const radarCta = read("src/components/sections/ReleaseRadarSection.tsx");
 const radarCtaStyles = read("src/components/sections/ReleaseRadarSection.module.css");
 
+assert.match(pricing, /useState<BillingCycle>\("monthly"\)/, "pricing should default to monthly billing and monthly prices");
+
 assert.match(page, /import ReleaseRadarSection from "@\/components\/sections\/ReleaseRadarSection"/);
 assert.match(page, /<ReleaseRadarSection\s*\/>/);
 assert.doesNotMatch(page, /BriefingSection|DailyBriefing/);

@@ -13,6 +13,7 @@ export interface TierEntitlements {
   tier: MembershipTier;
   label: string;
   feedPreviewLimit: number | null;
+  sightingsPreviewLimit: number | null;
   bottleCheckLimit: number | null;
   alertAreaLimit: number | null;
   trackedBottleLimit: number | null;
@@ -48,6 +49,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     tier: "free",
     label: "Free",
     feedPreviewLimit: 7,
+    sightingsPreviewLimit: 2,
     bottleCheckLimit: 3,
     alertAreaLimit: 0,
     trackedBottleLimit: 0,
@@ -70,6 +72,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     tier: "standard",
     label: "Standard Proof",
     feedPreviewLimit: null,
+    sightingsPreviewLimit: null,
     bottleCheckLimit: null,
     alertAreaLimit: 5,
     trackedBottleLimit: 15,
@@ -92,6 +95,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     tier: "barrel",
     label: "Barrel Proof",
     feedPreviewLimit: null,
+    sightingsPreviewLimit: null,
     bottleCheckLimit: null,
     alertAreaLimit: null,
     trackedBottleLimit: null,
@@ -114,6 +118,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     tier: "bottled-in-bond",
     label: "Bottled in Bond",
     feedPreviewLimit: null,
+    sightingsPreviewLimit: null,
     bottleCheckLimit: null,
     alertAreaLimit: null,
     trackedBottleLimit: null,
