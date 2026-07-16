@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { buildPrivacySafeSearchDemand } from './search-demand-core.mjs';
 
 const ROOT = path.resolve(new URL('../../', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const REPORT_DIR = path.join(ROOT, 'automation', 'bourbon-signal', 'reports');
 const SINCE = process.argv.find((arg) => arg.startsWith('--since='))?.slice('--since='.length) || '24h';
 const TARGET = process.argv.find((arg) => arg.startsWith('--target='))?.slice('--target='.length) || 'https://www.bourbonsignal.com';
+
+async function readJson(file, fallback) {
+  try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
 
 function parseEvents(logText) {
   const events = [];
@@ -14,61 +19,62 @@ function parseEvents(logText) {
     const marker = 'BS_SEARCH_EVENT ';
     const index = line.indexOf(marker);
     if (index === -1) continue;
-    const jsonText = line.slice(index + marker.length).trim();
     try {
-      events.push(JSON.parse(jsonText));
+      events.push(JSON.parse(line.slice(index + marker.length).trim()));
     } catch {
-      // Ignore malformed/truncated log lines.
+      // Malformed and truncated lines never enter an aggregate.
     }
   }
   return events;
 }
-function keyFor(event) {
-  return [event.surface, event.mode || '', event.state || '', String(event.query || '').toLowerCase(), event.matchedBottleName || '', event.outcome || ''].join('|');
-}
-function summarize(events) {
-  const grouped = new Map();
-  for (const event of events) {
-    const key = keyFor(event);
-    const existing = grouped.get(key) || { ...event, count: 0, firstSeen: event.capturedAt, lastSeen: event.capturedAt };
-    existing.count += 1;
-    if (event.capturedAt && (!existing.firstSeen || event.capturedAt < existing.firstSeen)) existing.firstSeen = event.capturedAt;
-    if (event.capturedAt && (!existing.lastSeen || event.capturedAt > existing.lastSeen)) existing.lastSeen = event.capturedAt;
-    grouped.set(key, existing);
+
+function markdown(report) {
+  const lines = [
+    `# Bourbon Signal Privacy-safe Search Demand — last ${SINCE}`,
+    '',
+    `Accepted bounded events: **${report.acceptedEvents}**`,
+    `Sensitive-shaped events rejected before aggregation: **${report.rejectedSensitiveEvents}**`,
+    '',
+    'Only catalog-resolved bottles and active state codes meeting the minimum cohort are shown. Raw queries and event history are never written.',
+    '',
+    '## Canonical bottle demand',
+    '',
+    '| Searches | Weight | Bottle | Canonical ID |',
+    '|---:|---:|---|---|',
+  ];
+  for (const item of report.bottles) {
+    lines.push(`| ${item.eventCount} | ${item.weightedDemand} | ${item.canonicalBottleName.replace(/\|/g, '/')} | ${item.canonicalBottleId} |`);
   }
-  return Array.from(grouped.values()).sort((a, b) => (b.count - a.count) || String(b.lastSeen || '').localeCompare(String(a.lastSeen || '')));
-}
-function markdown(events, grouped) {
-  const lines = [];
-  lines.push(`# Bourbon Signal Search Events — last ${SINCE}`);
-  lines.push('');
-  lines.push(`Total captured events: **${events.length}**`);
-  lines.push('');
-  if (!grouped.length) {
-    lines.push('No Bottle Check or Finder search events found in the requested Vercel log window.');
-    return lines.join('\n');
-  }
-  lines.push('| Count | Surface | Mode | State | Query | Outcome | Match | Score |');
-  lines.push('|---:|---|---|---|---|---|---|---|');
-  for (const event of grouped.slice(0, 80)) {
-    lines.push(`| ${event.count} | ${event.surface || ''} | ${event.mode || ''} | ${event.state || ''} | ${String(event.query || '').replace(/\|/g, '/')} | ${event.outcome || ''} | ${String(event.matchedBottleName || '').replace(/\|/g, '/')} | ${event.localScore ?? event.scoreStatus ?? ''} |`);
-  }
+  if (!report.bottles.length) lines.push('| — | — | No cohort met the threshold | — |');
+  lines.push('', '## Approved geography demand', '', '| Searches | Weight | State |', '|---:|---:|---|');
+  for (const item of report.geographies) lines.push(`| ${item.eventCount} | ${item.weightedDemand} | ${item.state} |`);
+  if (!report.geographies.length) lines.push('| — | — | No cohort met the threshold |');
+  lines.push('', `Suppressed cohort buckets: ${report.suppressed.bottleCohorts} bottle · ${report.suppressed.geographyCohorts} geography.`);
   return lines.join('\n');
 }
 
 await mkdir(REPORT_DIR, { recursive: true });
-const result = spawnSync('vercel', ['logs', TARGET, '--since', SINCE], { cwd: ROOT, encoding: 'utf8', shell: true, maxBuffer: 8 * 1024 * 1024 });
+const result = spawnSync('vercel', ['logs', TARGET, '--since', SINCE], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  shell: true,
+  maxBuffer: 8 * 1024 * 1024,
+});
 const combined = `${result.stdout || ''}\n${result.stderr || ''}`;
 if (result.error) throw result.error;
-const events = parseEvents(combined);
-const grouped = summarize(events);
-const report = { generatedAt: new Date().toISOString(), since: SINCE, target: TARGET, events, grouped };
-const stamp = report.generatedAt.replace(/[:.]/g, '-');
-const md = markdown(events, grouped);
+const [bottlePayload, stateConfig] = await Promise.all([
+  readJson(path.join(ROOT, 'engine', 'out', 'site', 'bottles.json'), { bottles: [] }),
+  readJson(path.join(ROOT, 'src', 'config', 'state-lifecycle.json'), { activeStates: [] }),
+]);
+const demand = buildPrivacySafeSearchDemand(parseEvents(combined), {
+  catalog: bottlePayload.bottles,
+  approvedStateCodes: stateConfig.activeStates,
+});
+const report = { generatedAt: new Date().toISOString(), since: SINCE, ...demand };
+const md = markdown(report);
 await Promise.all([
-  writeFile(path.join(REPORT_DIR, `search-events-${stamp}.json`), JSON.stringify(report, null, 2)),
-  writeFile(path.join(REPORT_DIR, `search-events-${stamp}.md`), md),
   writeFile(path.join(REPORT_DIR, 'search-events-latest.json'), JSON.stringify(report, null, 2)),
   writeFile(path.join(REPORT_DIR, 'search-events-latest.md'), md),
+  writeFile(path.join(REPORT_DIR, 'search-demand-latest.json'), JSON.stringify(report, null, 2)),
 ]);
 console.log(md);

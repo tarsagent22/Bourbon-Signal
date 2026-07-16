@@ -5,11 +5,16 @@ import {
   aggregateGrowthFunnels,
   aggregateLifecycleCohorts,
   buildCompanyScorecard,
+  aggregateCompanyDemand,
+  buildOwnerExperimentAggregate,
   classifyCompanyMember,
   extractEngineControlRoomMetrics,
   summarizeMemberships,
   type CompanyMemberUser,
 } from "@/lib/company-control-room";
+import { bottles as curatedBottles } from "@/data/bottles";
+import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import { isExperimentKillSwitchEnabled } from "@/lib/growth-experiments";
 import { buildOpsHealth, readAlertDeliveryHeartbeat } from "@/lib/ops-health";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { FOUNDER_SPOT_LIMIT } from "@/lib/entitlements";
@@ -210,7 +215,16 @@ export async function getCompanyControlRoomSnapshot() {
   const memberships = summarizeMemberships(users);
   const growth = aggregateGrowthFunnels(users);
   const lifecycle = aggregateLifecycleCohorts(users);
-  const stats = await readSiteExport("stats") as Record<string, unknown> | null;
+  const [stats, bottlePayload] = await Promise.all([
+    readSiteExport("stats") as Promise<Record<string, unknown> | null>,
+    readSiteExport("bottles") as Promise<Record<string, unknown> | null>,
+  ]);
+  const engineBottles = Array.isArray(bottlePayload?.bottles)
+    ? bottlePayload.bottles as Array<Record<string, unknown>>
+    : [];
+  const demandCatalog = engineBottles.length ? engineBottles : curatedBottles;
+  const demand = aggregateCompanyDemand(users, demandCatalog, ACTIVE_ENGINE_STATE_CODES);
+  const experiments = buildOwnerExperimentAggregate([], undefined, isExperimentKillSwitchEnabled());
   const heartbeat = await readAlertDeliveryHeartbeat();
   const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
     ? stats.refreshHealth as Record<string, unknown>
@@ -243,6 +257,8 @@ export async function getCompanyControlRoomSnapshot() {
     audience,
     growth,
     lifecycle,
+    demand,
+    experiments,
     retailer,
     engine: {
       status: health.engine.status,

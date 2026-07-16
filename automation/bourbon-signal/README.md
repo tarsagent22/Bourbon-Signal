@@ -82,33 +82,37 @@ Outputs:
 - `automation/bourbon-signal/reports/weekly-engine-brief-latest.json`
 - Timestamped report copies in the same folder
 
-## Search Events Report
+## Privacy-safe Search Demand Report
 
 Command:
 
 ```bash
 npm run ops:searches -- --since=24h
+# equivalent operator alias
+npm run ops:demand -- --since=24h
 ```
 
-Purpose: list recent Bottle Check and Finder searches captured in Vercel logs.
+Purpose: turn recent Bottle Check and Finder searches into demand aggregates. This is an operator-invoked report, not a cron.
 
-Captured fields intentionally avoid user PII:
+The capture boundary rejects email-, phone-, and URL-shaped values. The report then keeps only:
 
-- surface: `bottle-check` or `finder`
-- query
-- state
-- mode
-- outcome
-- matched bottle name/id when applicable
-- suggestion/result count
-- Bottle Check score status/local score when applicable
+- catalog-resolved canonical bottle ID/name counts
+- state codes present in the active state lifecycle allowlist
+- cohort-suppressed counts and demand weights
 
 Outputs:
 
 - `automation/bourbon-signal/reports/search-events-latest.md`
 - `automation/bourbon-signal/reports/search-events-latest.json`
+- `automation/bourbon-signal/reports/search-demand-latest.json` (source ROI input)
 
-Use this during tester windows to find missing Bourbon Bible/index entries and confusing low-data searches.
+Raw queries, event timestamps, member identifiers, and timestamped event-history files are not written. Cohorts below five are omitted. Use the aggregate to rank bottle coverage and approved geography investment without reconstructing individual behavior.
+
+## Demand-weighted Source ROI
+
+`npm run ops:source-roi` reads `search-demand-latest.json` when present. The existing operational value, alert, store-level, coverage, and roadblock score is extended with approved state demand and canonical bottles served by each source. If no privacy-safe demand snapshot exists, the ranker stays operational-only and labels that condition in its output.
+
+Member preference demand is computed independently for the owner-only Control Room. It deduplicates each member's watchlist, collection, and active-state selections in memory, excludes owner/retailer accounts, suppresses cohorts below five, and returns aggregate rows only.
 
 ## Engine Coding Loop
 

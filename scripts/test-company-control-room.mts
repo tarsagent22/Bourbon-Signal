@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   classifyCompanyMember,
+  aggregateCompanyDemand,
+  buildOwnerExperimentAggregate,
   extractEngineControlRoomMetrics,
   isCompanyControlRoomOwnerEmail,
   summarizeMemberships,
@@ -69,6 +71,34 @@ assert.equal(summary.estimatedAnnualRecurringCents, 8587);
 assert.equal(summary.estimatedLifetimeGrossCents, 4999);
 assert.equal("emails" in summary, false);
 
+const demandUsers = [
+  ...Array.from({ length: 5 }, (_, index) => ({
+    id: `demand-${index}`,
+    publicMetadata: {
+      bottleAlertPreferences: { bottleNames: ["Weller 12"], bottleKeys: [] },
+      areaPreferences: { states: ["NC"] },
+    },
+  })),
+  user("chandler@bourbonsignal.com", {
+    bottleAlertPreferences: { bottleNames: ["Weller 12"], bottleKeys: [] },
+    areaPreferences: { states: ["NC"] },
+  }),
+];
+const demand = aggregateCompanyDemand(demandUsers, [{ id: "weller-12", name: "Weller 12" }], ["NC"]);
+assert.equal(demand.eligibleMembers, 5);
+assert.equal(demand.bottles[0].memberCount, 5);
+assert.equal(JSON.stringify(demand).includes("demand-0"), false);
+
+assert.deepEqual(buildOwnerExperimentAggregate(), {
+  activeExperiment: null,
+  registryCount: 0,
+  killSwitchEnabled: false,
+  aggregate: {
+    privacy: { minCohortSize: 5, containsPii: false, containsRawHistory: false },
+    experiments: [],
+  },
+});
+
 assert.deepEqual(extractEngineControlRoomMetrics({
   signalCount: 27014,
   alertCandidateCount: 645,
@@ -92,6 +122,9 @@ assert.match(page, /auth\(\)/);
 assert.match(page, /notFound\(\)/);
 assert.match(page, /isCompanyControlRoomOwnerEmail/);
 assert.match(page, /force-dynamic/);
+assert.match(page, /Demand-weighted investment/);
+assert.match(page, /Controlled experiments/);
+assert.match(page, /No experiment active/);
 assert.doesNotMatch(page, /RESEND_API_KEY|CLERK_SECRET_KEY|STRIPE_SECRET_KEY|BLOB_READ_WRITE_TOKEN/);
 assert.match(layout, /index:\s*false/);
 assert.match(layout, /follow:\s*false/);

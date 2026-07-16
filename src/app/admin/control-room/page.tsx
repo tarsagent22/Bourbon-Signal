@@ -53,7 +53,7 @@ export default async function CompanyControlRoomPage() {
   if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
 
   const snapshot = await getCompanyControlRoomSnapshot();
-  const { memberships, founder, revenue, audience, growth, lifecycle, retailer, engine, alerts, release } = snapshot;
+  const { memberships, founder, revenue, audience, growth, lifecycle, demand, experiments, retailer, engine, alerts, release } = snapshot;
   const deliveryCounts = alerts.counts as Record<string, number>;
 
   return (
@@ -77,6 +77,8 @@ export default async function CompanyControlRoomPage() {
           <a href="#revenue">Revenue</a>
           <a href="#campaign">Campaign</a>
           <a href="#growth">Growth funnel</a>
+          <a href="#demand">Demand</a>
+          <a href="#experiments">Experiments</a>
           <a href="#retailers">Retailers</a>
           <a href="#engine">Engine</a>
           <a href="#alerts">Alerts</a>
@@ -93,6 +95,42 @@ export default async function CompanyControlRoomPage() {
             <Metric label="Founder members" value={memberships.counts.founder} detail={`${founder.remaining} of ${founder.limit} spots remain`} />
             <Metric label="Past due" value={memberships.counts.pastDue} detail="Membership metadata requiring attention" />
           </div>
+        </section>
+
+        <section id="demand" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Investment signal</p><h2>Demand-weighted investment</h2></div>
+            <span>Minimum cohort {demand.privacy.minCohortSize}</span>
+          </div>
+          <div className="cr-metrics four">
+            <Metric label="Eligible members" value={demand.eligibleMembers} detail={`${demand.contributingMembers} contributed approved preferences`} />
+            <Metric label="Bottle cohorts" value={demand.bottles.length} detail={`${demand.suppressed.bottleCohorts} small cohorts suppressed`} accent />
+            <Metric label="State cohorts" value={demand.geographies.length} detail={`${demand.suppressed.geographyCohorts} small cohorts suppressed`} />
+            <Metric label="Top demand weight" value={demand.bottles[0]?.weightedDemand ?? demand.geographies[0]?.weightedDemand ?? 0} detail="Canonical bottle or active-state aggregate" />
+          </div>
+          <dl className="cr-run-counts">
+            {demand.bottles.slice(0, 2).map((item) => (
+              <div key={item.canonicalBottleId}><dt>{item.canonicalBottleName}</dt><dd>{item.weightedDemand}</dd></div>
+            ))}
+            {demand.geographies.slice(0, 2).map((item) => (
+              <div key={item.state}><dt>{item.state} demand</dt><dd>{item.weightedDemand}</dd></div>
+            ))}
+          </dl>
+          <p className="cr-note">Catalog-resolved bottles and active state codes only. Member identifiers, raw searches, and event histories are excluded from this aggregate.</p>
+        </section>
+
+        <section id="experiments" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Measured product changes</p><h2>Controlled experiments</h2></div>
+            <span className={`cr-status ${experiments.killSwitchEnabled ? "bad" : "good"}`}>{experiments.killSwitchEnabled ? "Kill switch on" : "Guardrails ready"}</span>
+          </div>
+          <div className="cr-metrics four">
+            <Metric label="Active" value={experiments.activeExperiment ? 1 : 0} detail={experiments.activeExperiment || "No experiment active"} accent />
+            <Metric label="Registry" value={experiments.registryCount} detail="One-active maximum enforced" />
+            <Metric label="Reported tests" value={experiments.aggregate.experiments.length} detail="Aggregate production telemetry only" />
+            <Metric label="Privacy floor" value={experiments.aggregate.privacy.minCohortSize} detail="Smaller variant cohorts suppressed" />
+          </div>
+          <p className="cr-note">Assignments are stable and deterministic. Exposure and metric contracts emit only on the production hostname, and protected commercial or communication decisions remain outside experiment scope.</p>
         </section>
 
         <section id="revenue" className="cr-section">

@@ -1,3 +1,12 @@
+import { aggregateMemberDemand, type DemandBottleCatalogItem } from "./demand-intelligence.ts";
+import {
+  EXPERIMENT_REGISTRY,
+  aggregateExperimentTelemetry,
+  getActiveExperiment,
+  type ExperimentDefinition,
+  type ExperimentTelemetryEvent,
+} from "./growth-experiments.ts";
+
 type MembershipTier = "free" | "standard" | "barrel" | "bottled-in-bond";
 type BillingPlanId = "standard_monthly" | "standard_annual" | "barrel_monthly" | "barrel_annual" | "bib_lifetime";
 
@@ -122,6 +131,31 @@ export function aggregateLifecycleCohorts(users: CompanyMemberUser[]) {
     if (milestones.paid_activation_completed && !milestones.first_alert_created) cohorts.activatedNoFirstAlert += 1;
   }
   return cohorts;
+}
+
+export function aggregateCompanyDemand(
+  users: readonly CompanyMemberUser[],
+  catalog: readonly DemandBottleCatalogItem[],
+  approvedStateCodes: readonly string[],
+) {
+  const eligible = users.filter((user) => {
+    const member = classifyCompanyMember(user);
+    return !member.isOwner && !member.isRetailer;
+  });
+  return aggregateMemberDemand(eligible, { catalog, approvedStateCodes });
+}
+
+export function buildOwnerExperimentAggregate(
+  events: readonly ExperimentTelemetryEvent[] = [],
+  registry: readonly ExperimentDefinition[] = EXPERIMENT_REGISTRY,
+  killSwitchEnabled = false,
+) {
+  return {
+    activeExperiment: getActiveExperiment(registry)?.id || null,
+    registryCount: registry.length,
+    killSwitchEnabled,
+    aggregate: aggregateExperimentTelemetry(events, registry),
+  };
 }
 
 export interface ClassifiedCompanyMember {

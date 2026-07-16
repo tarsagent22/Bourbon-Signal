@@ -12,6 +12,8 @@ export const GROWTH_EVENT_NAMES = [
   "retailer_application_started",
   "retailer_store_verified",
   "retailer_first_signal_live",
+  "experiment_exposure",
+  "experiment_metric",
 ] as const;
 
 export type GrowthEventName = typeof GROWTH_EVENT_NAMES[number];
@@ -80,9 +82,12 @@ export function sanitizeGrowthEvent(name: unknown, properties: Record<string, un
   if (keys.some((key) => /email|phone|name|address|user|clerk|stripe|query|url|id/i.test(key))) return null;
   const safe: Record<string, string> = {};
   for (const [key, value] of Object.entries(properties)) {
-    if (!/^(surface|source|campaign|channel|tier)$/.test(key) || typeof value !== "string" || value.length > MAX_VALUE_LENGTH || /https?:\/\//i.test(value)) return null;
+    if (!/^(surface|source|campaign|channel|tier|experiment|variant|metric)$/.test(key) || typeof value !== "string" || value.length > MAX_VALUE_LENGTH || /https?:\/\//i.test(value) || /@/.test(value) || /(?:\+?\d[\s().-]*){7,}/.test(value)) return null;
     safe[key] = safeToken(value);
   }
+  if (name === "experiment_exposure" && (!safe.experiment || !safe.variant || !safe.surface || safe.metric)) return null;
+  if (name === "experiment_metric" && (!safe.experiment || !safe.variant || !safe.surface || !safe.metric)) return null;
+  if ((name === "experiment_exposure" || name === "experiment_metric") && Object.values(safe).some((value) => value === "unknown")) return null;
   return safe;
 }
 
