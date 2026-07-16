@@ -16,6 +16,7 @@ const experiment: ExperimentDefinition = {
   status: "active",
   owner: "growth",
   surface: "bottle_check",
+  baseline: "Existing completed bottle check rate.",
   hypothesis: "Proof ordering improves completed bottle checks.",
   variants: [
     { key: "control", weight: 1 },
@@ -25,9 +26,11 @@ const experiment: ExperimentDefinition = {
   allowedMetrics: ["bottle_check_completed"],
   minSampleSizePerVariant: 5,
   minRelativeLift: 0.05,
+  stopRule: "Stop at the sample and confidence floors.",
+  rollbackRule: "Restore control if completion regresses.",
 };
 
-assert.deepEqual(EXPERIMENT_REGISTRY, []);
+assert.equal(EXPERIMENT_REGISTRY.length, 1);
 assert.equal(GROWTH_EVENT_NAMES.includes("experiment_exposure"), true);
 assert.equal(GROWTH_EVENT_NAMES.includes("experiment_metric"), true);
 assert.deepEqual(sanitizeGrowthEvent("experiment_exposure", {
@@ -35,7 +38,7 @@ assert.deepEqual(sanitizeGrowthEvent("experiment_exposure", {
   variant: "control",
   surface: "bottle_check",
 }), { experiment: experiment.id, variant: "control", surface: "bottle_check" });
-assert.equal(getActiveExperiment(), null);
+assert.equal(getActiveExperiment()?.surface, "release_radar");
 assert.equal(validateExperimentRegistry([experiment]).ok, true);
 assert.equal(validateExperimentRegistry([{ ...experiment, surface: "pricing" as never }]).ok, false);
 assert.equal(validateExperimentRegistry([{ ...experiment, primaryMetric: "email_clicked", allowedMetrics: ["email_clicked"] }]).ok, false);

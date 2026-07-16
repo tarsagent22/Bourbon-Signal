@@ -54,7 +54,7 @@
     "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs && node --no-warnings --experimental-strip-types scripts/test-company-control-room.mts",
     "test:growth-events": "node --no-warnings --experimental-strip-types scripts/test-growth-events.mts",
     "test:demand-intelligence": "node --no-warnings --experimental-strip-types scripts/test-demand-intelligence.mts && node --no-warnings --experimental-strip-types scripts/test-search-capture-privacy.mts && node scripts/test-search-demand-report.mjs && node scripts/test-source-roi-demand.mjs",
-    "test:growth-experiments": "node --no-warnings --experimental-strip-types scripts/test-growth-experiments.mts",
+    "test:growth-experiments": "node --no-warnings --experimental-strip-types scripts/test-growth-experiments.mts && node --no-warnings --experimental-strip-types scripts/test-release-radar-follow-experiment.mts",
     "test:member-activation": "node --no-warnings --experimental-strip-types scripts/test-member-activation.mts",
     "test:member-welcome": "node --no-warnings --experimental-strip-types scripts/test-member-welcome.mts",
     "test:checkout-attribution": "node --no-warnings --experimental-strip-types scripts/test-checkout-attribution.mts",

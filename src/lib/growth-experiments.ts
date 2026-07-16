@@ -7,12 +7,15 @@ export interface ExperimentDefinition {
   status: ExperimentStatus;
   owner: string;
   surface: ExperimentSurface;
+  baseline: string;
   hypothesis: string;
   variants: ReadonlyArray<{ key: string; weight: number }>;
   primaryMetric: string;
   allowedMetrics: readonly string[];
   minSampleSizePerVariant: number;
   minRelativeLift: number;
+  stopRule: string;
+  rollbackRule: string;
 }
 
 export interface ExperimentAssignment {
@@ -33,7 +36,30 @@ export interface ExperimentTelemetryEvent {
 }
 
 export const EXPERIMENT_KILL_SWITCH_ENV = "GROWTH_EXPERIMENTS_KILL_SWITCH";
-export const EXPERIMENT_REGISTRY: readonly ExperimentDefinition[] = [];
+export const RELEASE_RADAR_FOLLOW_EXPERIMENT_ID = "release-radar-follow-cta-copy";
+export const RELEASE_RADAR_FOLLOW_CTA_LABELS = {
+  control: "Follow release",
+  this_release: "Follow this release",
+} as const;
+
+export const EXPERIMENT_REGISTRY: readonly ExperimentDefinition[] = [{
+  id: RELEASE_RADAR_FOLLOW_EXPERIMENT_ID,
+  status: "active",
+  owner: "growth",
+  surface: "release_radar",
+  baseline: "Current authenticated-member CTA: Follow release; the control cohort establishes the baseline completion rate.",
+  hypothesis: "For authenticated members who can follow a release, naming the object as Follow this release will increase completed release follows without changing product behavior.",
+  variants: [
+    { key: "control", weight: 1 },
+    { key: "this_release", weight: 1 },
+  ],
+  primaryMetric: "release_follow_completed",
+  allowedMetrics: ["release_follow_completed"],
+  minSampleSizePerVariant: 100,
+  minRelativeLift: 0.05,
+  stopRule: "Stop after both variants reach 100 unique exposures and the primary metric reaches 95% confidence, or after 28 days as inconclusive.",
+  rollbackRule: "Enable the kill switch and restore the control wording if follow-save failures increase, the CTA is misleading, or any privacy invariant fails.",
+}];
 
 const PRODUCTION_HOSTS = new Set(["bourbonsignal.com", "www.bourbonsignal.com"]);
 const ALLOWED_SURFACES = new Set<ExperimentSurface>(["homepage", "drop_feed", "release_radar", "bottle_check", "welcome", "alerts", "dashboard"]);
@@ -61,7 +87,7 @@ export function validateExperimentRegistry(registry: readonly ExperimentDefiniti
     if (experiment.status === "active") activeCount += 1;
     if (!["draft", "active", "stopped"].includes(experiment.status)) errors.push(`${experiment.id}: invalid status`);
     if (!ALLOWED_SURFACES.has(experiment.surface)) errors.push(`${experiment.id}: surface is outside the on-site product allowlist`);
-    const scopeText = [experiment.id, experiment.surface, experiment.hypothesis, experiment.primaryMetric, ...experiment.allowedMetrics].join(" ");
+    const scopeText = [experiment.id, experiment.surface, experiment.baseline, experiment.hypothesis, experiment.primaryMetric, experiment.stopRule, experiment.rollbackRule, ...experiment.allowedMetrics].join(" ");
     if (FORBIDDEN_SCOPE.test(scopeText)) errors.push(`${experiment.id}: excluded channel or decision domain`);
     if (!SAFE_KEY.test(experiment.owner)) errors.push(`${experiment.id}: owner must be a non-PII team key`);
     if (experiment.variants.length !== 2) errors.push(`${experiment.id}: exactly two variants are required`);
@@ -75,6 +101,10 @@ export function validateExperimentRegistry(registry: readonly ExperimentDefiniti
     if (experiment.allowedMetrics.some((metric) => !SAFE_KEY.test(metric))) errors.push(`${experiment.id}: invalid metric key`);
     if (!Number.isInteger(experiment.minSampleSizePerVariant) || experiment.minSampleSizePerVariant < 1) errors.push(`${experiment.id}: invalid sample floor`);
     if (!Number.isFinite(experiment.minRelativeLift) || experiment.minRelativeLift < 0) errors.push(`${experiment.id}: invalid lift floor`);
+    if (!experiment.baseline.trim()) errors.push(`${experiment.id}: baseline is required`);
+    if (!experiment.hypothesis.trim()) errors.push(`${experiment.id}: hypothesis is required`);
+    if (!experiment.stopRule.trim()) errors.push(`${experiment.id}: stop rule is required`);
+    if (!experiment.rollbackRule.trim()) errors.push(`${experiment.id}: rollback rule is required`);
   }
   if (activeCount > 1) errors.push("Only one experiment may be active");
   return { ok: errors.length === 0, errors };
@@ -115,10 +145,30 @@ export function assignExperiment(experiment: ExperimentDefinition, subjectKey: s
   return { experimentId: experiment.id, variant: selected.key, bucket };
 }
 
+export function assignActiveExperiment(
+  subjectKey: string,
+  registry: readonly ExperimentDefinition[] = EXPERIMENT_REGISTRY,
+  killSwitch = isExperimentKillSwitchEnabled(),
+) {
+  if (killSwitch) return null;
+  const experiment = getActiveExperiment(registry);
+  return experiment ? assignExperiment(experiment, subjectKey) : null;
+}
+
+export function releaseRadarFollowCtaLabel(variant: string) {
+  return variant === "this_release"
+    ? RELEASE_RADAR_FOLLOW_CTA_LABELS.this_release
+    : RELEASE_RADAR_FOLLOW_CTA_LABELS.control;
+}
+
+export function isExperimentProductionHost(hostname: string) {
+  return PRODUCTION_HOSTS.has(hostname.trim().toLowerCase());
+}
+
 function canEmit(experiment: ExperimentDefinition, assignment: ExperimentAssignment, hostname: string, killSwitch: boolean) {
   return validateExperimentRegistry([experiment]).ok
     && experiment.status === "active"
-    && PRODUCTION_HOSTS.has(hostname.trim().toLowerCase())
+    && isExperimentProductionHost(hostname)
     && !killSwitch
     && assignment.experimentId === experiment.id
     && experiment.variants.some((variant) => variant.key === assignment.variant);

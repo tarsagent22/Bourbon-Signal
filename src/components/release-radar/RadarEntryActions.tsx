@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark, Check, MapPinned, Radio } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
+import { useReleaseRadarFollowExperiment } from "@/hooks/useReleaseRadarFollowExperiment";
 import { useAuth } from "@/lib/auth";
 import { canonicalBottleKey } from "@/lib/bottleIdentity";
 import { trackRadarGrowthEvent } from "@/lib/radar-analytics";
@@ -41,6 +42,9 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
   const [message, setMessage] = useState("");
   const followed = prefs.radarPreferences.followedReleases.some((follow) => follow.releaseSlug === entry.slug && follow.marketCodes.includes(market));
   const tracked = bottle ? isWatching(bottle.canonicalId) : false;
+  const { ctaLabel, recordConversion } = useReleaseRadarFollowExperiment(
+    Boolean(isLoaded && isSignedIn && !loading && !followed && entry.followEligibility.release),
+  );
 
   useEffect(() => {
     const next = resolveRadarMarketInitialization({
@@ -66,6 +70,7 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
     try {
       const radarPreferences = followRadarRelease(prefs.radarPreferences, entry.slug, [market]);
       await savePreferences({ radarPreferences });
+      await recordConversion();
       setMessage("Release followed. This saves the announcement only; it cannot create an availability alert.");
       trackRadarGrowthEvent("radar_release_followed", {
         surface: "release_radar",
@@ -140,7 +145,7 @@ export function RadarEntryActions({ entry }: { entry: RadarEntry }) {
       <div className="radar-acquisition__buttons">
         {entry.followEligibility.release && <button type="button" onClick={followRelease} disabled={followed || saving !== null || loading || !isLoaded}>
           {followed ? <Check size={14} aria-hidden /> : <Radio size={14} aria-hidden />}
-          {saving === "follow" ? "Saving…" : followed ? "Following" : "Follow release"}
+          {saving === "follow" ? "Saving…" : followed ? "Following" : ctaLabel}
         </button>}
         {bottle && <button type="button" onClick={trackBottle} disabled={saving !== null}>
           {tracked ? <Check size={14} aria-hidden /> : <Bookmark size={14} aria-hidden />}

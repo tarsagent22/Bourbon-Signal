@@ -224,7 +224,7 @@ export async function getCompanyControlRoomSnapshot() {
     : [];
   const demandCatalog = engineBottles.length ? engineBottles : curatedBottles;
   const demand = aggregateCompanyDemand(users, demandCatalog, ACTIVE_ENGINE_STATE_CODES);
-  const experiments = buildOwnerExperimentAggregate([], undefined, isExperimentKillSwitchEnabled());
+  const experiments = buildOwnerExperimentAggregate(users, undefined, isExperimentKillSwitchEnabled());
   const heartbeat = await readAlertDeliveryHeartbeat();
   const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
     ? stats.refreshHealth as Record<string, unknown>

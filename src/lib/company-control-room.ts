@@ -6,6 +6,7 @@ import {
   type ExperimentDefinition,
   type ExperimentTelemetryEvent,
 } from "./growth-experiments.ts";
+import { readExperimentParticipation } from "./experiment-participation.ts";
 
 type MembershipTier = "free" | "standard" | "barrel" | "bottled-in-bond";
 type BillingPlanId = "standard_monthly" | "standard_annual" | "barrel_monthly" | "barrel_annual" | "bib_lifetime";
@@ -146,16 +147,57 @@ export function aggregateCompanyDemand(
 }
 
 export function buildOwnerExperimentAggregate(
-  events: readonly ExperimentTelemetryEvent[] = [],
+  users: readonly CompanyMemberUser[] = [],
   registry: readonly ExperimentDefinition[] = EXPERIMENT_REGISTRY,
   killSwitchEnabled = false,
 ) {
+  const active = getActiveExperiment(registry);
   return {
-    activeExperiment: getActiveExperiment(registry)?.id || null,
+    activeExperiment: active?.id || null,
+    activeDefinition: active ? {
+      baseline: active.baseline,
+      hypothesis: active.hypothesis,
+      primaryMetric: active.primaryMetric,
+      minSampleSizePerVariant: active.minSampleSizePerVariant,
+      stopRule: active.stopRule,
+      rollbackRule: active.rollbackRule,
+    } : null,
     registryCount: registry.length,
     killSwitchEnabled,
-    aggregate: aggregateExperimentTelemetry(events, registry),
+    aggregate: aggregateExperimentTelemetry(buildEligibleExperimentTelemetry(users, registry), registry),
   };
+}
+
+export function buildEligibleExperimentTelemetry(
+  users: readonly CompanyMemberUser[],
+  registry: readonly ExperimentDefinition[] = EXPERIMENT_REGISTRY,
+): ExperimentTelemetryEvent[] {
+  const events: ExperimentTelemetryEvent[] = [];
+  const seenSubjects = new Set<string>();
+  for (const user of users) {
+    const subjectKey = typeof user.id === "string" ? user.id.trim() : "";
+    if (!subjectKey || seenSubjects.has(subjectKey)) continue;
+    seenSubjects.add(subjectKey);
+    const member = classifyCompanyMember(user);
+    if (member.isOwner || member.isRetailer) continue;
+    for (const experiment of registry) {
+      const participation = readExperimentParticipation(user.privateMetadata || {}, experiment);
+      if (!participation) continue;
+      const properties = {
+        experiment: experiment.id,
+        variant: participation.variant,
+        surface: experiment.surface,
+      };
+      events.push({ name: "experiment_exposure", properties });
+      if (participation.converted) {
+        events.push({
+          name: "experiment_metric",
+          properties: { ...properties, metric: experiment.primaryMetric },
+        });
+      }
+    }
+  }
+  return events;
 }
 
 export interface ClassifiedCompanyMember {

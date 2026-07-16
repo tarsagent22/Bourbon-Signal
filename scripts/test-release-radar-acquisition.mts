@@ -127,7 +127,8 @@ assert.deepEqual(userChoiceDuringLoad, { market: "TX", initialized: true }, "a u
 const detailSource = readFileSync(resolve("src/app/release-radar/[kind]/[slug]/page.tsx"), "utf8");
 assert.match(detailSource, /RadarEntryActions/, "detail pages should expose follow/track acquisition actions");
 const actionSource = readFileSync(resolve("src/components/release-radar/RadarEntryActions.tsx"), "utf8");
-assert.match(actionSource, /Follow release/);
+assert.match(actionSource, /ctaLabel/, "the follow action should use the controlled experiment label");
+assert.match(actionSource, /recordConversion/, "a successful follow should record the experiment conversion");
 assert.match(actionSource, /Track bottle/);
 assert.match(actionSource, /aria-live="polite"/, "action status must be announced accessibly");
 assert.match(actionSource, /useWatchlistStore/, "bottle tracking should reuse the existing watchlist");

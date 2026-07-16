@@ -130,7 +130,26 @@ export default async function CompanyControlRoomPage() {
             <Metric label="Reported tests" value={experiments.aggregate.experiments.length} detail="Aggregate production telemetry only" />
             <Metric label="Privacy floor" value={experiments.aggregate.privacy.minCohortSize} detail="Smaller variant cohorts suppressed" />
           </div>
-          <p className="cr-note">Assignments are stable and deterministic. Exposure and metric contracts emit only on the production hostname, and protected commercial or communication decisions remain outside experiment scope.</p>
+          {experiments.activeDefinition ? (
+            <dl className="cr-experiment-contract">
+              <div><dt>Baseline</dt><dd>{experiments.activeDefinition.baseline}</dd></div>
+              <div><dt>Hypothesis</dt><dd>{experiments.activeDefinition.hypothesis}</dd></div>
+              <div><dt>Primary metric</dt><dd>{experiments.activeDefinition.primaryMetric} · minimum {experiments.activeDefinition.minSampleSizePerVariant} per variant</dd></div>
+              <div><dt>Stop rule</dt><dd>{experiments.activeDefinition.stopRule}</dd></div>
+              <div><dt>Rollback rule</dt><dd>{experiments.activeDefinition.rollbackRule}</dd></div>
+            </dl>
+          ) : null}
+          {experiments.aggregate.experiments.map((experiment) => (
+            <dl className="cr-run-counts" key={experiment.experiment}>
+              {experiment.variants.map((variant) => (
+                <div key={variant.variant}>
+                  <dt>{variant.variant.replaceAll("_", " ")}</dt>
+                  <dd>{variant.suppressed ? "Suppressed" : `${variant.metrics?.[experiment.primaryMetric] ?? 0} / ${variant.exposures}`}</dd>
+                </div>
+              ))}
+            </dl>
+          ))}
+          <p className="cr-note">Unique authenticated members only; owners and retailer accounts are excluded. Assignment is stable and deterministic, and no identifiers, timestamps, or raw browsing history enter this aggregate.</p>
         </section>
 
         <section id="revenue" className="cr-section">
@@ -265,9 +284,10 @@ const controlRoomCss = `
 .cr-section{scroll-margin-top:62px;margin-top:22px;border:1px solid rgba(245,237,214,.1);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.018));padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.17)}.cr-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:20px}.cr-heading h2{margin:7px 0 0;font:700 clamp(24px,3vw,34px)/1 var(--font-playfair);letter-spacing:-.025em}.cr-heading>span{color:rgba(245,237,214,.5);font:11px/1.3 var(--font-jetbrains)}
 .cr-metrics{display:grid;gap:1px;border:1px solid rgba(245,237,214,.08);background:rgba(245,237,214,.08)}.cr-metrics.four{grid-template-columns:repeat(4,minmax(0,1fr))}.cr-metric{min-height:158px;padding:19px;background:#15100c}.cr-metric.accent{background:linear-gradient(145deg,rgba(196,148,58,.18),#15100c 64%)}.cr-metric p{margin:0;color:rgba(245,237,214,.46);font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-metric strong{display:block;margin-top:20px;color:#f5edd6;font:700 clamp(28px,4vw,43px)/.95 var(--font-playfair);letter-spacing:-.035em;overflow-wrap:anywhere}.cr-metric span{display:block;margin-top:15px;color:rgba(245,237,214,.5);font-size:12px;line-height:1.45}
 .cr-note{margin:15px 0 0;color:rgba(245,237,214,.45);font-size:12px;line-height:1.5}.cr-campaign-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:1px;border:1px solid rgba(245,237,214,.08);background:rgba(245,237,214,.08)}.cr-campaign-number{padding:25px;background:linear-gradient(145deg,rgba(196,148,58,.2),#15100c 65%)}.cr-campaign-number span{color:#d9b768;font:900 10px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-campaign-number strong{display:block;margin:18px 0 10px;font:700 58px/.9 var(--font-playfair)}.cr-campaign-number p{margin:0;color:rgba(245,237,214,.5);font-size:12px;line-height:1.5}.cr-campaign-grid dl{margin:0;background:#15100c;padding:16px 22px}.cr-campaign-grid dl div,.cr-run-counts div{display:flex;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-campaign-grid dl div:last-child,.cr-run-counts div:last-child{border:0}.cr-campaign-grid dt,.cr-run-counts dt{color:rgba(245,237,214,.52);font-size:12px}.cr-campaign-grid dd,.cr-run-counts dd{margin:0;font:800 13px/1 var(--font-jetbrains)}
+.cr-experiment-contract{display:grid;gap:0;margin:16px 0 0;border:1px solid rgba(245,237,214,.08);background:#15100c;padding:5px 18px}.cr-experiment-contract div{display:grid;grid-template-columns:140px 1fr;gap:18px;padding:12px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-experiment-contract div:last-child{border:0}.cr-experiment-contract dt{color:#d9b768;font:900 9px/1.4 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-experiment-contract dd{margin:0;color:rgba(245,237,214,.68);font-size:12px;line-height:1.5}
 .cr-line{display:flex;justify-content:space-between;gap:20px;margin-top:15px;border-top:1px solid rgba(245,237,214,.08);padding-top:15px;color:rgba(245,237,214,.46);font-size:11px}.cr-line strong{color:rgba(245,237,214,.7);font-family:var(--font-jetbrains);font-weight:500}.cr-delivery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.cr-delivery div{border-left:2px solid rgba(196,148,58,.55);background:#15100c;padding:15px}.cr-delivery span{display:block;color:rgba(245,237,214,.45);font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-delivery strong{display:block;margin-top:9px;font:700 20px/1 var(--font-playfair)}.cr-run-counts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 0}.cr-run-counts div{display:block;background:rgba(255,255,255,.018);padding:13px}.cr-run-counts dd{margin-top:7px;font-size:18px}
 .cr-links>div:last-child{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.cr-links a{display:flex;justify-content:space-between;gap:15px;border:1px solid rgba(245,237,214,.09);padding:16px;color:#f5edd6;text-decoration:none;font-size:13px}.cr-links a span{color:#c4943a}.cr-links a:hover,.cr-links a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.07)}.cr-footer{display:flex;justify-content:space-between;gap:20px;padding:20px 2px;color:rgba(245,237,214,.34);font:10px/1.4 var(--font-jetbrains)}.cr-footer a{color:rgba(245,237,214,.52)}
 @media(max-width:850px){.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-delivery,.cr-run-counts,.cr-links>div:last-child{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:17px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four,.cr-campaign-grid,.cr-delivery,.cr-run-counts,.cr-links>div:last-child{grid-template-columns:1fr}.cr-metric{min-height:135px}.cr-line{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}}
+@media(max-width:600px){.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:17px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four,.cr-campaign-grid,.cr-delivery,.cr-run-counts,.cr-links>div:last-child{grid-template-columns:1fr}.cr-experiment-contract div{grid-template-columns:1fr;gap:5px}.cr-metric{min-height:135px}.cr-line{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}}
 @media(prefers-reduced-motion:reduce){.cr-jump{scroll-behavior:auto}}
 `;
