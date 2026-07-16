@@ -242,11 +242,17 @@ export function createFindingService({ runGh }) {
     return { mode: apply ? 'apply' : 'dry-run', actions };
   }
 
-  async function update({ id, status, repo, apply = false }) {
+  async function update({ id, status, repo, apply = false, expectedStatuses = null, expectedIssueNumber = null }) {
     if (!STATUSES.has(status)) throw new Error(`Invalid status: ${status}`);
     const existing = await read({ repo });
     const current = existing.find((entry) => entry.finding.id === id);
     if (!current) throw new Error(`Finding not found: ${id}`);
+    if (expectedIssueNumber != null && current.issue.number !== expectedIssueNumber) {
+      throw new Error(`Finding ${id} is issue #${current.issue.number}, not expected issue #${expectedIssueNumber}.`);
+    }
+    if (expectedStatuses && !expectedStatuses.includes(current.finding.status)) {
+      throw new Error(`Finding ${id} cannot move to ${status}; canonical status is already ${current.finding.status}.`);
+    }
     const finding = { ...current.finding, status };
     const validation = validateFinding(finding);
     if (!validation.ok) throw new Error(`Invalid updated finding: ${validation.errors.join('; ')}`);

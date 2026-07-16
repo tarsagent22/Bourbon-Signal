@@ -63,19 +63,21 @@ export function createSourceSuccessResult({ adapter, value, startedAt, finishedA
   };
 }
 
-export function createSourceFailureResult({ adapter, error, previous = null, startedAt, finishedAt, attemptCount, schedule = null }) {
+export function createSourceFailureResult({ adapter, error, previous = null, startedAt, finishedAt, attemptCount, schedule = null, quarantined = false }) {
   const serialized = serializeSourceError(error);
   const fallbackAvailable = previous?.value !== undefined && previous?.value !== null && Boolean(previous?.lastGoodAt);
-  const reason = `${serialized.kind}: ${serialized.message}`;
+  const reason = quarantined
+    ? `Source ${adapter.id} is quarantined; ${serialized.kind}: ${serialized.message}`
+    : `${serialized.kind}: ${serialized.message}`;
   return {
     contractVersion: SOURCE_RESULT_CONTRACT_VERSION,
     sourceId: adapter.id,
     sourceLabel: adapter.label,
     sourceUrl: adapter.url,
-    status: statusForSourceError(serialized),
+    status: quarantined ? 'quarantined' : statusForSourceError(serialized),
     ok: false,
     stale: fallbackAvailable,
-    quarantined: false,
+    quarantined,
     alertable: false,
     attemptCount,
     startedAt,

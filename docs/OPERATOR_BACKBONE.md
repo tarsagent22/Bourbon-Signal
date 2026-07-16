@@ -7,7 +7,7 @@ This backbone turns existing aggregate operating signals into a bounded GitHub I
 - Every new command defaults to dry-run.
 - GitHub issue creation, edits, closing, and reopening require `--apply`.
 - Writing a scorecard, daily brief, weekly review, or Radar finding report requires `--apply`.
-- Creating an objective lock and its branch requires `--apply` and a clean base worktree. Production automation supplies `--worktree` so the objective branch is isolated instead of switching the canonical checkout.
+- Claiming an objective requires `--apply`, a clean base worktree, a canonical GitHub issue number, and an isolated `--worktree`. Dry-runs never edit GitHub or git state.
 - No command sends messages, deploys code, changes a schedule, or writes production data.
 - The scorecard selects aggregate counters from the Control Room snapshot. It never carries email addresses, user IDs, or per-member records.
 
@@ -122,15 +122,17 @@ The repository milestone `Bourbon Signal Operating Backlog` is the canonical hum
 
 Only one lock may exist. An existing `selected` or `in-progress` finding retains the objective regardless of new rank; more than one active finding is a contract failure. Otherwise selection excludes resolved, dismissed, and blocked findings and chooses the highest deterministic rank. The branch is always `operator/<finding-id>-<title-slug>`.
 
+Applied selection atomically creates that branch on the configured git remote with a must-not-exist lease. This is the cross-operator claim: only one concurrent selector can create it. The canonical issue then moves from `backlog` to `selected`, the local lock and registered worktree are created, and the issue moves to `in-progress`. A failure after the remote or issue claim removes any partial worktree/local branch/lock, restores the issue to `backlog`, and removes the remote claim.
+
 ```bash
 npm run operator:objective -- status
 npm run operator:objective -- select --file ranked-or-canonical-findings.json
-npm run operator:objective -- select --file ranked-or-canonical-findings.json --issue-number 123 --worktree ../Bourbon-Signal-operator-current --apply
-npm run operator:objective -- release
-npm run operator:objective -- release --worktree ../Bourbon-Signal-operator-current --apply
+npm run operator:objective -- select --file ranked-or-canonical-findings.json --issue-number 123 --repo OWNER/REPO --worktree ../Bourbon-Signal-operator-current --apply
+npm run operator:objective -- release --disposition resolved
+npm run operator:objective -- release --disposition resolved --worktree ../Bourbon-Signal-operator-current --apply
 ```
 
-Dry-run selection does not write `.operator/objective-lock.json` and does not create or switch branches. Applied selection refuses a dirty base worktree, an existing lock, or an existing objective branch. With `--worktree`, the objective branch starts from `main` in that isolated path and the canonical checkout stays on `main`; omitting it retains the manual branch-switch behavior. `--base release/<name>` is the only alternate base policy. Release validates the locked branch in the supplied objective worktree and requires `--apply` to delete the lock.
+The issue number is inferred when `--file` is the canonical JSON emitted by `operator:findings read`; otherwise pass `--issue-number`. `--base release/<name>` is the only alternate base policy. Release always requires an explicit `--disposition resolved|dismissed|blocked`. Before any release mutation it verifies that the registered objective worktree is clean and that the branch is either merged into the base or archived at the identical commit on the configured remote. Applied release updates the canonical issue disposition, removes the registered worktree and safe local branch, removes the remote branch when it is merged, and deletes the lock last. An unmerged remote branch is retained as the archive.
 
 ## Verification
 
@@ -139,4 +141,4 @@ npm run test:operator-backbone
 npm run test:operations-dashboard
 ```
 
-The operator test covers contract rejection, stable IDs, bounded adapters, issue body round-tripping, `gh` dry-run safety, aggregate-only scorecards, exact daily sections, weekly objective ranking, and lock/branch policy.
+The operator test covers contract rejection, stable IDs, bounded adapters, issue body round-tripping, `gh` dry-run safety, aggregate-only scorecards, exact daily sections, weekly objective ranking, atomic remote claims, canonical lifecycle rollback, and safe release ordering.

@@ -17,7 +17,7 @@ Only transient and timeout failures receive bounded retries. Malformed, collapse
 
 Retained last-good data keeps its original observation and `lastGoodAt` timestamps. Stale and quarantined results are forced non-alertable (`canAlertAsInventory=false` and `canAlertAsWatch=false`) even when their diagnostic rows remain visible.
 
-Each engine run appends actual standardized source attempts to `out/optimization/source-run-history.json` and writes `out/source-slo-7d.json` plus `.md`. Not-due, disabled, and quarantined diagnostics are excluded from the success denominator. The report remains `insufficient_history` until the history spans the full window and contains eligible observations in all seven day buckets; no pre-launch or missing history is backfilled.
+Each engine run appends actual standardized source attempts to `out/optimization/source-run-history.json` and writes `out/source-slo-7d.json` plus `.md`. Not-due, disabled, and quarantined diagnostics are excluded from the success denominator. A configured quarantine remains the public runtime status even when its diagnostic probe times out or fails; the result still carries `ok=false` and the underlying error for recovery work without reducing the SLO denominator. The report remains `insufficient_history` until the history spans the full window and contains eligible observations in all seven day buckets; no pre-launch or missing history is backfilled.
 
 ## Independent detection and recovery
 

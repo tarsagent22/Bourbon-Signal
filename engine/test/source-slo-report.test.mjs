@@ -61,3 +61,30 @@ test('not-due and quarantined diagnostics do not count as fabricated success', (
   assert.equal(report.availabilityRatio, 0);
   assert.equal(report.excludedSampleCount, 2);
 });
+
+test('failed quarantined probes stay outside the SLO denominator', () => {
+  const history = appendSourceSloObservations(null, [
+    {
+      sourceId: 'quarantined-timeout',
+      status: 'quarantined',
+      quarantined: true,
+      ok: false,
+      error: { kind: 'timeout' },
+      attemptCount: 2,
+      finishedAt: NOW,
+    },
+    { sourceId: 'healthy', status: 'success', attemptCount: 1, finishedAt: NOW },
+  ], { now: NOW });
+  const report = buildSevenDaySourceSloReport(history, { now: NOW });
+
+  assert.equal(report.observedSampleCount, 1);
+  assert.equal(report.successfulSampleCount, 1);
+  assert.equal(report.availabilityRatio, 1);
+  assert.equal(report.excludedSampleCount, 1);
+  assert.deepEqual(report.sources.find((source) => source.sourceId === 'quarantined-timeout'), {
+    sourceId: 'quarantined-timeout',
+    observedSampleCount: 0,
+    successfulSampleCount: 0,
+    availabilityRatio: null,
+  });
+});

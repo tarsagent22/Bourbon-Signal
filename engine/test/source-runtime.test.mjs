@@ -121,6 +121,44 @@ test('last-good provenance remains unchanged and stale or quarantined data is no
   assert.equal(quarantined.value.signals[0].canAlertAsInventory, false);
 });
 
+test('configured quarantine survives timeout and failure outcomes', async () => {
+  const [lastGood] = (await runSourceAdapters([
+    adapter('quarantined-failure', async () => fixture('healthy-a.json')),
+  ], {}, { now: () => '2026-07-15T12:00:00.000Z' })).results;
+
+  const [timedOut] = (await runSourceAdapters([
+    adapter('quarantined-failure', async (_context, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    })),
+  ], {}, {
+    previousResults: { 'quarantined-failure': lastGood },
+    quarantinedSourceIds: new Set(['quarantined-failure']),
+    maxAttempts: 1,
+    timeoutMs: 10,
+    now: () => '2026-07-15T13:00:00.000Z',
+  })).results;
+
+  assert.equal(timedOut.status, 'quarantined');
+  assert.equal(timedOut.quarantined, true);
+  assert.equal(timedOut.ok, false, 'quarantine must not disguise a failed diagnostic probe as success');
+  assert.equal(timedOut.error.kind, 'timeout');
+  assert.equal(timedOut.stale, true);
+  assert.equal(timedOut.alertable, false);
+  assert.equal(timedOut.value.signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), true);
+
+  const [failed] = (await runSourceAdapters([
+    adapter('quarantined-failure', async () => { throw new Error('fixture failure'); }),
+  ], {}, {
+    quarantinedSourceIds: new Set(['quarantined-failure']),
+    maxAttempts: 1,
+    now: () => '2026-07-15T14:00:00.000Z',
+  })).results;
+  assert.equal(failed.status, 'quarantined');
+  assert.equal(failed.quarantined, true);
+  assert.equal(failed.ok, false);
+  assert.equal(failed.error.kind, 'unexpected');
+});
+
 test('circuit breaker opens per source and admits one half-open recovery after cooldown', async () => {
   let nowMs = Date.parse('2026-07-15T12:00:00.000Z');
   let calls = 0;

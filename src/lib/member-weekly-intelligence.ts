@@ -1,3 +1,5 @@
+import { normalizeRadarPreferences } from "./release-radar-preferences.ts";
+
 export type MemberWeeklySectionKind = "alerts" | "radar" | "coverage";
 
 export interface MemberWeeklySavedArea {
@@ -10,12 +12,18 @@ export interface MemberWeeklyTrackedBottle {
   name: string;
 }
 
+export interface MemberWeeklyRadarFollow {
+  releaseSlug: string;
+  marketCodes: string[];
+}
+
 export interface MemberWeeklyProfile {
   id: string;
   firstName?: string | null;
   savedAreas: MemberWeeklySavedArea[];
   trackedBottles: MemberWeeklyTrackedBottle[];
   alertMode: "specific_bottles" | "anything_notable";
+  followedRadarReleases?: MemberWeeklyRadarFollow[];
 }
 
 export interface MemberWeeklyAlertCandidate {
@@ -38,6 +46,7 @@ export interface MemberWeeklyAlertCandidate {
 
 export interface MemberWeeklyRadarCandidate {
   id: string;
+  slug: string;
   title: string;
   summary: string;
   stateCodes: string[];
@@ -112,6 +121,12 @@ function normalizedState(value: string) {
   return value.trim().toUpperCase();
 }
 
+export function weeklyRadarFollowsFromPreferences(input: unknown): MemberWeeklyRadarFollow[] {
+  return normalizeRadarPreferences(input).followedReleases
+    .map((follow) => ({ releaseSlug: follow.releaseSlug, marketCodes: [...follow.marketCodes].sort() }))
+    .sort((left, right) => left.releaseSlug.localeCompare(right.releaseSlug));
+}
+
 function parsedTime(value: string) {
   const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : Number.NaN;
@@ -168,7 +183,12 @@ function eligibleAlerts(input: MemberWeeklyIntelligenceInput) {
 }
 
 function radarMatchesMember(candidate: MemberWeeklyRadarCandidate, member: MemberWeeklyProfile) {
-  const savedStates = new Set(member.savedAreas.map((area) => normalizedState(area.stateCode)));
+  const followed = member.followedRadarReleases || [];
+  if (followed.some((follow) => follow.releaseSlug === candidate.slug)) return true;
+  const savedStates = new Set([
+    ...member.savedAreas.map((area) => normalizedState(area.stateCode)),
+    ...followed.flatMap((follow) => follow.marketCodes.map(normalizedState)),
+  ]);
   const stateMatch = candidate.stateCodes.some((state) => {
     const normalized = normalizedState(state);
     return normalized === "NATIONWIDE" ? savedStates.size > 0 : savedStates.has(normalized);

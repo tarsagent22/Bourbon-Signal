@@ -13,6 +13,7 @@ import {
   type MemberWeeklyRadarCandidate,
   type MemberWeeklySavedArea,
   type MemberWeeklyTrackedBottle,
+  weeklyRadarFollowsFromPreferences,
 } from "@/lib/member-weekly-intelligence";
 import {
   buildWeeklyIntelligenceDryRun,
@@ -189,6 +190,7 @@ function radarStateCode(value: string) {
 function adaptRadarCandidates(): MemberWeeklyRadarCandidate[] {
   return radarEntries.map((entry) => ({
     id: `${entry.kind}-${entry.slug}`,
+    slug: entry.slug,
     title: entry.title,
     summary: entry.summary,
     stateCodes: entry.states.map(radarStateCode),
@@ -281,6 +283,7 @@ export function buildWeeklyIntelligencePreviewFromSources(input: {
       savedAreas: savedAreasFromMetadata(publicMetadata),
       trackedBottles: trackedBottlesFromMetadata(publicMetadata),
       alertMode: publicMetadata.alertMode === "specific_bottles" ? "specific_bottles" : "anything_notable",
+      followedRadarReleases: weeklyRadarFollowsFromPreferences(publicMetadata.radarPreferences),
     },
     now: input.now,
     alerts: adaptAlertCandidates({ candidates, publicMetadata, snapshotSafe: input.sources.alertsFresh }),

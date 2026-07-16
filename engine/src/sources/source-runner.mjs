@@ -151,6 +151,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       finishedAt: nowIso(now),
       attemptCount,
       schedule,
+      quarantined: quarantined.has(adapter.id),
     });
   }, {
     concurrency: Math.max(1, Math.floor(Number(options.concurrency ?? 4))),
@@ -172,6 +173,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       finishedAt: nowIso(now),
       attemptCount: maxAttempts,
       schedule: schedules[index],
+      quarantined: quarantined.has(adapter.id),
     });
   });
   return { results, circuitState: circuitBreaker.snapshot(), schedules };

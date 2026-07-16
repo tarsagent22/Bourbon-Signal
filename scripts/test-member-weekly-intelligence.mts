@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   buildMemberWeeklyIntelligence,
   memberWeekKey,
+  weeklyRadarFollowsFromPreferences,
   type MemberWeeklyIntelligenceInput,
 } from "../src/lib/member-weekly-intelligence.ts";
 import {
@@ -46,6 +47,7 @@ const input: MemberWeeklyIntelligenceInput = {
       { key: "blanton s single barrel", name: "Blanton's Single Barrel" },
     ],
     alertMode: "specific_bottles",
+    followedRadarReleases: [],
   },
   now,
   alerts: [
@@ -139,6 +141,7 @@ const input: MemberWeeklyIntelligenceInput = {
   radar: [
     {
       id: "radar-va",
+      slug: "virginia",
       title: "Virginia ABC rare whiskey lottery",
       summary: "Entry closes this week.",
       stateCodes: ["VA"],
@@ -149,6 +152,7 @@ const input: MemberWeeklyIntelligenceInput = {
     },
     {
       id: "radar-bottle",
+      slug: "weller",
       title: "Weller Antique 107 release watch",
       summary: "Distribution begins soon.",
       stateCodes: ["NATIONWIDE"],
@@ -158,6 +162,7 @@ const input: MemberWeeklyIntelligenceInput = {
     },
     {
       id: "radar-unrelated",
+      slug: "kentucky",
       title: "Kentucky tasting",
       summary: "An unrelated event.",
       stateCodes: ["KY"],
@@ -167,6 +172,7 @@ const input: MemberWeeklyIntelligenceInput = {
     },
     {
       id: "radar-nationwide",
+      slug: "national",
       title: "National bourbon release window",
       summary: "Relevant in every saved market.",
       stateCodes: ["NATIONWIDE"],
@@ -241,6 +247,68 @@ const broad = buildMemberWeeklyIntelligence({
   member: { ...input.member, alertMode: "anything_notable", trackedBottles: [] },
 });
 assert.ok(broad.sections[0]?.items.some((item) => item.id === "alert-wrong-bottle"), "broad alert mode does not require a watchlist match");
+
+const persistedRadarFollows = weeklyRadarFollowsFromPreferences({
+  followedReleases: [
+    { releaseSlug: "followed-release", marketCodes: ["va", "VA"], followedAt: "2026-07-15T12:00:00.000Z", email: "must-not-flow@example.com" },
+    { releaseSlug: "another-release", marketCodes: ["KY"], followedAt: "2026-07-14T12:00:00.000Z" },
+  ],
+});
+assert.deepEqual(persistedRadarFollows, [
+  { releaseSlug: "another-release", marketCodes: ["KY"] },
+  { releaseSlug: "followed-release", marketCodes: ["VA"] },
+], "persisted follows become a deterministic slug-and-market-only weekly profile");
+assert.doesNotMatch(JSON.stringify(persistedRadarFollows), /email|@/, "weekly Radar matching must not carry PII");
+
+const followedRadar = buildMemberWeeklyIntelligence({
+  member: {
+    id: "member_radar",
+    savedAreas: [],
+    trackedBottles: [],
+    alertMode: "specific_bottles",
+    followedRadarReleases: persistedRadarFollows,
+  },
+  now,
+  alerts: [],
+  radar: [
+    {
+      id: "radar-exact-follow",
+      slug: "followed-release",
+      title: "An exact followed release",
+      summary: "The member explicitly followed this release.",
+      stateCodes: ["NC"],
+      bottleKeys: [],
+      startDate: "2026-07-18",
+      href: "/release-radar/releases/followed-release",
+    },
+    {
+      id: "radar-selected-market",
+      slug: "virginia-market-release",
+      title: "A release in the selected Radar market",
+      summary: "The member selected Virginia while following Radar releases.",
+      stateCodes: ["VA"],
+      bottleKeys: [],
+      startDate: "2026-07-19",
+      href: "/release-radar/releases/virginia-market-release",
+    },
+    {
+      id: "radar-unmatched",
+      slug: "unmatched-release",
+      title: "An unrelated release",
+      summary: "No exact follow, bottle, or selected market match.",
+      stateCodes: ["NC"],
+      bottleKeys: [],
+      startDate: "2026-07-20",
+      href: "/release-radar/releases/unmatched-release",
+    },
+  ],
+  coverage: [],
+});
+assert.deepEqual(followedRadar.sections[0]?.items.map((item) => item.id), [
+  "radar-exact-follow",
+  "radar-selected-market",
+], "exact followed slugs and persisted Radar markets both match On your Radar");
+assert.equal(followedRadar.sections[0]?.title, "On your Radar");
 
 const defaultNotifications = getDefaultNotificationPreferences();
 assert.equal(defaultNotifications.weeklyIntelligence.emailEnabled, false, "weekly intelligence is a separate, default-off opt-in");

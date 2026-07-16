@@ -35,7 +35,7 @@
     "operator:weekly-review": "node automation/bourbon-signal/weekly-strategy-review.mjs",
     "operator:findings": "node scripts/operator-findings.mjs",
     "operator:objective": "node scripts/operator-objective.mjs",
-    "test:operator-backbone": "node --no-warnings --experimental-strip-types scripts/test-operator-backbone.mjs",
+    "test:operator-backbone": "node --no-warnings --experimental-strip-types scripts/test-operator-backbone.mjs && node scripts/test-operator-objective.mjs",
     "test:production-checks": "node --test scripts/test-production-checks.mjs",
     "test:company-scorecard-feed": "node --no-warnings --experimental-strip-types scripts/test-company-scorecard-feed.mts",
     "ops:signal-calendar": "node automation/bourbon-signal/signal-calendar-prototype.mjs",
