@@ -13,6 +13,11 @@ import { selectScheduledStates, updateStateRunMetric } from './optimization/stat
 import { guardStateReport } from './state-report-guard.mjs';
 import { withStateRunLock } from './state-run-lock.mjs';
 import { evaluateStateControl } from './reliability-policy.mjs';
+import {
+  appendSourceSloObservations,
+  buildSevenDaySourceSloReport,
+  sourceSloMarkdown,
+} from './sources/slo-report.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -51,6 +56,7 @@ const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !
 const STATE_SCHEDULER_ENABLED = process.env.BOURBON_SIGNAL_STATE_SCHEDULER !== '0';
 const STATE_WORKER_CONCURRENCY = Math.max(1, Number(process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY || 4));
 const STATE_RUN_METRICS = path.join(OUT, 'optimization', 'state-run-metrics.json');
+const SOURCE_RUN_HISTORY = path.join(OUT, 'optimization', 'source-run-history.json');
 const REQUESTED_STATE_IDS = new Set((process.env.BOURBON_SIGNAL_RUN_STATES || process.argv.find((arg) => arg.startsWith('--states='))?.split('=')[1] || '')
   .split(',')
   .map((value) => value.trim().toUpperCase())
@@ -273,6 +279,9 @@ function markStaleReport(report, config, reason) {
     ...signal,
     stale: true,
     staleReason: reason,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
     raw: { ...(signal.raw || {}), staleFallback: true, staleReason: reason, staleFallbackAt: now }
   }));
   const roadblocks = [
@@ -298,6 +307,7 @@ function markStaleReport(report, config, reason) {
     staleReason: reason,
     staleFallbackAt: now,
     previousFinishedAt: report.previousFinishedAt || report.finishedAt || null,
+    lastGoodAt: report.lastGoodAt || report.finishedAt || null,
     startedAt: report.startedAt || now,
     finishedAt: now,
     signals: staleSignals,
@@ -340,7 +350,11 @@ function runStateChild(config, outputFile) {
     const child = spawn(process.execPath, ['src/run-state.mjs', config.id], {
       cwd: process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, BOURBON_SIGNAL_STATE_OUT_FILE: outputFile },
+      env: {
+        ...process.env,
+        BOURBON_SIGNAL_STATE_OUT_FILE: outputFile,
+        BOURBON_SIGNAL_PREVIOUS_STATE_FILE: path.join(STATES_OUT, `${config.id}.json`),
+      },
       windowsHide: true
     });
     let stdout = '';
@@ -579,6 +593,14 @@ async function main() {
   }
   await mkdir(path.dirname(STATE_RUN_METRICS), { recursive: true });
   await writeFile(STATE_RUN_METRICS, JSON.stringify({ ...nextMetrics, _schedule: schedule.map(({ config: _config, ...entry }) => entry), _updatedAt: new Date().toISOString() }, null, 2));
+  const sourceHistory = appendSourceSloObservations(
+    await readJson(SOURCE_RUN_HISTORY, null),
+    allReports.flatMap((report) => report.sourceResults || []),
+  );
+  const sourceSlo = buildSevenDaySourceSloReport(sourceHistory);
+  await writeFile(SOURCE_RUN_HISTORY, JSON.stringify(sourceHistory, null, 2));
+  await writeFile(path.join(OUT, 'source-slo-7d.json'), JSON.stringify(sourceSlo, null, 2));
+  await writeFile(path.join(OUT, 'source-slo-7d.md'), sourceSloMarkdown(sourceSlo));
 
   const summary = {
     generatedAt: new Date().toISOString(),

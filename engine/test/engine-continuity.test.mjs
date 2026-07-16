@@ -37,6 +37,9 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runner, /degraded_previous_report_retry/);
   assert.match(runner, /previousReport\.stale === true/);
+  assert.match(runner, /lastGoodAt:\s*report\.lastGoodAt\s*\|\|\s*report\.finishedAt/);
+  assert.match(runner, /canAlertAsInventory:\s*false/);
+  assert.match(runner, /canAlertAsWatch:\s*false/);
   const verifier = await readFile(new URL('../src/verify-site-contract.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(verifier, /should not include TX|contains TX customer-facing|contains TX in states array/);
   const blobReader = await readFile(new URL('../../src/lib/vercel-blob-snapshot-storage.ts', import.meta.url), 'utf8');

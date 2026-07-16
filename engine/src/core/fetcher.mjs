@@ -11,11 +11,12 @@ export async function fetchWithMeta(url, options = {}) {
   const timeoutMs = options.timeoutMs ?? 18000;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const signals = [controller.signal, options.signal].filter(Boolean);
   try {
     const res = await fetch(url, {
       redirect: 'follow',
       headers: { ...DEFAULT_HEADERS, ...(options.headers || {}) },
-      signal: controller.signal
+      signal: signals.length > 1 ? AbortSignal.any(signals) : controller.signal
     });
     const contentType = res.headers.get('content-type') || '';
     const text = await res.text();

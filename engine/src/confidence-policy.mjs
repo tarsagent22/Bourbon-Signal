@@ -214,12 +214,16 @@ export function confidenceForSignal(signal) {
   const nevadaRetailerEvent = signal.state === 'NV' && /^retailer_store_inventory_result$/i.test(eventType);
   const nevadaInventoryAllowed = !nevadaRetailerEvent || isNevadaRetailerInventory(signal);
   const nevadaWatchAllowed = !nevadaRetailerEvent || isNevadaRetailerSignalIdentity(signal);
+  const runtimeAlertBlocked = signal.stale === true
+    || signal.quarantined === true
+    || signal.raw?.sourceRuntimeNonAlertable === true
+    || signal.raw?.staleFallback === true;
   return {
     confidence: clamp(confidence),
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: texasInventoryAllowed && indianaInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: indianaWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

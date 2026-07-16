@@ -20,20 +20,27 @@ function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5 }
   return null;
 }
 
-function preservedFallback(previous, reason, now = new Date().toISOString()) {
+function preservedFallback(previous, reason, now = new Date().toISOString(), candidate = null) {
   const priorStatus = String(previous.status || '').replace(/^(stale_)+/, '') || 'previous_report';
+  const lastGoodAt = previous.lastGoodAt || previous.finishedAt || null;
   return {
     ...previous,
     stale: true,
     staleReason: `Quality guard preserved the last good report because ${reason}.`,
     staleFallbackAt: now,
     previousFinishedAt: previous.previousFinishedAt || previous.finishedAt || null,
+    lastGoodAt,
     finishedAt: now,
+    sourceResults: candidate?.sourceResults || previous.sourceResults || [],
+    sourceCircuitState: candidate?.sourceCircuitState || previous.sourceCircuitState || {},
     status: `stale_${priorStatus}_quality_fallback`,
     signals: (previous.signals || []).map((signal) => ({
       ...signal,
       stale: true,
       staleReason: `Quality guard preserved the last good report because ${reason}.`,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      alertable: false,
       raw: {
         ...(signal.raw || {}),
         staleFallback: true,
@@ -64,5 +71,5 @@ export function guardStateReport({ previous, candidate, now, options } = {}) {
 
   const reason = collapseReason(previous, candidate, options);
   if (!reason) return { accepted: true, report: candidate, reason: null };
-  return { accepted: false, report: preservedFallback(previous, reason, now), reason };
+  return { accepted: false, report: preservedFallback(previous, reason, now, candidate), reason };
 }

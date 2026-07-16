@@ -5,6 +5,11 @@ import { collectPrecisionProbes } from './precision-probes.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
 import { readFile } from 'node:fs/promises';
 import { collectCostco } from './costco.mjs';
+import { createSourceAdapter } from '../sources/source-adapter.mjs';
+import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
+import { summarizeSourceResult } from '../sources/source-result.mjs';
+import { runSourceAdapters } from '../sources/source-runner.mjs';
+import { SourceCircuitBreaker } from '../sources/circuit-breaker.mjs';
 
 const SIGNAL_TERMS = [
   'bourbon', 'whiskey', 'whisky', 'allocated', 'limited', 'release', 'lottery', 'barrel', 'single barrel',
@@ -255,11 +260,138 @@ async function collectBrowserDiscoverySignals(config, bible) {
   return { signals, roadblocks };
 }
 
-export async function collectState(config, bible) {
+function configuredSourceId(config, source) {
+  const identity = source.id || stableId([source.url, source.label]);
+  return `${String(config.id || 'state').toLowerCase()}:configured:${String(identity).toLowerCase()}`;
+}
+
+async function collectConfiguredSource(config, source, sourceId, bible, fetcher, signal) {
+  const response = await fetcher(source.url, { politeDelayMs: 300, signal });
+  if (!response?.ok) {
+    const message = response?.error || response?.statusText || `HTTP ${response?.status || 0}`;
+    if (!response || Number(response.status || 0) === 0) throw new TransientSourceError(message, { status: response?.status ?? 0 });
+    throw sourceErrorForHttp(response.status, message);
+  }
+  const contentIsJson = response.contentType.includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
+  const json = contentIsJson ? tryParseJson(response.text) : null;
+  if (contentIsJson && !json) {
+    throw new MalformedSourceError(`${source.label} returned malformed JSON`, { status: response.status });
+  }
+  const text = json ? JSON.stringify(json).slice(0, 500000) : stripHtml(response.text);
+  const matchedBottles = bible.scanText(text);
+  const documentLinks = json ? [] : findDocumentLinks(response.text, response.url).slice(0, 30);
+  const kind = classifySignal(source, response, text, matchedBottles, documentLinks);
+  const sourceSignals = (json ? recordsFromJson(source, json, bible, config.id) : []).map((entry) => ({ ...entry, sourceRuntimeId: sourceId }));
+  if (matchedBottles.length || documentLinks.length || response.ok) {
+    sourceSignals.push({
+      id: stableId([config.id, source.url, kind, response.status]),
+      state: config.id,
+      sourceUrl: source.url,
+      sourceLabel: source.label,
+      sourceRuntimeId: sourceId,
+      eventType: kind,
+      canonicalBottleId: matchedBottles[0]?.id || null,
+      canonicalName: matchedBottles[0]?.canonical || null,
+      matchedBottleCount: matchedBottles.length,
+      matchedBottles: matchedBottles.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
+      documentLinks,
+      readableSummary: summarizeText(text, matchedBottles),
+      confidence: matchedBottles.length ? 0.75 : documentLinks.length ? 0.55 : 0.35,
+      locationPrecision: kind.includes('inventory') ? 'store_aggregate' : kind.includes('release') ? 'statewide_policy' : 'statewide_catalog',
+      locationName: config.label,
+      fetchedAt: new Date().toISOString()
+    });
+  }
+  return {
+    signals: sourceSignals,
+    roadblocks: [],
+    sourceReport: {
+      sourceRuntimeId: sourceId,
+      label: source.label,
+      url: source.url,
+      ok: true,
+      status: response.status,
+      contentType: response.contentType,
+      bytes: response.bytes,
+      elapsedMs: response.elapsedMs,
+      signalType: kind,
+      matchedBottleCount: matchedBottles.length,
+      pdfLinkCount: documentLinks.filter((link) => /\.pdf($|[?#])/i.test(link.href)).length,
+      documentLinkCount: documentLinks.length,
+      error: null
+    }
+  };
+}
+
+function failedConfiguredSource(config, source, sourceId, result) {
+  const error = result.error?.message || 'Unknown source failure';
+  return {
+    signals: result.value?.signals || [],
+    roadblocks: [{
+      state: config.id,
+      source: source.label,
+      url: source.url,
+      status: result.error?.status || result.status,
+      error,
+      nextRoute: 'Inspect the isolated source failure while sibling sources continue; retry only when the standardized error is transient.'
+    }],
+    sourceReport: {
+      sourceRuntimeId: sourceId,
+      label: source.label,
+      url: source.url,
+      ok: false,
+      stale: result.stale,
+      status: result.error?.status || result.status,
+      contentType: '',
+      bytes: 0,
+      elapsedMs: 0,
+      signalType: `source_${result.status}`,
+      matchedBottleCount: 0,
+      pdfLinkCount: 0,
+      documentLinkCount: 0,
+      error
+    }
+  };
+}
+
+function skippedConfiguredSource(source, sourceId, result) {
+  const previousReport = result.value?.sourceReport;
+  return {
+    signals: result.value?.signals || [],
+    roadblocks: [],
+    sourceReport: previousReport ? {
+      ...previousReport,
+      sourceRuntimeStatus: result.status,
+    } : {
+      sourceRuntimeId: sourceId,
+      label: source.label,
+      url: source.url,
+      ok: false,
+      status: result.status,
+      contentType: 'source-runtime-skip',
+      bytes: 0,
+      elapsedMs: 0,
+      signalType: `source_${result.status}`,
+      matchedBottleCount: 0,
+      pdfLinkCount: 0,
+      documentLinkCount: 0,
+      error: null,
+    },
+  };
+}
+
+export async function collectState(config, bible, options = {}) {
   const startedAt = new Date().toISOString();
   const sourceReports = [];
+  const sourceResults = [];
   const signals = [];
   const roadblocks = [];
+  const fetcher = options.fetcher || fetchWithMeta;
+  const sourceCircuitBreaker = options.sourceCircuitBreaker || new SourceCircuitBreaker({
+    initialState: options.previousSourceCircuitState,
+    failureThreshold: Number(process.env.BOURBON_SIGNAL_SOURCE_CIRCUIT_FAILURES || 3),
+    cooldownMs: Number(process.env.BOURBON_SIGNAL_SOURCE_CIRCUIT_COOLDOWN_MS || 15 * 60_000),
+  });
 
   const hasCostcoSource = (config.sources || []).some((source) => source.kind === 'costco' || source.signalType === 'costco_warehouse_inventory');
   if (hasCostcoSource) {
@@ -269,6 +401,8 @@ export async function collectState(config, bible) {
     sourceReports.push(...(costcoReport.sources || []));
   }
 
+  const configuredAdapters = [];
+  const configuredSources = [];
   for (const source of config.sources) {
     if (source.precisionOnly) {
       sourceReports.push({
@@ -287,62 +421,35 @@ export async function collectState(config, bible) {
       });
       continue;
     }
-    const response = await fetchWithMeta(source.url, { politeDelayMs: 300 });
-    const contentIsJson = response.contentType.includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
-    const json = contentIsJson ? tryParseJson(response.text) : null;
-    const text = json ? JSON.stringify(json).slice(0, 500000) : stripHtml(response.text);
-    const matchedBottles = bible.scanText(text);
-    const documentLinks = json ? [] : findDocumentLinks(response.text, response.url).slice(0, 30);
-    const kind = classifySignal(source, response, text, matchedBottles, documentLinks);
-
-    if (!response.ok) {
-      roadblocks.push({
-        state: config.id,
-        source: source.label,
-        url: source.url,
-        status: response.status,
-        error: response.error || response.statusText,
-        nextRoute: 'Try browser-rendered extraction, inspect network/API calls, or use official downloadable reports if exposed.'
-      });
-    }
-
-    const jsonRecords = json ? recordsFromJson(source, json, bible, config.id) : [];
-    signals.push(...jsonRecords);
-
-    if (matchedBottles.length || documentLinks.length || response.ok) {
-      signals.push({
-        id: stableId([config.id, source.url, kind, response.status]),
-        state: config.id,
-        sourceUrl: source.url,
-        sourceLabel: source.label,
-        eventType: kind,
-        canonicalBottleId: matchedBottles[0]?.id || null,
-        canonicalName: matchedBottles[0]?.canonical || null,
-        matchedBottleCount: matchedBottles.length,
-        matchedBottles: matchedBottles.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
-        documentLinks,
-        readableSummary: summarizeText(text, matchedBottles),
-        confidence: kind === 'roadblock' ? 0 : matchedBottles.length ? 0.75 : documentLinks.length ? 0.55 : 0.35,
-        locationPrecision: kind.includes('inventory') ? 'store_aggregate' : kind.includes('release') ? 'statewide_policy' : 'statewide_catalog',
-        locationName: config.label,
-        fetchedAt: new Date().toISOString()
-      });
-    }
-
-    sourceReports.push({
+    const sourceId = configuredSourceId(config, source);
+    configuredSources.push({ source, sourceId });
+    configuredAdapters.push(createSourceAdapter({
+      id: sourceId,
       label: source.label,
       url: source.url,
-      ok: response.ok,
-      status: response.status,
-      contentType: response.contentType,
-      bytes: response.bytes,
-      elapsedMs: response.elapsedMs,
-      signalType: kind,
-      matchedBottleCount: matchedBottles.length,
-      pdfLinkCount: documentLinks.filter((link) => /\.pdf($|[?#])/i.test(link.href)).length,
-      documentLinkCount: documentLinks.length,
-      error: response.error
+      execute: (_context, { signal }) => collectConfiguredSource(config, source, sourceId, bible, fetcher, signal),
+      validate: (value) => Array.isArray(value?.signals) && value?.sourceReport ? true : 'Configured source result is malformed',
+      recordCount: (value) => value.signals.length,
+    }));
+  }
+  if (configuredAdapters.length) {
+    const isolated = await runSourceAdapters(configuredAdapters, {}, {
+      ...options.sourceRunnerOptions,
+      previousResults: options.previousSourceResults,
+      circuitBreaker: sourceCircuitBreaker,
     });
+    for (const [index, result] of isolated.results.entries()) {
+      const { source, sourceId } = configuredSources[index];
+      const value = result.ok
+        ? result.value
+        : ['not_due', 'disabled'].includes(result.status)
+          ? skippedConfiguredSource(source, sourceId, result)
+          : failedConfiguredSource(config, source, sourceId, result);
+      signals.push(...(value?.signals || []));
+      roadblocks.push(...(value?.roadblocks || []));
+      if (value?.sourceReport) sourceReports.push(value.sourceReport);
+      sourceResults.push(summarizeSourceResult(result));
+    }
   }
 
   for (const url of config.apiCandidates || []) {
@@ -428,9 +535,13 @@ export async function collectState(config, bible) {
     });
   }
 
-  const precisionProbe = await collectPrecisionProbes(config, bible, signals);
+  const precisionProbe = await collectPrecisionProbes(config, bible, signals, {
+    sourceCircuitBreaker,
+    sourceRunnerOptions: options.sourceRunnerOptions,
+  });
   signals.push(...precisionProbe.signals);
   roadblocks.push(...precisionProbe.roadblocks);
+  sourceResults.push(...(precisionProbe.sourceResults || []));
   for (const sig of precisionProbe.signals) {
     sourceReports.push({
       label: `${sig.sourceLabel} (precision probe)`,
@@ -449,6 +560,11 @@ export async function collectState(config, bible) {
   }
 
   const dedupedSignals = [...new Map(signals.map((s) => [s.id, s])).values()];
+  const finishedAt = new Date().toISOString();
+  const sourceLastGoodTimes = sourceResults.map((result) => Date.parse(result.lastGoodAt || '')).filter(Number.isFinite);
+  const lastGoodAt = sourceResults.length
+    ? sourceLastGoodTimes.length ? new Date(Math.max(...sourceLastGoodTimes)).toISOString() : null
+    : finishedAt;
   return {
     state: config.id,
     label: config.label,
@@ -458,8 +574,11 @@ export async function collectState(config, bible) {
     value: config.value,
     locationProfile: LOCATION_PROFILES[config.id] || null,
     startedAt,
-    finishedAt: new Date().toISOString(),
+    finishedAt,
+    lastGoodAt,
     sources: sourceReports,
+    sourceResults,
+    sourceCircuitState: sourceCircuitBreaker.snapshot(),
     signals: dedupedSignals,
     roadblocks,
     stale: Boolean(precisionProbe.stale),

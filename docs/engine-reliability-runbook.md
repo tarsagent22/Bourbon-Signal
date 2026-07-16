@@ -7,6 +7,17 @@
 - Active-state coverage: exactly 100% of `src/config/state-lifecycle.json#activeStates`.
 - A candidate with missing states, failed states, schema errors, corrupt files, or an unverifiable production generation must not remain active.
 - Last-known-good state reports and the previous complete snapshot are retained for containment and rollback.
+- Source collection SLO: strictly greater than 98% successful eligible source attempts over a real seven-day evidence window.
+
+## Source failure isolation
+
+Configured state sources and the California multi-retailer lane use the shared source runtime under `engine/src/sources/`. Each adapter returns the same result envelope and error taxonomy. A throw, timeout, malformed response, or volume collapse is contained to that source while sibling adapters finish through the existing bounded worker pool.
+
+Only transient and timeout failures receive bounded retries. Malformed, collapsed, permanent, and unexpected failures fail closed without retry. Repeated source failures open a per-source circuit whose state persists in the existing state report; after cooldown, one half-open attempt may close it. State run locks, state scheduling, partitions, immutable snapshots, rollback, and the recovery watchdog remain the enclosing orchestration.
+
+Retained last-good data keeps its original observation and `lastGoodAt` timestamps. Stale and quarantined results are forced non-alertable (`canAlertAsInventory=false` and `canAlertAsWatch=false`) even when their diagnostic rows remain visible.
+
+Each engine run appends actual standardized source attempts to `out/optimization/source-run-history.json` and writes `out/source-slo-7d.json` plus `.md`. Not-due, disabled, and quarantined diagnostics are excluded from the success denominator. The report remains `insufficient_history` until the history spans the full window and contains eligible observations in all seven day buckets; no pre-launch or missing history is backfilled.
 
 ## Independent detection and recovery
 
@@ -60,6 +71,7 @@ npm --prefix engine run verify:reliability
 npm --prefix engine run drill:recovery
 npm run test:ops
 npm --prefix engine run test:data-plane
+node --test engine/test/source-runtime.test.mjs engine/test/source-slo-report.test.mjs engine/test/source-runtime-integration.test.mjs
 npm run build
 npm run watchdog:engine
 ```

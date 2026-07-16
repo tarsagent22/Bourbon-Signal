@@ -48,6 +48,14 @@ Contract version: `bourbon-signal-site-v0.1`.
 - `out/alert-candidates.*` — ranked candidate alerts/watch items.
 - `out/location-hardening.*` — target vs achieved public location precision.
 - `out/roadblocks.*` — explicit blockers and next routes.
+- `out/source-slo-7d.*` — seven-day source-attempt SLO evidence; reports insufficient history until seven real day buckets exist.
+- `out/optimization/source-run-history.json` — observed source results only; never backfilled with synthetic success history.
+
+## Incremental source runtime
+
+`src/sources/` standardizes source adapters, results, errors, bounded transient retry, per-source circuit breaking, and SLO evidence. It is integrated at the existing `run-state.mjs` boundary for configured sources and the California multi-retailer lane. Whole-state workers, adaptive scheduling, state partitions, snapshot publication, and recovery continue to use their existing modules.
+
+Source-level stale fallbacks preserve their original `lastGoodAt` and observation timestamps and are non-alertable. Quarantined sources may collect diagnostic candidates but cannot emit inventory or watch alerts.
 
 ## Current scope
 

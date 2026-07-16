@@ -14,6 +14,7 @@ import {
   isCaliforniaRetailerSignalIdentity,
 } from '../src/california-retailer-policy.mjs';
 import { hasPositiveInventoryEvidence } from '../src/operational-candidate-policy.mjs';
+import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
@@ -141,11 +142,13 @@ test('California partial refresh replaces completed sources and retains only inc
   assert.deepEqual(merged.map((row) => row.id).sort(), ['cached-mission', 'live-del']);
 });
 
-test('California collector retries transient first-party policy and product failures before falling back', async () => {
+test('California collector delegates bounded transient-only retries to the shared source runner', async () => {
   const collectorSource = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
-  assert.match(collectorSource, /async function retryCaliforniaFetch/);
-  assert.match(collectorSource, /verifyCaliforniaFulfillmentPolicy\(source, result\.text\)/);
-  assert.match(collectorSource, /retryCaliforniaFetch\(\(\) => fetchCaliforniaShopifySource\(source\)\)/);
+  assert.match(collectorSource, /runSourceAdapters\(californiaAdapters/);
+  assert.match(collectorSource, /maxAttempts:\s*Number\(process\.env\.BOURBON_SIGNAL_CA_SOURCE_ATTEMPTS\s*\|\|\s*2\)/);
+  assert.match(collectorSource, /verifyCaliforniaFulfillmentPolicy\(source, policyRes\.text\)/);
+  assert.match(collectorSource, /new MalformedSourceError/);
+  assert.doesNotMatch(collectorSource, /async function retryCaliforniaFetch/);
 });
 
 test('fresh California cache reuse is not reported as a collection roadblock', async () => {
@@ -195,6 +198,17 @@ test('California policy accepts exact pickup-bound binary orderability and proje
   };
   assert.equal(isCaliforniaRetailerSignalIdentity(projected), true);
   assert.equal(isCaliforniaRetailerInventory(projected), true);
+});
+
+test('central confidence cannot re-enable stale or source-quarantined California inventory', () => {
+  const stale = confidenceForSignal(californiaSignal({ stale: true }));
+  const quarantined = confidenceForSignal(californiaSignal({
+    raw: { fulfillmentPolicyVerified: true, sourceRuntimeNonAlertable: true },
+  }));
+  assert.equal(stale.canAlertAsInventory, false);
+  assert.equal(stale.canAlertAsWatch, false);
+  assert.equal(quarantined.canAlertAsInventory, false);
+  assert.equal(quarantined.canAlertAsWatch, false);
 });
 
 test('California binary orderability counts as positive operational inventory without inventing quantity', () => {

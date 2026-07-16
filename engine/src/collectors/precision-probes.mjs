@@ -7,6 +7,10 @@ import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { createSourceAdapter } from '../sources/source-adapter.mjs';
+import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
+import { summarizeSourceResult } from '../sources/source-result.mjs';
+import { runSourceAdapters } from '../sources/source-runner.mjs';
 import {
   FLORIDA_TAMPA_TARGET_STORES,
   parseLightspeedCatalogEntries,
@@ -1187,13 +1191,14 @@ async function textFetch(url, options = {}) {
   const timeoutMs = Number(options.timeoutMs || process.env.BOURBON_SIGNAL_PRECISION_FETCH_TIMEOUT_MS || 18_000);
   const controller = new AbortController();
   const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  const signals = [controller.signal, options.signal].filter(Boolean);
   try {
     const res = await fetch(url, {
       redirect: options.redirect || 'follow',
       headers: { 'user-agent': 'Mozilla/5.0 (BourbonSignal research)', accept: 'text/html,application/json,text/csv,*/*', ...(options.headers || {}) },
       method: options.method || 'GET',
       body: options.body,
-      signal: controller.signal
+      signal: signals.length > 1 ? AbortSignal.any(signals) : controller.signal
     });
     return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', text: await res.text(), error: null };
   } catch (error) {
@@ -6072,18 +6077,18 @@ function cachedCaliforniaSignals(cache) {
   }));
 }
 
-async function fetchCaliforniaShopifySource(source) {
+async function fetchCaliforniaShopifySource(source, signal) {
   const products = [];
   for (let page = 1; page <= source.maxPages; page++) {
     const separator = source.productsUrl.includes('?') ? '&' : '?';
     const url = `${source.productsUrl}${separator}page=${page}`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000 });
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000, signal });
     if (!res.ok) return { ...res, url };
     let payload;
     try { payload = JSON.parse(res.text); } catch (error) {
-      return { ok: false, status: res.status || 0, error: error instanceof Error ? error.message : String(error), text: res.text, url };
+      throw new MalformedSourceError(`${source.sourceLabel} returned malformed Shopify JSON`, { cause: error, status: res.status || 0 });
     }
-    if (!Array.isArray(payload?.products)) return { ok: false, status: res.status || 0, error: 'Shopify response did not contain a products array.', text: res.text, url };
+    if (!Array.isArray(payload?.products)) throw new MalformedSourceError(`${source.sourceLabel} Shopify response did not contain a products array`, { status: res.status || 0 });
     products.push(...payload.products);
     if (payload.products.length < 250) break;
     await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
@@ -6091,101 +6096,44 @@ async function fetchCaliforniaShopifySource(source) {
   return { ok: true, status: 200, text: JSON.stringify({ products }), error: null, url: source.productsUrl };
 }
 
-async function retryCaliforniaFetch(fetcher, { attempts = 3, accept = (result) => result.ok } = {}) {
-  let result = await fetcher();
-  for (let attempt = 1; attempt < attempts && !accept(result); attempt++) {
-    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS * attempt);
-    result = await fetcher();
-  }
-  return result;
+function failedCaliforniaResponse(result, label) {
+  const message = result?.error || `HTTP ${result?.status || 0}`;
+  if (!result || Number(result.status || 0) === 0) return new TransientSourceError(`${label}: ${message}`, { status: result?.status ?? 0 });
+  return sourceErrorForHttp(result.status, `${label}: ${message}`);
 }
 
-async function collectCalifornia(config, bible) {
-  const observedAt = new Date().toISOString();
-  const cache = await readCaliforniaSanDiegoShopifyCache();
-  if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
-    return {
-      signals: cachedCaliforniaSignals(cache),
-      roadblocks: cache.roadblocks || [],
-    };
+async function collectCaliforniaSource(config, bible, source, observedAt, signal) {
+  let fulfillmentPolicyVerified = false;
+  if (source.inventoryEligible) {
+    const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, signal });
+    if (!policyRes.ok) throw failedCaliforniaResponse(policyRes, `${source.sourceLabel} fulfillment policy`);
+    fulfillmentPolicyVerified = verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
+    if (!fulfillmentPolicyVerified) {
+      throw new MalformedSourceError(`${source.sourceLabel} first-party page no longer proves in-store pickup/collection for online orders`, {
+        status: policyRes.status,
+        details: { fulfillmentPolicyUrl: source.fulfillmentPolicyUrl },
+      });
+    }
   }
-
-  const liveSignals = [];
-  const roadblocks = [];
-  const completedSourceIds = new Set();
-  for (const source of CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES) {
-    let fulfillmentPolicyVerified = false;
-    if (source.inventoryEligible) {
-      const policyRes = await retryCaliforniaFetch(
-        () => textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000 }),
-        { accept: (result) => result.ok && verifyCaliforniaFulfillmentPolicy(source, result.text) },
-      );
-      fulfillmentPolicyVerified = policyRes.ok && verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
-      if (!fulfillmentPolicyVerified) {
-        roadblocks.push({
-          state: config.id,
-          source: source.sourceLabel,
-          url: source.fulfillmentPolicyUrl,
-          status: policyRes.status || (policyRes.ok ? 'missing_fulfillment_evidence' : 0),
-          error: policyRes.ok ? 'First-party page no longer proves in-store pickup/collection for online orders.' : (policyRes.error || `HTTP ${policyRes.status}`),
-          nextRoute: 'Fail closed and re-audit the first-party fulfillment policy; do not infer pickup from catalog availability alone.',
-        });
-        await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
-        continue;
-      }
-    }
-    const res = await retryCaliforniaFetch(() => fetchCaliforniaShopifySource(source));
-    if (!res.ok) {
-      roadblocks.push({
-        state: config.id,
-        source: source.sourceLabel,
-        url: source.productsUrl,
-        status: res.status || 0,
-        error: res.error || `HTTP ${res.status}`,
-        nextRoute: 'Retry the public first-party product feed at low cadence; do not bypass retailer controls or promote catalog presence.',
-      });
-      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
-      continue;
-    }
-    let payload;
-    try { payload = JSON.parse(res.text); } catch (error) {
-      roadblocks.push({
-        state: config.id,
-        source: source.sourceLabel,
-        url: source.productsUrl,
-        status: res.status || 0,
-        error: error instanceof Error ? error.message : String(error),
-        nextRoute: 'Inspect the public Shopify response shape; malformed reachable responses fail closed.',
-      });
-      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
-      continue;
-    }
-    if (!Array.isArray(payload?.products)) {
-      roadblocks.push({
-        state: config.id,
-        source: source.sourceLabel,
-        url: source.productsUrl,
-        status: 'malformed_reachable_payload',
-        error: 'Shopify response did not contain a products array.',
-        nextRoute: 'Inspect the public response shape without weakening source or inventory guards.',
-      });
-      await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
-      continue;
-    }
-    completedSourceIds.add(source.id);
-    const parsedRows = parseCaliforniaShopifyProducts(payload);
-    for (const row of parsedRows) {
+  const res = await fetchCaliforniaShopifySource(source, signal);
+  if (!res.ok) throw failedCaliforniaResponse(res, `${source.sourceLabel} product feed`);
+  const payload = JSON.parse(res.text);
+  const sourceSignals = [];
+  const sourceRoadblocks = [];
+  const parsedRows = parseCaliforniaShopifyProducts(payload);
+  for (const row of parsedRows) {
       const { match, record, unsafeReason } = cityHiveSafeBottleMatch(row.title, bible);
       if (!record) continue;
       const eventType = source.inventoryEligible ? 'retailer_store_inventory_result' : 'retailer_catalog_availability';
       const productUrl = row.handle ? `https://${source.host}/products/${encodeURIComponent(row.handle)}` : source.productsUrl;
-      liveSignals.push({
+      sourceSignals.push({
         id: stableId([config.id, 'san-diego-shopify', source.id, row.productId, row.variantId]),
         state: config.id,
         stateCode: 'CA',
         sourceLabel: source.sourceLabel,
         sourceUrl: productUrl,
         sourceChain: source.id,
+        sourceRuntimeId: `ca:${source.id}`,
         merchantId: source.merchantId,
         productId: row.productId,
         variantId: row.variantId,
@@ -6229,23 +6177,116 @@ async function collectCalifornia(config, bible) {
           matchGuard: unsafeReason,
         },
       });
-    }
-    if (!liveSignals.some((signal) => signal.sourceChain === source.id)) {
+  }
+  if (!sourceSignals.length) {
+    sourceRoadblocks.push({
+      state: config.id,
+      source: source.sourceLabel,
+      sourceRuntimeId: `ca:${source.id}`,
+      url: source.productsUrl,
+      status: 'reachable_no_safe_inventory_rows',
+      error: `Shopify returned ${payload.products.length} products but no safely matched available bourbon rows survived source, size, format, and bottle guards.`,
+      nextRoute: 'Inspect product titles and variant availability without weakening bottle, format, or premises guards.',
+    });
+  }
+  return { signals: sourceSignals, roadblocks: sourceRoadblocks };
+}
+
+function californiaLastGoodAt(signals, fallback) {
+  const times = signals.map((signal) => Date.parse(signal.observedAt || '')).filter(Number.isFinite);
+  return times.length ? new Date(Math.max(...times)).toISOString() : fallback || null;
+}
+
+function previousCaliforniaSourceResults(cache) {
+  return Object.fromEntries(CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((source) => {
+    const signals = (cache?.signals || []).filter((signal) => signal.sourceChain === source.id);
+    const lastGoodAt = californiaLastGoodAt(signals, cache?.generatedAt);
+    return [`ca:${source.id}`, {
+      sourceId: `ca:${source.id}`,
+      status: 'success',
+      ok: true,
+      stale: false,
+      alertable: true,
+      lastGoodAt,
+      value: { signals, roadblocks: [] },
+    }];
+  }));
+}
+
+function cachedCaliforniaSourceResults(cache) {
+  return Object.values(previousCaliforniaSourceResults(cache)).map((result) => summarizeSourceResult({
+    contractVersion: 'bourbon-signal-source-result-v1',
+    ...result,
+    sourceLabel: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.find((source) => `ca:${source.id}` === result.sourceId)?.sourceLabel || result.sourceId,
+    sourceUrl: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.find((source) => `ca:${source.id}` === result.sourceId)?.productsUrl || null,
+    status: 'not_due',
+    ok: false,
+    attemptCount: 0,
+    startedAt: null,
+    finishedAt: result.lastGoodAt,
+    checkedAt: result.lastGoodAt,
+    quarantined: false,
+    error: null,
+    schedule: { sourceId: result.sourceId, decision: 'fresh_cache_reused' },
+  }));
+}
+
+async function collectCalifornia(config, bible, options = {}) {
+  const observedAt = new Date().toISOString();
+  const cache = await readCaliforniaSanDiegoShopifyCache();
+  if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
+    return {
+      signals: cachedCaliforniaSignals(cache),
+      roadblocks: cache.roadblocks || [],
+      sourceResults: cachedCaliforniaSourceResults(cache),
+    };
+  }
+
+  const californiaAdapters = CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((source) => createSourceAdapter({
+    id: `ca:${source.id}`,
+    label: source.sourceLabel,
+    url: source.productsUrl,
+    execute: (_context, { signal }) => collectCaliforniaSource(config, bible, source, observedAt, signal),
+    validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks) ? true : 'California source result is malformed',
+    recordCount: (value) => value.signals.length,
+  }));
+  const isolated = await runSourceAdapters(californiaAdapters, {}, {
+    ...options.sourceRunnerOptions,
+    previousResults: previousCaliforniaSourceResults(cache),
+    circuitBreaker: options.sourceCircuitBreaker,
+    concurrency: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.length,
+    perDomain: 1,
+    timeoutMs: Number(process.env.BOURBON_SIGNAL_CA_SOURCE_TIMEOUT_MS || 75_000),
+    maxAttempts: Number(process.env.BOURBON_SIGNAL_CA_SOURCE_ATTEMPTS || 2),
+    retryDelayMs: CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS,
+  });
+  const roadblocks = [];
+  const signals = [];
+  const completedSourceIds = new Set();
+  const liveSignals = [];
+  for (const [index, result] of isolated.results.entries()) {
+    const source = CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES[index];
+    signals.push(...(result.value?.signals || []));
+    roadblocks.push(...(result.value?.roadblocks || []));
+    if (result.ok) {
+      completedSourceIds.add(source.id);
+      liveSignals.push(...(result.value?.signals || []));
+    } else {
       roadblocks.push({
         state: config.id,
         source: source.sourceLabel,
+        sourceRuntimeId: result.sourceId,
         url: source.productsUrl,
-        status: 'reachable_no_safe_inventory_rows',
-        error: `Shopify returned ${payload.products.length} products but no safely matched available bourbon rows survived source, size, format, and bottle guards.`,
-        nextRoute: 'Inspect product titles and variant availability without weakening bottle, format, or premises guards.',
+        status: result.status,
+        error: result.error?.message || 'Isolated California source failed',
+        nextRoute: 'Inspect this isolated retailer source while sibling retailers continue; stale retained rows remain non-alertable.',
       });
     }
-    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
   }
-
-  const cachedFresh = cachedCaliforniaSignals(cache);
-  const signals = mergeCaliforniaSourceCacheSignals(liveSignals, cachedFresh, completedSourceIds);
-  if (completedSourceIds.size > 0) await writeCaliforniaSanDiegoShopifyCache(signals, roadblocks);
+  if (completedSourceIds.size > 0) {
+    const artifactSignals = mergeCaliforniaSourceCacheSignals(liveSignals, cachedCaliforniaSignals(cache), completedSourceIds);
+    await writeCaliforniaSanDiegoShopifyCache(artifactSignals, roadblocks);
+  }
   if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
     roadblocks.push({
       state: config.id,
@@ -6256,7 +6297,7 @@ async function collectCalifornia(config, bible) {
       nextRoute: 'Keep California unpromoted until qualified first-party pickup rows are runner-reachable; do not substitute catalog or marketplace presence.',
     });
   }
-  return { signals, roadblocks };
+  return { signals, roadblocks, sourceResults: isolated.results.map(summarizeSourceResult) };
 }
 
 async function readNevadaRetailerCache() {
@@ -6471,7 +6512,7 @@ async function collectKentucky(config, bible) {
   };
 }
 
-export async function collectPrecisionProbes(config, bible, existingSignals = []) {
+export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'KY') return collectKentucky(config, bible);
   if (config.id === 'OH') return collectOhio(config, bible);
   if (config.id === 'OR') return collectOregon(config, bible);
@@ -6484,7 +6525,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
   if (config.id === 'AZ') return collectArizona(config, bible);
-  if (config.id === 'CA') return collectCalifornia(config, bible);
+  if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
   if (config.id === 'FL') return collectFlorida(config, bible);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);

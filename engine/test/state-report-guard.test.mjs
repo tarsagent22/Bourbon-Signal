@@ -22,6 +22,9 @@ function report(state, count, { actionable = count, status = 'useful' } = {}) {
 test('preserves the last good state report when a successful collector silently collapses', () => {
   const previous = report('VA', 100);
   const candidate = report('VA', 20);
+  previous.sourceCircuitState = { 'va:configured:fixture': { state: 'closed', consecutiveFailures: 0 } };
+  candidate.sourceCircuitState = { 'va:configured:fixture': { state: 'open', consecutiveFailures: 3 } };
+  candidate.sourceResults = [{ sourceId: 'va:configured:fixture', status: 'collapsed', attemptCount: 1 }];
   const result = guardStateReport({ previous, candidate, now: '2026-07-13T01:00:00.000Z' });
 
   assert.equal(result.accepted, false);
@@ -29,6 +32,10 @@ test('preserves the last good state report when a successful collector silently 
   assert.equal(result.report.stale, true);
   assert.match(result.report.staleReason, /signal count collapsed from 100 to 20/i);
   assert.equal(result.report.signals[0].observedAt, '2026-07-13T00:00:00.000Z');
+  assert.equal(result.report.lastGoodAt, '2026-07-13T00:00:00.000Z');
+  assert.equal(result.report.signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), true);
+  assert.equal(result.report.sourceCircuitState['va:configured:fixture'].state, 'open');
+  assert.equal(result.report.sourceResults[0].status, 'collapsed');
 });
 
 test('accepts a healthy expansion and first report', () => {
