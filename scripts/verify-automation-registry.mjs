@@ -32,6 +32,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
   const githubPaths = new Set();
   const hermesIds = new Set();
   const liveHermesJobs = new Map((Array.isArray(hermesJobs?.jobs) ? hermesJobs.jobs : []).map((job) => [job.jobId, job]));
+  const expectedHermesWorkdir = hermesJobs?.jobs?.[0]?.workdir || null;
   for (const entry of registry.automations) {
     if (!isPlainObject(entry)) { fail(failures, 'Every registry entry must be an object.'); continue; }
     const prefix = `Registry entry ${String(entry.id || 'unknown')}`;
@@ -64,7 +65,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
         const expectsNoAgent = entry.executionClass === 'script_only';
         if (liveJob.noAgent !== expectsNoAgent) fail(failures, `${prefix} executionClass does not match live no_agent=${liveJob.noAgent}.`);
         if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script_only job is missing a live scheduler script.`);
-        if (String(liveJob.workdir || '').split(/[\\/]/).filter(Boolean).pop() !== path.basename(ROOT)) fail(failures, `${prefix} live scheduler workdir drifted from the repository root.`);
+        if (!expectedHermesWorkdir || liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script_only job must expose its live cron pause kill switch.`);
       }
       hermesIds.add(entry.hermesJobId);
