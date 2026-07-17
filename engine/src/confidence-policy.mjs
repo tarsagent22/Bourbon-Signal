@@ -82,6 +82,7 @@ const NON_INVENTORY_ALERT_EVENT_RE = /store_delivery_snapshot|store_allocation_s
 function watchAlertsBlockedByStateSemantics(signal, eventType) {
   if (signal.state === 'MD-MONTGOMERY' && /county_inventory_aggregate|county_product|county_allocated|catalog|product_search/i.test(eventType)) return true;
   if (signal.state === 'UT' && /board_inventory_aggregate|catalog|release_document|allocated_release|bottle_inventory_signal/i.test(eventType)) return true;
+  if (signal.state === 'NC' && /nc_board_shipment_snapshot|stock_shipped/i.test(eventType)) return true;
   return false;
 }
 
