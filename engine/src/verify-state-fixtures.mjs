@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
+import { transformUtahAggregateRow } from './collectors/precision-probes.mjs';
 
 const REQUIRED_KINDS = Object.freeze([
   'positive_bottle_match',
@@ -17,8 +18,6 @@ const REQUIRED_KINDS = Object.freeze([
 ]);
 
 const RARE_TIERS = new Set(['unicorn', 'allocated', 'limited']);
-const NON_BOURBON_RE = /\b(?:rye|cream|liqueur|rtd|cocktail|vodka|gin|rum|tequila|wine|beer)\b/i;
-const BAD_SIZE_RE = /\b(?:mini|gift pack|\d+\s*x\s*\d+\s*ml|50\s*ml|100\s*ml|200\s*ml|375\s*ml)\b/i;
 
 function object(value) { return value && typeof value === 'object' && !Array.isArray(value); }
 
@@ -56,41 +55,47 @@ function registeredHostsForState(state) {
   }).filter(Boolean));
 }
 
-function rareMatchForNames(names, bible) {
-  for (const rawName of names) {
-    if (NON_BOURBON_RE.test(rawName) || BAD_SIZE_RE.test(rawName)) continue;
-    const match = bible.match(rawName);
-    if (match?.record && RARE_TIERS.has(String(match.record.tier || '').toLowerCase())) return match;
-  }
-  return null;
+function utahProductionSignal(rawName, input, bible, index = 0) {
+  return transformUtahAggregateRow({ id: 'UT' }, bible, {
+    name: rawName,
+    sku: input.sku || `fixture-${index}`,
+    storeQty: input.storeQty ?? 0,
+    warehouseQty: input.warehouseQty ?? 0,
+    onOrderQty: input.onOrderQty ?? 0,
+    bottlePrice: input.bottlePrice ?? 0,
+    status: input.sourceStatus || input.status || 'fixture',
+  }, { observedAt: input.fetchedAt || '2026-07-16T22:14:22.306Z' });
 }
 
 function evaluateCase(item, { state, bible, registeredHosts }) {
   const input = item.input || {};
   const alertable = lifecycleAllowsInventoryAlert(state) || lifecycleAllowsWatchAlert(state);
+  const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Eagle Rare 10 Year')];
+  const productionSignals = state === 'UT' ? names.map((name, index) => utahProductionSignal(name, input, bible, index)) : [];
   if (item.kind === 'positive_bottle_match') {
-    const match = rareMatchForNames([String(input.rawName || '')], bible);
-    return { canonicalName: match?.record?.canonical || null, tier: match?.record?.tier || null, customerVisible: Boolean(match), alertable };
+    const signal = productionSignals[0];
+    return { canonicalName: signal?.canonicalName || null, tier: signal?.tier || null, customerVisible: Boolean(signal?.canonicalBottleId), alertable: Boolean(signal?.canAlertAsInventory || signal?.canAlertAsWatch) };
   }
   if (['ordinary_vs_rare_negative', 'rye_cream_liqueur_rtd_exclusion', 'size_or_multipack_exclusion'].includes(item.kind)) {
-    const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || '')];
-    return { rareMatch: Boolean(rareMatchForNames(names, bible)), alertable };
+    const rareMatch = productionSignals.some((signal) => Boolean(signal.canonicalBottleId) && RARE_TIERS.has(String(signal.tier || '').toLowerCase()));
+    return { rareMatch, alertable };
   }
   if (item.kind === 'availability_semantics') {
-    const exactShelfQuantity = input.locationPrecision === 'store_level' && Number(input.storeQty) >= 0;
+    const signal = productionSignals[0];
     return {
-      quantity: exactShelfQuantity ? Number(input.storeQty) : null,
-      exactShelfQuantity,
-      canAlertAsInventory: lifecycleAllowsInventoryAlert(state) && exactShelfQuantity,
-      canAlertAsWatch: lifecycleAllowsWatchAlert(state),
+      quantity: signal?.quantity ?? null,
+      exactShelfQuantity: signal?.locationPrecision === 'store_level',
+      canAlertAsInventory: signal?.canAlertAsInventory === true,
+      canAlertAsWatch: signal?.canAlertAsWatch === true,
     };
   }
   if (item.kind === 'store_identity') {
-    const exactStore = input.locationPrecision === 'store_level' && Boolean(input.storeId && input.storeAddress);
-    return { storeId: exactStore ? input.storeId : null, storeAddress: exactStore ? input.storeAddress : null, fabricateIdentity: false };
+    const signal = productionSignals[0];
+    return { storeId: signal?.storeId || null, storeAddress: signal?.storeAddress || null, fabricateIdentity: false };
   }
   if (item.kind === 'timestamp_freshness') {
-    return { preserveOriginalTimestamp: Number.isFinite(Date.parse(input.fetchedAt)), futureTimestampAllowed: false, staleRowsAlertable: false };
+    const signal = productionSignals[0];
+    return { preserveOriginalTimestamp: signal?.observedAt === input.fetchedAt, futureTimestampAllowed: false, staleRowsAlertable: Boolean(signal?.canAlertAsInventory || signal?.canAlertAsWatch) };
   }
   if (item.kind === 'source_specific_sentinel') {
     let host = '';

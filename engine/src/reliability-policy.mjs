@@ -43,8 +43,15 @@ export function validateImmutablePromotionEvidence(state, evidence, policy = DEF
   const manifest = evidence?.immutableEvidence;
   if (!manifest || manifest.schemaVersion !== 1 || manifest.state !== state || !Number.isFinite(Date.parse(manifest.generatedAt)) || !SHA256_RE.test(String(manifest.sourceConfigHash || ''))) return false;
   if (!isIsolatedPreviewUrl(evidence?.canaryPreviewUrl) || manifest.previewUrl !== evidence.canaryPreviewUrl) return false;
-  return validEvidenceRuns(manifest.shadowRuns, Number(policy.minShadowRuns))
-    && validEvidenceRuns(manifest.canaryRuns, Number(policy.minCanaryRuns));
+  if (!validEvidenceRuns(manifest.shadowRuns, Number(policy.minShadowRuns)) || !validEvidenceRuns(manifest.canaryRuns, Number(policy.minCanaryRuns))) return false;
+  const provenance = manifest.provenance;
+  if (!provenance || provenance.status !== 'success') return false;
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(String(provenance.repository || ''))) return false;
+  if (!/^\d+$/.test(String(provenance.workflowRunId || '')) || !/^\d+$/.test(String(provenance.artifactId || ''))) return false;
+  if (!/^[a-f0-9]{40}$/i.test(String(provenance.commitSha || ''))) return false;
+  if (!SHA256_RE.test(String(provenance.artifactDigest || '')) || !SHA256_RE.test(String(provenance.bundleDigest || ''))) return false;
+  const expectedRunUrl = `https://github.com/${provenance.repository}/actions/runs/${provenance.workflowRunId}`;
+  return provenance.workflowRunUrl === expectedRunUrl && String(provenance.artifactName || '').includes(`provenance-${state}-`);
 }
 
 function stateSet(value = '') {

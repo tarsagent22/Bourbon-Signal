@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   build-and-verify:
     runs-on: ubuntu-latest
@@ -31,6 +35,11 @@ jobs:
 
       - name: Verify generated lifecycle configuration has no drift
         run: npm run verify:state-lifecycle-drift
+
+      - name: Reconcile workflow-issued state promotion provenance
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-promotion-provenance.mjs --state=UT --online
 
       - name: Build and verify
         run: npm run verify:ci

@@ -32,6 +32,11 @@ function promotionInput() {
         previewUrl: 'https://preview.example.test',
         shadowRuns: [1, 2, 3].map((index) => ({ runId: `shadow-${index}`, status: 'success', artifactHash: hash })),
         canaryRuns: [1, 2].map((index) => ({ runId: `canary-${index}`, status: 'success', artifactHash: hash })),
+        provenance: {
+          repository: 'owner/repo', workflowRunId: '123', workflowRunUrl: 'https://github.com/owner/repo/actions/runs/123',
+          commitSha: 'b'.repeat(40), artifactId: '456', artifactName: 'state-promotion-provenance-ZZ-123',
+          artifactDigest: hash, bundleDigest: hash, status: 'success',
+        },
       },
     },
   };

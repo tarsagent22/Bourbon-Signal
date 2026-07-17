@@ -14,6 +14,7 @@
     "test:ops": "node scripts/verify-automation-registry.mjs && node scripts/verify-ops-workflow.mjs",
     "generate:state-lifecycle-types": "node scripts/generate-state-lifecycle-types.mjs",
     "verify:state-lifecycle-drift": "node scripts/verify-state-lifecycle-drift.mjs",
+    "verify:promotion-provenance": "node scripts/verify-promotion-provenance.mjs --state=UT",
     "test:state-user-path": "node --experimental-strip-types scripts/test-state-user-path.mts",
     "test:utah-user-path": "node --experimental-strip-types scripts/test-utah-generated-user-path.mjs",
     "test:release": "node scripts/test-release-orchestrator.mjs && node --experimental-strip-types scripts/test-clerk-webhook.mjs && node --experimental-strip-types scripts/test-notification-preferences.mjs && node --experimental-strip-types scripts/test-user-preference-patch.mts && node --experimental-strip-types scripts/test-area-preferences-cache.mts && node --experimental-strip-types scripts/test-ops-health.mjs && node scripts/verify-web-release-contract.mjs",

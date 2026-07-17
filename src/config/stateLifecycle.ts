@@ -224,7 +224,18 @@ export const STATE_LIFECYCLE_CONFIG = {
               "status": "success",
               "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
             }
-          ]
+          ],
+          "provenance": {
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "29545199795",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/29545199795",
+            "commitSha": "2481b69a4885c6a4607ade8eb55aa4cbb46d8e8c",
+            "artifactId": "8393675318",
+            "artifactName": "state-promotion-provenance-UT-29545199795",
+            "artifactDigest": "3e6cc5f6e13c0bb4a9ffe7a1df7690606f4879b32e831239529d5cb3bfee48c4",
+            "bundleDigest": "5ade64f808bd1dab9fe8b7b41198599081bd74ad8a34afcaef386b68b1d4f711",
+            "status": "success"
+          }
         }
       }
     },

@@ -7449,6 +7449,14 @@ async function collectIowa(config, bible) {
   return { signals, roadblocks };
 }
 
+export function transformUtahAggregateRow(config, bible, row, { observedAt = null } = {}) {
+  const { base, record, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
+  if (observedAt) base.fetchedAt = observedAt;
+  const storeQty = Number(row.storeQty || 0) || 0;
+  const warehouseQty = Number(row.warehouseQty || 0) || 0;
+  return { id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, tier: record?.tier || 'unknown', eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: null, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } };
+}
+
 async function collectUtah(config, bible) {
   const signals = [], roadblocks = [];
   for (const term of TRACKED_TERMS.UT) {
@@ -7461,10 +7469,7 @@ async function collectUtah(config, bible) {
         const res = await textFetch('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
         const json = JSON.parse(res.text);
         for (const row of json.data || []) {
-          const { base, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
-          const storeQty = Number(row.storeQty || 0) || 0;
-          const warehouseQty = Number(row.warehouseQty || 0) || 0;
-          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: storeQty, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
+          signals.push(transformUtahAggregateRow(config, bible, row));
         }
       }
     } catch (error) {

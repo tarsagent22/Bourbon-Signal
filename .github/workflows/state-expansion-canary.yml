@@ -95,6 +95,12 @@ jobs:
           echo "url=$preview_url" >> "$GITHUB_OUTPUT"
           echo "Isolated preview deployed: $preview_url"
 
+      - name: Exercise Utah customer-facing preview routes
+        if: inputs.deploy_preview == true && steps.validate.outputs.state == 'UT'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: node scripts/test-utah-live-user-path.mjs "$PREVIEW_URL"
+
       - name: Preserve canary evidence
         if: always()
         uses: actions/upload-artifact@v4

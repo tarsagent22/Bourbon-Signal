@@ -130,6 +130,22 @@
       "artifacts": ["engine/out/promotion-provenance"]
     },
     {
+      "id": "hermes-live-registry-reconciliation",
+      "platform": "hermes_job",
+      "hermesJobId": "0f844531ccdf",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "daily at 06:05 local",
+      "agent": { "provider": null, "model": null, "estimatedTokensPerRun": 0 },
+      "externalApi": { "classes": ["local_hermes_scheduler"], "maxRequestsPerRun": 1 },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "cron_pause:0f844531ccdf",
+      "artifacts": ["automation/bourbon-signal/hermes-jobs.json"]
+    },
+    {
       "id": "hermes-daily-operator",
       "platform": "hermes_job",
       "hermesJobId": "3244b5822d87",
