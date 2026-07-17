@@ -101,8 +101,9 @@ export function findingsFromSourceRoi(report) {
     });
   });
   const expansionFindings = (report?.expansionTop || []).map((row) => {
-    const expansionReady = row.recommendation === 'expand_state_vertical_slice';
+    const expansionReady = row.recommendation === 'expand_state_vertical_slice' && row.promotionEligible === true;
     const inputs = row.rankingInputs || {};
+    const gateBlockers = Array.isArray(row.promotionBlockers) ? row.promotionBlockers : [];
     return buildFinding({
       source: 'source-roi',
       sourceKey: `expansion:${key(row.state)}:${key(row.source)}`,
@@ -110,8 +111,8 @@ export function findingsFromSourceRoi(report) {
       severity: expansionReady ? 'medium' : 'low',
       title: text(`${row.state} ${row.source}: ${String(row.recommendation).replaceAll('_', ' ')}`, 120),
       summary: text(`${row.source} scored ${row.score} from aggregate demand, source authority, reachability, stability, budget, and reversibility inputs.`, 500),
-      evidence: evidence([`authority ${inputs.sourceAuthority || 'unknown'}`, `reachability ${inputs.runnerReachability ?? 0}`, `request budget ${inputs.expectedRequestBudget ?? 0}`]),
-      recommendedAction: text(expansionReady ? 'Build one complete state vertical slice, then validate the autonomous activation contract.' : 'Collect deterministic source evidence or harden the source before considering a state vertical slice.', 400),
+      evidence: evidence([`authority ${inputs.sourceAuthority || 'unknown'}`, `reachability ${inputs.runnerReachability ?? 0}`, `promotion gate ${row.promotionEligible === true ? 'eligible' : `blocked: ${gateBlockers.join(', ') || 'evidence incomplete'}`}`, `request budget ${inputs.expectedRequestBudget ?? 0}`]),
+      recommendedAction: text(expansionReady ? 'Build one complete state vertical slice, then validate the autonomous activation contract.' : 'Keep this discovery/probe-only and collect authoritative source and production-runner evidence before considering a state vertical slice.', 400),
       impact: expansionReady ? 4 : 2,
       urgency: expansionReady ? 3 : 1,
       confidence: expansionReady ? 0.85 : 0.65,
