@@ -110,6 +110,19 @@ async function discoverSource(page, item, startedAt, maxDurationMs) {
   return compactBrowserDiscoveryResult({ state: item.state, source: item.source, page: extracted, network: page.networkSummary() });
 }
 
+export async function removeEphemeralProfile(profileDir, { remove = rm, wait = sleep, attempts = 4 } = {}) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await remove(profileDir, { recursive: true, force: true });
+      return true;
+    } catch (error) {
+      if (!['ENOTEMPTY', 'EBUSY', 'EPERM'].includes(error?.code)) throw error;
+      if (attempt < attempts) await wait(250 * attempt);
+    }
+  }
+  return false;
+}
+
 async function main() {
   const args = Object.fromEntries(process.argv.slice(2).filter((arg) => arg.startsWith('--')).map((arg) => {
     const [key, value = 'true'] = arg.slice(2).split('=');
@@ -164,7 +177,8 @@ async function main() {
   } finally {
     page?.close();
     await killBrowserCdp(browser);
-    await rm(profileDir, { recursive: true, force: true });
+    const removed = await removeEphemeralProfile(profileDir);
+    if (!removed) console.warn(`Browser profile cleanup deferred: ${profileDir}`);
   }
 }
 

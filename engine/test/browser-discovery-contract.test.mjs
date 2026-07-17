@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   compactBrowserDiscoveryResult,
   createBrowserDiscoveryPlan,
+  removeEphemeralProfile,
 } from '../src/browser-source-discovery.mjs';
 import { filterBrowserExecutableCandidates } from '../src/core/browser-session.mjs';
 
@@ -14,6 +15,19 @@ test('browser executable discovery rejects missing foreign-platform absolute pat
     '/usr/bin/google-chrome',
   ], { exists: (candidate) => existing.has(candidate) });
   assert.deepEqual(candidates, ['/usr/bin/google-chrome']);
+});
+
+test('browser profile cleanup retries transient runner races without failing successful evidence', async () => {
+  let calls = 0;
+  const removed = await removeEphemeralProfile('/tmp/profile', {
+    remove: async () => {
+      calls += 1;
+      if (calls < 3) throw Object.assign(new Error('busy'), { code: 'ENOTEMPTY' });
+    },
+    wait: async () => {},
+  });
+  assert.equal(removed, true);
+  assert.equal(calls, 3);
 });
 
 test('browser discovery plan uses a strict candidate/source allowlist and bounded limits', () => {
