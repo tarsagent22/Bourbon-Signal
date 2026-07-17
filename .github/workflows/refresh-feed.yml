@@ -116,4 +116,4 @@ jobs:
             engine/out/source-slo-7d.md
             engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
-            engine/out/states/TX.json
+            engine/out/states/*.json

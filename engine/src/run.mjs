@@ -11,6 +11,8 @@ import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-polic
 import { runBoundedPool } from './optimization/worker-pool.mjs';
 import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 import { guardStateReport } from './state-report-guard.mjs';
+import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
+import { markStaleReport } from './state-report-fallback.mjs';
 import { withStateRunLock } from './state-run-lock.mjs';
 import { evaluateStateControl } from './reliability-policy.mjs';
 import {
@@ -21,6 +23,32 @@ import {
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
+const CUSTOMER_DROP_TIERS = new Set(['unicorn', 'allocated', 'limited']);
+let customerDropTierIndexPromise = null;
+
+function normalizedCanonicalName(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+async function customerDropTierIndex() {
+  if (!customerDropTierIndexPromise) {
+    customerDropTierIndexPromise = readJson(path.join(OUT, 'bourbon-bible.json'), { records: [] }).then((payload) => {
+      const records = (payload.records || []).filter((record) => CUSTOMER_DROP_TIERS.has(String(record.tier || '').toLowerCase()));
+      if (!records.length) throw new Error('Customer drop-tier bible index is missing; refusing to evaluate state replacement quality without it.');
+      return {
+        ids: new Set(records.map((record) => record.id).filter(Boolean)),
+        names: new Set(records.map((record) => normalizedCanonicalName(record.canonical)).filter(Boolean)),
+      };
+    });
+  }
+  return customerDropTierIndexPromise;
+}
+
+function isIndexedCustomerDropSignal(signal, index) {
+  return Boolean((signal?.canonicalId && index.ids.has(signal.canonicalId))
+    || index.names.has(normalizedCanonicalName(signal?.canonicalName || signal?.bottleName)));
+}
+
 const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 180_000);
 const STATE_TIMEOUT_OVERRIDES_MS = {
   // VA and IN can legitimately do broad store-level inventory work. Give them
@@ -272,50 +300,6 @@ async function runBrowserPreflight() {
   return payload;
 }
 
-function markStaleReport(report, config, reason) {
-  const now = new Date().toISOString();
-  const priorStatus = String(report.status || '').replace(/^(stale_)+/, '') || 'previous_report';
-  const staleSignals = (report.signals || []).map((signal) => ({
-    ...signal,
-    stale: true,
-    staleReason: reason,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-    alertable: false,
-    raw: { ...(signal.raw || {}), staleFallback: true, staleReason: reason, staleFallbackAt: now }
-  }));
-  const roadblocks = [
-    ...(report.roadblocks || []).filter((r) => String(r.status || '') !== 'stale_previous_report'),
-    {
-      state: config.id,
-      source: `${config.label} refresh fallback`,
-      url: `out/states/${config.id}.json`,
-      status: 'stale_previous_report',
-      error: reason,
-      nextRoute: 'Keep last known good state report in the site export, then inspect/fix the timed-out source without blocking other states.'
-    }
-  ];
-  return {
-    ...report,
-    state: report.state || config.id,
-    label: report.label || config.label,
-    tier: report.tier || config.tier,
-    strategy: report.strategy || config.strategy,
-    cadence: report.cadence || config.cadence,
-    value: report.value || config.value,
-    stale: true,
-    staleReason: reason,
-    staleFallbackAt: now,
-    previousFinishedAt: report.previousFinishedAt || report.finishedAt || null,
-    lastGoodAt: report.lastGoodAt || report.finishedAt || null,
-    startedAt: report.startedAt || now,
-    finishedAt: now,
-    signals: staleSignals,
-    roadblocks,
-    status: `stale_${priorStatus}`
-  };
-}
-
 function failedReport(config, reason) {
   const now = new Date().toISOString();
   return {
@@ -401,7 +385,12 @@ async function collectStateResilientUnlocked(config) {
       await atomicWriteJson(statePath, report);
       return report;
     }
-    const guarded = guardStateReport({ previous, candidate });
+    const tierIndex = await customerDropTierIndex();
+    const guarded = guardStateReport({
+      previous,
+      candidate,
+      options: { isPublicBottleCandidate: (signal) => isIndexedCustomerDropSignal(signal, tierIndex) },
+    });
     if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
     await atomicWriteJson(statePath, guarded.report);
     return guarded.report;
@@ -540,7 +529,7 @@ async function main() {
   const schedule = STATE_SCHEDULER_ENABLED
     ? selectScheduledStates(selectedStateSources, previousMetrics, scheduleOptions)
     : selectedStateSources.map((config) => ({ id: config.id, config, run: true, decision: 'scheduler_disabled' }));
-  const stateControls = new Map(selectedStateSources.map((config) => [config.id, evaluateStateControl(config.id)]));
+  const stateControls = new Map(STATE_SOURCES.map((config) => [config.id, evaluateStateControl(config.id)]));
   for (const entry of schedule) {
     const control = stateControls.get(entry.id);
     if (!control.collect) {
@@ -575,16 +564,23 @@ async function main() {
   });
   const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));
   let nextMetrics = previousMetrics;
-  for (const config of selectedStateSources) {
-    const wasRun = collected.has(config.id);
-    const report = collected.get(config.id) || await readJson(path.join(STATES_OUT, `${config.id}.json`), null);
-    if (!report) throw new Error(`No current or previous state report available for ${config.id}`);
-    if (wasRun) {
+  const aggregateReports = await resolveAggregateStateReports({ configs: STATE_SOURCES, collected, statesOut: STATES_OUT, readReport: readJson });
+  const freshReports = [];
+  for (const entry of aggregateReports) {
+    const { config, attempted, wasRun } = entry;
+    let report = entry.report;
+    if (attempted && !wasRun) {
+      const reason = `${config.id} worker failed before returning a current report; cached rows are retained as non-alertable stale fallback.`;
+      report = markStaleReport(report, config, reason);
+      await atomicWriteJson(path.join(STATES_OUT, `${config.id}.json`), report);
+    }
+    if (wasRun) freshReports.push(report);
+    if (attempted) {
       nextMetrics = updateStateRunMetric(nextMetrics, {
         id: config.id,
-        ok: !report.stale && !/^failed_/.test(String(report.status || '')),
-        contentHash: stableReportHash(report),
-        finishedAt: report.finishedAt || new Date().toISOString(),
+        ok: wasRun && !report.stale && !/^failed_/.test(String(report.status || '')),
+        contentHash: wasRun ? stableReportHash(report) : null,
+        finishedAt: wasRun ? (report.finishedAt || new Date().toISOString()) : new Date().toISOString(),
       });
     }
     allReports.push(report);
@@ -595,7 +591,7 @@ async function main() {
   await writeFile(STATE_RUN_METRICS, JSON.stringify({ ...nextMetrics, _schedule: schedule.map(({ config: _config, ...entry }) => entry), _updatedAt: new Date().toISOString() }, null, 2));
   const sourceHistory = appendSourceSloObservations(
     await readJson(SOURCE_RUN_HISTORY, null),
-    allReports.flatMap((report) => report.sourceResults || []),
+    freshReports.flatMap((report) => report.sourceResults || []),
   );
   const sourceSlo = buildSevenDaySourceSloReport(sourceHistory);
   await writeFile(SOURCE_RUN_HISTORY, JSON.stringify(sourceHistory, null, 2));

@@ -157,6 +157,8 @@ test('Indiana inventory identity fails closed on host, store, geography, and sen
   assert.equal(isIndianaRetailerInventory(targetSignal({ merchantId: '111', storeId: 'target:1530' })), false);
   assert.equal(isIndianaRetailerInventory(targetSignal({ storeAddress: '3601 N Barr St, Muncie, OH 47303' })), false);
   assert.equal(isIndianaRetailerInventory(targetSignal({ stateCode: 'OH' })), false);
+  assert.equal(isIndianaRetailerInventory(targetSignal({ stale: true, canAlertAsInventory: false })), false);
+  assert.equal(isIndianaRetailerInventory(targetSignal({ raw: { chain: 'target', merchantId: '1530', reportedQuantity: 1, staleFallback: true }, canAlertAsInventory: false })), false);
   assert.equal(isIndianaRetailerInventory(targetSignal({ quantity: 100, raw: { chain: 'target', merchantId: '1530', reportedQuantity: 100 } })), false);
 });
 

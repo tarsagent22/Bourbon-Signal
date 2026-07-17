@@ -230,7 +230,7 @@ function publicSignal(signal, bible, freshness = null) {
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
   const isAzRetailerInventory = isArizonaRetailerInventory(signal);
   const isFlRetailerInventory = isFloridaRetailerInventory(signal);
-  const isInRetailerInventory = isIndianaRetailerInventory(signal);
+  const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const inventorySemantics = isCostcoWarehouseInventory

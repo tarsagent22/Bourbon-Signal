@@ -85,7 +85,9 @@ export function isIndianaRetailerInventory(signal) {
   const invalidSentinelProjection = Number.isFinite(reportedQuantity) && reportedQuantity >= 100 && Number(signal.quantity || 0) > 1;
   const positive = Number(signal.quantity || 0) > 0
     || (signal.availabilityStatus === 'in_stock' && signal.sourceAvailabilityVerified === true);
+  const stale = signal.stale === true || signal.raw?.staleFallback === true || /^stale_/iu.test(String(signal.status || ''));
   return /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && !stale
     && isIndianaRetailerSignalIdentity(signal)
     && signal.locationPrecision === 'store_level'
     && positive

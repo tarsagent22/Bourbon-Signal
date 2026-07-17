@@ -1,11 +1,22 @@
+function isActionableStoreSignal(signal) {
+  return signal?.locationPrecision === 'store_level'
+    && (signal?.canAlertAsInventory === true || signal?.sourceAvailabilityVerified === true);
+}
+
 function countActionable(report) {
+  return (report?.signals || []).filter(isActionableStoreSignal).length;
+}
+
+function countPublicBottleCandidates(report, isPublicBottleCandidate = null) {
   return (report?.signals || []).filter((signal) =>
     signal?.locationPrecision === 'store_level'
-    && (signal?.canAlertAsInventory === true || signal?.sourceAvailabilityVerified === true)
+    && (isPublicBottleCandidate
+      ? isPublicBottleCandidate(signal)
+      : Boolean(signal?.canonicalId || signal?.canonicalName || signal?.bottleId || signal?.bottleName))
   ).length;
 }
 
-function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5 } = {}) {
+function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5, isPublicBottleCandidate = null } = {}) {
   const previousSignals = previous?.signals?.length || 0;
   const candidateSignals = candidate?.signals?.length || 0;
   if (previousSignals >= minBaseline && candidateSignals < Math.ceil(previousSignals * minRatio)) {
@@ -16,6 +27,12 @@ function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5 }
   const candidateActionable = countActionable(candidate);
   if (previousActionable >= 1 && candidateActionable < Math.ceil(previousActionable * minRatio)) {
     return `actionable store signal count collapsed from ${previousActionable} to ${candidateActionable}`;
+  }
+
+  const previousPublicCandidates = countPublicBottleCandidates(previous, isPublicBottleCandidate);
+  const candidatePublicCandidates = countPublicBottleCandidates(candidate, isPublicBottleCandidate);
+  if (previousPublicCandidates >= 1 && candidatePublicCandidates < Math.ceil(previousPublicCandidates * minRatio)) {
+    return `public bottle candidate count collapsed from ${previousPublicCandidates} to ${candidatePublicCandidates}`;
   }
   return null;
 }
