@@ -1,8 +1,9 @@
-export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [] } = {}) {
+export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [] } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
-  if (!partialRefresh) return currentRows;
-  const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()));
+  const preserved = new Set(fallbackStateIds.map((state) => String(state).toUpperCase()));
+  if (!partialRefresh && !preserved.size) return currentRows;
+  const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !preserved.has(state)));
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
   const merged = [
     ...currentRows.filter((drop) => attempted.has(stateOf(drop))),

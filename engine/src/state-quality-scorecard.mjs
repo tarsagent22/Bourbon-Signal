@@ -129,12 +129,13 @@ export function buildStateQualityScorecard(inputs, { generatedAt = new Date().to
 }
 
 export function mergePartialRefreshStateQuality(previous, current, summary = {}) {
-  if (summary.partialRefresh !== true || previous?.schemaVersion !== current?.schemaVersion) return current;
+  const preserved = new Set((summary.fallbackStateIds || []).map((state) => String(state).toUpperCase()));
+  if ((summary.partialRefresh !== true && !preserved.size) || previous?.schemaVersion !== current?.schemaVersion) return current;
   const attempted = new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()));
   const previousByState = new Map((previous?.states || []).map((state) => [String(state.state).toUpperCase(), state]));
   const states = (current?.states || []).map((state) => {
     const stateId = String(state.state).toUpperCase();
-    return attempted.has(stateId) ? state : previousByState.get(stateId) || state;
+    return attempted.has(stateId) && !preserved.has(stateId) ? state : previousByState.get(stateId) || state;
   }).sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
   return { ...current, summary: summarizeStateQuality(states), states };
 }

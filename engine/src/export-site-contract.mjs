@@ -1517,6 +1517,7 @@ async function main() {
     currentDrops: candidateDrops,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
+    fallbackStateIds: summary.fallbackStateIds || [],
   });
   const currentDrops = buildDrops(signals, bible, signals);
   const events = buildEvents(historicalSignals, bible);

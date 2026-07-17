@@ -85,6 +85,20 @@ assert.equal(mergedPartial.states.find((state) => state.state === 'CA').score, 9
 assert.equal(mergedPartial.states.find((state) => state.state === 'NC').score, 85);
 assert.equal(mergedPartial.summary.releaseEligibleStates, 2);
 
+const mergedFallback = mergePartialRefreshStateQuality(
+  {
+    schemaVersion: 2,
+    states: [{ state: 'TN', score: 84, releaseEligible: true }],
+  },
+  {
+    schemaVersion: 2,
+    states: [{ state: 'TN', score: 6, releaseEligible: false }],
+  },
+  { partialRefresh: true, attemptedStateIds: ['TN'], fallbackStateIds: ['TN'] },
+);
+assert.equal(mergedFallback.states[0].score, 84);
+assert.equal(mergedFallback.states[0].releaseEligible, true);
+
 const regression = compareStateQuality(
   { states: [{ state: 'AA', score: 90, releaseEligible: true, dropCount: 100 }] },
   { states: [{ state: 'AA', score: 60, releaseEligible: false, dropCount: 30 }] },

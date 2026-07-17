@@ -21,6 +21,17 @@ test('partial refresh replaces attempted states and preserves untouched publishe
   assert.deepEqual(merged.map((drop) => drop.id), ['nc-new', 'az-new', 'il-old', 'tn-old']);
 });
 
+test('attempted fallback states retain their last published drops', () => {
+  const merged = mergePartialRefreshDrops({
+    previousDrops: { drops: [{ id: 'tn-old', state: 'TN' }, { id: 'il-old', state: 'IL' }] },
+    currentDrops: [{ id: 'tn-collapsed', state: 'TN' }],
+    partialRefresh: true,
+    attemptedStateIds: ['TN'],
+    fallbackStateIds: ['TN'],
+  });
+  assert.deepEqual(merged.map((drop) => drop.id), ['tn-old', 'il-old']);
+});
+
 test('full refresh never retains rows solely from the previous contract', () => {
   const merged = mergePartialRefreshDrops({
     previousDrops: [{ id: 'old', state: 'IL' }],
