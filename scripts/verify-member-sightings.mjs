@@ -11,8 +11,9 @@ const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
 for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in store', 'Online/Social Media', 'Member Sightings', 'stateFilter', 'All states']) {
   if (!sightingsClient.includes(phrase)) fail(`Sightings page should include ${phrase}`);
 }
-if (!sightingsClient.includes('store.precision === "store"')) {
-  fail('Sightings store search should restrict submissions to exact stores, not board/area records.');
+const sightingStoreSearch = read('src/lib/sighting-store-search.ts');
+if (!sightingsClient.includes('searchSightingStoreIndex') || !sightingStoreSearch.includes('store.precision === "store"')) {
+  fail('Sightings store search should predictively search exact stores while excluding board/area records.');
 }
 if (!sightingsClient.includes('selected-store-card') || !sightingsClient.includes('Change store')) {
   fail('Sightings store picker should collapse suggestions and show the selected store/address after selection.');
@@ -35,7 +36,7 @@ for (const phrase of ['rawPrecision', 'store_level', 'hasExactStoreAddress', 'so
 }
 
 const locationsRoute = read('src/app/api/locations/route.ts');
-for (const phrase of ['storesPayload', 'locationLookupKey', 'combinedRawLocations']) {
+for (const phrase of ['storesPayload', 'combineStoreDirectoryRows', 'combinedRawLocations']) {
   if (!locationsRoute.includes(phrase)) fail(`Locations API should merge exact store export rows for sightings search: ${phrase}`);
 }
 

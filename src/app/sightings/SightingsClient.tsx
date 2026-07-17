@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BadgeCheck, Camera, Lock, MapPin, Navigation as NavigationIcon, Search, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
+import { buildSightingStoreSearchIndex, searchSightingStoreIndex } from "@/lib/sighting-store-search";
 import { useSightings } from "@/hooks/useSightings";
 import { formatStoreAddress, makeSightingId, normalizeBottleKey, sightingTypeLabel, type MemberSighting, type SightingType } from "@/lib/sightings";
 
@@ -24,14 +25,6 @@ const BOTTLE_QUERY_ALIASES: Record<string, string[]> = {
   ofbb: ["old forester birthday bourbon"],
   ehtbp: ["e h taylor barrel proof", "colonel e h taylor barrel proof"],
   blantons: ["blanton", "blanton's"],
-};
-
-const STORE_QUERY_ALIASES: Record<string, string[]> = {
-  abc: ["abc store", "abc spirits", "alcoholic beverage control"],
-  costco: ["costco wholesale"],
-  totalwine: ["total wine", "total wine spirits"],
-  binnys: ["binny", "binny's"],
-  kroger: ["kroger liquor"],
 };
 
 function expandQuery(value: string, aliases: Record<string, string[]>) {
@@ -59,17 +52,6 @@ function tokenScore(searchable: string, queryTerms: string[]) {
     }
   }
   return best;
-}
-
-function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
-  if (!a || b?.lat == null || b?.lng == null) return Number.POSITIVE_INFINITY;
-  const r = 3958.8;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = ((b.lat || 0) * Math.PI) / 180;
-  const c = 2 * Math.asin(Math.sqrt(Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2));
-  return r * c;
 }
 
 function storeDisplay(store: Store) {
@@ -184,7 +166,7 @@ export default function SightingsClient() {
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canSubmitSightings;
   const { bottles } = useBottles(optimisticMemberAccess);
-  const { stores } = useStores(optimisticMemberAccess);
+  const { stores, loading: storesLoading, error: storesError, reload: reloadStores } = useStores(authLoaded && isSignedIn && canSubmitSightings);
   const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings);
 
   const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
@@ -195,6 +177,8 @@ export default function SightingsClient() {
   const [manualBottleConfirmed, setManualBottleConfirmed] = useState(false);
   const [selectedBottleTier, setSelectedBottleTier] = useState<MemberSighting["rarityTier"]>("limited");
   const [storeQuery, setStoreQuery] = useState("");
+  const [storeSuggestionsOpen, setStoreSuggestionsOpen] = useState(true);
+  const [activeStoreIndex, setActiveStoreIndex] = useState(-1);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [manualStoreMode, setManualStoreMode] = useState(false);
   const [manualStoreAddress, setManualStoreAddress] = useState("");
@@ -252,21 +236,51 @@ export default function SightingsClient() {
     return Array.from(byId.values()).sort((a, b) => b.score - a.score || a.bottle.name.localeCompare(b.bottle.name)).slice(0, 8).map(({ bottle }) => bottle);
   }, [bottleQuery, bottles, bottleCheckMatches]);
 
-  const storeMatches = useMemo(() => {
-    const queryTerms = expandQuery(storeQuery, STORE_QUERY_ALIASES);
-    return stores
-      .filter((store) => store.precision === "store" && (store.searchable ?? true))
-      .map((store) => {
-        const searchable = [store.name, store.displayLabel, store.address, store.city, store.county, store.zip, store.state].filter(Boolean).join(" ");
-        const matchScore = tokenScore(searchable, queryTerms);
-        const locationBoost = geo ? Math.max(0, 70 - Math.min(distanceMiles(geo, store), 70)) : 0;
-        return { store, score: matchScore + locationBoost };
-      })
-      .filter(({ score }) => (queryTerms.length ? score >= 34 : Boolean(geo) && score > 0))
-      .sort((a, b) => b.score - a.score || storeDisplay(a.store).localeCompare(storeDisplay(b.store)))
-      .slice(0, 8)
-      .map(({ store }) => store);
-  }, [stores, storeQuery, geo]);
+  const deferredStoreQuery = useDeferredValue(storeQuery);
+  const storeSearchIndex = useMemo(() => buildSightingStoreSearchIndex(stores), [stores]);
+  const searchableStoreCount = storeSearchIndex.length;
+  const storeMatches = useMemo(
+    () => searchSightingStoreIndex(storeSearchIndex, deferredStoreQuery, { origin: geo, limit: 8 }),
+    [storeSearchIndex, deferredStoreQuery, geo],
+  );
+
+  useEffect(() => {
+    setActiveStoreIndex((current) => current >= storeMatches.length ? -1 : current);
+  }, [storeMatches]);
+
+  useEffect(() => {
+    setActiveStoreIndex(-1);
+  }, [geo]);
+
+  const selectStore = (store: Store) => {
+    setSelectedStore(store);
+    setManualStoreMode(false);
+    setStoreQuery(storeDisplay(store));
+    setStoreSuggestionsOpen(false);
+    setActiveStoreIndex(-1);
+  };
+
+  const handleStoreSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setStoreSuggestionsOpen(false);
+      setActiveStoreIndex(-1);
+      return;
+    }
+    if (!storeMatches.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setStoreSuggestionsOpen(true);
+      setActiveStoreIndex((current) => Math.min(current + 1, storeMatches.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setStoreSuggestionsOpen(true);
+      setActiveStoreIndex((current) => current <= 0 ? storeMatches.length - 1 : current - 1);
+    } else if (event.key === "Enter" && activeStoreIndex >= 0) {
+      event.preventDefault();
+      const activeStore = storeMatches[activeStoreIndex];
+      if (activeStore) selectStore(activeStore);
+    }
+  };
 
   const exactAddress = selectedStore ? formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip]) : "Select an exact store to show the address on the sighting card.";
   const manualStoreName = storeQuery.trim();
@@ -481,7 +495,7 @@ export default function SightingsClient() {
 
               <section className="sighting-step-card" data-complete={Boolean(selectedStore || isManualStore)}>
                 <div className="sighting-step-head"><span className="sighting-step-number">02</span><div><strong>Store</strong><span>Use location, search by city/name/address, or add a missing store for other members.</span></div></div>
-                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store search</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); }} placeholder="Store name, city, ZIP, or street" disabled={manualStoreMode} /></div></label>
+                <label style={{ display: "block", marginBottom: 10 }}><span className="sighting-label">Store search</span><div className="sighting-input-wrap"><MapPin size={16} /><input value={storeQuery} onChange={(e) => { setStoreQuery(e.target.value); setSelectedStore(null); setStoreSuggestionsOpen(true); setActiveStoreIndex(-1); }} onFocus={() => setStoreSuggestionsOpen(true)} onKeyDown={handleStoreSearchKeyDown} placeholder="Store name, city, ZIP, or street" disabled={manualStoreMode} autoComplete="off" role="combobox" aria-autocomplete="list" aria-controls="sighting-store-suggestions" aria-expanded={!manualStoreMode && storeSuggestionsOpen} aria-activedescendant={storeSuggestionsOpen && activeStoreIndex >= 0 ? `sighting-store-option-${activeStoreIndex}` : undefined} /></div></label>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" onClick={requestLocation} disabled={manualStoreMode} className="sighting-location-button"><NavigationIcon size={15} /> Use my location</button><button type="button" className="sighting-location-button" onClick={() => { setManualStoreMode((current) => !current); setSelectedStore(null); }}>{manualStoreMode ? "Back to store search" : "Can’t find the store? Add it"}</button></div>{geoStatus ? <p style={{ color: "rgba(245,237,214,0.48)", fontSize: 12, margin: "8px 0 0" }}>{geoStatus}</p> : null}
                 {manualStoreMode ? (
                   <div className="manual-review-box">
@@ -496,11 +510,16 @@ export default function SightingsClient() {
                   <div className="selected-store-card" aria-live="polite">
                     <strong>{storeDisplay(selectedStore)}</strong>
                     <span>{formatStoreAddress([selectedStore.address, selectedStore.city, selectedStore.state, selectedStore.zip])}</span>
-                    <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); }}>Change store</button>
+                    <button type="button" onClick={() => { setSelectedStore(null); setStoreQuery(""); setStoreSuggestionsOpen(true); }}>Change store</button>
                   </div>
-                ) : (
-                  <div className="sighting-suggestions" style={{ marginTop: 12 }}>{storeMatches.length === 0 ? <div className="sighting-empty">Search by store name, city, ZIP, or street. Not seeing it? Add the store so the community can reuse it.</div> : null}{storeMatches.map((store) => <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setManualStoreMode(false); setStoreQuery(storeDisplay(store)); }}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}</div>
-                )}
+                ) : storeSuggestionsOpen ? (
+                  <div id="sighting-store-suggestions" role="listbox" className="sighting-suggestions" style={{ marginTop: 12 }}>
+                    {storesLoading ? <div className="sighting-empty">Loading the complete store directory…</div> : null}
+                    {!storesLoading && storesError ? <div className="sighting-empty">Store search could not load. <button type="button" onClick={reloadStores}>Try again</button></div> : null}
+                    {!storesLoading && !storesError && storeMatches.length === 0 ? <div className="sighting-empty">{storeQuery.trim() ? `No exact stores match “${storeQuery.trim()}” yet.` : `Search ${searchableStoreCount.toLocaleString()} exact stores by name, city, ZIP, or street.`} Not seeing it? Add the store so the community can reuse it.</div> : null}
+                    {storeMatches.map((store, index) => <button id={`sighting-store-option-${index}`} key={store.id} role="option" aria-selected={activeStoreIndex === index} className={activeStoreIndex === index ? "selected" : undefined} type="button" onMouseEnter={() => setActiveStoreIndex(index)} onClick={() => selectStore(store)}>{storeDisplay(store)}<span>{formatStoreAddress([store.address, store.city, store.state, store.zip])}</span></button>)}
+                  </div>
+                ) : null}
               </section>
 
               <section className="sighting-step-card" data-complete={Boolean(quantityEstimate || price || notes || proofPhoto)}>

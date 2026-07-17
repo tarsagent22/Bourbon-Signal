@@ -14,8 +14,11 @@ let storesPromise: Promise<Store[]> | null = null;
 function loadStores() {
   if (cachedStores !== null) return Promise.resolve(cachedStores);
   if (storesPromise) return storesPromise;
-  storesPromise = fetch("/api/locations")
-    .then((res) => res.json())
+  storesPromise = fetch("/api/locations", { credentials: "same-origin" })
+    .then((res) => {
+      if (!res.ok) throw new Error(`Store directory request failed (${res.status})`);
+      return res.json();
+    })
     .then((data) => {
       // Engine returns { locations: [...] }, { stores: [...] }, or raw array
       const raw: Record<string, unknown>[] = Array.isArray(data)
@@ -26,6 +29,7 @@ function loadStores() {
         ? data.stores
         : [];
       const normalized = raw.map((store) => normalizeMapStore(store));
+      if (!normalized.length) throw new Error("Store directory returned no locations");
       cachedStores = normalized;
       return normalized;
     })
@@ -38,6 +42,8 @@ function loadStores() {
 export function useStores(enabled: boolean = true) {
   const [stores, setStores] = useState<Store[]>(cachedStores ?? []);
   const [loading, setLoading] = useState(enabled && cachedStores === null);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!enabled) {
@@ -46,20 +52,24 @@ export function useStores(enabled: boolean = true) {
     }
     if (cachedStores !== null) {
       setStores(cachedStores);
+      setError(null);
       setLoading(false);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setError(null);
 
     loadStores()
       .then((normalized) => {
         if (cancelled) return;
         setStores(normalized);
       })
-      .catch(() => {
-        if (!cancelled) setStores([]);
+      .catch((cause) => {
+        if (cancelled) return;
+        setStores([]);
+        setError(cause instanceof Error ? cause.message : "Store directory unavailable");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -68,7 +78,13 @@ export function useStores(enabled: boolean = true) {
     return () => {
       cancelled = true;
     };
-  }, [enabled]);
+  }, [enabled, reloadKey]);
 
-  return { stores, loading };
+  const reload = () => {
+    cachedStores = null;
+    storesPromise = null;
+    setReloadKey((value) => value + 1);
+  };
+
+  return { stores, loading, error, reload };
 }

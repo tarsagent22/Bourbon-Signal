@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
+import { combineStoreDirectoryRows } from "@/lib/store-directory";
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.toLowerCase().trim() : "";
@@ -43,18 +44,6 @@ function dropLocationValues(drop: Record<string, unknown>) {
   ]
     .map(normalizeText)
     .filter(Boolean);
-}
-
-function locationLookupKey(location: Record<string, unknown>) {
-  const state = normalizeText(location.state ?? location.state_code).toUpperCase();
-  const id = normalizeText(location.id ?? location.sourceStoreId);
-  const address = normalizeText(location.address);
-  const city = normalizeText(location.city);
-  const name = normalizeText(location.name ?? location.displayLabel);
-
-  if (state && address) return `address:${state}:${address}:${city}`;
-  if (state && id) return `id:${state}:${id}`;
-  return `name:${state}:${name}:${city}`;
 }
 
 type ActionableDropLocation = {
@@ -113,15 +102,7 @@ export async function GET(request: Request) {
         ? locationsPayload.stores
         : [];
     const rawStores = Array.isArray(storesPayload?.stores) ? storesPayload.stores : [];
-    const seenLocationKeys = new Set<string>();
-    const combinedRawLocations: Record<string, unknown>[] = [];
-    for (const location of [...rawLocations, ...rawStores]) {
-      const record = location as Record<string, unknown>;
-      const key = locationLookupKey(record);
-      if (seenLocationKeys.has(key)) continue;
-      seenLocationKeys.add(key);
-      combinedRawLocations.push(record);
-    }
+    const combinedRawLocations = combineStoreDirectoryRows([...rawLocations, ...rawStores]);
     const dropsByState = new Map<string, ActionableDropLocation[]>();
     (Array.isArray(dropsPayload?.drops) ? dropsPayload.drops : [])
       .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
