@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { applyNcBoardShipmentPolicy } from '../src/collectors/north-carolina-intelligence.mjs';
+import { isRetainedNotDueReport } from '../src/collectors/generic-state.mjs';
 
 test('NC board shipment signals remain informational and cannot create watch alerts', () => {
   const result = confidenceForSignal({
@@ -34,4 +35,10 @@ test('NC shipment collector persists the same non-alerting board-level semantics
   assert.equal(signal.raw.policyMode, 'alert_county_store_inventory');
   assert.equal(signal.raw.shipmentScope, 'board_level_not_store_inventory');
   assert.match(signal.inventorySemantics, /board-level shipment/i);
+});
+
+test('retained not-due source results remain useful instead of becoming blocked', () => {
+  assert.equal(isRetainedNotDueReport([{ status: 'not_due' }, { status: 'not_due' }], [{ id: 'cached' }]), true);
+  assert.equal(isRetainedNotDueReport([{ status: 'failure' }], [{ id: 'cached' }]), false);
+  assert.equal(isRetainedNotDueReport([{ status: 'not_due' }], []), false);
 });

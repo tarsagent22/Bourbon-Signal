@@ -10,6 +10,13 @@ import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '
 import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { SourceCircuitBreaker } from '../sources/circuit-breaker.mjs';
+import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
+
+export function isRetainedNotDueReport(sourceResults = [], signals = []) {
+  return sourceResults.length > 0
+    && sourceResults.every((result) => result?.status === 'not_due')
+    && signals.length > 0;
+}
 
 const SIGNAL_TERMS = [
   'bourbon', 'whiskey', 'whisky', 'allocated', 'limited', 'release', 'lottery', 'barrel', 'single barrel',
@@ -547,7 +554,7 @@ export async function collectState(config, bible, options = {}) {
     previousSourceResults: options.previousSourceResults,
   });
   signals.push(...precisionProbe.signals);
-  roadblocks.push(...precisionProbe.roadblocks);
+  roadblocks.push(...precisionProbe.roadblocks.filter((roadblock) => roadblock.status !== 'not_due'));
   sourceResults.push(...(precisionProbe.sourceResults || []));
   if (precisionProbe.sourceReports?.length) {
     sourceReports.push(...precisionProbe.sourceReports);
@@ -571,7 +578,8 @@ export async function collectState(config, bible, options = {}) {
     }
   }
 
-  const dedupedSignals = [...new Map(signals.map((s) => [s.id, s])).values()];
+  const dedupedSignals = [...new Map(signals.map((signal) => [signal.id, config.id === 'NC' && signal.eventType === 'nc_board_shipment_snapshot' ? applyNcBoardShipmentPolicy(signal) : signal])).values()];
+  const retainedNotDue = isRetainedNotDueReport(sourceResults, dedupedSignals);
   const finishedAt = new Date().toISOString();
   const sourceLastGoodTimes = sourceResults.map((result) => Date.parse(result.lastGoodAt || '')).filter(Number.isFinite);
   const lastGoodAt = sourceResults.length
@@ -596,8 +604,10 @@ export async function collectState(config, bible, options = {}) {
     stale: Boolean(precisionProbe.stale),
     staleReason: precisionProbe.staleReason || null,
     previousFinishedAt: precisionProbe.previousFinishedAt || null,
-    status: precisionProbe.stale
-      ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
-      : sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
+    status: retainedNotDue
+      ? 'useful_retained_not_due'
+      : precisionProbe.stale
+        ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
+        : sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
   };
 }
