@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   buildStateQualityScorecard,
   compareStateQuality,
+  scopeStateQualityForRefresh,
   scoreStateQuality,
 } from './state-quality-scorecard.mjs';
 
@@ -56,6 +57,10 @@ assert.equal(scorecard.schemaVersion, 2);
 assert.equal(scorecard.states.length, 3);
 assert.equal(scorecard.summary.releaseBlockedStates, 1);
 assert.equal(scorecard.states[0].state, 'AA');
+
+const partialScope = scopeStateQualityForRefresh(scorecard, { partialRefresh: true, attemptedStateIds: ['AA'] });
+assert.deepEqual(partialScope.states.map((state) => state.state), ['AA']);
+assert.equal(scopeStateQualityForRefresh(scorecard, { partialRefresh: false }), scorecard);
 
 const regression = compareStateQuality(
   { states: [{ state: 'AA', score: 90, releaseEligible: true, dropCount: 100 }] },

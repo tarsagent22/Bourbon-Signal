@@ -6,7 +6,7 @@ import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
-import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from './state-quality-scorecard.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
@@ -1556,9 +1556,16 @@ async function main() {
     buildStateQualityInputs({ stateCoverage, drops: currentDrops, alerts: cappedAlertCandidates }),
     { generatedAt },
   );
+  const attemptedQualityStates = summary.partialRefresh === true
+    ? new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))
+    : null;
+  const comparableStateQuality = scopeStateQualityForRefresh(stateQuality, summary);
   const stateQualityRegression = previousStateQuality?.schemaVersion === stateQuality.schemaVersion
-    ? compareStateQuality(previousStateQuality, stateQuality)
+    ? compareStateQuality(previousStateQuality, comparableStateQuality)
     : { ok: true, failures: [], warnings: ['State-quality baseline schema changed; recording a current-snapshot baseline.'] };
+  if (attemptedQualityStates) {
+    stateQualityRegression.warnings.push(`Partial refresh quality comparison limited to attempted states: ${[...attemptedQualityStates].sort().join(', ') || 'none'}.`);
+  }
   stateQuality.regression = stateQualityRegression;
   stateQuality.runId = runIdentity.runId;
   stateQuality.engineGeneratedAt = runIdentity.engineGeneratedAt;

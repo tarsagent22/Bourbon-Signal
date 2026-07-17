@@ -124,6 +124,15 @@ export function buildStateQualityScorecard(inputs, { generatedAt = new Date().to
   };
 }
 
+export function scopeStateQualityForRefresh(scorecard, summary = {}) {
+  if (summary.partialRefresh !== true) return scorecard;
+  const attempted = new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()));
+  return {
+    ...scorecard,
+    states: (scorecard?.states || []).filter((state) => attempted.has(String(state.state).toUpperCase())),
+  };
+}
+
 export function compareStateQuality(previous, current, { maxScoreDrop = 15, minDropRatio = 0.5, severeDropRatio = 0.4 } = {}) {
   const failures = [];
   const warnings = [];

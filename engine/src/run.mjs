@@ -600,6 +600,10 @@ async function main() {
 
   const summary = {
     generatedAt: new Date().toISOString(),
+    partialRefresh: REQUESTED_STATE_IDS.size > 0,
+    requestedStateIds: [...REQUESTED_STATE_IDS].sort(),
+    attemptedStateIds: aggregateReports.filter((entry) => entry.attempted).map((entry) => entry.config.id).sort(),
+    freshStateIds: aggregateReports.filter((entry) => entry.wasRun).map((entry) => entry.config.id).sort(),
     stateCount: allReports.length,
     signalCount: allSignals.length,
     roadblockCount: allRoadblocks.length,
