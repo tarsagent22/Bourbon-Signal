@@ -12,6 +12,7 @@ import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './a
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
+import { mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1509,7 +1510,14 @@ async function main() {
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
-  const drops = buildDrops(historicalSignals, bible, signals);
+  const candidateDrops = buildDrops(historicalSignals, bible, signals);
+  const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
+  const drops = mergePartialRefreshDrops({
+    previousDrops,
+    currentDrops: candidateDrops,
+    partialRefresh: summary.partialRefresh === true,
+    attemptedStateIds: summary.attemptedStateIds || [],
+  });
   const currentDrops = buildDrops(signals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
   const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
