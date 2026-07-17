@@ -26,6 +26,40 @@ function valueWeight(row) {
 function emptySource(state, source) {
   return { state, source, rows: 0, drops: 0, alerts: 0, storeLevel: 0, valueScore: 0, bottles: new Set(), bottleKeys: new Set(), cities: new Set(), roadblocks: 0, topIssues: [] };
 }
+
+function boundedNumber(value, max = 1_000_000) { return Math.min(max, Math.max(0, Number(value) || 0)); }
+function normalizedAuthority(value) {
+  const authority = asString(value).toLowerCase();
+  return ['official', 'first_party', 'verified', 'unknown'].includes(authority) ? authority : 'unknown';
+}
+function expansionScore(candidate) {
+  const aggregateDemand = boundedNumber(candidate.aggregateDemand ?? candidate.demandScore);
+  const paidMemberOverlap = boundedNumber(candidate.paidMemberOverlap);
+  const canonicalBottleDemand = boundedNumber(candidate.canonicalBottleDemand);
+  const exactStoreGap = boundedNumber(candidate.exactStoreGap, 100);
+  const alertGradeGap = boundedNumber(candidate.alertGradeGap, 100);
+  const reachability = Math.min(1, boundedNumber(candidate.runnerReachability, 1));
+  const stability = Math.min(1, boundedNumber(candidate.sourceStability, 1));
+  const requestBudget = boundedNumber(candidate.expectedRequestBudget, 10_000);
+  const effort = Math.min(5, Math.max(1, Number.isFinite(Number(candidate.implementationEffort)) ? boundedNumber(candidate.implementationEffort, 5) : 5));
+  const reversibility = Math.min(5, Math.max(1, Number.isFinite(Number(candidate.reversibility)) ? boundedNumber(candidate.reversibility, 5) : 5));
+  const adjacency = Math.min(10, boundedNumber(candidate.strategicAdjacency, 10));
+  const authority = normalizedAuthority(candidate.sourceAuthority);
+  const coverageTier = asString(candidate.coverageTier).toLowerCase();
+  const coverageGap = /research|unknown|none/.test(coverageTier) ? 24 : /watch|catalog|board/.test(coverageTier) ? 15 : 5;
+  const authorityScore = ({ official: 28, first_party: 25, verified: 12, unknown: 0 })[authority];
+  const demandScore = Math.round(Math.min(40, aggregateDemand * 0.5) + Math.min(25, paidMemberOverlap * 3) + Math.min(25, canonicalBottleDemand * 2));
+  const score = Math.round(demandScore + coverageGap + Math.min(18, exactStoreGap * 2) + Math.min(12, alertGradeGap * 2) + authorityScore + reachability * 20 + stability * 15 + adjacency * 2 + (6 - reversibility) * 4 - Math.min(18, requestBudget / 10) - effort * 6);
+  const ready = ['official', 'first_party'].includes(authority) && reachability >= 0.7 && stability >= 0.7 && effort <= 3 && reversibility <= 2;
+  return {
+    state: stateKey(candidate),
+    source: sourceKey(candidate),
+    score,
+    recommendation: ready ? 'expand_state_vertical_slice' : 'research_or_harden_source',
+    demandScore,
+    rankingInputs: { aggregateDemand, paidMemberOverlap, canonicalBottleDemand, coverageTier: coverageTier || 'unknown', exactStoreGap, alertGradeGap, sourceAuthority: authority, runnerReachability: reachability, expectedRequestBudget: requestBudget, sourceStability: stability, implementationEffort: effort, reversibility, strategicAdjacency: adjacency },
+  };
+}
 function addSource(map, row, type) {
   const state = stateKey(row);
   const source = sourceKey(row);
@@ -45,7 +79,7 @@ function addSource(map, row, type) {
   if (city) item.cities.add(city);
 }
 
-export function rankSourceInvestments({ drops = [], alerts = [], sourceHealth = { states: [] }, demand = null, generatedAt = new Date().toISOString() } = {}) {
+export function rankSourceInvestments({ drops = [], alerts = [], sourceHealth = { states: [] }, demand = null, expansionCandidates = [], generatedAt = new Date().toISOString() } = {}) {
   const map = new Map();
   for (const row of drops || []) addSource(map, row, 'drop');
   for (const row of alerts || []) addSource(map, row, 'alert');
@@ -105,12 +139,20 @@ export function rankSourceInvestments({ drops = [], alerts = [], sourceHealth = 
     };
   }).sort((a, b) => b.score - a.score || b.demandScore - a.demandScore);
 
+  const expansionTop = (Array.isArray(expansionCandidates) ? expansionCandidates : [])
+    .map(expansionScore)
+    .filter((row) => row.state && row.source)
+    .sort((left, right) => right.score - left.score || right.demandScore - left.demandScore || left.state.localeCompare(right.state) || left.source.localeCompare(right.source))
+    .slice(0, 30);
+
   return {
     generatedAt,
     count: rows.length,
     demandWeighted: Boolean(privacySafeDemand),
     demandPrivacy: privacySafeDemand?.privacy || null,
     top: rows.slice(0, 30),
+    expansionTop,
+    expansionCount: expansionTop.length,
     recommendations: rows.reduce((acc, row) => {
       acc[row.recommendation] = (acc[row.recommendation] || 0) + 1;
       return acc;

@@ -11,6 +11,7 @@ import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
+import { legacyPrecisionSourceId, runLegacyPrecisionSource } from '../sources/legacy-precision-runtime.mjs';
 import {
   FLORIDA_TAMPA_TARGET_STORES,
   parseLightspeedCatalogEntries,
@@ -6208,6 +6209,7 @@ function previousCaliforniaSourceResults(cache) {
       stale: false,
       alertable: true,
       lastGoodAt,
+      sourceMetadata: { stateId: 'CA', lane: 'california_retailer' },
       value: { signals, roadblocks: [] },
     }];
   }));
@@ -6246,13 +6248,17 @@ async function collectCalifornia(config, bible, options = {}) {
     id: `ca:${source.id}`,
     label: source.sourceLabel,
     url: source.productsUrl,
+    metadata: { stateId: config.id, lane: 'california_retailer' },
     execute: (_context, { signal }) => collectCaliforniaSource(config, bible, source, observedAt, signal),
     validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks) ? true : 'California source result is malformed',
     recordCount: (value) => value.signals.length,
   }));
   const isolated = await runSourceAdapters(californiaAdapters, {}, {
     ...options.sourceRunnerOptions,
-    previousResults: previousCaliforniaSourceResults(cache),
+    previousResults: {
+      ...(options.previousSourceResults || {}),
+      ...Object.fromEntries(Object.entries(previousCaliforniaSourceResults(cache)).filter(([, result]) => result.lastGoodAt)),
+    },
     circuitBreaker: options.sourceCircuitBreaker,
     concurrency: CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.length,
     perDomain: 1,
@@ -6510,7 +6516,17 @@ async function collectKentucky(config, bible) {
   };
 }
 
-export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
+const LEGACY_PRECISION_RUNTIME_STATES = new Set([
+  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY',
+]);
+
+function precisionRuntimeUrl(config) {
+  return (config.sources || []).find((source) => source.precisionOnly && source.url)?.url
+    || config.sources?.[0]?.url
+    || null;
+}
+
+async function collectPrecisionProbesDirect(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'KY') return collectKentucky(config, bible);
   if (config.id === 'OH') return collectOhio(config, bible);
   if (config.id === 'OR') return collectOregon(config, bible);
@@ -6532,6 +6548,28 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
   return { signals: [], roadblocks: [] };
+}
+
+export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
+  if (config.id === 'CA') return collectCalifornia(config, bible, options);
+  if (!LEGACY_PRECISION_RUNTIME_STATES.has(config.id)) {
+    return collectPrecisionProbesDirect(config, bible, existingSignals, options);
+  }
+  const sourceRunnerOptions = options.sourceRunnerOptions || {};
+  return runLegacyPrecisionSource({
+    sourceId: legacyPrecisionSourceId(config.id),
+    stateId: config.id,
+    label: `${config.label} precision collector`,
+    url: precisionRuntimeUrl(config),
+    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, existingSignals, { ...options, signal }),
+    previousResults: options.previousSourceResults,
+    circuitBreaker: options.sourceCircuitBreaker,
+    sourceRunnerOptions: {
+      ...sourceRunnerOptions,
+      timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || 120_000),
+      maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || 2),
+    },
+  });
 }
 
 async function binnysAlgoliaQuery(indexName, params) {
@@ -7411,6 +7449,14 @@ async function collectIowa(config, bible) {
   return { signals, roadblocks };
 }
 
+export function transformUtahAggregateRow(config, bible, row, { observedAt = null } = {}) {
+  const { base, record, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
+  if (observedAt) base.fetchedAt = observedAt;
+  const storeQty = Number(row.storeQty || 0) || 0;
+  const warehouseQty = Number(row.warehouseQty || 0) || 0;
+  return { id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, tier: record?.tier || 'unknown', eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: null, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } };
+}
+
 async function collectUtah(config, bible) {
   const signals = [], roadblocks = [];
   for (const term of TRACKED_TERMS.UT) {
@@ -7423,10 +7469,7 @@ async function collectUtah(config, bible) {
         const res = await textFetch('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
         const json = JSON.parse(res.text);
         for (const row of json.data || []) {
-          const { base, unsafeReason } = aggregateSignalBase(config.id, 'Utah DABS Product Locator DataTables API', 'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore', row.name, bible);
-          const storeQty = Number(row.storeQty || 0) || 0;
-          const warehouseQty = Number(row.warehouseQty || 0) || 0;
-          signals.push({ id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: storeQty, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } });
+          signals.push(transformUtahAggregateRow(config, bible, row));
         }
       }
     } catch (error) {

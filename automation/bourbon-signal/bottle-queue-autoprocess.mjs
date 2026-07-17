@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, '.hermes', 'bourbon-signal', 'bottle-queue');
 const OUT_FILE = path.join(OUT_DIR, 'latest-autoprocess.json');
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
 const TOKEN = process.env.BOTTLE_QUEUE_WORKER_TOKEN || process.env.BOURBON_SIGNAL_BOTTLE_QUEUE_TOKEN || '';
-const APPLY = process.argv.includes('--apply');
 
 function normalize(value) { return String(value || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim(); }
-function classify(item) {
+export function classifyBottleQueueItem(item = {}) {
   const confidence = item.confidence || 'none';
   const duplicateCount = Number(item.duplicateCount || 0);
   const hasCandidate = Boolean(item.candidateBottleName || item.candidateBottleId);
@@ -32,30 +32,60 @@ async function callWorker(method = 'GET', body = null) {
   return json;
 }
 
-async function main() {
-  await mkdir(OUT_DIR, { recursive: true });
-  const fetched = await callWorker('GET');
-  const digest = Array.isArray(fetched.digest) ? fetched.digest : [];
-  const rows = digest.map((item) => ({ ...item, normalizedKey: normalize(item.rawName), recommendation: classify(item) }));
+function compactAmbiguity(rows) {
+  const items = rows
+    .filter((row) => !row.recommendation.safe)
+    .slice(0, 12)
+    .map((row) => ({ id: String(row.id || '').slice(0, 160), action: row.recommendation.action, reason: row.recommendation.reason }));
+  return items.length ? { type: 'bottle_queue_ambiguity', count: items.length, items } : null;
+}
+
+function publicRow(item, recommendation) {
+  return {
+    id: typeof item?.id === 'string' ? item.id.slice(0, 160) : '',
+    normalizedKey: normalize(item?.rawName),
+    candidateBottleId: typeof item?.candidateBottleId === 'string' ? item.candidateBottleId.slice(0, 160) : undefined,
+    candidateBottleName: typeof item?.candidateBottleName === 'string' ? item.candidateBottleName.slice(0, 160) : undefined,
+    confidence: ['high', 'medium', 'low'].includes(item?.confidence) ? item.confidence : undefined,
+    recommendation,
+  };
+}
+
+export async function processBottleQueue({ digest = [], apply = false, update = async () => ({ ok: true }) } = {}) {
+  const rows = (Array.isArray(digest) ? digest : []).map((item) => publicRow(item, classifyBottleQueueItem(item)));
   const applied = [];
-  if (APPLY) {
-    for (const row of rows) {
+  if (apply) {
+    for (const [index, row] of rows.entries()) {
       const rec = row.recommendation;
       if (!rec.safe || !rec.status) continue;
-      const result = await callWorker('PATCH', { id: row.id, status: rec.status, candidateBottleId: row.candidateBottleId, candidateBottleName: row.candidateBottleName, confidence: row.confidence, notes: rec.reason });
+      const source = digest[index] || {};
+      const result = await update({ id: row.id, status: rec.status, candidateBottleId: source.candidateBottleId, candidateBottleName: source.candidateBottleName, confidence: source.confidence, notes: rec.reason });
       applied.push({ id: row.id, action: rec.action, status: rec.status, ok: result.ok === true });
     }
   }
-  const payload = { ok: true, checkedAt: new Date().toISOString(), hasWork: digest.length > 0, count: rows.length, apply: APPLY, applied, rows };
-  await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
-  if (!payload.hasWork) return; // silent when empty for cron-friendly use
-  console.log(JSON.stringify(payload, null, 2));
+  return { ok: true, hasWork: rows.length > 0, count: rows.length, apply, applied, rows, ambiguity: compactAmbiguity(rows) };
 }
 
-main().catch(async (error) => {
+export async function runBottleQueue(argv = process.argv.slice(2)) {
+  const apply = argv.includes('--apply');
   await mkdir(OUT_DIR, { recursive: true });
-  const payload = { ok: false, checkedAt: new Date().toISOString(), error: error.message };
+  const fetched = await callWorker('GET');
+  const payload = { checkedAt: new Date().toISOString(), ...(await processBottleQueue({
+    digest: Array.isArray(fetched.digest) ? fetched.digest : [],
+    apply,
+    update: (body) => callWorker('PATCH', body),
+  })) };
   await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
-  console.error(error.message);
-  process.exit(1);
-});
+  if (payload.ambiguity) process.stdout.write(`${JSON.stringify(payload.ambiguity)}\n`);
+  return payload;
+}
+
+if (import.meta.url === pathToFileURL(path.resolve(process.argv[1] || '')).href) {
+  runBottleQueue().catch(async (error) => {
+    await mkdir(OUT_DIR, { recursive: true });
+    const payload = { ok: false, checkedAt: new Date().toISOString(), error: error.message };
+    await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}

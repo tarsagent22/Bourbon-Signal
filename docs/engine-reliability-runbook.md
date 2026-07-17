@@ -11,13 +11,23 @@
 
 ## Source failure isolation
 
-Configured state sources and the California multi-retailer lane use the shared source runtime under `engine/src/sources/`. Each adapter returns the same result envelope and error taxonomy. A throw, timeout, malformed response, or volume collapse is contained to that source while sibling adapters finish through the existing bounded worker pool.
+Configured state sources (including `apiCandidates`) and the California multi-retailer lane use the shared source runtime under `engine/src/sources/`. The legacy precision dispatcher also runs through one shared, state-scoped precision adapter for each supported state, so a failed precision lane cannot stop configured or sibling state sources. Each adapter returns the same result envelope and error taxonomy. A throw, timeout, malformed response, or volume collapse is contained to that source while sibling adapters finish through the existing bounded worker pool.
 
 Only transient and timeout failures receive bounded retries. Malformed, collapsed, permanent, and unexpected failures fail closed without retry. Repeated source failures open a per-source circuit whose state persists in the existing state report; after cooldown, one half-open attempt may close it. State run locks, state scheduling, partitions, immutable snapshots, rollback, and the recovery watchdog remain the enclosing orchestration.
 
 Retained last-good data keeps its original observation and `lastGoodAt` timestamps. Stale and quarantined results are forced non-alertable (`canAlertAsInventory=false` and `canAlertAsWatch=false`) even when their diagnostic rows remain visible.
 
-Each engine run appends actual standardized source attempts to `out/optimization/source-run-history.json` and writes `out/source-slo-7d.json` plus `.md`. Not-due, disabled, and quarantined diagnostics are excluded from the success denominator. A configured quarantine remains the public runtime status even when its diagnostic probe times out or fails; the result still carries `ok=false` and the underlying error for recovery work without reducing the SLO denominator. The report remains `insufficient_history` until the history spans the full window and contains eligible observations in all seven day buckets; no pre-launch or missing history is backfilled.
+Each engine run appends every actual standardized source attempt (including retry attempts) to `out/optimization/source-run-history.json` and writes `out/source-slo-7d.json` plus `.md`. The JSON report carries both per-source and per-state evidence. Not-due, disabled, and quarantined diagnostics are excluded from the success denominator. A configured quarantine remains the public runtime status even when its diagnostic probe succeeds, times out, or fails; the result always carries `ok=false` and any underlying error for recovery work without reducing the SLO denominator. The report remains `insufficient_history` until the history spans the full window and contains eligible observations in all seven day buckets; no pre-launch or missing history is backfilled.
+
+### Runtime coverage and intentional exceptions
+
+The standard adapter boundary covers ordinary configured URLs, API candidates, each California Shopify retailer, and the state-scoped legacy precision lanes `KY`, `OH`, `OR`, `IA`, `UT`, `ID`, `AL`, `NC`, `IL`, `IN`, `TN`, `AZ`, `NV`, `FL`, `SC`, `TX`, `VA`, `PA`, and `MD-MONTGOMERY`.
+
+The following remain outside an individual shared-adapter boundary and must not be described as per-source SLO evidence:
+
+- `engine/src/ohlq-browser-collector.mjs`, `engine/src/fwgs-browser-collector.mjs`, `engine/src/fwgs-browser-full.mjs`, and `engine/src/or-browser-collector.mjs` are standalone CDP/browser artifact builders. They run as bounded preflight jobs and publish local artifacts, rather than returning a `collectState` source result or accepting the source-runtime abort contract.
+- `engine/src/collectors/north-carolina-intelligence.mjs` is covered by the `precision:nc` lane, but its individual board, PDF, and warehouse subrequests remain a monolithic sequence; separating them needs explicit source identities and safe checkpointing before they can have per-board circuits or quarantines.
+- `engine/src/collectors/costco.mjs` is a local, verified-observation artifact normalizer, not a network collector. Its upstream monitor must emit its own evidence before it can become a source-runtime adapter.
 
 ## Independent detection and recovery
 

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "state": "UT",
+  "lifecycle": {
+    "customerLabel": "Utah",
+    "publicStatus": "active",
+    "coverageTier": "aggregate_inventory_watch",
+    "refinementLevel": "statewide"
+  },
+  "collector": {
+    "sourceIds": [
+      "ut:configured:e8b79dfccb741688",
+      "ut:configured:97cd72794e623fd2",
+      "ut:configured:fedd445806269ff7",
+      "ut:precision:product-locator-datatables"
+    ],
+    "registration": "engine/src/state-sources.mjs and engine/src/precision-probes.mjs; bounded shared source runtime with official Utah DABS allowlisted sources"
+  },
+  "storeIdentity": {
+    "mode": "statewide_and_store_aggregate",
+    "addressRequired": false,
+    "proof": "Utah DABS aggregate rows retain statewide/store-aggregate precision and never invent exact store IDs, addresses, or shelf quantities."
+  },
+  "sourceSemantics": {
+    "availability": "Official allocated-release notices and board/warehouse aggregate context; not exact per-store shelf inventory.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Lifecycle-backed state controls include Utah after promotion."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "Current Utah precision is statewide/store aggregate, so no false city or store-area filter is exposed."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Preference validation derives supported states from active lifecycle configuration."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Dashboard state selection derives from the active lifecycle and preserves the Utah caveat."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Utah rows are partitioned and filterable through the Drop Feed API while remaining informational and non-alertable."
+    },
+    "finder": {
+      "status": "not_applicable",
+      "reason": "Finder requires verified store/address identity; aggregate Utah rows do not fabricate that identity."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Both lifecycle and row semantics force Utah inventory and watch alert delivery off."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "State coverage, source runtime history, SLO artifacts, quarantine, and watchdog partition checks include Utah."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Canary and production exporters create a Utah state partition with official provenance and original timestamps."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "runs": 3,
+      "artifact": "engine/out/shadow/UT (three successful bounded runs on 2026-07-16; alerts disabled and production untouched)"
+    },
+    "canary": {
+      "runs": 2,
+      "artifact": "engine/out/canary/UT/site-run1 and site-run2 (two coherent canary builds with a Utah partition and zero Utah delivery alerts)"
+    },
+    "production": {
+      "url": "https://bourbonsignal.com",
+      "assertion": "Promotion is non-deploying; guarded release and post-deploy smoke verification remain mandatory."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "UT",
+      "generatedAt": "2026-07-17T00:14:48.000Z",
+      "sourceConfigHash": "3c27a45ba71304c88a4989338aa33b90c7159be1d46829cb36560dd595869203",
+      "previewUrl": "https://great-socks-sell.loca.lt",
+      "shadowRuns": [
+        {
+          "runId": "2026-07-16T22-48-16-026Z",
+          "status": "success",
+          "artifactHash": "2f5c30af05508458ef7415bb7ae3579121aae774cb41a1b85339636c565bd1ca"
+        },
+        {
+          "runId": "2026-07-16T22-48-44-478Z",
+          "status": "success",
+          "artifactHash": "b15b9a88aa70b669442c9c6afa04de7677d6668aafa8ee128e5ba0db929a7438"
+        },
+        {
+          "runId": "2026-07-16T22-49-07-044Z",
+          "status": "success",
+          "artifactHash": "4c1b9702ea0c41badccdd1dc8d80cfcdac53c5a184e097d25b64d10278451694"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "site-run1",
+          "status": "success",
+          "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+        },
+        {
+          "runId": "site-run2",
+          "status": "success",
+          "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+        }
+      ],
+      "provenance": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "29545745479",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/29545745479",
+        "commitSha": "58801890ca7436711b9b21953d76caf0a242a440",
+        "artifactId": "8393888338",
+        "artifactName": "state-promotion-provenance-UT-29545745479",
+        "artifactDigest": "4a90ad38c6fad757cff1d146c7f5284da6df5d2f0783a739065dbf3c60e2932d",
+        "bundleDigest": "80faac8b215184f71a0c18ab57d1a93fa20dfcdc53767f4efc56e698ab452d2f",
+        "status": "success"
+      }
+    }
+  }
+}

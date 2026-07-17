@@ -1,0 +1,80 @@
+name: Rotating state expansion shadow collection
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+    inputs:
+      states:
+        description: "Optional comma-separated shadowEligible non-active state IDs"
+        required: false
+        default: ""
+      limit:
+        description: "Maximum eligible states to collect"
+        required: false
+        default: "5"
+
+concurrency:
+  group: state-expansion-shadow
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect-shadow-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: "0"
+      ALERT_ONSITE_DELIVERY_ENABLED: "0"
+      ALERT_EMAIL_DELIVERY_ENABLED: "0"
+      ALERT_SMS_DELIVERY_ENABLED: "0"
+      BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install engine dependencies
+        run: npm ci --prefix engine
+
+      - name: Validate manual shadow inputs
+        id: validate
+        shell: bash
+        env:
+          RAW_STATES: ${{ inputs.states || '' }}
+          RAW_LIMIT: ${{ inputs.limit || '5' }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
+            echo "states must be a comma-separated list of uppercase state IDs" >&2
+            exit 1
+          fi
+          if [[ ! "$RAW_LIMIT" =~ ^[1-5]$ ]]; then
+            echo "limit must be an integer from 1 through 5" >&2
+            exit 1
+          fi
+          echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
+          echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Collect bounded shadow evidence only
+        working-directory: engine
+        env:
+          STATES: ${{ steps.validate.outputs.states }}
+          LIMIT: ${{ steps.validate.outputs.limit }}
+        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+
+      - name: Preserve isolated shadow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-expansion-shadow-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: engine/out/shadow

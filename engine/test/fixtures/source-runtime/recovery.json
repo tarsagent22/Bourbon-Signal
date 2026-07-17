@@ -1,0 +1,8 @@
+{
+  "scenario": "half-open-recovery",
+  "value": {
+    "signals": [{ "id": "recovered-row", "observedAt": "2026-07-15T12:02:00.000Z", "canAlertAsInventory": true, "canAlertAsWatch": true }],
+    "roadblocks": []
+  },
+  "expected": { "status": "success" }
+}

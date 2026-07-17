@@ -8,9 +8,28 @@ export const SOURCE_ERROR_KINDS = Object.freeze({
   UNEXPECTED: 'unexpected',
 });
 
+function sanitizeUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
+  } catch {
+    return '[redacted-url]';
+  }
+}
+
+export function sanitizeSourceErrorMessage(value) {
+  const message = String(value || 'Source failure')
+    .replace(/https?:\/\/[^\s"'<>]+/gi, (url) => sanitizeUrl(url))
+    .replace(/\b(api[_-]?key|token|access[_-]?token|authorization|password|secret|cookie|session)\s*[:=]\s*[^\s,;]+/gi, '$1=[redacted]')
+    .replace(/\b(bearer)\s+[^\s,;]+/gi, '$1 [redacted]')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return message.slice(0, 500) || 'Source failure';
+}
+
 export class SourceAdapterError extends Error {
   constructor(message, options = {}) {
-    super(message, options.cause ? { cause: options.cause } : undefined);
+    super(sanitizeSourceErrorMessage(message), options.cause ? { cause: options.cause } : undefined);
     this.name = this.constructor.name;
     this.kind = options.kind || SOURCE_ERROR_KINDS.UNEXPECTED;
     this.transient = options.transient === true;

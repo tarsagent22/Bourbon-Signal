@@ -9,10 +9,12 @@ function validTime(value) {
 }
 
 function previousValue(previousReport, result) {
+  const sourceReports = (previousReport?.sources || []).filter((source) => source.sourceRuntimeId === result.sourceId);
   return {
     signals: (previousReport?.signals || []).filter((signal) => signal.sourceRuntimeId === result.sourceId),
     roadblocks: (previousReport?.roadblocks || []).filter((roadblock) => roadblock.sourceRuntimeId === result.sourceId),
-    sourceReport: (previousReport?.sources || []).find((source) => source.sourceRuntimeId === result.sourceId) || null,
+    sourceReport: sourceReports[0] || null,
+    sourceReports,
   };
 }
 

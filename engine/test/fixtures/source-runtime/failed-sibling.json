@@ -1,0 +1,8 @@
+{
+  "scenario": "failed-sibling",
+  "value": {
+    "signals": [{ "id": "healthy-sibling", "observedAt": "2026-07-15T13:00:00.000Z", "canAlertAsInventory": true, "canAlertAsWatch": true }],
+    "roadblocks": []
+  },
+  "expected": { "status": "success" }
+}

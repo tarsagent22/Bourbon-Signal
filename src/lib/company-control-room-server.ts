@@ -20,6 +20,7 @@ import { readSiteExport } from "@/lib/site-engine-contract";
 import { FOUNDER_SPOT_LIMIT } from "@/lib/entitlements";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { retailerSubmissionLifecycle } from "@/lib/retailer-portal";
+import { readAutomationCostAggregateFromEnvironment, type AutomationCostTotals } from "@/lib/automation-cost";
 
 interface RevenueSnapshot {
   source: "stripe" | "unavailable";
@@ -245,6 +246,7 @@ export async function getCompanyControlRoomSnapshot() {
   ]);
 
   const checkedAt = new Date().toISOString();
+  const automation = readAutomationCostAggregateFromEnvironment();
   const snapshot = {
     checkedAt,
     memberships,
@@ -279,6 +281,7 @@ export async function getCompanyControlRoomSnapshot() {
       counts: heartbeat?.counts || {},
     },
     release: health.release,
+    automation: automation || { contractVersion: null, generatedAt: null, totals: {} as Partial<AutomationCostTotals> },
   };
   return {
     ...snapshot,

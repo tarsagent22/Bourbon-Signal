@@ -47,5 +47,30 @@ test('new active states require staged promotion evidence', () => {
   assert.match(invalid.failures.join('\n'), /ZZ.*promotionStage.*active/i);
   config.states.ZZ.promotionStage = 'active';
   config.states.ZZ.promotionEvidence = { shadowRuns: 3, canaryRuns: 2, verifiedAt: '2026-07-13T00:00:00.000Z' };
+  assert.equal(validateExpansionLifecycle(config).ok, false);
+  assert.match(validateExpansionLifecycle(config).failures.join('\n'), /vertical-slice manifest/i);
+  config.states.ZZ.promotionEvidence.verticalSliceManifest = 'engine/data/state-integration/ZZ.json';
+  config.states.ZZ.promotionEvidence.fixtureContract = 'engine/data/state-fixtures/ZZ.json';
+  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://preview-zz.vercel.app';
+  assert.equal(validateExpansionLifecycle(config).ok, false, 'self-declared counters and paths are not immutable evidence');
+  assert.match(validateExpansionLifecycle(config).failures.join('\n'), /immutable promotion evidence/i);
+  const hash = 'a'.repeat(64);
+  config.states.ZZ.promotionEvidence.immutableEvidence = {
+    schemaVersion: 1,
+    state: 'ZZ',
+    generatedAt: '2026-07-13T00:00:00.000Z',
+    sourceConfigHash: hash,
+    previewUrl: 'https://preview-zz.vercel.app',
+    shadowRuns: [1, 2, 3].map((index) => ({ runId: `shadow-${index}`, status: 'success', artifactHash: hash })),
+    canaryRuns: [1, 2].map((index) => ({ runId: `canary-${index}`, status: 'success', artifactHash: hash })),
+    provenance: {
+      repository: 'owner/repo', workflowRunId: '123', workflowRunUrl: 'https://github.com/owner/repo/actions/runs/123',
+      commitSha: 'b'.repeat(40), artifactId: '456', artifactName: 'state-promotion-provenance-ZZ-123',
+      artifactDigest: hash, bundleDigest: hash, status: 'success',
+    },
+  };
   assert.equal(validateExpansionLifecycle(config).ok, true);
+  config.states.ZZ.promotionEvidence.canaryPreviewUrl = 'https://bourbonsignal.com';
+  config.states.ZZ.promotionEvidence.immutableEvidence.previewUrl = 'https://bourbonsignal.com';
+  assert.equal(validateExpansionLifecycle(config).ok, false, 'production origin cannot masquerade as an isolated canary preview');
 });

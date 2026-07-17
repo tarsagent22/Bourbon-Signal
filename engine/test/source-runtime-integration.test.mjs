@@ -66,6 +66,29 @@ test('generic simple-source lane uses standardized isolation and preserves succe
   assert.equal(report.roadblocks.some((roadblock) => roadblock.source === 'throwing fixture'), true);
 });
 
+test('generic API candidates use the same source runtime boundary as configured sources', async () => {
+  const apiUrl = 'data:application/json,%5B%7B%22name%22%3A%22Fixture%20Bourbon%22%7D%5D';
+  const config = {
+    id: 'ZZ',
+    label: 'Fixture state',
+    tier: 'test',
+    strategy: 'fixture',
+    cadence: 'test',
+    value: 'fixture',
+    sources: [],
+    apiCandidates: [apiUrl],
+  };
+  const report = await collectState(config, bible, {
+    fetcher: async (url) => response(url, '[{"name":"Fixture Bourbon"}]'),
+    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100, retryDelayMs: 0 },
+  });
+
+  assert.equal(report.sourceResults.length, 1);
+  assert.match(report.sourceResults[0].sourceId, /^zz:api:[a-f0-9]{16}$/);
+  assert.equal(report.sourceResults[0].status, 'success');
+  assert.equal(report.sourceResults[0].sourceMetadata.stateId, 'ZZ');
+});
+
 test('production source runtime makes an immediate second result not_due without skipping untimed sources', async () => {
   const config = {
     id: 'ZZ',
@@ -137,4 +160,11 @@ test('representative multi-source California lane and run-level SLO use shared r
   assert.match(engineRunner, /source-slo-7d\.json/);
   assert.match(engineRunner, /appendSourceSloObservations/);
   assert.match(engineRunner, /buildSevenDaySourceSloReport/);
+});
+
+test('legacy precision dispatch uses the shared runtime envelope rather than a parallel retry path', async () => {
+  const precision = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
+  assert.match(precision, /runLegacyPrecisionSource\(/);
+  assert.match(precision, /legacyPrecisionSourceId\(config\.id\)/);
+  assert.doesNotMatch(precision, /async function retryPrecision/);
 });

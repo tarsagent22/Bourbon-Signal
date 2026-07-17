@@ -1,0 +1,30 @@
+{
+  "contractVersion": "bourbon-signal/autonomy-threshold@1",
+  "safeAutonomous": {
+    "sourceAuthority": ["official", "first_party"],
+    "termsStatus": "clear",
+    "authentication": "none",
+    "identity": "exact_store",
+    "availabilitySemantics": "honest",
+    "verticalSlice": "complete",
+    "minimumShadowRuns": 3,
+    "minimumCanaryRuns": 2,
+    "withinBudget": true,
+    "reversible": true,
+    "outboundChange": false,
+    "pricingOrEntitlementChange": false,
+    "legalUncertainty": false
+  },
+  "approvalRequired": [
+    "ambiguous_terms_or_anti_bot_pressure",
+    "authenticated_source",
+    "identity_ambiguity",
+    "non_reversible_change",
+    "outbound_communication_change",
+    "pricing_or_entitlement_change",
+    "legal_or_terms_uncertainty",
+    "incomplete_customer_vertical_slice",
+    "insufficient_shadow_or_canary_evidence",
+    "runtime_or_request_budget_exceeded"
+  ]
+}

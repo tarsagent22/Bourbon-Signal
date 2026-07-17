@@ -1,0 +1,111 @@
+name: State expansion canary preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      state:
+        description: "Non-active state ID with manifest, fixtures, and shadow evidence"
+        required: true
+        type: string
+      candidate_drops:
+        description: "Engine-relative JSON file containing normalized candidate site drops"
+        required: true
+        type: string
+      deploy_preview:
+        description: "Deploy the isolated Vercel preview after local checks"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: state-expansion-canary-${{ inputs.state }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: "0"
+      ALERT_ONSITE_DELIVERY_ENABLED: "0"
+      ALERT_EMAIL_DELIVERY_ENABLED: "0"
+      ALERT_SMS_DELIVERY_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci && npm ci --prefix engine
+
+      - name: Validate untrusted dispatch inputs
+        id: validate
+        env:
+          RAW_STATE: ${{ inputs.state }}
+          RAW_CANDIDATE_DROPS: ${{ inputs.candidate_drops }}
+        run: |
+          if [[ ! "$RAW_STATE" =~ ^([A-Z]{2}|MD-MONTGOMERY)$ ]]; then
+            echo "Invalid state input" >&2
+            exit 1
+          fi
+          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^out/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then
+            echo "Candidate path must be a repository-controlled engine/out/canary-inputs JSON file" >&2
+            exit 1
+          fi
+          echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
+          echo "candidate_drops=$RAW_CANDIDATE_DROPS" >> "$GITHUB_OUTPUT"
+
+      - name: Build coherent nationwide canary snapshot without alerts
+        working-directory: engine
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+          CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
+        run: npm run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
+
+      - name: Verify candidate golden fixture contract
+        working-directory: engine
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: npm run verify:state-fixtures -- --state="$STATE"
+
+      - name: Verify candidate vertical slice against canary snapshot
+        working-directory: engine
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
+
+      - name: Deploy isolated preview with all alert channels disabled
+        if: inputs.deploy_preview == true
+        id: preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          STATE: ${{ steps.validate.outputs.state }}
+        run: |
+          rm -rf engine/out/site
+          cp -R "engine/out/canary/$STATE/site" engine/out/site
+          preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"
+          echo "url=$preview_url" >> "$GITHUB_OUTPUT"
+          echo "Isolated preview deployed: $preview_url"
+
+      - name: Exercise Utah customer-facing preview routes
+        if: inputs.deploy_preview == true && steps.validate.outputs.state == 'UT'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: node scripts/test-utah-live-user-path.mjs "$PREVIEW_URL"
+
+      - name: Preserve canary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-expansion-canary-${{ steps.validate.outputs.state }}-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: engine/out/canary/${{ steps.validate.outputs.state }}/site

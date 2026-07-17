@@ -1,0 +1,8 @@
+{
+  "scenario": "public-but-nonalertable",
+  "value": {
+    "signals": [{ "id": "diagnostic-row", "observedAt": "2026-07-15T12:00:00.000Z", "canAlertAsInventory": true, "canAlertAsWatch": true }],
+    "roadblocks": []
+  },
+  "expected": { "status": "quarantined" }
+}

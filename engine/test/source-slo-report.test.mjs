@@ -88,3 +88,44 @@ test('failed quarantined probes stay outside the SLO denominator', () => {
     availabilityRatio: null,
   });
 });
+
+test('persistent SLO history records each real retry attempt and exposes state evidence', () => {
+  const history = appendSourceSloObservations(null, [{
+    sourceId: 'zz:configured:fixture',
+    sourceMetadata: { stateId: 'ZZ' },
+    status: 'success',
+    attemptCount: 2,
+    startedAt: '2026-07-15T11:59:00.000Z',
+    finishedAt: NOW,
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: '2026-07-15T11:59:00.000Z',
+        finishedAt: '2026-07-15T11:59:30.000Z',
+        outcome: 'timeout',
+        error: { kind: 'timeout' },
+      },
+      {
+        attempt: 2,
+        startedAt: '2026-07-15T11:59:30.000Z',
+        finishedAt: NOW,
+        outcome: 'success',
+        error: null,
+      },
+    ],
+  }], { now: NOW });
+  const report = buildSevenDaySourceSloReport(history, { now: NOW });
+
+  assert.equal(history.observations.length, 2);
+  assert.deepEqual(history.observations.map((observation) => observation.outcome), ['timeout', 'success']);
+  assert.equal(history.observations[0].errorKind, 'timeout');
+  assert.equal('errorKind' in history.observations[1], false);
+  assert.equal(report.observedSampleCount, 2);
+  assert.equal(report.successfulSampleCount, 1);
+  assert.deepEqual(report.states, [{
+    stateId: 'ZZ',
+    observedSampleCount: 2,
+    successfulSampleCount: 1,
+    availabilityRatio: 0.5,
+  }]);
+});

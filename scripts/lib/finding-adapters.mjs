@@ -82,7 +82,7 @@ export function findingsFromWeeklyEngineBrief(report) {
 
 export function findingsFromSourceRoi(report) {
   const actionable = (report?.top || []).filter((row) => row.recommendation !== 'monitor');
-  return bounded(actionable.map((row) => {
+  const sourceFindings = actionable.map((row) => {
     const repair = row.recommendation === 'repair_high_value_source';
     return buildFinding({
       source: 'source-roi',
@@ -99,7 +99,27 @@ export function findingsFromSourceRoi(report) {
       effort: repair ? 3 : 2,
       observedAt: report.generatedAt,
     });
-  }));
+  });
+  const expansionFindings = (report?.expansionTop || []).map((row) => {
+    const expansionReady = row.recommendation === 'expand_state_vertical_slice';
+    const inputs = row.rankingInputs || {};
+    return buildFinding({
+      source: 'source-roi',
+      sourceKey: `expansion:${key(row.state)}:${key(row.source)}`,
+      area: 'data',
+      severity: expansionReady ? 'medium' : 'low',
+      title: text(`${row.state} ${row.source}: ${String(row.recommendation).replaceAll('_', ' ')}`, 120),
+      summary: text(`${row.source} scored ${row.score} from aggregate demand, source authority, reachability, stability, budget, and reversibility inputs.`, 500),
+      evidence: evidence([`authority ${inputs.sourceAuthority || 'unknown'}`, `reachability ${inputs.runnerReachability ?? 0}`, `request budget ${inputs.expectedRequestBudget ?? 0}`]),
+      recommendedAction: text(expansionReady ? 'Build one complete state vertical slice, then validate the autonomous activation contract.' : 'Collect deterministic source evidence or harden the source before considering a state vertical slice.', 400),
+      impact: expansionReady ? 4 : 2,
+      urgency: expansionReady ? 3 : 1,
+      confidence: expansionReady ? 0.85 : 0.65,
+      effort: Math.min(5, Math.max(1, Number(inputs.implementationEffort) || 3)),
+      observedAt: report.generatedAt,
+    });
+  });
+  return bounded([...sourceFindings, ...expansionFindings]);
 }
 
 export function findingsFromRadar(report) {

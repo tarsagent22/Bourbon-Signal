@@ -11,6 +11,16 @@ export function getStateLifecycle(state) {
   return STATE_LIFECYCLE[state] || null;
 }
 
+export function lifecycleAllowsInventoryAlert(state) {
+  const lifecycle = getStateLifecycle(state);
+  return Boolean(lifecycle && lifecycle.publicStatus === 'active' && lifecycle.inventoryAlertable !== false);
+}
+
+export function lifecycleAllowsWatchAlert(state) {
+  const lifecycle = getStateLifecycle(state);
+  return Boolean(lifecycle && lifecycle.publicStatus === 'active' && lifecycle.watchAlertable !== false);
+}
+
 export function customerStateLabel(state, fallback = state) {
   return getStateLifecycle(state)?.customerLabel || fallback || state;
 }

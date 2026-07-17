@@ -1,19 +1,23 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-12T00:25:38.623Z",
+  "runId": "a7401de0a51cca45",
+  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "engineGeneratedAt": "2026-07-16T22:57:36.743Z",
   "files": {
     "stats": "stats.json",
     "bottles": "bottles.json",
     "stores": "stores.json",
     "locations": "locations.json",
     "drops": "drops.json",
+    "stateDrops": "states/index.json",
     "events": "events.json",
     "alerts": "alerts.json",
+    "stateQuality": "state-quality.json",
     "historicalTrends": "historical-trends.json",
     "ncIntelligence": "nc-intelligence.json"
   },
   "historyDays": 30,
-  "snapshotCount": 40,
+  "snapshotCount": 38,
   "schemas": {
     "bottle": [
       "id",
@@ -86,6 +90,11 @@
       "type",
       "source",
       "sourceUrl",
+      "sourceChain",
+      "merchantId",
+      "productId",
+      "variantId",
+      "sourceIdentity",
       "observedAt",
       "releaseDate",
       "eventDate",
@@ -107,6 +116,7 @@
       "quantity",
       "availabilityStatus",
       "availabilityLabel",
+      "sourceAvailabilityVerified",
       "warehouseQty",
       "price",
       "confidence",
@@ -136,6 +146,11 @@
       "type",
       "source",
       "sourceUrl",
+      "sourceChain",
+      "merchantId",
+      "productId",
+      "variantId",
+      "sourceIdentity",
       "observedAt",
       "releaseDate",
       "eventDate",
@@ -157,6 +172,7 @@
       "quantity",
       "availabilityStatus",
       "availabilityLabel",
+      "sourceAvailabilityVerified",
       "warehouseQty",
       "price",
       "confidence",
@@ -214,10 +230,16 @@
       "eventType",
       "source",
       "sourceUrl",
+      "sourceChain",
+      "merchantId",
+      "productId",
+      "variantId",
       "locationPrecision",
       "locationName",
       "storeName",
+      "storeId",
       "storeAddress",
+      "city",
       "quantity",
       "availabilityStatus",
       "availabilityLabel",
@@ -249,22 +271,22 @@
     {
       "state": "AL",
       "file": "states/AL/drops.json",
-      "count": 0
+      "count": 1551
     },
     {
       "state": "AZ",
       "file": "states/AZ/drops.json",
-      "count": 9
+      "count": 0
     },
     {
       "state": "CA",
       "file": "states/CA/drops.json",
-      "count": 0
+      "count": 20
     },
     {
       "state": "FL",
       "file": "states/FL/drops.json",
-      "count": 0
+      "count": 28
     },
     {
       "state": "GA",
@@ -274,32 +296,32 @@
     {
       "state": "IA",
       "file": "states/IA/drops.json",
-      "count": 0
+      "count": 1548
     },
     {
       "state": "ID",
       "file": "states/ID/drops.json",
-      "count": 0
+      "count": 135
     },
     {
       "state": "IL",
       "file": "states/IL/drops.json",
-      "count": 0
+      "count": 199
     },
     {
       "state": "IN",
       "file": "states/IN/drops.json",
-      "count": 0
+      "count": 72
     },
     {
       "state": "KY",
       "file": "states/KY/drops.json",
-      "count": 0
+      "count": 1
     },
     {
       "state": "MD-MONTGOMERY",
       "file": "states/MD-MONTGOMERY/drops.json",
-      "count": 0
+      "count": 9
     },
     {
       "state": "MI",
@@ -319,32 +341,42 @@
     {
       "state": "NC",
       "file": "states/NC/drops.json",
-      "count": 0
+      "count": 727
     },
     {
       "state": "NV",
       "file": "states/NV/drops.json",
-      "count": 0
+      "count": 22
     },
     {
       "state": "OH",
       "file": "states/OH/drops.json",
-      "count": 0
+      "count": 399
     },
     {
       "state": "PA",
       "file": "states/PA/drops.json",
-      "count": 0
+      "count": 2
     },
     {
       "state": "SC",
       "file": "states/SC/drops.json",
-      "count": 77
+      "count": 3
     },
     {
       "state": "TN",
       "file": "states/TN/drops.json",
-      "count": 0
+      "count": 29
+    },
+    {
+      "state": "TX",
+      "file": "states/TX/drops.json",
+      "count": 4
+    },
+    {
+      "state": "UT",
+      "file": "states/UT/drops.json",
+      "count": 9
     },
     {
       "state": "VA",

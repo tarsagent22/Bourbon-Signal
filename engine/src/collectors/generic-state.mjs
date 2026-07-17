@@ -262,17 +262,22 @@ async function collectBrowserDiscoverySignals(config, bible) {
 
 function configuredSourceId(config, source) {
   const identity = source.id || stableId([source.url, source.label]);
-  return `${String(config.id || 'state').toLowerCase()}:configured:${String(identity).toLowerCase()}`;
+  const sourceKind = source.sourceRuntimeKind || 'configured';
+  return `${String(config.id || 'state').toLowerCase()}:${sourceKind}:${String(identity).toLowerCase()}`;
 }
 
 async function collectConfiguredSource(config, source, sourceId, bible, fetcher, signal) {
-  const response = await fetcher(source.url, { politeDelayMs: 300, signal });
+  const response = await fetcher(source.url, {
+    politeDelayMs: source.sourceRuntimeKind === 'api' ? 250 : 300,
+    ...(source.sourceRuntimeKind === 'api' ? { headers: { accept: 'application/json,*/*' } } : {}),
+    signal,
+  });
   if (!response?.ok) {
     const message = response?.error || response?.statusText || `HTTP ${response?.status || 0}`;
     if (!response || Number(response.status || 0) === 0) throw new TransientSourceError(message, { status: response?.status ?? 0 });
     throw sourceErrorForHttp(response.status, message);
   }
-  const contentIsJson = response.contentType.includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
+  const contentIsJson = source.requiresJson || String(response.contentType || '').includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
   const json = contentIsJson ? tryParseJson(response.text) : null;
   if (contentIsJson && !json) {
     throw new MalformedSourceError(`${source.label} returned malformed JSON`, { status: response.status });
@@ -280,8 +285,11 @@ async function collectConfiguredSource(config, source, sourceId, bible, fetcher,
   const text = json ? JSON.stringify(json).slice(0, 500000) : stripHtml(response.text);
   const matchedBottles = bible.scanText(text);
   const documentLinks = json ? [] : findDocumentLinks(response.text, response.url).slice(0, 30);
-  const kind = classifySignal(source, response, text, matchedBottles, documentLinks);
-  const sourceSignals = (json ? recordsFromJson(source, json, bible, config.id) : []).map((entry) => ({ ...entry, sourceRuntimeId: sourceId }));
+  const jsonRecords = json ? recordsFromJson(source, json, bible, config.id) : [];
+  const kind = source.sourceRuntimeKind === 'api'
+    ? (jsonRecords.length ? 'api_catalog_rows' : 'api_candidate_no_rows')
+    : classifySignal(source, response, text, matchedBottles, documentLinks);
+  const sourceSignals = jsonRecords.map((entry) => ({ ...entry, sourceRuntimeId: sourceId }));
   if (matchedBottles.length || documentLinks.length || response.ok) {
     sourceSignals.push({
       id: stableId([config.id, source.url, kind, response.status]),
@@ -292,7 +300,7 @@ async function collectConfiguredSource(config, source, sourceId, bible, fetcher,
       eventType: kind,
       canonicalBottleId: matchedBottles[0]?.id || null,
       canonicalName: matchedBottles[0]?.canonical || null,
-      matchedBottleCount: matchedBottles.length,
+      matchedBottleCount: source.sourceRuntimeKind === 'api' ? jsonRecords.length : matchedBottles.length,
       matchedBottles: matchedBottles.slice(0, 20).map((b) => ({ id: b.id, name: b.canonical, tier: b.tier })),
       documentLinks,
       readableSummary: summarizeText(text, matchedBottles),
@@ -324,18 +332,27 @@ async function collectConfiguredSource(config, source, sourceId, bible, fetcher,
 }
 
 function failedConfiguredSource(config, source, sourceId, result) {
-  const error = result.error?.message || 'Unknown source failure';
+  const error = result.error?.message || (result.quarantined ? `Source ${sourceId} is quarantined by configuration.` : 'Unknown source failure');
+  const retainedSourceReport = result.value?.sourceReport;
   return {
     signals: result.value?.signals || [],
     roadblocks: [{
       state: config.id,
       source: source.label,
       url: source.url,
+      sourceRuntimeId: sourceId,
       status: result.error?.status || result.status,
       error,
       nextRoute: 'Inspect the isolated source failure while sibling sources continue; retry only when the standardized error is transient.'
     }],
-    sourceReport: {
+    sourceReport: retainedSourceReport ? {
+      ...retainedSourceReport,
+      sourceRuntimeId: sourceId,
+      sourceRuntimeStatus: result.status,
+      ok: false,
+      stale: result.stale,
+      error,
+    } : {
       sourceRuntimeId: sourceId,
       label: source.label,
       url: source.url,
@@ -362,6 +379,9 @@ function skippedConfiguredSource(source, sourceId, result) {
     sourceReport: previousReport ? {
       ...previousReport,
       sourceRuntimeStatus: result.status,
+      ok: result.ok,
+      stale: result.stale,
+      error: result.error?.message || previousReport.error || null,
     } : {
       sourceRuntimeId: sourceId,
       label: source.label,
@@ -403,7 +423,14 @@ export async function collectState(config, bible, options = {}) {
 
   const configuredAdapters = [];
   const configuredSources = [];
-  for (const source of config.sources) {
+  const apiCandidates = (config.apiCandidates || []).map((url) => ({
+    kind: 'json',
+    url,
+    label: 'API candidate',
+    requiresJson: true,
+    sourceRuntimeKind: 'api',
+  }));
+  for (const source of [...(config.sources || []), ...apiCandidates]) {
     if (source.precisionOnly) {
       sourceReports.push({
         label: source.label,
@@ -430,6 +457,7 @@ export async function collectState(config, bible, options = {}) {
       execute: (_context, { signal }) => collectConfiguredSource(config, source, sourceId, bible, fetcher, signal),
       validate: (value) => Array.isArray(value?.signals) && value?.sourceReport ? true : 'Configured source result is malformed',
       recordCount: (value) => value.signals.length,
+      metadata: { stateId: config.id, lane: source.sourceRuntimeKind || 'configured' },
     }));
   }
   if (configuredAdapters.length) {
@@ -450,28 +478,6 @@ export async function collectState(config, bible, options = {}) {
       if (value?.sourceReport) sourceReports.push(value.sourceReport);
       sourceResults.push(summarizeSourceResult(result));
     }
-  }
-
-  for (const url of config.apiCandidates || []) {
-    const response = await fetchWithMeta(url, { headers: { accept: 'application/json,*/*' }, politeDelayMs: 250 });
-    const json = tryParseJson(response.text);
-    const extracted = json ? recordsFromJson({ url, label: 'API candidate' }, json, bible, config.id) : [];
-    if (!response.ok || !json) {
-      roadblocks.push({
-        state: config.id,
-        source: 'API candidate',
-        url,
-        status: response.status,
-        error: response.error || response.statusText || 'No parseable JSON returned',
-        nextRoute: 'Inspect browser network traffic for current API route and required headers/session tokens.'
-      });
-    }
-    signals.push(...extracted);
-    sourceReports.push({
-      label: 'API candidate', url, ok: response.ok, status: response.status, contentType: response.contentType,
-      bytes: response.bytes, elapsedMs: response.elapsedMs, signalType: extracted.length ? 'api_catalog_rows' : 'api_candidate_no_rows',
-      matchedBottleCount: extracted.length, pdfLinkCount: 0, error: response.error
-    });
   }
 
   const fallbackHints = FALLBACK_HINTS[config.id] || [];
@@ -538,25 +544,31 @@ export async function collectState(config, bible, options = {}) {
   const precisionProbe = await collectPrecisionProbes(config, bible, signals, {
     sourceCircuitBreaker,
     sourceRunnerOptions: options.sourceRunnerOptions,
+    previousSourceResults: options.previousSourceResults,
   });
   signals.push(...precisionProbe.signals);
   roadblocks.push(...precisionProbe.roadblocks);
   sourceResults.push(...(precisionProbe.sourceResults || []));
-  for (const sig of precisionProbe.signals) {
-    sourceReports.push({
-      label: `${sig.sourceLabel} (precision probe)`,
-      url: sig.sourceUrl,
-      ok: true,
-      status: 200,
-      contentType: 'precision-probe',
-      bytes: JSON.stringify(sig.raw || {}).length,
-      elapsedMs: 0,
-      signalType: sig.eventType,
-      matchedBottleCount: sig.canonicalBottleId ? 1 : 0,
-      pdfLinkCount: 0,
-      error: null,
-      locationPrecision: sig.locationPrecision
-    });
+  if (precisionProbe.sourceReports?.length) {
+    sourceReports.push(...precisionProbe.sourceReports);
+  } else {
+    for (const sig of precisionProbe.signals) {
+      sourceReports.push({
+        sourceRuntimeId: sig.sourceRuntimeId || null,
+        label: `${sig.sourceLabel} (precision probe)`,
+        url: sig.sourceUrl,
+        ok: !sig.raw?.sourceRuntimeNonAlertable,
+        status: 200,
+        contentType: 'precision-probe',
+        bytes: JSON.stringify(sig.raw || {}).length,
+        elapsedMs: 0,
+        signalType: sig.eventType,
+        matchedBottleCount: sig.canonicalBottleId ? 1 : 0,
+        pdfLinkCount: 0,
+        error: null,
+        locationPrecision: sig.locationPrecision
+      });
+    }
   }
 
   const dedupedSignals = [...new Map(signals.map((s) => [s.id, s])).values()];

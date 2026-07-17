@@ -7,5 +7,9 @@ PROMPT*.md
 .env.local
 .hermes/
 .operator/
+.state-promotion-transactions/
 data/retailer-acquisition/
 .env*.local
+.vercel/.env.*.local
+.vercel/output/
+/out/

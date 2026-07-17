@@ -1,0 +1,5 @@
+{
+  "scenario": "malformed",
+  "value": { "unexpected": true },
+  "expected": { "status": "malformed", "retryable": false }
+}

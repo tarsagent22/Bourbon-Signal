@@ -381,6 +381,8 @@ export function buildCompanyScorecard(snapshot: Record<string, unknown>, generat
   const engine = record(snapshot.engine);
   const alerts = record(snapshot.alerts);
   const release = record(snapshot.release);
+  const automation = record(snapshot.automation);
+  const automationTotals = record(automation.totals);
 
   const pastDue = scorecardNumber(memberCounts.pastDue);
   const freeNoValue = scorecardNumber(lifecycle.freeNoValue);
@@ -449,6 +451,16 @@ export function buildCompanyScorecard(snapshot: Record<string, unknown>, generat
         failedStates: engineFailed,
         degradedStates: engineDegraded,
         staleStates: engineStale,
+        automationDeterministicRuns: scorecardNumber(automationTotals.deterministicRuns),
+        automationAgentRuns: scorecardNumber(automationTotals.agentRuns),
+        automationFailedRuns: scorecardNumber(automationTotals.failedRuns),
+        automationBraveQueries: scorecardNumber(automationTotals.braveQueries),
+        automationDirectHttpProbes: scorecardNumber(automationTotals.directHttpProbes),
+        automationHeadlessBrowserPages: scorecardNumber(automationTotals.headlessBrowserPages),
+        automationSourcesDiscovered: scorecardNumber(automationTotals.sourcesDiscovered),
+        automationSourcesPromoted: scorecardNumber(automationTotals.sourcesPromoted),
+        automationTokens: scorecardNumber(automationTotals.tokens),
+        automationCoverageDelta: scorecardNumber(automationTotals.customerCoverageDelta),
       },
     },
     shipping: {

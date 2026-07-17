@@ -65,7 +65,7 @@ function normalizeCandidate(raw, index) {
   const item = raw && typeof raw === "object" ? raw : {};
   const title = safeToken(item.title);
   const sourceUrl = safeSourceUrl(item.sourceUrl);
-  const sourceType = ["official", "state", "verified"].includes(item.sourceType) ? item.sourceType : "verified";
+  const sourceType = ["official", "state", "verified", "unverified"].includes(item.sourceType) ? item.sourceType : "verified";
   const datePrecision = item.datePrecision === "exact" ? "exact" : "window";
   const kind = ["release", "lottery", "event", "bottle"].includes(item.kind) ? item.kind : "release";
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(item.startDate || "") ? item.startDate : null;
@@ -74,6 +74,7 @@ function normalizeCandidate(raw, index) {
   const issues = [];
   if (!title) issues.push("missing_title");
   if (!sourceUrl) issues.push("missing_https_source");
+  if (sourceType === "unverified") issues.push("unverified_lead");
   if (datePrecision === "exact" && !startDate) issues.push("exact_date_missing");
   if (kind === "bottle" && canonicalBottleRelations.length === 0) issues.push("canonical_bottle_missing");
   return {
@@ -81,7 +82,7 @@ function normalizeCandidate(raw, index) {
     title,
     kind,
     sourceUrl,
-    verificationStatus: sourceType === "verified" ? "verified" : "official",
+    verificationStatus: sourceType === "verified" ? "verified" : sourceType === "unverified" ? "unverified" : "official",
     sourceType,
     datePrecision,
     startDate,
@@ -122,10 +123,24 @@ function draftBody(payload) {
 
 async function main() {
   const inputPath = argument("input");
-  if (!inputPath) throw new Error("Provide a local structured input with --input=<path>.");
+  const leadLedgerPath = argument("lead-ledger");
+  if (!inputPath && !leadLedgerPath) throw new Error("Provide a local structured input with --input=<path> or --lead-ledger=<path>.");
   const outputPath = path.resolve(argument("output") || DEFAULT_OUTPUT);
   const draftPath = argument("draft-pr") ? path.resolve(argument("draft-pr")) : "";
-  const input = JSON.parse(await readFile(path.resolve(inputPath), "utf8"));
+  const input = inputPath
+    ? JSON.parse(await readFile(path.resolve(inputPath), "utf8"))
+    : {
+      candidates: (JSON.parse(await readFile(path.resolve(leadLedgerPath), "utf8")).leads || [])
+        .filter((lead) => lead?.status !== "dismissed")
+        .map((lead) => ({
+          title: lead.title,
+          sourceUrl: lead.url,
+          sourceType: "unverified",
+          kind: "release",
+          datePrecision: "window",
+          markets: [],
+        })),
+    };
   const candidates = Array.isArray(input.candidates) ? input.candidates.map(normalizeCandidate) : [];
   const payload = {
     schemaVersion: 1,
@@ -133,6 +148,7 @@ async function main() {
     liveCron: false,
     canPublish: false,
     canCreatePullRequest: false,
+    leadLedgerInput: Boolean(leadLedgerPath),
     generatedAt: new Date().toISOString(),
     candidates,
     summary: {

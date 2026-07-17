@@ -81,6 +81,10 @@ jobs:
         working-directory: engine
         run: npm run verify:site
 
+      - name: Verify no unproven state promotion entered the customer path
+        working-directory: engine
+        run: npm run verify:state-integration -- --all-active
+
       - name: Verify California San Diego release gate
         working-directory: engine
         run: npm run verify:ca

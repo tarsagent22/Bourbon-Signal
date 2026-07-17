@@ -8,6 +8,52 @@ export const DEFAULT_RELIABILITY_SLO = Object.freeze({
   refreshSafetyMarginMs: 5 * MINUTE,
 });
 
+export const DEFAULT_EXPANSION_PROMOTION_POLICY = Object.freeze({
+  minShadowRuns: 3,
+  minCanaryRuns: 2,
+  requireVerticalSliceManifest: true,
+  requireFixtureContract: true,
+  requireCanaryPreviewUrl: true,
+  requireImmutableEvidence: true,
+});
+
+const SHA256_RE = /^[a-f0-9]{64}$/i;
+const PRODUCTION_HOSTS = new Set(['bourbonsignal.com', 'www.bourbonsignal.com']);
+
+function isIsolatedPreviewUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !PRODUCTION_HOSTS.has(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function validEvidenceRuns(runs, minimum) {
+  if (!Array.isArray(runs) || runs.length < minimum) return false;
+  const ids = new Set();
+  for (const run of runs) {
+    if (!run || run.status !== 'success' || typeof run.runId !== 'string' || !run.runId.trim() || !SHA256_RE.test(String(run.artifactHash || '')) || ids.has(run.runId)) return false;
+    ids.add(run.runId);
+  }
+  return true;
+}
+
+export function validateImmutablePromotionEvidence(state, evidence, policy = DEFAULT_EXPANSION_PROMOTION_POLICY) {
+  const manifest = evidence?.immutableEvidence;
+  if (!manifest || manifest.schemaVersion !== 1 || manifest.state !== state || !Number.isFinite(Date.parse(manifest.generatedAt)) || !SHA256_RE.test(String(manifest.sourceConfigHash || ''))) return false;
+  if (!isIsolatedPreviewUrl(evidence?.canaryPreviewUrl) || manifest.previewUrl !== evidence.canaryPreviewUrl) return false;
+  if (!validEvidenceRuns(manifest.shadowRuns, Number(policy.minShadowRuns)) || !validEvidenceRuns(manifest.canaryRuns, Number(policy.minCanaryRuns))) return false;
+  const provenance = manifest.provenance;
+  if (!provenance || provenance.status !== 'success') return false;
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(String(provenance.repository || ''))) return false;
+  if (!/^\d+$/.test(String(provenance.workflowRunId || '')) || !/^\d+$/.test(String(provenance.artifactId || ''))) return false;
+  if (!/^[a-f0-9]{40}$/i.test(String(provenance.commitSha || ''))) return false;
+  if (!SHA256_RE.test(String(provenance.artifactDigest || '')) || !SHA256_RE.test(String(provenance.bundleDigest || ''))) return false;
+  const expectedRunUrl = `https://github.com/${provenance.repository}/actions/runs/${provenance.workflowRunId}`;
+  return provenance.workflowRunUrl === expectedRunUrl && String(provenance.artifactName || '').includes(`provenance-${state}-`);
+}
+
 function stateSet(value = '') {
   return new Set(String(value).split(',').map((item) => item.trim().toUpperCase()).filter(Boolean));
 }
@@ -47,6 +93,7 @@ export function evaluateCapacityBudget({ stateExpectedRunMs = [], concurrency = 
 export function validateExpansionLifecycle(config = {}) {
   const activeStates = Array.isArray(config.activeStates) ? config.activeStates : [];
   const grandfathered = new Set(config.reliabilityPolicy?.grandfatheredActiveStates || []);
+  const promotionPolicy = { ...DEFAULT_EXPANSION_PROMOTION_POLICY, ...(config.reliabilityPolicy?.promotionPolicy || {}) };
   const failures = [];
   for (const state of activeStates) {
     const lifecycle = config.states?.[state];
@@ -57,9 +104,13 @@ export function validateExpansionLifecycle(config = {}) {
     if (grandfathered.has(state)) continue;
     if (lifecycle.promotionStage !== 'active') failures.push(`${state}: promotionStage must be active after shadow and canary.`);
     const evidence = lifecycle.promotionEvidence;
-    if (!evidence || Number(evidence.shadowRuns || 0) < 1 || Number(evidence.canaryRuns || 0) < 1 || !Number.isFinite(Date.parse(evidence.verifiedAt))) {
-      failures.push(`${state}: promotionEvidence requires shadowRuns, canaryRuns, and verifiedAt.`);
+    if (!evidence || Number(evidence.shadowRuns || 0) < Number(promotionPolicy.minShadowRuns) || Number(evidence.canaryRuns || 0) < Number(promotionPolicy.minCanaryRuns) || !Number.isFinite(Date.parse(evidence.verifiedAt))) {
+      failures.push(`${state}: promotionEvidence requires ${promotionPolicy.minShadowRuns} shadowRuns, ${promotionPolicy.minCanaryRuns} canaryRuns, and verifiedAt.`);
     }
+    if (promotionPolicy.requireVerticalSliceManifest !== false && !evidence?.verticalSliceManifest) failures.push(`${state}: promotionEvidence requires a vertical-slice manifest reference.`);
+    if (promotionPolicy.requireFixtureContract !== false && !evidence?.fixtureContract) failures.push(`${state}: promotionEvidence requires a golden fixture contract reference.`);
+    if (promotionPolicy.requireCanaryPreviewUrl !== false && !evidence?.canaryPreviewUrl) failures.push(`${state}: promotionEvidence requires a canary preview URL.`);
+    if (promotionPolicy.requireImmutableEvidence !== false && !validateImmutablePromotionEvidence(state, evidence, promotionPolicy)) failures.push(`${state}: promotionEvidence requires immutable promotion evidence with unique successful shadow/canary run hashes and an isolated preview URL.`);
   }
   return { ok: failures.length === 0, failures };
 }

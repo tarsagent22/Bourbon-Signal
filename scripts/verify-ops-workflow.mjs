@@ -37,7 +37,7 @@ if (packageJson.name !== 'bourbon-signal') {
 if (!packageJson.scripts?.['test:ops']) {
   fail('package.json should expose test:ops for workflow guardrails.');
 }
-for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue']) {
+for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:radar-leads', 'ops:source-expansion', 'ops:automation-cost', 'verify:automation', 'test:agent-cost-automation']) {
   if (!packageJson.scripts?.[scriptName]) fail(`package.json should expose ${scriptName} for Bourbon Signal self-improvement loops.`);
 }
 
@@ -47,6 +47,9 @@ if (!enginePackageJson.scripts?.['verify:site']) {
 }
 if (!enginePackageJson.scripts?.['store:identity']) {
   fail('engine/package.json should expose store:identity so refresh/deploy loops can build the store identity graph.');
+}
+for (const scriptName of ['verify:state-integration', 'verify:state-fixtures', 'shadow:expansion', 'canary:state', 'promote:state']) {
+  if (!enginePackageJson.scripts?.[scriptName]) fail(`engine/package.json should expose ${scriptName} for guarded state expansion.`);
 }
 
 const vercelConfig = JSON.parse(read('vercel.json'));
@@ -79,6 +82,13 @@ if (!/steps\.recovery\.outcome == 'failure'/.test(engineWatchdogWorkflow)
 }
 
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
+if (stateLifecycleConfig.reliabilityPolicy?.promotionPolicy?.minShadowRuns < 3
+  || stateLifecycleConfig.reliabilityPolicy?.promotionPolicy?.minCanaryRuns < 2
+  || stateLifecycleConfig.reliabilityPolicy?.promotionPolicy?.requireVerticalSliceManifest !== true
+  || stateLifecycleConfig.reliabilityPolicy?.promotionPolicy?.requireFixtureContract !== true
+  || stateLifecycleConfig.reliabilityPolicy?.promotionPolicy?.requireCanaryPreviewUrl !== true) {
+  fail('State lifecycle reliability policy must preserve shadow, canary, vertical-slice, fixture, and preview promotion gates.');
+}
 const customerStates = new Set(stateLifecycleConfig.activeStates || []);
 const stateSources = read('engine/src/state-sources.mjs');
 if (!/state-lifecycle\.mjs/.test(stateSources)) {
@@ -119,10 +129,20 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
     && enginePackageJson.scripts?.['verify:fl']
     && /FLORIDA_RETAILER_IDENTITIES/.test(read('engine/src/florida-retailer-policy.mjs'))
     && /isFloridaRetailerInventory/.test(read('engine/src/export-site-contract.mjs'));
-  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory) continue;
-  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for customer-facing coverage, unless it is explicitly Costco-only.`);
+  const isHardenedUtahAggregateWatch = state === 'UT'
+    && customerStates.has('UT')
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.lifecycle === 'aggregate_inventory_watch'
+    && lifecycle?.coverageTier === 'aggregate_inventory_watch'
+    && lifecycle?.inventoryAlertable === false
+    && lifecycle?.watchAlertable === false
+    && enginePackageJson.scripts?.['verify:ut']
+    && existsSync(path.join(root, 'engine/data/state-integration/UT.json'))
+    && existsSync(path.join(root, 'engine/data/state-fixtures/UT.json'));
+  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedUtahAggregateWatch) continue;
+  if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for its explicitly verified customer-facing coverage contract.`);
   if (lifecycle?.publicStatus !== 'research_only') {
-    fail(`${state} should have explicit research_only lifecycle status unless it is explicitly Costco-only.`);
+    fail(`${state} should have explicit research_only lifecycle status unless it has an explicitly verified customer-facing coverage contract.`);
   }
 }
 if (stateLifecycleConfig.states?.SC?.publicStatus !== 'active'
@@ -180,8 +200,31 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
+for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'automation/bourbon-signal/release-radar-lead-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
   expectFile(requiredFile);
+}
+const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
+if (!automationRegistry.automations?.some((entry) => entry.id === 'github-engine-watchdog' && entry.executionClass === 'script_only')) {
+  fail('Automation registry must keep the deterministic production watchdog script-only.');
+}
+if (!automationRegistry.automations?.some((entry) => entry.id === 'hermes-bottle-queue' && entry.executionClass === 'script_only')) {
+  fail('Automation registry must classify the bottle queue routine path as script-only.');
+}
+const bottleQueue = read('automation/bourbon-signal/bottle-queue-autoprocess.mjs');
+if (!/compactAmbiguity/.test(bottleQueue) || !/payload\.ambiguity/.test(bottleQueue)) {
+  fail('Bottle queue automation must keep success silent and print only a compact ambiguity artifact.');
+}
+const automationCost = read('automation/bourbon-signal/automation-cost-report.mjs');
+for (const phrase of ['aggregateOnly: true', 'containsPrompts: false', 'containsPii: false', 'directHttpProbes', 'averageTokensPerUsefulFinding']) {
+  if (!automationCost.includes(phrase)) fail(`Automation cost report must keep aggregate-only telemetry: ${phrase}`);
+}
+const sourceExpansionCollector = read('automation/bourbon-signal/source-expansion-collector.mjs');
+for (const phrase of ['MAX_STATES_PER_RUN', 'state-source-discovery.mjs', 'state-source-probe.mjs', 'canPromote: false', 'canPublish: false']) {
+  if (!sourceExpansionCollector.includes(phrase)) fail(`Source expansion collector is missing bounded deterministic contract: ${phrase}`);
+}
+const radarLeadCollector = read('automation/bourbon-signal/release-radar-lead-collector.mjs');
+for (const phrase of ['MAX_QUERIES', 'canPublish: false', 'canCreatePullRequest: false', 'canCreateAlerts: false', 'announcement_only']) {
+  if (!radarLeadCollector.includes(phrase)) fail(`Release Radar lead collector must remain non-publishing: ${phrase}`);
 }
 const alertCopyContract = read('scripts/verify-alert-copy-contract.mjs');
 for (const phrase of ['address unavailable; check source before driving', 'Board-level signal; check source before driving', 'Reply STOP to unsubscribe']) {
@@ -330,10 +373,31 @@ const rootPackageJson = JSON.parse(read('package.json'));
 const verifyCi = String(rootPackageJson.scripts?.['verify:ci'] || '');
 if (workflow && !workflow.includes('npm ci')) fail('CI workflow should install dependencies with npm ci.');
 if (workflow && !workflow.includes('npm run verify:ci')) fail('CI workflow should run the shared verify:ci script.');
+if (workflow && !workflow.includes('npm run verify:state-lifecycle-drift')) fail('CI workflow should fail on generated lifecycle drift.');
 for (const phrase of ['npm run build', 'npm run test:ops', 'npm --prefix engine run verify:site']) {
   if (!verifyCi.includes(phrase)) {
     fail(`verify:ci script should include: ${phrase}`);
   }
+}
+for (const phrase of ['npm run verify:state-lifecycle-drift', 'npm run test:state-user-path', 'npm --prefix engine run verify:state-integration -- --all-active']) {
+  if (!verifyCi.includes(phrase)) fail(`verify:ci script should include ${phrase} for lifecycle/customer-path gates.`);
+}
+
+const shadowWorkflow = expectFile('.github/workflows/state-expansion-shadow.yml');
+for (const phrase of ['BOURBON_SIGNAL_AUTO_DEPLOY: "0"', 'ALERT_DELIVERY_ENABLED: "0"', 'npm run shadow:expansion', 'engine/out/shadow']) {
+  if (shadowWorkflow && !shadowWorkflow.includes(phrase)) fail(`Shadow workflow must include ${phrase}.`);
+}
+if (shadowWorkflow && /BLOB_READ_WRITE_TOKEN|publish-site-snapshot|--prod/.test(shadowWorkflow)) {
+  fail('Shadow workflow must never publish a production snapshot or deploy production.');
+}
+const canaryWorkflow = expectFile('.github/workflows/state-expansion-canary.yml');
+for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'npm run verify:state-integration', 'vercel deploy', 'BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow']) {
+  if (canaryWorkflow && !canaryWorkflow.includes(phrase)) fail(`Canary workflow must include ${phrase}.`);
+}
+if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Canary workflow must deploy only an isolated preview, never --prod.');
+const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
+if (refreshFeedWorkflow && !refreshFeedWorkflow.includes('Verify no unproven state promotion entered the customer path')) {
+  fail('Production refresh must verify the state integration gate before snapshot publication.');
 }
 
 if (failures.length) {

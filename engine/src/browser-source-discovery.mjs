@@ -1,107 +1,173 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import os from 'node:os';
+import path from 'node:path';
+
 import { ALL_STATE_SOURCES } from './state-sources.mjs';
-import { BrowserPage, DEFAULT_CDP_URL, getOrCreateTarget, sleep, writeJson } from './core/browser-session.mjs';
+import { BrowserPage, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp, sleep, writeJson } from './core/browser-session.mjs';
 
-const STATE_IDS = (process.env.BROWSER_DISCOVERY_STATES || process.argv.find((a) => a.startsWith('--states='))?.split('=')[1] || 'OR,PA,NH,MD-MONTGOMERY,ME')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
-const OUT_DIR = process.env.BROWSER_DISCOVERY_OUT_DIR || 'out/browser';
-const WAIT_MS = Number(process.env.BROWSER_DISCOVERY_WAIT_MS || 2500);
-const MAX_SOURCES_PER_STATE = Number(process.env.BROWSER_DISCOVERY_MAX_SOURCES || 5);
+const DEFAULT_CDP_URL = process.env.BROWSER_DISCOVERY_CDP_URL || 'http://127.0.0.1:18881';
+const DEFAULT_OUT_DIR = process.env.BROWSER_DISCOVERY_OUT_DIR || 'out/browser-probe';
+const DEFAULT_MAX_STATES = Number(process.env.BROWSER_DISCOVERY_MAX_STATES || 3);
+const DEFAULT_MAX_SOURCES = Number(process.env.BROWSER_DISCOVERY_MAX_SOURCES || 2);
+const DEFAULT_MAX_PAGES = Number(process.env.BROWSER_DISCOVERY_MAX_PAGES || 6);
+const DEFAULT_MAX_DURATION_MS = Number(process.env.BROWSER_DISCOVERY_MAX_DURATION_MS || 8 * 60_000);
+const CANDIDATE_REGISTRY_PATH = fileURLToPath(new URL('../data/state-expansion-candidates.json', import.meta.url));
 
-function likelyApi(row) {
-  return /api|search|product|inventory|availability|store|locator|ccstore|webapi|asmx|ajax|json|graphql/i.test(row.url || row.name || '');
-}
-
-function normalizeEndpoint(url) {
+function secureSource(source) {
   try {
-    const parsed = new URL(url);
-    parsed.hash = '';
-    return parsed.toString();
+    return new URL(source?.url || '').protocol === 'https:';
   } catch {
-    return url;
+    return false;
   }
 }
 
-function summarizePage(page, network) {
-  const productLinks = (page.links || [])
-    .filter((l) => /product|liquor|spirits|whiskey|bourbon|item|sku|store|location/i.test(`${l.href} ${l.text}`))
-    .slice(0, 120);
-  const apiResources = [...(page.resources || []).filter(likelyApi), ...(network || []).filter(likelyApi)]
-    .map((r) => ({ ...r, url: normalizeEndpoint(r.url || r.name) }))
-    .filter((r, i, arr) => r.url && arr.findIndex((x) => x.url === r.url && x.type === r.type) === i)
-    .slice(0, 160);
+function normalizeEndpoint(value) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:') return null;
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function likelyEndpoint(value) {
+  return /api|search|product|inventory|availability|store|locator|ccstore|webapi|asmx|ajax|json|graphql/i.test(value || '');
+}
+
+function sourceMap() {
+  return new Map(ALL_STATE_SOURCES.map((state) => [state.id, (state.sources || []).filter(secureSource)]));
+}
+
+export function createBrowserDiscoveryPlan({
+  stateIds,
+  registryStates,
+  sourceByState,
+  maxStates = DEFAULT_MAX_STATES,
+  maxSourcesPerState = DEFAULT_MAX_SOURCES,
+  maxPages = DEFAULT_MAX_PAGES,
+  maxDurationMs = DEFAULT_MAX_DURATION_MS,
+} = {}) {
+  const knownStates = new Set((registryStates || []).map((state) => state.state || state.id));
+  const selectedIds = (stateIds || []).map((state) => String(state).trim().toUpperCase()).filter(Boolean);
+  if (!selectedIds.length) throw new Error('Browser discovery requires an explicit state allowlist.');
+  if (selectedIds.length > maxStates) throw new Error(`Browser discovery state allowlist exceeds ${maxStates}.`);
+  if (!sourceByState?.get) throw new Error('Browser discovery requires an explicit source allowlist.');
+  const sources = [];
+  for (const state of selectedIds) {
+    if (!knownStates.has(state)) throw new Error(`Unknown or disallowed browser discovery state ${state}.`);
+    const allowedSources = (sourceByState.get(state) || []).filter(secureSource).slice(0, maxSourcesPerState);
+    if (!allowedSources.length) throw new Error(`No HTTPS source allowlist exists for ${state}.`);
+    for (const source of allowedSources) sources.push({ state, source: { label: source.label || source.name || source.url, url: source.url } });
+  }
+  if (sources.length > maxPages) throw new Error(`Browser discovery page limit (${maxPages}) is below selected source count.`);
   return {
-    url: page.url,
-    title: page.title,
-    textSample: page.text,
-    textLength: page.text?.length || 0,
-    csrfTokenPresent: Boolean(page.csrfToken),
-    productLinks,
-    apiResources,
-    scripts: (page.scripts || []).slice(0, 80)
+    stateIds: selectedIds,
+    registryStates,
+    sourceByState,
+    sources,
+    maxStates,
+    maxSourcesPerState,
+    maxPages,
+    maxDurationMs,
+    profileMode: 'ephemeral_isolated',
   };
 }
 
-async function discoverState(page, config) {
-  const pages = [];
-  const roadblocks = [];
-  for (const source of config.sources.slice(0, MAX_SOURCES_PER_STATE)) {
-    console.log(`${config.id} browser ${source.label}`);
-    try {
-      await page.navigate(source.url, WAIT_MS);
-      await page.evaluate(`(() => {
-        const buttons = Array.from(document.querySelectorAll('button,input[type="submit"],a'));
-        const age = buttons.find((el) => /i'?m 21|21 or older|yes,? i am over 21|yes/i.test(String(el.value || el.textContent || '').trim()) && !/newsletter|submit/i.test(String(el.value || el.textContent || '').trim()));
-        if (age) { age.click(); return true; }
-        return false;
-      })()`).catch(() => false);
-      await sleep(1200);
-      const extracted = await page.extractPage();
-      pages.push({ source, ...summarizePage(extracted, page.networkSummary()) });
-      console.log(`  ok: ${extracted.title || extracted.url} (${extracted.text?.length || 0} chars)`);
-    } catch (error) {
-      roadblocks.push({ source, error: error.message });
-      console.log(`  blocked: ${error.message}`);
-    }
+export function compactBrowserDiscoveryResult({ state, source, page = {}, network = [] } = {}) {
+  const byUrl = new Map();
+  for (const resource of page.resources || []) {
+    const url = normalizeEndpoint(resource.name || resource.url);
+    if (!url || !likelyEndpoint(url)) continue;
+    byUrl.set(url, { url, method: null, status: null, resourceType: null });
   }
-  const endpointCandidates = pages.flatMap((p) => p.apiResources.map((r) => ({ pageUrl: p.url, ...r })))
-    .filter((r, i, arr) => arr.findIndex((x) => x.url === r.url) === i);
-  const productLinks = pages.flatMap((p) => p.productLinks.map((l) => ({ pageUrl: p.url, ...l })))
-    .filter((r, i, arr) => arr.findIndex((x) => x.href === r.href) === i);
+  for (const event of network || []) {
+    const url = normalizeEndpoint(event.url);
+    if (!url || !likelyEndpoint(url)) continue;
+    const previous = byUrl.get(url) || { url, method: null, status: null, resourceType: null };
+    byUrl.set(url, {
+      ...previous,
+      method: event.method || previous.method,
+      status: event.status || previous.status,
+      resourceType: event.resourceType || previous.resourceType,
+    });
+  }
   return {
-    generatedAt: new Date().toISOString(),
-    state: config.id,
-    label: config.label,
-    sourceCount: config.sources.length,
-    renderedPageCount: pages.length,
-    endpointCandidateCount: endpointCandidates.length,
-    productLinkCount: productLinks.length,
-    pages,
-    endpointCandidates,
-    productLinks,
-    roadblocks
+    state,
+    source: { label: source?.label || null, url: source?.url || null },
+    page: { url: page.url || null, title: String(page.title || '').slice(0, 240) || null },
+    endpointCandidates: [...byUrl.values()].sort((left, right) => left.url.localeCompare(right.url)).slice(0, 80),
   };
+}
+
+async function discoverSource(page, item, startedAt, maxDurationMs) {
+  if (Date.now() - startedAt > maxDurationMs) throw new Error('Browser discovery duration budget exhausted.');
+  await page.navigate(item.source.url, Number(process.env.BROWSER_DISCOVERY_WAIT_MS || 1_500));
+  await sleep(250);
+  const extracted = await page.extractPage();
+  return compactBrowserDiscoveryResult({ state: item.state, source: item.source, page: extracted, network: page.networkSummary() });
 }
 
 async function main() {
-  const target = await getOrCreateTarget(DEFAULT_CDP_URL);
-  const page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: process.env.BROWSER_PAGE_TIMEOUT_MS || 55000 });
-  await page.connect();
-  const summaries = [];
+  const args = Object.fromEntries(process.argv.slice(2).filter((arg) => arg.startsWith('--')).map((arg) => {
+    const [key, value = 'true'] = arg.slice(2).split('=');
+    return [key, value];
+  }));
+  const requestedStates = String(args.states || process.env.BROWSER_DISCOVERY_STATES || 'OR,NH,PA')
+    .split(',').map((state) => state.trim().toUpperCase()).filter(Boolean);
+  const registry = JSON.parse(await readFile(CANDIDATE_REGISTRY_PATH, 'utf8'));
+  const registryStates = [...registry.states, ...(registry.scopedControlMarkets || []).map((market) => ({ ...market, state: market.id }))];
+  const plan = createBrowserDiscoveryPlan({
+    stateIds: requestedStates,
+    registryStates,
+    sourceByState: sourceMap(),
+    maxStates: Number(args['max-states'] || DEFAULT_MAX_STATES),
+    maxSourcesPerState: Number(args['max-sources'] || DEFAULT_MAX_SOURCES),
+    maxPages: Number(args['max-pages'] || DEFAULT_MAX_PAGES),
+    maxDurationMs: Number(args['max-duration-ms'] || DEFAULT_MAX_DURATION_MS),
+  });
+  const profileDir = await mkdtemp(path.join(os.tmpdir(), 'bourbon-signal-browser-probe-'));
+  let browser;
+  let page;
   try {
-    for (const id of STATE_IDS) {
-      const config = ALL_STATE_SOURCES.find((s) => s.id === id);
-      if (!config) throw new Error(`Unknown state id: ${id}`);
-      const result = await discoverState(page, config);
-      summaries.push({ state: result.state, renderedPageCount: result.renderedPageCount, endpointCandidateCount: result.endpointCandidateCount, productLinkCount: result.productLinkCount, roadblockCount: result.roadblocks.length });
-      await writeJson(`${OUT_DIR}/${id}-browser-discovery.json`, result);
+    browser = await ensureBrowserCdp(DEFAULT_CDP_URL, { profileDir, requireFresh: true, timeoutMs: 30_000 });
+    const startedAt = Date.now();
+    const target = await getOrCreateTarget(DEFAULT_CDP_URL);
+    page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: Math.min(plan.maxDurationMs, 55_000) });
+    await page.connect();
+    const records = [];
+    const roadblocks = [];
+    for (const item of plan.sources) {
+      try {
+        records.push(await discoverSource(page, item, startedAt, plan.maxDurationMs));
+      } catch (error) {
+        roadblocks.push({ state: item.state, sourceUrl: item.source.url, reason: (error instanceof Error ? error.message : String(error)).slice(0, 240) });
+      }
     }
+    const output = {
+      schemaVersion: 'bourbon-signal-browser-source-discovery-v1',
+      generatedAt: new Date().toISOString(),
+      profileMode: plan.profileMode,
+      pageLimit: plan.maxPages,
+      durationLimitMs: plan.maxDurationMs,
+      records,
+      roadblocks,
+    };
+    await writeJson(path.join(DEFAULT_OUT_DIR, 'browser-discovery-summary.json'), output);
+    for (const state of plan.stateIds) {
+      const stateOutput = { ...output, records: records.filter((record) => record.state === state), roadblocks: roadblocks.filter((roadblock) => roadblock.state === state) };
+      await writeJson(path.join(DEFAULT_OUT_DIR, `${state}-browser-discovery.json`), stateOutput);
+    }
+    console.log(JSON.stringify({ states: plan.stateIds, pages: records.length, roadblocks: roadblocks.length }, null, 2));
   } finally {
-    page.close();
+    page?.close();
+    await killBrowserCdp(browser);
+    await rm(profileDir, { recursive: true, force: true });
   }
-  await writeJson(`${OUT_DIR}/browser-discovery-summary.json`, { generatedAt: new Date().toISOString(), states: summaries });
-  console.log(`Browser discovery complete: ${summaries.map((s) => `${s.state}:${s.renderedPageCount}p/${s.endpointCandidateCount}api/${s.productLinkCount}links`).join(', ')}`);
 }
 
-main().catch((error) => { console.error(error); process.exit(1); });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => { console.error(error.message); process.exit(1); });
+}

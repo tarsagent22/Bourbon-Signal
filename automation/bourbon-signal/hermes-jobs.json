@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-07-17T00:44:00.000Z",
+  "source": "Hermes scheduler read-only job listing",
+  "jobs": [
+    {
+      "jobId": "3244b5822d87",
+      "name": "Bourbon Signal autonomous company operator",
+      "schedule": "0 1 * * *",
+      "deliver": "local",
+      "noAgent": false,
+      "script": null,
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "59eb8dd6ad07",
+      "name": "Bourbon Signal daily company brief",
+      "schedule": "0 8 * * *",
+      "deliver": "origin",
+      "noAgent": false,
+      "script": null,
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "a7e40e29f603",
+      "name": "Bourbon Signal silent demand and source scout",
+      "schedule": "0 10 * * 1",
+      "deliver": "local",
+      "noAgent": false,
+      "script": null,
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "bf9e05209184",
+      "name": "Bourbon Signal silent bottle queue sensor",
+      "schedule": "every 480m",
+      "deliver": "local",
+      "noAgent": true,
+      "script": "bourbon_signal_bottle_queue_check.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "00f56edff2e9",
+      "name": "Bourbon Signal silent Release Radar scout",
+      "schedule": "15 9 * * *",
+      "deliver": "local",
+      "noAgent": true,
+      "script": "bourbon_signal_release_radar_leads.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "8143c08618e6",
+      "name": "Bourbon Signal weekly strategy review",
+      "schedule": "30 8 * * 5",
+      "deliver": "origin",
+      "noAgent": false,
+      "script": null,
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "9e548bfe11d3",
+      "name": "Bourbon Signal deterministic state source collector",
+      "schedule": "15 6 * * *",
+      "deliver": "local",
+      "noAgent": true,
+      "script": "bourbon_signal_source_expansion.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    },
+    {
+      "jobId": "0f844531ccdf",
+      "name": "Bourbon Signal live automation registry reconciliation",
+      "schedule": "5 6 * * *",
+      "deliver": "local",
+      "noAgent": true,
+      "script": "bourbon_signal_cron_reconcile.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true
+    }
+  ]
+}

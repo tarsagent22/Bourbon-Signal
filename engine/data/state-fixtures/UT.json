@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "state": "UT",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ut-old-forester-birthday-positive",
+      "kind": "positive_bottle_match",
+      "input": { "sourceLabel": "Allocated and rare products", "rawName": "Old Forester Birthday Bourbon" },
+      "expected": { "canonicalName": "Old Forester Birthday Bourbon", "tier": "unicorn", "customerVisible": true, "alertable": false }
+    },
+    {
+      "id": "ut-ordinary-bourbon-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": { "rawName": "Utah Straight Bourbon 750ml", "sourceStatus": "1 General Distribution" },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "ut-rye-cream-rtd-exclusions",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": { "rawNames": ["Rye Cream Liqueur", "Bourbon RTD Cocktail"] },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "ut-size-multipack-exclusion",
+      "kind": "size_or_multipack_exclusion",
+      "input": { "rawName": "Mini Bourbon Gift Pack 12 x 50ml" },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "ut-aggregate-availability-semantics",
+      "kind": "availability_semantics",
+      "input": { "storeQty": 4, "warehouseQty": 12, "locationPrecision": "board_warehouse" },
+      "expected": { "quantity": null, "exactShelfQuantity": false, "canAlertAsInventory": false, "canAlertAsWatch": false }
+    },
+    {
+      "id": "ut-statewide-store-identity",
+      "kind": "store_identity",
+      "input": { "locationName": "Utah DABS", "locationPrecision": "store_aggregate" },
+      "expected": { "storeId": null, "storeAddress": null, "fabricateIdentity": false }
+    },
+    {
+      "id": "ut-original-observation-time",
+      "kind": "timestamp_freshness",
+      "input": { "fetchedAt": "2026-07-16T22:14:22.306Z" },
+      "expected": { "preserveOriginalTimestamp": true, "futureTimestampAllowed": false, "staleRowsAlertable": false }
+    },
+    {
+      "id": "ut-official-domain-sentinel",
+      "kind": "source_specific_sentinel",
+      "input": { "sourceUrl": "https://abs.utah.gov/shop-products/allocatedandrare/" },
+      "expected": { "officialHost": true, "allowlistedHosts": ["abs.utah.gov", "webapps2.abc.utah.gov"] }
+    }
+  ]
+}

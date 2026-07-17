@@ -54,6 +54,18 @@ for (const file of readdirSync(siteDir).filter((name) => name.endsWith('.json'))
 
 const stats = readJson('stats.json');
 const stateQuality = readJson('state-quality.json');
+const lifecycleConfig = JSON.parse(readFileSync(path.join(root, '..', 'src', 'config', 'state-lifecycle.json'), 'utf8'));
+const grandfatheredStates = new Set(lifecycleConfig.reliabilityPolicy?.grandfatheredActiveStates || []);
+for (const state of lifecycleConfig.activeStates || []) {
+  if (grandfatheredStates.has(state)) continue;
+  const manifestPath = path.join(root, 'data', 'state-integration', `${state}.json`);
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    if (manifest.state !== state) fail(`State integration manifest ${state}.json does not declare ${state}.`);
+  } catch {
+    fail(`New active state ${state} is missing engine/data/state-integration/${state}.json.`);
+  }
+}
 if (stats.stateCount !== activeStates.size) {
   fail(`stats.stateCount should be ${activeStates.size}, got ${stats.stateCount}`);
 }

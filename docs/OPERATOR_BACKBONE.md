@@ -142,3 +142,9 @@ npm run test:operations-dashboard
 ```
 
 The operator test covers contract rejection, stable IDs, bounded adapters, issue body round-tripping, `gh` dry-run safety, aggregate-only scorecards, exact daily sections, weekly objective ranking, atomic remote claims, canonical lifecycle rollback, and safe release ordering.
+
+## Script-first expansion inputs
+
+The source expansion collector, Radar lead ledger, automation registry, and automation-cost report are deterministic input producers. They do not create a second backlog: source ROI converts bounded expansion candidates into the existing canonical finding contract. The daily and weekly records carry only a compact context index (scorecard statuses, bounded finding IDs, and selected objective), so an optional Terra review can reason over an artifact instead of raw discovery output.
+
+The autonomous activation threshold is checked separately from ROI ranking. `safe_autonomous` requires public official/first-party evidence, clear terms, no authentication, exact source/store identity, honest semantics, a complete vertical slice, three shadow runs, two canary runs, headroom, reversibility, and no communication/pricing/entitlement/legal policy change. Every other condition is `approval_required`; neither a collector nor a brief may override that lane.
