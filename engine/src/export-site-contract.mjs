@@ -1515,6 +1515,11 @@ async function main() {
   const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
+  if (process.env.BOURBON_SIGNAL_DEBUG_PARTIAL_REFRESH === '1') {
+    const debugCounts = Object.fromEntries([...new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))].map((state) => [state, currentDrops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === state).length]));
+    console.warn(JSON.stringify({ attemptedStateIds: summary.attemptedStateIds, previousDropCounts: Object.fromEntries((previousStateQuality?.states || []).map((state) => [state.state, state.dropCount ?? state.input?.dropCount ?? 0])), currentDropCounts: debugCounts, detectedFallbackStateIds }));
+  }
+  if (detectedFallbackStateIds.length) console.warn(`Site export preserved last-good customer lanes after drop collapse: ${detectedFallbackStateIds.join(', ')}`);
   summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...detectedFallbackStateIds])].sort();
   const fallbackStateIds = new Set(summary.fallbackStateIds);
   const drops = mergePartialRefreshDrops({

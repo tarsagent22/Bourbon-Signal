@@ -3,7 +3,7 @@ import test from 'node:test';
 import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from '../src/partial-refresh-contract.mjs';
 
 test('drop collapse detection marks attempted states for safe publication fallback', () => {
-  const previous = { states: [{ state: 'IN', dropCount: 72 }, { state: 'TN', dropCount: 35 }] };
+  const previous = { states: [{ state: 'IN', input: { dropCount: 72 } }, { state: 'TN', input: { dropCount: 35 } }] };
   const current = [
     ...Array.from({ length: 7 }, (_, index) => ({ id: `in-${index}`, state: 'IN' })),
     ...Array.from({ length: 35 }, (_, index) => ({ id: `tn-${index}`, state: 'TN' })),

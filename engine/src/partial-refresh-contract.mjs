@@ -7,7 +7,10 @@ export function detectDropCollapseFallbacks(previousStateQuality, currentDrops =
   }
   return (previousStateQuality?.states || [])
     .filter((state) => attempted.has(String(state.state).toUpperCase()))
-    .filter((state) => Number(state.dropCount || 0) >= 1 && (currentCounts.get(String(state.state).toUpperCase()) || 0) < Math.ceil(Number(state.dropCount) * minRatio))
+    .filter((state) => {
+      const previousDropCount = Number(state.dropCount ?? state.input?.dropCount ?? 0);
+      return previousDropCount >= 1 && (currentCounts.get(String(state.state).toUpperCase()) || 0) < Math.ceil(previousDropCount * minRatio);
+    })
     .map((state) => String(state.state).toUpperCase())
     .sort();
 }
