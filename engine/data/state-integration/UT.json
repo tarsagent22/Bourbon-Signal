@@ -114,13 +114,13 @@
       ],
       "provenance": {
         "repository": "tarsagent22/Bourbon-Signal",
-        "workflowRunId": "29545199795",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/29545199795",
-        "commitSha": "2481b69a4885c6a4607ade8eb55aa4cbb46d8e8c",
-        "artifactId": "8393675318",
-        "artifactName": "state-promotion-provenance-UT-29545199795",
-        "artifactDigest": "3e6cc5f6e13c0bb4a9ffe7a1df7690606f4879b32e831239529d5cb3bfee48c4",
-        "bundleDigest": "5ade64f808bd1dab9fe8b7b41198599081bd74ad8a34afcaef386b68b1d4f711",
+        "workflowRunId": "29545745479",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/29545745479",
+        "commitSha": "58801890ca7436711b9b21953d76caf0a242a440",
+        "artifactId": "8393888338",
+        "artifactName": "state-promotion-provenance-UT-29545745479",
+        "artifactDigest": "4a90ad38c6fad757cff1d146c7f5284da6df5d2f0783a739065dbf3c60e2932d",
+        "bundleDigest": "80faac8b215184f71a0c18ab57d1a93fa20dfcdc53767f4efc56e698ab452d2f",
         "status": "success"
       }
     }
