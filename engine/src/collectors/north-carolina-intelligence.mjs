@@ -28,6 +28,22 @@ const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|jack daniel|old
 const DURHAM_STRUCTURED_SPIRIT_RE = /bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|michter|willett|pappy|van winkle|parker|little book|heaven hill|four roses|woodford|old forester|knob creek|elijah craig|blood oath|old carter|rock hill|elmer/i;
 const SOURCE_POLICY = 'Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.';
 
+export function applyNcBoardShipmentPolicy(signal) {
+  return {
+    ...signal,
+    confidence: 0.9,
+    policyMode: 'alert_county_store_inventory',
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'Board-level shipment intelligence; exact store and shelf status remain unknown.',
+    raw: {
+      ...(signal.raw || {}),
+      policyMode: 'alert_county_store_inventory',
+      shipmentScope: 'board_level_not_store_inventory',
+    },
+  };
+}
+
 const STATIC_BOARD_TARGETS = [
   { boardName: 'Wake County ABC Board', urls: ['https://wakeabc.com/search-our-inventory/', 'https://wakeabc.com/search-results/'], capability: 'store_inventory_search' },
   { boardName: 'Durham County ABC Board', urls: ['https://www.durhamabc.com/drops', 'https://www.durhamabc.com/news'], capability: 'board_drop_posts' },
@@ -663,7 +679,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     addCapability(board, 'official_board_shipment_rows');
 
     const sourceUrl = row.item_id ? `https://abc2.nc.gov/Pricing/ViewItemDetails/${row.item_id}` : NC_STOCK_SHIPPED_PAGE_URL;
-    const signal = {
+    const signal = applyNcBoardShipmentPolicy({
       id: stableId([config.id, 'stock-shipped', row.NCcode, row.item_id, boardName, quantity, observedAt]),
       ...signalBase(config, 'NC ABC Stock Shipped Data', sourceUrl, row.ProductName, bible, 0.82),
       eventType: 'nc_board_shipment_snapshot',
@@ -681,7 +697,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
       sourceEventAt,
       evidence: `NC ABC Stock Shipped Data reports ${quantity} unit(s) of ${row.ProductName} shipped to ${boardName}. This is board-level shipment intelligence from the official state feed; it does not prove a specific store shelf quantity.${controlledEvidence(controlled)}`,
       raw: { ...row, ncCode, controlledDistribution: controlled, priceList: price, precisionCaveat: 'board shipment; exact store and shelf status unknown', extractDatetime: json.metadata?.extractDatetime }
-    };
+    });
     trackedRows.push(signal);
     signals.push(signal);
   }
