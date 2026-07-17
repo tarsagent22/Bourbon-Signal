@@ -91,6 +91,28 @@ test('uses projected customer tier rather than generic canonical identity for pu
   assert.match(result.reason, /public bottle candidate count collapsed from 72 to 0/i);
 });
 
+test('duplicate inventory rows cannot hide a collapse in unique public bottle-store combinations', () => {
+  const previous = report('IN', 1000, { actionable: 100 });
+  previous.signals.slice(0, 72).forEach((signal, index) => {
+    signal.canonicalName = `Rare Bottle ${index}`;
+    signal.locationName = `Store ${index}`;
+    signal.projectedTier = 'limited';
+  });
+  const candidate = report('IN', 1400, { actionable: 295 });
+  candidate.signals.slice(0, 295).forEach((signal, index) => {
+    signal.canonicalName = `Rare Bottle ${index % 7}`;
+    signal.locationName = `Store ${index % 7}`;
+    signal.projectedTier = 'limited';
+  });
+  const result = guardStateReport({
+    previous,
+    candidate,
+    options: { isPublicBottleCandidate: (signal) => signal.projectedTier === 'limited' },
+  });
+  assert.equal(result.accepted, false);
+  assert.match(result.reason, /public bottle candidate count collapsed from 72 to 7/i);
+});
+
 test('a stale last-good fallback remains the public baseline on the next collection attempt', () => {
   const previous = report('IN', 1000, { actionable: 100 });
   previous.signals.slice(0, 72).forEach((signal, index) => { signal.canonicalId = `limited-${index}`; signal.tier = 'limited'; });

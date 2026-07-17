@@ -8,12 +8,18 @@ function countActionable(report) {
 }
 
 function countPublicBottleCandidates(report, isPublicBottleCandidate = null) {
-  return (report?.signals || []).filter((signal) =>
-    signal?.locationPrecision === 'store_level'
-    && (isPublicBottleCandidate
+  const uniqueRows = new Set();
+  for (const signal of report?.signals || []) {
+    if (signal?.locationPrecision !== 'store_level') continue;
+    const eligible = isPublicBottleCandidate
       ? isPublicBottleCandidate(signal)
-      : Boolean(signal?.canonicalId || signal?.canonicalName || signal?.bottleId || signal?.bottleName))
-  ).length;
+      : Boolean(signal?.canonicalId || signal?.canonicalName || signal?.bottleId || signal?.bottleName);
+    if (!eligible) continue;
+    const bottleKey = String(signal?.canonicalId || signal?.canonicalName || signal?.bottleId || signal?.bottleName || signal?.id || '').toLowerCase();
+    const locationKey = String(signal?.storeId || signal?.locationId || signal?.storeAddress || signal?.locationName || signal?.sourceIdentity || signal?.sourceLabel || signal?.id || '').toLowerCase();
+    uniqueRows.add(`${bottleKey}|${locationKey}`);
+  }
+  return uniqueRows.size;
 }
 
 function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5, isPublicBottleCandidate = null } = {}) {
