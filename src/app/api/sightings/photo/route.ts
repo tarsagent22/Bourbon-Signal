@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
     const ownedSightings = dedupeSightings([...legacyOwned, ...durableOwned]);
     const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-    await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } }).catch((error) => {
+    await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
       console.error("Sighting photo persisted, but reward reconciliation failed", error);
     });
   } catch (error) {

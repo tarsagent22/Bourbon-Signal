@@ -88,13 +88,19 @@ function metadataChanged(before: unknown, after: unknown) {
   return JSON.stringify(before || null) !== JSON.stringify(after || null);
 }
 
+async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof clerkClient>>, userId: string, memberRewards: unknown) {
+  await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards } }).catch((error) => {
+    console.error("Sighting rewards reconciliation skipped", error);
+  });
+}
+
 async function reconcileUserRewards(client: Awaited<ReturnType<typeof clerkClient>>, user: Record<string, unknown>) {
   const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
   const nextRewards = reconcileMemberRewards(prefs.submittedSightings, privateMetadata.memberRewards);
   if (metadataChanged(privateMetadata.memberRewards, nextRewards)) {
-    await client.users.updateUserMetadata(String(user.id), { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+    await persistMemberRewardsBestEffort(client, String(user.id), nextRewards);
   }
   return nextRewards;
 }
@@ -163,7 +169,7 @@ export async function GET(req: NextRequest) {
   const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableOwned]);
   const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
   if (metadataChanged(privateMetadata.memberRewards, nextRewards)) {
-    await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+    await persistMemberRewardsBestEffort(client, userId, nextRewards);
   }
   const rewards: MemberRewardsSummary = summarizeMemberRewards(ownedSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
@@ -269,7 +275,7 @@ export async function POST(req: NextRequest) {
   const nextRewards = reconcileMemberRewards(nextOwnedSightings, privateMetadata.memberRewards);
   after(async () => {
     try {
-      await client.users.updateUserMetadata(userId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+      await persistMemberRewardsBestEffort(client, userId, nextRewards);
       if (needsBottleReview) {
         await addBottleContribution({
           rawName: sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140),

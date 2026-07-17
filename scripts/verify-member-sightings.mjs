@@ -58,7 +58,7 @@ if (!ncExactStores.some((location) => /wake county abc/i.test(`${location.name} 
 }
 
 const api = expectFile('src/app/api/sightings/route.ts');
-for (const phrase of ['getUserList', 'reporterUserId', 'poster cannot vote', 'sightingVotes', 'up', 'down']) {
+for (const phrase of ['getUserList', 'reporterUserId', 'poster cannot vote', 'sightingVotes', 'up', 'down', 'persistMemberRewardsBestEffort', 'Sighting rewards reconciliation skipped']) {
   if (api && !api.includes(phrase)) fail(`Sightings API should include ${phrase}`);
 }
 const entitlements = read('src/lib/entitlements.ts');
