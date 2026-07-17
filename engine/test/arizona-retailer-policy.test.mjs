@@ -3,6 +3,23 @@ import assert from 'node:assert/strict';
 
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from '../src/arizona-retailer-policy.mjs';
+import { curlTextFetch, legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
+
+test('Arizona precision collection gets one bounded long attempt instead of two guaranteed timeouts', () => {
+  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 300_000, maxAttempts: 1 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('NC', {}, {}), { timeoutMs: 120_000, maxAttempts: 2 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', { timeoutMs: 42, maxAttempts: 3 }, {}), { timeoutMs: 42, maxAttempts: 3 });
+});
+
+test('Arizona curl probes terminate when the outer source runtime aborts', async () => {
+  const controller = new AbortController();
+  const execFileAsync = (_command, _args, options) => new Promise((_resolve, reject) => {
+    options.signal.addEventListener('abort', () => reject(options.signal.reason || new Error('aborted')), { once: true });
+  });
+  const pending = curlTextFetch('https://example.com/inventory', { signal: controller.signal, execFileAsync });
+  controller.abort(new Error('source runtime expired'));
+  await assert.rejects(pending, /source runtime expired/);
+});
 
 const valid = {
   state: 'AZ',

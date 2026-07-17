@@ -205,16 +205,22 @@ for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'script
 }
 const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
 const hermesSnapshot = JSON.parse(read('automation/bourbon-signal/hermes-jobs.json'));
+const normalizeNewlines = (value) => value.replaceAll(String.fromCharCode(13), '');
+const localAppData = process.env.LOCALAPPDATA;
+const runtimeSource = expectFile(path.join('automation', 'bourbon-signal', 'hermes-scripts', 'bourbon_signal_runtime.py'));
+const installedRuntimePath = localAppData ? path.join(localAppData, 'hermes', 'scripts', 'bourbon_signal_runtime.py') : '';
+if (runtimeSource && installedRuntimePath && existsSync(installedRuntimePath)
+  && normalizeNewlines(runtimeSource) !== normalizeNewlines(readFileSync(installedRuntimePath, 'utf8'))) {
+  fail('Installed Bourbon Signal Hermes runtime helper drifted from source control.');
+}
 for (const job of hermesSnapshot.jobs || []) {
   if (!job.noAgent || !job.script) continue;
   const sourcePath = path.join('automation', 'bourbon-signal', 'hermes-scripts', job.script);
   const source = expectFile(sourcePath);
   if (source && /C:\\\\Users\\\\/i.test(source)) fail(`Hermes script must derive its repository and profile paths at runtime: ${job.script}`);
   if (source && source.includes('subprocess.run') && !source.includes('raise SystemExit')) fail(`Hermes script must return a nonzero job status when its subprocess fails: ${job.script}`);
-  const localAppData = process.env.LOCALAPPDATA;
   const installedPath = localAppData ? path.join(localAppData, 'hermes', 'scripts', job.script) : '';
   if (source && installedPath && existsSync(installedPath)) {
-    const normalizeNewlines = (value) => value.replaceAll(String.fromCharCode(13), '');
     const installed = normalizeNewlines(readFileSync(installedPath, 'utf8'));
     if (normalizeNewlines(source) !== installed) fail(`Installed Hermes script drifted from source control: ${job.script}`);
   }

@@ -12,6 +12,8 @@ test('NC board shipment signals remain informational and cannot create watch ale
     confidence: 0.82,
   });
 
+  assert.equal(result.confidence, 0.9);
+  assert.equal(result.policyMode, 'alert_county_store_inventory');
   assert.equal(result.canAlertAsInventory, false);
   assert.equal(result.canAlertAsWatch, false);
   assert.match(result.inventorySemantics, /board-level shipment/i);

@@ -1203,13 +1203,15 @@ async function textFetch(url, options = {}) {
     });
     return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', text: await res.text(), error: null };
   } catch (error) {
+    if (options.signal?.aborted) throw error;
     return { ok: false, status: 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
   } finally {
     if (timeout) clearTimeout(timeout);
   }
 }
 
-async function curlTextFetch(url, options = {}) {
+export async function curlTextFetch(url, options = {}) {
+  options.signal?.throwIfAborted();
   const timeoutMs = Number(options.timeoutMs || process.env.BOURBON_SIGNAL_PRECISION_FETCH_TIMEOUT_MS || 25_000);
   const timeoutSeconds = String(Math.max(1, Math.ceil(timeoutMs / 1000)));
   const marker = '\n__BOURBON_SIGNAL_HTTP_STATUS__:';
@@ -1223,12 +1225,14 @@ async function curlTextFetch(url, options = {}) {
   for (const [name, value] of Object.entries(headers)) args.push('-H', `${name}: ${value}`);
   args.push('-w', `${marker}%{http_code}`, url);
   try {
-    const { stdout } = await execFileAsync(options.command || 'curl', args, { maxBuffer: options.maxBuffer || 3 * 1024 * 1024, windowsHide: true });
+    const runExecFile = options.execFileAsync || execFileAsync;
+    const { stdout } = await runExecFile(options.command || 'curl', args, { maxBuffer: options.maxBuffer || 3 * 1024 * 1024, windowsHide: true, signal: options.signal });
     const splitAt = stdout.lastIndexOf(marker);
     const text = splitAt >= 0 ? stdout.slice(0, splitAt) : stdout;
     const status = splitAt >= 0 ? Number(stdout.slice(splitAt + marker.length).trim()) || 0 : 0;
     return { ok: status >= 200 && status < 300, status, url, contentType: '', rawSetCookie: '', text, error: status >= 200 && status < 300 ? null : `HTTP ${status || 'unknown'}` };
   } catch (error) {
+    if (options.signal?.aborted) throw error;
     return { ok: false, status: 0, url, contentType: '', rawSetCookie: '', text: error?.stdout || '', error: error instanceof Error ? error.message : String(error) };
   }
 }
@@ -3572,13 +3576,14 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
   await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
 }
 
-async function collectArizonaWooCommerceRetailer(config, bible, observedAt, retailer) {
+async function collectArizonaWooCommerceRetailer(config, bible, observedAt, retailer, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seen = new Set();
   for (const term of AZ_MESA_LIQUOR_TERMS) {
+    options.signal?.throwIfAborted();
     const url = `${retailer.baseUrl}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000 });
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000, signal: options.signal });
     if (!res.ok) {
       roadblocks.push({ state: config.id, source: retailer.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence.' });
       await sleep(AZ_MESA_LIQUOR_DELAY_MS);
@@ -3620,10 +3625,10 @@ async function collectArizonaWooCommerceRetailer(config, bible, observedAt, reta
   return { signals, roadblocks };
 }
 
-async function collectArizonaFlagstaffLiquor(config, bible, observedAt) {
+async function collectArizonaFlagstaffLiquor(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
-  const res = await textFetch(AZ_FLAGSTAFF_LIQUOR_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000 });
+  const res = await textFetch(AZ_FLAGSTAFF_LIQUOR_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000, signal: options.signal });
   if (!res.ok) return { signals, roadblocks: [{ state: config.id, source: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, url: AZ_FLAGSTAFF_LIQUOR_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify products feed at low cadence.' }] };
   let products = [];
   try { products = JSON.parse(res.text)?.products || []; } catch (error) {
@@ -3659,13 +3664,14 @@ async function collectArizonaFlagstaffLiquor(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
-async function collectArizonaAlbertsons(config, bible, observedAt) {
+async function collectArizonaAlbertsons(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const stores = new Map();
   for (const zip of AZ_ALBERTSONS_ZIPS) {
+    options.signal?.throwIfAborted();
     const url = `https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=${encodeURIComponent(zip)}&radius=50&size=100`;
-    const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_STORE_KEY }, timeoutMs: 20_000 });
+    const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_STORE_KEY }, timeoutMs: 20_000, signal: options.signal });
     if (!res.ok && res.status !== 206) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront subscription key and retry.' }); continue; }
     try {
       const payload = JSON.parse(res.text);
@@ -3686,14 +3692,16 @@ async function collectArizonaAlbertsons(config, bible, observedAt) {
   const rareTerms = AZ_ALBERTSONS_TERMS.filter((term) => term !== 'bourbon');
   const dayBucket = Math.floor(Date.now() / 86_400_000);
   for (const [storeIndex, store] of selected.entries()) {
+    options.signal?.throwIfAborted();
     const banner = String(store.polarisBannerName || store.domainName || 'safeway').toLowerCase().includes('albertsons') ? 'albertsons' : 'safeway';
     const host = `https://www.${banner}.com`;
     const termsForStore = ['bourbon'];
     if (rareTerms.length) termsForStore.push(rareTerms[(dayBucket + storeIndex) % rareTerms.length]);
     for (const term of termsForStore) {
+      options.signal?.throwIfAborted();
       const params = new URLSearchParams({ 'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: String(store.locationId), featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner });
       const url = `${host}/abs/pub/xapi/search/substitute?${params}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, timeoutMs: 25_000 });
+      const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, timeoutMs: 25_000, signal: options.signal });
       if (!res.ok) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront search key and retry at low cadence.' }); await sleep(AZ_ALBERTSONS_DELAY_MS); continue; }
       let docs = [];
       try { docs = JSON.parse(res.text)?.response?.docs || []; } catch (error) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the XAPI search response shape.' }); }
@@ -3734,7 +3742,7 @@ async function collectArizonaAlbertsons(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
-async function collectArizonaTarget(config, bible, observedAt) {
+async function collectArizonaTarget(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
@@ -3745,19 +3753,21 @@ async function collectArizonaTarget(config, bible, observedAt) {
   const [seedStoreId, seedStore] = cohort[0] || storeEntries[0];
   const searchParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: seedStoreId, store_ids: seedStoreId, visitor_id: visitorId });
   const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
-  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000, signal: options.signal });
   if (!search.ok) return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: search.error || `HTTP ${search.status}`, nextRoute: 'Refresh the public Target frontend key and retry without bypassing retailer protection.' }] };
   let products = [];
   try { products = JSON.parse(search.text)?.data?.search?.products || []; } catch (error) { return { signals, roadblocks: [{ state: config.id, source: 'Target Arizona RedSky fulfillment', url: searchUrl, status: search.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the RedSky search response shape.' }] }; }
   const seenTargetSignals = new Set();
   for (const [primaryStoreId, primaryStore] of cohort) {
+    options.signal?.throwIfAborted();
     for (const product of products.slice(0, 10)) {
+      options.signal?.throwIfAborted();
       const rawName = htmlToText(product?.item?.product_description?.title || '');
       const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
       const fulfillParams = new URLSearchParams({ key: AZ_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: primaryStoreId, store_positions_store_id: primaryStoreId, scheduled_delivery_store_id: primaryStoreId, zip: primaryStore.zip, visitor_id: visitorId });
       const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${fulfillParams}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal: options.signal });
       if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Arizona RedSky fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); continue; }
       let fulfillment = null;
       try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
@@ -4195,7 +4205,7 @@ async function collectFlorida(config, bible) {
   };
 }
 
-async function collectArizona(config, bible) {
+async function collectArizona(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const signals = [];
   const roadblocks = [];
@@ -4208,7 +4218,8 @@ async function collectArizona(config, bible) {
     for (const seedUrl of source.urls) {
       for (const merchantId of source.merchantIds || []) {
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, AZ_CITYHIVE_MAX_PAGES)) {
-          const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
+          options.signal?.throwIfAborted();
+          const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024, signal: options.signal });
           if (!res.ok) {
             roadblocks.push({
               state: config.id,
@@ -4294,7 +4305,7 @@ async function collectArizona(config, bible) {
                   let detailUrl = null;
                   try { detailUrl = new URL(String(option.product_url), source.baseUrl); detailUrl.searchParams.set('option-id', String(option.option_id)); } catch {}
                   if (detailUrl) {
-                    const detail = await curlTextFetch(detailUrl.toString(), { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, maxBuffer: 4 * 1024 * 1024 });
+                    const detail = await curlTextFetch(detailUrl.toString(), { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, maxBuffer: 4 * 1024 * 1024, signal: options.signal });
                     if (detail.ok) {
                       const scripts = [...detail.text.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
                       for (const script of scripts) {
@@ -4382,11 +4393,12 @@ async function collectArizona(config, bible) {
       nextRoute: 'Inspect embedded CityHive product JSON and exact bottle aliases; do not weaken identity or in-stock guards.'
     });
   }
-  const mesaLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_MESA_LIQUOR_BASE_URL, sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', store: AZ_MESA_LIQUOR_STORE });
-  const bestLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_BEST_LIQUOR_BASE_URL, sourceLabel: AZ_BEST_LIQUOR_SOURCE_LABEL, chain: 'best-liquor-tempe', merchantId: 'best-liquor-tempe-woocommerce', store: AZ_BEST_LIQUOR_STORE });
-  const flagstaffLiquor = await collectArizonaFlagstaffLiquor(config, bible, observedAt);
-  const albertsons = await collectArizonaAlbertsons(config, bible, observedAt);
-  const target = await collectArizonaTarget(config, bible, observedAt);
+  options.signal?.throwIfAborted();
+  const mesaLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_MESA_LIQUOR_BASE_URL, sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', store: AZ_MESA_LIQUOR_STORE }, options);
+  const bestLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_BEST_LIQUOR_BASE_URL, sourceLabel: AZ_BEST_LIQUOR_SOURCE_LABEL, chain: 'best-liquor-tempe', merchantId: 'best-liquor-tempe-woocommerce', store: AZ_BEST_LIQUOR_STORE }, options);
+  const flagstaffLiquor = await collectArizonaFlagstaffLiquor(config, bible, observedAt, options);
+  const albertsons = await collectArizonaAlbertsons(config, bible, observedAt, options);
+  const target = await collectArizonaTarget(config, bible, observedAt, options);
   return {
     signals: [...signals, ...mesaLiquor.signals, ...bestLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...target.signals],
     roadblocks: [...roadblocks, ...mesaLiquor.roadblocks, ...bestLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...albertsons.roadblocks, ...target.roadblocks]
@@ -6538,7 +6550,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
   if (config.id === 'TN') return collectTennessee(config, bible);
-  if (config.id === 'AZ') return collectArizona(config, bible);
+  if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
   if (config.id === 'FL') return collectFlorida(config, bible);
@@ -6548,6 +6560,19 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
   return { signals: [], roadblocks: [] };
+}
+
+export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {}, env = process.env) {
+  const stateKey = String(stateId || '').toUpperCase();
+  const stateTimeout = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_TIMEOUT_MS`];
+  const stateAttempts = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_ATTEMPTS`];
+  const defaultTimeoutMs = stateKey === 'AZ' ? 300_000 : 120_000;
+  const defaultMaxAttempts = stateKey === 'AZ' ? 1 : 2;
+  return {
+    ...sourceRunnerOptions,
+    timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(stateTimeout || env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || defaultTimeoutMs),
+    maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(stateAttempts || env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || defaultMaxAttempts),
+  };
 }
 
 export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
@@ -6564,11 +6589,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
     collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, existingSignals, { ...options, signal }),
     previousResults: options.previousSourceResults,
     circuitBreaker: options.sourceCircuitBreaker,
-    sourceRunnerOptions: {
-      ...sourceRunnerOptions,
-      timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || 120_000),
-      maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(process.env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || 2),
-    },
+    sourceRunnerOptions: legacyPrecisionRuntimeOptions(config.id, sourceRunnerOptions),
   });
 }
 

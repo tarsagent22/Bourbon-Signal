@@ -11,7 +11,7 @@
     "ops:weekly": "node automation/bourbon-signal/weekly-engine-brief.mjs",
     "ops:searches": "node automation/bourbon-signal/search-events-report.mjs",
     "ops:demand": "node automation/bourbon-signal/search-events-report.mjs",
-    "test:ops": "node scripts/verify-automation-registry.mjs && node scripts/verify-ops-workflow.mjs && python scripts/test_hermes_scheduler_contract.py",
+    "test:ops": "node scripts/verify-automation-registry.mjs && node scripts/verify-ops-workflow.mjs && python scripts/test_hermes_scheduler_contract.py && python scripts/test_bourbon_signal_runtime.py",
     "generate:state-lifecycle-types": "node scripts/generate-state-lifecycle-types.mjs",
     "verify:state-lifecycle-drift": "node scripts/verify-state-lifecycle-drift.mjs",
     "verify:promotion-provenance": "node scripts/verify-promotion-provenance.mjs --state=UT",

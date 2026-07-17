@@ -31,8 +31,11 @@ The 05:15 Eastern briefing cutoff includes all completed morning artifacts. Cont
 - Only the isolated operator worktree may implement one selected objective per run.
 - Existing lifecycle, fixture, shadow, canary, provenance, public-eligibility, and alert-eligibility gates remain mandatory.
 - Routine success is silent. The ops chat receives changes, failures, and drift; the main chat receives owner briefs and decisions.
-- Deterministic wrappers exit nonzero on subprocess or report-contract failures.
+- Deterministic wrappers resolve the repository from `BOURBON_SIGNAL_REPO`, the current directory, or a trusted live cron `workdir`; they no longer assume Hermes executes attached scripts from the job workdir.
+- Deterministic wrappers exit nonzero on subprocess or report-contract failures and retain the actionable error rather than the trailing Node.js version line.
 - Scheduler reconciliation binds SHA-256 safety hashes over agent prompts, skill lists, and enabled toolsets without exporting prompt text.
+- North Carolina `nc_board_shipment_snapshot` rows remain strong official-source planning signals (0.90 normalized confidence) while staying non-inventory and non-watch-alertable because a board shipment is not exact shelf stock.
+- Arizona's bounded legacy precision lane gets one 300-second attempt rather than two 120-second attempts, allowing its multi-source collector to complete without weakening quality-regression gates.
 
 ## Rollback
 
