@@ -184,12 +184,48 @@ export const STATE_LIFECYCLE_CONFIG = {
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,
-        "verifiedAt": "2026-07-16T22:51:48.328Z",
+        "verifiedAt": "2026-07-17T00:14:48.000Z",
         "shadowArtifact": "engine/out/shadow/UT (three successful bounded runs on 2026-07-16; alerts disabled and production untouched)",
-        "canaryArtifact": "engine/out/canary/UT/site (two coherent local canary builds with Utah partition and zero Utah delivery alerts)",
-        "canaryPreviewUrl": "https://bourbonsignal.com",
+        "canaryArtifact": "engine/out/canary/UT/site-run1 and site-run2 (two coherent canary builds with a Utah partition and zero Utah delivery alerts)",
+        "canaryPreviewUrl": "https://great-socks-sell.loca.lt",
         "verticalSliceManifest": "engine/data/state-integration/UT.json",
-        "fixtureContract": "engine/data/state-fixtures/UT.json"
+        "fixtureContract": "engine/data/state-fixtures/UT.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "UT",
+          "generatedAt": "2026-07-17T00:14:48.000Z",
+          "sourceConfigHash": "3c27a45ba71304c88a4989338aa33b90c7159be1d46829cb36560dd595869203",
+          "previewUrl": "https://great-socks-sell.loca.lt",
+          "shadowRuns": [
+            {
+              "runId": "2026-07-16T22-48-16-026Z",
+              "status": "success",
+              "artifactHash": "2f5c30af05508458ef7415bb7ae3579121aae774cb41a1b85339636c565bd1ca"
+            },
+            {
+              "runId": "2026-07-16T22-48-44-478Z",
+              "status": "success",
+              "artifactHash": "b15b9a88aa70b669442c9c6afa04de7677d6668aafa8ee128e5ba0db929a7438"
+            },
+            {
+              "runId": "2026-07-16T22-49-07-044Z",
+              "status": "success",
+              "artifactHash": "4c1b9702ea0c41badccdd1dc8d80cfcdac53c5a184e097d25b64d10278451694"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "site-run1",
+              "status": "success",
+              "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+            },
+            {
+              "runId": "site-run2",
+              "status": "success",
+              "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+            }
+          ]
+        }
       }
     },
     "MD-MONTGOMERY": {

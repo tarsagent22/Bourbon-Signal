@@ -26,6 +26,7 @@ test('HTTP-first probes classify catalog surfaces without granting alert-grade s
   assert.equal(result.promotionEligible, false);
   assert.equal(calls[0].options.credentials, 'omit');
   assert.equal(calls[0].options.redirect, 'manual');
+  assert.ok(calls[0].options.dispatcher, 'validated DNS records must be pinned into the fetch dispatcher');
 });
 
 test('probe ladder fails closed on blocked/login surfaces and only escalates after deterministic routes fail', async () => {
@@ -69,4 +70,19 @@ test('bounded HTTP client blocks private, loopback, and private redirect destina
   });
   await assert.rejects(() => redirectClient.get('https://public.example/start'), /public internet host/i);
   assert.equal(fetchCalls, 1);
+});
+
+test('bounded HTTP client aborts chunked payloads while streaming past the byte cap', async () => {
+  let cancelled = false;
+  const body = new ReadableStream({
+    pull(controller) { controller.enqueue(new Uint8Array(400)); },
+    cancel() { cancelled = true; },
+  });
+  const client = createBoundedHttpClient({
+    maxBytes: 512,
+    resolveHost: publicDns,
+    fetchImpl: async () => new Response(body, { status: 200 }),
+  });
+  await assert.rejects(() => client.get('https://stream.example/large'), /payload exceeds/i);
+  assert.equal(cancelled, true);
 });

@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { Agent } from 'undici';
 
 const DEFAULT_TIMEOUT_MS = 12_000;
 const DEFAULT_MAX_BYTES = 512 * 1024;
@@ -37,11 +38,12 @@ function isPublicAddress(address) {
 }
 
 async function assertPublicDestination(url, resolveHost) {
-  const hostname = url.hostname.toLowerCase();
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
   if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local')) throw new Error('Source probes require a public internet host.');
   const literalFamily = isIP(hostname);
   const records = literalFamily ? [{ address: hostname, family: literalFamily }] : await resolveHost(hostname);
   if (!Array.isArray(records) || !records.length || records.some((record) => !isPublicAddress(record?.address))) throw new Error('Source probes require a public internet host.');
+  return records.map((record) => ({ address: record.address, family: Number(record.family) || isIP(record.address) }));
 }
 
 function compactHeaders(headers) {
@@ -49,12 +51,36 @@ function compactHeaders(headers) {
   return Object.fromEntries(allowed.map((key) => [key, headers.get(key)]).filter(([, value]) => value));
 }
 
-function textFromResponse(response, maxBytes) {
+async function textFromResponse(response, maxBytes) {
   const declaredLength = Number(response.headers.get('content-length') || 0);
   if (declaredLength > maxBytes) throw new Error(`Probe payload exceeds ${maxBytes} byte limit.`);
-  return response.arrayBuffer().then((buffer) => {
-    if (buffer.byteLength > maxBytes) throw new Error(`Probe payload exceeds ${maxBytes} byte limit.`);
-    return new TextDecoder().decode(buffer);
+  if (!response.body) return '';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let total = 0;
+  let text = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel('probe payload limit exceeded').catch(() => {});
+      throw new Error(`Probe payload exceeds ${maxBytes} byte limit.`);
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
+function pinnedDispatcher(records) {
+  let index = 0;
+  return new Agent({
+    connect: {
+      lookup(_hostname, _options, callback) {
+        const record = records[index++ % records.length];
+        callback(null, record.address, record.family);
+      },
+    },
   });
 }
 
@@ -104,11 +130,12 @@ export function createBoundedHttpClient({
       let currentUrl = initialUrl;
       let redirects = 0;
       while (true) {
-        await assertPublicDestination(currentUrl, resolveHost);
+        const publicRecords = await assertPublicDestination(currentUrl, resolveHost);
         const count = hostRequests.get(currentUrl.host) || 0;
         if (count >= perHostRequestBudget) throw new Error(`Per-host probe budget exhausted for ${currentUrl.host}.`);
         hostRequests.set(currentUrl.host, count + 1);
         await waitForHost(currentUrl.host);
+        const dispatcher = pinnedDispatcher(publicRecords);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(new Error('Probe timed out.')), timeoutMs);
         const onAbort = () => controller.abort(inheritedSignal?.reason);
@@ -119,6 +146,7 @@ export function createBoundedHttpClient({
             redirect: 'manual',
             credentials: 'omit',
             signal: controller.signal,
+            dispatcher,
             headers: {
               Accept: 'application/json,text/html;q=0.9,*/*;q=0.5',
               'User-Agent': userAgent,
@@ -143,6 +171,7 @@ export function createBoundedHttpClient({
         } finally {
           clearTimeout(timer);
           inheritedSignal?.removeEventListener('abort', onAbort);
+          await dispatcher.close().catch(() => {});
         }
       }
     });

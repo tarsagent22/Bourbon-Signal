@@ -44,9 +44,31 @@ jobs:
       - name: Install engine dependencies
         run: npm ci --prefix engine
 
+      - name: Validate manual shadow inputs
+        id: validate
+        shell: bash
+        env:
+          RAW_STATES: ${{ inputs.states || '' }}
+          RAW_LIMIT: ${{ inputs.limit || '5' }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
+            echo "states must be a comma-separated list of uppercase state IDs" >&2
+            exit 1
+          fi
+          if [[ ! "$RAW_LIMIT" =~ ^[1-5]$ ]]; then
+            echo "limit must be an integer from 1 through 5" >&2
+            exit 1
+          fi
+          echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
+          echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
+
       - name: Collect bounded shadow evidence only
         working-directory: engine
-        run: npm run shadow:expansion -- --states="${{ inputs.states }}" --limit="${{ inputs.limit || '5' }}"
+        env:
+          STATES: ${{ steps.validate.outputs.states }}
+          LIMIT: ${{ steps.validate.outputs.limit }}
+        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
 
       - name: Preserve isolated shadow evidence
         if: always()

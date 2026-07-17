@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -30,6 +31,9 @@ export function verifyStateExportIntegrity({ state, lifecycle, stateDrops, drops
   }
   const allRows = asArray(drops?.drops);
   const candidateAlerts = asArray(alerts?.alerts).filter((row) => stateOf(row) === state && row.eligibleForDelivery === true);
+  if (lifecycle?.inventoryAlertable === false && lifecycle?.watchAlertable === false && candidateAlerts.length) {
+    failures.push(`${state}: lifecycle-denied state emitted delivery-eligible alerts.`);
+  }
   for (const alert of candidateAlerts) {
     if (!hasText(alert.source) || !hasText(alert.storeName || alert.locationName || alert.storeId) || !hasText(alert.storeAddress)) {
       failures.push(`${state}: delivery-eligible alert lacks source, store, or address identity.`);
@@ -66,7 +70,7 @@ function verifySourceContracts(sourceFiles) {
   return failures;
 }
 
-export function verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles = {} }) {
+export function verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles = {}, promotionEvidenceRequired = true }) {
   const normalized = String(state || '').toUpperCase();
   const failures = [];
   const lifecycle = config?.states?.[normalized];
@@ -86,6 +90,22 @@ export function verifyStateIntegration({ state, config, manifest, fixtures, site
   }
   if (lifecycle?.inventoryAlertable === false && manifest?.sourceSemantics?.inventoryAlertable !== false) failures.push(`${normalized}: manifest cannot enable inventory alerts disabled by lifecycle.`);
   if (lifecycle?.watchAlertable === false && manifest?.sourceSemantics?.watchAlertable !== false) failures.push(`${normalized}: manifest cannot enable watch alerts disabled by lifecycle.`);
+  if (promotionEvidenceRequired && lifecycle?.publicStatus === 'active') {
+    const immutable = manifest?.evidence?.immutablePromotionEvidence;
+    if (!object(immutable)) failures.push(`${normalized}: active promoted state is missing immutable promotion evidence.`);
+    else {
+      const sourceConfig = JSON.stringify({
+        lifecycle: manifest.lifecycle,
+        collector: manifest.collector,
+        storeIdentity: manifest.storeIdentity,
+        sourceSemantics: manifest.sourceSemantics,
+        customerPaths: manifest.customerPaths,
+      });
+      const sourceConfigHash = createHash('sha256').update(sourceConfig).digest('hex');
+      if (immutable.sourceConfigHash !== sourceConfigHash) failures.push(`${normalized}: immutable promotion evidence does not bind the current source configuration.`);
+      if (JSON.stringify(lifecycle?.promotionEvidence?.immutableEvidence || null) !== JSON.stringify(immutable)) failures.push(`${normalized}: lifecycle promotion evidence drifted from the vertical-slice manifest.`);
+    }
+  }
 
   const partitionIndex = site?.stateIndex;
   const partition = asArray(partitionIndex?.states).find((entry) => entry.state === normalized);
@@ -140,6 +160,7 @@ async function main() {
   const root = path.resolve('..');
   const requested = argValue('--state');
   const all = process.argv.includes('--all-active');
+  const canaryMode = process.argv.includes('--canary');
   if (!requested && !all) throw new Error('Usage: verify-state-integration --state=<STATE> [--site-dir=<path>] or --all-active');
   const configPath = path.resolve(argValue('--config') || path.join(root, 'src', 'config', 'state-lifecycle.json'));
   const manifestDir = path.resolve(argValue('--manifest-dir') || path.join('data', 'state-integration'));
@@ -168,7 +189,7 @@ async function main() {
     }
     if (!manifest) { failures.push(`${state}: no vertical-slice manifest found.`); continue; }
     const site = await loadSite(siteDir, state);
-    failures.push(...verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles }).failures);
+    failures.push(...verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles, promotionEvidenceRequired: !canaryMode }).failures);
   }
   if (failures.length) throw new Error(failures.join('\n'));
   console.log(`State integration verification passed for ${states.join(', ')}.`);

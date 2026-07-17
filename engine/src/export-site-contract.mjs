@@ -1058,6 +1058,7 @@ function alertChannelPolicy(candidate) {
 function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
+    .filter((c) => lifecycleAllowsInventoryAlert(c.state) || lifecycleAllowsWatchAlert(c.state))
     .filter((c) => ['unicorn', 'allocated', 'limited'].includes(String(c.tier || '').toLowerCase()))
     .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
     .filter((c) => !['MD-MONTGOMERY', 'UT'].includes(c.state) || !/^(county_inventory_aggregate|board_inventory_aggregate|county_product_search_match|county_product_row|county_allocated_product_row|catalog_row)$/i.test(String(c.eventType || '')))
@@ -1119,12 +1120,13 @@ function buildAlerts(alerts) {
 
 function applyAlertPolicyToCandidate(candidate) {
   const policy = alertChannelPolicy(candidate);
+  const lifecycleEligible = lifecycleAllowsInventoryAlert(candidate.state) || lifecycleAllowsWatchAlert(candidate.state);
   return {
     ...candidate,
-    eligibleForDelivery: Boolean(candidate.eligibleForDelivery) && policy.eligibleForOnSite,
-    eligibleForOnSite: policy.eligibleForOnSite,
-    eligibleForEmail: policy.eligibleForEmail,
-    eligibleForSms: policy.eligibleForSms,
+    eligibleForDelivery: lifecycleEligible && Boolean(candidate.eligibleForDelivery) && policy.eligibleForOnSite,
+    eligibleForOnSite: lifecycleEligible && policy.eligibleForOnSite,
+    eligibleForEmail: lifecycleEligible && policy.eligibleForEmail,
+    eligibleForSms: lifecycleEligible && policy.eligibleForSms,
     actionabilityClass: policy.actionabilityClass,
     freshnessPolicyHours: policy.freshnessPolicyHours,
     deliveryCaveat: policy.deliveryCaveat

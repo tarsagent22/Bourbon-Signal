@@ -80,7 +80,7 @@ jobs:
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: npm run verify:state-integration -- --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
+        run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
 
       - name: Deploy isolated preview with all alert channels disabled
         if: inputs.deploy_preview == true

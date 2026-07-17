@@ -72,6 +72,7 @@
     "store:identity": "node src/build-store-identity.mjs"
   },
   "dependencies": {
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "undici": "^6.27.0"
   }
 }

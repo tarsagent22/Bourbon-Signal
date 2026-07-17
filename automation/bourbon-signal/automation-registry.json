@@ -114,6 +114,22 @@
       "artifacts": ["engine/out/canary"]
     },
     {
+      "id": "github-state-promotion-provenance",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/state-promotion-provenance.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "manual promotion evidence gate",
+      "agent": { "provider": null, "model": null, "estimatedTokensPerRun": 0 },
+      "externalApi": { "classes": [], "maxRequestsPerRun": 0 },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "workflow_dispatch_only",
+      "artifacts": ["engine/out/promotion-provenance"]
+    },
+    {
       "id": "hermes-daily-operator",
       "platform": "hermes_job",
       "hermesJobId": "3244b5822d87",
