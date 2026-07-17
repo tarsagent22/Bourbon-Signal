@@ -32,9 +32,17 @@ const exactId = exactStores.find((store) => store.id === 'a108004f2c774607');
 assert.ok(exactId, 'known database store should be present in the full merged directory');
 assert.ok(searchSightingStores(stores, exactId.id).some((store) => store.id === exactId.id), 'every exact database store must be searchable by stable ID');
 
+const ncExactStores = exactStores.filter((store) => store.state === 'NC');
+assert.ok(ncExactStores.length >= 500, `expected the NC ABC exact-store corpus, found ${ncExactStores.length}`);
+for (const store of ncExactStores) {
+  assert.ok(searchSightingStoreIndex(searchIndex, store.id).some((match) => match.id === store.id), `NC exact store ${store.id} must be searchable by stable ID`);
+}
+
 const hookSource = readFileSync(new URL('../src/hooks/useStores.ts', import.meta.url), 'utf8');
 assert.match(hookSource, /if \(!res\.ok\) throw/, 'store loading must not cache an unauthorized/error response as an empty directory');
 assert.match(hookSource, /cachedStores = normalized/, 'successful full directory loads should remain cached');
+
+assert.match(hookSource, /combineStoreDirectoryRows/, 'the member hook must merge both complete directory arrays before normalization');
 
 const clientSource = readFileSync(new URL('../src/app/sightings/SightingsClient.tsx', import.meta.url), 'utf8');
 assert.match(clientSource, /useDeferredValue\(storeQuery\)/, 'predictive search should defer expensive ranking so typing stays responsive');
