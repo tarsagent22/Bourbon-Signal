@@ -308,7 +308,12 @@ test('current inventory alert projection uses the current snapshot rather than h
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(
     exporter,
-    /const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops\(currentDrops\);/,
-    'fresh current inventory must drive baseline on-site candidates and state-quality alertability',
+    /const alertableCurrentDrops = currentDrops\.filter\(\(drop\) => !fallbackStateIds\.has/,
+    'fresh current inventory must exclude guarded fallback states before alert projection',
+  );
+  assert.match(
+    exporter,
+    /const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops\(alertableCurrentDrops\);/,
+    'fresh non-fallback current inventory must drive baseline on-site candidates',
   );
 });

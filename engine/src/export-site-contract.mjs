@@ -12,7 +12,7 @@ import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './a
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1511,19 +1511,24 @@ async function main() {
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);
   const candidateDrops = buildDrops(historicalSignals, bible, signals);
+  const currentDrops = buildDrops(signals, bible, signals);
   const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
+  const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
+  const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
+  summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...detectedFallbackStateIds])].sort();
+  const fallbackStateIds = new Set(summary.fallbackStateIds);
   const drops = mergePartialRefreshDrops({
     previousDrops,
     currentDrops: candidateDrops,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
-    fallbackStateIds: summary.fallbackStateIds || [],
+    fallbackStateIds: summary.fallbackStateIds,
   });
-  const currentDrops = buildDrops(signals, bible, signals);
   const events = buildEvents(historicalSignals, bible);
-  const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state)) });
-  const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(currentDrops);
-  const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(currentDrops);
+  const alertableCurrentDrops = currentDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
+  const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
+  const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(alertableCurrentDrops);
+  const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(alertableCurrentDrops);
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
     .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);
@@ -1537,7 +1542,6 @@ async function main() {
     engineGeneratedAt,
   };
   const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
-  const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const summaryStatesById = new Map((summary.states || []).filter((state) => activeStateIds.has(state.state)).map((state) => [state.state, state]));
   const activeSummaryStates = [...activeStateIds].map((stateId) => summaryStatesById.get(stateId) || {
     state: stateId,

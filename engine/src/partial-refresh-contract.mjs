@@ -1,3 +1,17 @@
+export function detectDropCollapseFallbacks(previousStateQuality, currentDrops = [], attemptedStateIds = [], minRatio = 0.5) {
+  const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()));
+  const currentCounts = new Map();
+  for (const drop of currentDrops) {
+    const state = String(drop?.state || drop?.state_code || '').toUpperCase();
+    currentCounts.set(state, (currentCounts.get(state) || 0) + 1);
+  }
+  return (previousStateQuality?.states || [])
+    .filter((state) => attempted.has(String(state.state).toUpperCase()))
+    .filter((state) => Number(state.dropCount || 0) >= 1 && (currentCounts.get(String(state.state).toUpperCase()) || 0) < Math.ceil(Number(state.dropCount) * minRatio))
+    .map((state) => String(state.state).toUpperCase())
+    .sort();
+}
+
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [] } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
