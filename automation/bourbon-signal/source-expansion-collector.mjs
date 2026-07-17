@@ -10,6 +10,7 @@ const execFile = promisify(execFileCallback);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, '../..');
 const DEFAULT_OUTPUT = path.join(SCRIPT_DIR, 'reports', 'source-expansion-collector-latest.json');
+const DEFAULT_PROBE_OUTPUT = path.join(SCRIPT_DIR, 'reports', 'known-source-probe-latest.json');
 const CANDIDATE_REGISTRY = path.join(ROOT, 'engine', 'data', 'state-expansion-candidates.json');
 const STATE_PATTERN = /^(?:[A-Z]{2}|MD-MONTGOMERY)$/;
 const MAX_STATES_PER_RUN = 5;
@@ -32,10 +33,20 @@ export function normalizeStates(value) {
 
 function nonNegative(value) { return Math.max(0, Math.min(1_000_000, Math.floor(Number(value) || 0))); }
 
-export function resolveScheduledStates(registry, at = new Date().toISOString()) {
+export function resolveScheduledStates(registry, at = new Date().toISOString(), rotationHours = 0) {
   const candidates = (Array.isArray(registry?.states) ? registry.states : [])
     .filter((state) => !['active', 'alert_grade'].includes(state?.lifecycleStage));
-  return selectRotatingStateCohort(candidates, { now: at, cohortSize: MAX_STATES_PER_RUN }).map((state) => state.state);
+  const eligible = selectRotatingStateCohort(candidates, { now: at, cohortSize: candidates.length });
+  if (!eligible.length || !rotationHours) return eligible.slice(0, MAX_STATES_PER_RUN).map((state) => state.state);
+  const slot = Math.floor(Date.parse(at) / (rotationHours * 60 * 60 * 1000));
+  const start = (((slot * MAX_STATES_PER_RUN) % eligible.length) + eligible.length) % eligible.length;
+  return Array.from({ length: Math.min(MAX_STATES_PER_RUN, eligible.length) }, (_, index) => eligible[(start + index) % eligible.length].state);
+}
+
+export function stagesForCollectionMode(mode = 'broad') {
+  if (mode === 'broad') return ['discovery', 'probe'];
+  if (mode === 'probe') return ['probe'];
+  throw new Error(`Unknown source-expansion mode ${mode}.`);
 }
 
 export function summarizeStageOutput(result) {
@@ -92,19 +103,25 @@ function collectExpansionCandidates(stages) {
   return [...candidates.values()].sort((left, right) => left.state.localeCompare(right.state) || left.source.localeCompare(right.source)).slice(0, 100);
 }
 
-export function engineStageInvocation(stage) {
+export function engineStageInvocation(stage, { maxRequests = 60, officialOnly = false } = {}) {
   const relative = stage === 'discovery'
     ? 'src/discovery/state-source-discovery.mjs'
     : stage === 'probe'
       ? 'src/discovery/state-source-probe.mjs'
       : null;
   if (!relative) throw new Error(`Unknown source-expansion stage ${stage}.`);
-  return { executable: process.execPath, script: path.join(ROOT, 'engine', relative) };
+  return {
+    executable: process.execPath,
+    script: path.join(ROOT, 'engine', relative),
+    extraArgs: stage === 'probe'
+      ? [`--max-requests=${Math.max(1, Math.min(60, Number(maxRequests) || 60))}`, ...(officialOnly ? ['--official-only'] : [])]
+      : [],
+  };
 }
 
-async function runEngineStage({ stage, states }) {
-  const invocation = engineStageInvocation(stage);
-  const args = [invocation.script, `--states=${states.join(',')}`];
+async function runEngineStage({ stage, states, mode }) {
+  const invocation = engineStageInvocation(stage, { maxRequests: mode === 'probe' ? 40 : 60, officialOnly: mode === 'probe' });
+  const args = [invocation.script, `--states=${states.join(',')}`, ...invocation.extraArgs];
   if (stage === 'discovery') args.push(`--max-queries=${MAX_STATES_PER_RUN * 4}`);
   const { stdout = '' } = await execFile(invocation.executable, args, { cwd: path.join(ROOT, 'engine'), maxBuffer: 200_000 });
   let parsed = {};
@@ -121,12 +138,12 @@ async function runEngineStage({ stage, states }) {
 }
 
 /** Runs only bounded deterministic engine stages. It never updates lifecycle, promotions, alerts, or public site data. */
-export async function buildSourceExpansionCollection({ states, execute = false, run = runEngineStage, generatedAt = new Date().toISOString() } = {}) {
+export async function buildSourceExpansionCollection({ states, mode = 'broad', execute = false, run = runEngineStage, generatedAt = new Date().toISOString() } = {}) {
   const normalizedStates = Array.isArray(states) ? normalizeStates(states.join(',')) : normalizeStates(states);
   const stages = [];
-  for (const stage of ['discovery', 'probe']) {
+  for (const stage of stagesForCollectionMode(mode)) {
     stages.push(execute
-      ? await run({ stage, states: normalizedStates })
+      ? await run({ stage, states: normalizedStates, mode })
       : { stage, states: normalizedStates, ok: null, planned: true, artifact: stage === 'discovery' ? 'engine/out/discovery/<STATE>.json' : 'engine/out/probes/<STATE>.json', summary: { candidates: 0, probeable: 0, blocked: 0 } });
   }
   const summary = stages.reduce((total, stage) => ({
@@ -136,9 +153,10 @@ export async function buildSourceExpansionCollection({ states, execute = false, 
   }), { candidates: 0, probeable: 0, blocked: 0 });
   const expansionCandidates = collectExpansionCandidates(stages);
   return {
-    contractVersion: 'bourbon-signal/source-expansion-collector@1',
+    contractVersion: 'bourbon-signal/source-expansion-collector@2',
     generatedAt,
     mode: execute ? 'deterministic_collection' : 'planned_collection',
+    collectionMode: mode,
     states: normalizedStates,
     maxStatesPerRun: MAX_STATES_PER_RUN,
     canPromote: false,
@@ -152,15 +170,18 @@ export async function buildSourceExpansionCollection({ states, execute = false, 
 
 export async function main(argv = process.argv.slice(2)) {
   const at = option(argv, 'at') || new Date().toISOString();
+  const mode = option(argv, 'mode') || 'broad';
+  stagesForCollectionMode(mode);
   const requestedStates = option(argv, 'states');
-  const states = requestedStates || resolveScheduledStates(JSON.parse(await readFile(CANDIDATE_REGISTRY, 'utf8')), at).join(',');
+  const states = requestedStates || resolveScheduledStates(JSON.parse(await readFile(CANDIDATE_REGISTRY, 'utf8')), at, mode === 'probe' ? 1 : 3).join(',');
   const report = await buildSourceExpansionCollection({
     states,
+    mode,
     execute: argv.includes('--execute'),
     generatedAt: at,
   });
   if (argv.includes('--apply')) {
-    const output = path.resolve(option(argv, 'output') || DEFAULT_OUTPUT);
+    const output = path.resolve(option(argv, 'output') || (mode === 'probe' ? DEFAULT_PROBE_OUTPUT : DEFAULT_OUTPUT));
     await mkdir(path.dirname(output), { recursive: true });
     await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
   }

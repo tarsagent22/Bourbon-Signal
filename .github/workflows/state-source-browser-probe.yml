@@ -2,7 +2,8 @@ name: State source browser probe
 
 on:
   schedule:
-    - cron: "23 4 * * 2,5"
+    # Twice daily after direct-probe triage. GitHub schedules are UTC.
+    - cron: "50 5,17 * * *"
   workflow_dispatch:
     inputs:
       states:

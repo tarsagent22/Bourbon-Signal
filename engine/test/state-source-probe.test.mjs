@@ -39,3 +39,28 @@ test('state source probe rejects states without discovery evidence', async () =>
   await assert.rejects(() => probeStateSources({ states: ['CO'], discoveryDir: path.join(root, 'missing'), outDir: path.join(root, 'out'), httpClient: { get: async () => ({}) } }), /discovery report/i);
   await rm(root, { recursive: true, force: true });
 });
+
+test('official-only state source probe excludes retailers and third-party official-search results', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'state-source-probe-official-'));
+  const discoveryDir = path.join(root, 'discovery');
+  const outDir = path.join(root, 'probes');
+  await mkdir(discoveryDir, { recursive: true });
+  await writeFile(path.join(discoveryDir, 'CO.json'), JSON.stringify({
+    state: 'CO',
+    candidates: [
+      { id: 'official', state: 'CO', title: 'Official', url: 'https://agency.colorado.gov/inventory', domain: 'agency.colorado.gov', queryTemplateIds: ['official_control'], evidenceKind: 'search_discovery_only' },
+      { id: 'wiki', state: 'CO', title: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Colorado', domain: 'en.wikipedia.org', queryTemplateIds: ['official_control'], platformHints: ['official_source'], evidenceKind: 'search_discovery_only' },
+      { id: 'retailer', state: 'CO', title: 'Retailer', url: 'https://retailer.example/bourbon', domain: 'retailer.example', queryTemplateIds: ['retailer_storefront'], evidenceKind: 'search_discovery_only' },
+    ],
+  }));
+  const calls = [];
+  const [report] = await probeStateSources({
+    states: ['CO'], discoveryDir, outDir, officialOnly: true, maxSourcesPerState: 8,
+    httpClient: { get: async (url) => { calls.push(url); return { ok: true, status: 200, url, text: 'official inventory' }; } },
+  });
+  assert.deepEqual(calls, ['https://agency.colorado.gov/inventory']);
+  assert.equal(report.officialOnly, true);
+  assert.equal(report.summary.probed, 1);
+  assert.equal(report.results[0].sourceAuthority, 'official');
+  await rm(root, { recursive: true, force: true });
+});

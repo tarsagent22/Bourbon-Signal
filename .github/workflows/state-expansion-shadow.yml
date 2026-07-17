@@ -2,7 +2,8 @@ name: Rotating state expansion shadow collection
 
 on:
   schedule:
-    - cron: "23 4 * * *"
+    # Six evenly spaced UTC runs/day; the 05:15 UTC run lands in the Eastern early-morning batch during DST.
+    - cron: "15 1,5,9,13,17,21 * * *"
   workflow_dispatch:
     inputs:
       states:

@@ -55,6 +55,41 @@ test('bounded HTTP client rejects insecure URLs and per-host budget overruns', a
   await assert.rejects(() => client.get('https://budget.example/two'), /budget/i);
 });
 
+test('bounded HTTP client enforces one global request budget across hosts and redirects', async () => {
+  let fetchCalls = 0;
+  const client = createBoundedHttpClient({
+    maxRequests: 2,
+    perHostRequestBudget: 8,
+    resolveHost: publicDns,
+    fetchImpl: async (url) => {
+      fetchCalls += 1;
+      return String(url).includes('/start')
+        ? new Response('', { status: 302, headers: { location: 'https://second.example/final' } })
+        : new Response('{}', { status: 200 });
+    },
+  });
+  await client.get('https://first.example/start');
+  await assert.rejects(() => client.get('https://third.example/blocked'), /global probe budget/i);
+  assert.equal(fetchCalls, 2, 'redirects count against the global network request budget');
+  assert.equal(client.requestCount, 2);
+});
+
+test('bounded HTTP client applies URL policy to redirect hops', async () => {
+  let fetchCalls = 0;
+  const client = createBoundedHttpClient({
+    maxRequests: 4,
+    urlPolicy: (url) => url.hostname.endsWith('.gov'),
+    resolveHost: publicDns,
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response('', { status: 302, headers: { location: 'https://retailer.example/inventory' } });
+    },
+  });
+  await assert.rejects(() => client.get('https://agency.example.gov/inventory'), /URL rejected by source probe policy/);
+  assert.equal(fetchCalls, 1, 'the disallowed redirect must never be fetched');
+  assert.equal(client.requestCount, 1);
+});
+
 test('bounded HTTP client blocks private, loopback, and private redirect destinations before fetch', async () => {
   let fetchCalls = 0;
   const privateClient = createBoundedHttpClient({

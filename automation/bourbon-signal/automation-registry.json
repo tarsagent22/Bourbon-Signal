@@ -9,13 +9,25 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "push and pull request",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["github_actions"], "maxRequestsPerRun": 0 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 0
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["ci_checks"]
+      "artifacts": [
+        "ci_checks"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-refresh-feed",
@@ -25,13 +37,27 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "every 30 minutes",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["public_source_http", "vercel_blob"], "maxRequestsPerRun": 5000 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_source_http",
+          "vercel_blob"
+        ],
+        "maxRequestsPerRun": 5000
+      },
       "customerMutation": "snapshot_activation",
       "promotionDeployment": "snapshot_activation",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "BOURBON_SIGNAL_DISABLED_STATES",
-      "artifacts": ["engine/out/site", "engine/out/source-health.json"]
+      "artifacts": [
+        "engine/out/site",
+        "engine/out/source-health.json"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-engine-watchdog",
@@ -41,13 +67,26 @@
       "ownerLayer": "sensor",
       "executionClass": "script_only",
       "frequency": "every 10 minutes",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["customer_domain_http", "github_actions"], "maxRequestsPerRun": 4 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "customer_domain_http",
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 4
+      },
       "customerMutation": "none",
       "promotionDeployment": "guarded_recovery_dispatch",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED",
-      "artifacts": ["engine/out/production-watchdog.json"]
+      "artifacts": [
+        "engine/out/production-watchdog.json"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-engine-recovery-drill",
@@ -57,13 +96,23 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "monthly",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": [], "maxRequestsPerRun": 0 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [],
+        "maxRequestsPerRun": 0
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "workflow_dispatch_only",
-      "artifacts": ["engine/out/recovery-drill.json"]
+      "artifacts": [
+        "engine/out/recovery-drill.json"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-state-expansion-shadow",
@@ -72,14 +121,26 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "daily rotating cohort",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["public_source_http"], "maxRequestsPerRun": 1000 },
+      "frequency": "every 4 hours rotating cohort",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_source_http"
+        ],
+        "maxRequestsPerRun": 1000
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["engine/out/shadow"]
+      "artifacts": [
+        "engine/out/shadow"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-state-source-browser-probe",
@@ -88,14 +149,27 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "twice weekly",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["headless_browser", "official_source_http"], "maxRequestsPerRun": 6 },
+      "frequency": "twice daily after direct triage",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "headless_browser",
+          "official_source_http"
+        ],
+        "maxRequestsPerRun": 6
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["engine/out/browser-probe"]
+      "artifacts": [
+        "engine/out/browser-probe"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-state-expansion-canary",
@@ -105,13 +179,26 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "manual after shadow evidence",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["github_actions", "vercel_preview"], "maxRequestsPerRun": 20 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_actions",
+          "vercel_preview"
+        ],
+        "maxRequestsPerRun": 20
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "workflow_dispatch_only",
-      "artifacts": ["engine/out/canary"]
+      "artifacts": [
+        "engine/out/canary"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "github-state-promotion-provenance",
@@ -121,13 +208,23 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "manual promotion evidence gate",
-      "agent": { "provider": null, "model": null, "estimatedTokensPerRun": 0 },
-      "externalApi": { "classes": [], "maxRequestsPerRun": 0 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [],
+        "maxRequestsPerRun": 0
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "quiet_on_success",
       "killSwitch": "workflow_dispatch_only",
-      "artifacts": ["engine/out/promotion-provenance"]
+      "artifacts": [
+        "engine/out/promotion-provenance"
+      ],
+      "delivery": "github_only"
     },
     {
       "id": "hermes-live-registry-reconciliation",
@@ -136,14 +233,26 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "daily at 06:05 local",
-      "agent": { "provider": null, "model": null, "estimatedTokensPerRun": 0 },
-      "externalApi": { "classes": ["local_hermes_scheduler"], "maxRequestsPerRun": 1 },
+      "frequency": "daily at 00:05 Eastern",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "local_hermes_scheduler"
+        ],
+        "maxRequestsPerRun": 1
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "cron_pause:0f844531ccdf",
-      "artifacts": ["automation/bourbon-signal/hermes-jobs.json"]
+      "artifacts": [
+        "automation/bourbon-signal/hermes-jobs.json"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-daily-operator",
@@ -152,14 +261,28 @@
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "agent",
-      "frequency": "daily",
-      "agent": { "provider": "Hermes", "model": "Sol" },
-      "externalApi": { "classes": ["github", "bounded_operator_artifacts"], "maxRequestsPerRun": 200 },
+      "frequency": "twice daily at 02:45 and 14:45 Eastern",
+      "agent": {
+        "provider": "openai-codex",
+        "model": "gpt-5.6-luna",
+        "reasoning": "xhigh"
+      },
+      "externalApi": {
+        "classes": [
+          "github",
+          "bounded_operator_artifacts"
+        ],
+        "maxRequestsPerRun": 200
+      },
       "customerMutation": "none",
       "promotionDeployment": "operator_only",
       "silencePolicy": "report_output",
       "killSwitch": "operator_objective_lock",
-      "artifacts": ["operator_findings", "objective_lock"]
+      "artifacts": [
+        "operator_findings",
+        "objective_lock"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-daily-company-brief",
@@ -168,14 +291,26 @@
       "active": true,
       "ownerLayer": "brief",
       "executionClass": "script_then_agent",
-      "frequency": "daily",
-      "agent": { "provider": "Hermes", "model": "Terra" },
-      "externalApi": { "classes": ["aggregate_scorecard"], "maxRequestsPerRun": 1 },
+      "frequency": "daily at 05:30 Eastern",
+      "agent": {
+        "provider": "openai-codex",
+        "model": "gpt-5.6-luna",
+        "reasoning": "xhigh"
+      },
+      "externalApi": {
+        "classes": [
+          "aggregate_scorecard"
+        ],
+        "maxRequestsPerRun": 1
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "DAILY_BRIEF_AGENT_ENABLED",
-      "artifacts": ["daily_company_brief"]
+      "artifacts": [
+        "daily_company_brief"
+      ],
+      "delivery": "main_chat"
     },
     {
       "id": "hermes-release-radar",
@@ -184,14 +319,27 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "daily",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["brave_search"], "maxRequestsPerRun": 8 },
+      "frequency": "daily at 04:15 Eastern",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "brave_search"
+        ],
+        "maxRequestsPerRun": 8
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "cron_pause:00f56edff2e9",
-      "artifacts": ["release_radar_lead_ledger", "release_radar_scout"]
+      "artifacts": [
+        "release_radar_lead_ledger",
+        "release_radar_scout"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-bottle-queue",
@@ -201,13 +349,25 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "every 8 hours",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["bottle_queue_worker"], "maxRequestsPerRun": 80 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "bottle_queue_worker"
+        ],
+        "maxRequestsPerRun": 80
+      },
       "customerMutation": "internal_state",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "cron_pause:bf9e05209184",
-      "artifacts": ["bottle_queue_autoprocess"]
+      "artifacts": [
+        "bottle_queue_autoprocess"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-state-source-collector",
@@ -216,14 +376,29 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "daily",
-      "agent": { "provider": null, "model": null },
-      "externalApi": { "classes": ["brave_search", "public_source_http"], "maxRequestsPerRun": 60 },
+      "frequency": "every 3 hours",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "brave_search",
+          "public_source_http"
+        ],
+        "maxRequestsPerRun": 60
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "compact_exception_only",
       "killSwitch": "cron_pause:9e548bfe11d3",
-      "artifacts": ["state_source_discovery", "state_source_probe", "source_expansion_collector"]
+      "artifacts": [
+        "state_source_discovery",
+        "state_source_probe",
+        "source_expansion_collector"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-source-scout",
@@ -232,14 +407,28 @@
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "script_then_agent",
-      "frequency": "weekly semantic review",
-      "agent": { "provider": "Hermes", "model": "Terra" },
-      "externalApi": { "classes": ["official_source_http", "headless_browser"], "maxRequestsPerRun": 20 },
+      "frequency": "twice daily semantic review",
+      "agent": {
+        "provider": "openai-codex",
+        "model": "gpt-5.6-luna",
+        "reasoning": "xhigh"
+      },
+      "externalApi": {
+        "classes": [
+          "github",
+          "bounded_operator_artifacts"
+        ],
+        "maxRequestsPerRun": 10
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "cron_pause:a7e40e29f603",
-      "artifacts": ["source_expansion_collector", "source_roi"]
+      "artifacts": [
+        "source_expansion_collector",
+        "source_roi"
+      ],
+      "delivery": "ops_chat"
     },
     {
       "id": "hermes-weekly-strategy",
@@ -248,14 +437,84 @@
       "active": true,
       "ownerLayer": "brief",
       "executionClass": "script_then_agent",
-      "frequency": "weekly",
-      "agent": { "provider": "Hermes", "model": "Terra" },
-      "externalApi": { "classes": ["aggregate_scorecard", "github"], "maxRequestsPerRun": 20 },
+      "frequency": "Friday at 03:30 Eastern",
+      "agent": {
+        "provider": "openai-codex",
+        "model": "gpt-5.6-luna",
+        "reasoning": "xhigh"
+      },
+      "externalApi": {
+        "classes": [
+          "aggregate_scorecard",
+          "github"
+        ],
+        "maxRequestsPerRun": 20
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "WEEKLY_STRATEGY_AGENT_ENABLED",
-      "artifacts": ["weekly_strategy_review"]
+      "artifacts": [
+        "weekly_strategy_review"
+      ],
+      "delivery": "main_chat"
+    },
+    {
+      "id": "hermes-known-source-probe",
+      "platform": "hermes_job",
+      "hermesJobId": "17c34f7e496e",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "hourly at :40 Eastern",
+      "delivery": "ops_chat",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "official_source_http"
+        ],
+        "maxRequestsPerRun": 40
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "cron_pause:17c34f7e496e",
+      "artifacts": [
+        "known_source_probe"
+      ]
+    },
+    {
+      "id": "hermes-morning-scorecard",
+      "platform": "hermes_job",
+      "hermesJobId": "290b9f17b468",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "daily at 05:00 Eastern",
+      "delivery": "ops_chat",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "aggregate_scorecard"
+        ],
+        "maxRequestsPerRun": 1
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "cron_pause:290b9f17b468",
+      "artifacts": [
+        "company_scorecard_latest"
+      ]
     }
-  ]
+  ],
+  "timezone": "America/New_York"
 }

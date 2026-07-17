@@ -15,11 +15,13 @@ export async function verifyStateLifecycleDrift({ config, actual, configPath = D
   const resolvedConfig = config ?? JSON.parse(await readFile(configPath, 'utf8'));
   const resolvedActual = actual ?? await readFile(outputPath, 'utf8');
   const expected = renderStateLifecycleTypes(resolvedConfig);
+  const normalizeNewlines = (value) => String(value).replaceAll(String.fromCharCode(13), '');
+  const matches = normalizeNewlines(resolvedActual) === normalizeNewlines(expected);
   return {
-    ok: resolvedActual === expected,
+    ok: matches,
     expected,
     actual: resolvedActual,
-    reason: resolvedActual === expected ? null : 'Generated src/config/stateLifecycle.ts has drifted from authoritative src/config/state-lifecycle.json. Run npm run generate:state-lifecycle-types.',
+    reason: matches ? null : 'Generated src/config/stateLifecycle.ts has drifted from authoritative src/config/state-lifecycle.json. Run npm run generate:state-lifecycle-types.',
   };
 }
 

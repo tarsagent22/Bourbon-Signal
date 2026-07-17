@@ -1,87 +1,148 @@
 {
-  "schemaVersion": 1,
-  "exportedAt": "2026-07-17T03:01:10Z",
-  "source": "Hermes scheduler read-only job listing",
+  "schemaVersion": 2,
+  "exportedAt": "2026-07-17T04:01:55.475928Z",
+  "source": "Hermes scheduler and config sanitized export",
+  "timezone": "America/New_York",
   "jobs": [
     {
       "jobId": "3244b5822d87",
       "name": "Bourbon Signal autonomous company operator",
-      "schedule": "0 1 * * *",
+      "schedule": "45 2,14 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "reasoning": "xhigh",
+      "safetyHash": "dd29380e8c0d2eebe048800d8e2819603d9d0fb8fd5d6bb97614dc06d07ca91c"
     },
     {
       "jobId": "59eb8dd6ad07",
       "name": "Bourbon Signal daily company brief",
-      "schedule": "0 8 * * *",
+      "schedule": "30 5 * * *",
       "deliver": "origin",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "reasoning": "xhigh",
+      "safetyHash": "1aefddca406fb40f8c2d2bf55b0d6dbdf81cb6819e12e8bfa6608ec67aba39d2"
     },
     {
       "jobId": "a7e40e29f603",
       "name": "Bourbon Signal silent demand and source scout",
-      "schedule": "0 10 * * 1",
+      "schedule": "0 2,14 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "reasoning": "xhigh",
+      "safetyHash": "46abd849f8acb1d5d11e0d7f19f2a95902b74cb0bc9f4cb97b2100ffdce2f87e"
     },
     {
       "jobId": "bf9e05209184",
       "name": "Bourbon Signal silent bottle queue sensor",
       "schedule": "every 480m",
-      "deliver": "local",
+      "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_bottle_queue_check.py",
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
     },
     {
       "jobId": "00f56edff2e9",
       "name": "Bourbon Signal silent Release Radar scout",
-      "schedule": "15 9 * * *",
-      "deliver": "local",
+      "schedule": "15 4 * * *",
+      "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_release_radar_leads.py",
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
     },
     {
       "jobId": "8143c08618e6",
       "name": "Bourbon Signal weekly strategy review",
-      "schedule": "30 8 * * 5",
+      "schedule": "30 3 * * 5",
       "deliver": "origin",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "reasoning": "xhigh",
+      "safetyHash": "be6a44cf03cbc80cf09f38682831fdeec4f80d83560b61a2e3fa65f71b5f5208"
     },
     {
       "jobId": "9e548bfe11d3",
       "name": "Bourbon Signal deterministic state source collector",
-      "schedule": "15 6 * * *",
-      "deliver": "local",
+      "schedule": "15 */3 * * *",
+      "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_source_expansion.py",
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
     },
     {
       "jobId": "0f844531ccdf",
       "name": "Bourbon Signal live automation registry reconciliation",
-      "schedule": "5 6 * * *",
+      "schedule": "5 0 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_cron_reconcile.py",
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
-      "active": true
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
+    },
+    {
+      "jobId": "17c34f7e496e",
+      "name": "Bourbon Signal hourly known-source probe",
+      "schedule": "40 * * * *",
+      "deliver": "telegram:-5461081025",
+      "noAgent": true,
+      "script": "bourbon_signal_known_source_probe.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
+    },
+    {
+      "jobId": "290b9f17b468",
+      "name": "Bourbon Signal morning scorecard aggregation",
+      "schedule": "0 5 * * *",
+      "deliver": "telegram:-5461081025",
+      "noAgent": true,
+      "script": "bourbon_signal_morning_scorecard.py",
+      "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
     }
   ]
 }

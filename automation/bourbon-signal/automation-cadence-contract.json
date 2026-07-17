@@ -1,0 +1,41 @@
+{
+  "contractVersion": "bourbon-signal/automation-cadence@1",
+  "timezone": "America/New_York",
+  "notificationRoutes": {
+    "mainChat": ["daily_company_brief", "weekly_strategy_review", "owner_decisions"],
+    "opsChat": ["agentic_implementation_changes", "semantic_review_changes", "scheduler_drift", "morning_scorecard_errors"],
+    "localSilent": ["routine_discovery", "routine_probe", "routine_shadow", "routine_browser", "successful_watchdogs"]
+  },
+  "dailyCadence": {
+    "knownSourceProbe": 24,
+    "broadDiscoveryAndScoring": 8,
+    "shadowEvidence": 6,
+    "browserProbe": 2,
+    "semanticReview": 2,
+    "implementationOperator": 2,
+    "releaseRadar": 1,
+    "scorecardAggregation": 1,
+    "morningBrief": 1,
+    "schedulerReconciliation": 1
+  },
+  "expectedTotals": {
+    "expansionDeterministicRunsPerDay": 40,
+    "deterministicRunsPerDay": 238.03333333333333,
+    "agenticRunsPerWeek": 36,
+    "deterministicRunSharePercentApprox": 97.89
+  },
+  "agentPolicy": {
+    "provider": "openai-codex",
+    "model": "gpt-5.6-luna",
+    "reasoning": "xhigh"
+  },
+  "safety": {
+    "discoveryCanPublish": false,
+    "discoveryCanPromote": false,
+    "discoveryCanAlert": false,
+    "browserRequiresAllowlist": true,
+    "braveCacheHours": 24,
+    "maxStatesPerExpansionRun": 5,
+    "shadowAlertDeliveryEnabled": false
+  }
+}

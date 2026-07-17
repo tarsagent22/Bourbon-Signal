@@ -45,11 +45,17 @@ export async function probeStateSources({
   states,
   discoveryDir = path.resolve('out/discovery'),
   outDir = path.resolve('out/probes'),
-  httpClient = createBoundedHttpClient(),
+  httpClient,
   maxSourcesPerState = 8,
+  maxRequests = 60,
+  officialOnly = false,
   now = () => new Date().toISOString(),
 } = {}) {
   const selected = normalizeStates(states);
+  const client = httpClient || createBoundedHttpClient({
+    maxRequests,
+    urlPolicy: officialOnly ? (url) => url.hostname.toLowerCase().endsWith('.gov') : undefined,
+  });
   const boundedLimit = Math.max(1, Math.min(12, Number(maxSourcesPerState) || 8));
   await mkdir(outDir, { recursive: true });
   const reports = [];
@@ -62,11 +68,12 @@ export async function probeStateSources({
     }
     const candidates = (Array.isArray(discovery.candidates) ? discovery.candidates : [])
       .filter((candidate) => candidate?.state === state && candidate?.evidenceKind === 'search_discovery_only' && /^https:\/\//i.test(candidate?.url || ''))
+      .filter((candidate) => !officialOnly || sourceAuthorityForUrl(candidate.url) === 'official')
       .slice(0, boundedLimit)
       .map(compactCandidate);
     const results = [];
     for (const source of candidates) {
-      const result = await probeSource(source, { httpClient });
+      const result = await probeSource(source, { httpClient: client });
       results.push({
         ...result,
         sourceId: source.id,
@@ -92,6 +99,8 @@ export async function probeStateSources({
       state,
       canPublish: false,
       canPromote: false,
+      officialOnly,
+      requestBudget: Math.max(1, Number(maxRequests) || 1),
       maxSourcesPerState: boundedLimit,
       summary,
       results,
@@ -117,11 +126,20 @@ export async function probeStateSources({
 }
 
 async function main(args = process.argv.slice(2)) {
+  const maxRequests = Number(option(args, 'max-requests', '60'));
+  const officialOnly = args.includes('--official-only');
+  const httpClient = createBoundedHttpClient({
+    maxRequests,
+    urlPolicy: officialOnly ? (url) => url.hostname.toLowerCase().endsWith('.gov') : undefined,
+  });
   const reports = await probeStateSources({
     states: option(args, 'states'),
     discoveryDir: path.resolve(option(args, 'discovery-dir', 'out/discovery')),
     outDir: path.resolve(option(args, 'out-dir', 'out/probes')),
     maxSourcesPerState: Number(option(args, 'max-sources', '8')),
+    maxRequests,
+    officialOnly,
+    httpClient,
   });
   const expansionCandidates = reports.flatMap((report) => report.expansionCandidates);
   process.stdout.write(`${JSON.stringify({
@@ -134,6 +152,8 @@ async function main(args = process.argv.slice(2)) {
     states: reports.map((report) => ({ state: report.state, ...report.summary })),
     canPublish: false,
     canPromote: false,
+    requestBudget: maxRequests,
+    requestCount: httpClient.requestCount,
   }, null, 2)}\n`);
 }
 

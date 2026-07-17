@@ -4,9 +4,10 @@
   "title": "Bourbon Signal automation registry",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "automations"],
+  "required": ["schemaVersion", "timezone", "automations"],
   "properties": {
     "schemaVersion": { "const": 1 },
+    "timezone": { "const": "America/New_York" },
     "automations": {
       "type": "array",
       "minItems": 1,
@@ -17,7 +18,7 @@
     "automation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "platform", "active", "ownerLayer", "executionClass", "frequency", "agent", "externalApi", "customerMutation", "promotionDeployment", "silencePolicy", "killSwitch", "artifacts"],
+      "required": ["id", "platform", "active", "ownerLayer", "executionClass", "frequency", "delivery", "agent", "externalApi", "customerMutation", "promotionDeployment", "silencePolicy", "killSwitch", "artifacts"],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,100}$" },
         "platform": { "enum": ["github_workflow", "hermes_job"] },
@@ -27,13 +28,15 @@
         "ownerLayer": { "enum": ["deterministic", "sensor", "operator", "brief"] },
         "executionClass": { "enum": ["script_only", "script_then_agent", "agent"] },
         "frequency": { "type": "string", "minLength": 3, "maxLength": 80 },
+        "delivery": { "enum": ["local", "main_chat", "ops_chat", "github_only"] },
         "agent": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["provider", "model"],
+          "required": ["provider", "model", "reasoning"],
           "properties": {
             "provider": { "type": ["string", "null"] },
-            "model": { "type": ["string", "null"] }
+            "model": { "type": ["string", "null"] },
+            "reasoning": { "enum": ["xhigh", null] }
           }
         },
         "externalApi": {

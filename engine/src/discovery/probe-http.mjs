@@ -90,15 +90,18 @@ export function createBoundedHttpClient({
   timeoutMs = DEFAULT_TIMEOUT_MS,
   maxBytes = DEFAULT_MAX_BYTES,
   maxRedirects = DEFAULT_MAX_REDIRECTS,
+  maxRequests = 60,
   perHostRequestBudget = 8,
   maxConcurrency = 2,
   minDelayMs = 0,
+  urlPolicy = () => true,
   userAgent = 'BourbonSignalSourceProbe/1.0 (+https://bourbonsignal.com; no-login discovery probe)',
 } = {}) {
   const hostRequests = new Map();
   const hostLastStartedAt = new Map();
   const queue = [];
   let active = 0;
+  let totalRequests = 0;
 
   function runNext() {
     if (active >= Math.max(1, maxConcurrency)) return;
@@ -130,6 +133,9 @@ export function createBoundedHttpClient({
       let currentUrl = initialUrl;
       let redirects = 0;
       while (true) {
+        if (!urlPolicy(currentUrl)) throw new Error(`URL rejected by source probe policy: ${currentUrl.hostname}`);
+        if (totalRequests >= Math.max(1, Number(maxRequests) || 1)) throw new Error(`Global probe budget (${maxRequests}) exhausted.`);
+        totalRequests += 1;
         const publicRecords = await assertPublicDestination(currentUrl, resolveHost);
         const count = hostRequests.get(currentUrl.host) || 0;
         if (count >= perHostRequestBudget) throw new Error(`Per-host probe budget exhausted for ${currentUrl.host}.`);
@@ -177,5 +183,5 @@ export function createBoundedHttpClient({
     });
   }
 
-  return { get, hostRequests };
+  return { get, hostRequests, get requestCount() { return totalRequests; } };
 }

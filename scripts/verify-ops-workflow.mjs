@@ -204,6 +204,21 @@ for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'script
   expectFile(requiredFile);
 }
 const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
+const hermesSnapshot = JSON.parse(read('automation/bourbon-signal/hermes-jobs.json'));
+for (const job of hermesSnapshot.jobs || []) {
+  if (!job.noAgent || !job.script) continue;
+  const sourcePath = path.join('automation', 'bourbon-signal', 'hermes-scripts', job.script);
+  const source = expectFile(sourcePath);
+  if (source && /C:\\\\Users\\\\/i.test(source)) fail(`Hermes script must derive its repository and profile paths at runtime: ${job.script}`);
+  if (source && source.includes('subprocess.run') && !source.includes('raise SystemExit')) fail(`Hermes script must return a nonzero job status when its subprocess fails: ${job.script}`);
+  const localAppData = process.env.LOCALAPPDATA;
+  const installedPath = localAppData ? path.join(localAppData, 'hermes', 'scripts', job.script) : '';
+  if (source && installedPath && existsSync(installedPath)) {
+    const normalizeNewlines = (value) => value.replaceAll(String.fromCharCode(13), '');
+    const installed = normalizeNewlines(readFileSync(installedPath, 'utf8'));
+    if (normalizeNewlines(source) !== installed) fail(`Installed Hermes script drifted from source control: ${job.script}`);
+  }
+}
 if (!automationRegistry.automations?.some((entry) => entry.id === 'github-engine-watchdog' && entry.executionClass === 'script_only')) {
   fail('Automation registry must keep the deterministic production watchdog script-only.');
 }
@@ -384,12 +399,15 @@ for (const phrase of ['npm run verify:state-lifecycle-drift', 'npm run test:stat
 }
 
 const shadowWorkflow = expectFile('.github/workflows/state-expansion-shadow.yml');
+if (shadowWorkflow && !shadowWorkflow.includes('cron: "15 1,5,9,13,17,21 * * *"')) fail('Shadow collection must run every four hours.');
 for (const phrase of ['BOURBON_SIGNAL_AUTO_DEPLOY: "0"', 'ALERT_DELIVERY_ENABLED: "0"', 'npm run shadow:expansion', 'engine/out/shadow']) {
   if (shadowWorkflow && !shadowWorkflow.includes(phrase)) fail(`Shadow workflow must include ${phrase}.`);
 }
 if (shadowWorkflow && /BLOB_READ_WRITE_TOKEN|publish-site-snapshot|--prod/.test(shadowWorkflow)) {
   fail('Shadow workflow must never publish a production snapshot or deploy production.');
 }
+const browserProbeWorkflow = expectFile('.github/workflows/state-source-browser-probe.yml');
+if (browserProbeWorkflow && !browserProbeWorkflow.includes('cron: "50 5,17 * * *"')) fail('Browser probing must run twice daily after direct-probe triage.');
 const canaryWorkflow = expectFile('.github/workflows/state-expansion-canary.yml');
 for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'npm run verify:state-integration', 'vercel deploy', 'BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow']) {
   if (canaryWorkflow && !canaryWorkflow.includes(phrase)) fail(`Canary workflow must include ${phrase}.`);

@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
-const DEFAULT_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_DESCRIPTION_LENGTH = 480;
 
 export function normalizeQuery(query) {
@@ -41,7 +41,7 @@ export function normalizeBraveResult(result) {
 export function createBraveClient({
   apiKey = process.env.BRAVE_SEARCH_API_KEY,
   cacheDir = path.resolve('out/cache/brave-search'),
-  cacheMaxAgeMs = DEFAULT_CACHE_MAX_AGE_MS,
+  cacheMaxAgeMs = Math.max(60 * 60 * 1000, Math.min(7 * 24 * 60 * 60 * 1000, Number(process.env.BOURBON_SIGNAL_BRAVE_CACHE_MAX_AGE_HOURS || 24) * 60 * 60 * 1000)) || DEFAULT_CACHE_MAX_AGE_MS,
   endpoint = BRAVE_ENDPOINT,
   fetchImpl = fetch,
   now = () => new Date(),
