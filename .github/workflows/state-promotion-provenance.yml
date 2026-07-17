@@ -46,6 +46,7 @@ jobs:
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
+          npm --prefix engine run bible
           npm --prefix engine run verify:state-fixtures -- --state="$STATE"
           npm --prefix engine run verify:state-integration -- --state="$STATE"
           npm --prefix engine run verify:reliability

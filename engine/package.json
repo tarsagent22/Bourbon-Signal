@@ -60,7 +60,7 @@
     "score:tn": "node src/score-tn-user-reach.mjs",
     "verify:sc": "npm run score:sc && node src/verify-sc.mjs",
     "score:sc": "node src/score-sc-user-reach.mjs",
-    "verify:site": "node src/verify-site-contract.mjs && npm run test:quality-states && npm run test:data-plane",
+    "verify:site": "npm run bible && node src/verify-site-contract.mjs && npm run test:quality-states && npm run test:data-plane",
     "verify:reliability": "node src/verify-reliability.mjs",
     "verify:state-integration": "node src/verify-state-integration.mjs",
     "verify:state-fixtures": "node src/verify-state-fixtures.mjs",
