@@ -1,8 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { upload as uploadBlob } from "@vercel/blob/client";
 import type { MemberSighting, SignalReport, SightingVoteKind, SightingsPreferences } from "@/lib/sightings";
 import { EMPTY_SIGHTINGS_PREFERENCES } from "@/lib/sightings";
+import {
+  ALLOWED_SIGHTING_PHOTO_TYPES,
+  buildSightingPhotoPath,
+  MAX_SIGHTING_PHOTO_BYTES,
+  SIGHTING_PHOTO_MULTIPART_THRESHOLD_BYTES,
+} from "@/lib/sighting-photo-upload";
 
 import type { MemberRewardsSummary } from "@/lib/sighting-rewards";
 
@@ -160,18 +167,30 @@ export function useSightings(enabled: boolean = true) {
     setSaving(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.set("sightingId", sightingId);
-      form.set("photo", file);
-      const res = await fetch("/api/sightings/photo", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Unable to upload photo");
+      if (file.size > MAX_SIGHTING_PHOTO_BYTES) throw new Error("Photo must be 10 MB or smaller.");
+      if (file.type && !ALLOWED_SIGHTING_PHOTO_TYPES.includes(file.type.toLowerCase() as typeof ALLOWED_SIGHTING_PHOTO_TYPES[number])) throw new Error("Upload a JPEG, PNG, WebP, or HEIC image.");
+      const pathname = buildSightingPhotoPath(sightingId, file.name, file.type);
+      const blob = await uploadBlob(pathname, file, {
+        access: "public",
+        handleUploadUrl: "/api/sightings/photo",
+        clientPayload: JSON.stringify({ sightingId }),
+        contentType: file.type || undefined,
+        multipart: file.size > SIGHTING_PHOTO_MULTIPART_THRESHOLD_BYTES,
+      });
+      const res = await fetch("/api/sightings/photo", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sightingId, blob: { url: blob.url, pathname: blob.pathname } }),
+      });
+      const data = await res.json().catch(() => ({})) as { error?: string; [key: string]: unknown };
+      if (!res.ok) throw new Error(data.error || "Unable to attach uploaded photo");
       await refreshSightings();
       return data;
     } catch (err) {
       console.error("Failed to upload sighting photo", err);
-      setError("Unable to upload photo");
-      throw err;
+      const message = err instanceof Error ? err.message : "Unable to upload photo";
+      setError(message);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setSaving(false);
     }
