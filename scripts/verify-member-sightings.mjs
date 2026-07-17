@@ -86,13 +86,26 @@ for (const phrase of ['Personal signal brief', 'Saved markets', 'Tracked bottles
   if (!dashboard.includes(phrase)) fail(`Dashboard should include personalized brief item: ${phrase}`);
 }
 
+const adminSightings = read('src/app/admin/sightings/AdminSightingsClient.tsx');
+for (const phrase of ['Approve sighting', 'pendingReview', 'Action saved and the sighting left the approval queue', 'embedded']) {
+  if (!adminSightings.includes(phrase)) fail(`Admin sighting review should provide working queue feedback and embedding: ${phrase}`);
+}
+const adminSightingsRoute = read('src/app/api/admin/sightings/route.ts');
+for (const phrase of ['listAllUsers', 'resolveManualReview = true', 'pendingReview: needsSightingReview(updatedSighting)', 'Sighting not found']) {
+  if (!adminSightingsRoute.includes(phrase)) fail(`Admin sighting API should provide complete pagination and terminal action semantics: ${phrase}`);
+}
+const controlRoom = read('src/app/admin/control-room/page.tsx');
+for (const phrase of ['id="sightings"', '<AdminSightingsClient embedded />', 'Member sighting approvals']) {
+  if (!controlRoom.includes(phrase)) fail(`Control Room should include the pending member sighting queue: ${phrase}`);
+}
+
 const signUp = read('src/app/sign-up/[[...sign-up]]/page.tsx');
-for (const phrase of ['forceRedirectUrl="/alerts?welcome=1"', 'signInForceRedirectUrl="/alerts?welcome=1"']) {
-  if (!signUp.includes(phrase)) fail(`Sign-up should redirect to alerts onboarding: ${phrase}`);
+for (const phrase of ['DEFAULT_ONBOARDING_REDIRECT = "/welcome"', 'forceRedirectUrl="/welcome"', 'signInForceRedirectUrl="/welcome"']) {
+  if (!signUp.includes(phrase)) fail(`Sign-up should redirect to the current welcome onboarding flow: ${phrase}`);
 }
 const alerts = read('src/app/alerts/page.tsx');
-for (const phrase of ['welcome', 'Setting your alert preferences before doing anything else is highly recommended', 'localStorage']) {
-  if (!alerts.includes(phrase)) fail(`Alerts page should include one-time onboarding popup behavior: ${phrase}`);
+for (const phrase of ['ActivationChecklist', 'payload?.activation', 'Your signal inbox']) {
+  if (!alerts.includes(phrase)) fail(`Alerts page should include the current activation guidance: ${phrase}`);
 }
 
 if (failures.length) {

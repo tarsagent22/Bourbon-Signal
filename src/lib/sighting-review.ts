@@ -9,13 +9,13 @@ export function sanitizeManualSightingField(value: unknown, maxLength = 180) {
 }
 
 export function needsSightingReview(sighting: Pick<MemberSighting, "reviewState" | "rewardState">) {
+  if (sighting.rewardState?.removedAt || sighting.rewardState?.rejectedAt) return false;
   const review = sighting.reviewState;
+  const photoStatus = sighting.rewardState?.photoProof?.status;
   return Boolean(
     review?.needsBottleReview ||
     review?.needsStoreReview ||
-    sighting.rewardState?.photoProof ||
-    sighting.rewardState?.removedAt ||
-    sighting.rewardState?.rejectedAt
+    (sighting.rewardState?.photoProof && (!photoStatus || photoStatus === "pending"))
   );
 }
 

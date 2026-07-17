@@ -18,10 +18,11 @@ function statusLabel(sighting: AdminSighting) {
   return "Pending review";
 }
 
-export default function AdminSightingsClient() {
+export default function AdminSightingsClient({ embedded = false }: { embedded?: boolean }) {
   const [sightings, setSightings] = useState<AdminSighting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [workingId, setWorkingId] = useState<string | null>(null);
 
   const load = async () => {
@@ -45,6 +46,7 @@ export default function AdminSightingsClient() {
     if (!sighting.reporterUserId) return;
     setWorkingId(`${sighting.id}:${action}`);
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch("/api/admin/sightings", {
         method: "PATCH",
@@ -53,7 +55,10 @@ export default function AdminSightingsClient() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
-      await load();
+      setSightings((current) => data.pendingReview
+        ? current.map((item) => item.id === sighting.id ? { ...item, ...data.sighting } : item)
+        : current.filter((item) => item.id !== sighting.id));
+      setNotice(data.pendingReview ? "Action saved. This sighting still has another review requirement." : "Action saved and the sighting left the approval queue.");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -62,9 +67,10 @@ export default function AdminSightingsClient() {
   };
 
   return (
-    <main className="admin-sightings-page">
+    <div className={`admin-sightings-page${embedded ? " embedded" : ""}`}>
       <style>{`
         .admin-sightings-page{min-height:100vh;padding:104px 16px 70px;background:linear-gradient(180deg,#100c08,#1b130c 48%,#100c08);color:var(--color-cream)}
+        .admin-sightings-page.embedded{min-height:0;padding:0;background:transparent}
         .admin-wrap{max-width:960px;margin:0 auto}
         .admin-kicker{font-family:var(--font-jetbrains);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(232,201,122,.72);font-weight:850}
         .admin-title{font-family:var(--font-playfair);font-size:clamp(38px,9vw,70px);line-height:.95;margin:10px 0 12px}
@@ -89,14 +95,19 @@ export default function AdminSightingsClient() {
         @media(max-width:680px){.admin-sightings-page{padding-left:12px;padding-right:12px}.admin-card{border-radius:20px}.admin-body{padding:14px}.admin-actions .admin-button{flex:1 1 46%;padding:11px 9px}}
       `}</style>
       <div className="admin-wrap">
-        <div className="admin-kicker">Admin review</div>
-        <h1 className="admin-title">Sighting review</h1>
-        <p className="admin-sub">Review proof photos plus manual bottles and stores. Manual entries should be added or mapped in the bottle/store data before marking catalog review done.</p>
+        {!embedded ? (
+          <>
+            <div className="admin-kicker">Admin review</div>
+            <h1 className="admin-title">Sighting review</h1>
+            <p className="admin-sub">Review proof photos plus manual bottles and stores. Manual entries should be added or mapped in the bottle/store data before marking catalog review done.</p>
+          </>
+        ) : null}
         <div className="admin-toolbar">
           <span className="admin-status">{loading ? "Loading…" : `${sightings.length} review item${sightings.length === 1 ? "" : "s"}`}</span>
           <button className="admin-button" type="button" onClick={load}><RotateCw size={14}/> Refresh</button>
         </div>
-        {error ? <div className="admin-empty" style={{ color: "#ffb4a3" }}>{error}</div> : null}
+        {error ? <div className="admin-empty" role="alert" style={{ color: "#ffb4a3" }}>{error}</div> : null}
+        {notice ? <div className="admin-empty" role="status" style={{ color: "#e8c97a" }}>{notice}</div> : null}
         {!loading && sightings.length === 0 ? <div className="admin-empty">No sightings are waiting for review right now.</div> : null}
         <div className="admin-grid">
           {sightings.map((sighting) => {
@@ -118,12 +129,12 @@ export default function AdminSightingsClient() {
                     </div>
                   ) : null}
                   <div className="admin-actions">
-                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> Approve + show</button>
-                    <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> Approve private</button>
-                    <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "reject_photo")}><X size={14}/> Reject photo</button>
+                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : "Approve sighting"}</button>
+                    {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> Approve photo privately</button> : null}
+                    {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "reject_photo")}><X size={14}/> Reject photo</button> : null}
                     {(sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview) ? <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "resolve_manual_review")}><Check size={14}/> Mark catalog added</button> : null}
                     <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "remove_sighting")}><Trash2 size={14}/> Remove</button>
-                    <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><Check size={14}/> Reject sighting</button>
+                    <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><X size={14}/> Reject sighting</button>
                   </div>
                 </div>
               </article>
@@ -131,6 +142,6 @@ export default function AdminSightingsClient() {
           })}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

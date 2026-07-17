@@ -171,6 +171,7 @@ function adaptAlertCandidates(input: {
         eligibleForDelivery: candidate.eligibleForDelivery === true,
         eligibleForEmail: candidate.eligibleForEmail !== false,
         priority: candidate.priorityClass === "major" ? "major" : "standard",
+        rarityTier: text(candidate.rarityTier, text(candidate.tier)),
         score: numberValue(candidate.reliabilityScore, numberValue(candidate.score)),
         href: "/dashboard?section=alerts",
         detail: text(candidate.evidence, text(candidate.reason, locationLabel(candidate))),

@@ -248,6 +248,58 @@ const broad = buildMemberWeeklyIntelligence({
 });
 assert.ok(broad.sections[0]?.items.some((item) => item.id === "alert-wrong-bottle"), "broad alert mode does not require a watchlist match");
 
+const repeatedRoutineBottle = (id: string, locationLabel: string) => ({
+  id,
+  dedupeKey: id,
+  bottleName: "Elijah Craig Barrel Proof",
+  stateCode: "VA",
+  locationLabel,
+  freshnessHours: 1,
+  freshnessPolicyHours: 2,
+  eligibleForDelivery: true,
+  eligibleForEmail: true,
+  priority: "standard" as const,
+  rarityTier: "limited",
+  score: 100,
+  href: "/dashboard?section=alerts",
+});
+const routineDedupe = buildMemberWeeklyIntelligence({
+  ...input,
+  member: { ...input.member, alertMode: "anything_notable", trackedBottles: [] },
+  alerts: [
+    repeatedRoutineBottle("ecbp-raleigh", "Raleigh ABC"),
+    repeatedRoutineBottle("ecbp-richmond", "Richmond ABC"),
+    repeatedRoutineBottle("ecbp-norfolk", "Norfolk ABC"),
+  ],
+  radar: [],
+  coverage: [],
+});
+assert.deepEqual(routineDedupe.sections[0]?.items.map((item) => item.id), ["ecbp-norfolk"], "routine bottles appear once even when several saved locations match");
+
+const allocatedRepeats = buildMemberWeeklyIntelligence({
+  ...input,
+  member: { ...input.member, alertMode: "anything_notable", trackedBottles: [] },
+  alerts: [
+    { ...repeatedRoutineBottle("allocated-one", "Raleigh ABC"), rarityTier: "allocated" },
+    { ...repeatedRoutineBottle("allocated-two", "Richmond ABC"), rarityTier: "allocated" },
+  ],
+  radar: [],
+  coverage: [],
+});
+assert.equal(allocatedRepeats.sections[0]?.items.length, 2, "allocated bottles may retain distinct location matches");
+
+const watchedRepeats = buildMemberWeeklyIntelligence({
+  ...input,
+  member: { ...input.member, alertMode: "anything_notable", trackedBottles: [{ key: "elijah craig barrel proof", name: "Elijah Craig Barrel Proof" }] },
+  alerts: [
+    repeatedRoutineBottle("watched-one", "Raleigh ABC"),
+    repeatedRoutineBottle("watched-two", "Richmond ABC"),
+  ],
+  radar: [],
+  coverage: [],
+});
+assert.equal(watchedRepeats.sections[0]?.items.length, 2, "watchlisted bottles may retain distinct location matches");
+
 const persistedRadarFollows = weeklyRadarFollowsFromPreferences({
   followedReleases: [
     { releaseSlug: "followed-release", marketCodes: ["va", "VA"], followedAt: "2026-07-15T12:00:00.000Z", email: "must-not-flow@example.com" },

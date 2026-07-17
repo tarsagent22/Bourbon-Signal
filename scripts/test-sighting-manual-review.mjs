@@ -49,6 +49,27 @@ const photoOnly = needsSightingReview({
 });
 assert.equal(photoOnly, true, 'photo proofs still enter admin review');
 
+const approvedPhoto = needsSightingReview({
+  ...baseSighting,
+  reviewState: {},
+  rewardState: { photoProof: { url: 'https://example.com/proof.jpg', uploadedAt: '2026-07-03T14:01:00Z', status: 'verified_public' } },
+});
+assert.equal(approvedPhoto, false, 'approved photo proofs leave the queue');
+
+const rejectedSighting = needsSightingReview({
+  ...baseSighting,
+  reviewState: { needsBottleReview: true },
+  rewardState: { rejectedAt: '2026-07-03T14:05:00Z' },
+});
+assert.equal(rejectedSighting, false, 'rejected sightings leave the queue even if their original manual-review flags remain');
+
+const removedSighting = needsSightingReview({
+  ...baseSighting,
+  reviewState: { needsStoreReview: true },
+  rewardState: { removedAt: '2026-07-03T14:05:00Z' },
+});
+assert.equal(removedSighting, false, 'removed sightings leave the queue');
+
 const canonical = needsSightingReview({
   ...baseSighting,
   reviewState: {},

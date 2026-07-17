@@ -39,6 +39,7 @@ export interface MemberWeeklyAlertCandidate {
   eligibleForDelivery: boolean;
   eligibleForEmail: boolean;
   priority: "major" | "standard";
+  rarityTier?: string;
   score: number;
   href: string;
   detail?: string;
@@ -168,8 +169,21 @@ function alertMatchesBottle(alert: MemberWeeklyAlertCandidate, member: MemberWee
   });
 }
 
+function alertMatchesTrackedBottle(alert: MemberWeeklyAlertCandidate, member: MemberWeeklyProfile) {
+  const candidate = normalizedText(alert.bottleName);
+  return member.trackedBottles.some((bottle) => {
+    const wanted = normalizedText(bottle.key || bottle.name);
+    return Boolean(wanted) && (candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate));
+  });
+}
+
+function preserveBottleLocationRepeats(alert: MemberWeeklyAlertCandidate, member: MemberWeeklyProfile) {
+  const tier = normalizedText(alert.rarityTier || "");
+  return tier === "unicorn" || tier === "allocated" || alertMatchesTrackedBottle(alert, member);
+}
+
 function eligibleAlerts(input: MemberWeeklyIntelligenceInput) {
-  return input.alerts
+  const ranked = input.alerts
     .filter((alert) => alert.eligibleForDelivery && alert.eligibleForEmail)
     .filter((alert) => Number.isFinite(alert.freshnessHours) && Number.isFinite(alert.freshnessPolicyHours))
     .filter((alert) => alert.freshnessHours >= 0 && alert.freshnessHours <= alert.freshnessPolicyHours)
@@ -178,8 +192,15 @@ function eligibleAlerts(input: MemberWeeklyIntelligenceInput) {
     .sort((left, right) => {
       const priority = Number(right.priority === "major") - Number(left.priority === "major");
       return priority || right.score - left.score || left.dedupeKey.localeCompare(right.dedupeKey) || left.id.localeCompare(right.id);
-    })
-    .slice(0, MAX_SECTION_ITEMS);
+    });
+  const seenRoutineBottles = new Set<string>();
+  return ranked.filter((alert) => {
+    if (preserveBottleLocationRepeats(alert, input.member)) return true;
+    const bottleKey = normalizedText(alert.bottleName);
+    if (!bottleKey || seenRoutineBottles.has(bottleKey)) return false;
+    seenRoutineBottles.add(bottleKey);
+    return true;
+  }).slice(0, MAX_SECTION_ITEMS);
 }
 
 function radarMatchesMember(candidate: MemberWeeklyRadarCandidate, member: MemberWeeklyProfile) {

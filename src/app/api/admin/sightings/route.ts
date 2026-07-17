@@ -34,11 +34,22 @@ async function requireAdmin() {
   return { client, adminUserId: userId };
 }
 
+async function listAllUsers(client: Awaited<ReturnType<typeof clerkClient>>, pageSize = 100, maxUsers = 1000) {
+  const users: Awaited<ReturnType<typeof client.users.getUserList>>["data"] = [];
+  let offset = 0;
+  while (users.length < maxUsers) {
+    const page = await client.users.getUserList({ limit: Math.min(pageSize, maxUsers - users.length), offset, orderBy: "+created_at" });
+    users.push(...page.data);
+    offset += page.data.length;
+    if (!page.data.length || !page.totalCount || offset >= page.totalCount) break;
+  }
+  return users;
+}
+
 export async function GET() {
   const admin = await requireAdmin();
   if (admin.error) return admin.error;
-  const result = await admin.client.users.getUserList({ limit: 100 });
-  const users = Array.isArray(result) ? result : result.data;
+  const users = await listAllUsers(admin.client);
   const usersById = new Map(users.map((user) => [user.id, user]));
   const legacySightings = users.flatMap((user) => {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
@@ -85,13 +96,22 @@ export async function PATCH(req: NextRequest) {
   let remove = false;
   let rejectSighting = false;
   let resolveManualReview = false;
-  if (payload.action === "verify_public") status = "verified_public";
-  if (payload.action === "verify_private") status = "verified_private";
+  if (payload.action === "verify_public") {
+    status = "verified_public";
+    resolveManualReview = true;
+  }
+  if (payload.action === "verify_private") {
+    status = "verified_private";
+    resolveManualReview = true;
+  }
   if (payload.action === "reject_photo") status = "rejected";
   if (payload.action === "remove_sighting") remove = true;
   if (payload.action === "reject_sighting") rejectSighting = true;
   if (payload.action === "resolve_manual_review") resolveManualReview = true;
   if (!status && !remove && !rejectSighting && !resolveManualReview) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  if (!sourceSightings.some((sighting) => sighting.id === sightingId)) {
+    return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+  }
 
   const nextSightings = sourceSightings.map((sighting) => {
     if (sighting.id !== sightingId) return sighting;
@@ -128,10 +148,10 @@ export async function PATCH(req: NextRequest) {
       },
     };
   });
+  const updatedSighting = nextSightings.find((item) => item.id === sightingId);
+  if (!updatedSighting) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   if (durableTarget) {
-    const updated = nextSightings.find((item) => item.id === sightingId);
-    if (!updated) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
-    await repository.updateSighting(updated);
+    await repository.updateSighting(updatedSighting);
     const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const nextRewards = reconcileMemberRewards(dedupeSightings([...legacyOwned, ...durableOwned]), privateMetadata.memberRewards, now);
@@ -141,5 +161,9 @@ export async function PATCH(req: NextRequest) {
     const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards, now);
     await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    pendingReview: needsSightingReview(updatedSighting),
+    sighting: updatedSighting,
+  });
 }

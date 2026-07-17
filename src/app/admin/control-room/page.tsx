@@ -3,6 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { getCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
 import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
+import AdminSightingsClient from "../sightings/AdminSightingsClient";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -74,6 +75,7 @@ export default async function CompanyControlRoomPage() {
 
         <nav className="cr-jump" aria-label="Control room sections">
           <a href="#members">Members</a>
+          <a href="#sightings">Sightings</a>
           <a href="#revenue">Revenue</a>
           <a href="#campaign">Campaign</a>
           <a href="#growth">Growth funnel</a>
@@ -96,6 +98,15 @@ export default async function CompanyControlRoomPage() {
             <Metric label="Founder members" value={memberships.counts.founder} detail={`${founder.remaining} of ${founder.limit} spots remain`} />
             <Metric label="Past due" value={memberships.counts.pastDue} detail="Membership metadata requiring attention" />
           </div>
+        </section>
+
+        <section id="sightings" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Community operations</p><h2>Member sighting approvals</h2></div>
+            <Link href="/admin/sightings">Open dedicated queue</Link>
+          </div>
+          <p className="cr-note">Every pending proof, manual bottle, and manual store review appears here. Approved, rejected, and removed items leave the queue immediately.</p>
+          <AdminSightingsClient embedded />
         </section>
 
         <section id="demand" className="cr-section">
